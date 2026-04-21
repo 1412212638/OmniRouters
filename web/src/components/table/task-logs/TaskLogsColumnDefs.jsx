@@ -170,6 +170,14 @@ const renderPlatform = (platform, t) => {
   }
 };
 
+const getTaskModelName = (record) => {
+  const properties = record?.properties;
+  if (!properties || typeof properties !== 'object') {
+    return '';
+  }
+  return properties.origin_model_name || properties.upstream_model_name || '';
+};
+
 const renderStatus = (type, t) => {
   switch (type) {
     case 'SUCCESS':
@@ -328,6 +336,28 @@ export const getTaskLogsColumns = ({
       dataIndex: 'action',
       render: (text, record, index) => {
         return <div>{renderType(text, t)}</div>;
+      },
+    },
+    {
+      key: COLUMN_KEYS.MODEL_NAME,
+      title: t('模型名称'),
+      dataIndex: 'properties',
+      render: (text, record) => {
+        const modelName = getTaskModelName(record);
+        if (!modelName) {
+          return '-';
+        }
+        return (
+          <Typography.Text
+            ellipsis={{ showTooltip: true }}
+            style={{ maxWidth: 180 }}
+            onClick={() => {
+              copyText(modelName);
+            }}
+          >
+            {modelName}
+          </Typography.Text>
+        );
       },
     },
     {
