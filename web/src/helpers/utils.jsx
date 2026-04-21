@@ -644,11 +644,11 @@ export const getPricingBillingLabel = (record, t) => {
 };
 
 export const getPricingBillingColor = (record) => {
-  if (record?.billing_mode === 'tiered_expr') {
-    return 'amber';
-  }
   if (isSoraPerRequestPricingRecord(record)) {
     return 'orange';
+  }
+  if (record?.billing_mode === 'tiered_expr') {
+    return 'amber';
   }
   if (record?.quota_type === 1) {
     return 'teal';
@@ -696,17 +696,7 @@ export const calculateModelPrice = ({
     }
   }
 
-  // 2. 动态计费（tiered_expr）
-  if (record.billing_mode === 'tiered_expr' && record.billing_expr) {
-    return {
-      isDynamicPricing: true,
-      billingExpr: record.billing_expr,
-      usedGroup,
-      usedGroupRatio,
-    };
-  }
-
-  // 3. 根据计费类型计算价格
+  // 2. Sora 参数计费优先于旧的 tiered_expr 展示
   if (record.quota_type === 1 && isSoraPerRequestPricingRecord(record)) {
     const basePriceUSD = (parseFloat(record.model_price) || 0) * usedGroupRatio;
     const basePrice = displayPrice(basePriceUSD);
@@ -736,6 +726,16 @@ export const calculateModelPrice = ({
       isSoraParamPricing: true,
       isPerToken: false,
       isTokensDisplay: false,
+      usedGroup,
+      usedGroupRatio,
+    };
+  }
+
+  // 3. 动态计费（tiered_expr）
+  if (record.billing_mode === 'tiered_expr' && record.billing_expr) {
+    return {
+      isDynamicPricing: true,
+      billingExpr: record.billing_expr,
       usedGroup,
       usedGroupRatio,
     };

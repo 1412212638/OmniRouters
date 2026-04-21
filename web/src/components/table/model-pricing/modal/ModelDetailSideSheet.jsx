@@ -96,7 +96,9 @@ const ModelDetailSideSheet = ({
                 t={t}
               />
             </div>
-            {modelData.billing_mode === 'tiered_expr' && modelData.billing_expr && (
+            {modelData.billing_mode === 'tiered_expr' &&
+              modelData.billing_expr &&
+              !modelData.sora_per_request_pricing?.enabled && (
               <>
                 <Divider margin={16} />
                 <div style={{ padding: '0 24px' }}>
@@ -113,6 +115,8 @@ const ModelDetailSideSheet = ({
                 <div style={{ padding: '0 24px' }}>
                   <SoraPricingBreakdown
                     pricing={modelData.sora_per_request_pricing}
+                    basePrice={modelData.model_price}
+                    displayPrice={displayPrice}
                     t={t}
                   />
                 </div>

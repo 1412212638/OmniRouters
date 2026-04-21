@@ -23,14 +23,23 @@ import { IconPriceTag } from '@douyinfe/semi-icons';
 
 const { Text } = Typography;
 
-export default function SoraPricingBreakdown({ pricing, t }) {
+export default function SoraPricingBreakdown({
+  pricing,
+  basePrice = 0,
+  displayPrice = (value) => `$${Number(value || 0).toFixed(4)}`,
+  t,
+}) {
   const tiers = Array.isArray(pricing?.resolution_tiers)
     ? pricing.resolution_tiers
-        .map((tier, index) => ({
-          key: `${tier?.value || 'tier'}-${index}`,
-          resolution: tier?.value || '-',
-          multiplier: Number(tier?.multiplier) || 0,
-        }))
+        .map((tier, index) => {
+          const multiplier = Number(tier?.multiplier) || 0;
+          return {
+            key: `${tier?.value || 'tier'}-${index}`,
+            resolution: tier?.value || '-',
+            multiplier,
+            pricePerSecond: displayPrice((Number(basePrice) || 0) * multiplier),
+          };
+        })
         .filter((tier) => tier.resolution !== '-' && tier.multiplier > 0)
     : [];
 
@@ -49,9 +58,9 @@ export default function SoraPricingBreakdown({ pricing, t }) {
       ),
     },
     {
-      title: t('倍率'),
-      dataIndex: 'multiplier',
-      render: (value) => <Text strong>{value}x</Text>,
+      title: t('按秒计费'),
+      dataIndex: 'pricePerSecond',
+      render: (value) => <Text strong>{value}</Text>,
     },
   ];
 
@@ -78,7 +87,7 @@ export default function SoraPricingBreakdown({ pricing, t }) {
         }}
       >
         <Text size='small'>
-          {t('请求必须提供 resolution 和 seconds；最终价格 = 基础每秒单价 × seconds × resolution 倍率 × 分组倍率。')}
+          {t('请求必须提供 resolution 和 seconds；最终价格 = 基础每秒单价 × seconds × resolution 档位价格 × 分组倍率。')}
         </Text>
       </div>
 
