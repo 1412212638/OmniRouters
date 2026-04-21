@@ -39,6 +39,8 @@ import {
   calculateModelPrice,
   formatPriceInfo,
   formatDynamicPriceSummary,
+  getPricingBillingColor,
+  getPricingDisplayBillingLabel,
   getLobeHubIcon,
 } from '../../../../../helpers';
 import PricingCardSkeleton from './PricingCardSkeleton';
@@ -154,25 +156,16 @@ const PricingCardView = ({
 
   // 渲染标签
   const renderTags = (record) => {
-    // 计费类型标签（左边）
-    let billingTag = (
-      <Tag key='billing' shape='circle' color='white' size='small'>
-        -
+    const billingTag = (
+      <Tag
+        key='billing'
+        shape='circle'
+        color={getPricingBillingColor(record)}
+        size='small'
+      >
+        {getPricingDisplayBillingLabel(record, t)}
       </Tag>
     );
-    if (record.quota_type === 1) {
-      billingTag = (
-        <Tag key='billing' shape='circle' color='teal' size='small'>
-          {t('按次计费')}
-        </Tag>
-      );
-    } else if (record.quota_type === 0) {
-      billingTag = (
-        <Tag key='billing' shape='circle' color='violet' size='small'>
-          {t('按量计费')}
-        </Tag>
-      );
-    }
 
     // 自定义标签（右边）
     const customTags = [];

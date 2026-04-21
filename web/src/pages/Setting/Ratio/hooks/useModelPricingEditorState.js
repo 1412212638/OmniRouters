@@ -31,6 +31,8 @@ const EMPTY_MODEL = {
   name: '',
   billingMode: 'per-token',
   fixedPrice: '',
+  soraPerRequestPricingEnabled: false,
+  soraResolutionTiers: [],
   inputPrice: '',
   completionPrice: '',
   lockedCompletionRatio: '',
@@ -55,6 +57,28 @@ const EMPTY_MODEL = {
 };
 
 const NUMERIC_INPUT_REGEX = /^(\d+(\.\d*)?|\.\d*)?$/;
+
+const cloneSoraResolutionTiers = (tiers) =>
+  Array.isArray(tiers)
+    ? tiers.map((tier) => ({
+        value: tier?.value ?? '',
+        multiplier: toNumericString(tier?.multiplier),
+      }))
+    : [];
+
+const normalizeSoraResolutionTiers = (tiers) =>
+  cloneSoraResolutionTiers(tiers)
+    .map((tier) => ({
+      value: tier.value.trim(),
+      multiplier: toNumericString(tier.multiplier),
+    }))
+    .filter((tier) => tier.value || hasValue(tier.multiplier));
+
+const hasSoraPerRequestPricingConfig = (model) =>
+  Boolean(model?.soraPerRequestPricingEnabled);
+
+export const isSoraPerRequestPricingModel = (model) =>
+  model?.billingMode === 'per-request' && hasSoraPerRequestPricingConfig(model);
 
 export const hasValue = (value) =>
   value !== '' && value !== null && value !== undefined && value !== false;
@@ -151,6 +175,10 @@ const buildModelState = (name, sourceMaps) => {
     sourceMaps.AudioCompletionRatio[name],
   );
   const fixedPrice = toNumericString(sourceMaps.ModelPrice[name]);
+  const soraPricing = sourceMaps.SoraPerRequestPricing?.[name];
+  const soraResolutionTiers = cloneSoraResolutionTiers(
+    soraPricing?.resolution_tiers,
+  );
   const inputPrice = ratioToBasePrice(modelRatio);
   const inputPriceNumber = toNumberOrNull(inputPrice);
   const audioInputPrice =
@@ -161,8 +189,13 @@ const buildModelState = (name, sourceMaps) => {
   return {
     ...EMPTY_MODEL,
     name,
-    billingMode: hasValue(fixedPrice) ? 'per-request' : 'per-token',
+    billingMode:
+      hasValue(fixedPrice) || Boolean(soraPricing?.enabled)
+        ? 'per-request'
+        : 'per-token',
     fixedPrice,
+    soraPerRequestPricingEnabled: Boolean(soraPricing?.enabled),
+    soraResolutionTiers,
     inputPrice,
     completionRatioLocked: completionRatioMeta.locked,
     lockedCompletionRatio: completionRatioMeta.ratio,
@@ -285,6 +318,28 @@ export const getModelWarnings = (model, t) => {
     warnings.push(t('填写音频补全价格前，需要先填写音频输入价格。'));
   }
 
+  if (isSoraPerRequestPricingModel(model)) {
+    const tiers = normalizeSoraResolutionTiers(model.soraResolutionTiers);
+    if (!hasValue(model.fixedPrice)) {
+      warnings.push(t('启用 Sora 参数计费后，需要填写基础每秒单价。'));
+    }
+    if (tiers.length === 0) {
+      warnings.push(t('启用 Sora 参数计费后，至少需要配置一个 resolution 档位。'));
+    }
+    const tierNames = tiers.map((tier) => tier.value);
+    if (new Set(tierNames).size !== tierNames.length) {
+      warnings.push(t('Sora 参数计费的 resolution 档位不能重复。'));
+    }
+    if (
+      tiers.some(
+        (tier) =>
+          !hasValue(tier.multiplier) || Number(tier.multiplier) <= 0,
+      )
+    ) {
+      warnings.push(t('Sora 参数计费的倍率必须大于 0。'));
+    }
+  }
+
   return warnings;
 };
 
@@ -301,6 +356,17 @@ export const buildSummaryText = (model, t) => {
       return `${t('表达式计费')}${requestRuleSuffix}`;
     }
     return `${t('阶梯计费')} (${tierCount} ${t('档')})${requestRuleSuffix}`;
+  }
+
+  if (isSoraPerRequestPricingModel(model)) {
+    const tierCount = normalizeSoraResolutionTiers(
+      model.soraResolutionTiers,
+    ).length;
+    const priceSuffix = hasValue(model.fixedPrice)
+      ? ` $${model.fixedPrice} / ${t('秒')}`
+      : '';
+    const tierSuffix = tierCount > 0 ? ` (${tierCount} ${t('档')})` : '';
+    return `${t('Sora 参数计费')}${tierSuffix}${priceSuffix}${requestRuleSuffix}`;
   }
 
   if (model.billingMode === 'per-request' && hasValue(model.fixedPrice)) {
@@ -452,6 +518,63 @@ const serializeModel = (model, t) => {
   return result;
 };
 
+const serializeSoraPerRequestPricing = (model, t) => {
+  if (model.billingMode !== 'per-request') {
+    return null;
+  }
+
+  const tiers = normalizeSoraResolutionTiers(model.soraResolutionTiers);
+  if (!model.soraPerRequestPricingEnabled && tiers.length === 0) {
+    return null;
+  }
+
+  const tierNames = tiers.map((tier) => tier.value);
+  if (new Set(tierNames).size !== tierNames.length) {
+    throw new Error(
+      t('模型 {{name}} 的 Sora resolution 档位存在重复值', {
+        name: model.name,
+      }),
+    );
+  }
+  if (
+    tiers.some(
+      (tier) =>
+        !hasValue(tier.multiplier) || Number(tier.multiplier) <= 0,
+    )
+  ) {
+    throw new Error(
+      t('模型 {{name}} 的 Sora resolution 倍率必须大于 0', {
+        name: model.name,
+      }),
+    );
+  }
+
+  if (model.soraPerRequestPricingEnabled) {
+    if (!hasValue(model.fixedPrice)) {
+      throw new Error(
+        t('模型 {{name}} 启用 Sora 参数计费后，必须填写基础每秒单价', {
+          name: model.name,
+        }),
+      );
+    }
+    if (tiers.length === 0) {
+      throw new Error(
+        t('模型 {{name}} 启用 Sora 参数计费后，至少需要一个 resolution 档位', {
+          name: model.name,
+        }),
+      );
+    }
+  }
+
+  return {
+    enabled: Boolean(model.soraPerRequestPricingEnabled),
+    resolution_tiers: tiers.map((tier) => ({
+      value: tier.value,
+      multiplier: Number(tier.multiplier),
+    })),
+  };
+};
+
 export const buildPreviewRows = (model, t) => {
   if (!model) return [];
   const finalBillingExpr = combineBillingExpr(
@@ -495,6 +618,27 @@ export const buildPreviewRows = (model, t) => {
         value: hasValue(model.fixedPrice) ? model.fixedPrice : t('空'),
       },
     ];
+    try {
+      const soraPricing = serializeSoraPerRequestPricing(model, t);
+      if (soraPricing) {
+        const tierSummary = soraPricing.resolution_tiers
+          .map((tier) => `${tier.value} x${tier.multiplier}`)
+          .join(', ');
+        rows.push({
+          key: 'SoraPerRequestPricing',
+          label: 'billing_setting.sora_per_request_pricing',
+          value: `${soraPricing.enabled ? t('已启用') : t('已关闭')} / ${
+            soraPricing.resolution_tiers.length
+          } ${t('档')} — ${tierSummary || t('空')}`,
+        });
+      }
+    } catch (error) {
+      rows.push({
+        key: 'SoraPerRequestPricing',
+        label: 'billing_setting.sora_per_request_pricing',
+        value: t('配置未完成'),
+      });
+    }
     return rows;
   }
 
@@ -648,6 +792,9 @@ export function useModelPricingEditorState({
       AudioCompletionRatio: parseOptionJSON(options.AudioCompletionRatio),
       ModelBillingMode: parseOptionJSON(options['billing_setting.billing_mode']),
       ModelBillingExpr: parseOptionJSON(options['billing_setting.billing_expr']),
+      SoraPerRequestPricing: parseOptionJSON(
+        options['billing_setting.sora_per_request_pricing'],
+      ),
     };
 
     const names = new Set([
@@ -663,6 +810,7 @@ export function useModelPricingEditorState({
       ...Object.keys(sourceMaps.AudioCompletionRatio),
       ...Object.keys(sourceMaps.ModelBillingMode),
       ...Object.keys(sourceMaps.ModelBillingExpr),
+      ...Object.keys(sourceMaps.SoraPerRequestPricing),
     ]);
 
     const nextModels = Array.from(names)
@@ -899,6 +1047,52 @@ export function useModelPricingEditorState({
     }));
   };
 
+  const handleSoraPerRequestToggle = (checked) => {
+    if (!selectedModel) return;
+    upsertModel(selectedModel.name, (model) => ({
+      ...model,
+      soraPerRequestPricingEnabled: checked,
+      soraResolutionTiers:
+        checked && model.soraResolutionTiers.length === 0
+          ? [{ value: '', multiplier: '' }]
+          : model.soraResolutionTiers,
+    }));
+  };
+
+  const handleSoraResolutionTierChange = (index, field, value) => {
+    if (!selectedModel) return;
+    if (field === 'multiplier' && !NUMERIC_INPUT_REGEX.test(value)) {
+      return;
+    }
+    upsertModel(selectedModel.name, (model) => ({
+      ...model,
+      soraResolutionTiers: model.soraResolutionTiers.map((tier, tierIndex) =>
+        tierIndex === index ? { ...tier, [field]: value } : tier,
+      ),
+    }));
+  };
+
+  const handleAddSoraResolutionTier = () => {
+    if (!selectedModel) return;
+    upsertModel(selectedModel.name, (model) => ({
+      ...model,
+      soraResolutionTiers: [
+        ...model.soraResolutionTiers,
+        { value: '', multiplier: '' },
+      ],
+    }));
+  };
+
+  const handleRemoveSoraResolutionTier = (index) => {
+    if (!selectedModel) return;
+    upsertModel(selectedModel.name, (model) => ({
+      ...model,
+      soraResolutionTiers: model.soraResolutionTiers.filter(
+        (_, tierIndex) => tierIndex !== index,
+      ),
+    }));
+  };
+
   const addModel = (modelName) => {
     const trimmedName = modelName.trim();
     if (!trimmedName) {
@@ -964,6 +1158,11 @@ export function useModelPricingEditorState({
           ...model,
           billingMode: selectedModel.billingMode,
           fixedPrice: selectedModel.fixedPrice,
+          soraPerRequestPricingEnabled:
+            selectedModel.soraPerRequestPricingEnabled,
+          soraResolutionTiers: cloneSoraResolutionTiers(
+            selectedModel.soraResolutionTiers,
+          ),
           inputPrice: selectedModel.inputPrice,
           completionPrice: selectedModel.completionPrice,
           cachePrice: selectedModel.cachePrice,
@@ -1037,6 +1236,7 @@ export function useModelPricingEditorState({
       const tieredOutput = {
         'billing_setting.billing_mode': {},
         'billing_setting.billing_expr': {},
+        'billing_setting.sora_per_request_pricing': {},
       };
 
       for (const model of models) {
@@ -1060,6 +1260,11 @@ export function useModelPricingEditorState({
             output[key][model.name] = value;
           }
         });
+        const soraPricing = serializeSoraPerRequestPricing(model, t);
+        if (soraPricing) {
+          tieredOutput['billing_setting.sora_per_request_pricing'][model.name] =
+            soraPricing;
+        }
       }
 
       const requestQueue = [
@@ -1118,6 +1323,10 @@ export function useModelPricingEditorState({
     handleBillingModeChange,
     handleBillingExprChange,
     handleRequestRuleExprChange,
+    handleSoraPerRequestToggle,
+    handleSoraResolutionTierChange,
+    handleAddSoraResolutionTier,
+    handleRemoveSoraResolutionTier,
     handleSubmit,
     addModel,
     deleteModel,

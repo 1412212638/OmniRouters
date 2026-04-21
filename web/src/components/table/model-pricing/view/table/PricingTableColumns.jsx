@@ -25,6 +25,8 @@ import {
   stringToColor,
   calculateModelPrice,
   getModelPriceItems,
+  getPricingBillingColor,
+  getPricingDisplayBillingLabel,
   getLobeHubIcon,
 } from '../../../../../helpers';
 import {
@@ -33,7 +35,14 @@ import {
 } from '../../../../common/ui/RenderUtils';
 import { useIsMobile } from '../../../../../hooks/common/useIsMobile';
 
-function renderQuotaType(type, t) {
+function renderQuotaType(record, t) {
+  return (
+    <Tag color={getPricingBillingColor(record)} shape='circle'>
+      {getPricingDisplayBillingLabel(record, t)}
+    </Tag>
+  );
+
+  /*
   switch (type) {
     case 1:
       return (
@@ -50,6 +59,7 @@ function renderQuotaType(type, t) {
     default:
       return t('未知');
   }
+  */
 }
 
 // Render vendor name
@@ -160,7 +170,7 @@ export const getPricingTableColumns = ({
     title: t('计费类型'),
     dataIndex: 'quota_type',
     render: (text, record, index) => {
-      return renderQuotaType(parseInt(text), t);
+      return renderQuotaType(record, t);
     },
     sorter: (a, b) => a.quota_type - b.quota_type,
   };

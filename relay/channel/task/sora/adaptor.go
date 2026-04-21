@@ -18,20 +18,17 @@ import (
 	taskcommon "github.com/QuantumNous/new-api/relay/channel/task/taskcommon"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/service"
+	"github.com/QuantumNous/new-api/setting/billing_setting"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/tidwall/sjson"
 )
 
-// ============================
-// Request / Response structures
-// ============================
-
 type ContentItem struct {
-	Type     string    `json:"type"`                // "text" or "image_url"
-	Text     string    `json:"text,omitempty"`      // for text type
-	ImageURL *ImageURL `json:"image_url,omitempty"` // for image_url type
+	Type     string    `json:"type"`
+	Text     string    `json:"text,omitempty"`
+	ImageURL *ImageURL `json:"image_url,omitempty"`
 }
 
 type ImageURL struct {
@@ -40,7 +37,7 @@ type ImageURL struct {
 
 type responseTask struct {
 	ID                 string `json:"id"`
-	TaskID             string `json:"task_id,omitempty"` //兼容旧接口
+	TaskID             string `json:"task_id,omitempty"`
 	Object             string `json:"object"`
 	Model              string `json:"model"`
 	Status             string `json:"status"`
@@ -57,15 +54,24 @@ type responseTask struct {
 	} `json:"error,omitempty"`
 }
 
-// ============================
-// Adaptor implementation
-// ============================
-
 type TaskAdaptor struct {
 	taskcommon.BaseBilling
 	ChannelType int
 	apiKey      string
 	baseURL     string
+}
+
+type soraParamPricingRequest struct {
+	Model      string `json:"model,omitempty"`
+	Resolution string `json:"resolution,omitempty"`
+	Seconds    string `json:"seconds,omitempty"`
+	Duration   int    `json:"duration,omitempty"`
+}
+
+type soraPricingContext struct {
+	Resolution string
+	Seconds    int
+	Multiplier float64
 }
 
 func (a *TaskAdaptor) Init(info *relaycommon.RelayInfo) {
@@ -82,7 +88,6 @@ func validateRemixRequest(c *gin.Context) *dto.TaskError {
 	if strings.TrimSpace(req.Prompt) == "" {
 		return service.TaskErrorWrapperLocal(fmt.Errorf("field prompt is required"), "invalid_request", http.StatusBadRequest)
 	}
-	// 存储原始请求到 context，与 ValidateMultipartDirect 路径保持一致
 	c.Set("task_request", req)
 	return nil
 }
@@ -91,14 +96,22 @@ func (a *TaskAdaptor) ValidateRequestAndSetAction(c *gin.Context, info *relaycom
 	if info.Action == constant.TaskActionRemix {
 		return validateRemixRequest(c)
 	}
-	return relaycommon.ValidateMultipartDirect(c, info)
+	if taskErr := relaycommon.ValidateMultipartDirect(c, info); taskErr != nil {
+		return taskErr
+	}
+	return a.validateSoraParamPricing(c)
 }
 
-// EstimateBilling 根据用户请求的 seconds 和 size 计算 OtherRatios。
 func (a *TaskAdaptor) EstimateBilling(c *gin.Context, info *relaycommon.RelayInfo) map[string]float64 {
-	// remix 路径的 OtherRatios 已在 ResolveOriginTask 中设置
 	if info.Action == constant.TaskActionRemix {
 		return nil
+	}
+
+	if soraPricing, ok := common.GetContextKeyType[soraPricingContext](c, constant.ContextKeySoraPricingContext); ok {
+		return map[string]float64{
+			"seconds":    float64(soraPricing.Seconds),
+			"resolution": soraPricing.Multiplier,
+		}
 	}
 
 	req, err := relaycommon.GetTaskRequest(c)
@@ -129,6 +142,60 @@ func (a *TaskAdaptor) EstimateBilling(c *gin.Context, info *relaycommon.RelayInf
 	return ratios
 }
 
+func (a *TaskAdaptor) validateSoraParamPricing(c *gin.Context) *dto.TaskError {
+	if a.ChannelType != constant.ChannelTypeSora {
+		return nil
+	}
+
+	var req soraParamPricingRequest
+	if err := common.UnmarshalBodyReusable(c, &req); err != nil {
+		return service.TaskErrorWrapperLocal(err, "invalid_request", http.StatusBadRequest)
+	}
+
+	rule, ok := billing_setting.GetSoraPerRequestPricing(strings.TrimSpace(req.Model))
+	if !ok || !rule.Enabled {
+		return nil
+	}
+
+	resolution := strings.TrimSpace(req.Resolution)
+	if resolution == "" {
+		return service.TaskErrorWrapperLocal(fmt.Errorf("field resolution is required"), "invalid_request", http.StatusBadRequest)
+	}
+
+	seconds, err := normalizeSoraBillingSeconds(req.Seconds)
+	if err != nil {
+		return service.TaskErrorWrapperLocal(err, "invalid_request", http.StatusBadRequest)
+	}
+
+	multiplier, ok := rule.FindResolutionMultiplier(resolution)
+	if !ok {
+		return service.TaskErrorWrapperLocal(
+			fmt.Errorf("unsupported resolution %q, available values: %s", resolution, strings.Join(rule.ResolutionValues(), ", ")),
+			"invalid_request",
+			http.StatusBadRequest,
+		)
+	}
+
+	common.SetContextKey(c, constant.ContextKeySoraPricingContext, soraPricingContext{
+		Resolution: resolution,
+		Seconds:    seconds,
+		Multiplier: multiplier,
+	})
+	return nil
+}
+
+func normalizeSoraBillingSeconds(secondsStr string) (int, error) {
+	secondsStr = strings.TrimSpace(secondsStr)
+	if secondsStr == "" {
+		return 0, fmt.Errorf("field seconds is required")
+	}
+	seconds, err := strconv.Atoi(secondsStr)
+	if err != nil || seconds <= 0 {
+		return 0, fmt.Errorf("field seconds must be a positive integer")
+	}
+	return seconds, nil
+}
+
 func (a *TaskAdaptor) BuildRequestURL(info *relaycommon.RelayInfo) (string, error) {
 	if info.Action == constant.TaskActionRemix {
 		return fmt.Sprintf("%s/v1/videos/%s/remix", a.baseURL, info.OriginTaskID), nil
@@ -136,7 +203,6 @@ func (a *TaskAdaptor) BuildRequestURL(info *relaycommon.RelayInfo) (string, erro
 	return fmt.Sprintf("%s/v1/videos", a.baseURL), nil
 }
 
-// BuildRequestHeader sets required headers.
 func (a *TaskAdaptor) BuildRequestHeader(c *gin.Context, req *http.Request, info *relaycommon.RelayInfo) error {
 	req.Header.Set("Authorization", "Bearer "+a.apiKey)
 	req.Header.Set("Content-Type", c.Request.Header.Get("Content-Type"))
@@ -192,7 +258,6 @@ func (a *TaskAdaptor) BuildRequestBody(c *gin.Context, info *relaycommon.RelayIn
 					buf512 := make([]byte, 512)
 					n, _ := io.ReadFull(f, buf512)
 					ct = http.DetectContentType(buf512[:n])
-					// Re-open after sniffing so the full content is copied below
 					f.Close()
 					f, err = fh.Open()
 					if err != nil {
@@ -219,12 +284,10 @@ func (a *TaskAdaptor) BuildRequestBody(c *gin.Context, info *relaycommon.RelayIn
 	return common.ReaderOnly(storage), nil
 }
 
-// DoRequest delegates to common helper.
 func (a *TaskAdaptor) DoRequest(c *gin.Context, info *relaycommon.RelayInfo, requestBody io.Reader) (*http.Response, error) {
 	return channel.DoTaskApiRequest(a, c, info, requestBody)
 }
 
-// DoResponse handles upstream response, returns taskID etc.
 func (a *TaskAdaptor) DoResponse(c *gin.Context, resp *http.Response, info *relaycommon.RelayInfo) (taskID string, taskData []byte, taskErr *dto.TaskError) {
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -233,7 +296,6 @@ func (a *TaskAdaptor) DoResponse(c *gin.Context, resp *http.Response, info *rela
 	}
 	_ = resp.Body.Close()
 
-	// Parse Sora response
 	var dResp responseTask
 	if err := common.Unmarshal(responseBody, &dResp); err != nil {
 		taskErr = service.TaskErrorWrapper(errors.Wrapf(err, "body: %s", responseBody), "unmarshal_response_body_failed", http.StatusInternalServerError)
@@ -249,14 +311,12 @@ func (a *TaskAdaptor) DoResponse(c *gin.Context, resp *http.Response, info *rela
 		return
 	}
 
-	// 使用公开 task_xxxx ID 返回给客户端
 	dResp.ID = info.PublicTaskID
 	dResp.TaskID = info.PublicTaskID
 	c.JSON(http.StatusOK, dResp)
 	return upstreamID, responseBody, nil
 }
 
-// FetchTask fetch task status
 func (a *TaskAdaptor) FetchTask(baseUrl, key string, body map[string]any, proxy string) (*http.Response, error) {
 	taskID, ok := body["task_id"].(string)
 	if !ok {
@@ -304,7 +364,6 @@ func (a *TaskAdaptor) ParseTaskResult(respBody []byte) (*relaycommon.TaskInfo, e
 		taskResult.Status = model.TaskStatusInProgress
 	case "completed":
 		taskResult.Status = model.TaskStatusSuccess
-		// Url intentionally left empty — the caller constructs the proxy URL using the public task ID
 	case "failed", "cancelled":
 		taskResult.Status = model.TaskStatusFailure
 		if resTask.Error != nil {

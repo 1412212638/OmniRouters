@@ -8,6 +8,7 @@ import (
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/setting"
+	"github.com/QuantumNous/new-api/setting/billing_setting"
 	"github.com/QuantumNous/new-api/setting/console_setting"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
@@ -25,6 +26,25 @@ var completionRatioMetaOptionKeys = []string{
 	"ImageRatio",
 	"AudioRatio",
 	"AudioCompletionRatio",
+}
+
+var pricingOptionKeys = map[string]struct{}{
+	"ModelPrice":                           {},
+	"ModelRatio":                           {},
+	"CompletionRatio":                      {},
+	"CacheRatio":                           {},
+	"CreateCacheRatio":                     {},
+	"ImageRatio":                           {},
+	"AudioRatio":                           {},
+	"AudioCompletionRatio":                 {},
+	"billing_setting.billing_mode":         {},
+	"billing_setting.billing_expr":         {},
+	"billing_setting.sora_per_request_pricing": {},
+}
+
+func shouldRefreshPricingForOption(key string) bool {
+	_, ok := pricingOptionKeys[key]
+	return ok
 }
 
 func isVisiblePublicKeyOption(key string) bool {
@@ -306,11 +326,23 @@ func UpdateOption(c *gin.Context) {
 			})
 			return
 		}
+	case "billing_setting.sora_per_request_pricing":
+		err = billing_setting.ValidateSoraPerRequestPricingJSONString(option.Value.(string))
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": err.Error(),
+			})
+			return
+		}
 	}
 	err = model.UpdateOption(option.Key, option.Value.(string))
 	if err != nil {
 		common.ApiError(c, err)
 		return
+	}
+	if shouldRefreshPricingForOption(option.Key) {
+		model.RefreshPricing()
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,

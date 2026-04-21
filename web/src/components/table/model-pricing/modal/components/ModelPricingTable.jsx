@@ -20,7 +20,12 @@ For commercial licensing, please contact support@quantumnous.com
 import React from 'react';
 import { Avatar, Typography, Table, Tag } from '@douyinfe/semi-ui';
 import { IconCoinMoneyStroked } from '@douyinfe/semi-icons';
-import { calculateModelPrice, getModelPriceItems } from '../../../../../helpers';
+import {
+  calculateModelPrice,
+  getModelPriceItems,
+  getPricingBillingColor,
+  getPricingDisplayBillingLabel,
+} from '../../../../../helpers';
 
 const { Text } = Typography;
 
@@ -39,16 +44,15 @@ const ModelPricingTable = ({
   const modelEnableGroups = Array.isArray(modelData?.enable_groups)
     ? modelData.enable_groups
     : [];
-  const autoChain = autoGroups.filter((g) => modelEnableGroups.includes(g));
+  const autoChain = autoGroups.filter((group) =>
+    modelEnableGroups.includes(group),
+  );
+
   const renderGroupPriceTable = () => {
-    // 仅展示模型可用的分组：模型 enable_groups 与用户可用分组的交集
-
     const availableGroups = Object.keys(usableGroup || {})
-      .filter((g) => g !== '')
-      .filter((g) => g !== 'auto')
-      .filter((g) => modelEnableGroups.includes(g));
+      .filter((group) => group && group !== 'auto')
+      .filter((group) => modelEnableGroups.includes(group));
 
-    // 准备表格数据
     const tableData = availableGroups.map((group) => {
       const priceData = modelData
         ? calculateModelPrice({
@@ -62,27 +66,16 @@ const ModelPricingTable = ({
           })
         : { inputPrice: '-', outputPrice: '-', price: '-' };
 
-      // 获取分组倍率
-      const groupRatioValue =
-        groupRatio && groupRatio[group] ? groupRatio[group] : 1;
-
       return {
         key: group,
-        group: group,
-        ratio: groupRatioValue,
-        billingType:
-          modelData?.billing_mode === 'tiered_expr'
-            ? t('动态计费')
-            : modelData?.quota_type === 0
-              ? t('按量计费')
-              : modelData?.quota_type === 1
-                ? t('按次计费')
-                : '-',
+        group,
+        ratio: groupRatio && groupRatio[group] ? groupRatio[group] : 1,
+        billingType: getPricingDisplayBillingLabel(modelData, t),
+        billingColor: getPricingBillingColor(modelData),
         priceItems: getModelPriceItems(priceData, t, siteDisplayType),
       };
     });
 
-    // 定义表格列
     const columns = [
       {
         title: t('分组'),
@@ -97,8 +90,6 @@ const ModelPricingTable = ({
     ];
 
     const isDynamic = modelData?.billing_mode === 'tiered_expr';
-
-    // 动态计费时始终显示倍率列，否则根据设置
     if (showRatio || isDynamic) {
       columns.push({
         title: t('分组倍率'),
@@ -114,17 +105,11 @@ const ModelPricingTable = ({
     columns.push({
       title: t('计费类型'),
       dataIndex: 'billingType',
-      render: (text) => {
-        let color = 'white';
-        if (text === t('按量计费')) color = 'violet';
-        else if (text === t('按次计费')) color = 'teal';
-        else if (text === t('动态计费')) color = 'amber';
-        return (
-          <Tag color={color} size='small' shape='circle'>
-            {text || '-'}
-          </Tag>
-        );
-      },
+      render: (text, record) => (
+        <Tag color={record.billingColor || 'white'} size='small' shape='circle'>
+          {text || '-'}
+        </Tag>
+      ),
     });
 
     columns.push({
@@ -178,21 +163,23 @@ const ModelPricingTable = ({
           </div>
         </div>
       </div>
+
       {autoChain.length > 0 && (
         <div className='flex flex-wrap items-center gap-1 mb-4'>
           <span className='text-sm text-gray-600'>{t('auto分组调用链路')}</span>
           <span className='text-sm'>→</span>
-          {autoChain.map((g, idx) => (
-            <React.Fragment key={g}>
+          {autoChain.map((group, index) => (
+            <React.Fragment key={group}>
               <Tag color='white' size='small' shape='circle'>
-                {g}
+                {group}
                 {t('分组')}
               </Tag>
-              {idx < autoChain.length - 1 && <span className='text-sm'>→</span>}
+              {index < autoChain.length - 1 && <span className='text-sm'>→</span>}
             </React.Fragment>
           ))}
         </div>
       )}
+
       {renderGroupPriceTable()}
     </div>
   );

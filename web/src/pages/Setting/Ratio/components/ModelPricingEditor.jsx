@@ -46,6 +46,7 @@ import {
   PRICE_SUFFIX,
   buildSummaryText,
   hasValue,
+  isSoraPerRequestPricingModel,
   useModelPricingEditorState,
 } from '../hooks/useModelPricingEditorState';
 import { useIsMobile } from '../../../../hooks/common/useIsMobile';
@@ -83,6 +84,65 @@ const PriceInput = ({
       <div className='mt-1 text-xs text-gray-500'>{extraText}</div>
     ) : null}
   </div>
+);
+
+const SoraResolutionTierEditor = ({
+  tiers,
+  onTierChange,
+  onAddTier,
+  onRemoveTier,
+  t,
+}) => (
+  <Card
+    bodyStyle={{ padding: 16 }}
+    style={{
+      marginBottom: 16,
+      background: 'var(--semi-color-fill-0)',
+    }}
+  >
+    <div className='flex items-center justify-between mb-3'>
+      <div className='font-medium'>{t('resolution 档位')}</div>
+      <Button
+        icon={<IconPlus />}
+        theme='light'
+        onClick={onAddTier}
+      >
+        {t('添加档位')}
+      </Button>
+    </div>
+    <div className='space-y-3'>
+      {tiers.map((tier, index) => (
+        <div
+          key={`sora-tier-${index}`}
+          className='grid gap-3'
+          style={{
+            gridTemplateColumns: 'minmax(0, 1fr) minmax(140px, 180px) auto',
+            alignItems: 'end',
+          }}
+        >
+          <Input
+            value={tier.value}
+            placeholder={t('如 720p / 1080p / 4K')}
+            onChange={(value) => onTierChange(index, 'value', value)}
+          />
+          <Input
+            value={tier.multiplier}
+            placeholder={t('倍率')}
+            suffix='x'
+            onChange={(value) => onTierChange(index, 'multiplier', value)}
+          />
+          <Button
+            type='danger'
+            icon={<IconDelete />}
+            onClick={() => onRemoveTier(index)}
+          />
+        </div>
+      ))}
+    </div>
+    <div className='mt-3 text-xs text-gray-500'>
+      {t('最终价格 = 基础每秒单价 × seconds × resolution 倍率 × 分组倍率')}
+    </div>
+  </Card>
 );
 
 export default function ModelPricingEditor({
@@ -126,6 +186,10 @@ export default function ModelPricingEditor({
     handleBillingModeChange,
     handleBillingExprChange,
     handleRequestRuleExprChange,
+    handleSoraPerRequestToggle,
+    handleSoraResolutionTierChange,
+    handleAddSoraResolutionTier,
+    handleRemoveSoraResolutionTier,
     handleSubmit,
     addModel,
     deleteModel,
@@ -146,6 +210,25 @@ export default function ModelPricingEditor({
       ? t('阶梯计费')
       : t('表达式计费');
   }, [t]);
+
+  const getPerRequestLabel = useCallback(
+    (model) =>
+      isSoraPerRequestPricingModel(model) ? t('Sora 参数计费') : t('按次计费'),
+    [t],
+  );
+
+  const getBillingTagColor = useCallback((model) => {
+    if (model?.billingMode === 'tiered_expr') {
+      return 'amber';
+    }
+    if (isSoraPerRequestPricingModel(model)) {
+      return 'orange';
+    }
+    if (model?.billingMode === 'per-request') {
+      return 'teal';
+    }
+    return 'violet';
+  }, []);
 
   const columns = useMemo(
     () => [
@@ -187,17 +270,9 @@ export default function ModelPricingEditor({
         dataIndex: 'billingMode',
         key: 'billingMode',
         render: (_, record) => (
-          <Tag
-            color={
-              record.billingMode === 'per-request'
-                ? 'teal'
-                : record.billingMode === 'tiered_expr'
-                  ? 'amber'
-                  : 'violet'
-            }
-          >
+          <Tag color={getBillingTagColor(record)}>
             {record.billingMode === 'per-request'
-              ? t('按次计费')
+              ? getPerRequestLabel(record)
               : record.billingMode === 'tiered_expr'
                 ? getExprModeLabel(record)
                 : t('按量计费')}
@@ -230,7 +305,9 @@ export default function ModelPricingEditor({
     [
       allowDeleteModel,
       deleteModel,
+      getBillingTagColor,
       getExprModeLabel,
+      getPerRequestLabel,
       selectedModelName,
       selectedModelNames,
       setSelectedModelName,
@@ -376,17 +453,9 @@ export default function ModelPricingEditor({
             title={selectedModel ? selectedModel.name : t('模型计费编辑器')}
             headerExtraContent={
               selectedModel ? (
-                <Tag
-                  color={
-                    selectedModel.billingMode === 'per-request'
-                      ? 'teal'
-                      : selectedModel.billingMode === 'tiered_expr'
-                        ? 'amber'
-                        : 'blue'
-                  }
-                >
+                <Tag color={getBillingTagColor(selectedModel)}>
                   {selectedModel.billingMode === 'per-request'
-                    ? t('按次计费')
+                    ? getPerRequestLabel(selectedModel)
                     : selectedModel.billingMode === 'tiered_expr'
                       ? getExprModeLabel(selectedModel)
                       : t('按量计费')}
@@ -441,14 +510,69 @@ export default function ModelPricingEditor({
                 ) : null}
 
                 {selectedModel.billingMode === 'per-request' ? (
-                  <PriceInput
-                    label={t('固定价格')}
-                    value={selectedModel.fixedPrice}
-                    placeholder={t('输入每次调用价格')}
-                    suffix={t('$/次')}
-                    onChange={(value) => handleNumericFieldChange('fixedPrice', value)}
-                    extraText={t('适合 MJ / 任务类等按次收费模型。')}
-                  />
+                  <>
+                    <Card
+                      bodyStyle={{ padding: 16 }}
+                      style={{
+                        marginBottom: 16,
+                        background: 'var(--semi-color-fill-0)',
+                      }}
+                    >
+                      <div className='flex items-center justify-between gap-4'>
+                        <div>
+                          <div className='font-medium mb-1'>
+                            {t('Sora 参数计费')}
+                          </div>
+                          <div className='text-xs text-gray-500'>
+                            {t(
+                              '仅对 Sora 渠道生效；开启后会要求请求传 resolution 与 seconds，并按档位倍率计算价格。',
+                            )}
+                          </div>
+                        </div>
+                        <Switch
+                          checked={selectedModel.soraPerRequestPricingEnabled}
+                          onChange={handleSoraPerRequestToggle}
+                        />
+                      </div>
+                    </Card>
+                    <PriceInput
+                      label={
+                        selectedModel.soraPerRequestPricingEnabled
+                          ? t('基础每秒单价')
+                          : t('固定价格')
+                      }
+                      value={selectedModel.fixedPrice}
+                      placeholder={
+                        selectedModel.soraPerRequestPricingEnabled
+                          ? t('输入每秒基础价格')
+                          : t('输入每次调用价格')
+                      }
+                      suffix={
+                        selectedModel.soraPerRequestPricingEnabled
+                          ? t('$/秒')
+                          : t('$/次')
+                      }
+                      onChange={(value) =>
+                        handleNumericFieldChange('fixedPrice', value)
+                      }
+                      extraText={
+                        selectedModel.soraPerRequestPricingEnabled
+                          ? t(
+                              '最终价格会按 基础每秒单价 × seconds × resolution 倍率 × 分组倍率 计算。',
+                            )
+                          : t('适合 MJ / 任务类等按次收费模型。')
+                      }
+                    />
+                    {selectedModel.soraPerRequestPricingEnabled ? (
+                      <SoraResolutionTierEditor
+                        tiers={selectedModel.soraResolutionTiers}
+                        onTierChange={handleSoraResolutionTierChange}
+                        onAddTier={handleAddSoraResolutionTier}
+                        onRemoveTier={handleRemoveSoraResolutionTier}
+                        t={t}
+                      />
+                    ) : null}
+                  </>
                 ) : selectedModel.billingMode === 'tiered_expr' ? (
                   <TieredPricingEditor
                     model={selectedModel}

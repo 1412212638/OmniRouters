@@ -35,6 +35,7 @@ type Pricing struct {
 	SupportedEndpointTypes []constant.EndpointType `json:"supported_endpoint_types"`
 	BillingMode            string                  `json:"billing_mode,omitempty"`
 	BillingExpr            string                  `json:"billing_expr,omitempty"`
+	SoraPerRequestPricing  *billing_setting.SoraPerRequestPricing `json:"sora_per_request_pricing,omitempty"`
 	PricingVersion         string                  `json:"pricing_version,omitempty"`
 }
 
@@ -328,12 +329,16 @@ func updatePricing() {
 				pricing.BillingExpr = expr
 			}
 		}
+		if soraPricing, ok := billing_setting.GetSoraPerRequestPricing(model); ok && soraPricing.Enabled {
+			soraPricingCopy := soraPricing
+			pricing.SoraPerRequestPricing = &soraPricingCopy
+		}
 		pricingMap = append(pricingMap, pricing)
 	}
 
 	// 防止大更新后数据不通用
 	if len(pricingMap) > 0 {
-		pricingMap[0].PricingVersion = "5a90f2b86c08bd983a9a2e6d66c255f4eaef9c4bc934386d2b6ae84ef0ff1f1f"
+		pricingMap[0].PricingVersion = "83ef7db8129170c771343ac9b88c20f8313380f82fb93059df5305f55c4e4ce0"
 	}
 
 	// 刷新缓存映射，供高并发快速查询

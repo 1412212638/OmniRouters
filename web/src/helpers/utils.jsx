@@ -608,6 +608,57 @@ export const selectFilter = (input, option) => {
 
 // -------------------------------
 // 模型定价计算工具函数
+export const isSoraPerRequestPricingRecord = (record) =>
+  Boolean(record?.sora_per_request_pricing?.enabled);
+
+export const getPricingDisplayBillingLabel = (record, t) => {
+  if (
+    record?.billing_mode === 'tiered_expr' ||
+    isSoraPerRequestPricingRecord(record)
+  ) {
+    return t('动态计费');
+  }
+  if (record?.quota_type === 1) {
+    return t('按次计费');
+  }
+  if (record?.quota_type === 0) {
+    return t('按量计费');
+  }
+  return '-';
+};
+
+export const getPricingBillingLabel = (record, t) => {
+  if (record?.billing_mode === 'tiered_expr') {
+    return t('动态计费');
+  }
+  if (isSoraPerRequestPricingRecord(record)) {
+    return t('Sora 参数计费');
+  }
+  if (record?.quota_type === 1) {
+    return t('按次计费');
+  }
+  if (record?.quota_type === 0) {
+    return t('按量计费');
+  }
+  return '-';
+};
+
+export const getPricingBillingColor = (record) => {
+  if (record?.billing_mode === 'tiered_expr') {
+    return 'amber';
+  }
+  if (isSoraPerRequestPricingRecord(record)) {
+    return 'orange';
+  }
+  if (record?.quota_type === 1) {
+    return 'teal';
+  }
+  if (record?.quota_type === 0) {
+    return 'violet';
+  }
+  return 'white';
+};
+
 export const calculateModelPrice = ({
   record,
   selectedGroup,
@@ -656,6 +707,40 @@ export const calculateModelPrice = ({
   }
 
   // 3. 根据计费类型计算价格
+  if (record.quota_type === 1 && isSoraPerRequestPricingRecord(record)) {
+    const basePriceUSD = (parseFloat(record.model_price) || 0) * usedGroupRatio;
+    const basePrice = displayPrice(basePriceUSD);
+    const resolutionTiers = Array.isArray(
+      record.sora_per_request_pricing?.resolution_tiers,
+    )
+      ? record.sora_per_request_pricing.resolution_tiers
+          .map((tier) => {
+            const multiplier = Number(tier?.multiplier);
+            if (!tier?.value || !Number.isFinite(multiplier) || multiplier <= 0) {
+              return null;
+            }
+            return {
+              key: tier.value,
+              label: tier.value,
+              multiplier,
+              price: displayPrice(basePriceUSD * multiplier),
+            };
+          })
+          .filter(Boolean)
+      : [];
+
+    return {
+      price: basePrice,
+      basePrice,
+      resolutionTiers,
+      isSoraParamPricing: true,
+      isPerToken: false,
+      isTokensDisplay: false,
+      usedGroup,
+      usedGroupRatio,
+    };
+  }
+
   if (record.quota_type === 0) {
     // 按量计费
     const isTokensDisplay = quotaDisplayType === 'TOKENS';
@@ -786,6 +871,23 @@ export const getModelPriceItems = (
         isDynamic: true,
       },
     ];
+  }
+
+  if (priceData.isSoraParamPricing) {
+    return [
+      {
+        key: 'base-second',
+        label: t('基础每秒单价'),
+        value: priceData.basePrice,
+        suffix: ` / ${t('秒')}`,
+      },
+      ...(priceData.resolutionTiers || []).map((tier) => ({
+        key: `tier-${tier.key}`,
+        label: `${tier.label} (x${tier.multiplier})`,
+        value: tier.price,
+        suffix: ` / ${t('秒')}`,
+      })),
+    ].filter((item) => item.value !== null && item.value !== undefined && item.value !== '');
   }
 
   if (priceData.isPerToken) {
@@ -977,6 +1079,18 @@ export const formatDynamicPriceSummary = (billingExpr, t, groupRatio = 1) => {
 // 格式化价格信息（用于卡片视图）
 export const formatPriceInfo = (priceData, t, quotaDisplayType = 'USD') => {
   const items = getModelPriceItems(priceData, t, quotaDisplayType);
+  if (priceData.isSoraParamPricing) {
+    return (
+      <div className='flex flex-col gap-1'>
+        {items.map((item) => (
+          <span key={item.key} style={{ color: 'var(--semi-color-text-1)' }}>
+            {item.label} {item.value}
+            {item.suffix}
+          </span>
+        ))}
+      </div>
+    );
+  }
   return (
     <>
       {items.map((item) => (

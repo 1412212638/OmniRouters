@@ -27,6 +27,7 @@ import ModelBasicInfo from './components/ModelBasicInfo';
 import ModelEndpoints from './components/ModelEndpoints';
 import ModelPricingTable from './components/ModelPricingTable';
 import DynamicPricingBreakdown from './components/DynamicPricingBreakdown';
+import SoraPricingBreakdown from './components/SoraPricingBreakdown';
 
 const { Text } = Typography;
 
@@ -101,6 +102,17 @@ const ModelDetailSideSheet = ({
                 <div style={{ padding: '0 24px' }}>
                   <DynamicPricingBreakdown
                     billingExpr={modelData.billing_expr}
+                    t={t}
+                  />
+                </div>
+              </>
+            )}
+            {modelData.sora_per_request_pricing?.enabled && (
+              <>
+                <Divider margin={16} />
+                <div style={{ padding: '0 24px' }}>
+                  <SoraPricingBreakdown
+                    pricing={modelData.sora_per_request_pricing}
                     t={t}
                   />
                 </div>
