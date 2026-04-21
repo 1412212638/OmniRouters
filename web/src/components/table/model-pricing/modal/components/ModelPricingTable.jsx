@@ -29,6 +29,81 @@ import {
 
 const { Text } = Typography;
 
+const soraSummaryWrapStyle = {
+  border: '1px solid var(--semi-color-border)',
+  borderRadius: 14,
+  overflow: 'hidden',
+  background: 'var(--semi-color-bg-0)',
+  maxWidth: 320,
+};
+
+const soraSummaryGridStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr) auto',
+};
+
+const soraSummaryHeaderCellStyle = {
+  padding: '10px 14px',
+  background: 'var(--semi-color-fill-0)',
+  color: 'var(--semi-color-text-1)',
+  fontSize: 13,
+  fontWeight: 600,
+};
+
+const soraSummaryCellStyle = {
+  padding: '10px 14px',
+  borderTop: '1px solid var(--semi-color-border)',
+  color: 'var(--semi-color-text-0)',
+  fontSize: 13,
+};
+
+const renderSoraPriceSummary = (priceData, t) => {
+  const tiers = Array.isArray(priceData?.resolutionTiers)
+    ? priceData.resolutionTiers
+    : [];
+
+  if (tiers.length === 0) {
+    return (
+      <Text type='tertiary' size='small'>
+        {t('\u6682\u65e0\u4ef7\u683c\u6863\u4f4d')}
+      </Text>
+    );
+  }
+
+  return (
+    <div style={soraSummaryWrapStyle}>
+      <div style={soraSummaryGridStyle}>
+        <div style={soraSummaryHeaderCellStyle}>{t('\u5206\u8fa8\u7387')}</div>
+        <div
+          style={{
+            ...soraSummaryHeaderCellStyle,
+            textAlign: 'right',
+          }}
+        >
+          {t('\u4ef7\u683c')}
+        </div>
+      </div>
+      {tiers.map((tier) => (
+        <div
+          key={tier.key || tier.label}
+          style={soraSummaryGridStyle}
+        >
+          <div style={soraSummaryCellStyle}>{tier.label}</div>
+          <div
+            style={{
+              ...soraSummaryCellStyle,
+              textAlign: 'right',
+              fontWeight: 600,
+            }}
+          >
+            {tier.price}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const ModelPricingTable = ({
   modelData,
   groupRatio,
@@ -49,16 +124,24 @@ const ModelPricingTable = ({
   );
 
   const renderGroupPriceTable = () => {
-    const availableGroups = Object.keys(usableGroup || {})
-      .filter((group) => group && group !== 'auto')
-      .filter((group) => modelEnableGroups.includes(group));
+    const groupSource =
+      modelEnableGroups.length > 0
+        ? modelEnableGroups
+        : Object.keys(usableGroup || {});
+    const availableGroups = Array.from(
+      new Set(groupSource.filter((group) => group && group !== 'auto')),
+    );
 
     const tableData = availableGroups.map((group) => {
+      const effectiveGroupRatio = {
+        ...(groupRatio || {}),
+        [group]: groupRatio?.[group] ?? 1,
+      };
       const priceData = modelData
         ? calculateModelPrice({
             record: modelData,
             selectedGroup: group,
-            groupRatio,
+            groupRatio: effectiveGroupRatio,
             tokenUnit,
             displayPrice,
             currency,
@@ -69,21 +152,22 @@ const ModelPricingTable = ({
       return {
         key: group,
         group,
-        ratio: groupRatio && groupRatio[group] ? groupRatio[group] : 1,
+        ratio: groupRatio?.[group] ?? priceData.usedGroupRatio ?? 1,
         billingType: getPricingDisplayBillingLabel(modelData, t),
         billingColor: getPricingBillingColor(modelData),
         priceItems: getModelPriceItems(priceData, t, siteDisplayType),
+        priceData,
       };
     });
 
     const columns = [
       {
-        title: t('分组'),
+        title: t('\u5206\u7ec4'),
         dataIndex: 'group',
         render: (text) => (
           <Tag color='white' size='small' shape='circle'>
             {text}
-            {t('分组')}
+            {t('\u5206\u7ec4')}
           </Tag>
         ),
       },
@@ -92,7 +176,7 @@ const ModelPricingTable = ({
     const isDynamic = modelData?.billing_mode === 'tiered_expr';
     if (showRatio || isDynamic) {
       columns.push({
-        title: t('分组倍率'),
+        title: t('\u5206\u7ec4\u500d\u7387'),
         dataIndex: 'ratio',
         render: (text) => (
           <Tag color='blue' size='small' shape='circle'>
@@ -103,7 +187,7 @@ const ModelPricingTable = ({
     }
 
     columns.push({
-      title: t('计费类型'),
+      title: t('\u8ba1\u8d39\u7c7b\u578b'),
       dataIndex: 'billingType',
       render: (text, record) => (
         <Tag color={record.billingColor || 'white'} size='small' shape='circle'>
@@ -113,16 +197,24 @@ const ModelPricingTable = ({
     });
 
     columns.push({
-      title: siteDisplayType === 'TOKENS' ? t('计费摘要') : t('价格摘要'),
+      title:
+        siteDisplayType === 'TOKENS'
+          ? t('\u8ba1\u8d39\u6458\u8981')
+          : t('\u4ef7\u683c\u6458\u8981'),
       dataIndex: 'priceItems',
-      render: (items) => {
+      render: (items, record) => {
+        if (record.priceData?.isSoraParamPricing) {
+          return renderSoraPriceSummary(record.priceData, t);
+        }
+
         if (items.length === 1 && items[0].isDynamic) {
           return (
             <Text type='tertiary' size='small'>
-              {t('见上方动态计费详情')}
+              {t('\u89c1\u4e0a\u65b9\u52a8\u6001\u8ba1\u8d39\u8be6\u60c5')}
             </Text>
           );
         }
+
         return (
           <div className='space-y-1'>
             {items.map((item) => (
@@ -157,24 +249,28 @@ const ModelPricingTable = ({
           <IconCoinMoneyStroked size={16} />
         </Avatar>
         <div>
-          <Text className='text-lg font-medium'>{t('分组价格')}</Text>
+          <Text className='text-lg font-medium'>{t('\u5206\u7ec4\u4ef7\u683c')}</Text>
           <div className='text-xs text-gray-600'>
-            {t('不同用户分组的价格信息')}
+            {t('\u4e0d\u540c\u7528\u6237\u5206\u7ec4\u7684\u4ef7\u683c\u4fe1\u606f')}
           </div>
         </div>
       </div>
 
       {autoChain.length > 0 && (
         <div className='flex flex-wrap items-center gap-1 mb-4'>
-          <span className='text-sm text-gray-600'>{t('auto分组调用链路')}</span>
-          <span className='text-sm'>→</span>
+          <span className='text-sm text-gray-600'>
+            {t('auto\u5206\u7ec4\u8c03\u7528\u94fe\u8def')}
+          </span>
+          <span className='text-sm'>&rarr;</span>
           {autoChain.map((group, index) => (
             <React.Fragment key={group}>
               <Tag color='white' size='small' shape='circle'>
                 {group}
-                {t('分组')}
+                {t('\u5206\u7ec4')}
               </Tag>
-              {index < autoChain.length - 1 && <span className='text-sm'>→</span>}
+              {index < autoChain.length - 1 && (
+                <span className='text-sm'>&rarr;</span>
+              )}
             </React.Fragment>
           ))}
         </div>
