@@ -150,7 +150,7 @@ function type2secretPrompt(type) {
     case 45:
       return '请输入渠道对应的鉴权密钥, 豆包语音输入：AppId|AccessToken';
     case 50:
-      return '按照如下格式输入: AccessKey|SecretKey, 如果上游是New API，则直接输ApiKey';
+      return '按照如下格式输入: AccessKey|SecretKey, 如果上游是 OmniRouters，则直接输 ApiKey';
     case 51:
       return '按照如下格式输入: AccessKey|SecretAccessKey';
     case 57:
@@ -602,7 +602,7 @@ const EditChannelModal = (props) => {
       Modal.confirm({
         title: '警告',
         content:
-          '不需要在末尾加/v1，New API会自动处理，添加后可能导致请求失败，是否继续？',
+          '不需要在末尾加 /v1，OmniRouters 会自动处理，添加后可能导致请求失败，是否继续？',
         onOk: () => {
           setInputs((inputs) => ({ ...inputs, [name]: value }));
         },
@@ -3305,9 +3305,7 @@ const EditChannelModal = (props) => {
                         <>
                           <Banner
                             type='warning'
-                            description={t(
-                              '如果你对接的是上游One API或者New API等转发项目，请使用OpenAI类型，不要使用此类型，除非你知道你在做什么。',
-                            )}
+                            description='如果你对接的是上游 One API 或其他中转项目，请使用 OpenAI 类型，不要使用此类型，除非你知道你在做什么。'
                             className='!rounded-lg'
                           />
                           <div>
@@ -3354,9 +3352,7 @@ const EditChannelModal = (props) => {
                               }
                               showClear
                               disabled={isIonetLocked}
-                              extraText={t(
-                                '对于官方渠道，new-api已经内置地址，除非是第三方代理站点或者Azure的特殊接入地址，否则不需要填写',
-                              )}
+                              extraText='对于官方渠道，OmniRouters 已经内置地址，除非是第三方代理站点或者 Azure 的特殊接入地址，否则不需要填写'
                             />
                           </div>
                         )}

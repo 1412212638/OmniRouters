@@ -290,9 +290,7 @@ export default function SettingsPaymentGatewayCreem(props) {
               <Form.Input
                 field='CreemWebhookSecret'
                 label={t('Webhook 签名密钥')}
-                placeholder={t(
-                  '用于验证回调 new-api 的 webhook 请求的密钥，敏感信息不显示',
-                )}
+                placeholder='用于验证回调 webhook 请求的密钥，敏感信息不显示'
                 type='password'
               />
             </Col>

@@ -745,15 +745,7 @@ const SystemSetting = () => {
                     style={{ marginBottom: 20, marginTop: 16 }}
                   />
                   <Text>
-                    {t('仅支持')}{' '}
-                    <a
-                      href='https://github.com/Calcium-Ion/new-api-worker'
-                      target='_blank'
-                      rel='noreferrer'
-                    >
-                      new-api-worker
-                    </a>{' '}
-                    {t('或其兼容new-api-worker格式的其他版本')}
+                    仅支持 OmniRouters Worker 或其他兼容 Worker 格式的版本
                   </Text>
                   <Row
                     gutter={{ xs: 8, sm: 16, md: 24, lg: 24, xl: 24, xxl: 24 }}
@@ -1210,9 +1202,7 @@ const SystemSetting = () => {
                         field="['passkey.origins']"
                         label={t('允许的 Origins')}
                         placeholder={t('填写带https的域名，逗号分隔')}
-                        extraText={t(
-                          '为空则默认使用服务器地址，多个 Origin 用逗号分隔，例如 https://newapi.pro,https://newapi.com ,注意不能携带[]，需使用https',
-                        )}
+                        extraText='为空则默认使用服务器地址，多个 Origin 用逗号分隔，例如 https://example.com,https://console.example.com，注意不能携带[]，需使用 https'
                       />
                     </Col>
                   </Row>

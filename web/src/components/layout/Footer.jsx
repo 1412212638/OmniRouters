@@ -30,6 +30,11 @@ const FooterBar = () => {
   const logo = getLogo();
   const [statusState] = useContext(StatusContext);
   const isDemoSiteMode = statusState?.status?.demo_site_enabled || false;
+  const projectRepoUrl = 'https://github.com/1412212638/OmniRouters';
+  const projectDocsUrl =
+    statusState?.status?.docs_link || `${projectRepoUrl}#readme`;
+  const projectIssuesUrl = `${projectRepoUrl}/issues`;
+  const projectReleasesUrl = `${projectRepoUrl}/releases`;
 
   const loadFooter = () => {
     let footer_html = localStorage.getItem('footer_html');
@@ -63,23 +68,23 @@ const FooterBar = () => {
                 </p>
                 <div className='flex flex-col gap-4'>
                   <a
-                    href='https://docs.newapi.pro/wiki/project-introduction/'
+                    href={projectRepoUrl}
                     target='_blank'
                     rel='noopener noreferrer'
                     className='!text-semi-color-text-1'
                   >
-                    {t('关于项目')}
+                    {t('项目仓库')}
                   </a>
                   <a
-                    href='https://docs.newapi.pro/support/community-interaction/'
+                    href={projectIssuesUrl}
                     target='_blank'
                     rel='noopener noreferrer'
                     className='!text-semi-color-text-1'
                   >
-                    {t('联系我们')}
+                    {t('问题反馈')}
                   </a>
                   <a
-                    href='https://docs.newapi.pro/wiki/features-introduction/'
+                    href={projectDocsUrl}
                     target='_blank'
                     rel='noopener noreferrer'
                     className='!text-semi-color-text-1'
@@ -95,7 +100,7 @@ const FooterBar = () => {
                 </p>
                 <div className='flex flex-col gap-4'>
                   <a
-                    href='https://docs.newapi.pro/getting-started/'
+                    href={projectDocsUrl}
                     target='_blank'
                     rel='noopener noreferrer'
                     className='!text-semi-color-text-1'
@@ -103,7 +108,7 @@ const FooterBar = () => {
                     {t('快速开始')}
                   </a>
                   <a
-                    href='https://docs.newapi.pro/installation/'
+                    href={projectDocsUrl}
                     target='_blank'
                     rel='noopener noreferrer'
                     className='!text-semi-color-text-1'
@@ -111,7 +116,7 @@ const FooterBar = () => {
                     {t('安装指南')}
                   </a>
                   <a
-                    href='https://docs.newapi.pro/api/'
+                    href={projectDocsUrl}
                     target='_blank'
                     rel='noopener noreferrer'
                     className='!text-semi-color-text-1'
@@ -127,12 +132,12 @@ const FooterBar = () => {
                 </p>
                 <div className='flex flex-col gap-4'>
                   <a
-                    href='https://github.com/songquanpeng/one-api'
+                    href={projectRepoUrl}
                     target='_blank'
                     rel='noopener noreferrer'
                     className='!text-semi-color-text-1'
                   >
-                    One API
+                    OmniRouters
                   </a>
                   <a
                     href='https://github.com/novicezk/midjourney-proxy'
@@ -159,12 +164,12 @@ const FooterBar = () => {
                 </p>
                 <div className='flex flex-col gap-4'>
                   <a
-                    href='https://github.com/Calcium-Ion/new-api-horizon'
+                    href={projectReleasesUrl}
                     target='_blank'
                     rel='noopener noreferrer'
                     className='!text-semi-color-text-1'
                   >
-                    new-api-horizon
+                    GitHub Releases
                   </a>
                   <a
                     href='https://github.com/coaidev/coai'
@@ -195,19 +200,6 @@ const FooterBar = () => {
             </Typography.Text>
           </div>
 
-          <div className='text-sm'>
-            <span className='!text-semi-color-text-1'>
-              {t('设计与开发由')}{' '}
-            </span>
-            <a
-              href='https://github.com/QuantumNous/new-api'
-              target='_blank'
-              rel='noopener noreferrer'
-              className='!text-semi-color-primary font-medium'
-            >
-              New API
-            </a>
-          </div>
         </div>
       </footer>
     ),
@@ -227,19 +219,6 @@ const FooterBar = () => {
               className='custom-footer na-cb6feafeb3990c78 text-sm !text-semi-color-text-1'
               dangerouslySetInnerHTML={{ __html: footer }}
             ></div>
-            <div className='text-sm flex-shrink-0'>
-              <span className='!text-semi-color-text-1'>
-                {t('设计与开发由')}{' '}
-              </span>
-              <a
-                href='https://github.com/QuantumNous/new-api'
-                target='_blank'
-                rel='noopener noreferrer'
-                className='!text-semi-color-primary font-medium'
-              >
-                New API
-              </a>
-            </div>
           </div>
         </footer>
       ) : (
