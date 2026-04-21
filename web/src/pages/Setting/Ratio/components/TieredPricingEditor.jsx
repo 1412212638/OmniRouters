@@ -1608,22 +1608,22 @@ export default function TieredPricingEditor({ model, onExprChange, requestRuleEx
         >
           {estimatorUsesRequestContext && (
             <Text size='small' type='secondary' style={{ display: 'block', marginBottom: 8 }}>
-              {t('鍖呭惈璇锋眰鍙傛暟/璇锋眰澶?鏃堕棿鏉′欢鐨勮〃杈惧紡锛屾湰鍦伴瑙堜細鎸夌┖璇锋眰鎵ц锛涚湡瀹炶璐逛互鍚庣鏀跺埌鐨勮姹傚弬鏁颁负鍑嗐€?)}
+              Request-aware expressions are previewed with an empty request locally.
             </Text>
           )}
           {evalResult.error ? (
             <Text type='danger'>
-              {t('表达式错误')}: {evalResult.error}
+              Expression error: {evalResult.error}
             </Text>
           ) : (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Text strong style={{ fontSize: 15 }}>
-                  {t('预计费用')}：{renderQuota(evalResult.cost, 4)}
+                  Estimated cost: {renderQuota(evalResult.cost, 4)}
                 </Text>
                 {evalResult.matchedTier && (
                   <Tag size='small' color='blue' type='light'>
-                    {t('命中档位')}：{evalResult.matchedTier}
+                    Matched tier: {evalResult.matchedTier}
                   </Tag>
                 )}
               </div>
@@ -1635,7 +1635,7 @@ export default function TieredPricingEditor({ model, onExprChange, requestRuleEx
                   color: 'var(--semi-color-text-3)',
                 }}
               >
-                {t('原始额度')}：{evalResult.cost.toLocaleString()}
+                Raw quota: {evalResult.cost.toLocaleString()}
               </Text>
             </div>
           )}
