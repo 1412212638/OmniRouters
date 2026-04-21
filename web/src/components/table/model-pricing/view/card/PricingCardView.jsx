@@ -56,53 +56,6 @@ const CARD_STYLES = {
   default: 'border-gray-200 hover:border-gray-300',
 };
 
-const SORA_CARD_STYLES = {
-  wrap: {
-    border: '1px solid var(--semi-color-border)',
-    borderRadius: 16,
-    overflow: 'hidden',
-    background:
-      'linear-gradient(180deg, var(--semi-color-fill-0) 0%, var(--semi-color-bg-0) 100%)',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '8px 12px',
-    background: 'var(--semi-color-fill-0)',
-    borderBottom: '1px solid var(--semi-color-border)',
-  },
-  headerLabel: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: 'var(--semi-color-text-2)',
-    letterSpacing: '0.02em',
-  },
-  headerSuffix: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: 'var(--semi-color-warning)',
-  },
-  row: {
-    display: 'grid',
-    gridTemplateColumns: 'minmax(0, 1fr) auto',
-    gap: 12,
-    padding: '9px 12px',
-    borderTop: '1px solid var(--semi-color-border)',
-    alignItems: 'center',
-  },
-  resolution: {
-    fontSize: 13,
-    fontWeight: 500,
-    color: 'var(--semi-color-text-0)',
-  },
-  price: {
-    fontSize: 13,
-    fontWeight: 700,
-    color: 'var(--semi-color-text-0)',
-  },
-};
-
 const PricingCardView = ({
   filteredModels,
   loading,
@@ -242,44 +195,32 @@ const PricingCardView = ({
     );
   };
 
-  const renderSoraPriceCard = (priceData) => {
+  const renderSoraSummaryTags = (priceData) => {
     const tiers = Array.isArray(priceData?.resolutionTiers)
       ? priceData.resolutionTiers
       : [];
 
-    if (tiers.length === 0) {
-      return null;
-    }
-
     return (
-      <div style={SORA_CARD_STYLES.wrap}>
-        <div style={SORA_CARD_STYLES.header}>
-          <span style={SORA_CARD_STYLES.headerLabel}>
-            {t('\u6309\u79d2\u4ef7\u683c')}
-          </span>
-          <span style={SORA_CARD_STYLES.headerSuffix}>
-            {t('\u5206\u8fa8\u7387')} / {t('\u79d2')}
-          </span>
-        </div>
-        {tiers.map((tier, idx) => (
-          <div
-            key={tier.key || tier.label || idx}
-            style={{
-              ...SORA_CARD_STYLES.row,
-              borderTop: idx === 0 ? 'none' : SORA_CARD_STYLES.row.borderTop,
-            }}
-          >
-            <span style={SORA_CARD_STYLES.resolution}>{tier.label}</span>
-            <span style={SORA_CARD_STYLES.price}>{tier.price}</span>
-          </div>
-        ))}
+      <div className='flex flex-wrap gap-2 pt-1'>
+        <Tag color='orange' size='small' shape='circle'>
+          {t('\u52a8\u6001\u8ba1\u8d39')}
+        </Tag>
+        {tiers.length > 0 && (
+          <Tag color='grey' size='small' shape='circle'>
+            {tiers.length}
+            {t('\u6863')}
+          </Tag>
+        )}
+        <Tag color='grey' size='small' shape='circle'>
+          {t('\u6309\u79d2')}
+        </Tag>
       </div>
     );
   };
 
   const renderCardPriceSummary = (priceData) => {
     if (priceData?.isSoraParamPricing) {
-      return renderSoraPriceCard(priceData);
+      return renderSoraSummaryTags(priceData);
     }
 
     return (
@@ -386,7 +327,11 @@ const PricingCardView = ({
                   {description && (
                     <p
                       className='text-xs line-clamp-2 leading-relaxed'
-                      style={{ color: 'var(--semi-color-text-2)' }}
+                      style={{
+                        color: 'var(--semi-color-text-2)',
+                        overflowWrap: 'anywhere',
+                        wordBreak: 'break-word',
+                      }}
                     >
                       {description}
                     </p>

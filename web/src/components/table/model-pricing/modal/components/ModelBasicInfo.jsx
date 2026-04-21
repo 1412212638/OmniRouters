@@ -71,7 +71,17 @@ const ModelBasicInfo = ({ modelData, vendorsMap = {}, t }) => {
         </div>
       </div>
       <div className='text-gray-600'>
-        <p className='mb-4'>{getModelDescription()}</p>
+        <p
+          className='mb-4'
+          style={{
+            whiteSpace: 'pre-wrap',
+            overflowWrap: 'anywhere',
+            wordBreak: 'break-word',
+            lineHeight: 1.75,
+          }}
+        >
+          {getModelDescription()}
+        </p>
         {getModelTags().length > 0 && (
           <Space wrap>
             {getModelTags().map((tag, index) => (
