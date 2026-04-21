@@ -961,14 +961,104 @@ function CacheTokenEstimatorInputs({
 // Cost estimator (works with any Expr string)
 // ---------------------------------------------------------------------------
 
+function getLocalPathValue(source, path) {
+  const normalized = String(path || '')
+    .trim()
+    .replace(/\[(\d+)\]/g, '.$1')
+    .replace(/^\./, '');
+  if (!normalized) return undefined;
+
+  return normalized.split('.').reduce(
+    (current, key) => (current == null ? undefined : current[key]),
+    source,
+  );
+}
+
+function getLocalTimeValue(part, timezone) {
+  const date = new Date();
+  const fallback = () => {
+    switch (part) {
+      case 'hour':
+        return date.getHours();
+      case 'minute':
+        return date.getMinutes();
+      case 'weekday':
+        return date.getDay();
+      case 'month':
+        return date.getMonth() + 1;
+      case 'day':
+        return date.getDate();
+      default:
+        return 0;
+    }
+  };
+
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone || 'Asia/Shanghai',
+      hour: '2-digit',
+      minute: '2-digit',
+      weekday: 'short',
+      month: 'numeric',
+      day: 'numeric',
+      hour12: false,
+    }).formatToParts(date);
+    const values = Object.fromEntries(parts.map((item) => [item.type, item.value]));
+    const weekdayMap = {
+      Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+    };
+
+    switch (part) {
+      case 'hour':
+        return Number(values.hour) || 0;
+      case 'minute':
+        return Number(values.minute) || 0;
+      case 'weekday':
+        return weekdayMap[values.weekday] ?? 0;
+      case 'month':
+        return Number(values.month) || 0;
+      case 'day':
+        return Number(values.day) || 0;
+      default:
+        return 0;
+    }
+  } catch {
+    return fallback();
+  }
+}
+
+function usesRequestAwareSyntax(exprStr) {
+  return /\b(?:param|header|has|hour|minute|weekday|month|day)\s*\(/.test(exprStr || '');
+}
+
 function evalExprLocally(exprStr, p, c, extraTokenValues) {
   try {
     let matchedTier = '';
+    const requestBody = {};
+    const requestHeaders = {};
     const tierFn = (name, value) => {
       matchedTier = name;
       return value;
     };
-    const env = { p, c, tier: tierFn, max: Math.max, min: Math.min, abs: Math.abs, ceil: Math.ceil, floor: Math.floor };
+    const env = {
+      p,
+      c,
+      nil: null,
+      tier: tierFn,
+      param: (path) => getLocalPathValue(requestBody, path),
+      header: (key) => requestHeaders[String(key || '').trim().toLowerCase()] || '',
+      has: (source, text) => source != null && String(source).includes(String(text)),
+      hour: (timezone) => getLocalTimeValue('hour', timezone),
+      minute: (timezone) => getLocalTimeValue('minute', timezone),
+      weekday: (timezone) => getLocalTimeValue('weekday', timezone),
+      month: (timezone) => getLocalTimeValue('month', timezone),
+      day: (timezone) => getLocalTimeValue('day', timezone),
+      max: Math.max,
+      min: Math.min,
+      abs: Math.abs,
+      ceil: Math.ceil,
+      floor: Math.floor,
+    };
     for (const field of EXTRA_ESTIMATOR_FIELDS) {
       env[field.var] = extraTokenValues[field.stateKey] || 0;
     }
@@ -1367,6 +1457,10 @@ export default function TieredPricingEditor({ model, onExprChange, requestRuleEx
       cacheReadTokens, cacheCreateTokens, cacheCreate1hTokens,
       imageTokens, imageOutputTokens, audioInputTokens, audioOutputTokens],
   );
+  const estimatorUsesRequestContext = useMemo(
+    () => usesRequestAwareSyntax(effectiveExpr) || Boolean(currentRequestRuleExpr),
+    [effectiveExpr, currentRequestRuleExpr],
+  );
 
   return (
     <div>
@@ -1512,6 +1606,11 @@ export default function TieredPricingEditor({ model, onExprChange, requestRuleEx
             border: `1px solid ${evalResult.error ? 'var(--semi-color-danger)' : 'var(--semi-color-primary)'}`,
           }}
         >
+          {estimatorUsesRequestContext && (
+            <Text size='small' type='secondary' style={{ display: 'block', marginBottom: 8 }}>
+              {t('鍖呭惈璇锋眰鍙傛暟/璇锋眰澶?鏃堕棿鏉′欢鐨勮〃杈惧紡锛屾湰鍦伴瑙堜細鎸夌┖璇锋眰鎵ц锛涚湡瀹炶璐逛互鍚庣鏀跺埌鐨勮姹傚弬鏁颁负鍑嗐€?)}
+            </Text>
+          )}
           {evalResult.error ? (
             <Text type='danger'>
               {t('表达式错误')}: {evalResult.error}

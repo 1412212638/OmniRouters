@@ -2245,6 +2245,10 @@ function parseTierBody(bodyStr) {
   for (const [varName, field] of Object.entries(BILLING_VAR_KEY_TO_FIELD)) {
     tier[field] = coeffs[varName] || 0;
   }
+  const fixedPriceMatch = String(bodyStr || '').trim().match(
+    /^([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)$/,
+  );
+  tier.fixedPrice = fixedPriceMatch ? Number(fixedPriceMatch[1]) / 1000000 : 0;
   return tier;
 }
 
@@ -2310,6 +2314,16 @@ export function renderTieredModelPrice(opts) {
       ),
   ];
 
+  if (tier?.fixedPrice > 0) {
+    lines.push(
+      buildBillingPriceText('固定价格(每次) {{symbol}}{{price}}', {
+        symbol,
+        usdAmount: tier.fixedPrice,
+        rate,
+      }),
+    );
+  }
+
   return renderBillingArticle(lines);
 }
 
@@ -2351,6 +2365,14 @@ export function renderTieredModelPriceSimple(opts) {
             }),
           });
         }
+      }
+      if (tier.fixedPrice > 0) {
+        segments.push({
+          tone: 'secondary',
+          text: i18next.t('固定价格(每次) {{price}}', {
+            price: formatCompactDisplayPrice(tier.fixedPrice),
+          }),
+        });
       }
     }
 

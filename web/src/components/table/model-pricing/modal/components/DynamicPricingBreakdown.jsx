@@ -20,7 +20,7 @@ For commercial licensing, please contact support@quantumnous.com
 import React from 'react';
 import { Avatar, Tag, Table, Typography } from '@douyinfe/semi-ui';
 import { IconPriceTag } from '@douyinfe/semi-icons';
-import { parseTiersFromExpr } from '../../../../../helpers';
+import { getCurrencyConfig, parseTiersFromExpr } from '../../../../../helpers';
 import { BILLING_VARS } from '../../../../../constants';
 import {
   splitBillingExprAndRequestRules,
@@ -97,6 +97,8 @@ export default function DynamicPricingBreakdown({ billingExpr, t }) {
 
   const hasTiers = tiers && tiers.length > 0;
   const hasRules = ruleGroups && ruleGroups.length > 0;
+  const { symbol, rate } = getCurrencyConfig();
+  const hasFixedPrice = hasTiers && tiers.some((tier) => tier.fixedPrice > 0);
 
   if (!hasTiers && !hasRules) {
     return (
@@ -136,6 +138,13 @@ export default function DynamicPricingBreakdown({ billingExpr, t }) {
         dataIndex: field,
         render: (v) => v > 0 ? <Text strong>${v.toFixed(4)}</Text> : '-',
       })),
+    ...(hasFixedPrice
+      ? [{
+          title: t('固定价格(每次)'),
+          dataIndex: 'fixedPrice',
+          render: (v) => v > 0 ? <Text strong>{`${symbol}${(v * rate).toFixed(4)}`}</Text> : '-',
+        }]
+      : []),
   ];
 
   const tierData = hasTiers
@@ -143,6 +152,7 @@ export default function DynamicPricingBreakdown({ billingExpr, t }) {
         key: `tier-${i}`,
         label: tier.label,
         condSummary: formatConditionSummary(tier.conditions, t),
+        fixedPrice: tier.fixedPrice || 0,
         ...Object.fromEntries(priceFields.map(([field]) => [field, tier[field] || 0])),
       }))
     : [];
