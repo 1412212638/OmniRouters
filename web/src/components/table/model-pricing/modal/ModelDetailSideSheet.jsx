@@ -49,6 +49,8 @@ const ModelDetailSideSheet = ({
   t,
 }) => {
   const isMobile = useIsMobile();
+  const isFixedTierDynamic =
+    modelData && isFixedPriceOnlyTieredExprRecord(modelData);
 
   return (
     <SideSheet
@@ -63,7 +65,7 @@ const ModelDetailSideSheet = ({
         borderBottom: '1px solid var(--semi-color-border)',
       }}
       visible={visible}
-      width={isMobile ? '100%' : 600}
+      width={isMobile ? '100%' : isFixedTierDynamic ? 680 : 600}
       closeIcon={
         <Button
           className='semi-button-tertiary semi-button-size-small semi-button-borderless'

@@ -37,7 +37,7 @@ const soraSummaryWrapStyle = {
   borderRadius: 14,
   overflow: 'hidden',
   background: 'var(--semi-color-bg-0)',
-  maxWidth: 320,
+  maxWidth: 360,
 };
 
 const soraSummaryGridStyle = {
@@ -58,6 +58,36 @@ const soraSummaryCellStyle = {
   borderTop: '1px solid var(--semi-color-border)',
   color: 'var(--semi-color-text-0)',
   fontSize: 13,
+};
+
+const fixedTierSummaryGridStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'minmax(72px, 88px) minmax(156px, 1fr)',
+};
+
+const fixedTierHeaderLabelStyle = {
+  ...soraSummaryHeaderCellStyle,
+  whiteSpace: 'nowrap',
+};
+
+const fixedTierHeaderPriceStyle = {
+  ...soraSummaryHeaderCellStyle,
+  textAlign: 'right',
+  whiteSpace: 'normal',
+  wordBreak: 'keep-all',
+  lineHeight: 1.25,
+};
+
+const fixedTierLabelCellStyle = {
+  ...soraSummaryCellStyle,
+  whiteSpace: 'nowrap',
+};
+
+const fixedTierPriceCellStyle = {
+  ...soraSummaryCellStyle,
+  textAlign: 'right',
+  fontWeight: 600,
+  whiteSpace: 'nowrap',
 };
 
 export const isFixedPriceOnlyTieredExprRecord = (record) => {
@@ -160,27 +190,18 @@ const renderFixedTierPriceSummary = (tiers, t) => {
 
   return (
     <div style={soraSummaryWrapStyle}>
-      <div style={soraSummaryGridStyle}>
-        <div style={soraSummaryHeaderCellStyle}>{t('\u6863\u4f4d')}</div>
-        <div
-          style={{
-            ...soraSummaryHeaderCellStyle,
-            textAlign: 'right',
-          }}
-        >
+      <div style={fixedTierSummaryGridStyle}>
+        <div style={fixedTierHeaderLabelStyle}>{t('\u6863\u4f4d')}</div>
+        <div style={fixedTierHeaderPriceStyle}>
           {t('\u56fa\u5b9a\u4ef7\u683c(\u6bcf\u6b21)')}
         </div>
       </div>
       {tiers.map((tier) => (
-        <div key={tier.key || tier.label} style={soraSummaryGridStyle}>
-          <div style={soraSummaryCellStyle}>{tier.label || t('\u9ed8\u8ba4')}</div>
-          <div
-            style={{
-              ...soraSummaryCellStyle,
-              textAlign: 'right',
-              fontWeight: 600,
-            }}
-          >
+        <div key={tier.key || tier.label} style={fixedTierSummaryGridStyle}>
+          <div style={fixedTierLabelCellStyle}>
+            {tier.label || t('\u9ed8\u8ba4')}
+          </div>
+          <div style={fixedTierPriceCellStyle}>
             {tier.price}
           </div>
         </div>
