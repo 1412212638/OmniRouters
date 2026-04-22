@@ -3642,6 +3642,10 @@
     "默认折叠侧边栏": "Réduire la barre latérale par défaut",
     "默认测试模型": "Modèle de test par défaut",
     "默认用户消息": "Bonjour",
-    "默认补全倍率": "Taux de complétion par défaut"
+    "默认补全倍率": "Taux de complétion par défaut",
+    "分辨率": "Résolution",
+    "每秒价格": "Prix / s",
+    "当前模型按请求中的 seconds 与 resolution 档位动态计算价格。": "Ce modèle calcule les prix de manière dynamique selon les secondes et le palier de résolution de la requête.",
+    "请求必须提供 resolution 和 seconds；最终价格 = 基础每秒单价 × seconds × resolution 档位倍率 × 分组倍率。": "Les requêtes doivent inclure resolution et seconds ; le prix final = prix de base par seconde × seconds × multiplicateur du palier de résolution × multiplicateur du groupe."
   }
 }

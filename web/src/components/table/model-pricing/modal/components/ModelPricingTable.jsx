@@ -73,14 +73,14 @@ const renderSoraPriceSummary = (priceData, t) => {
   return (
     <div style={soraSummaryWrapStyle}>
       <div style={soraSummaryGridStyle}>
-        <div style={soraSummaryHeaderCellStyle}>{t('\u5206\u8fa8\u7387')}</div>
+        <div style={soraSummaryHeaderCellStyle}>{t('分辨率')}</div>
         <div
           style={{
             ...soraSummaryHeaderCellStyle,
             textAlign: 'right',
           }}
         >
-          {t('\u4ef7\u683c')}
+          {t('每秒价格')}
         </div>
       </div>
       {tiers.map((tier) => (
@@ -96,7 +96,7 @@ const renderSoraPriceSummary = (priceData, t) => {
               fontWeight: 600,
             }}
           >
-            {tier.price}
+            {`${tier.price}/s`}
           </div>
         </div>
       ))}

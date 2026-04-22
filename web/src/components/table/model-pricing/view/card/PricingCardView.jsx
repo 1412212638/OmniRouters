@@ -211,9 +211,6 @@ const PricingCardView = ({
             {t('\u6863')}
           </Tag>
         )}
-        <Tag color='grey' size='small' shape='circle'>
-          {t('\u6309\u79d2')}
-        </Tag>
       </div>
     );
   };

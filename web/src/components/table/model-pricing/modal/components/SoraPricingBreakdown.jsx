@@ -37,7 +37,7 @@ export default function SoraPricingBreakdown({
             key: `${tier?.value || 'tier'}-${index}`,
             resolution: tier?.value || '-',
             multiplier,
-            pricePerSecond: displayPrice((Number(basePrice) || 0) * multiplier),
+            pricePerSecond: `${displayPrice((Number(basePrice) || 0) * multiplier)}/s`,
           };
         })
         .filter((tier) => tier.resolution !== '-' && tier.multiplier > 0)
@@ -49,7 +49,7 @@ export default function SoraPricingBreakdown({
 
   const columns = [
     {
-      title: t('档位'),
+      title: t('分辨率'),
       dataIndex: 'resolution',
       render: (text) => (
         <Tag color='blue' size='small'>
@@ -58,7 +58,7 @@ export default function SoraPricingBreakdown({
       ),
     },
     {
-      title: t('按秒计费'),
+      title: t('每秒价格'),
       dataIndex: 'pricePerSecond',
       render: (value) => <Text strong>{value}</Text>,
     },
@@ -73,7 +73,9 @@ export default function SoraPricingBreakdown({
         <div>
           <Text className='text-lg font-medium'>{t('动态计费')}</Text>
           <div className='text-xs text-gray-600'>
-            {t('当前模型按请求中的 seconds 与 resolution 档位动态计算价格。')}
+            {t(
+              '当前模型按请求中的 seconds 与 resolution 档位动态计算价格。',
+            )}
           </div>
         </div>
       </div>
@@ -87,11 +89,17 @@ export default function SoraPricingBreakdown({
         }}
       >
         <Text size='small'>
-          {t('请求必须提供 resolution 和 seconds；最终价格 = 基础每秒单价 × seconds × resolution 档位价格 × 分组倍率。')}
+          {t(
+            '请求必须提供 resolution 和 seconds；最终价格 = 基础每秒单价 × seconds × resolution 档位倍率 × 分组倍率。',
+          )}
         </Text>
       </div>
 
-      <Text strong className='text-sm' style={{ display: 'block', marginBottom: 8 }}>
+      <Text
+        strong
+        className='text-sm'
+        style={{ display: 'block', marginBottom: 8 }}
+      >
         {t('分档价格表')}
       </Text>
       <Table

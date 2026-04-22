@@ -4176,6 +4176,10 @@
     "默认折叠侧边栏": "Mặc định thu gọn thanh bên",
     "默认测试模型": "Mô hình kiểm tra mặc định",
     "默认用户消息": "Xin chào",
-    "默认补全倍率": "Tỷ lệ hoàn thành mặc định"
+    "默认补全倍率": "Tỷ lệ hoàn thành mặc định",
+    "分辨率": "Độ phân giải",
+    "每秒价格": "Giá / giây",
+    "当前模型按请求中的 seconds 与 resolution 档位动态计算价格。": "Mô hình này tính giá động dựa trên seconds và bậc resolution trong yêu cầu.",
+    "请求必须提供 resolution 和 seconds；最终价格 = 基础每秒单价 × seconds × resolution 档位倍率 × 分组倍率。": "Yêu cầu phải có resolution và seconds; giá cuối cùng = đơn giá cơ bản mỗi giây × seconds × hệ số bậc resolution × hệ số nhóm."
   }
 }
