@@ -901,7 +901,11 @@ func testAllChannels(notify bool) error {
 		}
 
 		if notify {
+			if common.IsEmailLanguageEnglish() {
+				service.NotifyRootUser(dto.NotifyTypeChannelTest, "Channel test completed", "All channel tests have completed")
+			} else {
 			service.NotifyRootUser(dto.NotifyTypeChannelTest, "通道测试完成", "所有通道测试已完成")
+			}
 		}
 	})
 	return nil

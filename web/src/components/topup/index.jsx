@@ -41,8 +41,34 @@ import TransferModal from './modals/TransferModal';
 import PaymentConfirmModal from './modals/PaymentConfirmModal';
 import TopupHistoryModal from './modals/TopupHistoryModal';
 
+const PAYMENT_LABEL_FALLBACKS = {
+  en: { '基础金额': 'Base amount', '手续费': 'Handling fee' },
+  fr: { '基础金额': 'Montant de base', '手续费': 'Frais de traitement' },
+  ja: { '基础金额': '基本金額', '手续费': '手数料' },
+  ru: { '基础金额': 'Базовая сумма', '手续费': 'Комиссия' },
+  vi: { '基础金额': 'So tien co ban', '手续费': 'Phi xu ly' },
+  'zh-cn': { '基础金额': '基础金额', '手续费': '手续费' },
+  'zh-tw': { '基础金额': '基礎金額', '手续费': '手續費' },
+};
+
+const getPaymentLabelText = (t, i18n, key) => {
+  const translated = t(key);
+  const language = (i18n?.resolvedLanguage || i18n?.language || 'zh-CN')
+    .toLowerCase();
+  if (language.startsWith('zh')) {
+    return translated;
+  }
+  if (translated && translated !== key) {
+    return translated;
+  }
+  const fallback =
+    PAYMENT_LABEL_FALLBACKS[language] ||
+    PAYMENT_LABEL_FALLBACKS[language.split('-')[0]];
+  return fallback?.[key] || translated;
+};
+
 const TopUp = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [userState, userDispatch] = useContext(UserContext);
   const [statusState] = useContext(StatusContext);
@@ -806,6 +832,10 @@ const TopUp = () => {
     return formatPaymentAmount(value, digits);
   };
 
+  const translatePaymentLabel = (key) => {
+    return getPaymentLabelText(t, i18n, key);
+  };
+
   const getPaymentFeeRate = () => {
     const feeRate = Number(topupInfo?.fee_rate || 0);
     return Number.isFinite(feeRate) && feeRate > 0 ? feeRate : 0;
@@ -940,6 +970,7 @@ const TopUp = () => {
         amountNumber={amount}
         discountRate={topupInfo?.discount?.[topUpCount] || 1.0}
         feeRate={getPaymentFeeRate()}
+        translatePaymentLabel={translatePaymentLabel}
       />
 
       {/* 充值账单模态框 */}
@@ -1002,6 +1033,7 @@ const TopUp = () => {
           renderAmount={renderAmount}
           amountNumber={amount}
           feeRate={getPaymentFeeRate()}
+          translatePaymentLabel={translatePaymentLabel}
           amountLoading={amountLoading}
           payMethods={confirmPayMethods}
           preTopUp={preTopUp}

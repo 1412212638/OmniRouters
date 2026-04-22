@@ -69,6 +69,7 @@ const SystemSetting = () => {
     SMTPAccount: '',
     SMTPFrom: '',
     SMTPToken: '',
+    EmailLanguage: 'zh',
     WorkerUrl: '',
     WorkerValidKey: '',
     WorkerAllowHttpImageRequestEnabled: '',
@@ -342,6 +343,9 @@ const SystemSetting = () => {
       inputs.SMTPToken !== ''
     ) {
       options.push({ key: 'SMTPToken', value: inputs.SMTPToken });
+    }
+    if (originInputs['EmailLanguage'] !== inputs.EmailLanguage) {
+      options.push({ key: 'EmailLanguage', value: inputs.EmailLanguage });
     }
 
     if (options.length > 0) {
@@ -1317,6 +1321,21 @@ const SystemSetting = () => {
                         placeholder='敏感信息不会发送到前端显示'
                       />
                     </Col>
+                    <Col xs={24} sm={24} md={8} lg={8} xl={8}>
+                      <Form.Select
+                        field='EmailLanguage'
+                        label={t('邮件语言')}
+                        optionList={[
+                          { label: t('中文'), value: 'zh' },
+                          { label: 'English', value: 'en' },
+                        ]}
+                      />
+                    </Col>
+                  </Row>
+                  <Row
+                    gutter={{ xs: 8, sm: 16, md: 24, lg: 24, xl: 24, xxl: 24 }}
+                    style={{ marginTop: 16 }}
+                  >
                     <Col xs={24} sm={24} md={8} lg={8} xl={8}>
                       <Form.Checkbox
                         field='SMTPSSLEnabled'

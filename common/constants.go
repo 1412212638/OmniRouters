@@ -84,6 +84,7 @@ var SMTPForceAuthLogin = false
 var SMTPAccount = ""
 var SMTPFrom = ""
 var SMTPToken = ""
+var EmailLanguage = "zh"
 
 var GitHubClientId = ""
 var GitHubClientSecret = ""

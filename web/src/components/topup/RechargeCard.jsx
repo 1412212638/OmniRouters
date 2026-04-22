@@ -72,6 +72,7 @@ const RechargeCard = ({
   renderAmount,
   amountNumber = 0,
   feeRate = 0,
+  translatePaymentLabel = (key) => key,
   amountLoading,
   payMethods,
   preTopUp,
@@ -309,7 +310,7 @@ const RechargeCard = ({
                               size='small'
                               style={{ display: 'block', marginTop: 4 }}
                             >
-                              {t('手续费')} {feeRatePercent}%
+                              {translatePaymentLabel('手续费')} {feeRatePercent}%
                             </Text>
                           ) : null}
                         </Skeleton>

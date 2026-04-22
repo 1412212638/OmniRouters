@@ -434,6 +434,72 @@ func buildUpstreamModelUpdateTaskNotificationContent(
 ) string {
 	var builder strings.Builder
 	failedChannels := len(failedChannelIDs)
+	if common.IsEmailLanguageEnglish() {
+		builder.WriteString(fmt.Sprintf(
+			"Upstream model inspection summary: checked %d channels, detected %d changed channels, added %d models, removed %d models, auto-synced %d models, failed %d channels.",
+			checkedChannels,
+			changedChannels,
+			detectedAddModels,
+			detectedRemoveModels,
+			autoAddedModels,
+			failedChannels,
+		))
+
+		if len(channelSummaries) > 0 {
+			displayCount := min(len(channelSummaries), channelUpstreamModelUpdateNotifyMaxChannelDetails)
+			builder.WriteString(fmt.Sprintf("\n\nChanged channels (%d/%d shown):", displayCount, len(channelSummaries)))
+			for _, summary := range channelSummaries[:displayCount] {
+				builder.WriteString(fmt.Sprintf("\n- %s (+%d / -%d)", summary.ChannelName, summary.AddCount, summary.RemoveCount))
+			}
+			if len(channelSummaries) > displayCount {
+				builder.WriteString(fmt.Sprintf("\n- %d more channels omitted", len(channelSummaries)-displayCount))
+			}
+		}
+
+		normalizedAddModelSamples := normalizeModelNames(addModelSamples)
+		if len(normalizedAddModelSamples) > 0 {
+			displayCount := min(len(normalizedAddModelSamples), channelUpstreamModelUpdateNotifyMaxModelDetails)
+			builder.WriteString(fmt.Sprintf("\n\nAdded model samples (%d/%d shown): %s",
+				displayCount,
+				len(normalizedAddModelSamples),
+				strings.Join(normalizedAddModelSamples[:displayCount], ", "),
+			))
+			if len(normalizedAddModelSamples) > displayCount {
+				builder.WriteString(fmt.Sprintf(" (%d more omitted)", len(normalizedAddModelSamples)-displayCount))
+			}
+		}
+
+		normalizedRemoveModelSamples := normalizeModelNames(removeModelSamples)
+		if len(normalizedRemoveModelSamples) > 0 {
+			displayCount := min(len(normalizedRemoveModelSamples), channelUpstreamModelUpdateNotifyMaxModelDetails)
+			builder.WriteString(fmt.Sprintf("\n\nRemoved model samples (%d/%d shown): %s",
+				displayCount,
+				len(normalizedRemoveModelSamples),
+				strings.Join(normalizedRemoveModelSamples[:displayCount], ", "),
+			))
+			if len(normalizedRemoveModelSamples) > displayCount {
+				builder.WriteString(fmt.Sprintf(" (%d more omitted)", len(normalizedRemoveModelSamples)-displayCount))
+			}
+		}
+
+		if failedChannels > 0 {
+			displayCount := min(failedChannels, channelUpstreamModelUpdateNotifyMaxFailedChannelIDs)
+			displayIDs := lo.Map(failedChannelIDs[:displayCount], func(channelID int, _ int) string {
+				return fmt.Sprintf("%d", channelID)
+			})
+			builder.WriteString(fmt.Sprintf(
+				"\n\nFailed channel IDs (%d/%d shown): %s",
+				displayCount,
+				failedChannels,
+				strings.Join(displayIDs, ", "),
+			))
+			if failedChannels > displayCount {
+				builder.WriteString(fmt.Sprintf(" (%d more omitted)", failedChannels-displayCount))
+			}
+		}
+
+		return builder.String()
+	}
 	builder.WriteString(fmt.Sprintf(
 		"上游模型巡检摘要：检测渠道 %d 个，发现变更 %d 个，新增 %d 个，删除 %d 个，自动同步新增 %d 个，失败 %d 个。",
 		checkedChannels,
@@ -612,8 +678,12 @@ func runChannelUpstreamModelUpdateTaskOnce() {
 			))
 			return
 		}
+		subject := "上游模型巡检通知"
+		if common.IsEmailLanguageEnglish() {
+			subject = "Upstream model inspection notification"
+		}
 		service.NotifyUpstreamModelUpdateWatchers(
-			"上游模型巡检通知",
+			subject,
 			buildUpstreamModelUpdateTaskNotificationContent(
 				checkedChannels,
 				changedChannels,

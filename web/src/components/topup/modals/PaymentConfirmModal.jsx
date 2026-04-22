@@ -39,6 +39,7 @@ const PaymentConfirmModal = ({
   amountNumber,
   discountRate,
   feeRate = 0,
+  translatePaymentLabel = (key) => key,
 }) => {
   const normalizedFeeRate =
     Number.isFinite(Number(feeRate)) && Number(feeRate) > 0
@@ -98,7 +99,7 @@ const PaymentConfirmModal = ({
             {showBaseAmount && !amountLoading && (
               <div className='flex justify-between items-center'>
                 <Text className='text-slate-500 dark:text-slate-400'>
-                  {t('基础金额')}：
+                  {translatePaymentLabel('基础金额')}：
                 </Text>
                 <Text className='text-slate-900 dark:text-slate-100'>
                   {renderAmount(baseAmountBeforeFee)}
@@ -128,7 +129,7 @@ const PaymentConfirmModal = ({
             {normalizedFeeRate > 0 && !amountLoading && (
               <div className='flex justify-between items-center'>
                 <Text className='text-slate-500 dark:text-slate-400'>
-                  {t('手续费')} ({feeRatePercent}%)：
+                  {translatePaymentLabel('手续费')} ({feeRatePercent}%)：
                 </Text>
                 <Text className='text-amber-600 dark:text-amber-400'>
                   {`+ ${renderAmount(feeAmount)}`}

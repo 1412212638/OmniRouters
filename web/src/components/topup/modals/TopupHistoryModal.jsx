@@ -16,7 +16,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import React, { useState, useEffect, useMemo } from 'react';
+
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   Table,
@@ -37,9 +38,9 @@ import { IconSearch } from '@douyinfe/semi-icons';
 import { API, timestamp2string } from '../../../helpers';
 import { isAdmin } from '../../../helpers/utils';
 import { useIsMobile } from '../../../hooks/common/useIsMobile';
+
 const { Text } = Typography;
 
-// 状态映射配置
 const STATUS_CONFIG = {
   success: { type: 'success', key: '成功' },
   pending: { type: 'warning', key: '待支付' },
@@ -47,7 +48,6 @@ const STATUS_CONFIG = {
   expired: { type: 'danger', key: '已过期' },
 };
 
-// 支付方式映射
 const PAYMENT_METHOD_MAP = {
   stripe: 'Stripe',
   creem: 'Creem',
@@ -64,11 +64,12 @@ const TopupHistoryModal = ({ visible, onCancel, t }) => {
   const [pageSize, setPageSize] = useState(10);
   const [keyword, setKeyword] = useState('');
   const isMobile = useIsMobile();
+  const userIsAdmin = useMemo(() => isAdmin(), []);
 
   const loadTopups = async (currentPage, currentPageSize) => {
     setLoading(true);
     try {
-      const base = isAdmin() ? '/api/user/topup' : '/api/user/topup/self';
+      const base = userIsAdmin ? '/api/user/topup' : '/api/user/topup/self';
       const qs =
         `p=${currentPage}&page_size=${currentPageSize}` +
         (keyword ? `&keyword=${encodeURIComponent(keyword)}` : '');
@@ -108,7 +109,6 @@ const TopupHistoryModal = ({ visible, onCancel, t }) => {
     setPage(1);
   };
 
-  // 管理员补单
   const handleAdminComplete = async (tradeNo) => {
     try {
       const res = await API.post('/api/user/topup/complete', {
@@ -134,7 +134,6 @@ const TopupHistoryModal = ({ visible, onCancel, t }) => {
     });
   };
 
-  // 渲染状态徽章
   const renderStatusBadge = (status) => {
     const config = STATUS_CONFIG[status] || { type: 'primary', key: status };
     return (
@@ -145,19 +144,15 @@ const TopupHistoryModal = ({ visible, onCancel, t }) => {
     );
   };
 
-  // 渲染支付方式
-  const renderPaymentMethod = (pm) => {
-    const displayName = PAYMENT_METHOD_MAP[pm];
-    return <Text>{displayName ? t(displayName) : pm || '-'}</Text>;
+  const renderPaymentMethod = (paymentMethod) => {
+    const displayName = PAYMENT_METHOD_MAP[paymentMethod];
+    return <Text>{displayName ? t(displayName) : paymentMethod || '-'}</Text>;
   };
 
   const isSubscriptionTopup = (record) => {
     const tradeNo = (record?.trade_no || '').toLowerCase();
     return Number(record?.amount || 0) === 0 && tradeNo.startsWith('sub');
   };
-
-  // 检查是否为管理员
-  const userIsAdmin = useMemo(() => isAdmin(), []);
 
   const columns = useMemo(() => {
     const baseColumns = [
@@ -197,7 +192,7 @@ const TopupHistoryModal = ({ visible, onCancel, t }) => {
         title: t('支付金额'),
         dataIndex: 'money',
         key: 'money',
-        render: (money) => <Text type='danger'>¥{money.toFixed(2)}</Text>,
+        render: (money) => <Text type='danger'>¥{Number(money || 0).toFixed(2)}</Text>,
       },
       {
         title: t('状态'),
@@ -207,27 +202,38 @@ const TopupHistoryModal = ({ visible, onCancel, t }) => {
       },
     ];
 
-    // 管理员才显示操作列
     if (userIsAdmin) {
+      baseColumns.splice(1, 0, {
+        title: t('用户'),
+        dataIndex: 'username',
+        key: 'username',
+        render: (username, record) => (
+          <div className='flex flex-col'>
+            <Text>{username || '-'}</Text>
+            <Text type='tertiary' size='small'>
+              #{record.user_id}
+            </Text>
+          </div>
+        ),
+      });
+
       baseColumns.push({
         title: t('操作'),
         key: 'action',
         render: (_, record) => {
-          const actions = [];
-          if (record.status === 'pending') {
-            actions.push(
-              <Button
-                key="complete"
-                size='small'
-                type='primary'
-                theme='outline'
-                onClick={() => confirmAdminComplete(record.trade_no)}
-              >
-                {t('补单')}
-              </Button>
-            );
+          if (record.status !== 'pending') {
+            return null;
           }
-          return actions.length > 0 ? <>{actions}</> : null;
+          return (
+            <Button
+              size='small'
+              type='primary'
+              theme='outline'
+              onClick={() => confirmAdminComplete(record.trade_no)}
+            >
+              {t('补单')}
+            </Button>
+          );
         },
       });
     }
@@ -266,8 +272,8 @@ const TopupHistoryModal = ({ visible, onCancel, t }) => {
         rowKey='id'
         pagination={{
           currentPage: page,
-          pageSize: pageSize,
-          total: total,
+          pageSize,
+          total,
           showSizeChanger: true,
           pageSizeOpts: [10, 20, 50, 100],
           onPageChange: handlePageChange,

@@ -14,6 +14,7 @@ import (
 type TopUp struct {
 	Id            int     `json:"id"`
 	UserId        int     `json:"user_id" gorm:"index"`
+	Username      string  `json:"username,omitempty" gorm:"-"`
 	Amount        int64   `json:"amount"`
 	Money         float64 `json:"money"`
 	TradeNo       string  `json:"trade_no" gorm:"unique;type:varchar(255);index"`
@@ -156,6 +157,51 @@ func topUpQueryCutoff() int64 {
 	return common.GetTimestamp() - topUpQueryWindowSeconds
 }
 
+func attachTopUpUsernames(topups []*TopUp) error {
+	if len(topups) == 0 {
+		return nil
+	}
+
+	userIDs := make([]int, 0, len(topups))
+	userIDSet := make(map[int]struct{}, len(topups))
+	for _, topUp := range topups {
+		if topUp == nil || topUp.UserId <= 0 {
+			continue
+		}
+		if _, exists := userIDSet[topUp.UserId]; exists {
+			continue
+		}
+		userIDSet[topUp.UserId] = struct{}{}
+		userIDs = append(userIDs, topUp.UserId)
+	}
+	if len(userIDs) == 0 {
+		return nil
+	}
+
+	type topUpUserBrief struct {
+		Id       int
+		Username string
+	}
+
+	var users []topUpUserBrief
+	if err := DB.Model(&User{}).Select("id, username").Where("id IN ?", userIDs).Find(&users).Error; err != nil {
+		return err
+	}
+
+	usernamesByID := make(map[int]string, len(users))
+	for _, user := range users {
+		usernamesByID[user.Id] = user.Username
+	}
+
+	for _, topUp := range topups {
+		if topUp == nil {
+			continue
+		}
+		topUp.Username = usernamesByID[topUp.UserId]
+	}
+	return nil
+}
+
 func GetUserTopUps(userId int, pageInfo *common.PageInfo) (topups []*TopUp, total int64, err error) {
 	// Start transaction
 	tx := DB.Begin()
@@ -189,6 +235,10 @@ func GetUserTopUps(userId int, pageInfo *common.PageInfo) (topups []*TopUp, tota
 		return nil, 0, err
 	}
 
+	if err = attachTopUpUsernames(topups); err != nil {
+		return nil, 0, err
+	}
+
 	return topups, total, nil
 }
 
@@ -215,6 +265,10 @@ func GetAllTopUps(pageInfo *common.PageInfo) (topups []*TopUp, total int64, err 
 	}
 
 	if err = tx.Commit().Error; err != nil {
+		return nil, 0, err
+	}
+
+	if err = attachTopUpUsernames(topups); err != nil {
 		return nil, 0, err
 	}
 
@@ -262,6 +316,10 @@ func SearchUserTopUps(userId int, keyword string, pageInfo *common.PageInfo) (to
 	if err = tx.Commit().Error; err != nil {
 		return nil, 0, err
 	}
+
+	if err = attachTopUpUsernames(topups); err != nil {
+		return nil, 0, err
+	}
 	return topups, total, nil
 }
 
@@ -300,6 +358,10 @@ func SearchAllTopUps(keyword string, pageInfo *common.PageInfo) (topups []*TopUp
 	}
 
 	if err = tx.Commit().Error; err != nil {
+		return nil, 0, err
+	}
+
+	if err = attachTopUpUsernames(topups); err != nil {
 		return nil, 0, err
 	}
 	return topups, total, nil
