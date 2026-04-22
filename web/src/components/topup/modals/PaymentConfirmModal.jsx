@@ -36,14 +36,37 @@ const PaymentConfirmModal = ({
   renderAmount,
   payWay,
   payMethods,
-  // 新增：用于显示折扣明细
   amountNumber,
   discountRate,
+  feeRate = 0,
 }) => {
+  const normalizedFeeRate =
+    Number.isFinite(Number(feeRate)) && Number(feeRate) > 0
+      ? Number(feeRate)
+      : 0;
+  const baseAmountBeforeFee =
+    normalizedFeeRate > 0 && amountNumber > 0
+      ? amountNumber / (1 + normalizedFeeRate)
+      : amountNumber;
   const hasDiscount =
-    discountRate && discountRate > 0 && discountRate < 1 && amountNumber > 0;
-  const originalAmount = hasDiscount ? amountNumber / discountRate : 0;
-  const discountAmount = hasDiscount ? originalAmount - amountNumber : 0;
+    discountRate &&
+    discountRate > 0 &&
+    discountRate < 1 &&
+    baseAmountBeforeFee > 0;
+  const originalAmount = hasDiscount
+    ? baseAmountBeforeFee / discountRate
+    : baseAmountBeforeFee;
+  const discountAmount = hasDiscount
+    ? originalAmount - baseAmountBeforeFee
+    : 0;
+  const feeAmount =
+    normalizedFeeRate > 0 && amountNumber > 0
+      ? amountNumber - baseAmountBeforeFee
+      : 0;
+  const showBaseAmount =
+    normalizedFeeRate > 0 && !hasDiscount && baseAmountBeforeFee > 0;
+  const feeRatePercent = (normalizedFeeRate * 100).toFixed(2);
+
   return (
     <Modal
       title={
@@ -71,6 +94,46 @@ const PaymentConfirmModal = ({
                 {renderQuotaWithAmount(topUpCount)}
               </Text>
             </div>
+            {showBaseAmount && !amountLoading && (
+              <div className='flex justify-between items-center'>
+                <Text className='text-slate-500 dark:text-slate-400'>
+                  {t('基础金额')}：
+                </Text>
+                <Text className='text-slate-900 dark:text-slate-100'>
+                  {renderAmount(baseAmountBeforeFee)}
+                </Text>
+              </div>
+            )}
+            {hasDiscount && !amountLoading && (
+              <>
+                <div className='flex justify-between items-center'>
+                  <Text className='text-slate-500 dark:text-slate-400'>
+                    {t('原价')}：
+                  </Text>
+                  <Text delete className='text-slate-500 dark:text-slate-400'>
+                    {renderAmount(originalAmount)}
+                  </Text>
+                </div>
+                <div className='flex justify-between items-center'>
+                  <Text className='text-slate-500 dark:text-slate-400'>
+                    {t('优惠')}：
+                  </Text>
+                  <Text className='text-emerald-600 dark:text-emerald-400'>
+                    {`- ${renderAmount(discountAmount)}`}
+                  </Text>
+                </div>
+              </>
+            )}
+            {normalizedFeeRate > 0 && !amountLoading && (
+              <div className='flex justify-between items-center'>
+                <Text className='text-slate-500 dark:text-slate-400'>
+                  {t('手续费')} ({feeRatePercent}%)：
+                </Text>
+                <Text className='text-amber-600 dark:text-amber-400'>
+                  {`+ ${renderAmount(feeAmount)}`}
+                </Text>
+              </div>
+            )}
             <div className='flex justify-between items-center'>
               <Text strong className='text-slate-700 dark:text-slate-200'>
                 {t('实付金额')}：
@@ -90,26 +153,6 @@ const PaymentConfirmModal = ({
                 </div>
               )}
             </div>
-            {hasDiscount && !amountLoading && (
-              <>
-                <div className='flex justify-between items-center'>
-                  <Text className='text-slate-500 dark:text-slate-400'>
-                    {t('原价')}：
-                  </Text>
-                  <Text delete className='text-slate-500 dark:text-slate-400'>
-                    {`${originalAmount.toFixed(2)} ${t('元')}`}
-                  </Text>
-                </div>
-                <div className='flex justify-between items-center'>
-                  <Text className='text-slate-500 dark:text-slate-400'>
-                    {t('优惠')}：
-                  </Text>
-                  <Text className='text-emerald-600 dark:text-emerald-400'>
-                    {`- ${discountAmount.toFixed(2)} ${t('元')}`}
-                  </Text>
-                </div>
-              </>
-            )}
             <div className='flex justify-between items-center'>
               <Text strong className='text-slate-700 dark:text-slate-200'>
                 {t('支付方式')}：
@@ -165,49 +208,35 @@ const PaymentConfirmModal = ({
                         </Text>
                       </>
                     );
-                  } else {
-                    // 默认充值方式
-                    if (payWay === 'alipay') {
-                      return (
-                        <>
-                          <SiAlipay
-                            className='mr-2'
-                            size={16}
-                            color='#1677FF'
-                          />
-                          <Text className='text-slate-900 dark:text-slate-100'>
-                            {t('支付宝')}
-                          </Text>
-                        </>
-                      );
-                    } else if (payWay === 'stripe') {
-                      return (
-                        <>
-                          <SiStripe
-                            className='mr-2'
-                            size={16}
-                            color='#635BFF'
-                          />
-                          <Text className='text-slate-900 dark:text-slate-100'>
-                            Stripe
-                          </Text>
-                        </>
-                      );
-                    } else {
-                      return (
-                        <>
-                          <SiWechat
-                            className='mr-2'
-                            size={16}
-                            color='#07C160'
-                          />
-                          <Text className='text-slate-900 dark:text-slate-100'>
-                            {t('微信')}
-                          </Text>
-                        </>
-                      );
-                    }
                   }
+                  if (payWay === 'alipay') {
+                    return (
+                      <>
+                        <SiAlipay className='mr-2' size={16} color='#1677FF' />
+                        <Text className='text-slate-900 dark:text-slate-100'>
+                          {t('支付宝')}
+                        </Text>
+                      </>
+                    );
+                  }
+                  if (payWay === 'stripe') {
+                    return (
+                      <>
+                        <SiStripe className='mr-2' size={16} color='#635BFF' />
+                        <Text className='text-slate-900 dark:text-slate-100'>
+                          Stripe
+                        </Text>
+                      </>
+                    );
+                  }
+                  return (
+                    <>
+                      <SiWechat className='mr-2' size={16} color='#07C160' />
+                      <Text className='text-slate-900 dark:text-slate-100'>
+                        {t('微信')}
+                      </Text>
+                    </>
+                  );
                 })()}
               </div>
             </div>

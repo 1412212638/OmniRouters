@@ -42,6 +42,7 @@ const PaymentSetting = () => {
     PayMethods: '',
     AmountOptions: '',
     AmountDiscount: '',
+    FeeRate: 0,
 
     StripeApiSecret: '',
     StripeWebhookSecret: '',
@@ -103,6 +104,9 @@ const PaymentSetting = () => {
             } catch (error) {
               newInputs['AmountDiscount'] = item.value;
             }
+            break;
+          case 'payment_setting.fee_rate':
+            newInputs['FeeRate'] = parseFloat(item.value || 0) * 100;
             break;
           case 'Price':
           case 'MinTopUp':

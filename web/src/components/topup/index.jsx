@@ -33,6 +33,7 @@ import { Modal, Toast } from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
 import { UserContext } from '../../context/User';
 import { StatusContext } from '../../context/Status';
+import { getCurrencyConfig } from '../../helpers/render';
 
 import RechargeCard from './RechargeCard';
 import InvitationCard from './InvitationCard';
@@ -112,6 +113,7 @@ const TopUp = () => {
   const [topupInfo, setTopupInfo] = useState({
     amount_options: [],
     discount: {},
+    fee_rate: 0,
   });
 
   const confirmPayMethods = [
@@ -580,6 +582,7 @@ const TopUp = () => {
         setTopupInfo({
           amount_options: data.amount_options || [],
           discount: data.discount || {},
+          fee_rate: Number(data.fee_rate || 0),
         });
 
         // 处理支付方式
@@ -771,8 +774,41 @@ const TopUp = () => {
     }
   }, [statusState?.status]);
 
-  const renderAmount = () => {
-    return amount + ' ' + t('元');
+  const getUsdExchangeRate = () => {
+    const statusStr = localStorage.getItem('status');
+    let usdRate = 7;
+    try {
+      if (statusStr) {
+        const status = JSON.parse(statusStr);
+        usdRate = status?.usd_exchange_rate || usdRate;
+      }
+    } catch (e) {}
+    return usdRate;
+  };
+
+  const formatPaymentAmount = (rawAmount, digits = 2) => {
+    const numericAmount = Number(rawAmount || 0);
+    const safeAmount = Number.isFinite(numericAmount) ? numericAmount : 0;
+    const { symbol, rate, type } = getCurrencyConfig();
+    const usdRate = getUsdExchangeRate();
+
+    let displayAmount = safeAmount;
+    if (type === 'USD') {
+      displayAmount = safeAmount / usdRate;
+    } else if (type === 'CUSTOM') {
+      displayAmount = (safeAmount / usdRate) * rate;
+    }
+
+    return `${symbol}${displayAmount.toFixed(digits)}`;
+  };
+
+  const renderAmount = (value = amount, digits = 2) => {
+    return formatPaymentAmount(value, digits);
+  };
+
+  const getPaymentFeeRate = () => {
+    const feeRate = Number(topupInfo?.fee_rate || 0);
+    return Number.isFinite(feeRate) && feeRate > 0 ? feeRate : 0;
   };
 
   const getAmount = async (value) => {
@@ -903,6 +939,7 @@ const TopUp = () => {
         payMethods={confirmPayMethods}
         amountNumber={amount}
         discountRate={topupInfo?.discount?.[topUpCount] || 1.0}
+        feeRate={getPaymentFeeRate()}
       />
 
       {/* 充值账单模态框 */}
@@ -963,6 +1000,7 @@ const TopUp = () => {
           setTopUpCount={setTopUpCount}
           setSelectedPreset={setSelectedPreset}
           renderAmount={renderAmount}
+          feeRate={getPaymentFeeRate()}
           amountLoading={amountLoading}
           payMethods={confirmPayMethods}
           preTopUp={preTopUp}

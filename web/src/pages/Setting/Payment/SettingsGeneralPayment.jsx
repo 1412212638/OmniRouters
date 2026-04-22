@@ -39,6 +39,7 @@ export default function SettingsGeneralPayment(props) {
     PayMethods: '',
     AmountOptions: '',
     AmountDiscount: '',
+    FeeRate: 0,
   });
   const [originInputs, setOriginInputs] = useState({});
   const formApiRef = useRef(null);
@@ -52,6 +53,7 @@ export default function SettingsGeneralPayment(props) {
         PayMethods: props.options.PayMethods || '',
         AmountOptions: props.options.AmountOptions || '',
         AmountDiscount: props.options.AmountDiscount || '',
+        FeeRate: Number(props.options.FeeRate || 0),
       };
       setInputs(currentInputs);
       setOriginInputs({ ...currentInputs });
@@ -98,6 +100,11 @@ export default function SettingsGeneralPayment(props) {
       return;
     }
 
+    if (Number(inputs.FeeRate || 0) < 0) {
+      showError(t('支付手续费比例不能小于 0'));
+      return;
+    }
+
     setLoading(true);
     try {
       const options = [
@@ -129,6 +136,12 @@ export default function SettingsGeneralPayment(props) {
         options.push({
           key: 'payment_setting.amount_discount',
           value: inputs.AmountDiscount,
+        });
+      }
+      if (originInputs.FeeRate !== inputs.FeeRate) {
+        options.push({
+          key: 'payment_setting.fee_rate',
+          value: String((Number(inputs.FeeRate || 0) / 100).toFixed(6)),
         });
       }
 
@@ -234,6 +247,22 @@ export default function SettingsGeneralPayment(props) {
                 autosize
                 extraText={t(
                   '设置不同充值金额对应的折扣，键为充值金额，值为折扣率，例如：{"100": 0.95, "200": 0.9, "500": 0.85}',
+                )}
+              />
+            </Col>
+          </Row>
+          <Row style={{ marginTop: 16 }}>
+            <Col xs={24} sm={24} md={12} lg={12} xl={12}>
+              <Form.InputNumber
+                field='FeeRate'
+                label={t('支付手续费比例')}
+                min={0}
+                max={100}
+                step={0.1}
+                precision={2}
+                suffix='%'
+                extraText={t(
+                  '仅用于充值页和确认弹窗展示手续费说明；例如输入 5 表示展示 5% 手续费',
                 )}
               />
             </Col>

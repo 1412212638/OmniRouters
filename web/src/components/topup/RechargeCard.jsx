@@ -70,6 +70,7 @@ const RechargeCard = ({
   setTopUpCount,
   setSelectedPreset,
   renderAmount,
+  feeRate = 0,
   amountLoading,
   payMethods,
   preTopUp,
@@ -104,6 +105,8 @@ const RechargeCard = ({
   const shouldShowSubscription =
     !subscriptionLoading && subscriptionPlans.length > 0;
   const regularPayMethods = payMethods || [];
+  const hasFeeRate = Number(feeRate || 0) > 0;
+  const feeRatePercent = (Number(feeRate || 0) * 100).toFixed(2);
 
   useEffect(() => {
     if (initialTabSetRef.current) return;
@@ -297,6 +300,15 @@ const RechargeCard = ({
                               {renderAmount()}
                             </span>
                           </Text>
+                          {hasFeeRate ? (
+                            <Text
+                              type='tertiary'
+                              size='small'
+                              style={{ display: 'block', marginTop: 4 }}
+                            >
+                              {t('手续费')} {feeRatePercent}%
+                            </Text>
+                          ) : null}
                         </Skeleton>
                       }
                       style={{ width: '100%' }}
