@@ -12,6 +12,7 @@ import (
 	"github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/logger"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
+	relayconstant "github.com/QuantumNous/new-api/relay/constant"
 	"github.com/QuantumNous/new-api/relay/helper"
 	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting/model_setting"
@@ -83,7 +84,7 @@ func ImageHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *type
 		}
 	}
 
-	if info.RelayMode == constant.RelayModeImagesGenerations && strings.EqualFold(c.Query("async"), "true") {
+	if info.RelayMode == relayconstant.RelayModeImagesGenerations && strings.EqualFold(c.Query("async"), "true") {
 		return ImageTaskSubmit(c, info, requestBody)
 	}
 
