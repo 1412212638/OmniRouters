@@ -168,7 +168,7 @@ const renderFixedTierPriceSummary = (tiers, t) => {
             textAlign: 'right',
           }}
         >
-          {t('\u4ef7\u683c')}
+          {t('\u56fa\u5b9a\u4ef7\u683c(\u6bcf\u6b21)')}
         </div>
       </div>
       {tiers.map((tier) => (
