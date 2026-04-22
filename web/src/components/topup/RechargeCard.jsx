@@ -70,6 +70,7 @@ const RechargeCard = ({
   setTopUpCount,
   setSelectedPreset,
   renderAmount,
+  amountNumber = 0,
   feeRate = 0,
   amountLoading,
   payMethods,
@@ -107,6 +108,8 @@ const RechargeCard = ({
   const regularPayMethods = payMethods || [];
   const hasFeeRate = Number(feeRate || 0) > 0;
   const feeRatePercent = (Number(feeRate || 0) * 100).toFixed(2);
+  const actualAmountWithFee =
+    Number(amountNumber || 0) * (1 + Number(feeRate || 0));
 
   useEffect(() => {
     if (initialTabSetRef.current) return;
@@ -297,7 +300,7 @@ const RechargeCard = ({
                           <Text type='secondary' className='text-red-600'>
                             {t('实付金额：')}
                             <span style={{ color: 'red' }}>
-                              {renderAmount()}
+                              {renderAmount(actualAmountWithFee)}
                             </span>
                           </Text>
                           {hasFeeRate ? (

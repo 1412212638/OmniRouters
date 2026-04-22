@@ -45,9 +45,9 @@ const PaymentConfirmModal = ({
       ? Number(feeRate)
       : 0;
   const baseAmountBeforeFee =
-    normalizedFeeRate > 0 && amountNumber > 0
-      ? amountNumber / (1 + normalizedFeeRate)
-      : amountNumber;
+    Number.isFinite(Number(amountNumber)) && Number(amountNumber) > 0
+      ? Number(amountNumber)
+      : 0;
   const hasDiscount =
     discountRate &&
     discountRate > 0 &&
@@ -60,9 +60,10 @@ const PaymentConfirmModal = ({
     ? originalAmount - baseAmountBeforeFee
     : 0;
   const feeAmount =
-    normalizedFeeRate > 0 && amountNumber > 0
-      ? amountNumber - baseAmountBeforeFee
+    normalizedFeeRate > 0 && baseAmountBeforeFee > 0
+      ? baseAmountBeforeFee * normalizedFeeRate
       : 0;
+  const actualAmount = baseAmountBeforeFee + feeAmount;
   const showBaseAmount =
     normalizedFeeRate > 0 && !hasDiscount && baseAmountBeforeFee > 0;
   const feeRatePercent = (normalizedFeeRate * 100).toFixed(2);
@@ -143,7 +144,7 @@ const PaymentConfirmModal = ({
               ) : (
                 <div className='flex items-baseline space-x-2'>
                   <Text strong className='font-bold' style={{ color: 'red' }}>
-                    {renderAmount()}
+                    {renderAmount(actualAmount)}
                   </Text>
                   {hasDiscount && (
                     <Text size='small' className='text-rose-500'>

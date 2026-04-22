@@ -1000,6 +1000,7 @@ const TopUp = () => {
           setTopUpCount={setTopUpCount}
           setSelectedPreset={setSelectedPreset}
           renderAmount={renderAmount}
+          amountNumber={amount}
           feeRate={getPaymentFeeRate()}
           amountLoading={amountLoading}
           payMethods={confirmPayMethods}
