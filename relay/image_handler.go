@@ -83,6 +83,10 @@ func ImageHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *type
 		}
 	}
 
+	if info.RelayMode == constant.RelayModeImagesGenerations && strings.EqualFold(c.Query("async"), "true") {
+		return ImageTaskSubmit(c, info, requestBody)
+	}
+
 	statusCodeMappingStr := c.GetString("status_code_mapping")
 
 	resp, err := adaptor.DoRequest(c, info, requestBody)

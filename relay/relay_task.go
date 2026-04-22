@@ -2,18 +2,21 @@ package relay
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/relay/channel"
+	taskopenaiimage "github.com/QuantumNous/new-api/relay/channel/task/openai_image"
 	"github.com/QuantumNous/new-api/relay/channel/task/taskcommon"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	relayconstant "github.com/QuantumNous/new-api/relay/constant"
@@ -282,6 +285,7 @@ var fetchRespBuilders = map[int]func(c *gin.Context) (respBody []byte, taskResp 
 	relayconstant.RelayModeSunoFetchByID:  sunoFetchByIDRespBodyBuilder,
 	relayconstant.RelayModeSunoFetch:      sunoFetchRespBodyBuilder,
 	relayconstant.RelayModeVideoFetchByID: videoFetchByIDRespBodyBuilder,
+	relayconstant.RelayModeImageFetchByID: imageFetchByIDRespBodyBuilder,
 }
 
 func RelayTaskFetch(c *gin.Context, relayMode int) (taskResp *dto.TaskError) {
@@ -413,6 +417,166 @@ func videoFetchByIDRespBodyBuilder(c *gin.Context) (respBody []byte, taskResp *d
 		taskResp = service.TaskErrorWrapper(err, "marshal_response_failed", http.StatusInternalServerError)
 	}
 	return
+}
+
+func imageFetchByIDRespBodyBuilder(c *gin.Context) (respBody []byte, taskResp *dto.TaskError) {
+	taskId := c.Param("task_id")
+	if taskId == "" {
+		taskId = c.GetString("task_id")
+	}
+	userId := c.GetInt("id")
+
+	task, exist, err := model.GetByTaskId(userId, taskId)
+	if err != nil {
+		return nil, service.TaskErrorWrapper(err, "get_task_failed", http.StatusInternalServerError)
+	}
+	if !exist {
+		return nil, service.TaskErrorWrapperLocal(errors.New("task_not_exist"), "task_not_exist", http.StatusBadRequest)
+	}
+	if task.Platform != constant.TaskPlatformOpenAIImage {
+		return nil, service.TaskErrorWrapperLocal(errors.New("task_not_exist"), "task_not_exist", http.StatusBadRequest)
+	}
+
+	if task.Status != model.TaskStatusSuccess &&
+		task.Status != model.TaskStatusFailure {
+		tryRealtimeImageFetch(task)
+	}
+
+	response := dto.OpenAIImageTaskFetchResponse{
+		TaskID: task.TaskID,
+		Status: imageTaskStatusToOpenAI(task.Status),
+	}
+	if task.Status == model.TaskStatusSuccess {
+		response.Data = taskopenaiimage.ExtractImageData(task.Data)
+		if len(response.Data) == 0 && task.GetResultURL() != "" {
+			response.Data = []dto.ImageData{{Url: task.GetResultURL()}}
+		}
+	}
+	if task.Status == model.TaskStatusFailure && task.FailReason != "" {
+		response.Error = &dto.OpenAIImageTaskError{
+			Message: task.FailReason,
+		}
+	}
+
+	respBody, err = common.Marshal(response)
+	if err != nil {
+		return nil, service.TaskErrorWrapper(err, "marshal_response_failed", http.StatusInternalServerError)
+	}
+	return respBody, nil
+}
+
+func tryRealtimeImageFetch(task *model.Task) {
+	channelModel, err := model.GetChannelById(task.ChannelId, true)
+	if err != nil {
+		return
+	}
+	adaptor := GetTaskAdaptor(task.Platform)
+	if adaptor == nil {
+		return
+	}
+
+	baseURL := constant.ChannelBaseURLs[channelModel.Type]
+	if channelModel.GetBaseURL() != "" {
+		baseURL = channelModel.GetBaseURL()
+	}
+	proxy := channelModel.GetSetting().Proxy
+	key := channelModel.Key
+	if task.PrivateData.Key != "" {
+		key = task.PrivateData.Key
+	}
+
+	resp, err := adaptor.FetchTask(baseURL, key, map[string]any{
+		"task_id": task.GetUpstreamTaskID(),
+		"action":  task.Action,
+	}, proxy)
+	if err != nil || resp == nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+
+	taskResult, err := adaptor.ParseTaskResult(responseBody)
+	if err != nil || taskResult == nil || taskResult.Status == "" {
+		return
+	}
+
+	snap := task.Snapshot()
+	task.Data = responseBody
+
+	now := time.Now().Unix()
+	shouldRefund := false
+
+	switch taskResult.Status {
+	case string(model.TaskStatusQueued):
+		task.Status = model.TaskStatusQueued
+		task.Progress = taskcommon.ProgressQueued
+	case string(model.TaskStatusInProgress):
+		task.Status = model.TaskStatusInProgress
+		task.Progress = taskcommon.ProgressInProgress
+		if task.StartTime == 0 {
+			task.StartTime = now
+		}
+	case string(model.TaskStatusSuccess):
+		task.Status = model.TaskStatusSuccess
+		task.Progress = taskcommon.ProgressComplete
+		if task.FinishTime == 0 {
+			task.FinishTime = now
+		}
+		if taskResult.Url != "" {
+			task.PrivateData.ResultURL = taskResult.Url
+		}
+	case string(model.TaskStatusFailure):
+		task.Status = model.TaskStatusFailure
+		task.Progress = taskcommon.ProgressComplete
+		if task.FinishTime == 0 {
+			task.FinishTime = now
+		}
+		task.FailReason = taskResult.Reason
+		if task.Quota != 0 {
+			shouldRefund = true
+		}
+	default:
+		return
+	}
+
+	if taskResult.Progress != "" {
+		task.Progress = taskResult.Progress
+	}
+
+	isDone := task.Status == model.TaskStatusSuccess || task.Status == model.TaskStatusFailure
+	if isDone && snap.Status != task.Status {
+		won, err := task.UpdateWithStatus(snap.Status)
+		if err != nil || !won {
+			return
+		}
+	} else if !snap.Equal(task.Snapshot()) {
+		if _, err := task.UpdateWithStatus(snap.Status); err != nil {
+			return
+		}
+	}
+
+	if shouldRefund {
+		service.RefundTaskQuota(context.Background(), task, task.FailReason)
+	}
+}
+
+func imageTaskStatusToOpenAI(status model.TaskStatus) string {
+	switch status {
+	case model.TaskStatusSubmitted, model.TaskStatusQueued, model.TaskStatusNotStart:
+		return dto.VideoStatusQueued
+	case model.TaskStatusInProgress:
+		return dto.VideoStatusInProgress
+	case model.TaskStatusSuccess:
+		return dto.VideoStatusCompleted
+	case model.TaskStatusFailure:
+		return dto.VideoStatusFailed
+	default:
+		return dto.VideoStatusUnknown
+	}
 }
 
 // tryRealtimeFetch 尝试从上游实时拉取 Gemini/Vertex 任务状态。
