@@ -20,12 +20,15 @@ For commercial licensing, please contact support@quantumnous.com
 import React from 'react';
 import { Avatar, Typography, Table, Tag } from '@douyinfe/semi-ui';
 import { IconCoinMoneyStroked } from '@douyinfe/semi-icons';
+import { BILLING_VARS } from '../../../../../constants';
 import {
   calculateModelPrice,
   getModelPriceItems,
   getPricingBillingColor,
   getPricingDisplayBillingLabel,
+  parseTiersFromExpr,
 } from '../../../../../helpers';
+import { splitBillingExprAndRequestRules } from '../../../../../pages/Setting/Ratio/components/requestRuleExpr';
 
 const { Text } = Typography;
 
@@ -55,6 +58,48 @@ const soraSummaryCellStyle = {
   borderTop: '1px solid var(--semi-color-border)',
   color: 'var(--semi-color-text-0)',
   fontSize: 13,
+};
+
+export const isFixedPriceOnlyTieredExprRecord = (record) => {
+  if (record?.billing_mode !== 'tiered_expr' || !record?.billing_expr) {
+    return false;
+  }
+
+  const { billingExpr: baseExpr, requestRuleExpr } =
+    splitBillingExprAndRequestRules(record.billing_expr);
+
+  if (requestRuleExpr?.trim()) {
+    return false;
+  }
+
+  const tiers = parseTiersFromExpr(baseExpr);
+  if (tiers.length === 0) {
+    return false;
+  }
+
+  return tiers.every((tier) => {
+    const hasFixedPrice = Number(tier?.fixedPrice) > 0;
+    const hasVariablePrice = BILLING_VARS.some(
+      (variable) => Number(tier?.[variable.field]) > 0,
+    );
+    return hasFixedPrice && !hasVariablePrice;
+  });
+};
+
+const buildFixedTierPriceRows = (record, appliedGroupRatio, displayPrice) => {
+  if (!isFixedPriceOnlyTieredExprRecord(record)) {
+    return [];
+  }
+
+  const { billingExpr: baseExpr } = splitBillingExprAndRequestRules(
+    record.billing_expr,
+  );
+
+  return parseTiersFromExpr(baseExpr).map((tier, index) => ({
+    key: `${tier.label || 'tier'}-${index}`,
+    label: tier.label,
+    price: displayPrice((Number(tier.fixedPrice) || 0) * appliedGroupRatio),
+  }));
 };
 
 const renderSoraPriceSummary = (priceData, t) => {
@@ -97,6 +142,46 @@ const renderSoraPriceSummary = (priceData, t) => {
             }}
           >
             {`${tier.price}/s`}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const renderFixedTierPriceSummary = (tiers, t) => {
+  if (!Array.isArray(tiers) || tiers.length === 0) {
+    return (
+      <Text type='tertiary' size='small'>
+        {t('\u6682\u65e0\u4ef7\u683c\u6863\u4f4d')}
+      </Text>
+    );
+  }
+
+  return (
+    <div style={soraSummaryWrapStyle}>
+      <div style={soraSummaryGridStyle}>
+        <div style={soraSummaryHeaderCellStyle}>{t('\u6863\u4f4d')}</div>
+        <div
+          style={{
+            ...soraSummaryHeaderCellStyle,
+            textAlign: 'right',
+          }}
+        >
+          {t('\u4ef7\u683c')}
+        </div>
+      </div>
+      {tiers.map((tier) => (
+        <div key={tier.key || tier.label} style={soraSummaryGridStyle}>
+          <div style={soraSummaryCellStyle}>{tier.label || t('\u9ed8\u8ba4')}</div>
+          <div
+            style={{
+              ...soraSummaryCellStyle,
+              textAlign: 'right',
+              fontWeight: 600,
+            }}
+          >
+            {tier.price}
           </div>
         </div>
       ))}
@@ -149,14 +234,21 @@ const ModelPricingTable = ({
           })
         : { inputPrice: '-', outputPrice: '-', price: '-' };
 
+      const appliedGroupRatio = groupRatio?.[group] ?? priceData.usedGroupRatio ?? 1;
+
       return {
         key: group,
         group,
-        ratio: groupRatio?.[group] ?? priceData.usedGroupRatio ?? 1,
+        ratio: appliedGroupRatio,
         billingType: getPricingDisplayBillingLabel(modelData, t),
         billingColor: getPricingBillingColor(modelData),
         priceItems: getModelPriceItems(priceData, t, siteDisplayType),
         priceData,
+        fixedTierPriceRows: buildFixedTierPriceRows(
+          modelData,
+          appliedGroupRatio,
+          displayPrice,
+        ),
       };
     });
 
@@ -205,6 +297,10 @@ const ModelPricingTable = ({
       render: (items, record) => {
         if (record.priceData?.isSoraParamPricing) {
           return renderSoraPriceSummary(record.priceData, t);
+        }
+
+        if (record.fixedTierPriceRows?.length > 0) {
+          return renderFixedTierPriceSummary(record.fixedTierPriceRows, t);
         }
 
         if (items.length === 1 && items[0].isDynamic) {

@@ -3716,6 +3716,7 @@
     "动态计费": "Dynamic pricing",
     "价格根据用量档位和请求条件动态调整": "Price adjusts dynamically based on usage tiers and request conditions",
     "分档价格表": "Tiered price table",
+    "档位": "Tier",
     "分辨率": "Resolution",
     "每秒价格": "Price / s",
     "当前模型按请求中的 seconds 与 resolution 档位动态计算价格。": "This model calculates prices dynamically based on the request's seconds and resolution tier.",

@@ -3643,6 +3643,7 @@
     "默认测试模型": "Modèle de test par défaut",
     "默认用户消息": "Bonjour",
     "默认补全倍率": "Taux de complétion par défaut",
+    "档位": "Palier",
     "分辨率": "Résolution",
     "每秒价格": "Prix / s",
     "当前模型按请求中的 seconds 与 resolution 档位动态计算价格。": "Ce modèle calcule les prix de manière dynamique selon les secondes et le palier de résolution de la requête.",

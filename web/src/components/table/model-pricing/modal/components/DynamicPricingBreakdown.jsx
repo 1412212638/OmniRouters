@@ -120,7 +120,7 @@ export default function DynamicPricingBreakdown({ billingExpr, t }) {
 
   const tierColumns = [
     {
-      title: t('档位'),
+      title: t('\u6863\u4f4d'),
       dataIndex: 'label',
       render: (text, record) => (
         <div>

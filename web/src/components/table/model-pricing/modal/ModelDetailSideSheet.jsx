@@ -25,7 +25,9 @@ import { useIsMobile } from '../../../../hooks/common/useIsMobile';
 import ModelHeader from './components/ModelHeader';
 import ModelBasicInfo from './components/ModelBasicInfo';
 import ModelEndpoints from './components/ModelEndpoints';
-import ModelPricingTable from './components/ModelPricingTable';
+import ModelPricingTable, {
+  isFixedPriceOnlyTieredExprRecord,
+} from './components/ModelPricingTable';
 import DynamicPricingBreakdown from './components/DynamicPricingBreakdown';
 
 const { Text } = Typography;
@@ -97,7 +99,8 @@ const ModelDetailSideSheet = ({
             </div>
             {modelData.billing_mode === 'tiered_expr' &&
               modelData.billing_expr &&
-              !modelData.sora_per_request_pricing?.enabled && (
+              !modelData.sora_per_request_pricing?.enabled &&
+              !isFixedPriceOnlyTieredExprRecord(modelData) && (
               <>
                 <Divider margin={16} />
                 <div style={{ padding: '0 24px' }}>

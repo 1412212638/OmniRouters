@@ -4177,6 +4177,7 @@
     "默认测试模型": "Mô hình kiểm tra mặc định",
     "默认用户消息": "Xin chào",
     "默认补全倍率": "Tỷ lệ hoàn thành mặc định",
+    "档位": "Bậc",
     "分辨率": "Độ phân giải",
     "每秒价格": "Giá / giây",
     "当前模型按请求中的 seconds 与 resolution 档位动态计算价格。": "Mô hình này tính giá động dựa trên seconds và bậc resolution trong yêu cầu.",
