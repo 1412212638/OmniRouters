@@ -90,7 +90,14 @@ function renderDuration(submit_time, finishTime) {
   );
 }
 
-const renderType = (type, t) => {
+const renderType = (type, record, t) => {
+  if (record?.platform === 'openai_image') {
+    return (
+      <Tag color='cyan' shape='circle' prefixIcon={<Sparkles size={14} />}>
+        {t('生成图片')}
+      </Tag>
+    );
+  }
   switch (type) {
     case 'MUSIC':
       return (
@@ -155,6 +162,12 @@ const renderPlatform = (platform, t) => {
     );
   }
   switch (platform) {
+    case 'openai_image':
+      return (
+        <Tag color='green' shape='circle'>
+          OpenAI
+        </Tag>
+      );
     case 'suno':
       return (
         <Tag color='green' shape='circle'>
@@ -335,7 +348,7 @@ export const getTaskLogsColumns = ({
       title: t('类型'),
       dataIndex: 'action',
       render: (text, record, index) => {
-        return <div>{renderType(text, t)}</div>;
+        return <div>{renderType(text, record, t)}</div>;
       },
     },
     {
