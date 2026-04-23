@@ -17,7 +17,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useEffect, useMemo, useState } from 'react';
-import { API, showError, showSuccess } from '../../../../helpers';
+import {
+  API,
+  copy as copyToClipboard,
+  showError,
+  showSuccess,
+} from '../../../../helpers';
 import {
   combineBillingExpr,
   splitBillingExprAndRequestRules,
@@ -575,6 +580,122 @@ const serializeSoraPerRequestPricing = (model, t) => {
   };
 };
 
+const buildSoraPerRequestPricingClipboardConfig = (model, t) => {
+  const tiers = normalizeSoraResolutionTiers(model?.soraResolutionTiers);
+  const tierNames = tiers.map((tier) => tier.value);
+  if (new Set(tierNames).size !== tierNames.length) {
+    throw new Error(
+      t('模型 {{name}} 的 Sora resolution 档位存在重复值', {
+        name: model?.name || '-',
+      }),
+    );
+  }
+  if (
+    tiers.some(
+      (tier) =>
+        !hasValue(tier.multiplier) || Number(tier.multiplier) <= 0,
+    )
+  ) {
+    throw new Error(
+      t('模型 {{name}} 的 Sora resolution 倍率必须大于 0', {
+        name: model?.name || '-',
+      }),
+    );
+  }
+
+  if (model?.soraPerRequestPricingEnabled) {
+    if (!hasValue(model.fixedPrice)) {
+      throw new Error(
+        t('模型 {{name}} 启用 Sora 参数计费后，必须填写基础每秒单价', {
+          name: model?.name || '-',
+        }),
+      );
+    }
+    if (tiers.length === 0) {
+      throw new Error(
+        t('模型 {{name}} 启用 Sora 参数计费后，至少需要一个 resolution 档位', {
+          name: model?.name || '-',
+        }),
+      );
+    }
+  }
+
+  return {
+    type: 'sora_per_request_pricing',
+    version: 1,
+    enabled: Boolean(model?.soraPerRequestPricingEnabled),
+    base_price_per_second: hasValue(model?.fixedPrice)
+      ? Number(model.fixedPrice)
+      : '',
+    resolution_tiers: tiers.map((tier) => ({
+      value: tier.value,
+      multiplier: Number(tier.multiplier),
+    })),
+  };
+};
+
+const parseSoraPerRequestPricingClipboardConfig = (rawText, t) => {
+  let parsed;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch (error) {
+    throw new Error(t('参数配置有误'));
+  }
+
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error(t('参数配置有误'));
+  }
+
+  const enabled =
+    typeof parsed.enabled === 'boolean'
+      ? parsed.enabled
+      : parsed.soraPerRequestPricingEnabled !== undefined
+        ? Boolean(parsed.soraPerRequestPricingEnabled)
+        : true;
+
+  const fixedPrice = toNumericString(
+    parsed.base_price_per_second ??
+      parsed.basePricePerSecond ??
+      parsed.fixedPrice ??
+      parsed.ModelPrice,
+  );
+
+  const tiers = normalizeSoraResolutionTiers(
+    parsed.resolution_tiers ?? parsed.soraResolutionTiers,
+  );
+
+  const tierNames = tiers.map((tier) => tier.value);
+  if (new Set(tierNames).size !== tierNames.length) {
+    throw new Error(t('参数配置有误'));
+  }
+  if (
+    tiers.some(
+      (tier) =>
+        !tier.value ||
+        !hasValue(tier.multiplier) ||
+        Number(tier.multiplier) <= 0,
+    )
+  ) {
+    throw new Error(t('参数配置有误'));
+  }
+
+  if (enabled) {
+    if (!hasValue(fixedPrice) || tiers.length === 0) {
+      throw new Error(t('参数配置有误'));
+    }
+  }
+
+  if (!enabled && !hasValue(fixedPrice) && tiers.length === 0) {
+    throw new Error(t('参数配置有误'));
+  }
+
+  return {
+    enabled,
+    fixedPrice,
+    tiers,
+  };
+};
+
 export const buildPreviewRows = (model, t) => {
   if (!model) return [];
   const finalBillingExpr = combineBillingExpr(
@@ -1093,6 +1214,70 @@ export function useModelPricingEditorState({
     }));
   };
 
+  const handleCopySoraPerRequestPricing = async () => {
+    if (!selectedModel) {
+      showError(t('请先选择一个作为模板的模型'));
+      return false;
+    }
+    try {
+      const payload = buildSoraPerRequestPricingClipboardConfig(
+        selectedModel,
+        t,
+      );
+      const copied = await copyToClipboard(JSON.stringify(payload, null, 2));
+      if (!copied) {
+        showError(t('无法复制到剪贴板，请手动复制'));
+        return false;
+      }
+      showSuccess(t('已复制到剪贴板'));
+      return true;
+    } catch (error) {
+      showError(error.message || t('复制失败'));
+      return false;
+    }
+  };
+
+  const handleImportSoraPerRequestPricing = async () => {
+    if (!selectedModel) {
+      showError(t('请先选择一个作为模板的模型'));
+      return false;
+    }
+
+    let rawText = '';
+    try {
+      rawText = await navigator.clipboard.readText();
+    } catch (error) {
+      rawText = '';
+    }
+
+    if (!rawText || !rawText.trim()) {
+      rawText = window.prompt(t('导入配置'), '') || '';
+    }
+
+    if (!rawText || !rawText.trim()) {
+      showError(t('无法读取剪贴板'));
+      return false;
+    }
+
+    try {
+      const imported = parseSoraPerRequestPricingClipboardConfig(rawText, t);
+      upsertModel(selectedModel.name, (model) => ({
+        ...model,
+        billingMode: 'per-request',
+        fixedPrice: imported.fixedPrice,
+        soraPerRequestPricingEnabled: imported.enabled,
+        soraResolutionTiers: cloneSoraResolutionTiers(imported.tiers),
+      }));
+      showSuccess(t('配置导入成功'));
+      return true;
+    } catch (error) {
+      showError(
+        `${t('导入配置失败: ')}${error.message || t('参数配置有误')}`,
+      );
+      return false;
+    }
+  };
+
   const addModel = (modelName) => {
     const trimmedName = modelName.trim();
     if (!trimmedName) {
@@ -1327,6 +1512,8 @@ export function useModelPricingEditorState({
     handleSoraResolutionTierChange,
     handleAddSoraResolutionTier,
     handleRemoveSoraResolutionTier,
+    handleCopySoraPerRequestPricing,
+    handleImportSoraPerRequestPricing,
     handleSubmit,
     addModel,
     deleteModel,

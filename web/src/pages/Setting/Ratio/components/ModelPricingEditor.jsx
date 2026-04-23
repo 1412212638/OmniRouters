@@ -190,6 +190,8 @@ export default function ModelPricingEditor({
     handleSoraResolutionTierChange,
     handleAddSoraResolutionTier,
     handleRemoveSoraResolutionTier,
+    handleCopySoraPerRequestPricing,
+    handleImportSoraPerRequestPricing,
     handleSubmit,
     addModel,
     deleteModel,
@@ -529,10 +531,26 @@ export default function ModelPricingEditor({
                             )}
                           </div>
                         </div>
-                        <Switch
-                          checked={selectedModel.soraPerRequestPricingEnabled}
-                          onChange={handleSoraPerRequestToggle}
-                        />
+                        <Space>
+                          <Button
+                            theme='light'
+                            size='small'
+                            onClick={handleCopySoraPerRequestPricing}
+                          >
+                            {t('复制')}
+                          </Button>
+                          <Button
+                            theme='light'
+                            size='small'
+                            onClick={handleImportSoraPerRequestPricing}
+                          >
+                            {t('导入配置')}
+                          </Button>
+                          <Switch
+                            checked={selectedModel.soraPerRequestPricingEnabled}
+                            onChange={handleSoraPerRequestToggle}
+                          />
+                        </Space>
                       </div>
                     </Card>
                     <PriceInput
