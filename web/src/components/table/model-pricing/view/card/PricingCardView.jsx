@@ -37,7 +37,7 @@ import {
 import {
   stringToColor,
   calculateModelPrice,
-  formatPriceInfo,
+  getModelPriceItems,
   formatDynamicPriceSummary,
   getPricingBillingColor,
   getPricingDisplayBillingLabel,
@@ -215,22 +215,125 @@ const PricingCardView = ({
     );
   };
 
-  const renderCardPriceSummary = (priceData) => {
+  const isDisplayEnabled = (value) =>
+    value === 1 || value === true || value === '1';
+
+  const getDiscountLabel = (record) => {
+    if (!isDisplayEnabled(record?.discount_enabled)) return '';
+    const customLabel = String(record?.discount_label || '').trim();
+    if (customLabel) return customLabel;
+
+    const percent = Number(record?.discount_percent);
+    if (Number.isFinite(percent) && percent > 0) {
+      return `${Number.isInteger(percent) ? percent : percent.toFixed(2)}% OFF`;
+    }
+
+    return t('折扣');
+  };
+
+  const getOriginalPriceData = (record, currentPriceData) => {
+    if (!isDisplayEnabled(record?.discount_enabled)) return null;
+
+    const source = record?.display_original_price_source || 'none';
+    if (source === 'none' || currentPriceData?.isDynamicPricing) return null;
+
+    const originalGroup =
+      source === 'default'
+        ? 'default'
+        : String(record?.display_original_price_group || '').trim();
+
+    if (!originalGroup || originalGroup === currentPriceData?.usedGroup) {
+      return null;
+    }
+
+    const originalGroupRatio = {
+      ...(groupRatio || {}),
+      [originalGroup]: (groupRatio || {})[originalGroup] ?? 1,
+    };
+    const currentRatio = Number(currentPriceData?.usedGroupRatio ?? 1);
+    const referenceRatio = Number(originalGroupRatio[originalGroup] ?? 1);
+
+    if (
+      Number.isFinite(currentRatio) &&
+      Number.isFinite(referenceRatio) &&
+      referenceRatio <= currentRatio
+    ) {
+      return null;
+    }
+
+    return calculateModelPrice({
+      record,
+      selectedGroup: originalGroup,
+      groupRatio: originalGroupRatio,
+      tokenUnit,
+      displayPrice,
+      currency,
+      quotaDisplayType: siteDisplayType,
+    });
+  };
+
+  const renderPriceItems = (priceData, originalPriceData) => {
+    const items = getModelPriceItems(priceData, t, siteDisplayType);
+    const originalItems = new Map(
+      (
+        getModelPriceItems(originalPriceData || {}, t, siteDisplayType) || []
+      ).map((item) => [item.key, item]),
+    );
+
+    return items.map((item) => {
+      const originalItem = originalItems.get(item.key);
+      const hasOriginal =
+        originalItem &&
+        !item.isDynamic &&
+        originalItem.value !== item.value &&
+        originalItem.value !== null &&
+        originalItem.value !== undefined &&
+        originalItem.value !== '';
+
+      return (
+        <span
+          key={item.key}
+          className='flex flex-wrap items-baseline gap-x-2 gap-y-0.5'
+          style={{ color: 'var(--semi-color-text-1)' }}
+        >
+          <span>{item.label}</span>
+          {hasOriginal && (
+            <span
+              className='text-xs'
+              style={{
+                color: 'var(--semi-color-text-2)',
+                textDecoration: 'line-through',
+              }}
+            >
+              {originalItem.value}
+              {originalItem.suffix}
+            </span>
+          )}
+          <span className={hasOriginal ? 'font-semibold text-emerald-600' : ''}>
+            {item.value}
+            {item.suffix}
+          </span>
+        </span>
+      );
+    });
+  };
+
+  const renderCardPriceSummary = (record, priceData) => {
     if (priceData?.isSoraParamPricing) {
       return renderSoraSummaryTags(priceData);
     }
 
+    const originalPriceData = getOriginalPriceData(record, priceData);
+
     return (
       <div className='flex flex-col gap-1 text-xs mt-2'>
-        {priceData.isDynamicPricing ? (
-          formatDynamicPriceSummary(
-            priceData.billingExpr,
-            t,
-            priceData.usedGroupRatio,
-          )
-        ) : (
-          formatPriceInfo(priceData, t, siteDisplayType)
-        )}
+        {priceData.isDynamicPricing
+          ? formatDynamicPriceSummary(
+              priceData.billingExpr,
+              t,
+              priceData.usedGroupRatio,
+            )
+          : renderPriceItems(priceData, originalPriceData)}
       </div>
     );
   };
@@ -274,28 +377,76 @@ const PricingCardView = ({
             quotaDisplayType: siteDisplayType,
           });
           const description = getModelDescription(model);
+          const discountLabel = getDiscountLabel(model);
+          const promotionNote = String(model?.promotion_note || '').trim();
+          const showNewTag = isDisplayEnabled(model?.is_new);
 
           return (
             <Card
               key={modelKey || index}
-              className={`!rounded-2xl transition-all duration-200 hover:shadow-lg border cursor-pointer ${
+              className={`!rounded-2xl relative overflow-hidden transition-all duration-200 hover:shadow-lg border cursor-pointer ${
                 isSelected ? CARD_STYLES.selected : CARD_STYLES.default
               }`}
               bodyStyle={{ height: '100%' }}
               onClick={() => openModelDetail && openModelDetail(model)}
             >
+              {discountLabel && (
+                <div
+                  className='pointer-events-none select-none'
+                  style={{
+                    position: 'absolute',
+                    top: 14,
+                    right: -44,
+                    width: 150,
+                    transform: 'rotate(45deg)',
+                    transformOrigin: 'center',
+                    background:
+                      'linear-gradient(135deg, #ff6b57 0%, #ff9f4a 100%)',
+                    color: '#fff',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: 0.4,
+                    textAlign: 'center',
+                    padding: '4px 0',
+                    boxShadow: '0 8px 18px rgba(255, 107, 87, 0.25)',
+                    zIndex: 1,
+                  }}
+                >
+                  {discountLabel}
+                </div>
+              )}
               <div className='flex flex-col h-full'>
                 <div className='flex items-start justify-between mb-3'>
                   <div className='flex items-start space-x-3 flex-1 min-w-0'>
                     {getModelIcon(model)}
                     <div className='flex-1 min-w-0'>
-                      <h3 className='text-lg font-bold text-gray-900 truncate'>
-                        {model.model_name}
-                      </h3>
+                      <div className='flex items-center gap-2 min-w-0'>
+                        <h3 className='text-lg font-bold text-gray-900 truncate'>
+                          {model.model_name}
+                        </h3>
+                        {showNewTag && (
+                          <Tag color='green' shape='circle' size='small'>
+                            NEW
+                          </Tag>
+                        )}
+                      </div>
+                      {promotionNote && discountLabel && (
+                        <Tag
+                          color='red'
+                          shape='circle'
+                          size='small'
+                          className='mt-2'
+                        >
+                          {promotionNote}
+                        </Tag>
+                      )}
                     </div>
                   </div>
 
-                  <div className='flex items-center space-x-2 ml-3'>
+                  <div
+                    className='flex items-center space-x-2 ml-3'
+                    style={{ marginRight: discountLabel ? 28 : 0 }}
+                  >
                     <Button
                       size='small'
                       theme='outline'
@@ -320,7 +471,7 @@ const PricingCardView = ({
                 </div>
 
                 <div className='flex-1 flex flex-col gap-3 mb-4'>
-                  {renderCardPriceSummary(priceData)}
+                  {renderCardPriceSummary(model, priceData)}
                   {description && (
                     <p
                       className='text-xs line-clamp-2 leading-relaxed'
@@ -363,7 +514,9 @@ const PricingCardView = ({
                       <div className='grid grid-cols-3 gap-2 text-xs text-gray-600'>
                         <div>
                           {t('\u6a21\u578b')}:{' '}
-                          {model.quota_type === 0 ? model.model_ratio : t('\u65e0')}
+                          {model.quota_type === 0
+                            ? model.model_ratio
+                            : t('\u65e0')}
                         </div>
                         <div>
                           {t('\u8865\u5168')}:{' '}
@@ -372,7 +525,8 @@ const PricingCardView = ({
                             : t('\u65e0')}
                         </div>
                         <div>
-                          {t('\u5206\u7ec4')}: {priceData?.usedGroupRatio ?? '-'}
+                          {t('\u5206\u7ec4')}:{' '}
+                          {priceData?.usedGroupRatio ?? '-'}
                         </div>
                       </div>
                     </div>

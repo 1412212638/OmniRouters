@@ -20,6 +20,13 @@ type Pricing struct {
 	Icon                   string                  `json:"icon,omitempty"`
 	Tags                   string                  `json:"tags,omitempty"`
 	VendorID               int                     `json:"vendor_id,omitempty"`
+	IsNew                  int                     `json:"is_new,omitempty"`
+	DiscountEnabled        int                     `json:"discount_enabled,omitempty"`
+	DiscountPercent        float64                 `json:"discount_percent,omitempty"`
+	DiscountLabel          string                  `json:"discount_label,omitempty"`
+	PromotionNote          string                  `json:"promotion_note,omitempty"`
+	DisplayOriginalPriceSource string              `json:"display_original_price_source,omitempty"`
+	DisplayOriginalPriceGroup  string              `json:"display_original_price_group,omitempty"`
 	QuotaType              int                     `json:"quota_type"`
 	ModelRatio             float64                 `json:"model_ratio"`
 	ModelPrice             float64                 `json:"model_price"`
@@ -303,6 +310,13 @@ func updatePricing() {
 			pricing.Icon = meta.Icon
 			pricing.Tags = meta.Tags
 			pricing.VendorID = meta.VendorID
+			pricing.IsNew = meta.IsNew
+			pricing.DiscountEnabled = meta.DiscountEnabled
+			pricing.DiscountPercent = meta.DiscountPercent
+			pricing.DiscountLabel = meta.DiscountLabel
+			pricing.PromotionNote = meta.PromotionNote
+			pricing.DisplayOriginalPriceSource = meta.DisplayOriginalPriceSource
+			pricing.DisplayOriginalPriceGroup = meta.DisplayOriginalPriceGroup
 		}
 		modelPrice, findPrice := ratio_setting.GetModelPrice(model, false)
 		if findPrice {

@@ -121,6 +121,13 @@ const EditModelModal = (props) => {
     vendor: '',
     vendor_icon: '',
     endpoints: '',
+    is_new: false,
+    discount_enabled: false,
+    discount_percent: 0,
+    discount_label: '',
+    promotion_note: '',
+    display_original_price_source: 'none',
+    display_original_price_group: 'default',
     name_rule: props.editingModel?.model_name ? 0 : undefined, // 通过未配置模型过来的固定为精确匹配
     status: true,
     sync_official: true,
@@ -151,6 +158,13 @@ const EditModelModal = (props) => {
         // 处理status/sync_official，将数字转为布尔值
         data.status = data.status === 1;
         data.sync_official = (data.sync_official ?? 1) === 1;
+        data.is_new = data.is_new === 1;
+        data.discount_enabled = data.discount_enabled === 1;
+        data.discount_percent = Number(data.discount_percent || 0);
+        data.display_original_price_source =
+          data.display_original_price_source || 'none';
+        data.display_original_price_group =
+          data.display_original_price_group || 'default';
         if (formApiRef.current) {
           formApiRef.current.setValues({ ...getInitValues(), ...data });
         }
@@ -196,6 +210,15 @@ const EditModelModal = (props) => {
         ...values,
         tags: Array.isArray(values.tags) ? values.tags.join(',') : values.tags,
         endpoints: values.endpoints || '',
+        is_new: values.is_new ? 1 : 0,
+        discount_enabled: values.discount_enabled ? 1 : 0,
+        discount_percent: Number(values.discount_percent || 0),
+        discount_label: values.discount_label || '',
+        promotion_note: values.promotion_note || '',
+        display_original_price_source:
+          values.display_original_price_source || 'none',
+        display_original_price_group:
+          values.display_original_price_group || 'default',
         status: values.status ? 1 : 0,
         sync_official: values.sync_official ? 1 : 0,
       };
@@ -334,7 +357,9 @@ const EditModelModal = (props) => {
                     <Form.Input
                       field='icon'
                       label={t('模型图标')}
-                      placeholder={t('例如：OpenAI / github / si:google / https://example.com/logo.png / 🐱')}
+                      placeholder={t(
+                        '例如：OpenAI / github / si:google / https://example.com/logo.png / 🐱',
+                      )}
                       extraText={
                         <span>
                           {t(
@@ -541,6 +566,118 @@ const EditModelModal = (props) => {
                       size='large'
                     />
                   </Col>
+                </Row>
+              </Card>
+
+              <Card className='!rounded-2xl shadow-sm border-0 mt-3'>
+                <div className='flex items-center mb-2'>
+                  <Avatar
+                    size='small'
+                    color='orange'
+                    className='mr-2 shadow-md'
+                  >
+                    %
+                  </Avatar>
+                  <div>
+                    <Text className='text-lg font-medium'>
+                      {t('模型广场展示')}
+                    </Text>
+                    <div className='text-xs text-gray-600'>
+                      {t('配置模型卡片上的展示标签与参考原价')}
+                    </div>
+                  </div>
+                </div>
+                <Banner
+                  type='info'
+                  closeIcon={null}
+                  description={t(
+                    '这些设置只影响模型广场视觉展示，不影响实际计费、路由或结算。',
+                  )}
+                  style={{ marginBottom: 12 }}
+                />
+                <Row gutter={12}>
+                  <Col span={12}>
+                    <Form.Switch
+                      field='is_new'
+                      label={t('显示 New 标签')}
+                      size='large'
+                    />
+                  </Col>
+                  <Col span={12}>
+                    <Form.Switch
+                      field='discount_enabled'
+                      label={t('显示折扣角标')}
+                      size='large'
+                    />
+                  </Col>
+
+                  {values.discount_enabled && (
+                    <>
+                      <Col span={12}>
+                        <Form.InputNumber
+                          field='discount_percent'
+                          label={t('折扣百分比')}
+                          min={0}
+                          max={99}
+                          precision={2}
+                          suffix='%'
+                          style={{ width: '100%' }}
+                        />
+                      </Col>
+                      <Col span={12}>
+                        <Form.Input
+                          field='discount_label'
+                          label={t('折扣角标文案')}
+                          placeholder='30% OFF'
+                          showClear
+                        />
+                      </Col>
+                      <Col span={24}>
+                        <Form.Input
+                          field='promotion_note'
+                          label={t('促销提示文案')}
+                          placeholder={t('限时优惠')}
+                          showClear
+                        />
+                      </Col>
+                    </>
+                  )}
+
+                  <Col span={24}>
+                    <Form.Select
+                      field='display_original_price_source'
+                      label={t('划线原价来源')}
+                      optionList={[
+                        {
+                          label: t('不显示划线原价'),
+                          value: 'none',
+                        },
+                        {
+                          label: t('使用 default 分组作为划线原价'),
+                          value: 'default',
+                        },
+                        {
+                          label: t('使用指定分组作为划线原价'),
+                          value: 'group',
+                        },
+                      ]}
+                      style={{ width: '100%' }}
+                      extraText={t(
+                        '当前价格仍按模型广场现有分组/计费规则展示；划线原价只作为视觉参考。',
+                      )}
+                    />
+                  </Col>
+
+                  {values.display_original_price_source === 'group' && (
+                    <Col span={24}>
+                      <Form.Input
+                        field='display_original_price_group'
+                        label={t('划线原价分组')}
+                        placeholder={t('例如：default 或 orgin-0.9')}
+                        showClear
+                      />
+                    </Col>
+                  )}
                 </Row>
               </Card>
             </div>

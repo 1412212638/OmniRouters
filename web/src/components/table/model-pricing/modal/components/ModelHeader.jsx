@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React from 'react';
-import { Typography, Toast, Avatar } from '@douyinfe/semi-ui';
+import { Typography, Toast, Avatar, Tag } from '@douyinfe/semi-ui';
 import { getDisplayIcon } from '../../../../../helpers';
 
 const { Paragraph } = Typography;
@@ -30,6 +30,11 @@ const CARD_STYLES = {
 };
 
 const ModelHeader = ({ modelData, vendorsMap = {}, t }) => {
+  const showNewTag =
+    modelData?.is_new === 1 ||
+    modelData?.is_new === true ||
+    modelData?.is_new === '1';
+
   // 获取模型图标（优先模型图标，其次供应商图标）
   const getModelIcon = () => {
     // 1) 优先使用模型自定义图标
@@ -77,17 +82,24 @@ const ModelHeader = ({ modelData, vendorsMap = {}, t }) => {
     <div className='flex items-center'>
       {getModelIcon()}
       <div className='ml-3 font-normal'>
-        <Paragraph
-          className='!mb-0 !text-lg !font-medium'
-          copyable={{
-            content: modelData?.model_name || '',
-            onCopy: () => Toast.success({ content: t('已复制模型名称') }),
-          }}
-        >
-          <span className='truncate max-w-60 font-bold'>
-            {modelData?.model_name || t('未知模型')}
-          </span>
-        </Paragraph>
+        <div className='flex items-center gap-2'>
+          <Paragraph
+            className='!mb-0 !text-lg !font-medium'
+            copyable={{
+              content: modelData?.model_name || '',
+              onCopy: () => Toast.success({ content: t('已复制模型名称') }),
+            }}
+          >
+            <span className='truncate max-w-60 font-bold'>
+              {modelData?.model_name || t('未知模型')}
+            </span>
+          </Paragraph>
+          {showNewTag && (
+            <Tag color='green' shape='circle' size='small'>
+              NEW
+            </Tag>
+          )}
+        </div>
       </div>
     </div>
   );
