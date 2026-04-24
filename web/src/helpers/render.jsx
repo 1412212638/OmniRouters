@@ -536,7 +536,10 @@ function isHttpUrl(value) {
 function isSimpleEmoji(value) {
   if (!value) return false;
   const trimmed = String(value).trim();
-  return trimmed.length > 0 && trimmed.length <= 4 && !isHttpUrl(trimmed);
+  if (!trimmed || isHttpUrl(trimmed) || /^[\w\s.-]+$/i.test(trimmed)) {
+    return false;
+  }
+  return /\p{Emoji}/u.test(trimmed);
 }
 
 function normalizeOAuthIconKey(raw) {
@@ -623,6 +626,17 @@ export function getDisplayIcon(iconName, size = 14) {
         style={{ borderRadius: 4, objectFit: 'cover' }}
       />
     );
+  }
+
+  const segments = raw.split('.');
+  const baseKey = segments[0];
+  const BaseIcon = LobeIcons[baseKey];
+  const hasLobeIcon =
+    Boolean(BaseIcon && segments.length > 1 && BaseIcon[segments[1]]) ||
+    Boolean(LobeIcons[baseKey]);
+
+  if (hasLobeIcon) {
+    return getLobeHubIcon(raw, size);
   }
 
   const key = normalizeOAuthIconKey(raw);
