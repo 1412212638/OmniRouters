@@ -123,12 +123,12 @@ func ImageHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *type
 		imageN = *request.N
 	}
 
-	// n is handled via OtherRatio so it is applied exactly once in quota
-	// calculation (both price-based and ratio-based paths).
-	// Adaptors may have already set a more accurate count from the
-	// upstream response; only set the default when they haven't.
-	if _, hasN := info.PriceData.OtherRatios["n"]; !hasN {
-		info.PriceData.AddOtherRatio("n", float64(imageN))
+	// Fixed-price image models need n applied once at settlement. Ratio-based
+	// models rely on usage, and tiered expressions should opt in via param("n").
+	if info.PriceData.UsePrice {
+		if _, hasN := info.PriceData.OtherRatios["n"]; !hasN {
+			info.PriceData.AddOtherRatio("n", float64(imageN))
+		}
 	}
 
 	if usage.(*dto.Usage).TotalTokens == 0 {

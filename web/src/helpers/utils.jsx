@@ -998,10 +998,30 @@ export const getModelPriceItems = (
   ].filter((item) => item.value !== null && item.value !== undefined && item.value !== '');
 };
 
+function getDynamicPriceCurrencyConfig() {
+  const quotaDisplayType = localStorage.getItem('quota_display_type') || 'USD';
+  let symbol = '$';
+  let rate = 1;
+
+  try {
+    const status = JSON.parse(localStorage.getItem('status') || '{}');
+    if (quotaDisplayType === 'CNY') {
+      symbol = '¥';
+      rate = status?.usd_exchange_rate || 7;
+    } else if (quotaDisplayType === 'CUSTOM') {
+      symbol = status?.custom_currency_symbol || '¤';
+      rate = status?.custom_currency_exchange_rate || 1;
+    }
+  } catch (e) {}
+
+  return { symbol, rate };
+}
+
 // 格式化动态计费摘要（用于卡片视图，与 formatPriceInfo 风格统一）
 export const formatDynamicPriceSummary = (billingExpr, t, groupRatio = 1) => {
   if (!billingExpr) return <span style={{ color: 'var(--semi-color-text-1)' }}>{t('动态计费')}</span>;
 
+  const { symbol, rate } = getDynamicPriceCurrencyConfig();
   const gr = groupRatio || 1;
   const exprBody = billingExpr.replace(/^v\d+:/, '');
   const tierMatches = exprBody.match(/tier\(/g) || [];
@@ -1035,7 +1055,7 @@ export const formatDynamicPriceSummary = (billingExpr, t, groupRatio = 1) => {
           {varLabels.map(([key, label]) =>
             key in varCoeffs ? (
               <span key={key} style={lineStyle}>
-                {t(label)} ${(varCoeffs[key] * gr).toFixed(4)}{unitSuffix}
+                {`${t(label)} ${symbol}${(varCoeffs[key] * gr * rate).toFixed(4)}${unitSuffix}`}
               </span>
             ) : null,
           )}

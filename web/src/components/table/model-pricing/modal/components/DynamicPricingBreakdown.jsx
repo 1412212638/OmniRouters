@@ -36,8 +36,6 @@ import {
 
 const { Text } = Typography;
 
-const PRICE_SUFFIX = '$/1M tokens';
-
 const VAR_LABELS = { p: '输入', c: '输出' };
 const OP_LABELS = { '<': '<', '<=': '≤', '>': '>', '>=': '≥' };
 const TIME_FUNC_LABELS = { hour: '小时', minute: '分钟', weekday: '星期', month: '月份', day: '日期' };
@@ -134,9 +132,9 @@ export default function DynamicPricingBreakdown({ billingExpr, t }) {
     ...priceFields
       .filter(([field]) => hasTiers && tiers.some((tier) => tier[field] > 0))
       .map(([field, label]) => ({
-        title: `${t(label)} (${PRICE_SUFFIX})`,
+        title: `${t(label)} (${symbol}/1M tokens)`,
         dataIndex: field,
-        render: (v) => v > 0 ? <Text strong>${v.toFixed(4)}</Text> : '-',
+        render: (v) => v > 0 ? <Text strong>{`${symbol}${(v * rate).toFixed(4)}`}</Text> : '-',
       })),
     ...(hasFixedPrice
       ? [{
