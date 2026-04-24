@@ -406,19 +406,6 @@ const PricingCardView = ({
                   <div
                     style={{
                       position: 'absolute',
-                      top: 8,
-                      right: 8,
-                      width: 92,
-                      height: 92,
-                      borderTopRightRadius: 18,
-                      background:
-                        'linear-gradient(135deg, rgba(255, 91, 78, 0.2) 0%, rgba(255, 134, 80, 0.08) 52%, rgba(255, 134, 80, 0) 53%)',
-                      filter: 'blur(0.1px)',
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: 'absolute',
                       top: 22,
                       right: -34,
                       width: 148,
