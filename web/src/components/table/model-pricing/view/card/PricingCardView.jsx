@@ -409,7 +409,7 @@ const PricingCardView = ({
                       top: 22,
                       right: -34,
                       width: 148,
-                      height: 28,
+                      height: 30,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -418,16 +418,14 @@ const PricingCardView = ({
                       background:
                         'linear-gradient(90deg, #ff5b4e 0%, #ff8450 100%)',
                       color: '#fff',
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: 800,
                       letterSpacing: 0.4,
-                      lineHeight: 1,
+                      lineHeight: '12px',
                       textAlign: 'center',
                       whiteSpace: 'nowrap',
                       borderTop: '1px solid rgba(255, 255, 255, 0.4)',
                       borderBottom: '1px solid rgba(122, 36, 25, 0.12)',
-                      boxShadow: '0 10px 20px rgba(255, 96, 76, 0.28)',
-                      textShadow: '0 1px 1px rgba(118, 35, 24, 0.2)',
                     }}
                   >
                     {discountLabel}
