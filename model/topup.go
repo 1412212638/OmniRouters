@@ -12,16 +12,17 @@ import (
 )
 
 type TopUp struct {
-	Id            int     `json:"id"`
-	UserId        int     `json:"user_id" gorm:"index"`
-	Username      string  `json:"username,omitempty" gorm:"-"`
-	Amount        int64   `json:"amount"`
-	Money         float64 `json:"money"`
-	TradeNo       string  `json:"trade_no" gorm:"unique;type:varchar(255);index"`
-	PaymentMethod string  `json:"payment_method" gorm:"type:varchar(50)"`
-	CreateTime    int64   `json:"create_time"`
-	CompleteTime  int64   `json:"complete_time"`
-	Status        string  `json:"status"`
+	Id              int     `json:"id"`
+	UserId          int     `json:"user_id" gorm:"index"`
+	Username        string  `json:"username,omitempty" gorm:"-"`
+	Amount          int64   `json:"amount"`
+	Money           float64 `json:"money"`
+	TradeNo         string  `json:"trade_no" gorm:"unique;type:varchar(255);index"`
+	PaymentMethod   string  `json:"payment_method" gorm:"type:varchar(50)"`
+	PaymentProvider string  `json:"payment_provider" gorm:"type:varchar(50);default:''"`
+	CreateTime      int64   `json:"create_time"`
+	CompleteTime    int64   `json:"complete_time"`
+	Status          string  `json:"status"`
 }
 
 const (
@@ -31,11 +32,44 @@ const (
 	PaymentMethodWaffoPancake = "waffo_pancake"
 )
 
+const (
+	PaymentProviderEpay         = "epay"
+	PaymentProviderStripe       = "stripe"
+	PaymentProviderCreem        = "creem"
+	PaymentProviderWaffo        = "waffo"
+	PaymentProviderWaffoPancake = "waffo_pancake"
+)
+
 var (
 	ErrPaymentMethodMismatch = errors.New("payment method mismatch")
 	ErrTopUpNotFound         = errors.New("topup not found")
 	ErrTopUpStatusInvalid    = errors.New("topup status invalid")
 )
+
+func PaymentProviderFromMethod(paymentMethod string) string {
+	switch paymentMethod {
+	case PaymentMethodStripe:
+		return PaymentProviderStripe
+	case PaymentMethodCreem:
+		return PaymentProviderCreem
+	case PaymentMethodWaffo:
+		return PaymentProviderWaffo
+	case PaymentMethodWaffoPancake:
+		return PaymentProviderWaffoPancake
+	default:
+		return PaymentProviderEpay
+	}
+}
+
+func (topUp *TopUp) EffectivePaymentProvider() string {
+	if topUp == nil {
+		return ""
+	}
+	if topUp.PaymentProvider != "" {
+		return topUp.PaymentProvider
+	}
+	return PaymentProviderFromMethod(topUp.PaymentMethod)
+}
 
 func (topUp *TopUp) Insert() error {
 	var err error
@@ -69,7 +103,7 @@ func GetTopUpByTradeNo(tradeNo string) *TopUp {
 	return topUp
 }
 
-func UpdatePendingTopUpStatus(tradeNo string, expectedPaymentMethod string, targetStatus string) error {
+func UpdatePendingTopUpStatus(tradeNo string, expectedPaymentProvider string, targetStatus string) error {
 	if tradeNo == "" {
 		return errors.New("未提供支付单号")
 	}
@@ -84,7 +118,7 @@ func UpdatePendingTopUpStatus(tradeNo string, expectedPaymentMethod string, targ
 		if err := tx.Set("gorm:query_option", "FOR UPDATE").Where(refCol+" = ?", tradeNo).First(topUp).Error; err != nil {
 			return ErrTopUpNotFound
 		}
-		if expectedPaymentMethod != "" && topUp.PaymentMethod != expectedPaymentMethod {
+		if expectedPaymentProvider != "" && topUp.EffectivePaymentProvider() != expectedPaymentProvider {
 			return ErrPaymentMethodMismatch
 		}
 		if topUp.Status != common.TopUpStatusPending {
@@ -115,7 +149,7 @@ func Recharge(referenceId string, customerId string, callerIp string) (err error
 			return errors.New("充值订单不存在")
 		}
 
-		if topUp.PaymentMethod != PaymentMethodStripe {
+		if topUp.EffectivePaymentProvider() != PaymentProviderStripe {
 			return ErrPaymentMethodMismatch
 		}
 
@@ -402,7 +436,7 @@ func ManualCompleteTopUp(tradeNo string, callerIp string) error {
 		// 计算应充值额度：
 		// - Stripe 订单：Money 代表经分组倍率换算后的美元数量，直接 * QuotaPerUnit
 		// - 其他订单（如易支付）：Amount 为美元数量，* QuotaPerUnit
-		if topUp.PaymentMethod == PaymentMethodStripe {
+		if topUp.EffectivePaymentProvider() == PaymentProviderStripe {
 			dQuotaPerUnit := decimal.NewFromFloat(common.QuotaPerUnit)
 			quotaToAdd = int(decimal.NewFromFloat(topUp.Money).Mul(dQuotaPerUnit).IntPart())
 		} else {
@@ -459,7 +493,7 @@ func RechargeCreem(referenceId string, customerEmail string, customerName string
 			return errors.New("充值订单不存在")
 		}
 
-		if topUp.PaymentMethod != PaymentMethodCreem {
+		if topUp.EffectivePaymentProvider() != PaymentProviderCreem {
 			return ErrPaymentMethodMismatch
 		}
 
@@ -534,7 +568,7 @@ func RechargeWaffo(tradeNo string, callerIp string) (err error) {
 			return errors.New("充值订单不存在")
 		}
 
-		if topUp.PaymentMethod != PaymentMethodWaffo {
+		if topUp.EffectivePaymentProvider() != PaymentProviderWaffo {
 			return ErrPaymentMethodMismatch
 		}
 
@@ -597,7 +631,7 @@ func RechargeWaffoPancake(tradeNo string) (err error) {
 			return errors.New("充值订单不存在")
 		}
 
-		if topUp.PaymentMethod != PaymentMethodWaffoPancake {
+		if topUp.EffectivePaymentProvider() != PaymentProviderWaffoPancake {
 			return ErrPaymentMethodMismatch
 		}
 
