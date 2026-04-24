@@ -284,6 +284,9 @@ func migrateDB() error {
 	if err != nil {
 		return err
 	}
+	if err := ensureModelMarketplaceDisplayColumns(); err != nil {
+		return err
+	}
 	if common.UsingSQLite {
 		if err := ensureSubscriptionPlanTableSQLite(); err != nil {
 			return err
@@ -352,6 +355,9 @@ func migrateDBFast() error {
 			return err
 		}
 	}
+	if err := ensureModelMarketplaceDisplayColumns(); err != nil {
+		return err
+	}
 	if common.UsingSQLite {
 		if err := ensureSubscriptionPlanTableSQLite(); err != nil {
 			return err
@@ -376,6 +382,30 @@ func migrateLOGDB() error {
 type sqliteColumnDef struct {
 	Name string
 	DDL  string
+}
+
+func ensureModelMarketplaceDisplayColumns() error {
+	if !DB.Migrator().HasTable(&Model{}) {
+		return nil
+	}
+	columns := []string{
+		"IsNew",
+		"DiscountEnabled",
+		"DiscountPercent",
+		"DiscountLabel",
+		"PromotionNote",
+		"DisplayOriginalPriceSource",
+		"DisplayOriginalPriceGroup",
+	}
+	for _, column := range columns {
+		if DB.Migrator().HasColumn(&Model{}, column) {
+			continue
+		}
+		if err := DB.Migrator().AddColumn(&Model{}, column); err != nil {
+			return fmt.Errorf("failed to add models.%s: %w", column, err)
+		}
+	}
+	return nil
 }
 
 func ensureSubscriptionPlanTableSQLite() error {

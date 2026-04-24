@@ -61,17 +61,25 @@ func (mi *Model) Insert() error {
 	originalIsNew := mi.IsNew
 	originalDiscountEnabled := mi.DiscountEnabled
 	originalDiscountPercent := mi.DiscountPercent
+	originalDiscountLabel := mi.DiscountLabel
+	originalPromotionNote := mi.PromotionNote
+	originalDisplayOriginalPriceSource := mi.DisplayOriginalPriceSource
+	originalDisplayOriginalPriceGroup := mi.DisplayOriginalPriceGroup
 
 	if err := DB.Create(mi).Error; err != nil {
 		return err
 	}
 
 	return DB.Model(&Model{}).Where("id = ?", mi.Id).Updates(map[string]interface{}{
-		"status":           originalStatus,
-		"sync_official":    originalSyncOfficial,
-		"is_new":           originalIsNew,
-		"discount_enabled": originalDiscountEnabled,
-		"discount_percent": originalDiscountPercent,
+		"status":                        originalStatus,
+		"sync_official":                 originalSyncOfficial,
+		"is_new":                        originalIsNew,
+		"discount_enabled":              originalDiscountEnabled,
+		"discount_percent":              originalDiscountPercent,
+		"discount_label":                originalDiscountLabel,
+		"promotion_note":                originalPromotionNote,
+		"display_original_price_source": originalDisplayOriginalPriceSource,
+		"display_original_price_group":  originalDisplayOriginalPriceGroup,
 	}).Error
 }
 
@@ -86,10 +94,26 @@ func IsModelNameDuplicated(id int, name string) (bool, error) {
 
 func (mi *Model) Update() error {
 	mi.UpdatedTime = common.GetTimestamp()
-	// 使用 Select 强制更新所有字段，包括零值
-	return DB.Model(&Model{}).Where("id = ?", mi.Id).
-		Select("model_name", "description", "icon", "tags", "vendor_id", "endpoints", "is_new", "discount_enabled", "discount_percent", "discount_label", "promotion_note", "display_original_price_source", "display_original_price_group", "status", "sync_official", "name_rule", "updated_time").
-		Updates(mi).Error
+	// Use a map so empty strings and zero values are persisted consistently.
+	return DB.Model(&Model{}).Where("id = ?", mi.Id).Updates(map[string]interface{}{
+		"model_name":                    mi.ModelName,
+		"description":                   mi.Description,
+		"icon":                          mi.Icon,
+		"tags":                          mi.Tags,
+		"vendor_id":                     mi.VendorID,
+		"endpoints":                     mi.Endpoints,
+		"is_new":                        mi.IsNew,
+		"discount_enabled":              mi.DiscountEnabled,
+		"discount_percent":              mi.DiscountPercent,
+		"discount_label":                mi.DiscountLabel,
+		"promotion_note":                mi.PromotionNote,
+		"display_original_price_source": mi.DisplayOriginalPriceSource,
+		"display_original_price_group":  mi.DisplayOriginalPriceGroup,
+		"status":                        mi.Status,
+		"sync_official":                 mi.SyncOfficial,
+		"name_rule":                     mi.NameRule,
+		"updated_time":                  mi.UpdatedTime,
+	}).Error
 }
 
 func (mi *Model) Delete() error {
