@@ -156,10 +156,12 @@ const EditModelModal = (props) => {
           data.endpoints = '';
         }
         // 处理status/sync_official，将数字转为布尔值
-        data.status = data.status === 1;
-        data.sync_official = (data.sync_official ?? 1) === 1;
-        data.is_new = data.is_new === 1;
-        data.discount_enabled = data.discount_enabled === 1;
+        data.status = data.status === 1 || data.status === true;
+        data.sync_official =
+          (data.sync_official ?? 1) === 1 || (data.sync_official ?? 1) === true;
+        data.is_new = data.is_new === 1 || data.is_new === true;
+        data.discount_enabled =
+          data.discount_enabled === 1 || data.discount_enabled === true;
         data.discount_percent = Number(data.discount_percent || 0);
         data.display_original_price_source =
           data.display_original_price_source || 'none';
@@ -611,37 +613,36 @@ const EditModelModal = (props) => {
                     />
                   </Col>
 
-                  {values.discount_enabled && (
-                    <>
-                      <Col span={12}>
-                        <Form.InputNumber
-                          field='discount_percent'
-                          label={t('折扣百分比')}
-                          min={0}
-                          max={99}
-                          precision={2}
-                          suffix='%'
-                          style={{ width: '100%' }}
-                        />
-                      </Col>
-                      <Col span={12}>
-                        <Form.Input
-                          field='discount_label'
-                          label={t('折扣角标文案')}
-                          placeholder='30% OFF'
-                          showClear
-                        />
-                      </Col>
-                      <Col span={24}>
-                        <Form.Input
-                          field='promotion_note'
-                          label={t('促销提示文案')}
-                          placeholder={t('限时优惠')}
-                          showClear
-                        />
-                      </Col>
-                    </>
-                  )}
+                  <Col span={12}>
+                    <Form.InputNumber
+                      field='discount_percent'
+                      label={t('折扣百分比')}
+                      min={0}
+                      max={99}
+                      precision={2}
+                      suffix='%'
+                      disabled={!values.discount_enabled}
+                      style={{ width: '100%' }}
+                    />
+                  </Col>
+                  <Col span={12}>
+                    <Form.Input
+                      field='discount_label'
+                      label={t('折扣角标文案')}
+                      placeholder='30% OFF'
+                      disabled={!values.discount_enabled}
+                      showClear
+                    />
+                  </Col>
+                  <Col span={24}>
+                    <Form.Input
+                      field='promotion_note'
+                      label={t('促销提示文案')}
+                      placeholder={t('限时优惠')}
+                      disabled={!values.discount_enabled}
+                      showClear
+                    />
+                  </Col>
 
                   <Col span={24}>
                     <Form.Select
@@ -668,16 +669,17 @@ const EditModelModal = (props) => {
                     />
                   </Col>
 
-                  {values.display_original_price_source === 'group' && (
-                    <Col span={24}>
-                      <Form.Input
-                        field='display_original_price_group'
-                        label={t('划线原价分组')}
-                        placeholder={t('例如：default 或 orgin-0.9')}
-                        showClear
-                      />
-                    </Col>
-                  )}
+                  <Col span={24}>
+                    <Form.Input
+                      field='display_original_price_group'
+                      label={t('划线原价分组')}
+                      placeholder={t('例如：default 或 orgin-0.9')}
+                      disabled={
+                        values.display_original_price_source !== 'group'
+                      }
+                      showClear
+                    />
+                  </Col>
                 </Row>
               </Card>
             </div>
