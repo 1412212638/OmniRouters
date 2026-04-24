@@ -28,7 +28,7 @@ import {
 } from '@douyinfe/semi-ui';
 import {
   timestamp2string,
-  getLobeHubIcon,
+  getDisplayIcon,
   stringToColor,
 } from '../../../helpers';
 import {
@@ -49,7 +49,7 @@ const renderModelIconCol = (record, vendorMap) => {
   if (!iconKey) return '-';
   return (
     <div className='flex items-center justify-center'>
-      {getLobeHubIcon(iconKey, 20)}
+      {getDisplayIcon(iconKey, 20)}
     </div>
   );
 };
@@ -62,7 +62,7 @@ const renderVendorTag = (vendorId, vendorMap, t) => {
     <Tag
       color='white'
       shape='circle'
-      prefixIcon={getLobeHubIcon(v.icon || 'Layers', 14)}
+      prefixIcon={getDisplayIcon(v.icon || 'Layers', 14)}
     >
       {v.name}
     </Tag>

@@ -20,7 +20,7 @@ For commercial licensing, please contact support@quantumnous.com
 import React from 'react';
 import { Tabs, TabPane, Tag, Button, Dropdown, Modal } from '@douyinfe/semi-ui';
 import { IconEdit, IconDelete } from '@douyinfe/semi-icons';
-import { getLobeHubIcon, showError, showSuccess } from '../../../helpers';
+import { getDisplayIcon, showError, showSuccess } from '../../../helpers';
 import { API } from '../../../helpers';
 
 const ModelsTabs = ({
@@ -113,7 +113,7 @@ const ModelsTabs = ({
             itemKey={key}
             tab={
               <span className='flex items-center gap-2'>
-                {getLobeHubIcon(vendor.icon || 'Layers', 14)}
+                {getDisplayIcon(vendor.icon || 'Layers', 14)}
                 {vendor.name}
                 <Tag
                   color={activeVendorKey === key ? 'red' : 'grey'}

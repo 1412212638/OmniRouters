@@ -605,6 +605,52 @@ export function getOAuthProviderIcon(iconName, size = 20) {
 }
 
 // 颜色列表
+export function getDisplayIcon(iconName, size = 14) {
+  const raw = String(iconName || '').trim();
+  const iconSize = Number(size) > 0 ? Number(size) : 14;
+
+  if (!raw) {
+    return <Avatar size='extra-extra-small'>?</Avatar>;
+  }
+
+  if (isHttpUrl(raw)) {
+    return (
+      <img
+        src={raw}
+        alt='icon'
+        width={iconSize}
+        height={iconSize}
+        style={{ borderRadius: 4, objectFit: 'cover' }}
+      />
+    );
+  }
+
+  const key = normalizeOAuthIconKey(raw);
+  const IconComp = oauthProviderIconMap[key];
+  if (IconComp) {
+    return <IconComp size={iconSize} />;
+  }
+
+  if (isSimpleEmoji(raw)) {
+    return (
+      <span
+        style={{
+          width: iconSize,
+          height: iconSize,
+          lineHeight: `${iconSize}px`,
+          textAlign: 'center',
+          display: 'inline-block',
+          fontSize: Math.max(Math.floor(iconSize * 0.8), 14),
+        }}
+      >
+        {raw}
+      </span>
+    );
+  }
+
+  return getLobeHubIcon(raw, size);
+}
+
 const colors = [
   'amber',
   'blue',

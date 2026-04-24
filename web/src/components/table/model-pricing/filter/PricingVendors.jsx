@@ -19,7 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 
 import React from 'react';
 import SelectableButtonGroup from '../../../common/ui/SelectableButtonGroup';
-import { getLobeHubIcon } from '../../../../helpers';
+import { getDisplayIcon } from '../../../../helpers';
 
 /**
  * 供应商筛选组件
@@ -93,7 +93,7 @@ const PricingVendors = ({
       result.push({
         value: vendor,
         label: vendor,
-        icon: icon ? getLobeHubIcon(icon, 16) : null,
+        icon: icon ? getDisplayIcon(icon, 16) : null,
         tagCount: count,
       });
     });

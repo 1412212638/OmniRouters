@@ -27,7 +27,7 @@ import {
   getModelPriceItems,
   getPricingBillingColor,
   getPricingDisplayBillingLabel,
-  getLobeHubIcon,
+  getDisplayIcon,
 } from '../../../../../helpers';
 import {
   renderLimitedItems,
@@ -69,7 +69,7 @@ const renderVendor = (vendorName, vendorIcon, t) => {
     <Tag
       color='white'
       shape='circle'
-      prefixIcon={getLobeHubIcon(vendorIcon || 'Layers', 14)}
+      prefixIcon={getDisplayIcon(vendorIcon || 'Layers', 14)}
     >
       {vendorName}
     </Tag>

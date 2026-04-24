@@ -41,7 +41,7 @@ import {
   formatDynamicPriceSummary,
   getPricingBillingColor,
   getPricingDisplayBillingLabel,
-  getLobeHubIcon,
+  getDisplayIcon,
 } from '../../../../../helpers';
 import PricingCardSkeleton from './PricingCardSkeleton';
 import { useMinimumLoadingTime } from '../../../../../hooks/common/useMinimumLoadingTime';
@@ -111,7 +111,7 @@ const PricingCardView = ({
       return (
         <div className={CARD_STYLES.container}>
           <div className={CARD_STYLES.icon}>
-            {getLobeHubIcon(model.icon, 32)}
+            {getDisplayIcon(model.icon, 32)}
           </div>
         </div>
       );
@@ -121,7 +121,7 @@ const PricingCardView = ({
       return (
         <div className={CARD_STYLES.container}>
           <div className={CARD_STYLES.icon}>
-            {getLobeHubIcon(model.vendor_icon, 32)}
+            {getDisplayIcon(model.vendor_icon, 32)}
           </div>
         </div>
       );

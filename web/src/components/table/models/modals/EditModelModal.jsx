@@ -334,11 +334,11 @@ const EditModelModal = (props) => {
                     <Form.Input
                       field='icon'
                       label={t('模型图标')}
-                      placeholder={t('请输入图标名称')}
+                      placeholder={t('例如：OpenAI / github / si:google / https://example.com/logo.png / 🐱')}
                       extraText={
                         <span>
                           {t(
-                            "图标使用@lobehub/icons库，如：OpenAI、Claude.Color，支持链式参数：OpenAI.Avatar.type={'platform'}、OpenRouter.Avatar.shape={'square'}，查询所有可用图标请 ",
+                            "图标支持 @lobehub/icons、react-icons（Simple Icons）、URL 或 emoji，例如：OpenAI、Claude.Color、github、si:google、https://example.com/logo.png、🐱；LobeHub 图标还支持链式参数：OpenAI.Avatar.type={'platform'}、OpenRouter.Avatar.shape={'square'}，查询所有可用 LobeHub 图标请 ",
                           )}
                           <Typography.Text
                             link={{

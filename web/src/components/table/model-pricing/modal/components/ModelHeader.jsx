@@ -19,7 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 
 import React from 'react';
 import { Typography, Toast, Avatar } from '@douyinfe/semi-ui';
-import { getLobeHubIcon } from '../../../../../helpers';
+import { getDisplayIcon } from '../../../../../helpers';
 
 const { Paragraph } = Typography;
 
@@ -37,7 +37,7 @@ const ModelHeader = ({ modelData, vendorsMap = {}, t }) => {
       return (
         <div className={CARD_STYLES.container}>
           <div className={CARD_STYLES.icon}>
-            {getLobeHubIcon(modelData.icon, 32)}
+            {getDisplayIcon(modelData.icon, 32)}
           </div>
         </div>
       );
@@ -47,7 +47,7 @@ const ModelHeader = ({ modelData, vendorsMap = {}, t }) => {
       return (
         <div className={CARD_STYLES.container}>
           <div className={CARD_STYLES.icon}>
-            {getLobeHubIcon(modelData.vendor_icon, 32)}
+            {getDisplayIcon(modelData.vendor_icon, 32)}
           </div>
         </div>
       );
