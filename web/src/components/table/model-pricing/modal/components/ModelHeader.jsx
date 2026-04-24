@@ -95,7 +95,7 @@ const ModelHeader = ({ modelData, vendorsMap = {}, t }) => {
             </span>
           </Paragraph>
           {showNewTag && (
-            <Tag color='green' shape='circle' size='small'>
+            <Tag color='red' shape='circle' size='small'>
               NEW
             </Tag>
           )}

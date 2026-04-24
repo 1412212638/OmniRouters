@@ -395,15 +395,15 @@ const PricingCardView = ({
                   className='pointer-events-none select-none'
                   style={{
                     position: 'absolute',
-                    top: 14,
-                    right: -44,
-                    width: 150,
+                    top: 12,
+                    right: -58,
+                    width: 136,
                     transform: 'rotate(45deg)',
                     transformOrigin: 'center',
                     background:
                       'linear-gradient(135deg, #ff6b57 0%, #ff9f4a 100%)',
                     color: '#fff',
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: 700,
                     letterSpacing: 0.4,
                     textAlign: 'center',
@@ -420,32 +420,31 @@ const PricingCardView = ({
                   <div className='flex items-start space-x-3 flex-1 min-w-0'>
                     {getModelIcon(model)}
                     <div className='flex-1 min-w-0'>
-                      <div className='flex items-center gap-2 min-w-0'>
+                      <div className='flex items-center gap-2 min-w-0 flex-wrap'>
                         <h3 className='text-lg font-bold text-gray-900 truncate'>
                           {model.model_name}
                         </h3>
                         {showNewTag && (
-                          <Tag color='green' shape='circle' size='small'>
+                          <Tag color='red' shape='circle' size='small'>
                             NEW
                           </Tag>
                         )}
+                        {promotionNote && discountLabel && (
+                          <Tag color='red' shape='circle' size='small'>
+                            {promotionNote}
+                          </Tag>
+                        )}
                       </div>
-                      {promotionNote && discountLabel && (
-                        <Tag
-                          color='red'
-                          shape='circle'
-                          size='small'
-                          className='mt-2'
-                        >
-                          {promotionNote}
-                        </Tag>
-                      )}
                     </div>
                   </div>
 
                   <div
                     className='flex items-center space-x-2 ml-3'
-                    style={{ marginRight: discountLabel ? 28 : 0 }}
+                    style={{
+                      marginRight: discountLabel ? 54 : 0,
+                      position: 'relative',
+                      zIndex: 2,
+                    }}
                   >
                     <Button
                       size='small'
