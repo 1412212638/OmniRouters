@@ -395,19 +395,20 @@ const PricingCardView = ({
                   className='pointer-events-none select-none'
                   style={{
                     position: 'absolute',
-                    top: 12,
-                    right: -58,
-                    width: 136,
+                    top: 18,
+                    right: -42,
+                    width: 168,
                     transform: 'rotate(45deg)',
                     transformOrigin: 'center',
                     background:
                       'linear-gradient(135deg, #ff6b57 0%, #ff9f4a 100%)',
                     color: '#fff',
-                    fontSize: 10,
+                    fontSize: 13,
                     fontWeight: 700,
-                    letterSpacing: 0.4,
+                    letterSpacing: 0.6,
                     textAlign: 'center',
-                    padding: '4px 0',
+                    padding: '6px 0',
+                    border: '1px dashed rgba(255, 255, 255, 0.38)',
                     boxShadow: '0 8px 18px rgba(255, 107, 87, 0.25)',
                     zIndex: 1,
                   }}
@@ -441,7 +442,7 @@ const PricingCardView = ({
                   <div
                     className='flex items-center space-x-2 ml-3'
                     style={{
-                      marginRight: discountLabel ? 54 : 0,
+                      marginRight: discountLabel ? 118 : 0,
                       position: 'relative',
                       zIndex: 2,
                     }}
