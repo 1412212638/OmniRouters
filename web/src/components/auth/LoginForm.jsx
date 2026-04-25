@@ -673,7 +673,7 @@ const LoginForm = () => {
                             href='/user-agreement'
                             target='_blank'
                             rel='noopener noreferrer'
-                            className='text-blue-600 hover:text-blue-800 mx-1'
+                            className='auth-link mx-1'
                           >
                             {t('用户协议')}
                           </a>
@@ -686,7 +686,7 @@ const LoginForm = () => {
                             href='/privacy-policy'
                             target='_blank'
                             rel='noopener noreferrer'
-                            className='text-blue-600 hover:text-blue-800 mx-1'
+                            className='auth-link mx-1'
                           >
                             {t('隐私政策')}
                           </a>
@@ -701,10 +701,7 @@ const LoginForm = () => {
                 <div className='mt-6 text-center text-sm'>
                   <Text>
                     {t('没有账户？')}{' '}
-                    <Link
-                      to='/register'
-                      className='text-blue-600 hover:text-blue-800 font-medium'
-                    >
+                    <Link to='/register' className='auth-link font-medium'>
                       {t('注册')}
                     </Link>
                   </Text>
@@ -718,7 +715,7 @@ const LoginForm = () => {
   };
 
   const compactOAuthButtonClass =
-    'w-full h-11 !rounded-2xl !border-[#e8e6ef] !bg-white/80 hover:!bg-[#f7f4ff] !text-[#202033] !font-semibold';
+    'auth-oauth-button w-full h-11 !rounded-2xl !font-semibold';
 
   const renderOAuthLoginGrid = () => {
     if (!hasOAuthLoginOptions) {
@@ -832,7 +829,7 @@ const LoginForm = () => {
           ))}
 
         {status.telegram_oauth && (
-          <div className='flex min-h-11 items-center justify-center rounded-2xl border border-[#e8e6ef] bg-white/80 px-3 py-1 sm:col-span-2'>
+          <div className='auth-telegram-wrap flex min-h-11 items-center justify-center rounded-2xl border px-3 py-1 sm:col-span-2'>
             <TelegramLoginButton
               dataOnauth={onTelegramLoginClicked}
               botName={status.telegram_bot_name}
@@ -870,7 +867,7 @@ const LoginForm = () => {
             <Button
               theme='borderless'
               type='tertiary'
-              className='!px-0 !text-[#7b4dff]'
+              className='auth-link !px-0'
               onClick={handleResetPasswordClick}
               loading={resetPasswordLoading}
             >
@@ -883,14 +880,14 @@ const LoginForm = () => {
               checked={agreedToTerms}
               onChange={(e) => setAgreedToTerms(e.target.checked)}
             >
-              <Text size='small' className='text-gray-600'>
+              <Text size='small' className='auth-muted'>
                 {t('我已阅读并同意')}
                 {hasUserAgreement && (
                   <a
                     href='/user-agreement'
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='mx-1 text-[#6f46ff] hover:text-[#4f2ed8]'
+                    className='auth-link mx-1'
                   >
                     {t('用户协议')}
                   </a>
@@ -901,7 +898,7 @@ const LoginForm = () => {
                     href='/privacy-policy'
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='mx-1 text-[#6f46ff] hover:text-[#4f2ed8]'
+                    className='auth-link mx-1'
                   >
                     {t('隐私政策')}
                   </a>
@@ -912,21 +909,25 @@ const LoginForm = () => {
 
           <Button
             theme='solid'
-            className='h-12 w-full !rounded-2xl !bg-[#19182c] !font-bold tracking-wide hover:!bg-[#272542]'
+            className='auth-primary-button h-12 w-full !rounded-2xl !font-bold tracking-wide'
             type='primary'
             htmlType='submit'
             onClick={handleSubmit}
             loading={loginLoading}
             disabled={(hasUserAgreement || hasPrivacyPolicy) && !agreedToTerms}
           >
-            {t('登录')}
+            <span className='auth-primary-text'>{t('登录')}</span>
+            <span className='auth-primary-hover-content' aria-hidden='true'>
+              {t('登录')}
+              <span className='auth-primary-arrow'>→</span>
+            </span>
           </Button>
         </Form>
 
         {hasOAuthLoginOptions && (
           <>
             <Divider margin='12px' align='center'>
-              <span className='text-xs text-[#8b8996]'>
+              <span className='auth-muted text-xs'>
                 {t('或使用以下方式继续')}
               </span>
             </Divider>
@@ -936,12 +937,9 @@ const LoginForm = () => {
 
         {!status.self_use_mode_enabled && (
           <div className='pt-1 text-center text-sm'>
-            <Text>
+            <Text className='auth-muted'>
               {t('没有账户？')}{' '}
-              <Link
-                to='/register'
-                className='font-semibold text-[#6f46ff] hover:text-[#4f2ed8]'
-              >
+              <Link to='/register' className='auth-link font-semibold'>
                 {t('注册')}
               </Link>
             </Text>
@@ -1013,7 +1011,7 @@ const LoginForm = () => {
                               href='/user-agreement'
                               target='_blank'
                               rel='noopener noreferrer'
-                              className='text-blue-600 hover:text-blue-800 mx-1'
+                              className='auth-link mx-1'
                             >
                               {t('用户协议')}
                             </a>
@@ -1026,7 +1024,7 @@ const LoginForm = () => {
                               href='/privacy-policy'
                               target='_blank'
                               rel='noopener noreferrer'
-                              className='text-blue-600 hover:text-blue-800 mx-1'
+                              className='auth-link mx-1'
                             >
                               {t('隐私政策')}
                             </a>
@@ -1088,10 +1086,7 @@ const LoginForm = () => {
                 <div className='mt-6 text-center text-sm'>
                   <Text>
                     {t('没有账户？')}{' '}
-                    <Link
-                      to='/register'
-                      className='text-blue-600 hover:text-blue-800 font-medium'
-                    >
+                    <Link to='/register' className='auth-link font-medium'>
                       {t('注册')}
                     </Link>
                   </Text>

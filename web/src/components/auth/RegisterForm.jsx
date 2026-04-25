@@ -540,10 +540,7 @@ const RegisterForm = () => {
               <div className='mt-6 text-center text-sm'>
                 <Text>
                   {t('已有账户？')}{' '}
-                  <Link
-                    to='/login'
-                    className='text-blue-600 hover:text-blue-800 font-medium'
-                  >
+                  <Link to='/login' className='auth-link font-medium'>
                     {t('登录')}
                   </Link>
                 </Text>
@@ -556,7 +553,7 @@ const RegisterForm = () => {
   };
 
   const compactOAuthButtonClass =
-    'w-full h-11 !rounded-2xl !border-[#e8e6ef] !bg-white/80 hover:!bg-[#f7f4ff] !text-[#202033] !font-semibold';
+    'auth-oauth-button w-full h-11 !rounded-2xl !font-semibold';
 
   const renderOAuthRegisterGrid = () => {
     if (!hasOAuthRegisterOptions) {
@@ -657,7 +654,7 @@ const RegisterForm = () => {
           ))}
 
         {status.telegram_oauth && (
-          <div className='flex min-h-11 items-center justify-center rounded-2xl border border-[#e8e6ef] bg-white/80 px-3 py-1 sm:col-span-2'>
+          <div className='auth-telegram-wrap flex min-h-11 items-center justify-center rounded-2xl border px-3 py-1 sm:col-span-2'>
             <TelegramLoginButton
               dataOnauth={onTelegramLoginClicked}
               botName={status.telegram_bot_name}
@@ -739,14 +736,14 @@ const RegisterForm = () => {
               checked={agreedToTerms}
               onChange={(e) => setAgreedToTerms(e.target.checked)}
             >
-              <Text size='small' className='text-gray-600'>
+              <Text size='small' className='auth-muted'>
                 {t('我已阅读并同意')}
                 {hasUserAgreement && (
                   <a
                     href='/user-agreement'
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='mx-1 text-[#6f46ff] hover:text-[#4f2ed8]'
+                    className='auth-link mx-1'
                   >
                     {t('用户协议')}
                   </a>
@@ -757,7 +754,7 @@ const RegisterForm = () => {
                     href='/privacy-policy'
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='mx-1 text-[#6f46ff] hover:text-[#4f2ed8]'
+                    className='auth-link mx-1'
                   >
                     {t('隐私政策')}
                   </a>
@@ -768,21 +765,25 @@ const RegisterForm = () => {
 
           <Button
             theme='solid'
-            className='h-12 w-full !rounded-2xl !bg-[#19182c] !font-bold tracking-wide hover:!bg-[#272542]'
+            className='auth-primary-button h-12 w-full !rounded-2xl !font-bold tracking-wide'
             type='primary'
             htmlType='submit'
             onClick={handleSubmit}
             loading={registerLoading}
             disabled={(hasUserAgreement || hasPrivacyPolicy) && !agreedToTerms}
           >
-            {t('创建账户')}
+            <span className='auth-primary-text'>{t('创建账户')}</span>
+            <span className='auth-primary-hover-content' aria-hidden='true'>
+              {t('创建账户')}
+              <span className='auth-primary-arrow'>→</span>
+            </span>
           </Button>
         </Form>
 
         {hasOAuthRegisterOptions && (
           <>
             <Divider margin='12px' align='center'>
-              <span className='text-xs text-[#8b8996]'>
+              <span className='auth-muted text-xs'>
                 {t('或使用以下方式继续')}
               </span>
             </Divider>
@@ -791,12 +792,9 @@ const RegisterForm = () => {
         )}
 
         <div className='pt-1 text-center text-sm'>
-          <Text>
+          <Text className='auth-muted'>
             {t('已有账户？')}{' '}
-            <Link
-              to='/login'
-              className='font-semibold text-[#6f46ff] hover:text-[#4f2ed8]'
-            >
+            <Link to='/login' className='auth-link font-semibold'>
               {t('登录')}
             </Link>
           </Text>
@@ -902,7 +900,7 @@ const RegisterForm = () => {
                               href='/user-agreement'
                               target='_blank'
                               rel='noopener noreferrer'
-                              className='text-blue-600 hover:text-blue-800 mx-1'
+                              className='auth-link mx-1'
                             >
                               {t('用户协议')}
                             </a>
@@ -915,7 +913,7 @@ const RegisterForm = () => {
                               href='/privacy-policy'
                               target='_blank'
                               rel='noopener noreferrer'
-                              className='text-blue-600 hover:text-blue-800 mx-1'
+                              className='auth-link mx-1'
                             >
                               {t('隐私政策')}
                             </a>
@@ -966,10 +964,7 @@ const RegisterForm = () => {
               <div className='mt-6 text-center text-sm'>
                 <Text>
                   {t('已有账户？')}{' '}
-                  <Link
-                    to='/login'
-                    className='text-blue-600 hover:text-blue-800 font-medium'
-                  >
+                  <Link to='/login' className='auth-link font-medium'>
                     {t('登录')}
                   </Link>
                 </Text>
