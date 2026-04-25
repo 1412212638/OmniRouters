@@ -1,5 +1,10 @@
 {
   "translation": {
+    "欢迎回来！": "おかえりなさい！",
+    "请选择一种登录方式": "ログイン方法を選択してください",
+    "创建账户": "アカウントを作成",
+    "开始使用你的 AI 网关": "AI ゲートウェイを使い始める",
+    "或使用以下方式继续": "または次の方法で続行",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_one": " + Web検索 {{count}}回 / 1K回 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_one",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_other": " + Web検索 {{count}}回 / 1K回 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_other",
     " + 图片生成调用 {{symbol}}{{price}} / 1次 * {{ratioType}} {{ratio}}": " + 画像生成APIコール {{symbol}}{{price}} / 1回 * {{ratioType}} {{ratio}}",

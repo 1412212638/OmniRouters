@@ -1,5 +1,10 @@
 {
   "translation": {
+    "欢迎回来！": "Chào mừng trở lại!",
+    "请选择一种登录方式": "Chọn một phương thức đăng nhập",
+    "创建账户": "Tạo tài khoản",
+    "开始使用你的 AI 网关": "Bắt đầu sử dụng cổng AI của bạn",
+    "或使用以下方式继续": "Hoặc tiếp tục với",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_one": " + Tìm kiếm Web {{count}} lần / 1K lần * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_other": " + Tìm kiếm Web {{count}} lần / 1K lần * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",
     " + 图片生成调用 {{symbol}}{{price}} / 1次 * {{ratioType}} {{ratio}}": " + Gọi tạo hình ảnh {{symbol}}{{price}} / 1 lần * {{ratioType}} {{ratio}}",

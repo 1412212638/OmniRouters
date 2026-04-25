@@ -64,6 +64,7 @@ import OIDCIcon from '../common/logo/OIDCIcon';
 import WeChatIcon from '../common/logo/WeChatIcon';
 import LinuxDoIcon from '../common/logo/LinuxDoIcon';
 import TwoFAVerification from './TwoFAVerification';
+import AuthShell from './AuthShell';
 import { useTranslation } from 'react-i18next';
 import { SiDiscord } from 'react-icons/si';
 
@@ -135,12 +136,12 @@ const LoginForm = () => {
     (status.custom_oauth_providers || []).length > 0;
   const hasOAuthLoginOptions = Boolean(
     status.github_oauth ||
-      status.discord_oauth ||
-      status.oidc_enabled ||
-      status.wechat_login ||
-      status.linuxdo_oauth ||
-      status.telegram_oauth ||
-      hasCustomOAuthProviders,
+    status.discord_oauth ||
+    status.oidc_enabled ||
+    status.wechat_login ||
+    status.linuxdo_oauth ||
+    status.telegram_oauth ||
+    hasCustomOAuthProviders,
   );
 
   useEffect(() => {
@@ -716,6 +717,240 @@ const LoginForm = () => {
     );
   };
 
+  const compactOAuthButtonClass =
+    'w-full h-11 !rounded-2xl !border-[#e8e6ef] !bg-white/80 hover:!bg-[#f7f4ff] !text-[#202033] !font-semibold';
+
+  const renderOAuthLoginGrid = () => {
+    if (!hasOAuthLoginOptions) {
+      return null;
+    }
+
+    return (
+      <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
+        {status.github_oauth && (
+          <Button
+            theme='outline'
+            type='tertiary'
+            className={compactOAuthButtonClass}
+            icon={<IconGithubLogo size='large' />}
+            onClick={handleGitHubClick}
+            loading={githubLoading}
+            disabled={githubButtonDisabled}
+          >
+            <span className='truncate'>{githubButtonText}</span>
+          </Button>
+        )}
+
+        {status.discord_oauth && (
+          <Button
+            theme='outline'
+            type='tertiary'
+            className={compactOAuthButtonClass}
+            icon={
+              <SiDiscord
+                style={{ color: '#5865F2', width: '20px', height: '20px' }}
+              />
+            }
+            onClick={handleDiscordClick}
+            loading={discordLoading}
+          >
+            <span className='truncate'>{t('使用 Discord 继续')}</span>
+          </Button>
+        )}
+
+        {status.oidc_enabled && (
+          <Button
+            theme='outline'
+            type='tertiary'
+            className={compactOAuthButtonClass}
+            icon={<OIDCIcon style={{ color: '#1877F2' }} />}
+            onClick={handleOIDCClick}
+            loading={oidcLoading}
+          >
+            <span className='truncate'>{t('使用 OIDC 继续')}</span>
+          </Button>
+        )}
+
+        {status.linuxdo_oauth && (
+          <Button
+            theme='outline'
+            type='tertiary'
+            className={compactOAuthButtonClass}
+            icon={
+              <LinuxDoIcon
+                style={{ color: '#E95420', width: '20px', height: '20px' }}
+              />
+            }
+            onClick={handleLinuxDOClick}
+            loading={linuxdoLoading}
+          >
+            <span className='truncate'>{t('使用 LinuxDO 继续')}</span>
+          </Button>
+        )}
+
+        {status.wechat_login && (
+          <Button
+            theme='outline'
+            type='tertiary'
+            className={compactOAuthButtonClass}
+            icon={<Icon svg={<WeChatIcon />} style={{ color: '#07C160' }} />}
+            onClick={onWeChatLoginClicked}
+            loading={wechatLoading}
+          >
+            <span className='truncate'>{t('使用 微信 继续')}</span>
+          </Button>
+        )}
+
+        {status.passkey_login && passkeySupported && (
+          <Button
+            theme='outline'
+            type='tertiary'
+            className={compactOAuthButtonClass}
+            icon={<IconKey size='large' />}
+            onClick={handlePasskeyLogin}
+            loading={passkeyLoading}
+          >
+            <span className='truncate'>{t('使用 Passkey 登录')}</span>
+          </Button>
+        )}
+
+        {status.custom_oauth_providers &&
+          status.custom_oauth_providers.map((provider) => (
+            <Button
+              key={provider.slug}
+              theme='outline'
+              type='tertiary'
+              className={compactOAuthButtonClass}
+              icon={getOAuthProviderIcon(provider.icon || '', 20)}
+              onClick={() => handleCustomOAuthClick(provider)}
+              loading={customOAuthLoading[provider.slug]}
+            >
+              <span className='truncate'>
+                {t('使用 {{name}} 继续', { name: provider.name })}
+              </span>
+            </Button>
+          ))}
+
+        {status.telegram_oauth && (
+          <div className='flex min-h-11 items-center justify-center rounded-2xl border border-[#e8e6ef] bg-white/80 px-3 py-1 sm:col-span-2'>
+            <TelegramLoginButton
+              dataOnauth={onTelegramLoginClicked}
+              botName={status.telegram_bot_name}
+            />
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderPrimaryLoginForm = () => {
+    return (
+      <div className='space-y-5'>
+        <Form className='space-y-4'>
+          <Form.Input
+            field='username'
+            label={t('用户名或邮箱')}
+            placeholder={t('请输入您的用户名或邮箱地址')}
+            name='username'
+            onChange={(value) => handleChange('username', value)}
+            prefix={<IconMail />}
+          />
+
+          <Form.Input
+            field='password'
+            label={t('密码')}
+            placeholder={t('请输入您的密码')}
+            name='password'
+            mode='password'
+            onChange={(value) => handleChange('password', value)}
+            prefix={<IconLock />}
+          />
+
+          <div className='-mt-2 flex justify-end'>
+            <Button
+              theme='borderless'
+              type='tertiary'
+              className='!px-0 !text-[#7b4dff]'
+              onClick={handleResetPasswordClick}
+              loading={resetPasswordLoading}
+            >
+              {t('忘记密码？')}
+            </Button>
+          </div>
+
+          {(hasUserAgreement || hasPrivacyPolicy) && (
+            <Checkbox
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+            >
+              <Text size='small' className='text-gray-600'>
+                {t('我已阅读并同意')}
+                {hasUserAgreement && (
+                  <a
+                    href='/user-agreement'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='mx-1 text-[#6f46ff] hover:text-[#4f2ed8]'
+                  >
+                    {t('用户协议')}
+                  </a>
+                )}
+                {hasUserAgreement && hasPrivacyPolicy && t('和')}
+                {hasPrivacyPolicy && (
+                  <a
+                    href='/privacy-policy'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='mx-1 text-[#6f46ff] hover:text-[#4f2ed8]'
+                  >
+                    {t('隐私政策')}
+                  </a>
+                )}
+              </Text>
+            </Checkbox>
+          )}
+
+          <Button
+            theme='solid'
+            className='h-12 w-full !rounded-2xl !bg-[#19182c] !font-bold tracking-wide hover:!bg-[#272542]'
+            type='primary'
+            htmlType='submit'
+            onClick={handleSubmit}
+            loading={loginLoading}
+            disabled={(hasUserAgreement || hasPrivacyPolicy) && !agreedToTerms}
+          >
+            {t('登录')}
+          </Button>
+        </Form>
+
+        {hasOAuthLoginOptions && (
+          <>
+            <Divider margin='12px' align='center'>
+              <span className='text-xs text-[#8b8996]'>
+                {t('或使用以下方式继续')}
+              </span>
+            </Divider>
+            {renderOAuthLoginGrid()}
+          </>
+        )}
+
+        {!status.self_use_mode_enabled && (
+          <div className='pt-1 text-center text-sm'>
+            <Text>
+              {t('没有账户？')}{' '}
+              <Link
+                to='/register'
+                className='font-semibold text-[#6f46ff] hover:text-[#4f2ed8]'
+              >
+                {t('注册')}
+              </Link>
+            </Text>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderEmailLoginForm = () => {
     return (
       <div className='flex flex-col items-center'>
@@ -947,21 +1182,15 @@ const LoginForm = () => {
   };
 
   return (
-    <div className='relative overflow-hidden bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8'>
+    <AuthShell
+      logo={logo}
+      systemName={systemName}
+      title={t('欢迎回来！')}
+      subtitle={t('请选择一种登录方式')}
+    >
       {/* 背景模糊晕染球 */}
-      <div
-        className='blur-ball blur-ball-indigo'
-        style={{ top: '-80px', right: '-80px', transform: 'none' }}
-      />
-      <div
-        className='blur-ball blur-ball-teal'
-        style={{ top: '50%', left: '-120px' }}
-      />
-      <div className='w-full max-w-sm mt-[60px]'>
-        {showEmailLogin ||
-        !hasOAuthLoginOptions
-          ? renderEmailLoginForm()
-          : renderOAuthOptions()}
+      <div>
+        {renderPrimaryLoginForm()}
         {renderWeChatLoginModal()}
         {render2FAModal()}
 
@@ -976,7 +1205,7 @@ const LoginForm = () => {
           </div>
         )}
       </div>
-    </div>
+    </AuthShell>
   );
 };
 

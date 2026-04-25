@@ -1,5 +1,10 @@
 {
   "translation": {
+    "欢迎回来！": "Bon retour !",
+    "请选择一种登录方式": "Choisissez une méthode de connexion",
+    "创建账户": "Créer un compte",
+    "开始使用你的 AI 网关": "Commencez à utiliser votre passerelle IA",
+    "或使用以下方式继续": "Ou continuer avec",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_one": " + Recherche Web {{count}} fois / 1K fois * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_many": " + Recherche Web {{count}} fois / 1K fois * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",
     " + Web搜索 {{count}}次 / 1K 次 * {{symbol}}{{price}} * {{ratioType}} {{ratio}}_other": " + Recherche Web {{count}} fois / 1K fois * {{symbol}}{{price}} * {{ratioType}} {{ratio}}",
