@@ -487,6 +487,7 @@
     "使用 {{name}} 继续": "Tiếp tục với {{name}}",
     "使用 Discord 继续": "Continue with Discord",
     "使用 GitHub 继续": "Tiếp tục với GitHub",
+    "使用 Telegram 继续": "Tiếp tục với Telegram",
     "使用 JSON 对象格式，格式为：{\"组名\": [最多请求次数, 最多请求完成次数]}": "Sử dụng định dạng đối tượng JSON, định dạng: {\"group_name\": [max_requests, max_completions]}",
     "使用 LinuxDO 继续": "Tiếp tục với LinuxDO",
     "使用 OIDC 继续": "Tiếp tục với OIDC",

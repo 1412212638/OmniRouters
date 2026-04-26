@@ -564,7 +564,7 @@ const authShellStyles = `
   --auth-primary-bg: #19182c;
   --auth-primary-text: #ffffff;
   --auth-primary-hover: #272542;
-  --auth-primary-hover-layer: #6c3ff5;
+  --auth-primary-hover-layer: linear-gradient(90deg, #6c3ff5 0%, #7547ff 54%, #5b21b6 100%);
   --auth-primary-hover-layer-text: #ffffff;
   --auth-primary-disabled-bg: rgba(25,24,44,.72);
   --auth-primary-disabled-text: rgba(255,255,255,.78);
@@ -606,7 +606,7 @@ const authShellStyles = `
   --auth-primary-bg: #f4f0ff;
   --auth-primary-text: #151423;
   --auth-primary-hover: #ffffff;
-  --auth-primary-hover-layer: #6c3ff5;
+  --auth-primary-hover-layer: linear-gradient(90deg, #6c3ff5 0%, #7a52ff 54%, #5b21b6 100%);
   --auth-primary-hover-layer-text: #ffffff;
   --auth-primary-disabled-bg: rgba(255,255,255,.16);
   --auth-primary-disabled-text: rgba(255,255,255,.68);
@@ -839,22 +839,106 @@ const authShellStyles = `
 }
 
 .auth-shell .auth-telegram-wrap {
+  position: relative;
+  overflow: hidden;
   background: var(--auth-oauth-bg);
   border-color: var(--auth-oauth-border);
   box-shadow: var(--auth-oauth-shadow);
+  color: var(--auth-oauth-text);
+  cursor: pointer;
+  font-weight: 600;
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+.auth-shell .auth-telegram-wrap:hover {
+  background: var(--auth-oauth-bg-hover);
+  border-color: var(--auth-oauth-border-hover);
+  transform: translateY(-1px);
+}
+
+.auth-shell .auth-telegram-content {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.auth-shell .auth-telegram-widget {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  opacity: .01;
+}
+
+.auth-shell .auth-telegram-widget iframe {
+  width: 100% !important;
+  height: 100% !important;
+  transform: scale(3);
+  transform-origin: center;
+}
+
+.auth-shell .auth-code-button.semi-button {
+  background: rgba(108, 63, 245, .10) !important;
+  border-color: rgba(108, 63, 245, .18) !important;
+  color: var(--auth-link) !important;
+  font-weight: 600 !important;
+}
+
+.auth-shell .auth-code-button.semi-button:hover {
+  background: rgba(108, 63, 245, .16) !important;
+  border-color: rgba(108, 63, 245, .28) !important;
+  color: var(--auth-link-hover) !important;
+}
+
+.auth-shell .auth-code-button.semi-button:disabled,
+.auth-shell .auth-code-button.semi-button[disabled],
+.auth-shell .auth-code-button.semi-button.semi-button-disabled {
+  background: rgba(108, 63, 245, .07) !important;
+  border-color: rgba(108, 63, 245, .12) !important;
+  color: var(--auth-muted) !important;
+  opacity: 1 !important;
 }
 
 .auth-shell .auth-primary-button.semi-button {
   position: relative !important;
+  isolation: isolate;
   overflow: hidden !important;
   background: var(--auth-primary-bg) !important;
   border-color: transparent !important;
   color: var(--auth-primary-text) !important;
+  transition:
+    background-color 260ms ease,
+    box-shadow 260ms ease,
+    transform 260ms ease !important;
+}
+
+.auth-shell .auth-primary-button.semi-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: var(--auth-primary-hover-layer);
+  opacity: 0;
+  transform: scaleX(0.24);
+  transform-origin: left center;
+  transition:
+    opacity 260ms ease,
+    transform 420ms cubic-bezier(.2, .9, .2, 1);
+  pointer-events: none;
 }
 
 .auth-shell .auth-primary-button .semi-button-content {
-  position: relative;
-  z-index: 1;
+  position: static;
   display: inline-flex;
   width: 100%;
   align-items: center;
@@ -862,6 +946,8 @@ const authShellStyles = `
 }
 
 .auth-shell .auth-primary-text {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -873,19 +959,20 @@ const authShellStyles = `
 
 .auth-shell .auth-primary-hover-content {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: inherit;
-  background: var(--auth-primary-hover-layer);
   color: var(--auth-primary-hover-layer-text);
   opacity: 0;
-  transform: translateX(-10px);
+  transform: translate(-50%, calc(-50% + 8px));
+  white-space: nowrap;
   transition:
-    opacity 300ms ease,
-    transform 300ms ease;
+    opacity 240ms ease,
+    transform 360ms cubic-bezier(.2, .9, .2, 1);
 }
 
 .auth-shell .auth-primary-arrow {
@@ -901,10 +988,26 @@ const authShellStyles = `
 .auth-shell
   .auth-primary-button.semi-button:not(:disabled):not([disabled]):not(
     .semi-button-disabled
+  ):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(91, 33, 182, .22) !important;
+}
+
+.auth-shell
+  .auth-primary-button.semi-button:not(:disabled):not([disabled]):not(
+    .semi-button-disabled
+  ):hover::before {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.auth-shell
+  .auth-primary-button.semi-button:not(:disabled):not([disabled]):not(
+    .semi-button-disabled
   ):hover
   .auth-primary-text {
   opacity: 0;
-  transform: translateX(40px);
+  transform: translateY(-7px);
 }
 
 .auth-shell
@@ -913,7 +1016,7 @@ const authShellStyles = `
   ):hover
   .auth-primary-hover-content {
   opacity: 1;
-  transform: translateX(0);
+  transform: translate(-50%, -50%);
 }
 
 .auth-shell

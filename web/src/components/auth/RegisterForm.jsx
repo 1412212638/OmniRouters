@@ -64,7 +64,7 @@ import AuthShell from './AuthShell';
 import { UserContext } from '../../context/User';
 import { StatusContext } from '../../context/Status';
 import { useTranslation } from 'react-i18next';
-import { SiDiscord } from 'react-icons/si';
+import { SiDiscord, SiTelegram } from 'react-icons/si';
 
 const RegisterForm = () => {
   let navigate = useNavigate();
@@ -655,9 +655,19 @@ const RegisterForm = () => {
 
         {status.telegram_oauth && (
           <div className='auth-telegram-wrap flex min-h-11 items-center justify-center rounded-2xl border px-3 py-1 sm:col-span-2'>
+            <span className='auth-telegram-content'>
+              <SiTelegram
+                style={{ color: '#2AABEE', width: '20px', height: '20px' }}
+              />
+              <span className='truncate'>{t('使用 Telegram 继续')}</span>
+            </span>
             <TelegramLoginButton
+              className='auth-telegram-widget'
               dataOnauth={onTelegramLoginClicked}
               botName={status.telegram_bot_name}
+              buttonSize='large'
+              cornerRadius={16}
+              usePic={false}
             />
           </div>
         )}
@@ -710,6 +720,7 @@ const RegisterForm = () => {
                 prefix={<IconMail />}
                 suffix={
                   <Button
+                    className='auth-code-button'
                     onClick={sendVerificationCode}
                     loading={verificationCodeLoading}
                     disabled={disableButton || verificationCodeLoading}
@@ -863,6 +874,7 @@ const RegisterForm = () => {
                       prefix={<IconMail />}
                       suffix={
                         <Button
+                          className='auth-code-button'
                           onClick={sendVerificationCode}
                           loading={verificationCodeLoading}
                           disabled={disableButton || verificationCodeLoading}
