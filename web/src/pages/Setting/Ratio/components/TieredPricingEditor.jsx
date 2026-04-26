@@ -31,8 +31,9 @@ import {
   TextArea,
   Typography,
 } from '@douyinfe/semi-ui';
-import { IconDelete, IconPlus } from '@douyinfe/semi-icons';
+import { IconCopy, IconDelete, IconPlus } from '@douyinfe/semi-icons';
 import { renderQuota } from '../../../../helpers/render';
+import { copy, showSuccess } from '../../../../helpers';
 import { BILLING_EXTRA_VARS, BILLING_CACHE_VAR_MAP } from '../../../../constants';
 import {
   createEmptyCondition,
@@ -70,6 +71,7 @@ function priceToUnitCost(price) {
 
 const OPS = ['<', '<=', '>', '>='];
 const VAR_OPTIONS = [
+  { value: 'len', label: 'len (长度)' },
   { value: 'p', label: 'p (输入)' },
   { value: 'c', label: 'c (输出)' },
 ];
@@ -224,7 +226,7 @@ function tryParseVisualConfig(exprStr) {
     }
 
     // Multi-tier: cond1 ? tier(body) : cond2 ? tier(body) : tier(body)
-    const condGroup = `((?:(?:p|c)\\s*(?:<|<=|>|>=)\\s*[\\d.eE+]+)(?:\\s*&&\\s*(?:p|c)\\s*(?:<|<=|>|>=)\\s*[\\d.eE+]+)*)`;
+    const condGroup = `((?:(?:p|c|len)\\s*(?:<|<=|>|>=)\\s*[\\d.eE+]+)(?:\\s*&&\\s*(?:p|c|len)\\s*(?:<|<=|>|>=)\\s*[\\d.eE+]+)*)`;
     const tierRe = new RegExp(
       `(?:${condGroup}\\s*\\?\\s*)?tier\\("([^"]*)",\\s*${bodyPat}\\)`,
       'g',
@@ -237,7 +239,7 @@ function tryParseVisualConfig(exprStr) {
       if (condStr) {
         const condParts = condStr.split(/\s*&&\s*/);
         for (const cp of condParts) {
-          const cm = cp.trim().match(/^(p|c)\s*(<|<=|>|>=)\s*([\d.eE+]+)$/);
+          const cm = cp.trim().match(/^(p|c|len)\s*(<|<=|>|>=)\s*([\d.eE+]+)$/);
           if (cm) {
             conditions.push({ var: cm[1], op: cm[2], value: Number(cm[3]) });
           }
@@ -283,7 +285,7 @@ function ConditionRow({ cond, onChange, onRemove, t }) {
     }}>
       <Select
         size='small'
-        value={cond.var || 'p'}
+        value={cond.var || 'len'}
         onChange={(val) => onChange({ ...cond, var: val })}
       >
         {VAR_OPTIONS.map((v) => (
@@ -500,7 +502,7 @@ function ExtendedPriceBlock({ tier, index, onUpdate, t }) {
 function VisualTierCard({ tier, index, isLast, isOnly, onUpdate, onRemove, t }) {
   const conditions = tier.conditions || [];
 
-  const varLabel = { p: t('输入'), c: t('输出') };
+  const varLabel = { len: t('长度'), p: t('输入'), c: t('输出') };
   const condSummary = useMemo(() => {
     if (conditions.length === 0) return t('无条件（兜底档）');
     return conditions
@@ -525,7 +527,7 @@ function VisualTierCard({ tier, index, isLast, isOnly, onUpdate, onRemove, t }) 
   const addCondition = () => {
     if (conditions.length >= 2) return;
     const usedVars = conditions.map((c) => c.var);
-    const nextVar = usedVars.includes('p') ? 'c' : 'p';
+    const nextVar = usedVars.includes('len') ? 'c' : 'len';
     onUpdate(index, 'conditions', [
       ...conditions,
       { var: nextVar, op: '<', value: 200000 },
@@ -1043,6 +1045,7 @@ function evalExprLocally(exprStr, p, c, extraTokenValues) {
     const env = {
       p,
       c,
+      len: p,
       nil: null,
       tier: tierFn,
       param: (path) => getLocalPathValue(requestBody, path),
@@ -1306,6 +1309,72 @@ function RuleGroupCard({ group, index, onChange, onRemove, t }) {
           style={{ width: 160 }}
         />
       </div>
+    </div>
+  );
+}
+
+const LLM_PROMPT_TEMPLATE = `你是 AI API 计费表达式设计助手。请根据模型官方价格生成 billing expression。
+
+变量：
+- p：输入 token 计价用，会自动排除表达式中单独计价的缓存/图片/音频 token
+- len：输入上下文总长度，专门用于阶梯条件，不会被缓存命中影响
+- c：输出 token
+- cr/cc/cc1h：缓存读取/缓存创建/1小时缓存创建 token
+- img/img_o：图片输入/输出 token
+- ai/ao：音频输入/输出 token
+
+规则：
+1. 每个叶子分支必须用 tier("name", cost) 包裹。
+2. 价格系数使用美元 / 1M tokens，例如 p * 2.5。
+3. 阶梯条件优先使用 len，不要用 p。
+4. 多档示例：len <= 200000 ? tier("standard", p * 3 + c * 15) : tier("long_context", p * 6 + c * 22.5)。
+5. 不需要单独计价的子类别变量可以省略，它们会留在 p/c 中计费。`;
+
+function LlmPromptHelper({ t, model }) {
+  const [open, setOpen] = useState(false);
+  const prompt = useMemo(() => {
+    const modelName = model?.name ? `\n\n当前模型：${model.name}` : '';
+    return `${LLM_PROMPT_TEMPLATE}${modelName}`;
+  }, [model?.name]);
+
+  const handleCopy = useCallback(async () => {
+    if (await copy(prompt)) {
+      showSuccess(t('已复制到剪贴板'));
+    }
+  }, [prompt, t]);
+
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <Button
+        theme='borderless'
+        size='small'
+        icon={<IconCopy />}
+        onClick={() => setOpen(!open)}
+        style={{ color: 'var(--semi-color-tertiary)' }}
+      >
+        {t('LLM 辅助设计提示词')}
+      </Button>
+      <Collapsible isOpen={open}>
+        <Card
+          bodyStyle={{ padding: 12 }}
+          style={{ marginTop: 8, background: 'var(--semi-color-fill-0)' }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Text size='small' type='secondary'>
+              {t('复制以下提示词发送给 LLM，让它帮你设计计费表达式')}
+            </Text>
+            <Button icon={<IconCopy />} size='small' theme='light' onClick={handleCopy}>
+              {t('复制提示词')}
+            </Button>
+          </div>
+          <TextArea
+            value={prompt}
+            readonly
+            autosize={{ minRows: 6, maxRows: 16 }}
+            style={{ fontFamily: 'monospace', fontSize: 12 }}
+          />
+        </Card>
+      </Collapsible>
     </div>
   );
 }
@@ -1641,6 +1710,8 @@ export default function TieredPricingEditor({ model, onExprChange, requestRuleEx
           )}
         </div>
       </Card>
+
+      <LlmPromptHelper t={t} model={model} />
 
     </div>
   );

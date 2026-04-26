@@ -21,7 +21,7 @@ import React from 'react';
 import { Avatar, Tag, Table, Typography } from '@douyinfe/semi-ui';
 import { IconPriceTag } from '@douyinfe/semi-icons';
 import { getCurrencyConfig, parseTiersFromExpr } from '../../../../../helpers';
-import { BILLING_VARS } from '../../../../../constants';
+import { BILLING_PRICING_VARS } from '../../../../../constants';
 import {
   splitBillingExprAndRequestRules,
   tryParseRequestRuleExpr,
@@ -36,7 +36,7 @@ import {
 
 const { Text } = Typography;
 
-const VAR_LABELS = { p: '输入', c: '输出' };
+const VAR_LABELS = { len: '长度', p: '输入', c: '输出' };
 const OP_LABELS = { '<': '<', '<=': '≤', '>': '>', '>=': '≥' };
 const TIME_FUNC_LABELS = { hour: '小时', minute: '分钟', weekday: '星期', month: '月份', day: '日期' };
 
@@ -114,7 +114,7 @@ export default function DynamicPricingBreakdown({ billingExpr, t }) {
     );
   }
 
-  const priceFields = BILLING_VARS.map((v) => [v.field, v.shortLabel]);
+  const priceFields = BILLING_PRICING_VARS.map((v) => [v.field, v.shortLabel]);
 
   const tierColumns = [
     {
