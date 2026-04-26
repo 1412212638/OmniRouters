@@ -34,6 +34,7 @@ import {
   CreditCard,
   Server,
   Activity,
+  Mail,
 } from 'lucide-react';
 
 import SystemSetting from '../../components/settings/SystemSetting';
@@ -49,6 +50,7 @@ import DrawingSetting from '../../components/settings/DrawingSetting';
 import PaymentSetting from '../../components/settings/PaymentSetting';
 import ModelDeploymentSetting from '../../components/settings/ModelDeploymentSetting';
 import PerformanceSetting from '../../components/settings/PerformanceSetting';
+import MailSetting from '../../components/settings/MailSetting';
 
 const Setting = () => {
   const { t } = useTranslation();
@@ -157,6 +159,16 @@ const Setting = () => {
       ),
       content: <PerformanceSetting />,
       itemKey: 'performance',
+    });
+    panes.push({
+      tab: (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <Mail size={18} />
+          {t('邮件设置')}
+        </span>
+      ),
+      content: <MailSetting />,
+      itemKey: 'mail',
     });
     panes.push({
       tab: (

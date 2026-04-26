@@ -1,6 +1,9 @@
 package common
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 const (
 	EmailLanguageChinese = "zh"
@@ -20,81 +23,166 @@ func IsEmailLanguageEnglish() bool {
 	return NormalizeEmailLanguage(EmailLanguage) == EmailLanguageEnglish
 }
 
+func renderEmailTemplate(template string, values map[string]string) string {
+	rendered := template
+	for key, value := range values {
+		rendered = strings.ReplaceAll(rendered, "{{"+key+"}}", value)
+	}
+	return rendered
+}
+
 func BuildEmailVerificationMail(systemName string, code string, validMinutes int) (subject string, content string) {
+	values := map[string]string{
+		"system_name":   systemName,
+		"code":          code,
+		"valid_minutes": fmt.Sprintf("%d", validMinutes),
+		"valid_time":    formatEmailMinutes(validMinutes),
+	}
+	if strings.TrimSpace(EmailVerificationSubjectTemplate) != "" {
+		subject = renderEmailTemplate(EmailVerificationSubjectTemplate, values)
+	}
+	if strings.TrimSpace(EmailVerificationContentTemplate) != "" {
+		content = renderEmailTemplate(EmailVerificationContentTemplate, values)
+	}
+	if subject != "" && content != "" {
+		return
+	}
+
 	if IsEmailLanguageEnglish() {
-		subject = fmt.Sprintf("%s Email Verification", systemName)
+		if subject == "" {
+			subject = fmt.Sprintf("%s Email Verification", systemName)
+		}
+		if content == "" {
+			content = fmt.Sprintf(
+				"<p>Hello,</p><p>You are verifying the email address for %s.</p><p>Your verification code is: <strong>%s</strong></p><p>This code is valid for %s. If this was not you, please ignore this email.</p>",
+				systemName,
+				code,
+				formatEmailMinutes(validMinutes),
+			)
+		}
+		return
+	}
+
+	if subject == "" {
+		subject = fmt.Sprintf("%s邮箱验证邮件", systemName)
+	}
+	if content == "" {
 		content = fmt.Sprintf(
-			"<p>Hello,</p><p>You are verifying the email address for %s.</p><p>Your verification code is: <strong>%s</strong></p><p>This code is valid for %s. If this was not you, please ignore this email.</p>",
+			"<p>您好，您正在进行 %s 邮箱验证。</p><p>您的验证码为：<strong>%s</strong></p><p>验证码在 %s 内有效，如果不是本人操作，请忽略此邮件。</p>",
 			systemName,
 			code,
 			formatEmailMinutes(validMinutes),
 		)
-		return
 	}
-
-	subject = fmt.Sprintf("%s邮箱验证邮件", systemName)
-	content = fmt.Sprintf(
-		"<p>您好，您正在进行 %s 邮箱验证。</p><p>您的验证码为：<strong>%s</strong></p><p>验证码在 %s 内有效，如果不是本人操作，请忽略此邮件。</p>",
-		systemName,
-		code,
-		formatEmailMinutes(validMinutes),
-	)
 	return
 }
 
 func BuildPasswordResetMail(systemName string, link string, validMinutes int) (subject string, content string) {
+	values := map[string]string{
+		"system_name":   systemName,
+		"link":          link,
+		"valid_minutes": fmt.Sprintf("%d", validMinutes),
+		"valid_time":    formatEmailMinutes(validMinutes),
+	}
+	if strings.TrimSpace(PasswordResetSubjectTemplate) != "" {
+		subject = renderEmailTemplate(PasswordResetSubjectTemplate, values)
+	}
+	if strings.TrimSpace(PasswordResetContentTemplate) != "" {
+		content = renderEmailTemplate(PasswordResetContentTemplate, values)
+	}
+	if subject != "" && content != "" {
+		return
+	}
+
 	if IsEmailLanguageEnglish() {
-		subject = fmt.Sprintf("%s Password Reset", systemName)
+		if subject == "" {
+			subject = fmt.Sprintf("%s Password Reset", systemName)
+		}
+		if content == "" {
+			content = fmt.Sprintf(
+				"<p>Hello,</p><p>You requested a password reset for %s.</p><p>Click <a href='%s'>here</a> to reset your password.</p><p>If the link does not open, copy and paste this URL into your browser:<br>%s</p><p>This reset link is valid for %s. If this was not you, please ignore this email.</p>",
+				systemName,
+				link,
+				link,
+				formatEmailMinutes(validMinutes),
+			)
+		}
+		return
+	}
+
+	if subject == "" {
+		subject = fmt.Sprintf("%s密码重置", systemName)
+	}
+	if content == "" {
 		content = fmt.Sprintf(
-			"<p>Hello,</p><p>You requested a password reset for %s.</p><p>Click <a href='%s'>here</a> to reset your password.</p><p>If the link does not open, copy and paste this URL into your browser:<br>%s</p><p>This reset link is valid for %s. If this was not you, please ignore this email.</p>",
+			"<p>您好，您正在进行 %s 密码重置。</p><p>点击 <a href='%s'>此处</a> 进行密码重置。</p><p>如果链接无法点击，请尝试将下面的链接复制到浏览器中打开：<br>%s</p><p>重置链接在 %s 内有效，如果不是本人操作，请忽略此邮件。</p>",
 			systemName,
 			link,
 			link,
 			formatEmailMinutes(validMinutes),
 		)
-		return
 	}
-
-	subject = fmt.Sprintf("%s密码重置", systemName)
-	content = fmt.Sprintf(
-		"<p>您好，您正在进行 %s 密码重置。</p><p>点击 <a href='%s'>此处</a> 进行密码重置。</p><p>如果链接无法点击，请尝试将下面的链接复制到浏览器中打开：<br>%s</p><p>重置链接在 %s 内有效，如果不是本人操作，请忽略此邮件。</p>",
-		systemName,
-		link,
-		link,
-		formatEmailMinutes(validMinutes),
-	)
 	return
 }
 
 func BuildQuotaWarningMail(remainingQuota string, topUpLink string, subscription bool) (subject string, content string) {
+	subjectTemplate := QuotaWarningSubjectTemplate
+	contentTemplate := QuotaWarningContentTemplate
+	if subscription {
+		subjectTemplate = SubscriptionQuotaWarningSubjectTemplate
+		contentTemplate = SubscriptionQuotaWarningContentTemplate
+	}
+	values := map[string]string{
+		"system_name":     SystemName,
+		"remaining_quota": remainingQuota,
+		"top_up_link":     topUpLink,
+	}
+	if strings.TrimSpace(subjectTemplate) != "" {
+		subject = renderEmailTemplate(subjectTemplate, values)
+	}
+	if strings.TrimSpace(contentTemplate) != "" {
+		content = renderEmailTemplate(contentTemplate, values)
+	}
+	if subject != "" && content != "" {
+		return
+	}
+
 	if IsEmailLanguageEnglish() {
 		if subscription {
-			subject = "Your subscription quota is running low"
-		} else {
+			if subject == "" {
+				subject = "Your subscription quota is running low"
+			}
+		} else if subject == "" {
 			subject = "Your quota is running low"
 		}
+		if content == "" {
+			content = fmt.Sprintf(
+				"<p>Hello,</p><p>%s</p><p>Your remaining quota is <strong>%s</strong>.</p><p>To avoid interruption, please top up in time:</p><p><a href='%s'>%s</a></p>",
+				subject,
+				remainingQuota,
+				topUpLink,
+				topUpLink,
+			)
+		}
+		return
+	}
+
+	if subscription {
+		if subject == "" {
+			subject = "您的订阅额度即将用尽"
+		}
+	} else if subject == "" {
+		subject = "您的额度即将用尽"
+	}
+	if content == "" {
 		content = fmt.Sprintf(
-			"<p>Hello,</p><p>%s</p><p>Your remaining quota is <strong>%s</strong>.</p><p>To avoid interruption, please top up in time:</p><p><a href='%s'>%s</a></p>",
+			"<p>您好，</p><p>%s</p><p>当前剩余额度为 <strong>%s</strong>。</p><p>为了不影响您的使用，请及时充值：</p><p><a href='%s'>%s</a></p>",
 			subject,
 			remainingQuota,
 			topUpLink,
 			topUpLink,
 		)
-		return
 	}
-
-	if subscription {
-		subject = "您的订阅额度即将用尽"
-	} else {
-		subject = "您的额度即将用尽"
-	}
-	content = fmt.Sprintf(
-		"<p>您好，</p><p>%s</p><p>当前剩余额度为 <strong>%s</strong>。</p><p>为了不影响您的使用，请及时充值：</p><p><a href='%s'>%s</a></p>",
-		subject,
-		remainingQuota,
-		topUpLink,
-		topUpLink,
-	)
 	return
 }
 

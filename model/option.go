@@ -64,6 +64,14 @@ func InitOptionMap() {
 	common.OptionMap["SMTPSSLEnabled"] = strconv.FormatBool(common.SMTPSSLEnabled)
 	common.OptionMap["SMTPForceAuthLogin"] = strconv.FormatBool(common.SMTPForceAuthLogin)
 	common.OptionMap["EmailLanguage"] = common.EmailLanguage
+	common.OptionMap["EmailVerificationSubjectTemplate"] = common.EmailVerificationSubjectTemplate
+	common.OptionMap["EmailVerificationContentTemplate"] = common.EmailVerificationContentTemplate
+	common.OptionMap["PasswordResetSubjectTemplate"] = common.PasswordResetSubjectTemplate
+	common.OptionMap["PasswordResetContentTemplate"] = common.PasswordResetContentTemplate
+	common.OptionMap["QuotaWarningSubjectTemplate"] = common.QuotaWarningSubjectTemplate
+	common.OptionMap["QuotaWarningContentTemplate"] = common.QuotaWarningContentTemplate
+	common.OptionMap["SubscriptionQuotaWarningSubjectTemplate"] = common.SubscriptionQuotaWarningSubjectTemplate
+	common.OptionMap["SubscriptionQuotaWarningContentTemplate"] = common.SubscriptionQuotaWarningContentTemplate
 	common.OptionMap["Notice"] = ""
 	common.OptionMap["About"] = ""
 	common.OptionMap["HomePageContent"] = ""
@@ -348,6 +356,22 @@ func updateOptionMap(key string, value string) (err error) {
 		common.SMTPToken = value
 	case "EmailLanguage":
 		common.EmailLanguage = common.NormalizeEmailLanguage(value)
+	case "EmailVerificationSubjectTemplate":
+		common.EmailVerificationSubjectTemplate = value
+	case "EmailVerificationContentTemplate":
+		common.EmailVerificationContentTemplate = value
+	case "PasswordResetSubjectTemplate":
+		common.PasswordResetSubjectTemplate = value
+	case "PasswordResetContentTemplate":
+		common.PasswordResetContentTemplate = value
+	case "QuotaWarningSubjectTemplate":
+		common.QuotaWarningSubjectTemplate = value
+	case "QuotaWarningContentTemplate":
+		common.QuotaWarningContentTemplate = value
+	case "SubscriptionQuotaWarningSubjectTemplate":
+		common.SubscriptionQuotaWarningSubjectTemplate = value
+	case "SubscriptionQuotaWarningContentTemplate":
+		common.SubscriptionQuotaWarningContentTemplate = value
 	case "ServerAddress":
 		system_setting.ServerAddress = value
 	case "WorkerUrl":

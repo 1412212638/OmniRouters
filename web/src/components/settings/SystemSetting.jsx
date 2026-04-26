@@ -30,7 +30,6 @@ import {
   Spin,
   Card,
   Radio,
-  Select,
 } from '@douyinfe/semi-ui';
 const { Text } = Typography;
 import {
@@ -64,12 +63,6 @@ const SystemSetting = () => {
     'oidc.token_endpoint': '',
     'oidc.user_info_endpoint': '',
     Notice: '',
-    SMTPServer: '',
-    SMTPPort: '',
-    SMTPAccount: '',
-    SMTPFrom: '',
-    SMTPToken: '',
-    EmailLanguage: 'zh',
     WorkerUrl: '',
     WorkerValidKey: '',
     WorkerAllowHttpImageRequestEnabled: '',
@@ -91,8 +84,6 @@ const SystemSetting = () => {
     'passkey.attachment_preference': '',
     EmailDomainRestrictionEnabled: '',
     EmailAliasRestrictionEnabled: '',
-    SMTPSSLEnabled: '',
-    SMTPForceAuthLogin: '',
     EmailDomainWhitelist: [],
     TelegramOAuthEnabled: '',
     TelegramBotToken: '',
@@ -183,8 +174,6 @@ const SystemSetting = () => {
           case 'TurnstileCheckEnabled':
           case 'EmailDomainRestrictionEnabled':
           case 'EmailAliasRestrictionEnabled':
-          case 'SMTPSSLEnabled':
-          case 'SMTPForceAuthLogin':
           case 'LinuxDOOAuthEnabled':
           case 'discord.enabled':
           case 'oidc.enabled':
@@ -318,39 +307,6 @@ const SystemSetting = () => {
   const submitServerAddress = async () => {
     let ServerAddress = removeTrailingSlash(inputs.ServerAddress);
     await updateOptions([{ key: 'ServerAddress', value: ServerAddress }]);
-  };
-
-  const submitSMTP = async () => {
-    const options = [];
-
-    if (originInputs['SMTPServer'] !== inputs.SMTPServer) {
-      options.push({ key: 'SMTPServer', value: inputs.SMTPServer });
-    }
-    if (originInputs['SMTPAccount'] !== inputs.SMTPAccount) {
-      options.push({ key: 'SMTPAccount', value: inputs.SMTPAccount });
-    }
-    if (originInputs['SMTPFrom'] !== inputs.SMTPFrom) {
-      options.push({ key: 'SMTPFrom', value: inputs.SMTPFrom });
-    }
-    if (
-      originInputs['SMTPPort'] !== inputs.SMTPPort &&
-      inputs.SMTPPort !== ''
-    ) {
-      options.push({ key: 'SMTPPort', value: inputs.SMTPPort });
-    }
-    if (
-      originInputs['SMTPToken'] !== inputs.SMTPToken &&
-      inputs.SMTPToken !== ''
-    ) {
-      options.push({ key: 'SMTPToken', value: inputs.SMTPToken });
-    }
-    if (originInputs['EmailLanguage'] !== inputs.EmailLanguage) {
-      options.push({ key: 'EmailLanguage', value: inputs.EmailLanguage });
-    }
-
-    if (options.length > 0) {
-      await updateOptions(options);
-    }
   };
 
   const submitEmailDomainWhitelist = async () => {
@@ -1282,82 +1238,6 @@ const SystemSetting = () => {
                   >
                     {t('保存邮箱域名白名单设置')}
                   </Button>
-                </Form.Section>
-              </Card>
-              <Card>
-                <Form.Section text={t('配置 SMTP')}>
-                  <Text>{t('用以支持系统的邮件发送')}</Text>
-                  <Row
-                    gutter={{ xs: 8, sm: 16, md: 24, lg: 24, xl: 24, xxl: 24 }}
-                  >
-                    <Col xs={24} sm={24} md={8} lg={8} xl={8}>
-                      <Form.Input
-                        field='SMTPServer'
-                        label={t('SMTP 服务器地址')}
-                      />
-                    </Col>
-                    <Col xs={24} sm={24} md={8} lg={8} xl={8}>
-                      <Form.Input field='SMTPPort' label={t('SMTP 端口')} />
-                    </Col>
-                    <Col xs={24} sm={24} md={8} lg={8} xl={8}>
-                      <Form.Input field='SMTPAccount' label={t('SMTP 账户')} />
-                    </Col>
-                  </Row>
-                  <Row
-                    gutter={{ xs: 8, sm: 16, md: 24, lg: 24, xl: 24, xxl: 24 }}
-                    style={{ marginTop: 16 }}
-                  >
-                    <Col xs={24} sm={24} md={8} lg={8} xl={8}>
-                      <Form.Input
-                        field='SMTPFrom'
-                        label={t('SMTP 发送者邮箱')}
-                      />
-                    </Col>
-                    <Col xs={24} sm={24} md={8} lg={8} xl={8}>
-                      <Form.Input
-                        field='SMTPToken'
-                        label={t('SMTP 访问凭证')}
-                        type='password'
-                        placeholder='敏感信息不会发送到前端显示'
-                      />
-                    </Col>
-                    <Col xs={24} sm={24} md={8} lg={8} xl={8}>
-                      <Form.Select
-                        field='EmailLanguage'
-                        label={t('邮件语言')}
-                        optionList={[
-                          { label: t('中文'), value: 'zh' },
-                          { label: 'English', value: 'en' },
-                        ]}
-                      />
-                    </Col>
-                  </Row>
-                  <Row
-                    gutter={{ xs: 8, sm: 16, md: 24, lg: 24, xl: 24, xxl: 24 }}
-                    style={{ marginTop: 16 }}
-                  >
-                    <Col xs={24} sm={24} md={8} lg={8} xl={8}>
-                      <Form.Checkbox
-                        field='SMTPSSLEnabled'
-                        noLabel
-                        onChange={(e) =>
-                          handleCheckboxChange('SMTPSSLEnabled', e)
-                        }
-                      >
-                        {t('启用SMTP SSL')}
-                      </Form.Checkbox>
-                      <Form.Checkbox
-                        field='SMTPForceAuthLogin'
-                        noLabel
-                        onChange={(e) =>
-                          handleCheckboxChange('SMTPForceAuthLogin', e)
-                        }
-                      >
-                        {t('强制使用 AUTH LOGIN')}
-                      </Form.Checkbox>
-                    </Col>
-                  </Row>
-                  <Button onClick={submitSMTP}>{t('保存 SMTP 设置')}</Button>
                 </Form.Section>
               </Card>
               <Card>
