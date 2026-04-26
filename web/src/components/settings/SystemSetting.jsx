@@ -82,9 +82,6 @@ const SystemSetting = () => {
     'passkey.allow_insecure_origin': '',
     'passkey.user_verification': 'preferred',
     'passkey.attachment_preference': '',
-    EmailDomainRestrictionEnabled: '',
-    EmailAliasRestrictionEnabled: '',
-    EmailDomainWhitelist: [],
     TelegramOAuthEnabled: '',
     TelegramBotToken: '',
     TelegramBotName: '',
@@ -108,11 +105,9 @@ const SystemSetting = () => {
   const [loading, setLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const formApiRef = useRef(null);
-  const [emailDomainWhitelist, setEmailDomainWhitelist] = useState([]);
   const [showPasswordLoginConfirmModal, setShowPasswordLoginConfirmModal] =
     useState(false);
   const [linuxDOOAuthEnabled, setLinuxDOOAuthEnabled] = useState(false);
-  const [emailToAdd, setEmailToAdd] = useState('');
   const [domainFilterMode, setDomainFilterMode] = useState(true);
   const [ipFilterMode, setIpFilterMode] = useState(true);
   const [domainList, setDomainList] = useState([]);
@@ -129,9 +124,6 @@ const SystemSetting = () => {
         switch (item.key) {
           case 'TopupGroupRatio':
             item.value = JSON.stringify(JSON.parse(item.value), null, 2);
-            break;
-          case 'EmailDomainWhitelist':
-            setEmailDomainWhitelist(item.value ? item.value.split(',') : []);
             break;
           case 'fetch_setting.allow_private_ip':
           case 'fetch_setting.enable_ssrf_protection':
@@ -172,8 +164,6 @@ const SystemSetting = () => {
           case 'TelegramOAuthEnabled':
           case 'RegisterEnabled':
           case 'TurnstileCheckEnabled':
-          case 'EmailDomainRestrictionEnabled':
-          case 'EmailAliasRestrictionEnabled':
           case 'LinuxDOOAuthEnabled':
           case 'discord.enabled':
           case 'oidc.enabled':
@@ -309,19 +299,6 @@ const SystemSetting = () => {
     await updateOptions([{ key: 'ServerAddress', value: ServerAddress }]);
   };
 
-  const submitEmailDomainWhitelist = async () => {
-    if (Array.isArray(emailDomainWhitelist)) {
-      await updateOptions([
-        {
-          key: 'EmailDomainWhitelist',
-          value: emailDomainWhitelist.join(','),
-        },
-      ]);
-    } else {
-      showError(t('邮箱域名白名单格式不正确'));
-    }
-  };
-
   const submitSSRF = async () => {
     const options = [];
 
@@ -359,30 +336,6 @@ const SystemSetting = () => {
 
     if (options.length > 0) {
       await updateOptions(options);
-    }
-  };
-
-  const handleAddEmail = () => {
-    if (emailToAdd && emailToAdd.trim() !== '') {
-      const domain = emailToAdd.trim();
-
-      // 验证域名格式
-      const domainRegex =
-        /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
-      if (!domainRegex.test(domain)) {
-        showError(t('邮箱域名格式不正确，请输入有效的域名，如 gmail.com'));
-        return;
-      }
-
-      // 检查是否已存在
-      if (emailDomainWhitelist.includes(domain)) {
-        showError(t('该域名已存在于白名单中'));
-        return;
-      }
-
-      setEmailDomainWhitelist([...emailDomainWhitelist, domain]);
-      setEmailToAdd('');
-      showSuccess(t('已添加到白名单'));
     }
   };
 
@@ -1175,71 +1128,6 @@ const SystemSetting = () => {
                 </Form.Section>
               </Card>
 
-              <Card>
-                <Form.Section text={t('配置邮箱域名白名单')}>
-                  <Text>{t('用以防止恶意用户利用临时邮箱批量注册')}</Text>
-                  <Row
-                    gutter={{ xs: 8, sm: 16, md: 24, lg: 24, xl: 24, xxl: 24 }}
-                  >
-                    <Col xs={24} sm={24} md={12} lg={12} xl={12}>
-                      <Form.Checkbox
-                        field='EmailDomainRestrictionEnabled'
-                        noLabel
-                        onChange={(e) =>
-                          handleCheckboxChange(
-                            'EmailDomainRestrictionEnabled',
-                            e,
-                          )
-                        }
-                      >
-                        启用邮箱域名白名单
-                      </Form.Checkbox>
-                    </Col>
-                    <Col xs={24} sm={24} md={12} lg={12} xl={12}>
-                      <Form.Checkbox
-                        field='EmailAliasRestrictionEnabled'
-                        noLabel
-                        onChange={(e) =>
-                          handleCheckboxChange(
-                            'EmailAliasRestrictionEnabled',
-                            e,
-                          )
-                        }
-                      >
-                        启用邮箱别名限制
-                      </Form.Checkbox>
-                    </Col>
-                  </Row>
-                  <TagInput
-                    value={emailDomainWhitelist}
-                    onChange={setEmailDomainWhitelist}
-                    placeholder={t('输入域名后回车')}
-                    style={{ width: '100%', marginTop: 16 }}
-                  />
-                  <Form.Input
-                    placeholder={t('输入要添加的邮箱域名')}
-                    value={emailToAdd}
-                    onChange={(value) => setEmailToAdd(value)}
-                    style={{ marginTop: 16 }}
-                    suffix={
-                      <Button
-                        theme='solid'
-                        type='primary'
-                        onClick={handleAddEmail}
-                      >
-                        {t('添加')}
-                      </Button>
-                    }
-                    onEnterPress={handleAddEmail}
-                  />
-                  <Button
-                    onClick={submitEmailDomainWhitelist}
-                    style={{ marginTop: 10 }}
-                  >
-                    {t('保存邮箱域名白名单设置')}
-                  </Button>
-                </Form.Section>
-              </Card>
               <Card>
                 <Form.Section text={t('配置 OIDC')}>
                   <Text>

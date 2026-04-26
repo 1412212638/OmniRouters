@@ -17,21 +17,42 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Banner, Button, Card, Col, Form, Row, Spin, Typography } from '@douyinfe/semi-ui';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Banner,
+  Button,
+  Card,
+  Col,
+  Form,
+  Row,
+  Spin,
+  TagInput,
+  Typography,
+} from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
 
 import { API, showError, showSuccess, toBoolean } from '../../helpers';
 
 const { Text } = Typography;
 
-const TEMPLATE_PRESETS = {
+const TEMPLATE_OPTION_KEYS = [
+  'EmailVerificationSubjectTemplate',
+  'EmailVerificationContentTemplate',
+  'PasswordResetSubjectTemplate',
+  'PasswordResetContentTemplate',
+  'QuotaWarningSubjectTemplate',
+  'QuotaWarningContentTemplate',
+  'SubscriptionQuotaWarningSubjectTemplate',
+  'SubscriptionQuotaWarningContentTemplate',
+];
+
+const TEMPLATE_PRESETS_ZH = {
   EmailVerificationSubjectTemplate: '{{system_name}}邮箱验证邮件',
   EmailVerificationContentTemplate:
     '<p>您好，您正在进行 {{system_name}} 邮箱验证。</p><p>您的验证码为：<strong>{{code}}</strong></p><p>验证码在 {{valid_time}} 内有效，如果不是本人操作，请忽略此邮件。</p>',
   PasswordResetSubjectTemplate: '{{system_name}}密码重置',
   PasswordResetContentTemplate:
-    "<p>您好，您正在进行 {{system_name}} 密码重置。</p><p>点击 <a href='{{link}}'>此处</a> 进行密码重置。</p><p>如果链接无法点击，请复制下面的链接到浏览器打开：<br>{{link}}</p><p>重置链接在 {{valid_time}} 内有效，如果不是本人操作，请忽略此邮件。</p>",
+    "<p>您好，您正在进行 {{system_name}} 密码重置。</p><p>点击 <a href='{{link}}'>此处</a> 进行密码重置。</p><p>如果链接无法点击，请尝试将下面的链接复制到浏览器中打开：<br>{{link}}</p><p>重置链接在 {{valid_time}} 内有效，如果不是本人操作，请忽略此邮件。</p>",
   QuotaWarningSubjectTemplate: '您的额度即将用尽',
   QuotaWarningContentTemplate:
     "<p>您好，</p><p>您的额度即将用尽。</p><p>当前剩余额度为 <strong>{{remaining_quota}}</strong>。</p><p>为了不影响您的使用，请及时充值：</p><p><a href='{{top_up_link}}'>{{top_up_link}}</a></p>",
@@ -39,6 +60,25 @@ const TEMPLATE_PRESETS = {
   SubscriptionQuotaWarningContentTemplate:
     "<p>您好，</p><p>您的订阅额度即将用尽。</p><p>当前剩余额度为 <strong>{{remaining_quota}}</strong>。</p><p>为了不影响您的使用，请及时充值：</p><p><a href='{{top_up_link}}'>{{top_up_link}}</a></p>",
 };
+
+const TEMPLATE_PRESETS_EN = {
+  EmailVerificationSubjectTemplate: '{{system_name}} Email Verification',
+  EmailVerificationContentTemplate:
+    '<p>Hello,</p><p>You are verifying the email address for {{system_name}}.</p><p>Your verification code is: <strong>{{code}}</strong></p><p>This code is valid for {{valid_time}}. If this was not you, please ignore this email.</p>',
+  PasswordResetSubjectTemplate: '{{system_name}} Password Reset',
+  PasswordResetContentTemplate:
+    "<p>Hello,</p><p>You requested a password reset for {{system_name}}.</p><p>Click <a href='{{link}}'>here</a> to reset your password.</p><p>If the link does not open, copy and paste this URL into your browser:<br>{{link}}</p><p>This reset link is valid for {{valid_time}}. If this was not you, please ignore this email.</p>",
+  QuotaWarningSubjectTemplate: 'Your quota is running low',
+  QuotaWarningContentTemplate:
+    "<p>Hello,</p><p>Your quota is running low</p><p>Your remaining quota is <strong>{{remaining_quota}}</strong>.</p><p>To avoid interruption, please top up in time:</p><p><a href='{{top_up_link}}'>{{top_up_link}}</a></p>",
+  SubscriptionQuotaWarningSubjectTemplate:
+    'Your subscription quota is running low',
+  SubscriptionQuotaWarningContentTemplate:
+    "<p>Hello,</p><p>Your subscription quota is running low</p><p>Your remaining quota is <strong>{{remaining_quota}}</strong>.</p><p>To avoid interruption, please top up in time:</p><p><a href='{{top_up_link}}'>{{top_up_link}}</a></p>",
+};
+
+const getTemplatePresets = (language) =>
+  language === 'en' ? TEMPLATE_PRESETS_EN : TEMPLATE_PRESETS_ZH;
 
 const DEFAULT_INPUTS = {
   SMTPServer: '',
@@ -49,37 +89,65 @@ const DEFAULT_INPUTS = {
   SMTPSSLEnabled: false,
   SMTPForceAuthLogin: false,
   EmailLanguage: 'zh',
-  ...Object.fromEntries(Object.keys(TEMPLATE_PRESETS).map((key) => [key, ''])),
+  EmailDomainRestrictionEnabled: false,
+  EmailAliasRestrictionEnabled: false,
+  ...TEMPLATE_PRESETS_ZH,
 };
 
-const booleanKeys = new Set(['SMTPSSLEnabled', 'SMTPForceAuthLogin']);
+const booleanKeys = new Set([
+  'SMTPSSLEnabled',
+  'SMTPForceAuthLogin',
+  'EmailDomainRestrictionEnabled',
+  'EmailAliasRestrictionEnabled',
+]);
 
 const templateGroups = [
   {
-    title: '邮箱验证码模板',
+    title: '注册 / 邮箱绑定验证码',
+    description: '用于注册、绑定邮箱等验证码邮件',
     subjectKey: 'EmailVerificationSubjectTemplate',
     contentKey: 'EmailVerificationContentTemplate',
     variables: '{{system_name}}, {{code}}, {{valid_minutes}}, {{valid_time}}',
   },
   {
-    title: '密码重置模板',
+    title: '找回密码 / 重置密码',
+    description: '用于用户通过邮箱找回密码',
     subjectKey: 'PasswordResetSubjectTemplate',
     contentKey: 'PasswordResetContentTemplate',
     variables: '{{system_name}}, {{link}}, {{valid_minutes}}, {{valid_time}}',
   },
   {
-    title: '额度提醒模板',
+    title: '普通额度提醒',
+    description: '用于用户普通额度低于提醒阈值时发送',
     subjectKey: 'QuotaWarningSubjectTemplate',
     contentKey: 'QuotaWarningContentTemplate',
     variables: '{{system_name}}, {{remaining_quota}}, {{top_up_link}}',
   },
   {
-    title: '订阅额度提醒模板',
+    title: '订阅额度提醒',
+    description: '用于订阅套餐额度低于提醒阈值时发送',
     subjectKey: 'SubscriptionQuotaWarningSubjectTemplate',
     contentKey: 'SubscriptionQuotaWarningContentTemplate',
     variables: '{{system_name}}, {{remaining_quota}}, {{top_up_link}}',
   },
 ];
+
+const getPreviewValues = (language) => ({
+  system_name: 'OmniRouters',
+  code: '123456',
+  valid_minutes: '10',
+  valid_time: language === 'en' ? '10 minutes' : '10 分钟',
+  link: 'https://example.com/user/reset?email=user@example.com&token=sample',
+  remaining_quota: language === 'en' ? '$1.23' : '1.23 美元',
+  top_up_link: 'https://example.com/console/topup',
+});
+
+const renderTemplate = (template, values) =>
+  Object.entries(values).reduce(
+    (result, [key, value]) =>
+      result.replaceAll(`{{${key}}}`, String(value ?? '')),
+    template || '',
+  );
 
 const MailSetting = () => {
   const { t } = useTranslation();
@@ -87,7 +155,20 @@ const MailSetting = () => {
   const [originInputs, setOriginInputs] = useState(DEFAULT_INPUTS);
   const [loading, setLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [emailDomainWhitelist, setEmailDomainWhitelist] = useState([]);
+  const [originEmailDomainWhitelist, setOriginEmailDomainWhitelist] = useState(
+    [],
+  );
+  const [emailToAdd, setEmailToAdd] = useState('');
   const formApiRef = useRef(null);
+
+  const currentTemplatePresets = useMemo(
+    () => getTemplatePresets(inputs.EmailLanguage),
+    [inputs.EmailLanguage],
+  );
+
+  const getEffectiveTemplate = (key) =>
+    inputs[key] || currentTemplatePresets[key] || '';
 
   const getOptions = async () => {
     setLoading(true);
@@ -99,13 +180,35 @@ const MailSetting = () => {
       return;
     }
 
-    const nextInputs = { ...DEFAULT_INPUTS };
+    const rawOptions = {};
     data.forEach((item) => {
-      if (!(item.key in nextInputs)) return;
-      nextInputs[item.key] = booleanKeys.has(item.key)
-        ? toBoolean(item.value)
-        : item.value || '';
+      rawOptions[item.key] = item.value;
     });
+
+    const language = rawOptions.EmailLanguage || DEFAULT_INPUTS.EmailLanguage;
+    const presets = getTemplatePresets(language);
+    const nextInputs = {
+      ...DEFAULT_INPUTS,
+      ...presets,
+      EmailLanguage: language,
+    };
+
+    Object.keys(nextInputs).forEach((key) => {
+      if (!(key in rawOptions)) return;
+      if (TEMPLATE_OPTION_KEYS.includes(key)) {
+        nextInputs[key] = rawOptions[key] || presets[key] || '';
+      } else {
+        nextInputs[key] = booleanKeys.has(key)
+          ? toBoolean(rawOptions[key])
+          : rawOptions[key] || '';
+      }
+    });
+
+    const nextWhitelist = rawOptions.EmailDomainWhitelist
+      ? rawOptions.EmailDomainWhitelist.split(',').filter(Boolean)
+      : [];
+    setEmailDomainWhitelist(nextWhitelist);
+    setOriginEmailDomainWhitelist(nextWhitelist);
     setInputs(nextInputs);
     setOriginInputs(nextInputs);
     formApiRef.current?.setValues(nextInputs);
@@ -118,7 +221,7 @@ const MailSetting = () => {
   }, []);
 
   const updateOptions = async (options) => {
-    if (options.length === 0) return;
+    if (options.length === 0) return true;
 
     setLoading(true);
     try {
@@ -133,19 +236,27 @@ const MailSetting = () => {
       );
       const errorResults = results.filter((res) => !res.data.success);
       errorResults.forEach((res) => showError(res.data.message));
-      if (errorResults.length === 0) {
-        showSuccess(t('更新成功'));
-        const nextInputs = { ...inputs };
-        options.forEach((opt) => {
-          nextInputs[opt.key] = opt.value;
-        });
-        setInputs(nextInputs);
-        setOriginInputs(nextInputs);
+      if (errorResults.length > 0) {
+        setLoading(false);
+        return false;
       }
+
+      showSuccess(t('更新成功'));
+      const nextInputs = { ...inputs };
+      options.forEach((opt) => {
+        if (opt.key in nextInputs) {
+          nextInputs[opt.key] = opt.value;
+        }
+      });
+      setInputs(nextInputs);
+      setOriginInputs(nextInputs);
+      setLoading(false);
+      return true;
     } catch (error) {
       showError(t('更新失败'));
+      setLoading(false);
+      return false;
     }
-    setLoading(false);
   };
 
   const submitSMTP = async () => {
@@ -171,31 +282,63 @@ const MailSetting = () => {
     await updateOptions(options);
   };
 
-  const submitTemplates = async () => {
-    const options = Object.keys(TEMPLATE_PRESETS)
+  const submitEmailDomainSettings = async () => {
+    if (
+      inputs.EmailDomainRestrictionEnabled &&
+      emailDomainWhitelist.length === 0
+    ) {
+      showError(t('无法启用邮箱域名限制，请先填入限制的邮箱域名！'));
+      return;
+    }
+
+    const options = ['EmailDomainRestrictionEnabled', 'EmailAliasRestrictionEnabled']
       .filter((key) => originInputs[key] !== inputs[key])
-      .map((key) => ({ key, value: inputs[key] || '' }));
+      .map((key) => ({ key, value: inputs[key] }));
+
+    const whitelistValue = emailDomainWhitelist.join(',');
+    if (originEmailDomainWhitelist.join(',') !== whitelistValue) {
+      options.push({ key: 'EmailDomainWhitelist', value: whitelistValue });
+    }
+
+    if (await updateOptions(options)) {
+      setOriginEmailDomainWhitelist([...emailDomainWhitelist]);
+    }
+  };
+
+  const submitTemplates = async () => {
+    const options = TEMPLATE_OPTION_KEYS.filter(
+      (key) => originInputs[key] !== inputs[key],
+    ).map((key) => ({ key, value: inputs[key] || '' }));
     await updateOptions(options);
   };
 
-  const fillPreset = (subjectKey, contentKey) => {
+  const restoreDefaultTemplate = (subjectKey, contentKey) => {
+    const presets = getTemplatePresets(inputs.EmailLanguage);
     const nextInputs = {
       ...inputs,
-      [subjectKey]: TEMPLATE_PRESETS[subjectKey],
-      [contentKey]: TEMPLATE_PRESETS[contentKey],
+      [subjectKey]: presets[subjectKey],
+      [contentKey]: presets[contentKey],
     };
     setInputs(nextInputs);
     formApiRef.current?.setValues(nextInputs);
   };
 
-  const clearTemplate = (subjectKey, contentKey) => {
-    const nextInputs = {
-      ...inputs,
-      [subjectKey]: '',
-      [contentKey]: '',
-    };
-    setInputs(nextInputs);
-    formApiRef.current?.setValues(nextInputs);
+  const handleAddEmail = () => {
+    if (!emailToAdd || emailToAdd.trim() === '') return;
+    const domain = emailToAdd.trim().toLowerCase();
+    const domainRegex =
+      /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
+    if (!domainRegex.test(domain)) {
+      showError(t('邮箱域名格式不正确，请输入有效的域名，如 gmail.com'));
+      return;
+    }
+    if (emailDomainWhitelist.includes(domain)) {
+      showError(t('该域名已存在于白名单中'));
+      return;
+    }
+    setEmailDomainWhitelist([...emailDomainWhitelist, domain]);
+    setEmailToAdd('');
+    showSuccess(t('已添加到白名单'));
   };
 
   const handleFormChange = (values) => {
@@ -218,9 +361,14 @@ const MailSetting = () => {
             <Card>
               <Form.Section text={t('配置 SMTP')}>
                 <Text>{t('用以支持系统的邮件发送')}</Text>
-                <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 24, xl: 24, xxl: 24 }}>
+                <Row
+                  gutter={{ xs: 8, sm: 16, md: 24, lg: 24, xl: 24, xxl: 24 }}
+                >
                   <Col xs={24} sm={24} md={8} lg={8} xl={8}>
-                    <Form.Input field='SMTPServer' label={t('SMTP 服务器地址')} />
+                    <Form.Input
+                      field='SMTPServer'
+                      label={t('SMTP 服务器地址')}
+                    />
                   </Col>
                   <Col xs={24} sm={24} md={8} lg={8} xl={8}>
                     <Form.Input field='SMTPPort' label={t('SMTP 端口')} />
@@ -234,7 +382,10 @@ const MailSetting = () => {
                   style={{ marginTop: 16 }}
                 >
                   <Col xs={24} sm={24} md={8} lg={8} xl={8}>
-                    <Form.Input field='SMTPFrom' label={t('SMTP 发送者邮箱')} />
+                    <Form.Input
+                      field='SMTPFrom'
+                      label={t('SMTP 发送者邮箱')}
+                    />
                   </Col>
                   <Col xs={24} sm={24} md={8} lg={8} xl={8}>
                     <Form.Input
@@ -285,73 +436,171 @@ const MailSetting = () => {
             </Card>
 
             <Card>
+              <Form.Section text={t('邮箱域名限制')}>
+                <Text>{t('用以防止恶意用户利用临时邮箱批量注册')}</Text>
+                <Row
+                  gutter={{ xs: 8, sm: 16, md: 24, lg: 24, xl: 24, xxl: 24 }}
+                  style={{ marginTop: 12 }}
+                >
+                  <Col xs={24} sm={24} md={12} lg={12} xl={12}>
+                    <Form.Checkbox
+                      field='EmailDomainRestrictionEnabled'
+                      noLabel
+                      onChange={(event) =>
+                        handleCheckboxChange(
+                          'EmailDomainRestrictionEnabled',
+                          event,
+                        )
+                      }
+                    >
+                      {t('启用邮箱域名白名单')}
+                    </Form.Checkbox>
+                  </Col>
+                  <Col xs={24} sm={24} md={12} lg={12} xl={12}>
+                    <Form.Checkbox
+                      field='EmailAliasRestrictionEnabled'
+                      noLabel
+                      onChange={(event) =>
+                        handleCheckboxChange(
+                          'EmailAliasRestrictionEnabled',
+                          event,
+                        )
+                      }
+                    >
+                      {t('启用邮箱别名限制')}
+                    </Form.Checkbox>
+                  </Col>
+                </Row>
+                <TagInput
+                  value={emailDomainWhitelist}
+                  onChange={setEmailDomainWhitelist}
+                  placeholder={t('输入域名后回车')}
+                  style={{ width: '100%', marginTop: 16 }}
+                />
+                <Form.Input
+                  placeholder={t('输入要添加的邮箱域名')}
+                  value={emailToAdd}
+                  onChange={(value) => setEmailToAdd(value)}
+                  style={{ marginTop: 16 }}
+                  suffix={
+                    <Button
+                      theme='solid'
+                      type='primary'
+                      onClick={handleAddEmail}
+                    >
+                      {t('添加')}
+                    </Button>
+                  }
+                  onEnterPress={handleAddEmail}
+                />
+                <Button
+                  onClick={submitEmailDomainSettings}
+                  style={{ marginTop: 10 }}
+                >
+                  {t('保存邮箱域名限制')}
+                </Button>
+              </Form.Section>
+            </Card>
+
+            <Card>
               <Form.Section text={t('发件模板')}>
                 <Banner
                   type='info'
                   description={t(
-                    '模板为空时使用系统默认文案。内容支持 HTML，并可使用下方列出的变量。',
+                    '这里展示的是当前生效模板；后台没有自定义模板时，会自动显示当前语言的内置默认模板。内容支持 HTML。',
                   )}
                   style={{ marginBottom: 16 }}
                 />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  {templateGroups.map((group) => (
-                    <div
-                      key={group.subjectKey}
-                      style={{
-                        border: '1px solid var(--semi-color-border)',
-                        borderRadius: 8,
-                        padding: 16,
-                      }}
-                    >
+                  {templateGroups.map((group) => {
+                    const previewValues = getPreviewValues(inputs.EmailLanguage);
+                    const previewSubject = renderTemplate(
+                      getEffectiveTemplate(group.subjectKey),
+                      previewValues,
+                    );
+                    const previewContent = renderTemplate(
+                      getEffectiveTemplate(group.contentKey),
+                      previewValues,
+                    );
+
+                    return (
                       <div
+                        key={group.subjectKey}
                         style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          gap: 12,
-                          alignItems: 'center',
-                          marginBottom: 12,
+                          border: '1px solid var(--semi-color-border)',
+                          borderRadius: 8,
+                          padding: 16,
                         }}
                       >
-                        <div>
-                          <Text strong>{t(group.title)}</Text>
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            gap: 12,
+                            alignItems: 'center',
+                            marginBottom: 12,
+                          }}
+                        >
                           <div>
-                            <Text type='tertiary'>
-                              {t('可用变量')}：{group.variables}
-                            </Text>
+                            <Text strong>{t(group.title)}</Text>
+                            <div>
+                              <Text type='tertiary'>{t(group.description)}</Text>
+                            </div>
+                            <div>
+                              <Text type='tertiary'>
+                                {t('可用变量')}：{group.variables}
+                              </Text>
+                            </div>
                           </div>
+                          <Button
+                            size='small'
+                            type='tertiary'
+                            onClick={() =>
+                              restoreDefaultTemplate(
+                                group.subjectKey,
+                                group.contentKey,
+                              )
+                            }
+                          >
+                            {t('恢复默认模板')}
+                          </Button>
                         </div>
-                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                          <Button
-                            size='small'
-                            type='tertiary'
-                            onClick={() =>
-                              fillPreset(group.subjectKey, group.contentKey)
-                            }
-                          >
-                            {t('填入默认模板')}
-                          </Button>
-                          <Button
-                            size='small'
-                            type='tertiary'
-                            onClick={() =>
-                              clearTemplate(group.subjectKey, group.contentKey)
-                            }
-                          >
-                            {t('清空')}
-                          </Button>
+                        <Form.Input
+                          field={group.subjectKey}
+                          label={t('邮件标题')}
+                        />
+                        <Form.TextArea
+                          field={group.contentKey}
+                          label={t('邮件内容')}
+                          autosize
+                        />
+                        <div
+                          style={{
+                            marginTop: 12,
+                            padding: 12,
+                            border: '1px dashed var(--semi-color-border)',
+                            borderRadius: 8,
+                            background: 'var(--semi-color-fill-0)',
+                          }}
+                        >
+                          <Text strong>{t('预览')}</Text>
+                          <div style={{ marginTop: 8 }}>
+                            <Text type='tertiary'>{t('标题')}：</Text>
+                            <Text>{previewSubject}</Text>
+                          </div>
+                          <div
+                            style={{
+                              marginTop: 8,
+                              padding: 12,
+                              borderRadius: 8,
+                              background: 'var(--semi-color-bg-0)',
+                            }}
+                            dangerouslySetInnerHTML={{ __html: previewContent }}
+                          />
                         </div>
                       </div>
-                      <Form.Input
-                        field={group.subjectKey}
-                        label={t('邮件标题')}
-                      />
-                      <Form.TextArea
-                        field={group.contentKey}
-                        label={t('邮件内容')}
-                        autosize
-                      />
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <Button onClick={submitTemplates} style={{ marginTop: 16 }}>
                   {t('保存发件模板')}
