@@ -426,6 +426,18 @@ const MailSetting = () => {
             {t('恢复默认模板')}
           </Button>
         </div>
+        {group.subjectKey === 'TopUpSuccessSubjectTemplate' && (
+          <Form.Checkbox
+            field='TopUpSuccessEmailEnabled'
+            noLabel
+            style={{ marginBottom: 12 }}
+            onChange={(event) =>
+              handleCheckboxChange('TopUpSuccessEmailEnabled', event)
+            }
+          >
+            {t('启用充值成功邮件通知（仅易支付和 Stripe 普通充值）')}
+          </Form.Checkbox>
+        )}
         <Form.Input field={group.subjectKey} label={t('邮件标题')} />
         <Form.TextArea
           field={group.contentKey}
@@ -619,16 +631,6 @@ const MailSetting = () => {
                   )}
                   style={{ marginBottom: 16 }}
                 />
-                <Form.Checkbox
-                  field='TopUpSuccessEmailEnabled'
-                  noLabel
-                  style={{ marginBottom: 12 }}
-                  onChange={(event) =>
-                    handleCheckboxChange('TopUpSuccessEmailEnabled', event)
-                  }
-                >
-                  {t('启用充值成功邮件通知（仅易支付和 Stripe 普通充值）')}
-                </Form.Checkbox>
                 <Tabs type='line' collapsible>
                   {templateGroups.map((group) => (
                     <TabPane
