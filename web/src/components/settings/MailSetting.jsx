@@ -27,6 +27,8 @@ import {
   Row,
   Spin,
   TagInput,
+  TabPane,
+  Tabs,
   Typography,
 } from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
@@ -349,6 +351,76 @@ const MailSetting = () => {
     setInputs((prev) => ({ ...prev, [key]: event.target.checked }));
   };
 
+  const renderTemplatePane = (group) => {
+    const previewValues = getPreviewValues(inputs.EmailLanguage);
+    const previewSubject = renderTemplate(
+      getEffectiveTemplate(group.subjectKey),
+      previewValues,
+    );
+    const previewContent = renderTemplate(
+      getEffectiveTemplate(group.contentKey),
+      previewValues,
+    );
+
+    return (
+      <div style={{ paddingTop: 12 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: 12,
+            alignItems: 'flex-start',
+            marginBottom: 12,
+          }}
+        >
+          <div>
+            <Text type='tertiary'>{t(group.description)}</Text>
+            <div>
+              <Text type='tertiary'>
+                {t('可用变量')}：{group.variables}
+              </Text>
+            </div>
+          </div>
+          <Button
+            size='small'
+            type='tertiary'
+            onClick={() =>
+              restoreDefaultTemplate(group.subjectKey, group.contentKey)
+            }
+          >
+            {t('恢复默认模板')}
+          </Button>
+        </div>
+        <Form.Input field={group.subjectKey} label={t('邮件标题')} />
+        <Form.TextArea field={group.contentKey} label={t('邮件内容')} autosize />
+        <div
+          style={{
+            marginTop: 12,
+            padding: 12,
+            border: '1px dashed var(--semi-color-border)',
+            borderRadius: 8,
+            background: 'var(--semi-color-fill-0)',
+          }}
+        >
+          <Text strong>{t('预览')}</Text>
+          <div style={{ marginTop: 8 }}>
+            <Text type='tertiary'>{t('标题')}：</Text>
+            <Text>{previewSubject}</Text>
+          </div>
+          <div
+            style={{
+              marginTop: 8,
+              padding: 12,
+              borderRadius: 8,
+              background: 'var(--semi-color-bg-0)',
+            }}
+            dangerouslySetInnerHTML={{ __html: previewContent }}
+          />
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className='mail-setting'>
       {isLoaded ? (
@@ -511,97 +583,17 @@ const MailSetting = () => {
                   )}
                   style={{ marginBottom: 16 }}
                 />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  {templateGroups.map((group) => {
-                    const previewValues = getPreviewValues(inputs.EmailLanguage);
-                    const previewSubject = renderTemplate(
-                      getEffectiveTemplate(group.subjectKey),
-                      previewValues,
-                    );
-                    const previewContent = renderTemplate(
-                      getEffectiveTemplate(group.contentKey),
-                      previewValues,
-                    );
-
-                    return (
-                      <div
-                        key={group.subjectKey}
-                        style={{
-                          border: '1px solid var(--semi-color-border)',
-                          borderRadius: 8,
-                          padding: 16,
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            gap: 12,
-                            alignItems: 'center',
-                            marginBottom: 12,
-                          }}
-                        >
-                          <div>
-                            <Text strong>{t(group.title)}</Text>
-                            <div>
-                              <Text type='tertiary'>{t(group.description)}</Text>
-                            </div>
-                            <div>
-                              <Text type='tertiary'>
-                                {t('可用变量')}：{group.variables}
-                              </Text>
-                            </div>
-                          </div>
-                          <Button
-                            size='small'
-                            type='tertiary'
-                            onClick={() =>
-                              restoreDefaultTemplate(
-                                group.subjectKey,
-                                group.contentKey,
-                              )
-                            }
-                          >
-                            {t('恢复默认模板')}
-                          </Button>
-                        </div>
-                        <Form.Input
-                          field={group.subjectKey}
-                          label={t('邮件标题')}
-                        />
-                        <Form.TextArea
-                          field={group.contentKey}
-                          label={t('邮件内容')}
-                          autosize
-                        />
-                        <div
-                          style={{
-                            marginTop: 12,
-                            padding: 12,
-                            border: '1px dashed var(--semi-color-border)',
-                            borderRadius: 8,
-                            background: 'var(--semi-color-fill-0)',
-                          }}
-                        >
-                          <Text strong>{t('预览')}</Text>
-                          <div style={{ marginTop: 8 }}>
-                            <Text type='tertiary'>{t('标题')}：</Text>
-                            <Text>{previewSubject}</Text>
-                          </div>
-                          <div
-                            style={{
-                              marginTop: 8,
-                              padding: 12,
-                              borderRadius: 8,
-                              background: 'var(--semi-color-bg-0)',
-                            }}
-                            dangerouslySetInnerHTML={{ __html: previewContent }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <Tabs type='line' collapsible>
+                  {templateGroups.map((group) => (
+                    <TabPane
+                      itemKey={group.subjectKey}
+                      key={group.subjectKey}
+                      tab={t(group.title)}
+                    >
+                      {renderTemplatePane(group)}
+                    </TabPane>
+                  ))}
+                </Tabs>
                 <Button onClick={submitTemplates} style={{ marginTop: 16 }}>
                   {t('保存发件模板')}
                 </Button>
