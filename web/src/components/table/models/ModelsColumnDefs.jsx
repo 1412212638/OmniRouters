@@ -96,6 +96,50 @@ const renderTags = (text) => {
   });
 };
 
+const isDisplayEnabled = (value) =>
+  value === 1 || value === true || value === '1';
+
+const getDiscountLabel = (record, t) => {
+  if (!isDisplayEnabled(record?.discount_enabled)) return '';
+  const customLabel = String(record?.discount_label || '').trim();
+  if (customLabel) return customLabel;
+
+  const percent = Number(record?.discount_percent);
+  if (Number.isFinite(percent) && percent > 0) {
+    return `${Number.isInteger(percent) ? percent : percent.toFixed(2)}% OFF`;
+  }
+
+  return t('折扣');
+};
+
+const renderMarketplaceDisplay = (record, t) => {
+  const tags = [];
+  if (isDisplayEnabled(record?.is_new)) {
+    tags.push(
+      <Tag key='new' size='small' shape='circle' color='red'>
+        NEW
+      </Tag>,
+    );
+  }
+
+  const discountLabel = getDiscountLabel(record, t);
+  if (discountLabel) {
+    tags.push(
+      <Tag key='discount' size='small' shape='circle' color='orange'>
+        {discountLabel}
+      </Tag>,
+    );
+  }
+
+  if (tags.length === 0) return '-';
+
+  return (
+    <Space wrap spacing={4}>
+      {tags}
+    </Space>
+  );
+};
+
 // Render endpoints (supports object map or legacy array)
 const renderEndpoints = (value) => {
   try {
@@ -326,6 +370,11 @@ export const getModelsColumns = ({
       title: t('标签'),
       dataIndex: 'tags',
       render: renderTags,
+    },
+    {
+      title: t('广场展示'),
+      dataIndex: 'marketplace_display',
+      render: (text, record) => renderMarketplaceDisplay(record, t),
     },
     {
       title: t('端点'),

@@ -608,7 +608,7 @@ const EditModelModal = (props) => {
                   <Col span={12}>
                     <Form.Switch
                       field='discount_enabled'
-                      label={t('显示折扣角标')}
+                      label={t('显示折扣标签')}
                       size='large'
                     />
                   </Col>
@@ -628,7 +628,7 @@ const EditModelModal = (props) => {
                   <Col span={12}>
                     <Form.Input
                       field='discount_label'
-                      label={t('折扣角标文案')}
+                      label={t('折扣标签文案')}
                       placeholder='30% OFF'
                       disabled={!values.discount_enabled}
                       showClear

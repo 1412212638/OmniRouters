@@ -231,6 +231,26 @@ const PricingCardView = ({
     return t('折扣');
   };
 
+  const renderDiscountBadge = (label) => (
+    <span
+      className='inline-flex items-center shrink-0'
+      style={{
+        height: 22,
+        padding: '0 8px',
+        borderRadius: 999,
+        background: 'rgba(249, 115, 22, 0.10)',
+        border: '1px solid rgba(249, 115, 22, 0.24)',
+        color: '#c2410c',
+        fontSize: 12,
+        fontWeight: 700,
+        lineHeight: '22px',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {label}
+    </span>
+  );
+
   const getOriginalPriceData = (record, currentPriceData) => {
     if (!isDisplayEnabled(record?.discount_enabled)) return null;
 
@@ -390,48 +410,6 @@ const PricingCardView = ({
               bodyStyle={{ height: '100%' }}
               onClick={() => openModelDetail && openModelDetail(model)}
             >
-              {discountLabel && (
-                <div
-                  className='pointer-events-none select-none'
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    width: 118,
-                    height: 118,
-                    overflow: 'hidden',
-                    zIndex: 1,
-                  }}
-                >
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 22,
-                      right: -34,
-                      width: 148,
-                      height: 30,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transform: 'rotate(45deg)',
-                      transformOrigin: 'center',
-                      background:
-                        'linear-gradient(90deg, #ff5b4e 0%, #ff8450 100%)',
-                      color: '#fff',
-                      fontSize: 12,
-                      fontWeight: 800,
-                      letterSpacing: 0.4,
-                      lineHeight: '12px',
-                      textAlign: 'center',
-                      whiteSpace: 'nowrap',
-                      borderTop: '1px solid rgba(255, 255, 255, 0.4)',
-                      borderBottom: '1px solid rgba(122, 36, 25, 0.12)',
-                    }}
-                  >
-                    {discountLabel}
-                  </div>
-                </div>
-              )}
               <div className='flex flex-col h-full'>
                 <div className='flex items-start justify-between mb-3'>
                   <div className='flex items-start space-x-3 flex-1 min-w-0'>
@@ -446,6 +424,7 @@ const PricingCardView = ({
                             NEW
                           </Tag>
                         )}
+                        {discountLabel && renderDiscountBadge(discountLabel)}
                         {promotionNote && discountLabel && (
                           <Tag color='red' shape='circle' size='small'>
                             {promotionNote}
@@ -458,7 +437,6 @@ const PricingCardView = ({
                   <div
                     className='flex items-center space-x-2 ml-3'
                     style={{
-                      marginRight: discountLabel ? 96 : 0,
                       position: 'relative',
                       zIndex: 2,
                     }}
