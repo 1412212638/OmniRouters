@@ -186,6 +186,91 @@ func BuildQuotaWarningMail(remainingQuota string, topUpLink string, subscription
 	return
 }
 
+type TopUpSuccessMailParams struct {
+	SystemName      string
+	Username        string
+	TradeNo         string
+	PaymentMethod   string
+	PaymentProvider string
+	Amount          string
+	Quota           string
+	Balance         string
+	PaidAt          string
+}
+
+func BuildTopUpSuccessMail(params TopUpSuccessMailParams) (subject string, content string) {
+	systemName := params.SystemName
+	if systemName == "" {
+		systemName = SystemName
+	}
+	values := map[string]string{
+		"system_name":      systemName,
+		"username":         params.Username,
+		"trade_no":         params.TradeNo,
+		"payment_method":   params.PaymentMethod,
+		"payment_provider": params.PaymentProvider,
+		"amount":           params.Amount,
+		"quota":            params.Quota,
+		"balance":          params.Balance,
+		"paid_at":          params.PaidAt,
+	}
+	if strings.TrimSpace(TopUpSuccessSubjectTemplate) != "" {
+		subject = renderEmailTemplate(TopUpSuccessSubjectTemplate, values)
+	}
+	if strings.TrimSpace(TopUpSuccessContentTemplate) != "" {
+		content = renderEmailTemplate(TopUpSuccessContentTemplate, values)
+	}
+	if subject != "" && content != "" {
+		return
+	}
+
+	if IsEmailLanguageEnglish() {
+		if subject == "" {
+			subject = fmt.Sprintf("%s Top-up Successful", systemName)
+		}
+		if content == "" {
+			content = fmt.Sprintf(
+				"<p>Hello%s,</p><p>Your top-up has been completed.</p><p>Amount: <strong>%s</strong></p><p>Quota added: <strong>%s</strong></p><p>Current balance: <strong>%s</strong></p><p>Payment method: %s</p><p>Trade no: %s</p><p>Paid at: %s</p>",
+				formatEmailUsername(params.Username),
+				params.Amount,
+				params.Quota,
+				params.Balance,
+				params.PaymentMethod,
+				params.TradeNo,
+				params.PaidAt,
+			)
+		}
+		return
+	}
+
+	if subject == "" {
+		subject = fmt.Sprintf("%s充值成功通知", systemName)
+	}
+	if content == "" {
+		content = fmt.Sprintf(
+			"<p>您好%s，</p><p>您的充值已经到账。</p><p>支付金额：<strong>%s</strong></p><p>到账额度：<strong>%s</strong></p><p>当前余额：<strong>%s</strong></p><p>支付方式：%s</p><p>订单号：%s</p><p>到账时间：%s</p>",
+			formatEmailUsername(params.Username),
+			params.Amount,
+			params.Quota,
+			params.Balance,
+			params.PaymentMethod,
+			params.TradeNo,
+			params.PaidAt,
+		)
+	}
+	return
+}
+
+func formatEmailUsername(username string) string {
+	if strings.TrimSpace(username) == "" {
+		return ""
+	}
+	if IsEmailLanguageEnglish() {
+		return " " + username
+	}
+	return username
+}
+
 func formatEmailMinutes(validMinutes int) string {
 	if IsEmailLanguageEnglish() {
 		if validMinutes == 1 {

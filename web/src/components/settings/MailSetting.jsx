@@ -46,6 +46,8 @@ const TEMPLATE_OPTION_KEYS = [
   'QuotaWarningContentTemplate',
   'SubscriptionQuotaWarningSubjectTemplate',
   'SubscriptionQuotaWarningContentTemplate',
+  'TopUpSuccessSubjectTemplate',
+  'TopUpSuccessContentTemplate',
 ];
 
 const TEMPLATE_PRESETS_ZH = {
@@ -61,6 +63,9 @@ const TEMPLATE_PRESETS_ZH = {
   SubscriptionQuotaWarningSubjectTemplate: '您的订阅额度即将用尽',
   SubscriptionQuotaWarningContentTemplate:
     "<p>您好，</p><p>您的订阅额度即将用尽。</p><p>当前剩余额度为 <strong>{{remaining_quota}}</strong>。</p><p>为了不影响您的使用，请及时充值：</p><p><a href='{{top_up_link}}'>{{top_up_link}}</a></p>",
+  TopUpSuccessSubjectTemplate: '{{system_name}}充值成功通知',
+  TopUpSuccessContentTemplate:
+    '<p>您好{{username}}，</p><p>您的充值已经到账。</p><p>支付金额：<strong>{{amount}}</strong></p><p>到账额度：<strong>{{quota}}</strong></p><p>当前余额：<strong>{{balance}}</strong></p><p>支付方式：{{payment_method}}</p><p>订单号：{{trade_no}}</p><p>到账时间：{{paid_at}}</p>',
 };
 
 const TEMPLATE_PRESETS_EN = {
@@ -77,6 +82,9 @@ const TEMPLATE_PRESETS_EN = {
     'Your subscription quota is running low',
   SubscriptionQuotaWarningContentTemplate:
     "<p>Hello,</p><p>Your subscription quota is running low</p><p>Your remaining quota is <strong>{{remaining_quota}}</strong>.</p><p>To avoid interruption, please top up in time:</p><p><a href='{{top_up_link}}'>{{top_up_link}}</a></p>",
+  TopUpSuccessSubjectTemplate: '{{system_name}} Top-up Successful',
+  TopUpSuccessContentTemplate:
+    '<p>Hello {{username}},</p><p>Your top-up has been completed.</p><p>Amount: <strong>{{amount}}</strong></p><p>Quota added: <strong>{{quota}}</strong></p><p>Current balance: <strong>{{balance}}</strong></p><p>Payment method: {{payment_method}}</p><p>Trade no: {{trade_no}}</p><p>Paid at: {{paid_at}}</p>',
 };
 
 const getTemplatePresets = (language) =>
@@ -93,6 +101,7 @@ const DEFAULT_INPUTS = {
   EmailLanguage: 'zh',
   EmailDomainRestrictionEnabled: false,
   EmailAliasRestrictionEnabled: false,
+  TopUpSuccessEmailEnabled: false,
   ...TEMPLATE_PRESETS_ZH,
 };
 
@@ -101,6 +110,7 @@ const booleanKeys = new Set([
   'SMTPForceAuthLogin',
   'EmailDomainRestrictionEnabled',
   'EmailAliasRestrictionEnabled',
+  'TopUpSuccessEmailEnabled',
 ]);
 
 const templateGroups = [
@@ -132,6 +142,14 @@ const templateGroups = [
     contentKey: 'SubscriptionQuotaWarningContentTemplate',
     variables: '{{system_name}}, {{remaining_quota}}, {{top_up_link}}',
   },
+  {
+    title: '充值成功通知',
+    description: '用于易支付和 Stripe 普通充值成功到账后发送',
+    subjectKey: 'TopUpSuccessSubjectTemplate',
+    contentKey: 'TopUpSuccessContentTemplate',
+    variables:
+      '{{system_name}}, {{username}}, {{amount}}, {{quota}}, {{balance}}, {{trade_no}}, {{payment_method}}, {{payment_provider}}, {{paid_at}}',
+  },
 ];
 
 const getPreviewValues = (language) => ({
@@ -142,6 +160,14 @@ const getPreviewValues = (language) => ({
   link: 'https://example.com/user/reset?email=user@example.com&token=sample',
   remaining_quota: language === 'en' ? '$1.23' : '1.23 美元',
   top_up_link: 'https://example.com/console/topup',
+  username: language === 'en' ? 'Alex' : '张三',
+  amount: language === 'en' ? '10.00' : '10.00',
+  quota: language === 'en' ? '$10.00' : '10.00 美元',
+  balance: language === 'en' ? '$18.88' : '18.88 美元',
+  trade_no: 'topup_202604270001',
+  payment_method: language === 'en' ? 'Stripe' : 'Stripe',
+  payment_provider: language === 'en' ? 'stripe' : 'stripe',
+  paid_at: language === 'en' ? '2026-04-27 20:30:00' : '2026-04-27 20:30:00',
 });
 
 const renderTemplate = (template, values) =>
@@ -277,7 +303,10 @@ const MailSetting = () => {
     if (originInputs.SMTPPort !== inputs.SMTPPort && inputs.SMTPPort !== '') {
       options.push({ key: 'SMTPPort', value: inputs.SMTPPort });
     }
-    if (originInputs.SMTPToken !== inputs.SMTPToken && inputs.SMTPToken !== '') {
+    if (
+      originInputs.SMTPToken !== inputs.SMTPToken &&
+      inputs.SMTPToken !== ''
+    ) {
       options.push({ key: 'SMTPToken', value: inputs.SMTPToken });
     }
 
@@ -293,7 +322,10 @@ const MailSetting = () => {
       return;
     }
 
-    const options = ['EmailDomainRestrictionEnabled', 'EmailAliasRestrictionEnabled']
+    const options = [
+      'EmailDomainRestrictionEnabled',
+      'EmailAliasRestrictionEnabled',
+    ]
       .filter((key) => originInputs[key] !== inputs[key])
       .map((key) => ({ key, value: inputs[key] }));
 
@@ -308,9 +340,12 @@ const MailSetting = () => {
   };
 
   const submitTemplates = async () => {
-    const options = TEMPLATE_OPTION_KEYS.filter(
-      (key) => originInputs[key] !== inputs[key],
-    ).map((key) => ({ key, value: inputs[key] || '' }));
+    const options = ['TopUpSuccessEmailEnabled', ...TEMPLATE_OPTION_KEYS]
+      .filter((key) => originInputs[key] !== inputs[key])
+      .map((key) => ({
+        key,
+        value: booleanKeys.has(key) ? inputs[key] : inputs[key] || '',
+      }));
     await updateOptions(options);
   };
 
@@ -392,7 +427,11 @@ const MailSetting = () => {
           </Button>
         </div>
         <Form.Input field={group.subjectKey} label={t('邮件标题')} />
-        <Form.TextArea field={group.contentKey} label={t('邮件内容')} autosize />
+        <Form.TextArea
+          field={group.contentKey}
+          label={t('邮件内容')}
+          autosize
+        />
         <div
           style={{
             marginTop: 12,
@@ -454,10 +493,7 @@ const MailSetting = () => {
                   style={{ marginTop: 16 }}
                 >
                   <Col xs={24} sm={24} md={8} lg={8} xl={8}>
-                    <Form.Input
-                      field='SMTPFrom'
-                      label={t('SMTP 发送者邮箱')}
-                    />
+                    <Form.Input field='SMTPFrom' label={t('SMTP 发送者邮箱')} />
                   </Col>
                   <Col xs={24} sm={24} md={8} lg={8} xl={8}>
                     <Form.Input
@@ -583,6 +619,16 @@ const MailSetting = () => {
                   )}
                   style={{ marginBottom: 16 }}
                 />
+                <Form.Checkbox
+                  field='TopUpSuccessEmailEnabled'
+                  noLabel
+                  style={{ marginBottom: 12 }}
+                  onChange={(event) =>
+                    handleCheckboxChange('TopUpSuccessEmailEnabled', event)
+                  }
+                >
+                  {t('启用充值成功邮件通知（仅易支付和 Stripe 普通充值）')}
+                </Form.Checkbox>
                 <Tabs type='line' collapsible>
                   {templateGroups.map((group) => (
                     <TabPane

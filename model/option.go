@@ -64,6 +64,7 @@ func InitOptionMap() {
 	common.OptionMap["SMTPSSLEnabled"] = strconv.FormatBool(common.SMTPSSLEnabled)
 	common.OptionMap["SMTPForceAuthLogin"] = strconv.FormatBool(common.SMTPForceAuthLogin)
 	common.OptionMap["EmailLanguage"] = common.EmailLanguage
+	common.OptionMap["TopUpSuccessEmailEnabled"] = strconv.FormatBool(common.TopUpSuccessEmailEnabled)
 	common.OptionMap["EmailVerificationSubjectTemplate"] = common.EmailVerificationSubjectTemplate
 	common.OptionMap["EmailVerificationContentTemplate"] = common.EmailVerificationContentTemplate
 	common.OptionMap["PasswordResetSubjectTemplate"] = common.PasswordResetSubjectTemplate
@@ -72,6 +73,8 @@ func InitOptionMap() {
 	common.OptionMap["QuotaWarningContentTemplate"] = common.QuotaWarningContentTemplate
 	common.OptionMap["SubscriptionQuotaWarningSubjectTemplate"] = common.SubscriptionQuotaWarningSubjectTemplate
 	common.OptionMap["SubscriptionQuotaWarningContentTemplate"] = common.SubscriptionQuotaWarningContentTemplate
+	common.OptionMap["TopUpSuccessSubjectTemplate"] = common.TopUpSuccessSubjectTemplate
+	common.OptionMap["TopUpSuccessContentTemplate"] = common.TopUpSuccessContentTemplate
 	common.OptionMap["Notice"] = ""
 	common.OptionMap["About"] = ""
 	common.OptionMap["HomePageContent"] = ""
@@ -332,6 +335,8 @@ func updateOptionMap(key string, value string) (err error) {
 			common.SMTPSSLEnabled = boolValue
 		case "SMTPForceAuthLogin":
 			common.SMTPForceAuthLogin = boolValue
+		case "TopUpSuccessEmailEnabled":
+			common.TopUpSuccessEmailEnabled = boolValue
 		case "WorkerAllowHttpImageRequestEnabled":
 			system_setting.WorkerAllowHttpImageRequestEnabled = boolValue
 		case "DefaultUseAutoGroup":
@@ -372,6 +377,10 @@ func updateOptionMap(key string, value string) (err error) {
 		common.SubscriptionQuotaWarningSubjectTemplate = value
 	case "SubscriptionQuotaWarningContentTemplate":
 		common.SubscriptionQuotaWarningContentTemplate = value
+	case "TopUpSuccessSubjectTemplate":
+		common.TopUpSuccessSubjectTemplate = value
+	case "TopUpSuccessContentTemplate":
+		common.TopUpSuccessContentTemplate = value
 	case "ServerAddress":
 		system_setting.ServerAddress = value
 	case "WorkerUrl":
