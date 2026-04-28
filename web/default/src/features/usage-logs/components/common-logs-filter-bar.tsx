@@ -1,6 +1,14 @@
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { useNavigate, getRouteApi } from "@tanstack/react-router";
-import { ChevronDown, Eye, EyeOff, RotateCcw, Search } from "lucide-react";
+import { useQueryClient, useIsFetching } from "@tanstack/react-query";
+import {
+  ChevronDown,
+  Eye,
+  EyeOff,
+  Loader2,
+  RotateCcw,
+  Search,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { useIsAdmin } from "@/hooks/use-admin";
@@ -34,9 +42,11 @@ export function CommonLogsFilterBar({
 }: CommonLogsFilterBarProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const searchParams = route.useSearch();
   const isAdmin = useIsAdmin();
   const { sensitiveVisible, setSensitiveVisible } = useUsageLogsContext();
+  const fetchingLogs = useIsFetching({ queryKey: ["logs"] });
 
   const [expanded, setExpanded] = useState(false);
   const [filters, setFilters] = useState<CommonLogFilters>(() => {
@@ -89,14 +99,15 @@ export function CommonLogsFilterBar({
     navigate({
       to: "/usage-logs/$section",
       params: { section: "common" },
-      search: (prev: Record<string, unknown>) => ({
-        ...prev,
+      search: {
         ...filterParams,
-        ...(logType ? { type: [logType] } : { type: undefined }),
+        ...(logType ? { type: [logType] } : {}),
         page: 1,
-      }),
+      },
     });
-  }, [filters, logType, navigate]);
+    queryClient.invalidateQueries({ queryKey: ["logs"] });
+    queryClient.invalidateQueries({ queryKey: ["usage-logs-stats"] });
+  }, [filters, logType, navigate, queryClient]);
 
   const handleReset = useCallback(() => {
     const { start, end } = getDefaultTimeRange();
@@ -113,7 +124,9 @@ export function CommonLogsFilterBar({
         endTime: end.getTime(),
       },
     });
-  }, [navigate]);
+    queryClient.invalidateQueries({ queryKey: ["logs"] });
+    queryClient.invalidateQueries({ queryKey: ["usage-logs-stats"] });
+  }, [navigate, queryClient]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -270,8 +283,17 @@ export function CommonLogsFilterBar({
             <RotateCcw className="size-3.5" />
             {t("Reset")}
           </Button>
-          <Button size="sm" className="h-8" onClick={handleApply}>
-            <Search className="size-3.5" />
+          <Button
+            size="sm"
+            className="h-8"
+            onClick={handleApply}
+            disabled={fetchingLogs > 0}
+          >
+            {fetchingLogs > 0 ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Search className="size-3.5" />
+            )}
             {t("Search")}
           </Button>
           {viewOptions}
