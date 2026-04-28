@@ -263,7 +263,8 @@ const buildModelState = (name, sourceMaps) => {
 
 export const isBasePricingUnset = (model) =>
   model.billingMode !== 'tiered_expr' &&
-  !hasValue(model.fixedPrice) && !hasValue(model.inputPrice);
+  !hasValue(model.fixedPrice) &&
+  !hasValue(model.inputPrice);
 
 export const getModelWarnings = (model, t) => {
   if (!model) {
@@ -329,7 +330,9 @@ export const getModelWarnings = (model, t) => {
       warnings.push(t('启用 Sora 参数计费后，需要填写基础每秒单价。'));
     }
     if (tiers.length === 0) {
-      warnings.push(t('启用 Sora 参数计费后，至少需要配置一个 resolution 档位。'));
+      warnings.push(
+        t('启用 Sora 参数计费后，至少需要配置一个 resolution 档位。'),
+      );
     }
     const tierNames = tiers.map((tier) => tier.value);
     if (new Set(tierNames).size !== tierNames.length) {
@@ -337,8 +340,7 @@ export const getModelWarnings = (model, t) => {
     }
     if (
       tiers.some(
-        (tier) =>
-          !hasValue(tier.multiplier) || Number(tier.multiplier) <= 0,
+        (tier) => !hasValue(tier.multiplier) || Number(tier.multiplier) <= 0,
       )
     ) {
       warnings.push(t('Sora 参数计费的倍率必须大于 0。'));
@@ -351,8 +353,8 @@ export const getModelWarnings = (model, t) => {
 export const buildSummaryText = (model, t) => {
   const requestRuleSuffix =
     model.billingMode === 'tiered_expr' && model.requestRuleExpr
-    ? `，${t('请求规则')}`
-    : '';
+      ? `，${t('请求规则')}`
+      : '';
   if (model.billingMode === 'tiered_expr') {
     const expr = model.billingExpr;
     if (!expr) return `${t('表达式计费')}${requestRuleSuffix}`;
@@ -543,8 +545,7 @@ const serializeSoraPerRequestPricing = (model, t) => {
   }
   if (
     tiers.some(
-      (tier) =>
-        !hasValue(tier.multiplier) || Number(tier.multiplier) <= 0,
+      (tier) => !hasValue(tier.multiplier) || Number(tier.multiplier) <= 0,
     )
   ) {
     throw new Error(
@@ -592,8 +593,7 @@ const buildSoraPerRequestPricingClipboardConfig = (model, t) => {
   }
   if (
     tiers.some(
-      (tier) =>
-        !hasValue(tier.multiplier) || Number(tier.multiplier) <= 0,
+      (tier) => !hasValue(tier.multiplier) || Number(tier.multiplier) <= 0,
     )
   ) {
     throw new Error(
@@ -911,8 +911,12 @@ export function useModelPricingEditorState({
       ImageRatio: parseOptionJSON(options.ImageRatio),
       AudioRatio: parseOptionJSON(options.AudioRatio),
       AudioCompletionRatio: parseOptionJSON(options.AudioCompletionRatio),
-      ModelBillingMode: parseOptionJSON(options['billing_setting.billing_mode']),
-      ModelBillingExpr: parseOptionJSON(options['billing_setting.billing_expr']),
+      ModelBillingMode: parseOptionJSON(
+        options['billing_setting.billing_mode'],
+      ),
+      ModelBillingExpr: parseOptionJSON(
+        options['billing_setting.billing_expr'],
+      ),
       SoraPerRequestPricing: parseOptionJSON(
         options['billing_setting.sora_per_request_pricing'],
       ),
@@ -1271,9 +1275,7 @@ export function useModelPricingEditorState({
       showSuccess(t('配置导入成功'));
       return true;
     } catch (error) {
-      showError(
-        `${t('导入配置失败: ')}${error.message || t('参数配置有误')}`,
-      );
+      showError(`${t('导入配置失败: ')}${error.message || t('参数配置有误')}`);
       return false;
     }
   };
@@ -1431,20 +1433,26 @@ export function useModelPricingEditorState({
             model.requestRuleExpr,
           );
           if (finalBillingExpr) {
-            tieredOutput['billing_setting.billing_mode'][model.name] = 'tiered_expr';
-            tieredOutput['billing_setting.billing_expr'][model.name] = finalBillingExpr;
+            tieredOutput['billing_setting.billing_mode'][model.name] =
+              'tiered_expr';
+            tieredOutput['billing_setting.billing_expr'][model.name] =
+              finalBillingExpr;
           }
         }
-        if (model.billingMode === 'tiered_expr') {
-          continue;
-        }
-
-        const serialized = serializeModel(model, t);
-        Object.entries(serialized).forEach(([key, value]) => {
-          if (value !== null) {
-            output[key][model.name] = value;
+        // Keep ratio/price values for tiered_expr models as fallback while
+        // billing_setting changes propagate across multi-instance deployments.
+        try {
+          const serialized = serializeModel(model, t);
+          Object.entries(serialized).forEach(([key, value]) => {
+            if (value !== null) {
+              output[key][model.name] = value;
+            }
+          });
+        } catch (e) {
+          if (model.billingMode !== 'tiered_expr') {
+            throw e;
           }
-        });
+        }
         const soraPricing = serializeSoraPerRequestPricing(model, t);
         if (soraPricing) {
           tieredOutput['billing_setting.sora_per_request_pricing'][model.name] =

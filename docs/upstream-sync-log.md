@@ -2,6 +2,19 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-04-28
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Upstream `main` reviewed through: `df14a0bf18917feaa667c250aa24704fd0c7c932`
+- Local integration scope:
+  - Integrated upstream `02aacb38a2523411df93077cd52c2ddccdb86560` user `created_at` / `last_login_at` tracking.
+  - Integrated upstream `4e93148d9ee80ab27a334f262908a71b9f90912d` config map replacement fix.
+  - Integrated upstream `bee339d279ccecbf8c8a89e14ddbbd902f78bd5d` tiered billing ratio/price fallback serialization fix.
+  - Integrated upstream `9f8a4ec05010da20704c1b55aa8b9af5630df72e` tiered billing cache-price display fix.
+- Deferred:
+  - Upstream `a42b397607780bb0f2dbc851ae0c01043244691d` v1.0 frontend migration (`web/default` + `web/classic`) remains under evaluation.
+  - Upstream CI/README-only commits were reviewed but not integrated because they do not affect runtime behavior here.
+
 ## 2026-04-27
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
