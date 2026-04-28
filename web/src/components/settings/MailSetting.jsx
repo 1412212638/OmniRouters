@@ -25,6 +25,7 @@ import {
   Col,
   Form,
   Row,
+  Select,
   Spin,
   TagInput,
   TabPane,
@@ -48,6 +49,8 @@ const TEMPLATE_OPTION_KEYS = [
   'SubscriptionQuotaWarningContentTemplate',
   'TopUpSuccessSubjectTemplate',
   'TopUpSuccessContentTemplate',
+  'MarketingEmailSubjectTemplate',
+  'MarketingEmailContentTemplate',
 ];
 
 const TEMPLATE_PRESETS_ZH = {
@@ -66,6 +69,9 @@ const TEMPLATE_PRESETS_ZH = {
   TopUpSuccessSubjectTemplate: '{{system_name}}充值成功通知',
   TopUpSuccessContentTemplate:
     '<p>您好{{username}}，</p><p>您的充值已经到账。</p><p>支付金额：<strong>{{amount}}</strong></p><p>到账额度：<strong>{{quota}}</strong></p><p>当前余额：<strong>{{balance}}</strong></p><p>支付方式：{{payment_method}}</p><p>订单号：{{trade_no}}</p><p>到账时间：{{paid_at}}</p>',
+  MarketingEmailSubjectTemplate: '{{system_name}} 最新通知',
+  MarketingEmailContentTemplate:
+    '<p>您好{{display_name}}，</p><p>这里是 {{system_name}} 的最新通知。</p>',
 };
 
 const TEMPLATE_PRESETS_EN = {
@@ -85,6 +91,9 @@ const TEMPLATE_PRESETS_EN = {
   TopUpSuccessSubjectTemplate: '{{system_name}} Top-up Successful',
   TopUpSuccessContentTemplate:
     '<p>Hello {{username}},</p><p>Your top-up has been completed.</p><p>Amount: <strong>{{amount}}</strong></p><p>Quota added: <strong>{{quota}}</strong></p><p>Current balance: <strong>{{balance}}</strong></p><p>Payment method: {{payment_method}}</p><p>Trade no: {{trade_no}}</p><p>Paid at: {{paid_at}}</p>',
+  MarketingEmailSubjectTemplate: '{{system_name}} Update',
+  MarketingEmailContentTemplate:
+    '<p>Hello {{display_name}},</p><p>Here is the latest update from {{system_name}}.</p>',
 };
 
 const getTemplatePresets = (language) =>
@@ -150,6 +159,15 @@ const templateGroups = [
     variables:
       '{{system_name}}, {{username}}, {{amount}}, {{quota}}, {{balance}}, {{trade_no}}, {{payment_method}}, {{payment_provider}}, {{paid_at}}',
   },
+  {
+    title: '营销邮件',
+    description: '用于向选定用户发送手动营销或公告邮件',
+    subjectKey: 'MarketingEmailSubjectTemplate',
+    contentKey: 'MarketingEmailContentTemplate',
+    variables:
+      '{{system_name}}, {{username}}, {{display_name}}, {{email}}, {{user_id}}',
+    type: 'marketing',
+  },
 ];
 
 const getPreviewValues = (language) => ({
@@ -161,6 +179,9 @@ const getPreviewValues = (language) => ({
   remaining_quota: language === 'en' ? '$1.23' : '1.23 美元',
   top_up_link: 'https://example.com/console/topup',
   username: language === 'en' ? 'Alex' : '张三',
+  display_name: language === 'en' ? 'Alex Chen' : '张三',
+  email: 'alex@example.com',
+  user_id: '42',
   amount: language === 'en' ? '10.00' : '10.00',
   quota: language === 'en' ? '$10.00' : '10.00 美元',
   balance: language === 'en' ? '$18.88' : '18.88 美元',
@@ -188,7 +209,12 @@ const MailSetting = () => {
     [],
   );
   const [emailToAdd, setEmailToAdd] = useState('');
+  const [marketingUserIds, setMarketingUserIds] = useState([]);
+  const [marketingUserOptions, setMarketingUserOptions] = useState([]);
+  const [marketingUsersLoading, setMarketingUsersLoading] = useState(false);
+  const [marketingSending, setMarketingSending] = useState(false);
   const formApiRef = useRef(null);
+  const marketingSearchTimerRef = useRef(null);
 
   const currentTemplatePresets = useMemo(
     () => getTemplatePresets(inputs.EmailLanguage),
@@ -197,6 +223,50 @@ const MailSetting = () => {
 
   const getEffectiveTemplate = (key) =>
     inputs[key] || currentTemplatePresets[key] || '';
+
+  const mergeMarketingUserOptions = (users) => {
+    const nextOptions = users.map((user) => ({
+      value: user.id,
+      label: `${user.username || `#${user.id}`} · ${user.email || t('无邮箱')}`,
+    }));
+    setMarketingUserOptions((prev) => {
+      const map = new Map();
+      [...prev, ...nextOptions].forEach((option) => {
+        map.set(option.value, option);
+      });
+      return Array.from(map.values());
+    });
+  };
+
+  const searchMarketingUsers = async (keyword = '') => {
+    setMarketingUsersLoading(true);
+    try {
+      const res = await API.get(
+        `/api/user/search?keyword=${encodeURIComponent(
+          keyword,
+        )}&group=&p=1&page_size=20`,
+      );
+      const { success, message, data } = res.data;
+      if (!success) {
+        showError(message);
+        return;
+      }
+      mergeMarketingUserOptions(data.items || []);
+    } catch (error) {
+      showError(t('获取用户列表失败'));
+    } finally {
+      setMarketingUsersLoading(false);
+    }
+  };
+
+  const handleMarketingUserSearch = (keyword) => {
+    if (marketingSearchTimerRef.current) {
+      clearTimeout(marketingSearchTimerRef.current);
+    }
+    marketingSearchTimerRef.current = setTimeout(() => {
+      searchMarketingUsers(keyword);
+    }, 300);
+  };
 
   const getOptions = async () => {
     setLoading(true);
@@ -242,10 +312,16 @@ const MailSetting = () => {
     formApiRef.current?.setValues(nextInputs);
     setIsLoaded(true);
     setLoading(false);
+    searchMarketingUsers();
   };
 
   useEffect(() => {
     getOptions();
+    return () => {
+      if (marketingSearchTimerRef.current) {
+        clearTimeout(marketingSearchTimerRef.current);
+      }
+    };
   }, []);
 
   const updateOptions = async (options) => {
@@ -347,6 +423,53 @@ const MailSetting = () => {
         value: booleanKeys.has(key) ? inputs[key] : inputs[key] || '',
       }));
     await updateOptions(options);
+  };
+
+  const sendMarketingEmail = async () => {
+    if (marketingUserIds.length === 0) {
+      showError(t('请选择至少一个收件人'));
+      return;
+    }
+
+    const subjectTemplate = getEffectiveTemplate(
+      'MarketingEmailSubjectTemplate',
+    );
+    const contentTemplate = getEffectiveTemplate(
+      'MarketingEmailContentTemplate',
+    );
+    if (!subjectTemplate.trim()) {
+      showError(t('邮件标题不能为空'));
+      return;
+    }
+    if (!contentTemplate.trim()) {
+      showError(t('邮件内容不能为空'));
+      return;
+    }
+
+    setMarketingSending(true);
+    try {
+      const res = await API.post('/api/option/marketing_email/send', {
+        user_ids: marketingUserIds.map((id) => Number(id)),
+        subject_template: subjectTemplate,
+        content_template: contentTemplate,
+      });
+      const { success, message, data } = res.data;
+      if (!success) {
+        showError(message);
+        return;
+      }
+      showSuccess(
+        t('发送完成：成功 {{sent}}，跳过 {{skipped}}，失败 {{failed}}', {
+          sent: data.sent || 0,
+          skipped: data.skipped || 0,
+          failed: data.failed || 0,
+        }),
+      );
+    } catch (error) {
+      showError(t('发送营销邮件失败'));
+    } finally {
+      setMarketingSending(false);
+    }
   };
 
   const restoreDefaultTemplate = (subjectKey, contentKey) => {
@@ -468,6 +591,61 @@ const MailSetting = () => {
             dangerouslySetInnerHTML={{ __html: previewContent }}
           />
         </div>
+        {group.type === 'marketing' && (
+          <div
+            style={{
+              marginTop: 12,
+              padding: 12,
+              borderRadius: 8,
+              background: 'var(--semi-color-fill-0)',
+            }}
+          >
+            <Row gutter={[12, 12]} type='flex' align='bottom'>
+              <Col xs={24} sm={24} md={18} lg={18} xl={18}>
+                <Text strong>{t('收件人')}</Text>
+                <Select
+                  multiple
+                  showClear
+                  filter
+                  remote
+                  loading={marketingUsersLoading}
+                  value={marketingUserIds}
+                  optionList={marketingUserOptions}
+                  placeholder={t('搜索用户名、邮箱或用户 ID')}
+                  searchPosition='dropdown'
+                  autoClearSearchValue={false}
+                  style={{ width: '100%', marginTop: 8 }}
+                  onChange={(value) =>
+                    setMarketingUserIds(Array.isArray(value) ? value : [])
+                  }
+                  onSearch={handleMarketingUserSearch}
+                  onFocus={() => {
+                    if (marketingUserOptions.length === 0) {
+                      searchMarketingUsers();
+                    }
+                  }}
+                />
+              </Col>
+              <Col xs={24} sm={24} md={6} lg={6} xl={6}>
+                <Button
+                  theme='solid'
+                  type='primary'
+                  loading={marketingSending}
+                  disabled={marketingUserIds.length === 0}
+                  onClick={sendMarketingEmail}
+                  style={{ width: '100%' }}
+                >
+                  {t('发送营销邮件')}
+                </Button>
+              </Col>
+            </Row>
+            <Text type='tertiary' size='small'>
+              {t('已选择 {{count}} 个用户', {
+                count: marketingUserIds.length,
+              })}
+            </Text>
+          </div>
+        )}
       </div>
     );
   };

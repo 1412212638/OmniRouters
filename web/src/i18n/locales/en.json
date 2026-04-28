@@ -3769,6 +3769,19 @@
     "（当前仅支持易支付接口，默认使用上方服务器地址作为回调地址！）": "(Currently only supports Epay interface, the default callback address is the server address above!)",
     "，当前无生效订阅，将自动使用钱包": ", no active subscription. Wallet will be used automatically.",
     "，时间：": ",time:",
-    "，点击更新": ", click Update"
+    "，点击更新": ", click Update",
+    "营销邮件": "Marketing email",
+    "用于向选定用户发送手动营销或公告邮件": "Used to send manual marketing or announcement emails to selected users",
+    "无邮箱": "No email",
+    "获取用户列表失败": "Failed to fetch user list",
+    "请选择至少一个收件人": "Please select at least one recipient",
+    "邮件标题不能为空": "Email subject cannot be empty",
+    "邮件内容不能为空": "Email content cannot be empty",
+    "发送完成：成功 {{sent}}，跳过 {{skipped}}，失败 {{failed}}": "Send complete: {{sent}} sent, {{skipped}} skipped, {{failed}} failed",
+    "发送营销邮件失败": "Failed to send marketing email",
+    "收件人": "Recipients",
+    "搜索用户名、邮箱或用户 ID": "Search username, email, or user ID",
+    "发送营销邮件": "Send marketing email",
+    "已选择 {{count}} 个用户": "{{count}} users selected"
   }
 }

@@ -261,6 +261,71 @@ func BuildTopUpSuccessMail(params TopUpSuccessMailParams) (subject string, conte
 	return
 }
 
+type MarketingMailParams struct {
+	SystemName      string
+	Username        string
+	DisplayName     string
+	Email           string
+	UserId          string
+	SubjectTemplate string
+	ContentTemplate string
+}
+
+func BuildMarketingMail(params MarketingMailParams) (subject string, content string) {
+	systemName := params.SystemName
+	if systemName == "" {
+		systemName = SystemName
+	}
+	displayName := params.DisplayName
+	if strings.TrimSpace(displayName) == "" {
+		displayName = params.Username
+	}
+	values := map[string]string{
+		"system_name":  systemName,
+		"username":     params.Username,
+		"display_name": displayName,
+		"email":        params.Email,
+		"user_id":      params.UserId,
+	}
+
+	subjectTemplate := params.SubjectTemplate
+	if strings.TrimSpace(subjectTemplate) == "" {
+		subjectTemplate = MarketingEmailSubjectTemplate
+	}
+	contentTemplate := params.ContentTemplate
+	if strings.TrimSpace(contentTemplate) == "" {
+		contentTemplate = MarketingEmailContentTemplate
+	}
+
+	if strings.TrimSpace(subjectTemplate) != "" {
+		subject = renderEmailTemplate(subjectTemplate, values)
+	}
+	if strings.TrimSpace(contentTemplate) != "" {
+		content = renderEmailTemplate(contentTemplate, values)
+	}
+	if subject != "" && content != "" {
+		return
+	}
+
+	if IsEmailLanguageEnglish() {
+		if subject == "" {
+			subject = fmt.Sprintf("%s Update", systemName)
+		}
+		if content == "" {
+			content = fmt.Sprintf("<p>Hello%s,</p><p>Here is the latest update from %s.</p>", formatEmailUsername(displayName), systemName)
+		}
+		return
+	}
+
+	if subject == "" {
+		subject = fmt.Sprintf("%s最新通知", systemName)
+	}
+	if content == "" {
+		content = fmt.Sprintf("<p>您好%s，</p><p>这里是 %s 的最新通知。</p>", formatEmailUsername(displayName), systemName)
+	}
+	return
+}
+
 func formatEmailUsername(username string) string {
 	if strings.TrimSpace(username) == "" {
 		return ""

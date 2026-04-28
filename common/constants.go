@@ -96,6 +96,8 @@ var SubscriptionQuotaWarningSubjectTemplate = ""
 var SubscriptionQuotaWarningContentTemplate = ""
 var TopUpSuccessSubjectTemplate = ""
 var TopUpSuccessContentTemplate = ""
+var MarketingEmailSubjectTemplate = ""
+var MarketingEmailContentTemplate = ""
 
 var GitHubClientId = ""
 var GitHubClientSecret = ""

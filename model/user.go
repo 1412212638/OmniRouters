@@ -303,6 +303,15 @@ func GetUserById(id int, selectAll bool) (*User, error) {
 	return &user, err
 }
 
+func GetUsersByIds(ids []int) ([]User, error) {
+	var users []User
+	if len(ids) == 0 {
+		return users, nil
+	}
+	err := DB.Omit("password").Where("id IN ?", ids).Find(&users).Error
+	return users, err
+}
+
 func GetUserIdByAffCode(affCode string) (int, error) {
 	if affCode == "" {
 		return 0, errors.New("affCode 为空！")

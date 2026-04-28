@@ -67,3 +67,33 @@ func TestBuildTopUpSuccessMailChineseDefaultUsername(t *testing.T) {
 	require.Contains(t, content, "topup_001")
 	require.Contains(t, content, "18.88 美元")
 }
+
+func TestBuildMarketingMailUsesRequestTemplate(t *testing.T) {
+	originalLanguage := EmailLanguage
+	originalSystemName := SystemName
+	originalSubjectTemplate := MarketingEmailSubjectTemplate
+	originalContentTemplate := MarketingEmailContentTemplate
+	defer func() {
+		EmailLanguage = originalLanguage
+		SystemName = originalSystemName
+		MarketingEmailSubjectTemplate = originalSubjectTemplate
+		MarketingEmailContentTemplate = originalContentTemplate
+	}()
+
+	EmailLanguage = EmailLanguageEnglish
+	SystemName = "OmniRouters"
+	MarketingEmailSubjectTemplate = "global {{username}}"
+	MarketingEmailContentTemplate = "global content"
+
+	subject, content := BuildMarketingMail(MarketingMailParams{
+		Username:        "alex",
+		DisplayName:     "Alex",
+		Email:           "alex@example.com",
+		UserId:          "42",
+		SubjectTemplate: "{{system_name}} hello {{display_name}}",
+		ContentTemplate: "id={{user_id}}, email={{email}}, username={{username}}",
+	})
+
+	require.Equal(t, "OmniRouters hello Alex", subject)
+	require.Equal(t, "id=42, email=alex@example.com, username=alex", content)
+}

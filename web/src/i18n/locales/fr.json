@@ -3671,6 +3671,19 @@
     "分辨率": "Résolution",
     "每秒价格": "Prix / s",
     "当前模型按请求中的 seconds 与 resolution 档位动态计算价格。": "Ce modèle calcule les prix de manière dynamique selon les secondes et le palier de résolution de la requête.",
-    "请求必须提供 resolution 和 seconds；最终价格 = 基础每秒单价 × seconds × resolution 档位倍率 × 分组倍率。": "Les requêtes doivent inclure resolution et seconds ; le prix final = prix de base par seconde × seconds × multiplicateur du palier de résolution × multiplicateur du groupe."
+    "请求必须提供 resolution 和 seconds；最终价格 = 基础每秒单价 × seconds × resolution 档位倍率 × 分组倍率。": "Les requêtes doivent inclure resolution et seconds ; le prix final = prix de base par seconde × seconds × multiplicateur du palier de résolution × multiplicateur du groupe.",
+    "营销邮件": "E-mail marketing",
+    "用于向选定用户发送手动营销或公告邮件": "Permet d'envoyer manuellement des e-mails marketing ou d'annonce aux utilisateurs sélectionnés",
+    "无邮箱": "Aucun e-mail",
+    "获取用户列表失败": "Échec de récupération de la liste des utilisateurs",
+    "请选择至少一个收件人": "Veuillez sélectionner au moins un destinataire",
+    "邮件标题不能为空": "L'objet de l'e-mail ne peut pas être vide",
+    "邮件内容不能为空": "Le contenu de l'e-mail ne peut pas être vide",
+    "发送完成：成功 {{sent}}，跳过 {{skipped}}，失败 {{failed}}": "Envoi terminé : {{sent}} réussis, {{skipped}} ignorés, {{failed}} échoués",
+    "发送营销邮件失败": "Échec de l'envoi de l'e-mail marketing",
+    "收件人": "Destinataires",
+    "搜索用户名、邮箱或用户 ID": "Rechercher un nom d'utilisateur, un e-mail ou un ID utilisateur",
+    "发送营销邮件": "Envoyer l'e-mail marketing",
+    "已选择 {{count}} 个用户": "{{count}} utilisateurs sélectionnés"
   }
 }
