@@ -5,6 +5,7 @@ import (
 	//"os"
 	//"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,6 +17,22 @@ var SystemName = "OmniRouters"
 var Footer = ""
 var Logo = ""
 var TopUpLink = ""
+
+var themeValue atomic.Value
+
+func init() {
+	themeValue.Store("classic")
+}
+
+func GetTheme() string {
+	return themeValue.Load().(string)
+}
+
+func SetTheme(t string) {
+	if t == "default" || t == "classic" {
+		themeValue.Store(t)
+	}
+}
 
 // var ChatLink = ""
 // var ChatLink2 = ""

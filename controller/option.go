@@ -29,16 +29,16 @@ var completionRatioMetaOptionKeys = []string{
 }
 
 var pricingOptionKeys = map[string]struct{}{
-	"ModelPrice":                           {},
-	"ModelRatio":                           {},
-	"CompletionRatio":                      {},
-	"CacheRatio":                           {},
-	"CreateCacheRatio":                     {},
-	"ImageRatio":                           {},
-	"AudioRatio":                           {},
-	"AudioCompletionRatio":                 {},
-	"billing_setting.billing_mode":         {},
-	"billing_setting.billing_expr":         {},
+	"ModelPrice":                   {},
+	"ModelRatio":                   {},
+	"CompletionRatio":              {},
+	"CacheRatio":                   {},
+	"CreateCacheRatio":             {},
+	"ImageRatio":                   {},
+	"AudioRatio":                   {},
+	"AudioCompletionRatio":         {},
+	"billing_setting.billing_mode": {},
+	"billing_setting.billing_expr": {},
 	"billing_setting.sora_per_request_pricing": {},
 }
 
@@ -174,6 +174,14 @@ func UpdateOption(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,
 				"message": "无法启用 OIDC 登录，请先填入 OIDC Client Id 以及 OIDC Client Secret！",
+			})
+			return
+		}
+	case "theme.frontend":
+		if option.Value != "default" && option.Value != "classic" {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "invalid frontend theme, available values: default, classic",
 			})
 			return
 		}
