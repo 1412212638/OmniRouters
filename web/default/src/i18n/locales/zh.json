@@ -1,5 +1,9 @@
 {
   "translation": {
+    "Frontend Theme": "前端界面",
+    "Default (New Frontend)": "1.0 新界面（测试）",
+    "Classic (Legacy Frontend)": "经典界面（稳定）",
+    "Switch between the new frontend and the classic frontend. Changes take effect after page reload.": "在 1.0 新界面和经典界面之间切换，保存后刷新页面生效。",
     "360": "360",
     "1000": "1000",
     "10000": "10000",

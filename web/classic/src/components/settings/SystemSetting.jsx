@@ -90,6 +90,7 @@ const SystemSetting = () => {
     LinuxDOClientSecret: '',
     LinuxDOMinimumTrustLevel: '',
     ServerAddress: '',
+    'theme.frontend': 'classic',
     // SSRF防护配置
     'fetch_setting.enable_ssrf_protection': true,
     'fetch_setting.allow_private_ip': '',
@@ -195,6 +196,7 @@ const SystemSetting = () => {
         }
         newInputs[item.key] = item.value;
       });
+      newInputs['theme.frontend'] = newInputs['theme.frontend'] || 'classic';
       setInputs(newInputs);
       setOriginInputs(newInputs);
       // 同步模式布尔到本地状态
@@ -297,6 +299,12 @@ const SystemSetting = () => {
   const submitServerAddress = async () => {
     let ServerAddress = removeTrailingSlash(inputs.ServerAddress);
     await updateOptions([{ key: 'ServerAddress', value: ServerAddress }]);
+  };
+
+  const submitFrontendTheme = async () => {
+    await updateOptions([
+      { key: 'theme.frontend', value: inputs['theme.frontend'] || 'classic' },
+    ]);
   };
 
   const submitSSRF = async () => {
@@ -644,6 +652,27 @@ const SystemSetting = () => {
                   </Row>
                   <Button onClick={submitServerAddress}>
                     {t('更新服务器地址')}
+                  </Button>
+                  <Row
+                    gutter={{ xs: 8, sm: 16, md: 24, lg: 24, xl: 24, xxl: 24 }}
+                    style={{ marginTop: 16 }}
+                  >
+                    <Col xs={24} sm={24} md={24} lg={24} xl={24}>
+                      <Form.Select
+                        field="['theme.frontend']"
+                        label={t('前端界面')}
+                        optionList={[
+                          { label: t('经典界面（稳定）'), value: 'classic' },
+                          { label: t('1.0 新界面（测试）'), value: 'default' },
+                        ]}
+                        extraText={t(
+                          '切换后刷新页面生效；建议先在测试环境验证 1.0 新界面。',
+                        )}
+                      />
+                    </Col>
+                  </Row>
+                  <Button onClick={submitFrontendTheme}>
+                    {t('更新前端界面')}
                   </Button>
                 </Form.Section>
               </Card>
