@@ -31,6 +31,10 @@ import { useUsageLogsContext } from "./usage-logs-provider";
 const route = getRouteApi("/_authenticated/usage-logs/$section");
 type CommonLogTypeSearch = `${(typeof LOG_TYPES)[number]["value"]}`;
 
+function isCommonLogTypeSearch(value: string): value is CommonLogTypeSearch {
+  return LOG_TYPES.some((type) => String(type.value) === value);
+}
+
 interface CommonLogsFilterBarProps {
   stats?: ReactNode;
   viewOptions?: ReactNode;
@@ -73,7 +77,8 @@ export function CommonLogsFilterBar({
 
     const typeArr = searchParams.type;
     if (Array.isArray(typeArr) && typeArr.length === 1) {
-      setLogType(typeArr[0]);
+      const selectedType = String(typeArr[0]);
+      setLogType(isCommonLogTypeSearch(selectedType) ? selectedType : "");
     }
   }, [
     searchParams.startTime,
@@ -171,9 +176,9 @@ export function CommonLogsFilterBar({
         />
         <Select
           value={logType}
-          onValueChange={(v) =>
-            setLogType(v === "all" ? "" : (v as CommonLogTypeSearch))
-          }
+          onValueChange={(value) => {
+            setLogType(isCommonLogTypeSearch(value) ? value : "");
+          }}
         >
           <SelectTrigger className="h-9">
             <SelectValue placeholder={t("All Types")} />
