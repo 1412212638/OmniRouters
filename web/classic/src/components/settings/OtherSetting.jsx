@@ -256,7 +256,9 @@ const OtherSetting = () => {
       ).then(async (response) => {
         const data = await response.json();
         if (!response.ok) {
-          throw new Error(data?.message || `GitHub API error: ${response.status}`);
+          throw new Error(
+            data?.message || `GitHub API error: ${response.status}`,
+          );
         }
         return data;
       });

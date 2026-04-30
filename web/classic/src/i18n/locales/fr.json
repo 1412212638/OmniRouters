@@ -3690,8 +3690,8 @@
     "收件人": "Destinataires",
     "搜索用户名、邮箱或用户 ID": "Rechercher un nom d'utilisateur, un e-mail ou un ID utilisateur",
     "发送营销邮件": "Envoyer l'e-mail marketing",
-    "已选择 {{count}} 个用户": "{{count}} utilisateurs sélectionnés"
-    ,"阶梯计费（表达式解析失败）": "Facturation par paliers (échec de l'analyse de l'expression)",
+    "已选择 {{count}} 个用户": "{{count}} utilisateurs sélectionnés",
+    "阶梯计费（表达式解析失败）": "Facturation par paliers (échec de l'analyse de l'expression)",
     "阶梯计费（未匹配到对应阶梯）": "Facturation par paliers (aucun palier correspondant)"
   }
 }
