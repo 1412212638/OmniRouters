@@ -10,6 +10,10 @@ import {
 import { DataTableColumnHeader } from '@/components/data-table/column-header'
 import { GroupBadge } from '@/components/group-badge'
 import { DEFAULT_TOKEN_UNIT, QUOTA_TYPE_VALUES } from '../constants'
+import {
+  getDynamicDisplayGroupRatio,
+  getDynamicPricingSummary,
+} from '../lib/dynamic-price'
 import { parseTags } from '../lib/filters'
 import { isTokenBasedModel } from '../lib/model-helpers'
 import {
@@ -18,6 +22,7 @@ import {
   stripTrailingZeros,
 } from '../lib/price'
 import type { PricingModel, TokenUnit } from '../types'
+import { ModelMarketplaceBadges } from './model-marketplace-badges'
 
 // ----------------------------------------------------------------------------
 // Pricing Table Columns
@@ -102,9 +107,15 @@ export function usePricingColumns(
         return (
           <div className='flex min-w-[200px] items-center gap-2'>
             {vendorIcon}
-            <span className='truncate font-mono text-sm font-medium'>
-              {model.model_name}
-            </span>
+            <div className='flex min-w-0 flex-wrap items-center gap-1.5'>
+              <span className='truncate font-mono text-sm font-medium'>
+                {model.model_name}
+              </span>
+              <ModelMarketplaceBadges
+                model={model}
+                discountFallback={t('Discount')}
+              />
+            </div>
           </div>
         )
       },
@@ -137,6 +148,63 @@ export function usePricingColumns(
       ),
       cell: ({ row }) => {
         const model = row.original
+        const dynamicSummary = getDynamicPricingSummary(model, {
+          tokenUnit,
+          showRechargePrice,
+          priceRate,
+          usdExchangeRate,
+          groupRatioMultiplier: getDynamicDisplayGroupRatio(model),
+        })
+
+        if (dynamicSummary) {
+          if (dynamicSummary.isSpecialExpression) {
+            return (
+              <div className='max-w-[320px] min-w-[200px]'>
+                <div className='text-xs font-medium text-amber-700 dark:text-amber-300'>
+                  {t('Special billing expression')}
+                </div>
+                <div className='text-muted-foreground text-[11px]'>
+                  {t('Unable to parse structured pricing')}
+                </div>
+                <code className='text-muted-foreground/70 mt-1 line-clamp-2 block font-mono text-[10px] leading-relaxed break-all'>
+                  {dynamicSummary.rawExpression}
+                </code>
+              </div>
+            )
+          }
+
+          const primaryEntries = dynamicSummary.primaryEntries.slice(0, 2)
+          if (primaryEntries.length === 0) {
+            return (
+              <span className='text-muted-foreground text-xs'>
+                {t('Dynamic Pricing')}
+              </span>
+            )
+          }
+
+          return (
+            <div className='min-w-[180px]'>
+              <span className='font-mono text-sm tabular-nums'>
+                {primaryEntries.map((entry, index) => (
+                  <span key={entry.key}>
+                    {index > 0 && (
+                      <span className='text-muted-foreground/40 mx-1'>/</span>
+                    )}
+                    {stripTrailingZeros(entry.formatted)}
+                  </span>
+                ))}
+              </span>
+              <div className='text-muted-foreground/50 text-[10px]'>
+                / {tokenUnitLabel} tokens
+                {dynamicSummary.tierCount > 1 &&
+                  ` · ${t('{{count}} tiers', {
+                    count: dynamicSummary.tierCount,
+                  })}`}
+              </div>
+            </div>
+          )
+        }
+
         const isTokenBased = isTokenBasedModel(model)
 
         if (isTokenBased) {
@@ -204,6 +272,42 @@ export function usePricingColumns(
       header: t('Cached'),
       cell: ({ row }) => {
         const model = row.original
+        const dynamicSummary = getDynamicPricingSummary(model, {
+          tokenUnit,
+          showRechargePrice,
+          priceRate,
+          usdExchangeRate,
+          groupRatioMultiplier: getDynamicDisplayGroupRatio(model),
+        })
+
+        if (dynamicSummary) {
+          if (dynamicSummary.isSpecialExpression) {
+            return (
+              <span className='text-muted-foreground/50 text-xs'>
+                {t('Special billing expression')}
+              </span>
+            )
+          }
+
+          const cacheEntry = dynamicSummary.entries.find(
+            (entry) => entry.field === 'cacheReadPrice'
+          )
+          if (!cacheEntry) {
+            return <span className='text-muted-foreground/30 text-xs'>—</span>
+          }
+
+          return (
+            <div className='min-w-[80px]'>
+              <span className='font-mono text-sm tabular-nums'>
+                {stripTrailingZeros(cacheEntry.formatted)}
+              </span>
+              <div className='text-muted-foreground/50 text-[10px]'>
+                / {tokenUnitLabel}
+              </div>
+            </div>
+          )
+        }
+
         const isTokenBased = isTokenBasedModel(model)
 
         if (!isTokenBased || model.cache_ratio == null) {
