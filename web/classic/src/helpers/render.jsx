@@ -2337,6 +2337,39 @@ export function parseTiersFromExpr(exprStr) {
   }
 }
 
+export const decodeFromBase64 = (base64) => {
+  if (!base64) return '';
+
+  const binaryString =
+    typeof window !== 'undefined'
+      ? window.atob(base64)
+      : Buffer.from(base64, 'base64').toString('binary');
+  const bytes = new Uint8Array(binaryString.length);
+
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+
+  if (typeof TextDecoder !== 'undefined') {
+    return new TextDecoder().decode(bytes);
+  }
+
+  return decodeURIComponent(
+    Array.from(bytes)
+      .map((byte) => `%${byte.toString(16).padStart(2, '0')}`)
+      .join(''),
+  );
+};
+
+export const normalizeLabel = (label) => {
+  if (!label) return '';
+  return label
+    .replace(/<=|≤|<[=＝]?|＜[=＝]?/g, '<')
+    .replace(/>=|≥|>[=＝]?|＞[=＝]?/g, '>')
+    .replace(/\s+/g, '')
+    .toLowerCase();
+};
+
 export function renderTieredModelPrice(opts) {
   const {
     prompt_tokens: inputTokens = 0,
@@ -2351,7 +2384,7 @@ export function renderTieredModelPrice(opts) {
   } = opts;
   let exprStr = '';
   try {
-    exprStr = atob(exprB64);
+    exprStr = decodeFromBase64(exprB64);
   } catch {
     /* ignore */
   }
@@ -2360,7 +2393,15 @@ export function renderTieredModelPrice(opts) {
     return i18next.t('阶梯计费（表达式解析失败）');
   }
 
-  const tier = tiers.find((t) => t.label === matchedTier) || tiers[0];
+  const tier = tiers.find((t) => {
+    const currentLabel = normalizeLabel(t.label);
+    const matchedLabel = normalizeLabel(matchedTier);
+    return currentLabel === matchedLabel && currentLabel !== '';
+  });
+
+  if (!tier) {
+    return i18next.t('阶梯计费（未匹配到对应阶梯）');
+  }
   const { symbol, rate } = getCurrencyConfig();
   const gr = groupRatio || 1;
 
@@ -2415,12 +2456,16 @@ export function renderTieredModelPriceSimple(opts) {
   } = opts;
   let exprStr = '';
   try {
-    exprStr = atob(exprB64);
+    exprStr = decodeFromBase64(exprB64);
   } catch {
     /* ignore */
   }
   const tiers = parseTiersFromExpr(exprStr);
-  const tier = tiers.find((t) => t.label === matchedTier) || tiers[0];
+  const tier = tiers.find((t) => {
+    const currentLabel = normalizeLabel(t.label);
+    const matchedLabel = normalizeLabel(matchedTier);
+    return currentLabel === matchedLabel && currentLabel !== '';
+  });
 
   if (outputMode === 'segments') {
     const segments = [
@@ -2430,7 +2475,15 @@ export function renderTieredModelPriceSimple(opts) {
       },
     ];
 
-    if (tier && isPriceDisplayMode(displayMode)) {
+    if (!tier) {
+      segments.push({
+        tone: 'secondary',
+        text:
+          tiers.length === 0
+            ? i18next.t('阶梯计费（表达式解析失败）')
+            : i18next.t('阶梯计费（未匹配到对应阶梯）'),
+      });
+    } else if (isPriceDisplayMode(displayMode)) {
       const hasAnyCacheTokens =
         cacheTokens > 0 ||
         cacheCreationTokens > 0 ||
