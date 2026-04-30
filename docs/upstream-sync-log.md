@@ -2,6 +2,20 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-04-30
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- V1 migration branch: `codex/migrate-upstream-v1`
+- Synced through upstream `main`: `dac55f0fdeb16bbbc2bdc472bda14e60431f3845`
+- Local integration scope:
+  - Integrated the v1.0 frontend migration line and subsequent default/classic frontend fixes.
+  - Integrated Vertex custom `base_url` gateway-prefix handling.
+  - Integrated tiered billing display fixes, including UTF-8 Base64 decoding and normalized tier-label matching.
+  - Integrated the classic frontend switch back to the default frontend.
+- Notes:
+  - Upstream commits were cherry-picked and conflict-resolved to preserve local OmniRouters customizations.
+  - `ghcr.io/1412212638/omnirouters:v1-ui-test` is used as the test image tag for this branch.
+
 ## 2026-04-28
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
