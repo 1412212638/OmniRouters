@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CopyButton } from "@/components/copy-button";
+import { GroupBadge } from "@/components/group-badge";
 import { PublicLayout } from "@/components/layout";
 import { DEFAULT_TOKEN_UNIT, QUOTA_TYPE_VALUES } from "../constants";
 import { usePricingData } from "../hooks/use-pricing-data";
@@ -339,10 +340,8 @@ function AutoGroupChain(props: { model: PricingModel; autoGroups: string[] }) {
       <span className="font-medium">{t("Auto Group Chain")}</span>
       <span className="text-muted-foreground/40">→</span>
       {autoChain.map((g, idx) => (
-        <span key={g} className="flex items-center gap-1">
-          <span className="bg-muted text-foreground rounded px-1.5 py-0.5 text-[11px] font-medium">
-            {g}
-          </span>
+        <span key={g} className='flex items-center gap-1'>
+          <GroupBadge group={g} size='sm' />
           {idx < autoChain.length - 1 && (
             <span className="text-muted-foreground/40">→</span>
           )}
@@ -453,8 +452,10 @@ function GroupPricingSection(props: {
               const ratio = groupRatio[group] || 1;
               return (
                 <TableRow key={group}>
-                  <TableCell className="py-2.5 font-medium">{group}</TableCell>
-                  <TableCell className="text-muted-foreground py-2.5 font-mono text-xs">
+                  <TableCell className='py-2.5'>
+                    <GroupBadge group={group} size='sm' />
+                  </TableCell>
+                  <TableCell className='text-muted-foreground py-2.5 font-mono text-xs'>
                     {ratio}x
                   </TableCell>
                   {isTokenBased ? (

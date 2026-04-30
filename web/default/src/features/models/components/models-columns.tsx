@@ -11,6 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DataTableColumnHeader } from "@/components/data-table/column-header";
+import { GroupBadge } from "@/components/group-badge";
 import { StatusBadge } from "@/components/status-badge";
 import {
   getModelStatusConfig,
@@ -491,8 +492,8 @@ export function useModelsColumns(vendors: Vendor[] = []): ColumnDef<Model>[] {
           return <span className="text-muted-foreground text-xs">-</span>;
         }
 
-        const groupBadges = groups.map((g, idx) => (
-          <StatusBadge key={idx} label={g} autoColor={g} size="sm" />
+        const groupBadges = groups.map((g) => (
+          <GroupBadge key={g} group={g} size="sm" />
         ));
 
         return (
