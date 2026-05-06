@@ -100,6 +100,15 @@ Use `bun` as the preferred package manager and script runner for the frontend (`
 - `bun run build` for production build
 - `bun run i18n:*` for i18n tooling
 
+### Rule 3.1: Source-Only Local Workflow - Let GitHub Build Images
+
+By default, local work should be source-level only: edit source/config/docs, then commit and push the changes. Docker image builds, GHCR publishing, and release image tagging are handled by GitHub Actions after the push.
+
+- Do not build Docker images locally unless the user explicitly asks for a local image build.
+- Do not install large frontend/backend toolchains only to reproduce the production image build unless needed for debugging and confirmed with the user.
+- Lightweight local validation is still allowed when the required tools are already available, such as `go test`, `bun run lint`, `bun run build`, or targeted format checks.
+- For `main` pushes, rely on `.github/workflows/docker-image-ghcr.yml` to publish `ghcr.io/1412212638/omnirouters:latest`.
+
 ### Rule 4: New Channel StreamOptions Support
 
 When implementing a new channel:
