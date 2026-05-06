@@ -2,6 +2,20 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-05-07
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `38a3314b9b7ba504773056c8408d5072da3a3aff`
+- Synced through upstream `main`: `e8cfb546fa7e1d5bf266c5998181c0021826e045`
+- Local integration branch: `codex/direct-main-upstream-sync`
+- Local integration scope:
+  - Integrated upstream `d98f0e8ac3d31bdbc22afd234e7428b4b6a91d45` through `e8cfb546fa7e1d5bf266c5998181c0021826e045`.
+  - Integrated the Base UI Select items API migration across the default frontend.
+  - Integrated model performance summary APIs and model square performance badges.
+  - Preserved local OmniRouters model marketplace NEW, discount, and promotion badges while adding upstream performance badges.
+- Notes:
+  - Upstream commits were cherry-picked and conflict-resolved to preserve local OmniRouters customizations.
+
 ## 2026-05-06
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
