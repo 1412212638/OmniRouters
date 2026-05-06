@@ -2,6 +2,19 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-05-06
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `dac55f0fdeb16bbbc2bdc472bda14e60431f3845`
+- Synced through upstream `main`: `38a3314b9b7ba504773056c8408d5072da3a3aff`
+- Local integration branch: `codex/direct-main-upstream-sync`
+- Local integration scope:
+  - Integrated upstream `8b2b03d2761f08195a35b9a71c82f96b2f3b2ea7` through `38a3314b9b7ba504773056c8408d5072da3a3aff`.
+  - Integrated the Base UI/default frontend overhaul, model performance metrics, real rankings data, channel table server-side sorting, subscription payment display fixes, billing settings form improvements, `topup_link` API relocation, and OpenAI image edit reference field preservation.
+  - Preserved local OmniRouters customizations for the classic auth shell, model marketplace NEW/discount badges, mail settings templates, marketing email sending, top-up success email notifications, and payment fee-rate display.
+- Notes:
+  - Upstream commits were cherry-picked and conflict-resolved to preserve local OmniRouters customizations.
+
 ## 2026-04-30
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
