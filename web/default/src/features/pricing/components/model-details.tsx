@@ -41,7 +41,6 @@ import {
   isDynamicPricingModel,
 } from '../lib/dynamic-price'
 import { parseTags } from '../lib/filters'
-import { buildUptimeSeries } from '../lib/mock-stats'
 import {
   getAvailableGroups,
   isTokenBasedModel,
@@ -58,7 +57,6 @@ import { ModalitiesMatrix } from './model-details-modalities'
 import { ModelDetailsPerformance } from './model-details-performance'
 import { ModelDetailsQuickStats } from './model-details-quick-stats'
 import { ModelMarketplaceBadges } from './model-marketplace-badges'
-import { UptimeStatusRow } from './model-details-uptime-sparkline'
 
 // ----------------------------------------------------------------------------
 // Local UI helpers
@@ -787,10 +785,6 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
   const { t } = useTranslation()
   const showRechargePrice = props.showRechargePrice ?? false
   const metadata = useMemo(() => inferModelMetadata(props.model), [props.model])
-  const uptimeSeries = useMemo(
-    () => buildUptimeSeries(props.model),
-    [props.model]
-  )
 
   const isDynamic =
     props.model.billing_mode === 'tiered_expr' &&
@@ -801,8 +795,6 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
       <ModelHeader model={props.model} />
 
       <ModelDetailsQuickStats metadata={metadata} />
-
-      <UptimeStatusRow series={uptimeSeries} />
 
       <Tabs defaultValue='overview' className='gap-4'>
         <TabsList className='bg-muted/60 h-auto w-full justify-start gap-1 overflow-x-auto rounded-lg p-1'>
