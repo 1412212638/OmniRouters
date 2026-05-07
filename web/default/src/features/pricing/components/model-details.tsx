@@ -26,7 +26,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CopyButton } from '@/components/copy-button'
 import { GroupBadge } from '@/components/group-badge'
 import { PublicLayout } from '@/components/layout'
-import { StatusBadge } from '@/components/status-badge'
 import { getPerfMetrics } from '../api'
 import { DEFAULT_TOKEN_UNIT, QUOTA_TYPE_VALUES } from '../constants'
 import { usePricingData } from '../hooks/use-pricing-data'
@@ -267,6 +266,13 @@ function ModelHeader(props: { model: PricingModel }) {
     Boolean(model.billing_expr) &&
     getDynamicPricingTiers(model).length === 0
   const isSoraPricing = isSoraPerRequestPricingModel(model)
+  const billingLabel =
+    model.quota_type === QUOTA_TYPE_VALUES.TOKEN || isSoraPricing
+      ? t('Token-based')
+      : t('Per Request')
+  const showDynamicPricingBadge =
+    isSoraPricing ||
+    (model.billing_mode === 'tiered_expr' && Boolean(model.billing_expr))
 
   return (
     <header className='pb-4'>
@@ -293,23 +299,8 @@ function ModelHeader(props: { model: PricingModel }) {
           <span className='text-muted-foreground'>{model.vendor_name}</span>
         )}
         <span className='text-muted-foreground/30'>·</span>
-        <span className='text-muted-foreground/70'>
-          {model.quota_type === QUOTA_TYPE_VALUES.TOKEN
-            ? t('Token-based')
-            : t('Per Request')}
-        </span>
-        {isSoraPricing && (
-          <>
-            <span className='text-muted-foreground/30'>路</span>
-            <StatusBadge
-              label={t('Sora parameter pricing')}
-              variant='orange'
-              copyable={false}
-              size='sm'
-            />
-          </>
-        )}
-        {model.billing_mode === 'tiered_expr' && model.billing_expr && (
+        <span className='text-muted-foreground/70'>{billingLabel}</span>
+        {showDynamicPricingBadge && (
           <>
             <span className='text-muted-foreground/30'>·</span>
             <span className='rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'>
