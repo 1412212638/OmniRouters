@@ -16,7 +16,6 @@ import {
   formatPrice,
   formatRequestPrice,
   getSoraPricingDisplay,
-  isSoraPerRequestPricingModel,
   stripTrailingZeros,
 } from '../lib/price'
 import type { PricingModel, TokenUnit } from '../types'
@@ -53,7 +52,6 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   const isDynamicPricing =
     props.model.billing_mode === 'tiered_expr' &&
     Boolean(props.model.billing_expr)
-  const isSoraPricing = isSoraPerRequestPricingModel(props.model)
   const hasCachedPrice = isTokenBased && props.model.cache_ratio != null
   const dynamicSummary = isDynamicPricing
     ? getDynamicPricingSummary(props.model, {
@@ -76,6 +74,9 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     Math.max(groups.length - 1, 0) +
     Math.max(endpoints.length - 2, 0) +
     Math.max(tags.length - 2, 0)
+  const showDynamicBadge = isDynamicPricing || Boolean(soraSummary)
+  const footerBillingLabel =
+    isTokenBased || soraSummary ? t('Token-based') : t('Per Request')
 
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -160,7 +161,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
                 )
               ) : soraSummary ? (
                 <span className='text-muted-foreground whitespace-nowrap'>
-                  {t('Sora parameter pricing')}{' '}
+                  {t('Fixed price')}{' '}
                   <span className='text-foreground font-mono font-semibold'>
                     {stripTrailingZeros(soraSummary.basePrice)}
                   </span>
@@ -271,13 +272,9 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             </span>
           )}
           <span className='text-muted-foreground text-xs font-medium'>
-            {isTokenBased
-              ? t('Token-based')
-              : isSoraPricing
-                ? t('Sora parameter pricing')
-                : t('Per Request')}
+            {footerBillingLabel}
           </span>
-          {isDynamicPricing && (
+          {showDynamicBadge && (
             <StatusBadge
               label={t('Dynamic Pricing')}
               variant='warning'
