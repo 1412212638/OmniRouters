@@ -19,6 +19,7 @@ const getModelDefaults = (settings: BillingSettings) => ({
   ExposeRatioEnabled: settings.ExposeRatioEnabled,
   BillingMode: settings['billing_setting.billing_mode'],
   BillingExpr: settings['billing_setting.billing_expr'],
+  SoraPerRequestPricing: settings['billing_setting.sora_per_request_pricing'],
 })
 
 const getGroupDefaults = (settings: BillingSettings) => ({

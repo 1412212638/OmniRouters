@@ -2,6 +2,18 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-05-07 (theme follow-up)
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Upstream `main` synced through: `a7475a1e67ff0d5a46c683f3c24430cf83d25f50`
+- Previous upstream sync point: `415d21d07100fbf767255cecde6e5c48752daa35`
+- Local integration scope:
+  - Integrated the upstream theme-token and preset alignment across the default frontend.
+  - Updated status badges, copy/group badges, sidebar, and AI element UI helpers to use the new theme palette behavior.
+  - Synced dashboard chart and color utilities so overview/model/user charts follow the new preset-aware colors.
+- Notes:
+  - This upstream commit is UI-only and does not interfere with the local Sora pricing or model marketplace changes currently in progress.
+
 ## 2026-05-07 (follow-up)
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`

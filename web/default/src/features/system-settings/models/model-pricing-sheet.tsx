@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import * as z from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { AlertTriangle, ChevronDown } from 'lucide-react'
+import { AlertTriangle, ChevronDown, Plus, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -48,6 +48,12 @@ import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { combineBillingExpr } from '@/features/pricing/lib/billing-expr'
 import { TieredPricingEditor } from './tiered-pricing-editor'
+import {
+  cloneSoraResolutionTiers,
+  normalizeSoraResolutionTiers,
+  serializeSoraPerRequestPricing,
+  type SoraResolutionTierDraft,
+} from './utils'
 
 const createModelPricingSchema = (t: (key: string) => string) =>
   z.object({
@@ -88,6 +94,8 @@ export type ModelRatioData = {
   billingMode?: PricingMode
   billingExpr?: string
   requestRuleExpr?: string
+  soraPerRequestPricingEnabled?: boolean
+  soraResolutionTiers?: SoraResolutionTierDraft[]
 }
 
 type ModelPricingSheetProps = {
@@ -186,6 +194,10 @@ const laneConfigs: Array<{
   },
 ]
 
+const EMPTY_SORA_TIERS: SoraResolutionTierDraft[] = [
+  { value: '', multiplier: '' },
+]
+
 function hasValue(value: unknown): boolean {
   return (
     value !== '' && value !== null && value !== undefined && value !== false
@@ -255,15 +267,18 @@ function createInitialLaneState(data?: ModelRatioData | null) {
   }
 }
 
-function getModeLabel(mode: PricingMode) {
+function getModeLabel(mode: PricingMode, soraEnabled = false) {
+  if (mode === 'per-request' && soraEnabled) return 'Sora parameter pricing'
   if (mode === 'per-request') return 'Per-request'
   if (mode === 'tiered_expr') return 'Expression'
   return 'Per-token'
 }
 
 function getModeBadgeVariant(
-  mode: PricingMode
+  mode: PricingMode,
+  soraEnabled = false
 ): 'default' | 'secondary' | 'outline' {
+  if (mode === 'per-request' && soraEnabled) return 'default'
   if (mode === 'per-request') return 'secondary'
   if (mode === 'tiered_expr') return 'default'
   return 'outline'
@@ -277,6 +292,8 @@ function buildPreviewRows(
   promptPrice: string,
   lanePrices: Record<LaneKey, string>,
   laneEnabled: Record<LaneKey, boolean>,
+  soraPricingEnabled: boolean,
+  soraResolutionTiers: SoraResolutionTierDraft[],
   t: (key: string) => string
 ): PreviewRow[] {
   if (mode === 'tiered_expr') {
@@ -287,6 +304,33 @@ function buildPreviewRows(
         key: 'expr',
         label: t('Expression'),
         value: effectiveExpr || t('Empty'),
+        multiline: true,
+      },
+    ]
+  }
+
+  if (mode === 'per-request' && soraPricingEnabled) {
+    const validTiers = normalizeSoraResolutionTiers(soraResolutionTiers)
+    return [
+      {
+        key: 'mode',
+        label: 'BillingMode',
+        value: t('Sora parameter pricing'),
+      },
+      {
+        key: 'price',
+        label: t('Base price per second'),
+        value: values.price || t('Empty'),
+      },
+      {
+        key: 'tiers',
+        label: t('Resolution tiers'),
+        value:
+          validTiers.length > 0
+            ? validTiers
+                .map((tier) => `${tier.value} (x${tier.multiplier})`)
+                .join(', ')
+            : t('Empty'),
         multiline: true,
       },
     ]
@@ -409,6 +453,11 @@ export function ModelPricingEditorPanel({
   const [laneEnabled, setLaneEnabled] = useState<Record<LaneKey, boolean>>({
     ...EMPTY_LANE_ENABLED,
   })
+  const [soraPerRequestPricingEnabled, setSoraPerRequestPricingEnabled] =
+    useState(false)
+  const [soraResolutionTiers, setSoraResolutionTiers] = useState<
+    SoraResolutionTierDraft[]
+  >([])
   const [billingExpr, setBillingExpr] = useState('')
   const [requestRuleExpr, setRequestRuleExpr] = useState('')
   const [previewOpen, setPreviewOpen] = useState(true)
@@ -451,6 +500,12 @@ export function ModelPricingEditorPanel({
             ? 'per-request'
             : 'per-token'
       )
+      setSoraPerRequestPricingEnabled(
+        Boolean(editData.soraPerRequestPricingEnabled)
+      )
+      setSoraResolutionTiers(
+        cloneSoraResolutionTiers(editData.soraResolutionTiers)
+      )
       setBillingExpr(editData.billingExpr || '')
       setRequestRuleExpr(editData.requestRuleExpr || '')
     } else {
@@ -466,6 +521,8 @@ export function ModelPricingEditorPanel({
         audioCompletionRatio: '',
       })
       setPricingMode('per-token')
+      setSoraPerRequestPricingEnabled(false)
+      setSoraResolutionTiers([])
       setBillingExpr('')
       setRequestRuleExpr('')
     }
@@ -596,6 +653,41 @@ export function ModelPricingEditorPanel({
     }
   }
 
+  const handleSoraToggle = (checked: boolean) => {
+    setSoraPerRequestPricingEnabled(checked)
+    if (checked && soraResolutionTiers.length === 0) {
+      setSoraResolutionTiers([...EMPTY_SORA_TIERS])
+    }
+  }
+
+  const handleSoraTierChange = (
+    index: number,
+    field: keyof SoraResolutionTierDraft,
+    value: string
+  ) => {
+    if (field === 'multiplier' && !numericDraftRegex.test(value)) {
+      return
+    }
+    setSoraResolutionTiers((current) =>
+      current.map((tier, tierIndex) =>
+        tierIndex === index ? { ...tier, [field]: value } : tier
+      )
+    )
+  }
+
+  const handleAddSoraTier = () => {
+    setSoraResolutionTiers((current) => [
+      ...current,
+      { value: '', multiplier: '' },
+    ])
+  }
+
+  const handleRemoveSoraTier = (index: number) => {
+    setSoraResolutionTiers((current) =>
+      current.filter((_, tierIndex) => tierIndex !== index)
+    )
+  }
+
   const watchedValues = form.watch()
   const previewRows = useMemo(
     () =>
@@ -607,6 +699,8 @@ export function ModelPricingEditorPanel({
         promptPrice,
         lanePrices,
         laneEnabled,
+        soraPerRequestPricingEnabled,
+        soraResolutionTiers,
         t
       ),
     [
@@ -615,6 +709,8 @@ export function ModelPricingEditorPanel({
       lanePrices,
       pricingMode,
       promptPrice,
+      soraPerRequestPricingEnabled,
+      soraResolutionTiers,
       requestRuleExpr,
       t,
       watchedValues,
@@ -663,8 +759,39 @@ export function ModelPricingEditorPanel({
       nextWarnings.push(t('Audio output price requires an audio input price.'))
     }
 
+    if (pricingMode === 'per-request' && soraPerRequestPricingEnabled) {
+      if (!hasValue(watchedValues.price)) {
+        nextWarnings.push(
+          t('Base price per second is required when Sora pricing is enabled.')
+        )
+      }
+      try {
+        serializeSoraPerRequestPricing(
+          soraPerRequestPricingEnabled,
+          soraResolutionTiers
+        )
+      } catch (error) {
+        nextWarnings.push(
+          t(
+            error instanceof Error
+              ? error.message
+              : 'Invalid Sora pricing configuration'
+          )
+        )
+      }
+    }
+
     return nextWarnings
-  }, [editData, laneEnabled, lanePrices, pricingMode, promptPrice, t])
+  }, [
+    editData,
+    laneEnabled,
+    lanePrices,
+    pricingMode,
+    promptPrice,
+    soraPerRequestPricingEnabled,
+    soraResolutionTiers,
+    t,
+  ])
 
   const handleSubmit = (values: ModelPricingFormValues) => {
     if (
@@ -691,6 +818,33 @@ export function ModelPricingEditorPanel({
       return
     }
 
+    if (pricingMode === 'per-request' && soraPerRequestPricingEnabled) {
+      if (!hasValue(values.price)) {
+        form.setError('price', {
+          message: t(
+            'Base price per second is required when Sora pricing is enabled.'
+          ),
+        })
+        return
+      }
+
+      try {
+        serializeSoraPerRequestPricing(
+          soraPerRequestPricingEnabled,
+          soraResolutionTiers
+        )
+      } catch (error) {
+        form.setError('price', {
+          message: t(
+            error instanceof Error
+              ? error.message
+              : 'Invalid Sora pricing configuration'
+          ),
+        })
+        return
+      }
+    }
+
     const data: ModelRatioData = {
       name: values.name.trim(),
       billingMode: pricingMode,
@@ -702,6 +856,8 @@ export function ModelPricingEditorPanel({
       imageRatio: values.imageRatio || '',
       audioRatio: values.audioRatio || '',
       audioCompletionRatio: values.audioCompletionRatio || '',
+      soraPerRequestPricingEnabled,
+      soraResolutionTiers: cloneSoraResolutionTiers(soraResolutionTiers),
     }
 
     if (pricingMode === 'tiered_expr') {
@@ -733,8 +889,13 @@ export function ModelPricingEditorPanel({
               {activeName}
             </p>
           </div>
-          <Badge variant={getModeBadgeVariant(pricingMode)}>
-            {t(getModeLabel(pricingMode))}
+          <Badge
+            variant={getModeBadgeVariant(
+              pricingMode,
+              soraPerRequestPricingEnabled
+            )}
+          >
+            {t(getModeLabel(pricingMode, soraPerRequestPricingEnabled))}
           </Badge>
         </div>
       </div>
@@ -843,13 +1004,19 @@ export function ModelPricingEditorPanel({
                     name='price'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('Fixed price')}</FormLabel>
+                        <FormLabel>
+                          {soraPerRequestPricingEnabled
+                            ? t('Base price per second')
+                            : t('Fixed price')}
+                        </FormLabel>
                         <FormControl>
                           <InputGroup>
                             <InputGroupAddon>$</InputGroupAddon>
                             <InputGroupInput
                               inputMode='decimal'
-                              placeholder='0.01'
+                              placeholder={
+                                soraPerRequestPricingEnabled ? '0.03' : '0.01'
+                              }
                               {...field}
                               onChange={(event) => {
                                 const value = event.target.value
@@ -859,19 +1026,115 @@ export function ModelPricingEditorPanel({
                               }}
                             />
                             <InputGroupAddon align='inline-end'>
-                              {t('per request')}
+                              {soraPerRequestPricingEnabled
+                                ? '/s'
+                                : t('per request')}
                             </InputGroupAddon>
                           </InputGroup>
                         </FormControl>
                         <FormDescription>
-                          {t(
-                            'Cost in USD per request, regardless of tokens used.'
-                          )}
+                          {soraPerRequestPricingEnabled
+                            ? t(
+                                'Final price = base per-second price × seconds × resolution multiplier × group ratio.'
+                              )
+                            : t(
+                                'Cost in USD per request, regardless of tokens used.'
+                              )}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  <Field className='rounded-lg border p-4'>
+                    <div className='flex items-start justify-between gap-3'>
+                      <FieldContent>
+                        <FieldTitle>{t('Sora parameter pricing')}</FieldTitle>
+                        <FieldDescription>
+                          {t(
+                            'Enable resolution-based multipliers for Sora requests.'
+                          )}
+                        </FieldDescription>
+                      </FieldContent>
+                      <Switch
+                        checked={soraPerRequestPricingEnabled}
+                        onCheckedChange={handleSoraToggle}
+                      />
+                    </div>
+                  </Field>
+
+                  {soraPerRequestPricingEnabled && (
+                    <Field className='rounded-lg border p-4'>
+                      <div className='mb-3 flex items-start justify-between gap-3'>
+                        <FieldContent>
+                          <FieldTitle>{t('Resolution tiers')}</FieldTitle>
+                          <FieldDescription>
+                            {t(
+                              'Configure the resolution names and their pricing multipliers.'
+                            )}
+                          </FieldDescription>
+                        </FieldContent>
+                        <Button
+                          type='button'
+                          variant='outline'
+                          size='sm'
+                          onClick={handleAddSoraTier}
+                        >
+                          <Plus className='mr-2 size-4' />
+                          {t('Add tier')}
+                        </Button>
+                      </div>
+                      <div className='space-y-2'>
+                        {soraResolutionTiers.map((tier, index) => (
+                          <div
+                            key={`sora-tier-${index}`}
+                            className='grid gap-2 sm:grid-cols-[minmax(0,1fr)_160px_auto]'
+                          >
+                            <Input
+                              value={tier.value}
+                              placeholder={t('e.g. 720p')}
+                              onChange={(event) =>
+                                handleSoraTierChange(
+                                  index,
+                                  'value',
+                                  event.target.value
+                                )
+                              }
+                            />
+                            <InputGroup>
+                              <InputGroupAddon>
+                                {t('Multiplier')}
+                              </InputGroupAddon>
+                              <InputGroupInput
+                                inputMode='decimal'
+                                value={tier.multiplier}
+                                placeholder='1'
+                                onChange={(event) =>
+                                  handleSoraTierChange(
+                                    index,
+                                    'multiplier',
+                                    event.target.value
+                                  )
+                                }
+                              />
+                              <InputGroupAddon align='inline-end'>
+                                x
+                              </InputGroupAddon>
+                            </InputGroup>
+                            <Button
+                              type='button'
+                              variant='ghost'
+                              size='icon'
+                              onClick={() => handleRemoveSoraTier(index)}
+                              aria-label={t('Remove tier')}
+                            >
+                              <Trash2 className='size-4' />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </Field>
+                  )}
                 </TabsContent>
 
                 <TabsContent

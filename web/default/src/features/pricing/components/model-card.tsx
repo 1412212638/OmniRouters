@@ -12,7 +12,13 @@ import {
 } from '../lib/dynamic-price'
 import { parseTags } from '../lib/filters'
 import { isTokenBasedModel } from '../lib/model-helpers'
-import { formatPrice, formatRequestPrice } from '../lib/price'
+import {
+  formatPrice,
+  formatRequestPrice,
+  getSoraPricingDisplay,
+  isSoraPerRequestPricingModel,
+  stripTrailingZeros,
+} from '../lib/price'
 import type { PricingModel, TokenUnit } from '../types'
 import { ModelMarketplaceBadges } from './model-marketplace-badges'
 import { ModelPerfBadge } from './model-perf-badge'
@@ -47,6 +53,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   const isDynamicPricing =
     props.model.billing_mode === 'tiered_expr' &&
     Boolean(props.model.billing_expr)
+  const isSoraPricing = isSoraPerRequestPricingModel(props.model)
   const hasCachedPrice = isTokenBased && props.model.cache_ratio != null
   const dynamicSummary = isDynamicPricing
     ? getDynamicPricingSummary(props.model, {
@@ -57,6 +64,11 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
         groupRatioMultiplier: getDynamicDisplayGroupRatio(props.model),
       })
     : null
+  const soraSummary = getSoraPricingDisplay(props.model, {
+    showRechargePrice,
+    priceRate,
+    usdExchangeRate,
+  })
 
   const primaryGroup = groups[0]
   const bottomTags = [...endpoints.slice(0, 2), ...tags.slice(0, 2)]
@@ -125,24 +137,43 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
                   </>
                 ) : dynamicSummary.secondaryEntries.length > 0 ? (
                   <>
-                    {dynamicSummary.secondaryEntries.slice(0, 2).map((entry) => (
-                      <span
-                        key={entry.key}
-                        className='text-muted-foreground whitespace-nowrap'
-                      >
-                        {t(entry.shortLabel)}{' '}
-                        <span className='text-foreground font-mono font-semibold'>
-                          {entry.formatted}
+                    {dynamicSummary.secondaryEntries
+                      .slice(0, 2)
+                      .map((entry) => (
+                        <span
+                          key={entry.key}
+                          className='text-muted-foreground whitespace-nowrap'
+                        >
+                          {t(entry.shortLabel)}{' '}
+                          <span className='text-foreground font-mono font-semibold'>
+                            {entry.formatted}
+                          </span>
+                          {entry.displayUnit === 'token' &&
+                            `/${tokenUnitLabel}`}
                         </span>
-                        {entry.displayUnit === 'token' && `/${tokenUnitLabel}`}
-                      </span>
-                    ))}
+                      ))}
                   </>
                 ) : (
                   <span className='text-muted-foreground text-xs'>
                     {t('Dynamic Pricing')}
                   </span>
                 )
+              ) : soraSummary ? (
+                <span className='text-muted-foreground whitespace-nowrap'>
+                  {t('Sora parameter pricing')}{' '}
+                  <span className='text-foreground font-mono font-semibold'>
+                    {stripTrailingZeros(soraSummary.basePrice)}
+                  </span>
+                  <span className='text-muted-foreground/40 mx-1'>/</span>
+                  <span className='text-foreground font-mono font-semibold'>
+                    s
+                  </span>
+                  {soraSummary.tierCount > 0 && (
+                    <span className='text-muted-foreground/60 ml-1 text-xs'>
+                      ({t('{{count}} tiers', { count: soraSummary.tierCount })})
+                    </span>
+                  )}
+                </span>
               ) : isTokenBased ? (
                 <>
                   <span className='text-muted-foreground whitespace-nowrap'>
@@ -240,7 +271,11 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             </span>
           )}
           <span className='text-muted-foreground text-xs font-medium'>
-            {isTokenBased ? t('Token-based') : t('Per Request')}
+            {isTokenBased
+              ? t('Token-based')
+              : isSoraPricing
+                ? t('Sora parameter pricing')
+                : t('Per Request')}
           </span>
           {isDynamicPricing && (
             <StatusBadge

@@ -26,6 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CopyButton } from '@/components/copy-button'
 import { GroupBadge } from '@/components/group-badge'
 import { PublicLayout } from '@/components/layout'
+import { StatusBadge } from '@/components/status-badge'
 import { getPerfMetrics } from '../api'
 import { DEFAULT_TOKEN_UNIT, QUOTA_TYPE_VALUES } from '../constants'
 import { usePricingData } from '../hooks/use-pricing-data'
@@ -43,7 +44,13 @@ import {
 } from '../lib/mock-stats'
 import { getAvailableGroups, isTokenBasedModel } from '../lib/model-helpers'
 import { inferModelMetadata } from '../lib/model-metadata'
-import { formatFixedPrice, formatGroupPrice } from '../lib/price'
+import {
+  formatFixedPrice,
+  formatGroupPrice,
+  getSoraPricingDisplay,
+  isSoraPerRequestPricingModel,
+  stripTrailingZeros,
+} from '../lib/price'
 import type {
   Modality,
   ModelCapability,
@@ -259,6 +266,7 @@ function ModelHeader(props: { model: PricingModel }) {
     model.billing_mode === 'tiered_expr' &&
     Boolean(model.billing_expr) &&
     getDynamicPricingTiers(model).length === 0
+  const isSoraPricing = isSoraPerRequestPricingModel(model)
 
   return (
     <header className='pb-4'>
@@ -290,6 +298,17 @@ function ModelHeader(props: { model: PricingModel }) {
             ? t('Token-based')
             : t('Per Request')}
         </span>
+        {isSoraPricing && (
+          <>
+            <span className='text-muted-foreground/30'>路</span>
+            <StatusBadge
+              label={t('Sora parameter pricing')}
+              variant='orange'
+              copyable={false}
+              size='sm'
+            />
+          </>
+        )}
         {model.billing_mode === 'tiered_expr' && model.billing_expr && (
           <>
             <span className='text-muted-foreground/30'>·</span>
@@ -344,6 +363,11 @@ function PriceSection(props: {
     priceRate: props.priceRate,
     usdExchangeRate: props.usdExchangeRate,
     groupRatioMultiplier: 1,
+  })
+  const soraSummary = getSoraPricingDisplay(props.model, {
+    showRechargePrice: props.showRechargePrice,
+    priceRate: props.priceRate,
+    usdExchangeRate: props.usdExchangeRate,
   })
 
   const primaryPriceTypes: { label: string; type: PriceType }[] = [
@@ -462,6 +486,47 @@ function PriceSection(props: {
             </div>
           </div>
         )}
+      </section>
+    )
+  }
+
+  if (soraSummary) {
+    return (
+      <section>
+        <SectionTitle>{t('Base Price')}</SectionTitle>
+        <div className='rounded-lg border p-3'>
+          <div className='flex items-baseline justify-between gap-3'>
+            <span className='text-muted-foreground text-sm'>
+              {t('Base price per second')}
+            </span>
+            <span className='text-foreground font-mono text-sm font-semibold tabular-nums'>
+              {stripTrailingZeros(soraSummary.basePrice)}
+              <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
+                /s
+              </span>
+            </span>
+          </div>
+          {soraSummary.resolutionTiers.length > 0 && (
+            <div className='mt-3 grid gap-2 sm:grid-cols-2'>
+              {soraSummary.resolutionTiers.map((tier) => (
+                <div
+                  key={tier.key}
+                  className='bg-muted/20 rounded-lg border p-3'
+                >
+                  <div className='text-muted-foreground text-xs'>
+                    {tier.label} (x{tier.multiplier})
+                  </div>
+                  <div className='text-foreground mt-1 font-mono text-base font-semibold tabular-nums'>
+                    {stripTrailingZeros(tier.price)}
+                    <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
+                      /s
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </section>
     )
   }
@@ -598,6 +663,7 @@ function GroupPricingSection(props: {
   )
 
   const isTokenBased = isTokenBasedModel(props.model)
+  const isSoraPricing = isSoraPerRequestPricingModel(props.model)
   const tokenUnitLabel = props.tokenUnit === 'K' ? '1K' : '1M'
 
   const extraPriceTypes = useMemo(() => {
@@ -786,7 +852,7 @@ function GroupPricingSection(props: {
                 </>
               ) : (
                 <TableHead className={`${thClass} text-right`}>
-                  {t('Price')}
+                  {isSoraPricing ? t('Base price per second') : t('Price')}
                 </TableHead>
               )}
             </TableRow>
@@ -855,6 +921,11 @@ function GroupPricingSection(props: {
                         props.priceRate,
                         props.usdExchangeRate,
                         props.groupRatio
+                      )}
+                      {isSoraPricing && (
+                        <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
+                          /s
+                        </span>
                       )}
                     </TableCell>
                   )}

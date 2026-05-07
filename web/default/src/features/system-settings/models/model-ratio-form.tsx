@@ -28,6 +28,7 @@ type ModelFormValues = {
   ExposeRatioEnabled: boolean
   BillingMode: string
   BillingExpr: string
+  SoraPerRequestPricing: string
 }
 
 type ModelRatioFormProps = {
@@ -94,10 +95,13 @@ export const ModelRatioForm = memo(function ModelRatioForm({
               audioCompletionRatio={form.watch('AudioCompletionRatio')}
               billingMode={form.watch('BillingMode')}
               billingExpr={form.watch('BillingExpr')}
+              soraPerRequestPricing={form.watch('SoraPerRequestPricing')}
               onChange={(field, value) => {
                 const fieldMap: Record<string, keyof ModelFormValues> = {
                   'billing_setting.billing_mode': 'BillingMode',
                   'billing_setting.billing_expr': 'BillingExpr',
+                  'billing_setting.sora_per_request_pricing':
+                    'SoraPerRequestPricing',
                 }
                 const formField =
                   fieldMap[field] || (field as keyof ModelFormValues)
@@ -290,6 +294,23 @@ export const ModelRatioForm = memo(function ModelRatioForm({
                     {t(
                       'Ratio applied to audio completions for streaming models.'
                     )}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='SoraPerRequestPricing'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('Sora per-request pricing')}</FormLabel>
+                  <FormControl>
+                    <Textarea rows={8} {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    {t('JSON map of model → Sora per-request pricing config.')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

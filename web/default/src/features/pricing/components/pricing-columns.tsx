@@ -19,6 +19,7 @@ import { isTokenBasedModel } from '../lib/model-helpers'
 import {
   formatPrice,
   formatRequestPrice,
+  getSoraPricingDisplay,
   stripTrailingZeros,
 } from '../lib/price'
 import type { PricingModel, TokenUnit } from '../types'
@@ -205,6 +206,30 @@ export function usePricingColumns(
                 {dynamicSummary.tierCount > 1 &&
                   ` · ${t('{{count}} tiers', {
                     count: dynamicSummary.tierCount,
+                  })}`}
+              </div>
+            </div>
+          )
+        }
+
+        const soraSummary = getSoraPricingDisplay(model, {
+          showRechargePrice,
+          priceRate,
+          usdExchangeRate,
+        })
+
+        if (soraSummary) {
+          return (
+            <div className='min-w-[180px]'>
+              <span className='font-mono text-sm tabular-nums'>
+                {stripTrailingZeros(soraSummary.basePrice)}
+                <span className='text-muted-foreground/40 mx-1'>/</span>s
+              </span>
+              <div className='text-muted-foreground/50 text-[10px]'>
+                {t('Base price per second')}
+                {soraSummary.tierCount > 0 &&
+                  ` • ${t('{{count}} tiers', {
+                    count: soraSummary.tierCount,
                   })}`}
               </div>
             </div>

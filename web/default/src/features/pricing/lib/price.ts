@@ -1,7 +1,12 @@
-import { formatCurrencyFromUSD } from "@/lib/currency";
-import { isDisplayEnabled } from "@/lib/marketplace-display";
-import { QUOTA_TYPE_VALUES, TOKEN_UNIT_DIVISORS } from "../constants";
-import type { PricingModel, TokenUnit, PriceType } from "../types";
+import { formatCurrencyFromUSD } from '@/lib/currency'
+import { isDisplayEnabled } from '@/lib/marketplace-display'
+import { QUOTA_TYPE_VALUES, TOKEN_UNIT_DIVISORS } from '../constants'
+import type {
+  PricingModel,
+  PriceType,
+  SoraResolutionTier,
+  TokenUnit,
+} from '../types'
 
 // ----------------------------------------------------------------------------
 // Price Calculation Utilities
@@ -12,27 +17,27 @@ import type { PricingModel, TokenUnit, PriceType } from "../types";
  */
 export function stripTrailingZeros(formatted: string): string {
   // Match currency symbol at start, number, and potential 'k' suffix
-  const match = formatted.match(/^([^\d-]*)([-\d,]+\.?\d*)(k?)$/);
-  if (!match) return formatted;
+  const match = formatted.match(/^([^\d-]*)([-\d,]+\.?\d*)(k?)$/)
+  if (!match) return formatted
 
-  const [, symbol, number, suffix] = match;
+  const [, symbol, number, suffix] = match
 
   // Remove commas for processing
-  const cleanNumber = number.replace(/,/g, "");
+  const cleanNumber = number.replace(/,/g, '')
 
   // Convert to number and back to remove trailing zeros
-  const parsed = parseFloat(cleanNumber);
-  if (isNaN(parsed)) return formatted;
+  const parsed = parseFloat(cleanNumber)
+  if (isNaN(parsed)) return formatted
 
   // Convert to string, which automatically removes trailing zeros
-  let result = parsed.toString();
+  let result = parsed.toString()
 
   // If the result is in scientific notation, format it properly
-  if (result.includes("e")) {
-    result = parsed.toFixed(20).replace(/\.?0+$/, "");
+  if (result.includes('e')) {
+    result = parsed.toFixed(20).replace(/\.?0+$/, '')
   }
 
-  return `${symbol}${result}${suffix}`;
+  return `${symbol}${result}${suffix}`
 }
 
 /**
@@ -40,49 +45,145 @@ export function stripTrailingZeros(formatted: string): string {
  */
 export function getMinGroupRatio(
   enableGroups: string[],
-  groupRatio: Record<string, number>,
+  groupRatio: Record<string, number>
 ): number {
-  if (enableGroups.length === 0) return 1;
+  if (enableGroups.length === 0) return 1
 
-  let minRatio = Number.POSITIVE_INFINITY;
+  let minRatio = Number.POSITIVE_INFINITY
 
   for (const group of enableGroups) {
-    const ratio = groupRatio[group];
+    const ratio = groupRatio[group]
     if (ratio !== undefined && ratio < minRatio) {
-      minRatio = ratio;
+      minRatio = ratio
     }
   }
 
-  return minRatio === Number.POSITIVE_INFINITY ? 1 : minRatio;
+  return minRatio === Number.POSITIVE_INFINITY ? 1 : minRatio
+}
+
+export type SoraPricingDisplayTier = {
+  key: string
+  label: string
+  multiplier: number
+  price: string
+}
+
+export type SoraPricingDisplay = {
+  basePrice: string
+  tierCount: number
+  resolutionTiers: SoraPricingDisplayTier[]
+}
+
+type SoraPricingOptions = {
+  showRechargePrice?: boolean
+  priceRate?: number
+  usdExchangeRate?: number
+}
+
+export function isSoraPerRequestPricingModel(model: PricingModel): boolean {
+  return (
+    model.quota_type === QUOTA_TYPE_VALUES.REQUEST &&
+    Boolean(model.sora_per_request_pricing?.enabled)
+  )
+}
+
+function getSoraBasePriceUSD(model: PricingModel): number {
+  const enableGroups = Array.isArray(model.enable_groups)
+    ? model.enable_groups
+    : []
+  const groupRatio = model.group_ratio || {}
+  const minRatio = getMinGroupRatio(enableGroups, groupRatio)
+  return (model.model_price || 0) * minRatio
+}
+
+function normalizeSoraResolutionTiers(
+  tiers: SoraResolutionTier[] | undefined | null
+): SoraResolutionTier[] {
+  if (!Array.isArray(tiers)) return []
+
+  return tiers
+    .map((tier) => ({
+      value: String(tier?.value || '').trim(),
+      multiplier: Number(tier?.multiplier),
+    }))
+    .filter(
+      (tier) =>
+        Boolean(tier.value) &&
+        Number.isFinite(tier.multiplier) &&
+        tier.multiplier > 0
+    )
+}
+
+export function getSoraPricingDisplay(
+  model: PricingModel,
+  options: SoraPricingOptions = {}
+): SoraPricingDisplay | null {
+  if (!isSoraPerRequestPricingModel(model)) return null
+
+  const priceRate = options.priceRate ?? 1
+  const usdExchangeRate = options.usdExchangeRate ?? 1
+  const showRechargePrice = options.showRechargePrice ?? false
+
+  let basePriceInUSD = getSoraBasePriceUSD(model)
+  basePriceInUSD = applyRechargeRate(
+    basePriceInUSD,
+    showRechargePrice,
+    priceRate,
+    usdExchangeRate
+  )
+
+  const basePrice = formatCurrencyFromUSD(basePriceInUSD, {
+    digitsLarge: 4,
+    digitsSmall: 4,
+    abbreviate: false,
+  })
+  const resolutionTiers = normalizeSoraResolutionTiers(
+    model.sora_per_request_pricing?.resolution_tiers
+  ).map((tier) => ({
+    key: tier.value,
+    label: tier.value,
+    multiplier: tier.multiplier,
+    price: formatCurrencyFromUSD(basePriceInUSD * tier.multiplier, {
+      digitsLarge: 4,
+      digitsSmall: 4,
+      abbreviate: false,
+    }),
+  }))
+
+  return {
+    basePrice,
+    tierCount: resolutionTiers.length,
+    resolutionTiers,
+  }
 }
 
 export function getOriginalPriceGroup(model: PricingModel): string | null {
-  if (!isDisplayEnabled(model.discount_enabled)) return null;
-  if (model.billing_mode === "tiered_expr" && model.billing_expr) return null;
+  if (!isDisplayEnabled(model.discount_enabled)) return null
+  if (model.billing_mode === 'tiered_expr' && model.billing_expr) return null
 
-  const source = model.display_original_price_source || "none";
-  if (source === "none") return null;
+  const source = model.display_original_price_source || 'none'
+  if (source === 'none') return null
 
   const group =
-    source === "default"
-      ? "default"
-      : String(model.display_original_price_group || "").trim();
+    source === 'default'
+      ? 'default'
+      : String(model.display_original_price_group || '').trim()
 
-  if (!group) return null;
+  if (!group) return null
 
-  const groupRatio = model.group_ratio || {};
-  const currentRatio = getMinGroupRatio(model.enable_groups || [], groupRatio);
-  const referenceRatio = groupRatio[group] ?? 1;
+  const groupRatio = model.group_ratio || {}
+  const currentRatio = getMinGroupRatio(model.enable_groups || [], groupRatio)
+  const referenceRatio = groupRatio[group] ?? 1
 
   if (
     Number.isFinite(currentRatio) &&
     Number.isFinite(referenceRatio) &&
     referenceRatio <= currentRatio
   ) {
-    return null;
+    return null
   }
 
-  return group;
+  return group
 }
 
 /**
@@ -94,45 +195,43 @@ export function getOriginalPriceGroup(model: PricingModel): string | null {
 function calculateTokenPrice(
   model: PricingModel,
   type: PriceType,
-  ratio: number,
+  ratio: number
 ): number {
-  const base = model.model_ratio * 2 * ratio;
+  const base = model.model_ratio * 2 * ratio
 
   switch (type) {
-    case "input":
-      return base;
-    case "output":
-      return base * model.completion_ratio;
-    case "cache":
+    case 'input':
+      return base
+    case 'output':
+      return base * model.completion_ratio
+    case 'cache':
       return hasRatio(model.cache_ratio)
         ? base * Number(model.cache_ratio)
-        : NaN;
-    case "create_cache":
+        : NaN
+    case 'create_cache':
       return hasRatio(model.create_cache_ratio)
         ? base * Number(model.create_cache_ratio)
-        : NaN;
-    case "image":
+        : NaN
+    case 'image':
       return hasRatio(model.image_ratio)
         ? base * Number(model.image_ratio)
-        : NaN;
-    case "audio_input":
+        : NaN
+    case 'audio_input':
       return hasRatio(model.audio_ratio)
         ? base * Number(model.audio_ratio)
-        : NaN;
-    case "audio_output":
+        : NaN
+    case 'audio_output':
       return hasRatio(model.audio_ratio) &&
         hasRatio(model.audio_completion_ratio)
         ? base *
             Number(model.audio_ratio) *
             Number(model.audio_completion_ratio)
-        : NaN;
+        : NaN
   }
 }
 
 function hasRatio(value: number | null | undefined): boolean {
-  return (
-    value !== undefined && value !== null && Number.isFinite(Number(value))
-  );
+  return value !== undefined && value !== null && Number.isFinite(Number(value))
 }
 
 /**
@@ -165,10 +264,10 @@ function applyRechargeRate(
   price: number,
   showWithRecharge: boolean,
   priceRate: number,
-  usdExchangeRate: number,
+  usdExchangeRate: number
 ): number {
-  if (!showWithRecharge) return price;
-  return (price * priceRate) / usdExchangeRate;
+  if (!showWithRecharge) return price
+  return (price * priceRate) / usdExchangeRate
 }
 
 /**
@@ -180,32 +279,32 @@ export function formatPrice(
   tokenUnit: TokenUnit,
   showWithRecharge = false,
   priceRate = 1,
-  usdExchangeRate = 1,
+  usdExchangeRate = 1
 ): string {
   if (model.quota_type === QUOTA_TYPE_VALUES.REQUEST) {
-    return "-";
+    return '-'
   }
 
   const enableGroups = Array.isArray(model.enable_groups)
     ? model.enable_groups
-    : [];
-  const groupRatio = model.group_ratio || {};
-  const minRatio = getMinGroupRatio(enableGroups, groupRatio);
+    : []
+  const groupRatio = model.group_ratio || {}
+  const minRatio = getMinGroupRatio(enableGroups, groupRatio)
 
-  let priceInUSD = calculateTokenPrice(model, type, minRatio);
+  let priceInUSD = calculateTokenPrice(model, type, minRatio)
   priceInUSD = applyRechargeRate(
     priceInUSD,
     showWithRecharge,
     priceRate,
-    usdExchangeRate,
-  );
+    usdExchangeRate
+  )
 
-  const price = priceInUSD / TOKEN_UNIT_DIVISORS[tokenUnit];
+  const price = priceInUSD / TOKEN_UNIT_DIVISORS[tokenUnit]
   return formatCurrencyFromUSD(price, {
     digitsLarge: 4,
     digitsSmall: 6,
     abbreviate: false,
-  });
+  })
 }
 
 /**
@@ -219,28 +318,28 @@ export function formatGroupPrice(
   showWithRecharge = false,
   priceRate = 1,
   usdExchangeRate = 1,
-  groupRatio: Record<string, number>,
+  groupRatio: Record<string, number>
 ): string {
   if (model.quota_type === QUOTA_TYPE_VALUES.REQUEST) {
-    return "-";
+    return '-'
   }
 
-  const ratio = groupRatio[group] || 1;
-  let priceInUSD = calculateTokenPrice(model, type, ratio);
+  const ratio = groupRatio[group] || 1
+  let priceInUSD = calculateTokenPrice(model, type, ratio)
 
   priceInUSD = applyRechargeRate(
     priceInUSD,
     showWithRecharge,
     priceRate,
-    usdExchangeRate,
-  );
+    usdExchangeRate
+  )
 
-  const price = priceInUSD / TOKEN_UNIT_DIVISORS[tokenUnit];
+  const price = priceInUSD / TOKEN_UNIT_DIVISORS[tokenUnit]
   return formatCurrencyFromUSD(price, {
     digitsLarge: 4,
     digitsSmall: 6,
     abbreviate: false,
-  });
+  })
 }
 
 /**
@@ -252,27 +351,27 @@ export function formatFixedPrice(
   showWithRecharge = false,
   priceRate = 1,
   usdExchangeRate = 1,
-  groupRatio: Record<string, number>,
+  groupRatio: Record<string, number>
 ): string {
   if (model.quota_type !== QUOTA_TYPE_VALUES.REQUEST) {
-    return "-";
+    return '-'
   }
 
-  const ratio = groupRatio[group] || 1;
-  let priceInUSD = (model.model_price || 0) * ratio;
+  const ratio = groupRatio[group] || 1
+  let priceInUSD = (model.model_price || 0) * ratio
 
   priceInUSD = applyRechargeRate(
     priceInUSD,
     showWithRecharge,
     priceRate,
-    usdExchangeRate,
-  );
+    usdExchangeRate
+  )
 
   return formatCurrencyFromUSD(priceInUSD, {
     digitsLarge: 4,
     digitsSmall: 4,
     abbreviate: false,
-  });
+  })
 }
 
 /**
@@ -282,30 +381,30 @@ export function formatRequestPrice(
   model: PricingModel,
   showWithRecharge = false,
   priceRate = 1,
-  usdExchangeRate = 1,
+  usdExchangeRate = 1
 ): string {
   if (model.quota_type !== QUOTA_TYPE_VALUES.REQUEST) {
-    return "-";
+    return '-'
   }
 
   const enableGroups = Array.isArray(model.enable_groups)
     ? model.enable_groups
-    : [];
-  const groupRatio = model.group_ratio || {};
-  const minRatio = getMinGroupRatio(enableGroups, groupRatio);
+    : []
+  const groupRatio = model.group_ratio || {}
+  const minRatio = getMinGroupRatio(enableGroups, groupRatio)
 
-  let priceInUSD = (model.model_price || 0) * minRatio;
+  let priceInUSD = (model.model_price || 0) * minRatio
 
   priceInUSD = applyRechargeRate(
     priceInUSD,
     showWithRecharge,
     priceRate,
-    usdExchangeRate,
-  );
+    usdExchangeRate
+  )
 
   return formatCurrencyFromUSD(priceInUSD, {
     digitsLarge: 4,
     digitsSmall: 4,
     abbreviate: false,
-  });
+  })
 }

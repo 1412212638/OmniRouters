@@ -112,6 +112,15 @@ const modelSchema = z.object({
       })
     }
   }),
+  SoraPerRequestPricing: z.string().superRefine((value, ctx) => {
+    const result = validateJsonString(value)
+    if (!result.valid) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: result.message || 'Invalid JSON',
+      })
+    }
+  }),
 })
 
 const groupSchema = z.object({
@@ -233,6 +242,9 @@ export function RatioSettingsCard({
     ExposeRatioEnabled: modelDefaults.ExposeRatioEnabled,
     BillingMode: normalizeJsonString(modelDefaults.BillingMode),
     BillingExpr: normalizeJsonString(modelDefaults.BillingExpr),
+    SoraPerRequestPricing: normalizeJsonString(
+      modelDefaults.SoraPerRequestPricing
+    ),
   })
 
   const groupNormalizedDefaults = useRef({
@@ -264,6 +276,9 @@ export function RatioSettingsCard({
       ),
       BillingMode: formatJsonForTextarea(modelDefaults.BillingMode),
       BillingExpr: formatJsonForTextarea(modelDefaults.BillingExpr),
+      SoraPerRequestPricing: formatJsonForTextarea(
+        modelDefaults.SoraPerRequestPricing
+      ),
     },
   })
 
@@ -298,6 +313,9 @@ export function RatioSettingsCard({
       ExposeRatioEnabled: modelDefaults.ExposeRatioEnabled,
       BillingMode: normalizeJsonString(modelDefaults.BillingMode),
       BillingExpr: normalizeJsonString(modelDefaults.BillingExpr),
+      SoraPerRequestPricing: normalizeJsonString(
+        modelDefaults.SoraPerRequestPricing
+      ),
     }
 
     modelForm.reset({
@@ -314,6 +332,9 @@ export function RatioSettingsCard({
       ),
       BillingMode: formatJsonForTextarea(modelDefaults.BillingMode),
       BillingExpr: formatJsonForTextarea(modelDefaults.BillingExpr),
+      SoraPerRequestPricing: formatJsonForTextarea(
+        modelDefaults.SoraPerRequestPricing
+      ),
     })
   }, [modelDefaults, modelForm])
 
@@ -357,11 +378,15 @@ export function RatioSettingsCard({
         ExposeRatioEnabled: values.ExposeRatioEnabled,
         BillingMode: normalizeJsonString(values.BillingMode),
         BillingExpr: normalizeJsonString(values.BillingExpr),
+        SoraPerRequestPricing: normalizeJsonString(
+          values.SoraPerRequestPricing
+        ),
       }
 
       const apiKeyMap: Record<string, string> = {
         BillingMode: 'billing_setting.billing_mode',
         BillingExpr: 'billing_setting.billing_expr',
+        SoraPerRequestPricing: 'billing_setting.sora_per_request_pricing',
       }
 
       const updates = (

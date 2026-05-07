@@ -41,12 +41,18 @@ import {
   combineBillingExpr,
   splitBillingExprAndRequestRules,
 } from '@/features/pricing/lib/billing-expr'
+import type { SoraPerRequestPricing } from '@/features/pricing/types'
 import { safeJsonParse } from '../utils/json-parser'
 import {
   ModelPricingEditorPanel,
   ModelPricingSheet,
   type ModelRatioData,
 } from './model-pricing-sheet'
+import {
+  cloneSoraResolutionTiers,
+  normalizeSoraResolutionTiers,
+  serializeSoraPerRequestPricing,
+} from './utils'
 
 type ModelRatioVisualEditorProps = {
   modelPrice: string
@@ -59,6 +65,7 @@ type ModelRatioVisualEditorProps = {
   audioCompletionRatio: string
   billingMode: string
   billingExpr: string
+  soraPerRequestPricing: string
   onChange: (field: string, value: string) => void
 }
 
@@ -75,6 +82,8 @@ type ModelRow = {
   billingMode?: string
   billingExpr?: string
   requestRuleExpr?: string
+  soraPerRequestPricingEnabled?: boolean
+  soraResolutionTiers?: ModelRatioData['soraResolutionTiers']
   hasConflict: boolean
 }
 
@@ -107,13 +116,18 @@ const filterBySelectedValues = (
   return filterValue.includes(String(rowValue))
 }
 
-const getModeLabel = (mode?: string) => {
+const getModeLabel = (mode?: string, soraEnabled = false) => {
+  if (mode === 'per-request' && soraEnabled) return 'Sora parameter pricing'
   if (mode === 'per-request') return 'Per-request'
   if (mode === 'tiered_expr') return 'Expression'
   return 'Per-token'
 }
 
-const getModeVariant = (mode?: string): 'warning' | 'info' | 'success' => {
+const getModeVariant = (
+  mode?: string,
+  soraEnabled = false
+): 'warning' | 'info' | 'success' | 'orange' => {
+  if (mode === 'per-request' && soraEnabled) return 'orange'
   if (mode === 'per-request') return 'warning'
   if (mode === 'tiered_expr') return 'info'
   return 'success'
@@ -127,9 +141,31 @@ const getExpressionSummary = (row: ModelRow, t: (key: string) => string) => {
   return t('Expression pricing')
 }
 
+const getSoraTierCount = (tiers?: ModelRatioData['soraResolutionTiers']) =>
+  normalizeSoraResolutionTiers(tiers || []).length
+
+const getSoraPriceSummary = (row: ModelRow, t: (key: string) => string) => {
+  const tierCount = getSoraTierCount(row.soraResolutionTiers)
+  if (!row.price) return t('Unset price')
+  return tierCount > 0
+    ? `${t('Sora parameter pricing')} $${row.price} / s • ${tierCount} ${t('tiers')}`
+    : `${t('Sora parameter pricing')} $${row.price} / s`
+}
+
+const getSoraPriceDetail = (row: ModelRow, t: (key: string) => string) => {
+  const tiers = normalizeSoraResolutionTiers(row.soraResolutionTiers || [])
+  if (tiers.length === 0) {
+    return t('Resolution tiers not configured')
+  }
+  return tiers.map((tier) => `${tier.value} (x${tier.multiplier})`).join(' • ')
+}
+
 const getPriceSummary = (row: ModelRow, t: (key: string) => string) => {
   if (row.billingMode === 'tiered_expr') {
     return getExpressionSummary(row, t)
+  }
+  if (row.billingMode === 'per-request' && row.soraPerRequestPricingEnabled) {
+    return getSoraPriceSummary(row, t)
   }
   if (row.billingMode === 'per-request') {
     return row.price ? `$${row.price} / ${t('request')}` : t('Unset price')
@@ -157,6 +193,9 @@ const getPriceDetail = (row: ModelRow, t: (key: string) => string) => {
     return row.requestRuleExpr
       ? t('Includes request rules')
       : t('Expression based')
+  }
+  if (row.billingMode === 'per-request' && row.soraPerRequestPricingEnabled) {
+    return getSoraPriceDetail(row, t)
   }
   if (row.billingMode === 'per-request') {
     return t('Fixed request price')
@@ -189,6 +228,7 @@ export const ModelRatioVisualEditor = memo(
     audioCompletionRatio,
     billingMode,
     billingExpr,
+    soraPerRequestPricing,
     onChange,
   }: ModelRatioVisualEditorProps) {
     const { t } = useTranslation()
@@ -290,6 +330,12 @@ export const ModelRatioVisualEditor = memo(
           context: 'billing expression',
         }
       )
+      const soraPricingMap = safeJsonParse<
+        Record<string, SoraPerRequestPricing>
+      >(soraPerRequestPricing, {
+        fallback: {},
+        context: 'sora pricing',
+      })
 
       const modelNames = new Set([
         ...Object.keys(priceMap),
@@ -302,6 +348,7 @@ export const ModelRatioVisualEditor = memo(
         ...Object.keys(audioCompletionMap),
         ...Object.keys(billingModeMap),
         ...Object.keys(billingExprMap),
+        ...Object.keys(soraPricingMap),
       ])
 
       const modelData: ModelRow[] = Array.from(modelNames).map((name) => {
@@ -313,6 +360,11 @@ export const ModelRatioVisualEditor = memo(
         const image = imageMap[name]?.toString() || ''
         const audio = audioMap[name]?.toString() || ''
         const audioCompletion = audioCompletionMap[name]?.toString() || ''
+        const soraPricing = soraPricingMap[name]
+        const soraPerRequestPricingEnabled = Boolean(soraPricing?.enabled)
+        const soraResolutionTiers = cloneSoraResolutionTiers(
+          soraPricing?.resolution_tiers
+        )
 
         const modeForModel = billingModeMap[name]
         if (modeForModel === 'tiered_expr') {
@@ -335,6 +387,8 @@ export const ModelRatioVisualEditor = memo(
             imageRatio: image,
             audioRatio: audio,
             audioCompletionRatio: audioCompletion,
+            soraPerRequestPricingEnabled,
+            soraResolutionTiers,
             hasConflict: false,
           }
         }
@@ -349,7 +403,12 @@ export const ModelRatioVisualEditor = memo(
           imageRatio: image,
           audioRatio: audio,
           audioCompletionRatio: audioCompletion,
-          billingMode: price !== '' ? 'per-request' : 'per-token',
+          billingMode:
+            price !== '' || soraPerRequestPricingEnabled
+              ? 'per-request'
+              : 'per-token',
+          soraPerRequestPricingEnabled,
+          soraResolutionTiers,
           hasConflict:
             price !== '' &&
             (ratio !== '' ||
@@ -374,6 +433,7 @@ export const ModelRatioVisualEditor = memo(
       audioCompletionRatio,
       billingMode,
       billingExpr,
+      soraPerRequestPricing,
     ])
 
     const modeCounts = useMemo(
@@ -414,9 +474,16 @@ export const ModelRatioVisualEditor = memo(
               ? 'tiered_expr'
               : model.price && model.price !== ''
                 ? 'per-request'
-                : 'per-token',
+                : model.soraPerRequestPricingEnabled
+                  ? 'per-request'
+                  : 'per-token',
           billingExpr: model.billingExpr,
           requestRuleExpr: model.requestRuleExpr,
+          soraPerRequestPricingEnabled:
+            model.soraPerRequestPricingEnabled ?? false,
+          soraResolutionTiers: cloneSoraResolutionTiers(
+            model.soraResolutionTiers
+          ),
         })
         setEditorOpen(true)
         if (isMobile) setSheetOpen(true)
@@ -494,6 +561,9 @@ export const ModelRatioVisualEditor = memo(
           billingExpr,
           { fallback: {}, silent: true }
         )
+        const soraPricingMap = safeJsonParse<
+          Record<string, SoraPerRequestPricing>
+        >(soraPerRequestPricing, { fallback: {}, silent: true })
 
         delete priceMap[name]
         delete ratioMap[name]
@@ -505,6 +575,7 @@ export const ModelRatioVisualEditor = memo(
         delete audioCompletionMap[name]
         delete billingModeMap[name]
         delete billingExprMap[name]
+        delete soraPricingMap[name]
 
         onChange('ModelPrice', JSON.stringify(priceMap, null, 2))
         onChange('ModelRatio', JSON.stringify(ratioMap, null, 2))
@@ -525,6 +596,10 @@ export const ModelRatioVisualEditor = memo(
           'billing_setting.billing_expr',
           JSON.stringify(billingExprMap, null, 2)
         )
+        onChange(
+          'billing_setting.sora_per_request_pricing',
+          JSON.stringify(soraPricingMap, null, 2)
+        )
       },
       [
         modelPrice,
@@ -537,6 +612,7 @@ export const ModelRatioVisualEditor = memo(
         audioCompletionRatio,
         billingMode,
         billingExpr,
+        soraPerRequestPricing,
         onChange,
       ]
     )
@@ -601,8 +677,16 @@ export const ModelRatioVisualEditor = memo(
           ),
           cell: ({ row }) => (
             <StatusBadge
-              label={t(getModeLabel(row.original.billingMode))}
-              variant={getModeVariant(row.original.billingMode)}
+              label={t(
+                getModeLabel(
+                  row.original.billingMode,
+                  Boolean(row.original.soraPerRequestPricingEnabled)
+                )
+              )}
+              variant={getModeVariant(
+                row.original.billingMode,
+                Boolean(row.original.soraPerRequestPricingEnabled)
+              )}
               copyable={false}
             />
           ),
@@ -729,6 +813,9 @@ export const ModelRatioVisualEditor = memo(
           billingExpr,
           { fallback: {}, silent: true }
         )
+        const soraPricingMap = safeJsonParse<
+          Record<string, SoraPerRequestPricing>
+        >(soraPerRequestPricing, { fallback: {}, silent: true })
 
         const setIfPresent = (
           target: Record<string, number>,
@@ -751,6 +838,7 @@ export const ModelRatioVisualEditor = memo(
           delete audioCompletionMap[name]
           delete billingModeMap[name]
           delete billingExprMap[name]
+          delete soraPricingMap[name]
 
           if (data.billingMode === 'tiered_expr') {
             const combined = combineBillingExpr(
@@ -775,6 +863,15 @@ export const ModelRatioVisualEditor = memo(
             setIfPresent(audioCompletionMap, name, data.audioCompletionRatio)
           } else if (data.price && data.price !== '') {
             setIfPresent(priceMap, name, data.price)
+            if (data.billingMode === 'per-request') {
+              const soraPricing = serializeSoraPerRequestPricing(
+                Boolean(data.soraPerRequestPricingEnabled),
+                data.soraResolutionTiers || []
+              )
+              if (soraPricing) {
+                soraPricingMap[name] = soraPricing
+              }
+            }
           } else {
             setIfPresent(ratioMap, name, data.ratio)
             setIfPresent(cacheMap, name, data.cacheRatio)
@@ -805,6 +902,10 @@ export const ModelRatioVisualEditor = memo(
           'billing_setting.billing_expr',
           JSON.stringify(billingExprMap, null, 2)
         )
+        onChange(
+          'billing_setting.sora_per_request_pricing',
+          JSON.stringify(soraPricingMap, null, 2)
+        )
       },
       [
         modelPrice,
@@ -817,6 +918,7 @@ export const ModelRatioVisualEditor = memo(
         audioCompletionRatio,
         billingMode,
         billingExpr,
+        soraPerRequestPricing,
         onChange,
       ]
     )
@@ -1022,6 +1124,7 @@ export const ModelRatioVisualEditor = memo(
       prevProps.audioCompletionRatio === nextProps.audioCompletionRatio &&
       prevProps.billingMode === nextProps.billingMode &&
       prevProps.billingExpr === nextProps.billingExpr &&
+      prevProps.soraPerRequestPricing === nextProps.soraPerRequestPricing &&
       prevProps.onChange === nextProps.onChange
     )
   }

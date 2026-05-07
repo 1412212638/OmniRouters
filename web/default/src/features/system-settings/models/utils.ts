@@ -1,3 +1,8 @@
+import type {
+  SoraPerRequestPricing,
+  SoraResolutionTier,
+} from '@/features/pricing/types'
+
 export function formatJsonForTextarea(value: string) {
   if (!value || !value.trim()) {
     return ''
@@ -22,6 +27,69 @@ export function normalizeJsonString(value: string) {
     return JSON.stringify(parsed)
   } catch {
     return trimmed
+  }
+}
+
+export type SoraResolutionTierDraft = {
+  value: string
+  multiplier: string
+}
+
+export function cloneSoraResolutionTiers(
+  tiers?: Array<
+    | Partial<SoraResolutionTier>
+    | Partial<SoraResolutionTierDraft>
+    | null
+    | undefined
+  > | null
+): SoraResolutionTierDraft[] {
+  if (!Array.isArray(tiers)) return []
+
+  return tiers.map((tier) => ({
+    value: String(tier?.value ?? ''),
+    multiplier: String(tier?.multiplier ?? ''),
+  }))
+}
+
+export function normalizeSoraResolutionTiers(
+  tiers: SoraResolutionTierDraft[]
+): SoraResolutionTierDraft[] {
+  return cloneSoraResolutionTiers(tiers)
+    .map((tier) => ({
+      value: tier.value.trim(),
+      multiplier: tier.multiplier.trim(),
+    }))
+    .filter((tier) => tier.value || tier.multiplier)
+}
+
+export function serializeSoraPerRequestPricing(
+  enabled: boolean,
+  tiers: SoraResolutionTierDraft[]
+): SoraPerRequestPricing | null {
+  const normalized = normalizeSoraResolutionTiers(tiers)
+  if (!enabled && normalized.length === 0) {
+    return null
+  }
+
+  const tierNames = normalized.map((tier) => tier.value)
+  if (new Set(tierNames).size !== tierNames.length) {
+    throw new Error('Sora resolution tiers must be unique')
+  }
+
+  const parsedTiers = normalized.map((tier) => {
+    const multiplier = Number(tier.multiplier)
+    if (!Number.isFinite(multiplier) || multiplier <= 0) {
+      throw new Error('Sora tier multiplier must be greater than 0')
+    }
+    return {
+      value: tier.value,
+      multiplier,
+    }
+  })
+
+  return {
+    enabled,
+    resolution_tiers: parsedTiers,
   }
 }
 

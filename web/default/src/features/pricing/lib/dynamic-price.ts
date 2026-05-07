@@ -119,24 +119,26 @@ export function getDynamicPriceEntries(
 ): DynamicPriceEntry[] {
   if (!tier) return []
 
-  const entries = BILLING_PRICING_VARS.flatMap((variable) => {
-    if (!variable.field) return []
-    const value = Number(tier[variable.field])
-    if (!Number.isFinite(value) || value <= 0) return []
+  const entries: DynamicPriceEntry[] = BILLING_PRICING_VARS.flatMap(
+    (variable) => {
+      if (!variable.field) return []
+      const value = Number(tier[variable.field])
+      if (!Number.isFinite(value) || value <= 0) return []
 
-    return [
-      {
-        key: variable.key,
-        field: variable.field,
-        label: variable.label,
-        shortLabel: variable.shortLabel,
-        value,
-        formatted: formatDynamicUnitPrice(value, options),
-        variable,
-        displayUnit: 'token',
-      },
-    ]
-  }).sort((a, b) => {
+      return [
+        {
+          key: variable.key,
+          field: variable.field,
+          label: variable.label,
+          shortLabel: variable.shortLabel,
+          value,
+          formatted: formatDynamicUnitPrice(value, options),
+          variable,
+          displayUnit: 'token' as const,
+        },
+      ]
+    }
+  ).sort((a, b) => {
     const aPrimary = PRIMARY_DYNAMIC_FIELDS.has(a.field)
     const bPrimary = PRIMARY_DYNAMIC_FIELDS.has(b.field)
     if (aPrimary !== bPrimary) return aPrimary ? -1 : 1
@@ -145,7 +147,7 @@ export function getDynamicPriceEntries(
 
   const fixedPrice = Number(tier.fixedPrice || 0)
   if (fixedPrice > 0) {
-    entries.push({
+    const fixedEntry: DynamicPriceEntry = {
       key: 'fixedPrice',
       field: 'fixedPrice',
       label: 'Fixed price',
@@ -157,7 +159,8 @@ export function getDynamicPriceEntries(
         abbreviate: false,
       }),
       displayUnit: 'request',
-    })
+    }
+    entries.push(fixedEntry)
   }
 
   return entries

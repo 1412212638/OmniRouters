@@ -9,6 +9,16 @@ export type PricingVendor = {
   description?: string
 }
 
+export type SoraResolutionTier = {
+  value: string
+  multiplier: number
+}
+
+export type SoraPerRequestPricing = {
+  enabled?: boolean
+  resolution_tiers?: SoraResolutionTier[]
+}
+
 export type PricingModel = {
   id: number
   model_name: string
@@ -42,6 +52,8 @@ export type PricingModel = {
   billing_mode?: string
   /** Raw expression describing dynamic / tiered billing */
   billing_expr?: string
+  /** Optional Sora-specific per-request pricing configuration */
+  sora_per_request_pricing?: SoraPerRequestPricing
   /** Pricing version returned by backend, useful for cache busting */
   pricing_version?: string
   /**
