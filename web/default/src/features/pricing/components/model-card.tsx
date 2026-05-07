@@ -119,7 +119,22 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
                         <span className='text-foreground font-mono font-semibold'>
                           {entry.formatted}
                         </span>
-                        /{tokenUnitLabel}
+                        {entry.displayUnit === 'token' && `/${tokenUnitLabel}`}
+                      </span>
+                    ))}
+                  </>
+                ) : dynamicSummary.secondaryEntries.length > 0 ? (
+                  <>
+                    {dynamicSummary.secondaryEntries.slice(0, 2).map((entry) => (
+                      <span
+                        key={entry.key}
+                        className='text-muted-foreground whitespace-nowrap'
+                      >
+                        {t(entry.shortLabel)}{' '}
+                        <span className='text-foreground font-mono font-semibold'>
+                          {entry.formatted}
+                        </span>
+                        {entry.displayUnit === 'token' && `/${tokenUnitLabel}`}
                       </span>
                     ))}
                   </>

@@ -25,7 +25,8 @@ export type DynamicPriceEntry = {
   shortLabel: string
   value: number
   formatted: string
-  variable: BillingVar
+  variable?: BillingVar
+  displayUnit: 'token' | 'request'
 }
 
 export type DynamicPricingSummary = {
@@ -118,7 +119,7 @@ export function getDynamicPriceEntries(
 ): DynamicPriceEntry[] {
   if (!tier) return []
 
-  return BILLING_PRICING_VARS.flatMap((variable) => {
+  const entries = BILLING_PRICING_VARS.flatMap((variable) => {
     if (!variable.field) return []
     const value = Number(tier[variable.field])
     if (!Number.isFinite(value) || value <= 0) return []
@@ -132,6 +133,7 @@ export function getDynamicPriceEntries(
         value,
         formatted: formatDynamicUnitPrice(value, options),
         variable,
+        displayUnit: 'token',
       },
     ]
   }).sort((a, b) => {
@@ -140,6 +142,25 @@ export function getDynamicPriceEntries(
     if (aPrimary !== bPrimary) return aPrimary ? -1 : 1
     return 0
   })
+
+  const fixedPrice = Number(tier.fixedPrice || 0)
+  if (fixedPrice > 0) {
+    entries.push({
+      key: 'fixedPrice',
+      field: 'fixedPrice',
+      label: 'Fixed price',
+      shortLabel: 'Fixed price',
+      value: fixedPrice,
+      formatted: formatBillingCurrencyFromUSD(fixedPrice, {
+        digitsLarge: 4,
+        digitsSmall: 6,
+        abbreviate: false,
+      }),
+      displayUnit: 'request',
+    })
+  }
+
+  return entries
 }
 
 export function getDynamicPricingSummary(

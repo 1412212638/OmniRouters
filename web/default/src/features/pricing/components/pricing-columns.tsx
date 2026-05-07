@@ -173,8 +173,11 @@ export function usePricingColumns(
             )
           }
 
-          const primaryEntries = dynamicSummary.primaryEntries.slice(0, 2)
-          if (primaryEntries.length === 0) {
+          const priceEntries =
+            dynamicSummary.primaryEntries.length > 0
+              ? dynamicSummary.primaryEntries.slice(0, 2)
+              : dynamicSummary.secondaryEntries.slice(0, 2)
+          if (priceEntries.length === 0) {
             return (
               <span className='text-muted-foreground text-xs'>
                 {t('Dynamic Pricing')}
@@ -185,17 +188,20 @@ export function usePricingColumns(
           return (
             <div className='min-w-[180px]'>
               <span className='font-mono text-sm tabular-nums'>
-                {primaryEntries.map((entry, index) => (
+                {priceEntries.map((entry, index) => (
                   <span key={entry.key}>
                     {index > 0 && (
                       <span className='text-muted-foreground/40 mx-1'>/</span>
                     )}
                     {stripTrailingZeros(entry.formatted)}
+                    {entry.displayUnit === 'token' && `/${tokenUnitLabel}`}
                   </span>
                 ))}
               </span>
               <div className='text-muted-foreground/50 text-[10px]'>
-                / {tokenUnitLabel} tokens
+                {priceEntries.some((entry) => entry.displayUnit === 'token')
+                  ? `/ ${tokenUnitLabel} tokens`
+                  : ` / ${t('request')}`}
                 {dynamicSummary.tierCount > 1 &&
                   ` · ${t('{{count}} tiers', {
                     count: dynamicSummary.tierCount,

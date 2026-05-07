@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Tag as TagIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { formatBillingCurrencyFromUSD } from '@/lib/currency'
 import { useSystemConfigStore } from '@/stores/system-config-store'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -169,6 +170,7 @@ export function DynamicPricingBreakdown({
 
   const hasTiers = tiers.length > 0
   const hasRules = ruleGroups.length > 0
+  const hasFixedPrice = tiers.some((tier) => Number(tier.fixedPrice) > 0)
   const normalizedMatchedTierLabel = normalizeTierLabel(
     matchedTierLabel ?? undefined
   )
@@ -201,13 +203,24 @@ export function DynamicPricingBreakdown({
     )
   }
 
-  const visiblePriceFields = BILLING_PRICING_VARS.filter((v) => {
-    if (!hasTiers) return false
-    if (hideCacheColumns && v.group === 'cache') return false
-    return tiers.some(
-      (tier) => Number(tier[v.field as string as keyof ParsedTier] || 0) > 0
-    )
-  })
+  const visiblePriceFields = [
+    ...BILLING_PRICING_VARS.filter((v) => {
+      if (!hasTiers) return false
+      if (hideCacheColumns && v.group === 'cache') return false
+      return tiers.some(
+        (tier) => Number(tier[v.field as string as keyof ParsedTier] || 0) > 0
+      )
+    }).map((v) => ({ ...v, kind: 'token' as const })),
+    ...(hasFixedPrice
+      ? [
+          {
+            field: 'fixedPrice',
+            shortLabel: 'Fixed price',
+            kind: 'request' as const,
+          },
+        ]
+      : []),
+  ]
 
   return (
     <section className='min-w-0 py-3 sm:py-4'>
@@ -278,7 +291,13 @@ export function DynamicPricingBreakdown({
                           </div>
                           <div className='truncate font-mono text-sm font-semibold'>
                             {value > 0
-                              ? `${symbol}${(value * rate).toFixed(4)}`
+                              ? v.kind === 'request'
+                                ? formatBillingCurrencyFromUSD(value, {
+                                    digitsLarge: 4,
+                                    digitsSmall: 6,
+                                    abbreviate: false,
+                                  })
+                                : `${symbol}${(value * rate).toFixed(4)}`
                               : '-'}
                           </div>
                         </div>
@@ -355,7 +374,13 @@ export function DynamicPricingBreakdown({
                           >
                             {value > 0 ? (
                               <span className='font-semibold'>
-                                {`${symbol}${(value * rate).toFixed(4)}`}
+                                {v.kind === 'request'
+                                  ? formatBillingCurrencyFromUSD(value, {
+                                      digitsLarge: 4,
+                                      digitsSmall: 6,
+                                      abbreviate: false,
+                                    })
+                                  : `${symbol}${(value * rate).toFixed(4)}`}
                               </span>
                             ) : (
                               '-'

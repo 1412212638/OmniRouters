@@ -219,6 +219,7 @@ export type TierCondition = {
 export type ParsedTier = {
   label: string
   conditions: TierCondition[]
+  fixedPrice?: number
   [field: string]: unknown
 }
 
@@ -244,6 +245,10 @@ function parseTierBody(bodyStr: string): Record<string, number> {
   for (const [varName, field] of Object.entries(BILLING_VAR_KEY_TO_FIELD)) {
     tier[field] = coeffs[varName] || 0
   }
+  const fixedPriceMatch = String(bodyStr || '')
+    .trim()
+    .match(/^([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)$/)
+  tier.fixedPrice = fixedPriceMatch ? Number(fixedPriceMatch[1]) / 1000000 : 0
   return tier
 }
 
