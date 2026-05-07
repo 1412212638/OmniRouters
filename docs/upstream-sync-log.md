@@ -5,16 +5,15 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 ## 2026-05-07 (follow-up)
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
-- Upstream `main` reviewed through: `415d21d07100fbf767255cecde6e5c48752daa35`
-- Local `main`: `4422a3e0b47b2518c23b03f0078644756501797c`
-- Pending upstream-only commits:
-  - `415d21d07100fbf767255cecde6e5c48752daa35` `♻️ refactor(layout): rename workspace switcher to system brand`
-  - `abc255dd6dfb08fddefd531f984048b554bbd437` `☀ fix(default): keep SectionPageLayout description slot hidden`
-  - `a7d019e3a9ff6e2f2661a38df00b35a2a58cfab5` `✨ feat(default): redesign dashboard overview`
+- Upstream `main` synced through: `415d21d07100fbf767255cecde6e5c48752daa35`
+- Local integration commits:
+  - `ce108dc6e756598c121d40dc527d06e9314e52f8` `♻️ refactor(layout): rename workspace switcher to system brand`
+  - `c4a9a313277517e7495c750525200abb545c31b3` `✨ feat(default): redesign dashboard overview`
 - Notes:
+  - `abc255dd6dfb08fddefd531f984048b554bbd437` was empty on this branch because the equivalent `SectionPageLayout` description-slot behavior was already aligned.
   - `415d21d0` introduces `system-brand.tsx`, removes `workspace-switcher.tsx`, and churns related layout i18n keys.
   - `a7d019e3` is the larger default-dashboard refresh, touching overview panels, stat cards, filters, and system-settings routing.
-  - These upstream changes are tracked here but not yet synced into OmniRouters.
+  - These upstream changes are now synced into OmniRouters main.
 
 ## 2026-05-07
 
