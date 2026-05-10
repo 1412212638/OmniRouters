@@ -35,11 +35,12 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import {
-  formatCurrency,
   getDiscountLabel,
   getPaymentIcon,
   getMinTopupAmount,
   calculatePresetPricing,
+  formatTopupPaymentAmount,
+  normalizeTopupFeeRate,
 } from '../lib'
 import type {
   PaymentMethod,
@@ -135,6 +136,11 @@ export function RechargeFormCard({
   const hasWaffoPaymentMethods =
     Array.isArray(waffoPayMethods) && waffoPayMethods.length > 0
   const minTopup = getMinTopupAmount(topupInfo)
+  const feeRate = normalizeTopupFeeRate(topupInfo?.fee_rate)
+  const hasFeeRate = feeRate > 0
+  const feeRatePercent = (feeRate * 100).toFixed(2)
+  const paymentFeeAmount = paymentAmount * feeRate
+  const totalPaymentAmount = paymentAmount + paymentFeeAmount
 
   if (loading) {
     return (
@@ -255,11 +261,12 @@ export function RechargeFormCard({
                             )}
                           </div>
                           <div className='text-muted-foreground mt-1.5 w-full text-xs sm:mt-2'>
-                            Pay {formatCurrency(actualPrice)}
+                            {t('Pay')} {formatTopupPaymentAmount(actualPrice)}
                             {hasDiscount && savedAmount > 0 && (
                               <span className='text-green-600'>
                                 {' '}
-                                • Save {formatCurrency(savedAmount)}
+                                - {t('Save')}{' '}
+                                {formatTopupPaymentAmount(savedAmount)}
                               </span>
                             )}
                           </div>
@@ -287,16 +294,28 @@ export function RechargeFormCard({
                     placeholder={`Minimum ${minTopup}`}
                     className='h-9 text-base sm:h-10 sm:text-lg'
                   />
-                  <div className='bg-muted/30 flex min-h-9 items-center justify-between gap-2 rounded-md border px-3 lg:min-w-52'>
-                    <span className='text-muted-foreground truncate text-xs'>
-                      {t('Amount to pay:')}
-                    </span>
-                    {calculating ? (
-                      <Skeleton className='h-5 w-16' />
-                    ) : (
-                      <span className='text-sm font-semibold'>
-                        {formatCurrency(paymentAmount)}
+                  <div className='bg-muted/30 flex min-h-9 flex-col justify-center rounded-md border px-3 py-1.5 lg:min-w-52'>
+                    <div className='flex items-center justify-between gap-2'>
+                      <span className='text-muted-foreground truncate text-xs'>
+                        {t('Amount to pay:')}
                       </span>
+                      {calculating ? (
+                        <Skeleton className='h-5 w-16' />
+                      ) : (
+                        <span className='text-sm font-semibold'>
+                          {formatTopupPaymentAmount(totalPaymentAmount)}
+                        </span>
+                      )}
+                    </div>
+                    {hasFeeRate && !calculating && paymentAmount > 0 && (
+                      <div className='text-muted-foreground mt-1 flex items-center justify-between gap-2 text-[11px]'>
+                        <span>
+                          {t('Handling fee')} {feeRatePercent}%
+                        </span>
+                        <span>
+                          + {formatTopupPaymentAmount(paymentFeeAmount)}
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>

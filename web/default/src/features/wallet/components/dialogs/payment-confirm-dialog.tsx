@@ -31,7 +31,11 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DEFAULT_DISCOUNT_RATE } from '../../constants'
-import { formatCurrency, getPaymentIcon } from '../../lib'
+import {
+  formatTopupPaymentAmount,
+  getPaymentIcon,
+  normalizeTopupFeeRate,
+} from '../../lib'
 import type { PaymentMethod } from '../../types'
 
 interface PaymentConfirmDialogProps {
@@ -44,6 +48,7 @@ interface PaymentConfirmDialogProps {
   calculating: boolean
   processing: boolean
   discountRate?: number
+  feeRate?: number
   usdExchangeRate?: number
 }
 
@@ -57,12 +62,18 @@ export function PaymentConfirmDialog({
   calculating,
   processing,
   discountRate = DEFAULT_DISCOUNT_RATE,
+  feeRate = 0,
   usdExchangeRate = 1,
 }: PaymentConfirmDialogProps) {
   const { t } = useTranslation()
   const hasDiscount = discountRate > 0 && discountRate < 1 && paymentAmount > 0
   const originalAmount = hasDiscount ? paymentAmount / discountRate : 0
   const discountAmount = hasDiscount ? originalAmount - paymentAmount : 0
+  const normalizedFeeRate = normalizeTopupFeeRate(feeRate)
+  const feeAmount = paymentAmount * normalizedFeeRate
+  const totalPaymentAmount = paymentAmount + feeAmount
+  const hasFeeRate = normalizedFeeRate > 0 && paymentAmount > 0
+  const feeRatePercent = (normalizedFeeRate * 100).toFixed(2)
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -90,6 +101,17 @@ export function PaymentConfirmDialog({
             </span>
           </div>
 
+          {hasFeeRate && !calculating && (
+            <div className='flex items-center justify-between'>
+              <span className='text-muted-foreground text-sm'>
+                {t('Base amount')}
+              </span>
+              <span className='font-medium'>
+                {formatTopupPaymentAmount(paymentAmount)}
+              </span>
+            </div>
+          )}
+
           <div className='flex items-center justify-between'>
             <span className='text-muted-foreground text-sm'>
               {t('You Pay')}
@@ -99,11 +121,11 @@ export function PaymentConfirmDialog({
             ) : (
               <div className='flex items-baseline gap-2'>
                 <span className='text-2xl font-semibold'>
-                  {formatCurrency(paymentAmount)}
+                  {formatTopupPaymentAmount(totalPaymentAmount)}
                 </span>
                 {hasDiscount && (
                   <span className='text-muted-foreground text-sm line-through'>
-                    {formatCurrency(originalAmount)}
+                    {formatTopupPaymentAmount(originalAmount)}
                   </span>
                 )}
               </div>
@@ -115,7 +137,20 @@ export function PaymentConfirmDialog({
               <div className='flex items-center justify-between text-sm'>
                 <span className='text-muted-foreground'>{t('You save')}</span>
                 <span className='font-semibold text-green-600'>
-                  {formatCurrency(discountAmount)}
+                  {formatTopupPaymentAmount(discountAmount)}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {hasFeeRate && !calculating && (
+            <div className='bg-muted/50 rounded-lg p-3'>
+              <div className='flex items-center justify-between text-sm'>
+                <span className='text-muted-foreground'>
+                  {t('Handling fee')} ({feeRatePercent}%)
+                </span>
+                <span className='font-semibold text-amber-600'>
+                  + {formatTopupPaymentAmount(feeAmount)}
                 </span>
               </div>
             </div>

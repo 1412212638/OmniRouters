@@ -302,6 +302,8 @@
     "Amount of quota to credit to user account.": "Amount of quota to credit to user account.",
     "Amount options must be a JSON array": "Amount options must be a JSON array",
     "Amount to pay:": "Amount to pay:",
+    "Base amount": "Base amount",
+    "Handling fee": "Handling fee",
     "An unexpected error occurred": "An unexpected error occurred",
     "and": "and",
     "Announcement added. Click \"Save Settings\" to apply.": "Announcement added. Click \"Save Settings\" to apply.",

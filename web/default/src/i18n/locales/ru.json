@@ -302,6 +302,8 @@
     "Amount of quota to credit to user account.": "Количество квоты для зачисления на счет пользователя.",
     "Amount options must be a JSON array": "Варианты сумм должны быть JSON-массивом",
     "Amount to pay:": "Сумма к оплате:",
+    "Base amount": "Базовая сумма",
+    "Handling fee": "Комиссия",
     "An unexpected error occurred": "Произошла непредвиденная ошибка",
     "and": "и",
     "Announcement added. Click \"Save Settings\" to apply.": "Объявление добавлено. Нажмите \"Сохранить настройки\", чтобы применить.",

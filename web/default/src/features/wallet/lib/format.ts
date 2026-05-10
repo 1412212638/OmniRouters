@@ -17,6 +17,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { DEFAULT_DISCOUNT_RATE } from '../constants'
+import {
+  formatLocalCurrencyAmount,
+  getCurrencyDisplay,
+  type CurrencyFormatOptions,
+} from '@/lib/currency'
 
 // ============================================================================
 // Wallet-specific Formatting Functions
@@ -47,18 +52,41 @@ export function formatQuotaShort(quota: number): string {
 }
 
 /**
- * Format currency amount that is already in local currency.
- * This is used for payment amounts that have been calculated via priceRatio.
+ * Format a payment amount returned by the top-up amount APIs.
+ *
+ * The classic frontend treats those API values as the base payment currency
+ * amount. When admins display balances in USD or a custom currency, it converts
+ * the payment amount back through the configured USD exchange rate before
+ * formatting it. This keeps the wallet display aligned with the selected
+ * currency while preserving the original amount sent to payment APIs.
  */
-export function formatCurrency(amount: number | string): string {
+export function formatTopupPaymentAmount(
+  amount: number | string | null | undefined,
+  options?: CurrencyFormatOptions
+): string {
   const numeric =
-    typeof amount === 'number' ? amount : Number.parseFloat(String(amount))
+    typeof amount === 'number' ? amount : Number.parseFloat(String(amount ?? 0))
   if (!Number.isFinite(numeric)) return '-'
 
-  return new Intl.NumberFormat(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: Math.abs(numeric) >= 1 ? 2 : 4,
-  }).format(numeric)
+  const { config, meta } = getCurrencyDisplay()
+  const usdExchangeRate =
+    config.usdExchangeRate && config.usdExchangeRate > 0
+      ? config.usdExchangeRate
+      : 1
+
+  let displayAmount = numeric
+  if (meta.kind === 'currency' && meta.currencyCode === 'USD') {
+    displayAmount = numeric / usdExchangeRate
+  } else if (meta.kind === 'custom') {
+    displayAmount = (numeric / usdExchangeRate) * meta.exchangeRate
+  }
+
+  return formatLocalCurrencyAmount(displayAmount, options)
+}
+
+export function normalizeTopupFeeRate(feeRate: unknown): number {
+  const numeric = Number(feeRate || 0)
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 0
 }
 
 /**

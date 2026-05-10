@@ -302,6 +302,8 @@
     "Amount of quota to credit to user account.": "Số lượng quota để ghi có vào tài khoản người dùng.",
     "Amount options must be a JSON array": "Tùy chọn số tiền phải là mảng JSON",
     "Amount to pay:": "Amount due:",
+    "Base amount": "Số tiền cơ bản",
+    "Handling fee": "Phí xử lý",
     "An unexpected error occurred": "Đã xảy ra lỗi không mong muốn",
     "and": "and",
     "Announcement added. Click \"Save Settings\" to apply.": "Đã thêm thông báo. Nhấp \"Save Settings\" để áp dụng.",

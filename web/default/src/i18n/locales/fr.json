@@ -302,6 +302,8 @@
     "Amount of quota to credit to user account.": "Montant du quota à créditer sur le compte utilisateur.",
     "Amount options must be a JSON array": "Les options de montant doivent être un tableau JSON",
     "Amount to pay:": "Montant à payer :",
+    "Base amount": "Montant de base",
+    "Handling fee": "Frais de traitement",
     "An unexpected error occurred": "Une erreur inattendue est survenue",
     "and": "et",
     "Announcement added. Click \"Save Settings\" to apply.": "Annonce ajoutée. Cliquez sur \"Enregistrer les paramètres\" pour appliquer.",

@@ -306,6 +306,8 @@
     "Amount of quota to credit to user account.": "添加到用户账户的配额数量。",
     "Amount options must be a JSON array": "金额选项必须是 JSON 数组",
     "Amount to pay:": "待支付金额：",
+    "Base amount": "基础金额",
+    "Handling fee": "手续费",
     "An unexpected error occurred": "发生意外错误",
     "and": "和",
     "Announcement added. Click \"Save Settings\" to apply.": "公告已添加。点击 \"保存设置\" 以应用。",

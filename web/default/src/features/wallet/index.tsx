@@ -335,6 +335,7 @@ export function Wallet(props: WalletProps) {
         calculating={calculating}
         processing={processing || pancakeProcessing}
         discountRate={getDiscountRate()}
+        feeRate={topupInfo?.fee_rate}
         usdExchangeRate={effectiveUsdExchangeRate}
       />
 
