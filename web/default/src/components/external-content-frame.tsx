@@ -22,7 +22,6 @@ import {
   useRef,
   type FocusEvent,
   type IframeHTMLAttributes,
-  type PointerEvent,
   type SyntheticEvent,
   type TouchEvent,
   type WheelEvent,
@@ -151,28 +150,19 @@ export function ExternalContentFrame(
     window.setTimeout(installSameOriginScrollBridge, 300)
   }
 
-  const handleFrameInteraction = () => {
-    notifyFrameScroll(24)
-  }
-
-  const handlePointerEnter = (event: PointerEvent<HTMLIFrameElement>) => {
-    props.onPointerEnter?.(event)
-    handleFrameInteraction()
-  }
-
   const handleWheel = (event: WheelEvent<HTMLIFrameElement>) => {
     props.onWheel?.(event)
-    handleFrameInteraction()
+    if (event.deltaY > 0) {
+      notifyFrameScroll(24)
+    }
   }
 
   const handleTouchStart = (event: TouchEvent<HTMLIFrameElement>) => {
     props.onTouchStart?.(event)
-    handleFrameInteraction()
   }
 
   const handleFocus = (event: FocusEvent<HTMLIFrameElement>) => {
     props.onFocus?.(event)
-    handleFrameInteraction()
   }
 
   return (
@@ -180,7 +170,6 @@ export function ExternalContentFrame(
       {...props}
       ref={iframeRef}
       onLoad={handleLoad}
-      onPointerEnter={handlePointerEnter}
       onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onFocus={handleFocus}
