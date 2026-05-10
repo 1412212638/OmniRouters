@@ -17,7 +17,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { SystemBehaviorSection } from '../general/system-behavior-section'
-import { EmailSettingsSection } from '../integrations/email-settings-section'
 import { MonitoringSettingsSection } from '../integrations/monitoring-settings-section'
 import { WorkerSettingsSection } from '../integrations/worker-settings-section'
 import { LogSettingsSection } from '../maintenance/log-settings-section'
@@ -61,47 +60,6 @@ const OPERATIONS_SECTIONS = [
             settings['monitor_setting.auto_test_channel_enabled'],
           'monitor_setting.auto_test_channel_minutes':
             settings['monitor_setting.auto_test_channel_minutes'],
-        }}
-      />
-    ),
-  },
-  {
-    id: 'email',
-    titleKey: 'SMTP Email',
-    descriptionKey: 'Configure SMTP email settings',
-    build: (settings: OperationsSettings) => (
-      <EmailSettingsSection
-        defaultValues={{
-          SMTPServer: settings.SMTPServer,
-          SMTPPort: settings.SMTPPort,
-          SMTPAccount: settings.SMTPAccount,
-          SMTPFrom: settings.SMTPFrom,
-          SMTPToken: settings.SMTPToken,
-          SMTPSSLEnabled: settings.SMTPSSLEnabled,
-          SMTPForceAuthLogin: settings.SMTPForceAuthLogin,
-          EmailLanguage: settings.EmailLanguage || 'en',
-          EmailDomainRestrictionEnabled: settings.EmailDomainRestrictionEnabled,
-          EmailAliasRestrictionEnabled: settings.EmailAliasRestrictionEnabled,
-          EmailDomainWhitelist: settings.EmailDomainWhitelist
-            ? settings.EmailDomainWhitelist.split(',').filter(Boolean)
-            : [],
-          TopUpSuccessEmailEnabled: settings.TopUpSuccessEmailEnabled,
-          EmailVerificationSubjectTemplate:
-            settings.EmailVerificationSubjectTemplate,
-          EmailVerificationContentTemplate:
-            settings.EmailVerificationContentTemplate,
-          PasswordResetSubjectTemplate: settings.PasswordResetSubjectTemplate,
-          PasswordResetContentTemplate: settings.PasswordResetContentTemplate,
-          QuotaWarningSubjectTemplate: settings.QuotaWarningSubjectTemplate,
-          QuotaWarningContentTemplate: settings.QuotaWarningContentTemplate,
-          SubscriptionQuotaWarningSubjectTemplate:
-            settings.SubscriptionQuotaWarningSubjectTemplate,
-          SubscriptionQuotaWarningContentTemplate:
-            settings.SubscriptionQuotaWarningContentTemplate,
-          TopUpSuccessSubjectTemplate: settings.TopUpSuccessSubjectTemplate,
-          TopUpSuccessContentTemplate: settings.TopUpSuccessContentTemplate,
-          MarketingEmailSubjectTemplate: settings.MarketingEmailSubjectTemplate,
-          MarketingEmailContentTemplate: settings.MarketingEmailContentTemplate,
         }}
       />
     ),

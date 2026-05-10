@@ -20,8 +20,12 @@ import {
   useCallback,
   useEffect,
   useRef,
+  type FocusEvent,
   type IframeHTMLAttributes,
+  type PointerEvent,
   type SyntheticEvent,
+  type TouchEvent,
+  type WheelEvent,
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/context/theme-provider'
@@ -47,8 +51,19 @@ export function ExternalContentFrame(
   props: IframeHTMLAttributes<HTMLIFrameElement>
 ) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const cleanupScrollBridgeRef = useRef<(() => void) | null>(null)
   const { i18n } = useTranslation()
   const { resolvedTheme } = useTheme()
+
+  const notifyFrameScroll = useCallback((scrollY: number) => {
+    window.postMessage(
+      {
+        type: 'OMNIROUTERS_IFRAME_SCROLL',
+        scrollY: Math.max(0, scrollY),
+      },
+      window.location.origin
+    )
+  }, [])
 
   const postFrameContext = useCallback(() => {
     const target = iframeRef.current?.contentWindow
@@ -64,9 +79,49 @@ export function ExternalContentFrame(
     )
   }, [i18n.language, resolvedTheme])
 
+  const installSameOriginScrollBridge = useCallback(() => {
+    cleanupScrollBridgeRef.current?.()
+    cleanupScrollBridgeRef.current = null
+
+    try {
+      const frameWindow = iframeRef.current?.contentWindow
+      const frameDocument = iframeRef.current?.contentDocument
+      if (!frameWindow || !frameDocument) return
+
+      const getScrollY = () => {
+        const scrollingElement =
+          frameDocument.scrollingElement as HTMLElement | null
+        return Math.max(
+          frameWindow.scrollY || 0,
+          scrollingElement?.scrollTop || 0,
+          frameDocument.documentElement?.scrollTop || 0,
+          frameDocument.body?.scrollTop || 0
+        )
+      }
+
+      const syncScroll = () => notifyFrameScroll(getScrollY())
+
+      frameWindow.addEventListener('scroll', syncScroll, { passive: true })
+      frameDocument.addEventListener('scroll', syncScroll, true)
+      cleanupScrollBridgeRef.current = () => {
+        frameWindow.removeEventListener('scroll', syncScroll)
+        frameDocument.removeEventListener('scroll', syncScroll, true)
+      }
+      syncScroll()
+    } catch {
+      cleanupScrollBridgeRef.current = null
+    }
+  }, [notifyFrameScroll])
+
   useEffect(() => {
     postFrameContext()
   }, [postFrameContext])
+
+  useEffect(() => {
+    return () => {
+      cleanupScrollBridgeRef.current?.()
+    }
+  }, [])
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -89,9 +144,46 @@ export function ExternalContentFrame(
   const handleLoad = (event: SyntheticEvent<HTMLIFrameElement>) => {
     props.onLoad?.(event)
     postFrameContext()
+    installSameOriginScrollBridge()
     window.setTimeout(postFrameContext, 80)
+    window.setTimeout(installSameOriginScrollBridge, 80)
     window.setTimeout(postFrameContext, 300)
+    window.setTimeout(installSameOriginScrollBridge, 300)
   }
 
-  return <iframe {...props} ref={iframeRef} onLoad={handleLoad} />
+  const handleFrameInteraction = () => {
+    notifyFrameScroll(24)
+  }
+
+  const handlePointerEnter = (event: PointerEvent<HTMLIFrameElement>) => {
+    props.onPointerEnter?.(event)
+    handleFrameInteraction()
+  }
+
+  const handleWheel = (event: WheelEvent<HTMLIFrameElement>) => {
+    props.onWheel?.(event)
+    handleFrameInteraction()
+  }
+
+  const handleTouchStart = (event: TouchEvent<HTMLIFrameElement>) => {
+    props.onTouchStart?.(event)
+    handleFrameInteraction()
+  }
+
+  const handleFocus = (event: FocusEvent<HTMLIFrameElement>) => {
+    props.onFocus?.(event)
+    handleFrameInteraction()
+  }
+
+  return (
+    <iframe
+      {...props}
+      ref={iframeRef}
+      onLoad={handleLoad}
+      onPointerEnter={handlePointerEnter}
+      onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onFocus={handleFocus}
+    />
+  )
 }

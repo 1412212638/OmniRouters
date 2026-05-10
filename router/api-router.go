@@ -176,6 +176,15 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/subscription/epay/notify", controller.SubscriptionEpayNotify)
 		apiRouter.GET("/subscription/epay/return", controller.SubscriptionEpayReturn)
 		apiRouter.POST("/subscription/epay/return", controller.SubscriptionEpayReturn)
+
+		emailSettingsRoute := apiRouter.Group("/email_settings")
+		emailSettingsRoute.Use(middleware.AdminAuth())
+		{
+			emailSettingsRoute.GET("/options", controller.GetEmailSettingsOptions)
+			emailSettingsRoute.PUT("/option", controller.UpdateEmailSettingOption)
+			emailSettingsRoute.POST("/marketing_email/send", middleware.CriticalRateLimit(), controller.SendMarketingEmail)
+		}
+
 		optionRoute := apiRouter.Group("/option")
 		optionRoute.Use(middleware.RootAuth())
 		{

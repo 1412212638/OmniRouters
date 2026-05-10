@@ -165,13 +165,22 @@ export function getDynamicPriceEntries(
 
   const fixedPrice = Number(tier.fixedPrice || 0)
   if (fixedPrice > 0) {
+    const groupRatio = options.groupRatioMultiplier ?? 1
+    const priceRate = options.priceRate ?? 1
+    const usdExchangeRate = options.usdExchangeRate ?? 1
+    const fixedPriceUSD = applyRechargeRate(
+      fixedPrice * groupRatio,
+      options.showRechargePrice ?? false,
+      priceRate,
+      usdExchangeRate
+    )
     const fixedEntry: DynamicPriceEntry = {
       key: 'fixedPrice',
       field: 'fixedPrice',
       label: 'Fixed price',
       shortLabel: 'Fixed price',
       value: fixedPrice,
-      formatted: formatBillingCurrencyFromUSD(fixedPrice, {
+      formatted: formatBillingCurrencyFromUSD(fixedPriceUSD, {
         digitsLarge: 4,
         digitsSmall: 6,
         abbreviate: false,

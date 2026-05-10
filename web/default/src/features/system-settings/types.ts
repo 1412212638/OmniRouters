@@ -315,30 +315,6 @@ export type OperationsSettings = {
   AutomaticRetryStatusCodes: string
   'monitor_setting.auto_test_channel_enabled': boolean
   'monitor_setting.auto_test_channel_minutes': number
-  SMTPServer: string
-  SMTPPort: string
-  SMTPAccount: string
-  SMTPFrom: string
-  SMTPToken: string
-  SMTPSSLEnabled: boolean
-  SMTPForceAuthLogin: boolean
-  EmailLanguage: 'zh' | 'en'
-  EmailDomainRestrictionEnabled: boolean
-  EmailAliasRestrictionEnabled: boolean
-  EmailDomainWhitelist: string
-  TopUpSuccessEmailEnabled: boolean
-  EmailVerificationSubjectTemplate: string
-  EmailVerificationContentTemplate: string
-  PasswordResetSubjectTemplate: string
-  PasswordResetContentTemplate: string
-  QuotaWarningSubjectTemplate: string
-  QuotaWarningContentTemplate: string
-  SubscriptionQuotaWarningSubjectTemplate: string
-  SubscriptionQuotaWarningContentTemplate: string
-  TopUpSuccessSubjectTemplate: string
-  TopUpSuccessContentTemplate: string
-  MarketingEmailSubjectTemplate: string
-  MarketingEmailContentTemplate: string
   WorkerUrl: string
   WorkerValidKey: string
   WorkerAllowHttpImageRequestEnabled: boolean

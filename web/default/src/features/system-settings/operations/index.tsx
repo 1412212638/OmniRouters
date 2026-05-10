@@ -26,7 +26,6 @@ import {
   OPERATIONS_DEFAULT_SECTION,
   getOperationsSectionContent,
 } from './section-registry.tsx'
-import { emailTemplatePresets } from '../integrations/email-settings-section'
 
 const defaultOperationsSettings: OperationsSettings = {
   RetryTimes: 0,
@@ -43,19 +42,6 @@ const defaultOperationsSettings: OperationsSettings = {
     '100-199,300-399,401-407,409-499,500-503,505-523,525-599',
   'monitor_setting.auto_test_channel_enabled': false,
   'monitor_setting.auto_test_channel_minutes': 10,
-  SMTPServer: '',
-  SMTPPort: '',
-  SMTPAccount: '',
-  SMTPFrom: '',
-  SMTPToken: '',
-  SMTPSSLEnabled: false,
-  SMTPForceAuthLogin: false,
-  EmailLanguage: 'en',
-  EmailDomainRestrictionEnabled: false,
-  EmailAliasRestrictionEnabled: false,
-  EmailDomainWhitelist: '',
-  TopUpSuccessEmailEnabled: false,
-  ...emailTemplatePresets.en,
   WorkerUrl: '',
   WorkerValidKey: '',
   WorkerAllowHttpImageRequestEnabled: false,
@@ -98,7 +84,6 @@ export function OperationsSettings() {
   const activeSection = (params?.section ?? OPERATIONS_DEFAULT_SECTION) as
     | 'behavior'
     | 'monitoring'
-    | 'email'
     | 'worker'
     | 'logs'
     | 'performance'

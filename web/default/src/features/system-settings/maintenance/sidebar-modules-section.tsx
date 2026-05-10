@@ -144,6 +144,12 @@ export function SidebarModulesSection({
         title: t('Subscription Management'),
         description: t('Manage subscription plans and pricing.'),
       },
+      email: {
+        title: t('Email Settings'),
+        description: t(
+          'Configure SMTP, sender templates, and marketing emails.'
+        ),
+      },
     },
   }
   const formDefaults = useMemo(() => config, [config])
