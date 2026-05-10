@@ -2,6 +2,21 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-05-10
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `a7475a1e67ff0d5a46c683f3c24430cf83d25f50`
+- Upstream `main` synced through: `543cc64ea3805a3f2291b86525ad83771cb61423`
+- Local integration commits:
+  - `f2226194` `✨ feat: Add model performance metrics to dashboard`
+  - `60a65e2b` `🎨 fix(theme): align UI controls with global radius tokens`
+  - `944eca94` `feat: add DeepChat deeplink support (#4668)`
+  - `6acdb666` `⚖️ chore(web/default): add reusable copyright header tooling`
+  - `c0f3c18a` `feat(licenses): add LICENSE, NOTICE, and THIRD-PARTY-LICENSES files to Docker images`
+- Notes:
+  - The copyright-header commit was conflict-resolved in local OmniRouters-modified files so model marketplace, Sora pricing, and email settings customizations remain intact.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-05-07 (theme follow-up)
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
