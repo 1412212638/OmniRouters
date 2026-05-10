@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/auth-store'
+import { ExternalContentFrame } from '@/components/external-content-frame'
 import { Markdown } from '@/components/ui/markdown'
 import { PublicLayout } from '@/components/layout'
 import { Footer } from '@/components/layout/components/footer'
@@ -45,7 +46,7 @@ export function Home() {
       <PublicLayout showMainContainer={false}>
         <main className='overflow-x-hidden'>
           {isUrl ? (
-            <iframe
+            <ExternalContentFrame
               src={content}
               className='h-screen w-full border-none'
               title={t('Custom Home Page')}

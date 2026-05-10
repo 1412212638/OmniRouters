@@ -65,7 +65,8 @@ export function PublicHeader(props: PublicHeaderProps) {
   } = props
 
   const { t } = useTranslation()
-  const [scrolled, setScrolled] = useState(false)
+  const [pageScrolled, setPageScrolled] = useState(false)
+  const [embeddedScrollY, setEmbeddedScrollY] = useState(0)
   const [mobileOpen, setMobileOpen] = useState(false)
   const { auth } = useAuthStore()
   const {
@@ -83,12 +84,50 @@ export function PublicHeader(props: PublicHeaderProps) {
   const isAuthenticated = !!user
   const displaySiteName = customSiteName || systemName
   const links = dynamicLinks.length > 0 ? dynamicLinks : navLinks
+  const scrolled = pageScrolled || embeddedScrollY > 20
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
+    const onScroll = () => setPageScrolled(window.scrollY > 20)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    setEmbeddedScrollY(0)
+  }, [pathname])
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      const data =
+        typeof event.data === 'string'
+          ? (() => {
+              try {
+                return JSON.parse(event.data) as Record<string, unknown>
+              } catch {
+                return null
+              }
+            })()
+          : event.data
+
+      if (!data || typeof data !== 'object') return
+
+      const message = data as Record<string, unknown>
+      if (
+        message.type !== 'OMNIROUTERS_IFRAME_SCROLL' &&
+        message.type !== 'IFRAME_SCROLL'
+      ) {
+        return
+      }
+
+      const nextScrollY = Number(message.scrollY ?? message.y ?? 0)
+      if (Number.isFinite(nextScrollY)) {
+        setEmbeddedScrollY(Math.max(0, nextScrollY))
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
   }, [])
 
   useEffect(() => {
