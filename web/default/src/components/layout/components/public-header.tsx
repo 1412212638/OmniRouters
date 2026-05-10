@@ -31,6 +31,10 @@ import { NotificationButton } from '@/components/notification-button'
 import { NotificationDialog } from '@/components/notification-dialog'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
+import {
+  EMBEDDED_CONTENT_SCROLL_EVENT,
+  type EmbeddedContentScrollEventDetail,
+} from '@/components/external-content-events'
 import { defaultTopNavLinks } from '../config/top-nav.config'
 import type { TopNavLink } from '../types'
 import { HeaderLogo } from './header-logo'
@@ -98,36 +102,21 @@ export function PublicHeader(props: PublicHeaderProps) {
   }, [pathname])
 
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      const data =
-        typeof event.data === 'string'
-          ? (() => {
-              try {
-                return JSON.parse(event.data) as Record<string, unknown>
-              } catch {
-                return null
-              }
-            })()
-          : event.data
-
-      if (!data || typeof data !== 'object') return
-
-      const message = data as Record<string, unknown>
-      if (
-        message.type !== 'OMNIROUTERS_IFRAME_SCROLL' &&
-        message.type !== 'IFRAME_SCROLL'
-      ) {
-        return
-      }
-
-      const nextScrollY = Number(message.scrollY ?? message.y ?? 0)
+    const handleEmbeddedScroll = (event: Event) => {
+      const detail = (event as CustomEvent<EmbeddedContentScrollEventDetail>)
+        .detail
+      const nextScrollY = Number(detail?.scrollY ?? 0)
       if (Number.isFinite(nextScrollY)) {
         setEmbeddedScrollY(Math.max(0, nextScrollY))
       }
     }
 
-    window.addEventListener('message', handleMessage)
-    return () => window.removeEventListener('message', handleMessage)
+    window.addEventListener(EMBEDDED_CONTENT_SCROLL_EVENT, handleEmbeddedScroll)
+    return () =>
+      window.removeEventListener(
+        EMBEDDED_CONTENT_SCROLL_EVENT,
+        handleEmbeddedScroll
+      )
   }, [])
 
   useEffect(() => {
