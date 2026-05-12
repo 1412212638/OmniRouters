@@ -2,6 +2,26 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-05-13
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `543cc64ea3805a3f2291b86525ad83771cb61423`
+- Upstream `main` reviewed and synced through: `aa56667b8f233958aec0f593b3960c04230de6d3`
+- Local integration scope:
+  - Integrated default frontend regression fixes from `ba474393`, `2b89989f`, `fde2cac9`, and `469d3747`.
+  - Integrated performance metrics handling/UI updates from `19fc384e` and `03d53732`.
+  - Integrated user-group ratio display fix from `7fe896d2`.
+  - Integrated classic dependency/resource refresh from `3856b9d2` and `428e3d91` where it applies to the current tree.
+  - Integrated upstream request ID tracking and response-header protection from `aa56667b`.
+- Skipped or equivalent:
+  - `5fa103fa` was already equivalent for `THIRD-PARTY-LICENSES.md`; this sync still kept the new frontend `node_modules`/`dist` Docker ignores.
+  - `3057f04a` had no file delta against this branch.
+  - Merge commit `a720064d` was reviewed but not replayed as a merge object.
+- Notes:
+  - Kept the local absence of `README.en.md` and `web/classic/src/i18n/locales/zh.json`.
+  - Preserved local OmniRouters customizations around model marketplace pricing, mail settings, external page header behavior, and top-up notification templates.
+  - Quota notification top-up links now use the upstream `PaymentReturnURL` helper while retaining the local remaining-quota email values.
+
 ## 2026-05-10
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
