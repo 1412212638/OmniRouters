@@ -312,7 +312,6 @@ export function Wallet(props: WalletProps) {
                   <div className='mt-4'>
                     <CorporateTransferCard
                       config={topupInfo.corporate_transfer}
-                      username={user?.username}
                     />
                   </div>
                 )}

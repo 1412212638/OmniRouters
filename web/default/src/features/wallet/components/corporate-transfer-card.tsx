@@ -37,19 +37,12 @@ import type { CorporateTransferInfo } from '../types'
 
 type CorporateTransferCardProps = {
   config?: CorporateTransferInfo
-  username?: string
 }
 
 type CopyableRowProps = {
   label: string
   value?: string
   icon: ReactNode
-}
-
-function maskPhone(value?: string) {
-  const digits = value?.replace(/\D/g, '') ?? ''
-  if (digits.length < 7) return value || ''
-  return `${digits.slice(0, 3)}****${digits.slice(-4)}`
 }
 
 function CopyableRow({ label, value, icon }: CopyableRowProps) {
@@ -99,16 +92,12 @@ function CopyableRow({ label, value, icon }: CopyableRowProps) {
   )
 }
 
-export function CorporateTransferCard({
-  config,
-  username,
-}: CorporateTransferCardProps) {
+export function CorporateTransferCard({ config }: CorporateTransferCardProps) {
   const { t } = useTranslation()
   const [acknowledged, setAcknowledged] = useState(false)
 
   const enabled = Boolean(config?.enabled)
   const title = config?.title?.trim() || t('Corporate Bank Transfer')
-  const maskedPhone = maskPhone(config?.operator_phone)
 
   const noticeItems = useMemo(() => {
     const configured = (config?.notice ?? '')
@@ -119,9 +108,6 @@ export function CorporateTransferCard({
     if (configured.length > 0) return configured
 
     const fallback = [
-      t('Please include your account username in the transfer note: {{username}}', {
-        username: username || '-',
-      }),
       t('Use a bank account with the same verified entity name.'),
       t('After transfer, contact support with the payment voucher.'),
     ]
@@ -135,7 +121,7 @@ export function CorporateTransferCard({
     }
 
     return fallback
-  }, [config?.notice, config?.support_email, t, username])
+  }, [config?.notice, config?.support_email, t])
 
   if (!enabled) return null
 
@@ -153,20 +139,6 @@ export function CorporateTransferCard({
             <li key={`${item}-${index}`}>{item}</li>
           ))}
         </ul>
-        {(username || maskedPhone) && (
-          <div className='mt-3 flex flex-wrap gap-2 text-xs'>
-            {username && (
-              <span className='rounded-md border border-amber-300/70 bg-white/70 px-2 py-1 font-medium text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100'>
-                {t('Transfer note')}: {t('Your account')} {username}
-              </span>
-            )}
-            {maskedPhone && (
-              <span className='rounded-md border border-amber-300/70 bg-white/70 px-2 py-1 font-medium text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100'>
-                {t('Contact phone')}: {maskedPhone}
-              </span>
-            )}
-          </div>
-        )}
       </div>
 
       <div className='flex items-start gap-2'>
