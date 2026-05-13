@@ -269,6 +269,14 @@ export type BillingSettings = {
   CreemWebhookSecret: string
   CreemTestMode: boolean
   CreemProducts: string
+  'payment_setting.corporate_transfer_enabled': boolean
+  'payment_setting.corporate_transfer_title': string
+  'payment_setting.corporate_transfer_notice': string
+  'payment_setting.corporate_transfer_account_name': string
+  'payment_setting.corporate_transfer_bank_name': string
+  'payment_setting.corporate_transfer_bank_account': string
+  'payment_setting.corporate_transfer_operator_phone': string
+  'payment_setting.corporate_transfer_support_email': string
   WaffoEnabled: boolean
   WaffoApiKey: string
   WaffoPrivateKey: string

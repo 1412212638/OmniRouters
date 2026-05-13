@@ -155,6 +155,22 @@ const BILLING_SECTIONS = [
           CreemWebhookSecret: settings.CreemWebhookSecret,
           CreemTestMode: settings.CreemTestMode,
           CreemProducts: settings.CreemProducts,
+          CorporateTransferEnabled:
+            settings['payment_setting.corporate_transfer_enabled'],
+          CorporateTransferTitle:
+            settings['payment_setting.corporate_transfer_title'],
+          CorporateTransferNotice:
+            settings['payment_setting.corporate_transfer_notice'],
+          CorporateTransferAccountName:
+            settings['payment_setting.corporate_transfer_account_name'],
+          CorporateTransferBankName:
+            settings['payment_setting.corporate_transfer_bank_name'],
+          CorporateTransferBankAccount:
+            settings['payment_setting.corporate_transfer_bank_account'],
+          CorporateTransferOperatorPhone:
+            settings['payment_setting.corporate_transfer_operator_phone'],
+          CorporateTransferSupportEmail:
+            settings['payment_setting.corporate_transfer_support_email'],
         }}
         waffoDefaultValues={{
           WaffoEnabled: settings.WaffoEnabled ?? false,

@@ -112,6 +112,28 @@ export interface WaffoPayMethod {
 }
 
 /**
+ * Display-only corporate bank transfer information
+ */
+export interface CorporateTransferInfo {
+  /** Whether the corporate transfer block is visible */
+  enabled?: boolean
+  /** Display title */
+  title?: string
+  /** Multiline notice shown before account details */
+  notice?: string
+  /** Receiver account name */
+  account_name?: string
+  /** Receiver bank name */
+  bank_name?: string
+  /** Receiver bank account number */
+  bank_account?: string
+  /** Contact/operator phone shown for transfer verification */
+  operator_phone?: string
+  /** Support email for transfer questions */
+  support_email?: string
+}
+
+/**
  * Topup configuration information
  */
 export interface TopupInfo {
@@ -131,6 +153,8 @@ export interface TopupInfo {
   discount: Record<number, number>
   /** Extra payment fee rate, e.g. 0.02 for 2% */
   fee_rate?: number
+  /** Display-only corporate bank transfer information */
+  corporate_transfer?: CorporateTransferInfo
   /** Optional topup link for purchasing codes */
   topup_link?: string
   /** Whether Creem topup is enabled */

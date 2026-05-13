@@ -121,6 +121,14 @@ const paymentSchema = z.object({
       })
     }
   }),
+  CorporateTransferEnabled: z.boolean(),
+  CorporateTransferTitle: z.string(),
+  CorporateTransferNotice: z.string(),
+  CorporateTransferAccountName: z.string(),
+  CorporateTransferBankName: z.string(),
+  CorporateTransferBankAccount: z.string(),
+  CorporateTransferOperatorPhone: z.string(),
+  CorporateTransferSupportEmail: z.string(),
 })
 
 type PaymentFormValues = z.infer<typeof paymentSchema>
@@ -415,6 +423,90 @@ export function PaymentSettingsSection({
     }
   }
 
+  const saveCorporateTransferSettings = async () => {
+    const values = form.getValues()
+    const sanitized = {
+      CorporateTransferEnabled: values.CorporateTransferEnabled as boolean,
+      CorporateTransferTitle: values.CorporateTransferTitle.trim(),
+      CorporateTransferNotice: values.CorporateTransferNotice.trim(),
+      CorporateTransferAccountName: values.CorporateTransferAccountName.trim(),
+      CorporateTransferBankName: values.CorporateTransferBankName.trim(),
+      CorporateTransferBankAccount: values.CorporateTransferBankAccount.trim(),
+      CorporateTransferOperatorPhone:
+        values.CorporateTransferOperatorPhone.trim(),
+      CorporateTransferSupportEmail: values.CorporateTransferSupportEmail.trim(),
+    }
+
+    const initial = {
+      CorporateTransferEnabled: initialRef.current.CorporateTransferEnabled,
+      CorporateTransferTitle: initialRef.current.CorporateTransferTitle.trim(),
+      CorporateTransferNotice: initialRef.current.CorporateTransferNotice.trim(),
+      CorporateTransferAccountName:
+        initialRef.current.CorporateTransferAccountName.trim(),
+      CorporateTransferBankName:
+        initialRef.current.CorporateTransferBankName.trim(),
+      CorporateTransferBankAccount:
+        initialRef.current.CorporateTransferBankAccount.trim(),
+      CorporateTransferOperatorPhone:
+        initialRef.current.CorporateTransferOperatorPhone.trim(),
+      CorporateTransferSupportEmail:
+        initialRef.current.CorporateTransferSupportEmail.trim(),
+    }
+
+    const updates: Array<{ key: string; value: string | boolean }> = []
+
+    const pushStringUpdate = (
+      formKey: keyof Omit<typeof sanitized, 'CorporateTransferEnabled'>,
+      optionKey: string
+    ) => {
+      if (sanitized[formKey] !== initial[formKey]) {
+        updates.push({ key: optionKey, value: sanitized[formKey] })
+      }
+    }
+
+    if (
+      sanitized.CorporateTransferEnabled !== initial.CorporateTransferEnabled
+    ) {
+      updates.push({
+        key: 'payment_setting.corporate_transfer_enabled',
+        value: sanitized.CorporateTransferEnabled,
+      })
+    }
+
+    pushStringUpdate(
+      'CorporateTransferTitle',
+      'payment_setting.corporate_transfer_title'
+    )
+    pushStringUpdate(
+      'CorporateTransferNotice',
+      'payment_setting.corporate_transfer_notice'
+    )
+    pushStringUpdate(
+      'CorporateTransferAccountName',
+      'payment_setting.corporate_transfer_account_name'
+    )
+    pushStringUpdate(
+      'CorporateTransferBankName',
+      'payment_setting.corporate_transfer_bank_name'
+    )
+    pushStringUpdate(
+      'CorporateTransferBankAccount',
+      'payment_setting.corporate_transfer_bank_account'
+    )
+    pushStringUpdate(
+      'CorporateTransferOperatorPhone',
+      'payment_setting.corporate_transfer_operator_phone'
+    )
+    pushStringUpdate(
+      'CorporateTransferSupportEmail',
+      'payment_setting.corporate_transfer_support_email'
+    )
+
+    for (const update of updates) {
+      await updateOption.mutateAsync(update)
+    }
+  }
+
   const onSubmit = async (values: PaymentFormValues) => {
     const sanitized = {
       PayAddress: removeTrailingSlash(values.PayAddress),
@@ -432,6 +524,15 @@ export function PaymentSettingsSection({
       StripeUnitPrice: values.StripeUnitPrice,
       StripeMinTopUp: values.StripeMinTopUp,
       StripePromotionCodesEnabled: values.StripePromotionCodesEnabled,
+      CorporateTransferEnabled: values.CorporateTransferEnabled,
+      CorporateTransferTitle: values.CorporateTransferTitle.trim(),
+      CorporateTransferNotice: values.CorporateTransferNotice.trim(),
+      CorporateTransferAccountName: values.CorporateTransferAccountName.trim(),
+      CorporateTransferBankName: values.CorporateTransferBankName.trim(),
+      CorporateTransferBankAccount: values.CorporateTransferBankAccount.trim(),
+      CorporateTransferOperatorPhone:
+        values.CorporateTransferOperatorPhone.trim(),
+      CorporateTransferSupportEmail: values.CorporateTransferSupportEmail.trim(),
     }
 
     const initial = {
@@ -453,6 +554,19 @@ export function PaymentSettingsSection({
       StripeMinTopUp: initialRef.current.StripeMinTopUp,
       StripePromotionCodesEnabled:
         initialRef.current.StripePromotionCodesEnabled,
+      CorporateTransferEnabled: initialRef.current.CorporateTransferEnabled,
+      CorporateTransferTitle: initialRef.current.CorporateTransferTitle.trim(),
+      CorporateTransferNotice: initialRef.current.CorporateTransferNotice.trim(),
+      CorporateTransferAccountName:
+        initialRef.current.CorporateTransferAccountName.trim(),
+      CorporateTransferBankName:
+        initialRef.current.CorporateTransferBankName.trim(),
+      CorporateTransferBankAccount:
+        initialRef.current.CorporateTransferBankAccount.trim(),
+      CorporateTransferOperatorPhone:
+        initialRef.current.CorporateTransferOperatorPhone.trim(),
+      CorporateTransferSupportEmail:
+        initialRef.current.CorporateTransferSupportEmail.trim(),
     }
 
     const updates: Array<{ key: string; value: string | number | boolean }> = []
@@ -547,6 +661,78 @@ export function PaymentSettingsSection({
       updates.push({
         key: 'StripePromotionCodesEnabled',
         value: sanitized.StripePromotionCodesEnabled,
+      })
+    }
+
+    if (
+      sanitized.CorporateTransferEnabled !== initial.CorporateTransferEnabled
+    ) {
+      updates.push({
+        key: 'payment_setting.corporate_transfer_enabled',
+        value: sanitized.CorporateTransferEnabled,
+      })
+    }
+
+    if (sanitized.CorporateTransferTitle !== initial.CorporateTransferTitle) {
+      updates.push({
+        key: 'payment_setting.corporate_transfer_title',
+        value: sanitized.CorporateTransferTitle,
+      })
+    }
+
+    if (sanitized.CorporateTransferNotice !== initial.CorporateTransferNotice) {
+      updates.push({
+        key: 'payment_setting.corporate_transfer_notice',
+        value: sanitized.CorporateTransferNotice,
+      })
+    }
+
+    if (
+      sanitized.CorporateTransferAccountName !==
+      initial.CorporateTransferAccountName
+    ) {
+      updates.push({
+        key: 'payment_setting.corporate_transfer_account_name',
+        value: sanitized.CorporateTransferAccountName,
+      })
+    }
+
+    if (
+      sanitized.CorporateTransferBankName !== initial.CorporateTransferBankName
+    ) {
+      updates.push({
+        key: 'payment_setting.corporate_transfer_bank_name',
+        value: sanitized.CorporateTransferBankName,
+      })
+    }
+
+    if (
+      sanitized.CorporateTransferBankAccount !==
+      initial.CorporateTransferBankAccount
+    ) {
+      updates.push({
+        key: 'payment_setting.corporate_transfer_bank_account',
+        value: sanitized.CorporateTransferBankAccount,
+      })
+    }
+
+    if (
+      sanitized.CorporateTransferOperatorPhone !==
+      initial.CorporateTransferOperatorPhone
+    ) {
+      updates.push({
+        key: 'payment_setting.corporate_transfer_operator_phone',
+        value: sanitized.CorporateTransferOperatorPhone,
+      })
+    }
+
+    if (
+      sanitized.CorporateTransferSupportEmail !==
+      initial.CorporateTransferSupportEmail
+    ) {
+      updates.push({
+        key: 'payment_setting.corporate_transfer_support_email',
+        value: sanitized.CorporateTransferSupportEmail,
       })
     }
 
@@ -1293,6 +1479,196 @@ export function PaymentSettingsSection({
               {updateOption.isPending
                 ? t('Saving...')
                 : t('Save Creem settings')}
+            </Button>
+          </div>
+
+          <Separator />
+
+          <div className='space-y-4'>
+            <div>
+              <h3 className='text-lg font-medium'>
+                {t('Corporate Transfer Gateway')}
+              </h3>
+              <p className='text-muted-foreground text-sm'>
+                {t(
+                  'Display corporate bank transfer instructions on the wallet page. This does not create orders or change balances automatically.'
+                )}
+              </p>
+            </div>
+
+            <FormField
+              control={form.control}
+              name='CorporateTransferEnabled'
+              render={({ field }) => (
+                <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                  <div className='space-y-0.5'>
+                    <FormLabel className='text-base'>
+                      {t('Enable corporate transfer display')}
+                    </FormLabel>
+                    <FormDescription>
+                      {t('Show corporate bank transfer information on wallet page')}
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <div className='grid gap-6 md:grid-cols-2'>
+              <FormField
+                control={form.control}
+                name='CorporateTransferTitle'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Display title')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder={t('Corporate Bank Transfer')}
+                        {...field}
+                        onChange={(event) => field.onChange(event.target.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='CorporateTransferOperatorPhone'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Operator phone')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder={t('Phone shown for transfer verification')}
+                        {...field}
+                        onChange={(event) => field.onChange(event.target.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className='grid gap-6 md:grid-cols-3'>
+              <FormField
+                control={form.control}
+                name='CorporateTransferAccountName'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Account name')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder={t('Receiver account name')}
+                        {...field}
+                        onChange={(event) => field.onChange(event.target.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='CorporateTransferBankName'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Opening bank')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder={t('Receiver opening bank')}
+                        {...field}
+                        onChange={(event) => field.onChange(event.target.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='CorporateTransferBankAccount'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Bank account')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder={t('Receiver bank account number')}
+                        {...field}
+                        onChange={(event) => field.onChange(event.target.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name='CorporateTransferSupportEmail'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('Support email')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder='support@example.com'
+                      {...field}
+                      onChange={(event) => field.onChange(event.target.value)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='CorporateTransferNotice'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('Notice')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={5}
+                      placeholder={t(
+                        'One notice per line. These notes are shown before bank account details.'
+                      )}
+                      {...field}
+                      onChange={(event) => field.onChange(event.target.value)}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {t(
+                      'One notice per line. Leave empty to use the default reminder.'
+                    )}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button
+              type='button'
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                saveCorporateTransferSettings()
+              }}
+              disabled={updateOption.isPending}
+            >
+              {updateOption.isPending
+                ? t('Saving...')
+                : t('Save corporate transfer settings')}
             </Button>
           </div>
 

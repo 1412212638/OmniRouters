@@ -89,6 +89,7 @@ func GetTopUpInfo(c *gin.Context) {
 		}
 	}
 
+	paymentSetting := operation_setting.GetPaymentSetting()
 	data := gin.H{
 		"enable_online_topup":        isEpayTopUpEnabled(),
 		"enable_stripe_topup":        isStripeTopUpEnabled(),
@@ -107,9 +108,19 @@ func GetTopUpInfo(c *gin.Context) {
 		"stripe_min_topup":        setting.StripeMinTopUp,
 		"waffo_min_topup":         setting.WaffoMinTopUp,
 		"waffo_pancake_min_topup": setting.WaffoPancakeMinTopUp,
-		"amount_options":          operation_setting.GetPaymentSetting().AmountOptions,
-		"discount":                operation_setting.GetPaymentSetting().AmountDiscount,
-		"fee_rate":                operation_setting.GetPaymentSetting().FeeRate,
+		"amount_options":          paymentSetting.AmountOptions,
+		"discount":                paymentSetting.AmountDiscount,
+		"fee_rate":                paymentSetting.FeeRate,
+		"corporate_transfer": gin.H{
+			"enabled":        paymentSetting.CorporateTransferEnabled,
+			"title":          paymentSetting.CorporateTransferTitle,
+			"notice":         paymentSetting.CorporateTransferNotice,
+			"account_name":   paymentSetting.CorporateTransferAccountName,
+			"bank_name":      paymentSetting.CorporateTransferBankName,
+			"bank_account":   paymentSetting.CorporateTransferBankAccount,
+			"operator_phone": paymentSetting.CorporateTransferOperatorPhone,
+			"support_email":  paymentSetting.CorporateTransferSupportEmail,
+		},
 		"topup_link":              common.TopUpLink,
 	}
 	common.ApiSuccess(c, data)

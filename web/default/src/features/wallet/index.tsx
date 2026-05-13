@@ -23,6 +23,7 @@ import { useStatus } from '@/hooks/use-status'
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { SectionPageLayout } from '@/components/layout'
 import { AffiliateRewardsCard } from './components/affiliate-rewards-card'
+import { CorporateTransferCard } from './components/corporate-transfer-card'
 import { BillingHistoryDialog } from './components/dialogs/billing-history-dialog'
 import { CreemConfirmDialog } from './components/dialogs/creem-confirm-dialog'
 import { PaymentConfirmDialog } from './components/dialogs/payment-confirm-dialog'
@@ -307,6 +308,14 @@ export function Wallet(props: WalletProps) {
                     topupInfo?.enable_waffo_pancake_topup
                   }
                 />
+                {topupInfo?.corporate_transfer?.enabled && (
+                  <div className='mt-4'>
+                    <CorporateTransferCard
+                      config={topupInfo.corporate_transfer}
+                      username={user?.username}
+                    />
+                  </div>
+                )}
               </div>
 
               <SubscriptionPlansCard
