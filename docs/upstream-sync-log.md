@@ -2,6 +2,18 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-05-14
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `aa56667b8f233958aec0f593b3960c04230de6d3`
+- Upstream `main` reviewed through: `18282e610ddf3c8c39732fe84e50ded2cf6dcc7f`
+- Local integration scope:
+  - Integrated `3e588b4d` electron lockfile `ip-address` dev dependency update.
+  - Integrated `51b5cbe1` default frontend combobox focus filtering fix.
+  - Integrated `18282e61` classic frontend `bun.lock` axios `1.15.2` alignment.
+- Deferred:
+  - `0526a226` paid-feature compliance confirmation was intentionally not integrated by product decision.
+
 ## 2026-05-13
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
