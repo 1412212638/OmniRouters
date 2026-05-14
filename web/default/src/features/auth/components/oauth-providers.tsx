@@ -22,12 +22,14 @@ import {
   IconDiscord,
   IconGithub,
   IconLinuxDo,
+  IconTelegram,
   IconWeChat,
 } from '@/assets/brand-icons'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useOAuthLogin } from '../hooks/use-oauth-login'
 import type { SystemStatus } from '../types'
+import { OAuthProviderIcon } from './oauth-provider-icon'
 
 type OAuthProvidersProps = {
   status: SystemStatus | null
@@ -118,6 +120,7 @@ export function OAuthProviders({
       key: 'telegram',
       label: t('Continue with Telegram'),
       onClick: handleTelegramLogin,
+      icon: <IconTelegram className='h-4 w-4' />,
     })
   }
 
@@ -129,6 +132,13 @@ export function OAuthProviders({
         key: `custom-${provider.slug}`,
         label: t('Continue with {{name}}', { name: provider.name }),
         onClick: () => handleCustomOAuthLogin(provider),
+        icon: provider.icon ? (
+          <OAuthProviderIcon
+            icon={provider.icon}
+            name={provider.name}
+            className='h-4 w-4'
+          />
+        ) : undefined,
       })
     }
   }

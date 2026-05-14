@@ -257,12 +257,14 @@ export function ProviderFormDialog(props: ProviderFormDialogProps) {
                     <FormLabel>{t('Icon')}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder={t('Icon identifier (e.g. github, gitlab)')}
+                        placeholder={t(
+                          'Icon URL or identifier (e.g. https://example.com/icon.svg, github)'
+                        )}
                         {...field}
                       />
                     </FormControl>
                     <FormDescription>
-                      {t('Optional icon identifier for the login button')}
+                      {t('Optional icon URL or identifier for the login button')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

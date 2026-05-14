@@ -21,7 +21,6 @@ import {
   Mail,
   Globe,
   MessageCircle,
-  Send,
   Link2,
   Unlink,
   Loader2,
@@ -32,6 +31,7 @@ import { useTranslation } from 'react-i18next'
 import { SiGithub, SiDiscord } from 'react-icons/si'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
+import { IconTelegram } from '@/assets/brand-icons'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -50,6 +50,7 @@ import {
 } from '@/components/ui/tooltip'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { StatusBadge } from '@/components/status-badge'
+import { OAuthProviderIcon } from '@/features/auth/components/oauth-provider-icon'
 import {
   getUser,
   getUserOAuthBindings,
@@ -137,7 +138,7 @@ const BUILTIN_BINDINGS: ReadonlyArray<{
     key: 'telegram_id',
     field: 'telegram_id',
     label: 'Telegram',
-    icon: <Send className='h-4 w-4' />,
+    icon: <IconTelegram className='h-4 w-4' />,
     statusKey: 'telegram_oauth',
   },
   {
@@ -148,20 +149,6 @@ const BUILTIN_BINDINGS: ReadonlyArray<{
     statusKey: 'linuxdo_oauth',
   },
 ]
-
-function CustomProviderIcon(props: { iconUrl?: string }) {
-  if (!props.iconUrl) return <Link2 className='h-4 w-4' />
-  return (
-    <img
-      src={props.iconUrl}
-      alt=''
-      className='h-4 w-4 rounded-sm object-contain'
-      onError={(e) => {
-        e.currentTarget.style.display = 'none'
-      }}
-    />
-  )
-}
 
 export function UserBindingDialog(props: Props) {
   const { t } = useTranslation()
@@ -253,7 +240,15 @@ export function UserBindingDialog(props: Props) {
       items.push({
         key: `oauth_${provider.id}`,
         label: provider.name || provider.id,
-        icon: <CustomProviderIcon iconUrl={provider.icon} />,
+        icon: provider.icon ? (
+          <OAuthProviderIcon
+            icon={provider.icon}
+            name={provider.name}
+            className='h-4 w-4'
+          />
+        ) : (
+          <Link2 className='h-4 w-4' />
+        ),
         value: binding?.external_id || '',
         type: 'custom',
         providerId: String(provider.id),

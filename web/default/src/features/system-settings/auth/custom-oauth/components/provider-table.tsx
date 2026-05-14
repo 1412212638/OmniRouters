@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/table'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { StatusBadge } from '@/components/status-badge'
+import { OAuthProviderIcon } from '@/features/auth/components/oauth-provider-icon'
 import { useDeleteProvider } from '../hooks/use-custom-oauth-mutations'
 import type { CustomOAuthProvider } from '../types'
 
@@ -85,7 +86,11 @@ export function ProviderTable(props: ProviderTableProps) {
               <TableRow key={provider.id}>
                 <TableCell>
                   {provider.icon ? (
-                    <span className='text-lg'>{provider.icon}</span>
+                    <OAuthProviderIcon
+                      icon={provider.icon}
+                      name={provider.name}
+                      className='h-5 w-5'
+                    />
                   ) : (
                     <span className='text-muted-foreground text-xs'>--</span>
                   )}

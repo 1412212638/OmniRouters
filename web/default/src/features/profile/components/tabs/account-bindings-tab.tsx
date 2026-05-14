@@ -17,11 +17,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useEffect, useMemo, useState, useCallback } from 'react'
-import { Mail, Shield, Send, Link2, Unlink } from 'lucide-react'
+import { Mail, Shield, Link2, Unlink } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { SiGithub, SiWechat, SiLinux } from 'react-icons/si'
 import { toast } from 'sonner'
-import { IconDiscord } from '@/assets/brand-icons'
+import { IconDiscord, IconTelegram } from '@/assets/brand-icons'
 import {
   handleGitHubOAuth,
   handleOIDCOAuth,
@@ -35,6 +35,7 @@ import { Separator } from '@/components/ui/separator'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { StatusBadge } from '@/components/status-badge'
 import { OAUTH_BIND_STORAGE_KEY } from '@/features/auth/constants'
+import { OAuthProviderIcon } from '@/features/auth/components/oauth-provider-icon'
 import {
   getSelfOAuthBindings,
   unbindCustomOAuth,
@@ -70,7 +71,7 @@ export function AccountBindingsTab({
   const [unbinding, setUnbinding] = useState(false)
 
   const customProviders = status?.custom_oauth_providers as
-    | Array<{ id: string; name: string }>
+    | Array<{ id: string; name: string; icon?: string }>
     | undefined
 
   const fetchCustomBindings = useCallback(async () => {
@@ -228,7 +229,7 @@ export function AccountBindingsTab({
       {
         id: 'telegram',
         label: t('Telegram'),
-        icon: Send,
+        icon: IconTelegram,
         value: (profile as unknown as Record<string, unknown>).telegram_id as
           | string
           | undefined,
@@ -326,7 +327,15 @@ export function AccountBindingsTab({
                 >
                   <div className='flex min-w-0 items-center gap-2.5 sm:gap-3'>
                     <div className='bg-muted shrink-0 rounded-md p-1.5 sm:p-2'>
-                      <Link2 className='h-4 w-4' />
+                      {provider.icon ? (
+                        <OAuthProviderIcon
+                          icon={provider.icon}
+                          name={provider.name}
+                          className='h-4 w-4'
+                        />
+                      ) : (
+                        <Link2 className='h-4 w-4' />
+                      )}
                     </div>
                     <div className='min-w-0'>
                       <div className='flex items-center gap-1.5'>
