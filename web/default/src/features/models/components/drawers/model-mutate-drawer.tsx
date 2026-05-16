@@ -754,12 +754,14 @@ export function ModelMutateDrawer({
                     <FormLabel>{t('Icon')}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder={t('OpenAI, Anthropic, etc.')}
+                        placeholder='https://example.com/icon.svg, OpenAI'
                         {...field}
                       />
                     </FormControl>
                     <FormDescription className='text-xs'>
-                      {t('@lobehub/icons key')}
+                      {t(
+                        'Icon URL or identifier (e.g. https://example.com/icon.svg, github)'
+                      )}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

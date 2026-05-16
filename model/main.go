@@ -254,6 +254,9 @@ func migrateDB() error {
 	if err := migrateTokenModelLimitsToText(); err != nil {
 		return err
 	}
+	if err := migrateModelAndVendorIconsToText(); err != nil {
+		return err
+	}
 
 	err := DB.AutoMigrate(
 		&Channel{},
@@ -301,6 +304,9 @@ func migrateDB() error {
 }
 
 func migrateDBFast() error {
+	if err := migrateModelAndVendorIconsToText(); err != nil {
+		return err
+	}
 
 	var wg sync.WaitGroup
 
@@ -478,6 +484,62 @@ PRIMARY KEY (` + "`id`" + `)
 			return err
 		}
 	}
+	return nil
+}
+
+func migrateModelAndVendorIconsToText() error {
+	if common.UsingSQLite {
+		return nil
+	}
+
+	tables := []struct {
+		name  string
+		model interface{}
+	}{
+		{name: "models", model: &Model{}},
+		{name: "vendors", model: &Vendor{}},
+	}
+
+	for _, table := range tables {
+		if !DB.Migrator().HasTable(table.name) {
+			continue
+		}
+		if !DB.Migrator().HasColumn(table.model, "icon") {
+			continue
+		}
+
+		var alterSQL string
+		if common.UsingPostgreSQL {
+			var dataType string
+			if err := DB.Raw(`SELECT data_type FROM information_schema.columns
+				WHERE table_schema = current_schema() AND table_name = ? AND column_name = ?`,
+				table.name, "icon").Scan(&dataType).Error; err != nil {
+				common.SysLog(fmt.Sprintf("Warning: failed to query metadata for %s.icon: %v", table.name, err))
+			} else if dataType == "text" {
+				continue
+			}
+			alterSQL = fmt.Sprintf(`ALTER TABLE %s ALTER COLUMN icon TYPE text`, table.name)
+		} else if common.UsingMySQL {
+			var columnType string
+			if err := DB.Raw(`SELECT COLUMN_TYPE FROM information_schema.columns
+				WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?`,
+				table.name, "icon").Scan(&columnType).Error; err != nil {
+				common.SysLog(fmt.Sprintf("Warning: failed to query metadata for %s.icon: %v", table.name, err))
+			} else if strings.ToLower(columnType) == "text" {
+				continue
+			}
+			alterSQL = fmt.Sprintf("ALTER TABLE %s MODIFY COLUMN icon text", table.name)
+		}
+
+		if alterSQL == "" {
+			continue
+		}
+		if err := DB.Exec(alterSQL).Error; err != nil {
+			return fmt.Errorf("failed to migrate %s.icon to text: %w", table.name, err)
+		}
+		common.SysLog(fmt.Sprintf("Successfully migrated %s.icon to text", table.name))
+	}
+
 	return nil
 }
 

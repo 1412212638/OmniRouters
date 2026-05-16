@@ -181,12 +181,14 @@ export function VendorMutateDialog({
                   <FormLabel>{t('Icon')}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder={t('OpenAI, Anthropic, Google, etc.')}
+                      placeholder='https://example.com/icon.svg, OpenAI'
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    {t('@lobehub/icons key name')}
+                    {t(
+                      'Icon URL or identifier (e.g. https://example.com/icon.svg, github)'
+                    )}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

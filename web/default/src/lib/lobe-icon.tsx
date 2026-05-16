@@ -23,9 +23,20 @@ For commercial licensing, please contact support@quantumnous.com
  * Supports:
  * - Basic: "OpenAI", "OpenAI.Color"
  * - Chained properties: "OpenAI.Avatar.type={'platform'}"
+ * - Image URLs: "https://example.com/icon.svg", "/uploads/icon.png"
  * - Size parameter: getLobeIcon("OpenAI", 20)
  */
 import * as LobeIcons from '@lobehub/icons'
+
+function isIconUrl(value: string): boolean {
+  const trimmed = value.trim().toLowerCase()
+  return (
+    /^(https?:)?\/\//.test(trimmed) ||
+    trimmed.startsWith('/') ||
+    trimmed.startsWith('data:image/') ||
+    trimmed.startsWith('blob:')
+  )
+}
 
 /**
  * Parse a property value from string to appropriate type
@@ -71,6 +82,7 @@ function parseValue(raw: string | undefined | null): string | number | boolean {
  * getLobeIcon("OpenAI", 24)
  * getLobeIcon("OpenAI.Color", 20)
  * getLobeIcon("Claude.Avatar.type={'platform'}", 32)
+ * getLobeIcon("https://example.com/icon.svg", 20)
  */
 export function getLobeIcon(
   iconName: string | undefined | null,
@@ -96,6 +108,22 @@ export function getLobeIcon(
       >
         ?
       </div>
+    )
+  }
+
+  if (isIconUrl(trimmedName)) {
+    return (
+      <img
+        src={trimmedName}
+        alt=''
+        aria-hidden='true'
+        loading='lazy'
+        decoding='async'
+        draggable={false}
+        referrerPolicy='no-referrer'
+        className='shrink-0 rounded-sm object-contain'
+        style={{ width: size, height: size }}
+      />
     )
   }
 
