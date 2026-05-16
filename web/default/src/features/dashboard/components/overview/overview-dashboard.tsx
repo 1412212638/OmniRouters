@@ -442,9 +442,9 @@ export function OverviewDashboard() {
   })
 
   const modelsQuery = useQuery({
-    queryKey: ['dashboard', 'overview', 'user-models'],
+    queryKey: ['dashboard', 'overview', 'user-models', 'openai'],
     queryFn: async () => {
-      const result = await getUserModels()
+      const result = await getUserModels({ endpointType: 'openai' })
       return result.success ? (result.data ?? []) : []
     },
     staleTime: 5 * 60 * 1000,

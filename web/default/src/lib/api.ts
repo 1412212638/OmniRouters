@@ -179,13 +179,23 @@ export async function getSelf() {
   return res.data
 }
 
+interface GetUserModelsOptions {
+  endpointType?: string
+}
+
 // Get user available models
-export async function getUserModels(): Promise<{
+export async function getUserModels(
+  options: GetUserModelsOptions = {}
+): Promise<{
   success: boolean
   message?: string
   data?: string[]
 }> {
-  const res = await api.get('/api/user/models')
+  const res = await api.get('/api/user/models', {
+    params: options.endpointType
+      ? { endpoint_type: options.endpointType }
+      : undefined,
+  })
   return res.data
 }
 

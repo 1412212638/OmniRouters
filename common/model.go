@@ -13,9 +13,53 @@ var (
 		"dall-e-3",
 		"dall-e-2",
 		"gpt-image-1",
+		"qwen-image",
 		"prefix:imagen-",
 		"flux-",
 		"flux.1-",
+		"stable-diffusion",
+		"sdxl",
+		"kolors",
+		"wanx",
+	}
+	EmbeddingModels = []string{
+		"embedding",
+		"embeddings",
+		"text-embedding",
+		"gemini-embedding",
+		"embed-",
+		"bge-",
+		"bce-embedding",
+		"gte-",
+		"e5-",
+		"text2vec",
+		"m3e",
+	}
+	RerankModels = []string{
+		"rerank",
+		"reranker",
+	}
+	VideoGenerationModels = []string{
+		"hailuo",
+		"kling",
+		"jimeng",
+		"vidu",
+		"sora",
+		"veo",
+		"seedance",
+		"pika",
+		"runway",
+		"hunyuanvideo",
+		"hunyuan-video",
+		"hunyuan-1.5",
+		"hunyuan-3.0",
+		"mingmou",
+		"t2v-",
+		"i2v-",
+		"s2v-",
+		"text-to-video",
+		"image-to-video",
+		"video-generation",
 	}
 	OpenAITextModels = []string{
 		"gpt-",
@@ -42,6 +86,36 @@ func IsImageGenerationModel(modelName string) bool {
 			return true
 		}
 		if strings.HasPrefix(m, "prefix:") && strings.HasPrefix(modelName, strings.TrimPrefix(m, "prefix:")) {
+			return true
+		}
+	}
+	return false
+}
+
+func IsEmbeddingModel(modelName string) bool {
+	modelName = strings.ToLower(modelName)
+	for _, m := range EmbeddingModels {
+		if strings.Contains(modelName, m) {
+			return true
+		}
+	}
+	return false
+}
+
+func IsRerankModel(modelName string) bool {
+	modelName = strings.ToLower(modelName)
+	for _, m := range RerankModels {
+		if strings.Contains(modelName, m) {
+			return true
+		}
+	}
+	return false
+}
+
+func IsVideoGenerationModel(modelName string) bool {
+	modelName = strings.ToLower(modelName)
+	for _, m := range VideoGenerationModels {
+		if strings.Contains(modelName, m) {
 			return true
 		}
 	}

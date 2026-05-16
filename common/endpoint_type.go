@@ -2,12 +2,16 @@ package common
 
 import "github.com/QuantumNous/new-api/constant"
 
-// GetEndpointTypesByChannelType 获取渠道最优先端点类型（所有的渠道都支持 OpenAI 端点）
+// GetEndpointTypesByChannelType returns endpoint types in preferred order for a channel/model pair.
 func GetEndpointTypesByChannelType(channelType int, modelName string) []constant.EndpointType {
 	var endpointTypes []constant.EndpointType
 	switch channelType {
 	case constant.ChannelTypeJina:
-		endpointTypes = []constant.EndpointType{constant.EndpointTypeJinaRerank}
+		if IsEmbeddingModel(modelName) {
+			endpointTypes = []constant.EndpointType{constant.EndpointTypeEmbeddings}
+		} else {
+			endpointTypes = []constant.EndpointType{constant.EndpointTypeJinaRerank}
+		}
 	//case constant.ChannelTypeMidjourney, constant.ChannelTypeMidjourneyPlus:
 	//	endpointTypes = []constant.EndpointType{constant.EndpointTypeMidjourney}
 	//case constant.ChannelTypeSunoAPI:
@@ -24,7 +28,7 @@ func GetEndpointTypesByChannelType(channelType int, modelName string) []constant
 		fallthrough
 	case constant.ChannelTypeGemini:
 		endpointTypes = []constant.EndpointType{constant.EndpointTypeGemini, constant.EndpointTypeOpenAI}
-	case constant.ChannelTypeOpenRouter: // OpenRouter 只支持 OpenAI 端点
+	case constant.ChannelTypeOpenRouter:
 		endpointTypes = []constant.EndpointType{constant.EndpointTypeOpenAI}
 	case constant.ChannelTypeXai:
 		endpointTypes = []constant.EndpointType{constant.EndpointTypeOpenAI, constant.EndpointTypeOpenAIResponse}
@@ -37,9 +41,75 @@ func GetEndpointTypesByChannelType(channelType int, modelName string) []constant
 			endpointTypes = []constant.EndpointType{constant.EndpointTypeOpenAI}
 		}
 	}
+	if IsRerankModel(modelName) {
+		endpointTypes = prependEndpointType(endpointTypes, constant.EndpointTypeJinaRerank)
+	}
+	if IsEmbeddingModel(modelName) {
+		endpointTypes = prependEndpointType(endpointTypes, constant.EndpointTypeEmbeddings)
+	}
+	if IsVideoGenerationModel(modelName) {
+		endpointTypes = prependEndpointType(endpointTypes, constant.EndpointTypeOpenAIVideo)
+	}
 	if IsImageGenerationModel(modelName) {
-		// add to first
-		endpointTypes = append([]constant.EndpointType{constant.EndpointTypeImageGeneration}, endpointTypes...)
+		endpointTypes = prependEndpointType(endpointTypes, constant.EndpointTypeImageGeneration)
 	}
 	return endpointTypes
+}
+
+func IsOpenAIChatEndpointModel(channelType int, modelName string) bool {
+	if isNonChatOnlyChannel(channelType) {
+		return false
+	}
+	endpointTypes := GetEndpointTypesByChannelType(channelType, modelName)
+	hasOpenAI := false
+	for _, endpointType := range endpointTypes {
+		if endpointType == constant.EndpointTypeOpenAI {
+			hasOpenAI = true
+			continue
+		}
+		if isNonChatEndpointType(endpointType) {
+			return false
+		}
+	}
+	return hasOpenAI
+}
+
+func prependEndpointType(endpointTypes []constant.EndpointType, endpointType constant.EndpointType) []constant.EndpointType {
+	for _, current := range endpointTypes {
+		if current == endpointType {
+			return endpointTypes
+		}
+	}
+	return append([]constant.EndpointType{endpointType}, endpointTypes...)
+}
+
+func isNonChatEndpointType(endpointType constant.EndpointType) bool {
+	switch endpointType {
+	case constant.EndpointTypeImageGeneration,
+		constant.EndpointTypeEmbeddings,
+		constant.EndpointTypeJinaRerank,
+		constant.EndpointTypeOpenAIVideo:
+		return true
+	default:
+		return false
+	}
+}
+
+func isNonChatOnlyChannel(channelType int) bool {
+	switch channelType {
+	case constant.ChannelTypeMidjourney,
+		constant.ChannelTypeMidjourneyPlus,
+		constant.ChannelTypeSunoAPI,
+		constant.ChannelTypeJina,
+		constant.ChannelTypeMokaAI,
+		constant.ChannelTypeKling,
+		constant.ChannelTypeJimeng,
+		constant.ChannelTypeVidu,
+		constant.ChannelTypeDoubaoVideo,
+		constant.ChannelTypeSora,
+		constant.ChannelTypeReplicate:
+		return true
+	default:
+		return false
+	}
 }

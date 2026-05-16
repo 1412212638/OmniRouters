@@ -527,11 +527,20 @@ func GetUserModels(c *gin.Context) {
 	}
 	groups := service.GetUserUsableGroups(user.Group)
 	var models []string
-	for group := range groups {
-		for _, g := range model.GetGroupEnabledModels(group) {
-			if !common.StringsContains(models, g) {
-				models = append(models, g)
+	endpointType := constant.EndpointType(strings.TrimSpace(c.Query("endpoint_type")))
+	if endpointType == "" {
+		for group := range groups {
+			for _, g := range model.GetGroupEnabledModels(group) {
+				if !common.StringsContains(models, g) {
+					models = append(models, g)
+				}
 			}
+		}
+	} else {
+		models, err = getUserModelsByEndpointType(groups, endpointType)
+		if err != nil {
+			common.ApiError(c, err)
+			return
 		}
 	}
 	c.JSON(http.StatusOK, gin.H{
@@ -540,6 +549,38 @@ func GetUserModels(c *gin.Context) {
 		"data":    models,
 	})
 	return
+}
+
+func getUserModelsByEndpointType(groups map[string]string, endpointType constant.EndpointType) ([]string, error) {
+	abilities, err := model.GetAllEnableAbilityWithChannels()
+	if err != nil {
+		return nil, err
+	}
+	models := make([]string, 0)
+	for _, ability := range abilities {
+		if _, ok := groups[ability.Group]; !ok {
+			continue
+		}
+		if !abilitySupportsEndpointType(ability.ChannelType, ability.Model, endpointType) {
+			continue
+		}
+		if !common.StringsContains(models, ability.Model) {
+			models = append(models, ability.Model)
+		}
+	}
+	return models, nil
+}
+
+func abilitySupportsEndpointType(channelType int, modelName string, endpointType constant.EndpointType) bool {
+	if endpointType == constant.EndpointTypeOpenAI {
+		return common.IsOpenAIChatEndpointModel(channelType, modelName)
+	}
+	for _, supportedEndpointType := range common.GetEndpointTypesByChannelType(channelType, modelName) {
+		if supportedEndpointType == endpointType {
+			return true
+		}
+	}
+	return false
 }
 
 func UpdateUser(c *gin.Context) {
