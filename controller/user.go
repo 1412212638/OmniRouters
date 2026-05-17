@@ -552,6 +552,8 @@ func GetUserModels(c *gin.Context) {
 }
 
 func getUserModelsByEndpointType(groups map[string]string, endpointType constant.EndpointType) ([]string, error) {
+	model.GetPricing()
+
 	abilities, err := model.GetAllEnableAbilityWithChannels()
 	if err != nil {
 		return nil, err
@@ -572,15 +574,20 @@ func getUserModelsByEndpointType(groups map[string]string, endpointType constant
 }
 
 func abilitySupportsEndpointType(channelType int, modelName string, endpointType constant.EndpointType) bool {
+	if endpointTypes := model.GetModelSupportEndpointTypes(modelName); len(endpointTypes) > 0 {
+		if endpointType == constant.EndpointTypeOpenAI {
+			return common.IsOpenAIChatEndpointTypes(endpointTypes)
+		}
+		return common.ContainsEndpointType(endpointTypes, endpointType)
+	}
+
 	if endpointType == constant.EndpointTypeOpenAI {
 		return common.IsOpenAIChatEndpointModel(channelType, modelName)
 	}
-	for _, supportedEndpointType := range common.GetEndpointTypesByChannelType(channelType, modelName) {
-		if supportedEndpointType == endpointType {
-			return true
-		}
-	}
-	return false
+	return common.ContainsEndpointType(
+		common.GetEndpointTypesByChannelType(channelType, modelName),
+		endpointType,
+	)
 }
 
 func UpdateUser(c *gin.Context) {

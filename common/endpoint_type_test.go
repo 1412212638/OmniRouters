@@ -72,3 +72,60 @@ func TestIsOpenAIChatEndpointModel(t *testing.T) {
 		})
 	}
 }
+
+func TestIsOpenAIChatEndpointTypes(t *testing.T) {
+	tests := []struct {
+		name      string
+		endpoints []constant.EndpointType
+		want      bool
+	}{
+		{
+			name:      "openai chat only",
+			endpoints: []constant.EndpointType{constant.EndpointTypeOpenAI},
+			want:      true,
+		},
+		{
+			name: "native chat plus openai",
+			endpoints: []constant.EndpointType{
+				constant.EndpointTypeAnthropic,
+				constant.EndpointTypeOpenAI,
+			},
+			want:      true,
+		},
+		{
+			name:      "image endpoint only",
+			endpoints: []constant.EndpointType{constant.EndpointTypeImageGeneration},
+			want:      false,
+		},
+		{
+			name: "image endpoint overrides openai",
+			endpoints: []constant.EndpointType{
+				constant.EndpointTypeImageGeneration,
+				constant.EndpointTypeOpenAI,
+			},
+			want:      false,
+		},
+		{
+			name: "embedding endpoint overrides openai",
+			endpoints: []constant.EndpointType{
+				constant.EndpointTypeEmbeddings,
+				constant.EndpointTypeOpenAI,
+			},
+			want:      false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IsOpenAIChatEndpointTypes(tt.endpoints)
+			if got != tt.want {
+				t.Fatalf(
+					"IsOpenAIChatEndpointTypes(%v) = %v, want %v",
+					tt.endpoints,
+					got,
+					tt.want,
+				)
+			}
+		})
+	}
+}

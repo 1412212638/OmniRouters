@@ -61,6 +61,10 @@ func IsOpenAIChatEndpointModel(channelType int, modelName string) bool {
 		return false
 	}
 	endpointTypes := GetEndpointTypesByChannelType(channelType, modelName)
+	return IsOpenAIChatEndpointTypes(endpointTypes)
+}
+
+func IsOpenAIChatEndpointTypes(endpointTypes []constant.EndpointType) bool {
 	hasOpenAI := false
 	for _, endpointType := range endpointTypes {
 		if endpointType == constant.EndpointTypeOpenAI {
@@ -72,6 +76,15 @@ func IsOpenAIChatEndpointModel(channelType int, modelName string) bool {
 		}
 	}
 	return hasOpenAI
+}
+
+func ContainsEndpointType(endpointTypes []constant.EndpointType, endpointType constant.EndpointType) bool {
+	for _, current := range endpointTypes {
+		if current == endpointType {
+			return true
+		}
+	}
+	return false
 }
 
 func prependEndpointType(endpointTypes []constant.EndpointType, endpointType constant.EndpointType) []constant.EndpointType {

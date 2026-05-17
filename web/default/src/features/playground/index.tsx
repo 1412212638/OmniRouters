@@ -51,7 +51,7 @@ export function Playground() {
 
   // Load models
   const { data: modelsData, isLoading: isLoadingModels } = useQuery({
-    queryKey: ['playground-models'],
+    queryKey: ['playground-models', 'openai'],
     queryFn: getUserModels,
   })
 
