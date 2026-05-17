@@ -2,6 +2,24 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-05-17
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `18282e610ddf3c8c39732fe84e50ded2cf6dcc7f`
+- Upstream `main` synced through: `f69ceb6967901d3939f69d6467d9929ab41d8eae`
+- Local integration scope:
+  - Integrated `faa0f142` performance metric upsert column qualification.
+  - Integrated `3caa6e46` default frontend batch fixes, including table truncation, channel fetch/edit UI, log columns, and wallet affiliate copy behavior.
+  - Integrated `8f9ee9ba`, `554defe4`, `132d7b9f`, and `2d968c3e` channel remark clearing, usage-log filtering, and group-filtered channel list fixes.
+  - Integrated `8a10dedb` unlimited API key quota validation handling.
+  - Integrated `6f8668e4` public header navigation access control and middleware tests.
+  - Integrated `68830e60` channel affinity `request_header` key source support.
+  - Integrated `f69ceb69` new UI language and copy fixes.
+- Notes:
+  - Preserved OmniRouters external homepage/about iframe scroll handling while adding upstream public navigation auth prompts and visibility filtering.
+  - Preserved OmniRouters login legal text translations and email settings / marketing email locale keys while accepting upstream i18n helper and locale updates.
+  - Preserved local wallet corporate transfer display, model marketplace Sora pricing, discount badges, mail settings, and OAuth icon URL support.
+
 ## 2026-05-14
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
