@@ -38,6 +38,7 @@ const EMPTY_MODEL = {
   fixedPrice: '',
   soraPerRequestPricingEnabled: false,
   soraResolutionTiers: [],
+  soraAudioGenerationMultiplier: '',
   inputPrice: '',
   completionPrice: '',
   lockedCompletionRatio: '',
@@ -184,6 +185,9 @@ const buildModelState = (name, sourceMaps) => {
   const soraResolutionTiers = cloneSoraResolutionTiers(
     soraPricing?.resolution_tiers,
   );
+  const soraAudioGenerationMultiplier = toNumericString(
+    soraPricing?.audio_generation_multiplier,
+  );
   const inputPrice = ratioToBasePrice(modelRatio);
   const inputPriceNumber = toNumberOrNull(inputPrice);
   const audioInputPrice =
@@ -201,6 +205,7 @@ const buildModelState = (name, sourceMaps) => {
     fixedPrice,
     soraPerRequestPricingEnabled: Boolean(soraPricing?.enabled),
     soraResolutionTiers,
+    soraAudioGenerationMultiplier,
     inputPrice,
     completionRatioLocked: completionRatioMeta.locked,
     lockedCompletionRatio: completionRatioMeta.ratio,
@@ -345,6 +350,12 @@ export const getModelWarnings = (model, t) => {
     ) {
       warnings.push(t('Sora 参数计费的倍率必须大于 0。'));
     }
+    if (
+      hasValue(model.soraAudioGenerationMultiplier) &&
+      Number(model.soraAudioGenerationMultiplier) < 1
+    ) {
+      warnings.push(t('Sora 音频生成倍率必须至少为 1。'));
+    }
   }
 
   return warnings;
@@ -373,7 +384,10 @@ export const buildSummaryText = (model, t) => {
       ? ` $${model.fixedPrice} / ${t('秒')}`
       : '';
     const tierSuffix = tierCount > 0 ? ` (${tierCount} ${t('档')})` : '';
-    return `${t('Sora 参数计费')}${tierSuffix}${priceSuffix}${requestRuleSuffix}`;
+    const audioSuffix = hasValue(model.soraAudioGenerationMultiplier)
+      ? ` + ${t('音频')} x${model.soraAudioGenerationMultiplier}`
+      : '';
+    return `${t('Sora 参数计费')}${tierSuffix}${priceSuffix}${audioSuffix}${requestRuleSuffix}`;
   }
 
   if (model.billingMode === 'per-request' && hasValue(model.fixedPrice)) {
@@ -554,6 +568,19 @@ const serializeSoraPerRequestPricing = (model, t) => {
       }),
     );
   }
+  const audioGenerationMultiplier = toNumberOrNull(
+    model.soraAudioGenerationMultiplier,
+  );
+  if (
+    hasValue(model.soraAudioGenerationMultiplier) &&
+    (audioGenerationMultiplier === null || audioGenerationMultiplier < 1)
+  ) {
+    throw new Error(
+      t('模型 {{name}} 的 Sora 音频生成倍率必须至少为 1', {
+        name: model.name,
+      }),
+    );
+  }
 
   if (model.soraPerRequestPricingEnabled) {
     if (!hasValue(model.fixedPrice)) {
@@ -578,6 +605,9 @@ const serializeSoraPerRequestPricing = (model, t) => {
       value: tier.value,
       multiplier: Number(tier.multiplier),
     })),
+    ...(audioGenerationMultiplier !== null
+      ? { audio_generation_multiplier: audioGenerationMultiplier }
+      : {}),
   };
 };
 
@@ -598,6 +628,19 @@ const buildSoraPerRequestPricingClipboardConfig = (model, t) => {
   ) {
     throw new Error(
       t('模型 {{name}} 的 Sora resolution 倍率必须大于 0', {
+        name: model?.name || '-',
+      }),
+    );
+  }
+  const audioGenerationMultiplier = toNumberOrNull(
+    model?.soraAudioGenerationMultiplier,
+  );
+  if (
+    hasValue(model?.soraAudioGenerationMultiplier) &&
+    (audioGenerationMultiplier === null || audioGenerationMultiplier < 1)
+  ) {
+    throw new Error(
+      t('模型 {{name}} 的 Sora 音频生成倍率必须至少为 1', {
         name: model?.name || '-',
       }),
     );
@@ -631,6 +674,9 @@ const buildSoraPerRequestPricingClipboardConfig = (model, t) => {
       value: tier.value,
       multiplier: Number(tier.multiplier),
     })),
+    ...(audioGenerationMultiplier !== null
+      ? { audio_generation_multiplier: audioGenerationMultiplier }
+      : {}),
   };
 };
 
@@ -663,6 +709,11 @@ const parseSoraPerRequestPricingClipboardConfig = (rawText, t) => {
   const tiers = normalizeSoraResolutionTiers(
     parsed.resolution_tiers ?? parsed.soraResolutionTiers,
   );
+  const audioGenerationMultiplier = toNumericString(
+    parsed.audio_generation_multiplier ??
+      parsed.audioGenerationMultiplier ??
+      parsed.soraAudioGenerationMultiplier,
+  );
 
   const tierNames = tiers.map((tier) => tier.value);
   if (new Set(tierNames).size !== tierNames.length) {
@@ -684,8 +735,19 @@ const parseSoraPerRequestPricingClipboardConfig = (rawText, t) => {
       throw new Error(t('参数配置有误'));
     }
   }
+  if (
+    hasValue(audioGenerationMultiplier) &&
+    Number(audioGenerationMultiplier) < 1
+  ) {
+    throw new Error(t('参数配置有误'));
+  }
 
-  if (!enabled && !hasValue(fixedPrice) && tiers.length === 0) {
+  if (
+    !enabled &&
+    !hasValue(fixedPrice) &&
+    tiers.length === 0 &&
+    !hasValue(audioGenerationMultiplier)
+  ) {
     throw new Error(t('参数配置有误'));
   }
 
@@ -693,6 +755,7 @@ const parseSoraPerRequestPricingClipboardConfig = (rawText, t) => {
     enabled,
     fixedPrice,
     tiers,
+    audioGenerationMultiplier,
   };
 };
 
@@ -745,12 +808,15 @@ export const buildPreviewRows = (model, t) => {
         const tierSummary = soraPricing.resolution_tiers
           .map((tier) => `${tier.value} x${tier.multiplier}`)
           .join(', ');
+        const audioSummary = soraPricing.audio_generation_multiplier
+          ? ` / ${t('音频')} x${soraPricing.audio_generation_multiplier}`
+          : '';
         rows.push({
           key: 'SoraPerRequestPricing',
           label: 'billing_setting.sora_per_request_pricing',
           value: `${soraPricing.enabled ? t('已启用') : t('已关闭')} / ${
             soraPricing.resolution_tiers.length
-          } ${t('档')} — ${tierSummary || t('空')}`,
+          } ${t('档')} — ${tierSummary || t('空')}${audioSummary}`,
         });
       }
     } catch (error) {
@@ -1218,6 +1284,16 @@ export function useModelPricingEditorState({
     }));
   };
 
+  const handleSoraAudioGenerationMultiplierChange = (value) => {
+    if (!selectedModel || !NUMERIC_INPUT_REGEX.test(value)) {
+      return;
+    }
+    upsertModel(selectedModel.name, (model) => ({
+      ...model,
+      soraAudioGenerationMultiplier: value,
+    }));
+  };
+
   const handleCopySoraPerRequestPricing = async () => {
     if (!selectedModel) {
       showError(t('请先选择一个作为模板的模型'));
@@ -1271,6 +1347,7 @@ export function useModelPricingEditorState({
         fixedPrice: imported.fixedPrice,
         soraPerRequestPricingEnabled: imported.enabled,
         soraResolutionTiers: cloneSoraResolutionTiers(imported.tiers),
+        soraAudioGenerationMultiplier: imported.audioGenerationMultiplier,
       }));
       showSuccess(t('配置导入成功'));
       return true;
@@ -1520,6 +1597,7 @@ export function useModelPricingEditorState({
     handleSoraResolutionTierChange,
     handleAddSoraResolutionTier,
     handleRemoveSoraResolutionTier,
+    handleSoraAudioGenerationMultiplierChange,
     handleCopySoraPerRequestPricing,
     handleImportSoraPerRequestPricing,
     handleSubmit,

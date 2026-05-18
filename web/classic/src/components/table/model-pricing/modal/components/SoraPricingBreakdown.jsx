@@ -42,6 +42,9 @@ export default function SoraPricingBreakdown({
         })
         .filter((tier) => tier.resolution !== '-' && tier.multiplier > 0)
     : [];
+  const audioGenerationMultiplier = Number(pricing?.audio_generation_multiplier);
+  const hasAudioGenerationSurcharge =
+    Number.isFinite(audioGenerationMultiplier) && audioGenerationMultiplier >= 1;
 
   if (!pricing?.enabled || tiers.length === 0) {
     return null;
@@ -90,10 +93,24 @@ export default function SoraPricingBreakdown({
       >
         <Text size='small'>
           {t(
-            '请求必须提供 resolution 和 seconds；最终价格 = 基础每秒单价 × seconds × resolution 档位倍率 × 分组倍率。',
+            '请求必须提供 resolution 和 seconds；若 audio_generation 启用且配置了音频生成倍率，最终价格会额外乘以该倍率。',
           )}
         </Text>
       </div>
+      {hasAudioGenerationSurcharge && audioGenerationMultiplier !== 1 ? (
+        <div
+          style={{
+            padding: '10px 12px',
+            borderRadius: 8,
+            background: 'var(--semi-color-warning-light-default)',
+            marginBottom: 12,
+          }}
+        >
+          <Text size='small'>
+            {t('音频生成倍率')}: <Text strong>x{audioGenerationMultiplier}</Text>
+          </Text>
+        </div>
+      ) : null}
 
       <Text
         strong

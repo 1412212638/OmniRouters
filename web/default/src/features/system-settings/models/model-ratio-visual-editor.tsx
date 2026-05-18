@@ -102,6 +102,7 @@ type ModelRow = {
   requestRuleExpr?: string
   soraPerRequestPricingEnabled?: boolean
   soraResolutionTiers?: ModelRatioData['soraResolutionTiers']
+  soraAudioGenerationMultiplier?: string
   hasConflict: boolean
 }
 
@@ -172,10 +173,16 @@ const getSoraPriceSummary = (row: ModelRow, t: (key: string) => string) => {
 
 const getSoraPriceDetail = (row: ModelRow, t: (key: string) => string) => {
   const tiers = normalizeSoraResolutionTiers(row.soraResolutionTiers || [])
-  if (tiers.length === 0) {
+  const details = tiers.map((tier) => `${tier.value} (x${tier.multiplier})`)
+  if (row.soraAudioGenerationMultiplier) {
+    details.push(
+      `${t('Audio generation')} (x${row.soraAudioGenerationMultiplier})`
+    )
+  }
+  if (details.length === 0) {
     return t('Resolution tiers not configured')
   }
-  return tiers.map((tier) => `${tier.value} (x${tier.multiplier})`).join(' • ')
+  return details.join(', ')
 }
 
 const getPriceSummary = (row: ModelRow, t: (key: string) => string) => {
@@ -383,6 +390,10 @@ export const ModelRatioVisualEditor = memo(
         const soraResolutionTiers = cloneSoraResolutionTiers(
           soraPricing?.resolution_tiers
         )
+        const soraAudioGenerationMultiplier =
+          soraPricing?.audio_generation_multiplier != null
+            ? String(soraPricing.audio_generation_multiplier)
+            : ''
 
         const modeForModel = billingModeMap[name]
         if (modeForModel === 'tiered_expr') {
@@ -407,6 +418,7 @@ export const ModelRatioVisualEditor = memo(
             audioCompletionRatio: audioCompletion,
             soraPerRequestPricingEnabled,
             soraResolutionTiers,
+            soraAudioGenerationMultiplier,
             hasConflict: false,
           }
         }
@@ -427,6 +439,7 @@ export const ModelRatioVisualEditor = memo(
               : 'per-token',
           soraPerRequestPricingEnabled,
           soraResolutionTiers,
+          soraAudioGenerationMultiplier,
           hasConflict:
             price !== '' &&
             (ratio !== '' ||
@@ -502,6 +515,7 @@ export const ModelRatioVisualEditor = memo(
           soraResolutionTiers: cloneSoraResolutionTiers(
             model.soraResolutionTiers
           ),
+          soraAudioGenerationMultiplier: model.soraAudioGenerationMultiplier,
         })
         setEditorOpen(true)
         if (isMobile) setSheetOpen(true)
@@ -884,7 +898,8 @@ export const ModelRatioVisualEditor = memo(
             if (data.billingMode === 'per-request') {
               const soraPricing = serializeSoraPerRequestPricing(
                 Boolean(data.soraPerRequestPricingEnabled),
-                data.soraResolutionTiers || []
+                data.soraResolutionTiers || [],
+                data.soraAudioGenerationMultiplier
               )
               if (soraPricing) {
                 soraPricingMap[name] = soraPricing

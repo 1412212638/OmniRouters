@@ -90,6 +90,7 @@ export type SoraPricingDisplay = {
   basePrice: string
   tierCount: number
   resolutionTiers: SoraPricingDisplayTier[]
+  audioGenerationMultiplier?: number
 }
 
 type SoraPricingOptions = {
@@ -167,11 +168,18 @@ export function getSoraPricingDisplay(
       abbreviate: false,
     }),
   }))
+  const audioGenerationMultiplier = Number(
+    model.sora_per_request_pricing?.audio_generation_multiplier
+  )
 
   return {
     basePrice,
     tierCount: resolutionTiers.length,
     resolutionTiers,
+    ...(Number.isFinite(audioGenerationMultiplier) &&
+    audioGenerationMultiplier >= 1
+      ? { audioGenerationMultiplier }
+      : {}),
   }
 }
 

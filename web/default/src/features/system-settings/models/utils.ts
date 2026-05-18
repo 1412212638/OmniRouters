@@ -82,10 +82,19 @@ export function normalizeSoraResolutionTiers(
 
 export function serializeSoraPerRequestPricing(
   enabled: boolean,
-  tiers: SoraResolutionTierDraft[]
+  tiers: SoraResolutionTierDraft[],
+  audioGenerationMultiplier?: string
 ): SoraPerRequestPricing | null {
   const normalized = normalizeSoraResolutionTiers(tiers)
-  if (!enabled && normalized.length === 0) {
+  const parsedAudioGenerationMultiplier = parseOptionalSoraMultiplier(
+    audioGenerationMultiplier,
+    'Sora audio generation multiplier must be at least 1'
+  )
+  if (
+    !enabled &&
+    normalized.length === 0 &&
+    parsedAudioGenerationMultiplier === undefined
+  ) {
     return null
   }
 
@@ -108,7 +117,24 @@ export function serializeSoraPerRequestPricing(
   return {
     enabled,
     resolution_tiers: parsedTiers,
+    ...(parsedAudioGenerationMultiplier !== undefined
+      ? { audio_generation_multiplier: parsedAudioGenerationMultiplier }
+      : {}),
   }
+}
+
+function parseOptionalSoraMultiplier(
+  value: string | undefined,
+  errorMessage: string
+): number | undefined {
+  const trimmed = String(value ?? '').trim()
+  if (!trimmed) return undefined
+
+  const multiplier = Number(trimmed)
+  if (!Number.isFinite(multiplier) || multiplier < 1) {
+    throw new Error(errorMessage)
+  }
+  return multiplier
 }
 
 type JsonValidationOptions = {

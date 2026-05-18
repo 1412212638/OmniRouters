@@ -249,6 +249,9 @@ export function usePricingColumns(
                   ` • ${t('{{count}} tiers', {
                     count: soraSummary.tierCount,
                   })}`}
+                {soraSummary.audioGenerationMultiplier &&
+                  soraSummary.audioGenerationMultiplier !== 1 &&
+                  ` + ${t('Audio')} x${soraSummary.audioGenerationMultiplier}`}
               </div>
             </div>
           )

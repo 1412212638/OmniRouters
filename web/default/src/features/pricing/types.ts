@@ -35,6 +35,7 @@ export type SoraResolutionTier = {
 export type SoraPerRequestPricing = {
   enabled?: boolean
   resolution_tiers?: SoraResolutionTier[]
+  audio_generation_multiplier?: number
 }
 
 export type PricingModel = {

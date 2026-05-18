@@ -62,16 +62,19 @@ type TaskAdaptor struct {
 }
 
 type soraParamPricingRequest struct {
-	Model      string `json:"model,omitempty"`
-	Resolution string `json:"resolution,omitempty"`
-	Seconds    string `json:"seconds,omitempty"`
-	Duration   int    `json:"duration,omitempty"`
+	Model           string      `json:"model,omitempty"`
+	Resolution      string      `json:"resolution,omitempty"`
+	Seconds         string      `json:"seconds,omitempty"`
+	Duration        int         `json:"duration,omitempty"`
+	AudioGeneration interface{} `json:"audio_generation,omitempty"`
 }
 
 type soraPricingContext struct {
-	Resolution string
-	Seconds    int
-	Multiplier float64
+	Resolution                  string
+	Seconds                     int
+	Multiplier                  float64
+	AudioGeneration             bool
+	AudioGenerationMultiplier   float64
 }
 
 func (a *TaskAdaptor) Init(info *relaycommon.RelayInfo) {
@@ -108,10 +111,14 @@ func (a *TaskAdaptor) EstimateBilling(c *gin.Context, info *relaycommon.RelayInf
 	}
 
 	if soraPricing, ok := common.GetContextKeyType[soraPricingContext](c, constant.ContextKeySoraPricingContext); ok {
-		return map[string]float64{
+		ratios := map[string]float64{
 			"seconds":    float64(soraPricing.Seconds),
 			"resolution": soraPricing.Multiplier,
 		}
+		if soraPricing.AudioGeneration && soraPricing.AudioGenerationMultiplier > 0 {
+			ratios["audio_generation"] = soraPricing.AudioGenerationMultiplier
+		}
+		return ratios
 	}
 
 	req, err := relaycommon.GetTaskRequest(c)
@@ -176,12 +183,48 @@ func (a *TaskAdaptor) validateSoraParamPricing(c *gin.Context) *dto.TaskError {
 		)
 	}
 
+	audioGenerationEnabled := isSoraAudioGenerationEnabled(req.AudioGeneration)
+	audioGenerationMultiplier := 0.0
+	if audioGenerationEnabled {
+		if multiplier, ok := rule.AudioGenerationRatio(); ok {
+			audioGenerationMultiplier = multiplier
+		}
+	}
+
 	common.SetContextKey(c, constant.ContextKeySoraPricingContext, soraPricingContext{
-		Resolution: resolution,
-		Seconds:    seconds,
-		Multiplier: multiplier,
+		Resolution:                resolution,
+		Seconds:                   seconds,
+		Multiplier:                multiplier,
+		AudioGeneration:           audioGenerationEnabled,
+		AudioGenerationMultiplier: audioGenerationMultiplier,
 	})
 	return nil
+}
+
+func isSoraAudioGenerationEnabled(value interface{}) bool {
+	switch v := value.(type) {
+	case bool:
+		return v
+	case string:
+		switch strings.ToLower(strings.TrimSpace(v)) {
+		case "true", "ture", "enabled", "enable", "1", "yes", "on":
+			return true
+		default:
+			return false
+		}
+	case float64:
+		return v != 0
+	case float32:
+		return v != 0
+	case int:
+		return v != 0
+	case int64:
+		return v != 0
+	case nil:
+		return false
+	default:
+		return false
+	}
 }
 
 func normalizeSoraBillingSeconds(secondsStr string) (int, error) {

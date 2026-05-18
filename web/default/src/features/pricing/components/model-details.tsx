@@ -535,6 +535,22 @@ function PriceSection(props: {
               ))}
             </div>
           )}
+          {soraSummary.audioGenerationMultiplier &&
+            soraSummary.audioGenerationMultiplier !== 1 && (
+              <div className='bg-muted/20 mt-3 flex items-center justify-between gap-4 rounded-lg border px-3 py-2.5'>
+                <div>
+                  <div className='text-muted-foreground text-xs'>
+                    {t('Audio generation surcharge')}
+                  </div>
+                  <div className='text-muted-foreground/70 mt-0.5 text-[11px]'>
+                    {t('Applied when audio_generation is enabled.')}
+                  </div>
+                </div>
+                <span className='text-foreground font-mono text-sm font-semibold tabular-nums'>
+                  x{soraSummary.audioGenerationMultiplier}
+                </span>
+              </div>
+            )}
         </div>
       </section>
     )

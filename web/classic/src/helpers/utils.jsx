@@ -718,11 +718,19 @@ export const calculateModelPrice = ({
           })
           .filter(Boolean)
       : [];
+    const audioGenerationMultiplier = Number(
+      record.sora_per_request_pricing?.audio_generation_multiplier,
+    );
 
     return {
       price: basePrice,
       basePrice,
       resolutionTiers,
+      audioGenerationMultiplier:
+        Number.isFinite(audioGenerationMultiplier) &&
+        audioGenerationMultiplier >= 1
+          ? audioGenerationMultiplier
+          : null,
       isSoraParamPricing: true,
       isPerToken: false,
       isTokensDisplay: false,
@@ -887,7 +895,22 @@ export const getModelPriceItems = (
         value: tier.price,
         suffix: ` / ${t('秒')}`,
       })),
-    ].filter((item) => item.value !== null && item.value !== undefined && item.value !== '');
+      priceData.audioGenerationMultiplier &&
+      priceData.audioGenerationMultiplier !== 1
+        ? {
+            key: 'audio-generation',
+            label: t('音频生成倍率'),
+            value: `x${priceData.audioGenerationMultiplier}`,
+            suffix: '',
+          }
+        : null,
+    ].filter(
+      (item) =>
+        item &&
+        item.value !== null &&
+        item.value !== undefined &&
+        item.value !== '',
+    );
   }
 
   if (priceData.isPerToken) {
