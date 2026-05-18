@@ -84,6 +84,7 @@ export type SoraPricingDisplayTier = {
   label: string
   multiplier: number
   price: string
+  audioPrice?: string
 }
 
 export type SoraPricingDisplay = {
@@ -91,6 +92,7 @@ export type SoraPricingDisplay = {
   tierCount: number
   resolutionTiers: SoraPricingDisplayTier[]
   audioGenerationMultiplier?: number
+  audioGenerationBasePrice?: string
 }
 
 type SoraPricingOptions = {
@@ -156,29 +158,47 @@ export function getSoraPricingDisplay(
     digitsSmall: 4,
     abbreviate: false,
   })
-  const resolutionTiers = normalizeSoraResolutionTiers(
-    model.sora_per_request_pricing?.resolution_tiers
-  ).map((tier) => ({
-    key: tier.value,
-    label: tier.value,
-    multiplier: tier.multiplier,
-    price: formatCurrencyFromUSD(basePriceInUSD * tier.multiplier, {
-      digitsLarge: 4,
-      digitsSmall: 4,
-      abbreviate: false,
-    }),
-  }))
   const audioGenerationMultiplier = Number(
     model.sora_per_request_pricing?.audio_generation_multiplier
   )
+  const hasAudioGenerationMultiplier =
+    Number.isFinite(audioGenerationMultiplier) && audioGenerationMultiplier >= 1
+  const formatSoraPrice = (priceInUSD: number) =>
+    formatCurrencyFromUSD(priceInUSD, {
+      digitsLarge: 4,
+      digitsSmall: 4,
+      abbreviate: false,
+    })
+  const resolutionTiers = normalizeSoraResolutionTiers(
+    model.sora_per_request_pricing?.resolution_tiers
+  ).map((tier) => {
+    const tierPriceInUSD = basePriceInUSD * tier.multiplier
+    return {
+      key: tier.value,
+      label: tier.value,
+      multiplier: tier.multiplier,
+      price: formatSoraPrice(tierPriceInUSD),
+      ...(hasAudioGenerationMultiplier && audioGenerationMultiplier !== 1
+        ? {
+            audioPrice: formatSoraPrice(
+              tierPriceInUSD * audioGenerationMultiplier
+            ),
+          }
+        : {}),
+    }
+  })
 
   return {
     basePrice,
     tierCount: resolutionTiers.length,
     resolutionTiers,
-    ...(Number.isFinite(audioGenerationMultiplier) &&
-    audioGenerationMultiplier >= 1
-      ? { audioGenerationMultiplier }
+    ...(hasAudioGenerationMultiplier
+      ? {
+          audioGenerationMultiplier,
+          audioGenerationBasePrice: formatSoraPrice(
+            basePriceInUSD * audioGenerationMultiplier
+          ),
+        }
       : {}),
   }
 }

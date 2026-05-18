@@ -714,6 +714,13 @@ export const calculateModelPrice = ({
               label: tier.value,
               multiplier,
               price: displayPrice(basePriceUSD * multiplier),
+              audioPrice:
+                Number.isFinite(audioGenerationMultiplier) &&
+                audioGenerationMultiplier > 1
+                  ? displayPrice(
+                      basePriceUSD * multiplier * audioGenerationMultiplier,
+                    )
+                  : null,
             };
           })
           .filter(Boolean)
@@ -730,6 +737,11 @@ export const calculateModelPrice = ({
         Number.isFinite(audioGenerationMultiplier) &&
         audioGenerationMultiplier >= 1
           ? audioGenerationMultiplier
+          : null,
+      audioGenerationBasePrice:
+        Number.isFinite(audioGenerationMultiplier) &&
+        audioGenerationMultiplier >= 1
+          ? displayPrice(basePriceUSD * audioGenerationMultiplier)
           : null,
       isSoraParamPricing: true,
       isPerToken: false,
@@ -900,8 +912,10 @@ export const getModelPriceItems = (
         ? {
             key: 'audio-generation',
             label: t('音频生成倍率'),
-            value: `x${priceData.audioGenerationMultiplier}`,
-            suffix: '',
+            value: priceData.audioGenerationBasePrice
+              ? priceData.audioGenerationBasePrice
+              : `x${priceData.audioGenerationMultiplier}`,
+            suffix: priceData.audioGenerationBasePrice ? ` / ${t('秒')}` : '',
           }
         : null,
     ].filter(

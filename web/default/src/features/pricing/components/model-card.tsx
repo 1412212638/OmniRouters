@@ -195,7 +195,10 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
                   {soraSummary.audioGenerationMultiplier &&
                     soraSummary.audioGenerationMultiplier !== 1 && (
                       <span className='text-muted-foreground/60 ml-1 text-xs'>
-                        + {t('Audio')} x{soraSummary.audioGenerationMultiplier}
+                        + {t('Audio')}{' '}
+                        {soraSummary.audioGenerationBasePrice
+                          ? `${stripTrailingZeros(soraSummary.audioGenerationBasePrice)}/s`
+                          : `x${soraSummary.audioGenerationMultiplier}`}
                       </span>
                     )}
                 </span>

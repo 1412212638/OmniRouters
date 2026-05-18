@@ -33,11 +33,13 @@ export default function SoraPricingBreakdown({
     ? pricing.resolution_tiers
         .map((tier, index) => {
           const multiplier = Number(tier?.multiplier) || 0;
+          const price = (Number(basePrice) || 0) * multiplier;
           return {
             key: `${tier?.value || 'tier'}-${index}`,
             resolution: tier?.value || '-',
             multiplier,
-            pricePerSecond: `${displayPrice((Number(basePrice) || 0) * multiplier)}/s`,
+            pricePerSecond: `${displayPrice(price)}/s`,
+            audioPricePerSecond: `${displayPrice(price * Number(pricing?.audio_generation_multiplier || 1))}/s`,
           };
         })
         .filter((tier) => tier.resolution !== '-' && tier.multiplier > 0)
@@ -65,6 +67,15 @@ export default function SoraPricingBreakdown({
       dataIndex: 'pricePerSecond',
       render: (value) => <Text strong>{value}</Text>,
     },
+    ...(hasAudioGenerationSurcharge && audioGenerationMultiplier !== 1
+      ? [
+          {
+            title: t('音频开启后'),
+            dataIndex: 'audioPricePerSecond',
+            render: (value) => <Text strong>{value}</Text>,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -93,7 +104,7 @@ export default function SoraPricingBreakdown({
       >
         <Text size='small'>
           {t(
-            '请求必须提供 resolution 和 seconds；若 audio_generation 启用且配置了音频生成倍率，最终价格会额外乘以该倍率。',
+            '请求必须提供 resolution 和 seconds；若 audio_generation 启用且配置了音频生成倍率，各档位会按表格中的音频价格计费。',
           )}
         </Text>
       </div>

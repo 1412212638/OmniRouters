@@ -531,6 +531,19 @@ function PriceSection(props: {
                       /s
                     </span>
                   </div>
+                  {tier.audioPrice && (
+                    <div className='mt-2 flex items-baseline justify-between gap-3 border-t pt-2'>
+                      <span className='text-muted-foreground/70 text-xs'>
+                        {t('Audio enabled')}
+                      </span>
+                      <span className='text-foreground font-mono text-sm font-medium tabular-nums'>
+                        {stripTrailingZeros(tier.audioPrice)}
+                        <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
+                          /s
+                        </span>
+                      </span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -543,12 +556,26 @@ function PriceSection(props: {
                     {t('Audio generation surcharge')}
                   </div>
                   <div className='text-muted-foreground/70 mt-0.5 text-[11px]'>
-                    {t('Applied when audio_generation is enabled.')}
+                    {t(
+                      'Audio-enabled prices are shown under each resolution tier.'
+                    )}
                   </div>
                 </div>
-                <span className='text-foreground font-mono text-sm font-semibold tabular-nums'>
-                  x{soraSummary.audioGenerationMultiplier}
-                </span>
+                <div className='text-right'>
+                  <div className='text-foreground font-mono text-sm font-semibold tabular-nums'>
+                    {soraSummary.audioGenerationBasePrice
+                      ? stripTrailingZeros(soraSummary.audioGenerationBasePrice)
+                      : `x${soraSummary.audioGenerationMultiplier}`}
+                    {soraSummary.audioGenerationBasePrice && (
+                      <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
+                        /s
+                      </span>
+                    )}
+                  </div>
+                  <div className='text-muted-foreground/60 mt-0.5 text-[10px]'>
+                    x{soraSummary.audioGenerationMultiplier}
+                  </div>
+                </div>
               </div>
             )}
         </div>

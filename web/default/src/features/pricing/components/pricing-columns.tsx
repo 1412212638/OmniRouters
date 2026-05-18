@@ -251,7 +251,11 @@ export function usePricingColumns(
                   })}`}
                 {soraSummary.audioGenerationMultiplier &&
                   soraSummary.audioGenerationMultiplier !== 1 &&
-                  ` + ${t('Audio')} x${soraSummary.audioGenerationMultiplier}`}
+                  ` + ${t('Audio')} ${
+                    soraSummary.audioGenerationBasePrice
+                      ? `${stripTrailingZeros(soraSummary.audioGenerationBasePrice)}/s`
+                      : `x${soraSummary.audioGenerationMultiplier}`
+                  }`}
               </div>
             </div>
           )
