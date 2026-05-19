@@ -586,8 +586,12 @@ func RelayTask(c *gin.Context) {
 			GroupRatio:      relayInfo.PriceData.GroupRatioInfo.GroupRatio,
 			ModelRatio:      relayInfo.PriceData.ModelRatio,
 			OtherRatios:     relayInfo.PriceData.OtherRatios,
+			FixedQuotas:     relayInfo.PriceData.FixedQuotas,
 			OriginModelName: relayInfo.OriginModelName,
-			PerCallBilling:  common.StringsContains(constant.TaskPricePatches, relayInfo.OriginModelName) || relayInfo.PriceData.UsePrice,
+			PerCallBilling: common.StringsContains(
+				constant.TaskPricePatches,
+				relayInfo.OriginModelName,
+			) || relayInfo.PriceData.UsePrice || len(relayInfo.PriceData.FixedQuotas) > 0,
 		}
 		task.Quota = result.Quota
 		task.Data = result.TaskData

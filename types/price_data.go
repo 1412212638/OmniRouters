@@ -21,9 +21,10 @@ type PriceData struct {
 	AudioRatio           float64
 	AudioCompletionRatio float64
 	OtherRatios          map[string]float64
+	FixedQuotas          map[string]int
 	UsePrice             bool
-	Quota                int // 按次计费的最终额度（MJ / Task）
-	QuotaToPreConsume    int // 按量计费的预消耗额度
+	Quota                int // final quota for per-request task billing
+	QuotaToPreConsume    int // pre-consume quota for token billing
 	GroupRatioInfo       GroupRatioInfo
 }
 
@@ -35,6 +36,26 @@ func (p *PriceData) AddOtherRatio(key string, ratio float64) {
 		return
 	}
 	p.OtherRatios[key] = ratio
+}
+
+func (p *PriceData) AddFixedQuota(key string, quota int) {
+	if quota <= 0 {
+		return
+	}
+	if p.FixedQuotas == nil {
+		p.FixedQuotas = make(map[string]int)
+	}
+	p.FixedQuotas[key] = quota
+}
+
+func (p PriceData) FixedQuotaTotal() int {
+	total := 0
+	for _, quota := range p.FixedQuotas {
+		if quota > 0 {
+			total += quota
+		}
+	}
+	return total
 }
 
 func (p *PriceData) ToSetting() string {

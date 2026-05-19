@@ -531,53 +531,30 @@ function PriceSection(props: {
                       /s
                     </span>
                   </div>
-                  {tier.audioPrice && (
-                    <div className='mt-2 flex items-baseline justify-between gap-3 border-t pt-2'>
-                      <span className='text-muted-foreground/70 text-xs'>
-                        {t('Audio enabled')}
-                      </span>
-                      <span className='text-foreground font-mono text-sm font-medium tabular-nums'>
-                        {stripTrailingZeros(tier.audioPrice)}
-                        <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
-                          /s
-                        </span>
-                      </span>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
           )}
-          {soraSummary.audioGenerationMultiplier &&
-            soraSummary.audioGenerationMultiplier !== 1 && (
-              <div className='bg-muted/20 mt-3 flex items-center justify-between gap-4 rounded-lg border px-3 py-2.5'>
-                <div>
-                  <div className='text-muted-foreground text-xs'>
-                    {t('Audio generation surcharge')}
-                  </div>
-                  <div className='text-muted-foreground/70 mt-0.5 text-[11px]'>
-                    {t(
-                      'Audio-enabled prices are shown under each resolution tier.'
-                    )}
-                  </div>
+          {soraSummary.audioGenerationSurcharge && (
+            <div className='bg-muted/20 mt-3 flex items-center justify-between gap-4 rounded-lg border px-3 py-2.5'>
+              <div>
+                <div className='text-muted-foreground text-xs'>
+                  {t('Audio generation surcharge')}
                 </div>
-                <div className='text-right'>
-                  <div className='text-foreground font-mono text-sm font-semibold tabular-nums'>
-                    {soraSummary.audioGenerationBasePrice
-                      ? stripTrailingZeros(soraSummary.audioGenerationBasePrice)
-                      : `x${soraSummary.audioGenerationMultiplier}`}
-                    {soraSummary.audioGenerationBasePrice && (
-                      <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
-                        /s
-                      </span>
-                    )}
-                  </div>
-                  <div className='text-muted-foreground/60 mt-0.5 text-[10px]'>
-                    x{soraSummary.audioGenerationMultiplier}
-                  </div>
+                <div className='text-muted-foreground/70 mt-0.5 text-[11px]'>
+                  {t('Added once when audio_generation is enabled.')}
                 </div>
               </div>
-            )}
+              <div className='text-right'>
+                <div className='text-foreground font-mono text-sm font-semibold tabular-nums'>
+                  {stripTrailingZeros(soraSummary.audioGenerationSurcharge)}
+                  <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
+                    /{t('request')}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
     )

@@ -39,14 +39,13 @@ export default function SoraPricingBreakdown({
             resolution: tier?.value || '-',
             multiplier,
             pricePerSecond: `${displayPrice(price)}/s`,
-            audioPricePerSecond: `${displayPrice(price * Number(pricing?.audio_generation_multiplier || 1))}/s`,
           };
         })
         .filter((tier) => tier.resolution !== '-' && tier.multiplier > 0)
     : [];
-  const audioGenerationMultiplier = Number(pricing?.audio_generation_multiplier);
+  const audioGenerationSurcharge = Number(pricing?.audio_generation_surcharge);
   const hasAudioGenerationSurcharge =
-    Number.isFinite(audioGenerationMultiplier) && audioGenerationMultiplier >= 1;
+    Number.isFinite(audioGenerationSurcharge) && audioGenerationSurcharge > 0;
 
   if (!pricing?.enabled || tiers.length === 0) {
     return null;
@@ -67,15 +66,6 @@ export default function SoraPricingBreakdown({
       dataIndex: 'pricePerSecond',
       render: (value) => <Text strong>{value}</Text>,
     },
-    ...(hasAudioGenerationSurcharge && audioGenerationMultiplier !== 1
-      ? [
-          {
-            title: t('音频开启后'),
-            dataIndex: 'audioPricePerSecond',
-            render: (value) => <Text strong>{value}</Text>,
-          },
-        ]
-      : []),
   ];
 
   return (
@@ -104,11 +94,11 @@ export default function SoraPricingBreakdown({
       >
         <Text size='small'>
           {t(
-            '请求必须提供 resolution 和 seconds；若 audio_generation 启用且配置了音频生成倍率，各档位会按表格中的音频价格计费。',
+            '请求必须提供 resolution 和 seconds；若 audio_generation 启用且配置了音频生成附加费，会在基础价格之外每次固定加收一次。',
           )}
         </Text>
       </div>
-      {hasAudioGenerationSurcharge && audioGenerationMultiplier !== 1 ? (
+      {hasAudioGenerationSurcharge ? (
         <div
           style={{
             padding: '10px 12px',
@@ -118,7 +108,7 @@ export default function SoraPricingBreakdown({
           }}
         >
           <Text size='small'>
-            {t('音频生成倍率')}: <Text strong>x{audioGenerationMultiplier}</Text>
+            {t('音频生成附加费')}: <Text strong>{displayPrice(audioGenerationSurcharge)} / {t('次')}</Text>
           </Text>
         </div>
       ) : null}

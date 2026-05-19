@@ -84,15 +84,13 @@ export type SoraPricingDisplayTier = {
   label: string
   multiplier: number
   price: string
-  audioPrice?: string
 }
 
 export type SoraPricingDisplay = {
   basePrice: string
   tierCount: number
   resolutionTiers: SoraPricingDisplayTier[]
-  audioGenerationMultiplier?: number
-  audioGenerationBasePrice?: string
+  audioGenerationSurcharge?: string
 }
 
 type SoraPricingOptions = {
@@ -108,13 +106,16 @@ export function isSoraPerRequestPricingModel(model: PricingModel): boolean {
   )
 }
 
-function getSoraBasePriceUSD(model: PricingModel): number {
+function getSoraDisplayGroupRatio(model: PricingModel): number {
   const enableGroups = Array.isArray(model.enable_groups)
     ? model.enable_groups
     : []
   const groupRatio = model.group_ratio || {}
-  const minRatio = getMinGroupRatio(enableGroups, groupRatio)
-  return (model.model_price || 0) * minRatio
+  return getMinGroupRatio(enableGroups, groupRatio)
+}
+
+function getSoraBasePriceUSD(model: PricingModel): number {
+  return (model.model_price || 0) * getSoraDisplayGroupRatio(model)
 }
 
 function normalizeSoraResolutionTiers(
@@ -158,11 +159,21 @@ export function getSoraPricingDisplay(
     digitsSmall: 4,
     abbreviate: false,
   })
-  const audioGenerationMultiplier = Number(
-    model.sora_per_request_pricing?.audio_generation_multiplier
-  )
-  const hasAudioGenerationMultiplier =
-    Number.isFinite(audioGenerationMultiplier) && audioGenerationMultiplier >= 1
+  const displayGroupRatio = getSoraDisplayGroupRatio(model)
+  let audioGenerationSurchargeInUSD =
+    Number(model.sora_per_request_pricing?.audio_generation_surcharge) *
+    displayGroupRatio
+  const hasAudioGenerationSurcharge =
+    Number.isFinite(audioGenerationSurchargeInUSD) &&
+    audioGenerationSurchargeInUSD > 0
+  if (hasAudioGenerationSurcharge) {
+    audioGenerationSurchargeInUSD = applyRechargeRate(
+      audioGenerationSurchargeInUSD,
+      showRechargePrice,
+      priceRate,
+      usdExchangeRate
+    )
+  }
   const formatSoraPrice = (priceInUSD: number) =>
     formatCurrencyFromUSD(priceInUSD, {
       digitsLarge: 4,
@@ -178,13 +189,6 @@ export function getSoraPricingDisplay(
       label: tier.value,
       multiplier: tier.multiplier,
       price: formatSoraPrice(tierPriceInUSD),
-      ...(hasAudioGenerationMultiplier && audioGenerationMultiplier !== 1
-        ? {
-            audioPrice: formatSoraPrice(
-              tierPriceInUSD * audioGenerationMultiplier
-            ),
-          }
-        : {}),
     }
   })
 
@@ -192,11 +196,10 @@ export function getSoraPricingDisplay(
     basePrice,
     tierCount: resolutionTiers.length,
     resolutionTiers,
-    ...(hasAudioGenerationMultiplier
+    ...(hasAudioGenerationSurcharge
       ? {
-          audioGenerationMultiplier,
-          audioGenerationBasePrice: formatSoraPrice(
-            basePriceInUSD * audioGenerationMultiplier
+          audioGenerationSurcharge: formatSoraPrice(
+            audioGenerationSurchargeInUSD
           ),
         }
       : {}),

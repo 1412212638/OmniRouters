@@ -192,15 +192,12 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
                       ({t('{{count}} tiers', { count: soraSummary.tierCount })})
                     </span>
                   )}
-                  {soraSummary.audioGenerationMultiplier &&
-                    soraSummary.audioGenerationMultiplier !== 1 && (
-                      <span className='text-muted-foreground/60 ml-1 text-xs'>
-                        + {t('Audio')}{' '}
-                        {soraSummary.audioGenerationBasePrice
-                          ? `${stripTrailingZeros(soraSummary.audioGenerationBasePrice)}/s`
-                          : `x${soraSummary.audioGenerationMultiplier}`}
-                      </span>
-                    )}
+                  {soraSummary.audioGenerationSurcharge && (
+                    <span className='text-muted-foreground/60 ml-1 text-xs'>
+                      + {t('Audio')}{' '}
+                      {`${stripTrailingZeros(soraSummary.audioGenerationSurcharge)}/${t('request')}`}
+                    </span>
+                  )}
                 </span>
               ) : isTokenBased ? (
                 <>

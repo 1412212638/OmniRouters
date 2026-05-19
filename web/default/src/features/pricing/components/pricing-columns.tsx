@@ -249,13 +249,10 @@ export function usePricingColumns(
                   ` • ${t('{{count}} tiers', {
                     count: soraSummary.tierCount,
                   })}`}
-                {soraSummary.audioGenerationMultiplier &&
-                  soraSummary.audioGenerationMultiplier !== 1 &&
-                  ` + ${t('Audio')} ${
-                    soraSummary.audioGenerationBasePrice
-                      ? `${stripTrailingZeros(soraSummary.audioGenerationBasePrice)}/s`
-                      : `x${soraSummary.audioGenerationMultiplier}`
-                  }`}
+                {soraSummary.audioGenerationSurcharge &&
+                  ` + ${t('Audio')} ${stripTrailingZeros(
+                    soraSummary.audioGenerationSurcharge
+                  )}/${t('request')}`}
               </div>
             </div>
           )

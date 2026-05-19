@@ -114,7 +114,7 @@ export type ModelRatioData = {
   requestRuleExpr?: string
   soraPerRequestPricingEnabled?: boolean
   soraResolutionTiers?: SoraResolutionTierDraft[]
-  soraAudioGenerationMultiplier?: string
+  soraAudioGenerationSurcharge?: string
 }
 
 type ModelPricingSheetProps = {
@@ -313,7 +313,7 @@ function buildPreviewRows(
   laneEnabled: Record<LaneKey, boolean>,
   soraPricingEnabled: boolean,
   soraResolutionTiers: SoraResolutionTierDraft[],
-  soraAudioGenerationMultiplier: string,
+  soraAudioGenerationSurcharge: string,
   t: (key: string) => string
 ): PreviewRow[] {
   if (mode === 'tiered_expr') {
@@ -354,10 +354,10 @@ function buildPreviewRows(
         multiline: true,
       },
       {
-        key: 'audioGenerationMultiplier',
-        label: t('Audio generation multiplier'),
-        value: soraAudioGenerationMultiplier
-          ? `x${soraAudioGenerationMultiplier}`
+        key: 'audioGenerationSurcharge',
+        label: t('Audio generation surcharge'),
+        value: soraAudioGenerationSurcharge
+          ? `$${soraAudioGenerationSurcharge} / ${t('request')}`
           : t('Empty'),
       },
     ]
@@ -485,7 +485,7 @@ export function ModelPricingEditorPanel({
   const [soraResolutionTiers, setSoraResolutionTiers] = useState<
     SoraResolutionTierDraft[]
   >([])
-  const [soraAudioGenerationMultiplier, setSoraAudioGenerationMultiplier] =
+  const [soraAudioGenerationSurcharge, setSoraAudioGenerationSurcharge] =
     useState('')
   const [billingExpr, setBillingExpr] = useState('')
   const [requestRuleExpr, setRequestRuleExpr] = useState('')
@@ -535,8 +535,8 @@ export function ModelPricingEditorPanel({
       setSoraResolutionTiers(
         cloneSoraResolutionTiers(editData.soraResolutionTiers)
       )
-      setSoraAudioGenerationMultiplier(
-        editData.soraAudioGenerationMultiplier || ''
+      setSoraAudioGenerationSurcharge(
+        editData.soraAudioGenerationSurcharge || ''
       )
       setBillingExpr(editData.billingExpr || '')
       setRequestRuleExpr(editData.requestRuleExpr || '')
@@ -555,7 +555,7 @@ export function ModelPricingEditorPanel({
       setPricingMode('per-token')
       setSoraPerRequestPricingEnabled(false)
       setSoraResolutionTiers([])
-      setSoraAudioGenerationMultiplier('')
+      setSoraAudioGenerationSurcharge('')
       setBillingExpr('')
       setRequestRuleExpr('')
     }
@@ -721,11 +721,11 @@ export function ModelPricingEditorPanel({
     )
   }
 
-  const handleSoraAudioGenerationMultiplierChange = (value: string) => {
+  const handleSoraAudioGenerationSurchargeChange = (value: string) => {
     if (!numericDraftRegex.test(value)) {
       return
     }
-    setSoraAudioGenerationMultiplier(value)
+    setSoraAudioGenerationSurcharge(value)
   }
 
   const watchedValues = form.watch()
@@ -741,7 +741,7 @@ export function ModelPricingEditorPanel({
         laneEnabled,
         soraPerRequestPricingEnabled,
         soraResolutionTiers,
-        soraAudioGenerationMultiplier,
+        soraAudioGenerationSurcharge,
         t
       ),
     [
@@ -752,7 +752,7 @@ export function ModelPricingEditorPanel({
       promptPrice,
       soraPerRequestPricingEnabled,
       soraResolutionTiers,
-      soraAudioGenerationMultiplier,
+      soraAudioGenerationSurcharge,
       requestRuleExpr,
       t,
       watchedValues,
@@ -811,7 +811,7 @@ export function ModelPricingEditorPanel({
         serializeSoraPerRequestPricing(
           soraPerRequestPricingEnabled,
           soraResolutionTiers,
-          soraAudioGenerationMultiplier
+          soraAudioGenerationSurcharge
         )
       } catch (error) {
         nextWarnings.push(
@@ -833,7 +833,7 @@ export function ModelPricingEditorPanel({
     promptPrice,
     soraPerRequestPricingEnabled,
     soraResolutionTiers,
-    soraAudioGenerationMultiplier,
+    soraAudioGenerationSurcharge,
     t,
   ])
 
@@ -876,7 +876,7 @@ export function ModelPricingEditorPanel({
         serializeSoraPerRequestPricing(
           soraPerRequestPricingEnabled,
           soraResolutionTiers,
-          soraAudioGenerationMultiplier
+          soraAudioGenerationSurcharge
         )
       } catch (error) {
         form.setError('price', {
@@ -903,7 +903,7 @@ export function ModelPricingEditorPanel({
       audioCompletionRatio: values.audioCompletionRatio || '',
       soraPerRequestPricingEnabled,
       soraResolutionTiers: cloneSoraResolutionTiers(soraResolutionTiers),
-      soraAudioGenerationMultiplier,
+      soraAudioGenerationSurcharge,
     }
 
     if (pricingMode === 'tiered_expr') {
@@ -1081,7 +1081,7 @@ export function ModelPricingEditorPanel({
                         <FormDescription>
                           {soraPerRequestPricingEnabled
                             ? t(
-                                'Final price = base per-second price x seconds x resolution multiplier x optional audio generation multiplier x group ratio.'
+                                'Final price = (base per-second price x seconds x resolution multiplier + optional audio generation surcharge) x group ratio.'
                               )
                             : t(
                                 'Cost in USD per request, regardless of tokens used.'
@@ -1182,28 +1182,28 @@ export function ModelPricingEditorPanel({
                       <div className='mt-4 grid gap-2 border-t pt-4 sm:grid-cols-[minmax(0,1fr)_180px] sm:items-start'>
                         <div>
                           <FieldTitle>
-                            {t('Audio generation multiplier')}
+                            {t('Audio generation surcharge')}
                           </FieldTitle>
                           <FieldDescription>
                             {t(
-                              'Applied when audio_generation is true or Enabled. Leave empty to disable the surcharge.'
+                              'Fixed USD amount added once when audio_generation is true or Enabled. Leave empty to disable the surcharge.'
                             )}
                           </FieldDescription>
                         </div>
                         <InputGroup>
-                          <InputGroupAddon>{t('Multiplier')}</InputGroupAddon>
+                          <InputGroupAddon>$</InputGroupAddon>
                           <InputGroupInput
                             inputMode='decimal'
-                            value={soraAudioGenerationMultiplier}
-                            placeholder='1.3'
+                            value={soraAudioGenerationSurcharge}
+                            placeholder='0.05'
                             onChange={(event) =>
-                              handleSoraAudioGenerationMultiplierChange(
+                              handleSoraAudioGenerationSurchargeChange(
                                 event.target.value
                               )
                             }
                           />
                           <InputGroupAddon align='inline-end'>
-                            x
+                            {t('per request')}
                           </InputGroupAddon>
                         </InputGroup>
                       </div>

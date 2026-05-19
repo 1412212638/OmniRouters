@@ -88,11 +88,11 @@ const PriceInput = ({
 
 const SoraResolutionTierEditor = ({
   tiers,
-  audioGenerationMultiplier,
+  audioGenerationSurcharge,
   onTierChange,
   onAddTier,
   onRemoveTier,
-  onAudioGenerationMultiplierChange,
+  onAudioGenerationSurchargeChange,
   t,
 }) => (
   <Card
@@ -143,7 +143,7 @@ const SoraResolutionTierEditor = ({
     </div>
     <div className='mt-3 text-xs text-gray-500'>
       {t(
-        '最终价格 = 基础每秒单价 × seconds × resolution 倍率 × 可选音频生成倍率 × 分组倍率',
+        '最终价格 =（基础每秒单价 × seconds × resolution 倍率 + 可选音频生成附加费）× 分组倍率',
       )}
     </div>
     <div
@@ -151,17 +151,17 @@ const SoraResolutionTierEditor = ({
       style={{ borderTop: '1px solid var(--semi-color-border)' }}
     >
       <div className='mb-1 font-medium text-gray-700'>
-        {t('音频生成倍率')}
+        {t('音频生成附加费')}
       </div>
       <Input
-        value={audioGenerationMultiplier || ''}
-        placeholder='1.3'
-        suffix='x'
-        onChange={onAudioGenerationMultiplierChange}
+        value={audioGenerationSurcharge || ''}
+        placeholder='0.05'
+        suffix={t('$/次')}
+        onChange={onAudioGenerationSurchargeChange}
       />
       <div className='mt-1 text-xs text-gray-500'>
         {t(
-          '当 audio_generation 为 true 或 Enabled 时额外乘以该倍率；留空则不额外收费。',
+          '当 audio_generation 为 true 或 Enabled 时每次固定加收该金额；留空则不额外收费。',
         )}
       </div>
     </div>
@@ -213,7 +213,7 @@ export default function ModelPricingEditor({
     handleSoraResolutionTierChange,
     handleAddSoraResolutionTier,
     handleRemoveSoraResolutionTier,
-    handleSoraAudioGenerationMultiplierChange,
+    handleSoraAudioGenerationSurchargeChange,
     handleCopySoraPerRequestPricing,
     handleImportSoraPerRequestPricing,
     handleSubmit,
@@ -600,7 +600,7 @@ export default function ModelPricingEditor({
                       extraText={
                         selectedModel.soraPerRequestPricingEnabled
                           ? t(
-                              '最终价格会按 基础每秒单价 × seconds × resolution 倍率 × 可选音频生成倍率 × 分组倍率 计算。',
+                              '最终价格会按（基础每秒单价 × seconds × resolution 倍率 + 可选音频生成附加费）× 分组倍率计算。',
                             )
                           : t('适合 MJ / 任务类等按次收费模型。')
                       }
@@ -608,14 +608,14 @@ export default function ModelPricingEditor({
                     {selectedModel.soraPerRequestPricingEnabled ? (
                       <SoraResolutionTierEditor
                         tiers={selectedModel.soraResolutionTiers}
-                        audioGenerationMultiplier={
-                          selectedModel.soraAudioGenerationMultiplier
+                        audioGenerationSurcharge={
+                          selectedModel.soraAudioGenerationSurcharge
                         }
                         onTierChange={handleSoraResolutionTierChange}
                         onAddTier={handleAddSoraResolutionTier}
                         onRemoveTier={handleRemoveSoraResolutionTier}
-                        onAudioGenerationMultiplierChange={
-                          handleSoraAudioGenerationMultiplierChange
+                        onAudioGenerationSurchargeChange={
+                          handleSoraAudioGenerationSurchargeChange
                         }
                         t={t}
                       />

@@ -83,17 +83,17 @@ export function normalizeSoraResolutionTiers(
 export function serializeSoraPerRequestPricing(
   enabled: boolean,
   tiers: SoraResolutionTierDraft[],
-  audioGenerationMultiplier?: string
+  audioGenerationSurcharge?: string
 ): SoraPerRequestPricing | null {
   const normalized = normalizeSoraResolutionTiers(tiers)
-  const parsedAudioGenerationMultiplier = parseOptionalSoraMultiplier(
-    audioGenerationMultiplier,
-    'Sora audio generation multiplier must be at least 1'
+  const parsedAudioGenerationSurcharge = parseOptionalSoraSurcharge(
+    audioGenerationSurcharge,
+    'Sora audio generation surcharge must be greater than or equal to 0'
   )
   if (
     !enabled &&
     normalized.length === 0 &&
-    parsedAudioGenerationMultiplier === undefined
+    parsedAudioGenerationSurcharge === undefined
   ) {
     return null
   }
@@ -117,24 +117,24 @@ export function serializeSoraPerRequestPricing(
   return {
     enabled,
     resolution_tiers: parsedTiers,
-    ...(parsedAudioGenerationMultiplier !== undefined
-      ? { audio_generation_multiplier: parsedAudioGenerationMultiplier }
+    ...(parsedAudioGenerationSurcharge !== undefined
+      ? { audio_generation_surcharge: parsedAudioGenerationSurcharge }
       : {}),
   }
 }
 
-function parseOptionalSoraMultiplier(
+function parseOptionalSoraSurcharge(
   value: string | undefined,
   errorMessage: string
 ): number | undefined {
   const trimmed = String(value ?? '').trim()
   if (!trimmed) return undefined
 
-  const multiplier = Number(trimmed)
-  if (!Number.isFinite(multiplier) || multiplier < 1) {
+  const surcharge = Number(trimmed)
+  if (!Number.isFinite(surcharge) || surcharge < 0) {
     throw new Error(errorMessage)
   }
-  return multiplier
+  return surcharge
 }
 
 type JsonValidationOptions = {

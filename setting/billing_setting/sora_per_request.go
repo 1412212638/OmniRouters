@@ -14,9 +14,9 @@ type SoraResolutionTier struct {
 }
 
 type SoraPerRequestPricing struct {
-	Enabled                   bool                 `json:"enabled"`
-	ResolutionTiers           []SoraResolutionTier `json:"resolution_tiers"`
-	AudioGenerationMultiplier *float64             `json:"audio_generation_multiplier,omitempty"`
+	Enabled                  bool                 `json:"enabled"`
+	ResolutionTiers          []SoraResolutionTier `json:"resolution_tiers"`
+	AudioGenerationSurcharge *float64             `json:"audio_generation_surcharge,omitempty"`
 }
 
 func (s SoraPerRequestPricing) FindResolutionMultiplier(resolution string) (float64, bool) {
@@ -44,11 +44,11 @@ func (s SoraPerRequestPricing) ResolutionValues() []string {
 	return values
 }
 
-func (s SoraPerRequestPricing) AudioGenerationRatio() (float64, bool) {
-	if s.AudioGenerationMultiplier == nil || *s.AudioGenerationMultiplier < 1 {
+func (s SoraPerRequestPricing) AudioGenerationSurchargePrice() (float64, bool) {
+	if s.AudioGenerationSurcharge == nil || *s.AudioGenerationSurcharge <= 0 {
 		return 0, false
 	}
-	return *s.AudioGenerationMultiplier, true
+	return *s.AudioGenerationSurcharge, true
 }
 
 func GetSoraPerRequestPricing(model string) (SoraPerRequestPricing, bool) {
@@ -99,8 +99,8 @@ func validateSoraPerRequestPricingRule(modelName string, rule SoraPerRequestPric
 		return fmt.Errorf("model %s must define at least one resolution tier when Sora parameter pricing is enabled", modelName)
 	}
 
-	if rule.AudioGenerationMultiplier != nil && *rule.AudioGenerationMultiplier < 1 {
-		return fmt.Errorf("model %s audio generation multiplier must be >= 1", modelName)
+	if rule.AudioGenerationSurcharge != nil && *rule.AudioGenerationSurcharge < 0 {
+		return fmt.Errorf("model %s audio generation surcharge must be >= 0", modelName)
 	}
 
 	return nil

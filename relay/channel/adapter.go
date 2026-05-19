@@ -42,6 +42,8 @@ type TaskAdaptor interface {
 	// Called after ValidateRequestAndSetAction, before price calculation.
 	// Adaptors should extract duration, resolution, etc. from the parsed request
 	// and return them as ratio multipliers (e.g. {"seconds": 5, "size": 1.666}).
+	// Adaptors may also add fixed additive quota items to info.PriceData for
+	// one-time surcharges that must not be multiplied by duration or resolution.
 	// Return nil to use the base model price without extra ratios.
 	EstimateBilling(c *gin.Context, info *relaycommon.RelayInfo) map[string]float64
 

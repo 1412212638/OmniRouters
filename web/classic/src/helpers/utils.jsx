@@ -700,6 +700,9 @@ export const calculateModelPrice = ({
   if (record.quota_type === 1 && isSoraPerRequestPricingRecord(record)) {
     const basePriceUSD = (parseFloat(record.model_price) || 0) * usedGroupRatio;
     const basePrice = displayPrice(basePriceUSD);
+    const audioGenerationSurcharge = Number(
+      record.sora_per_request_pricing?.audio_generation_surcharge,
+    );
     const resolutionTiers = Array.isArray(
       record.sora_per_request_pricing?.resolution_tiers,
     )
@@ -714,34 +717,19 @@ export const calculateModelPrice = ({
               label: tier.value,
               multiplier,
               price: displayPrice(basePriceUSD * multiplier),
-              audioPrice:
-                Number.isFinite(audioGenerationMultiplier) &&
-                audioGenerationMultiplier > 1
-                  ? displayPrice(
-                      basePriceUSD * multiplier * audioGenerationMultiplier,
-                    )
-                  : null,
             };
           })
           .filter(Boolean)
       : [];
-    const audioGenerationMultiplier = Number(
-      record.sora_per_request_pricing?.audio_generation_multiplier,
-    );
 
     return {
       price: basePrice,
       basePrice,
       resolutionTiers,
-      audioGenerationMultiplier:
-        Number.isFinite(audioGenerationMultiplier) &&
-        audioGenerationMultiplier >= 1
-          ? audioGenerationMultiplier
-          : null,
-      audioGenerationBasePrice:
-        Number.isFinite(audioGenerationMultiplier) &&
-        audioGenerationMultiplier >= 1
-          ? displayPrice(basePriceUSD * audioGenerationMultiplier)
+      audioGenerationSurcharge:
+        Number.isFinite(audioGenerationSurcharge) &&
+        audioGenerationSurcharge > 0
+          ? displayPrice(audioGenerationSurcharge * usedGroupRatio)
           : null,
       isSoraParamPricing: true,
       isPerToken: false,
@@ -907,15 +895,12 @@ export const getModelPriceItems = (
         value: tier.price,
         suffix: ` / ${t('秒')}`,
       })),
-      priceData.audioGenerationMultiplier &&
-      priceData.audioGenerationMultiplier !== 1
+      priceData.audioGenerationSurcharge
         ? {
             key: 'audio-generation',
-            label: t('音频生成倍率'),
-            value: priceData.audioGenerationBasePrice
-              ? priceData.audioGenerationBasePrice
-              : `x${priceData.audioGenerationMultiplier}`,
-            suffix: priceData.audioGenerationBasePrice ? ` / ${t('秒')}` : '',
+            label: t('音频生成附加费'),
+            value: priceData.audioGenerationSurcharge,
+            suffix: ` / ${t('次')}`,
           }
         : null,
     ].filter(

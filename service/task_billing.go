@@ -43,6 +43,11 @@ func LogTaskConsumption(c *gin.Context, info *relaycommon.RelayInfo) {
 		other["model_ratio"] = info.PriceData.ModelRatio
 	}
 	other["group_ratio"] = info.PriceData.GroupRatioInfo.GroupRatio
+	if len(info.PriceData.FixedQuotas) > 0 {
+		for k, v := range info.PriceData.FixedQuotas {
+			other[k+"_fixed_quota"] = v
+		}
+	}
 	if info.PriceData.GroupRatioInfo.HasSpecialRatio {
 		other["user_group_ratio"] = info.PriceData.GroupRatioInfo.GroupSpecialRatio
 	}
@@ -128,6 +133,11 @@ func taskBillingOther(task *model.Task) map[string]interface{} {
 		if len(bc.OtherRatios) > 0 {
 			for k, v := range bc.OtherRatios {
 				other[k] = v
+			}
+		}
+		if len(bc.FixedQuotas) > 0 {
+			for k, v := range bc.FixedQuotas {
+				other[k+"_fixed_quota"] = v
 			}
 		}
 	}
@@ -292,10 +302,26 @@ func RecalculateTaskQuotaByTokens(ctx context.Context, task *model.Task, totalTo
 			}
 		}
 	}
+	fixedQuota := 0
+	if bc := task.PrivateData.BillingContext; bc != nil {
+		for _, quota := range bc.FixedQuotas {
+			if quota > 0 {
+				fixedQuota += quota
+			}
+		}
+	}
 
 	// 计算实际应扣费额度: totalTokens * modelRatio * groupRatio * otherMultiplier
-	actualQuota := int(float64(totalTokens) * modelRatio * finalGroupRatio * otherMultiplier)
+	tokenQuota := int(float64(totalTokens) * modelRatio * finalGroupRatio * otherMultiplier)
+	actualQuota := tokenQuota + fixedQuota
 
-	reason := fmt.Sprintf("token重算：tokens=%d, modelRatio=%.2f, groupRatio=%.2f, otherMultiplier=%.4f", totalTokens, modelRatio, finalGroupRatio, otherMultiplier)
+	reason := fmt.Sprintf(
+		"token重算：tokens=%d, modelRatio=%.2f, groupRatio=%.2f, otherMultiplier=%.4f, fixedQuota=%d",
+		totalTokens,
+		modelRatio,
+		finalGroupRatio,
+		otherMultiplier,
+		fixedQuota,
+	)
 	RecalculateTaskQuota(ctx, task, actualQuota, reason)
 }

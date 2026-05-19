@@ -70,11 +70,11 @@ type soraParamPricingRequest struct {
 }
 
 type soraPricingContext struct {
-	Resolution                  string
-	Seconds                     int
-	Multiplier                  float64
-	AudioGeneration             bool
-	AudioGenerationMultiplier   float64
+	Resolution               string
+	Seconds                  int
+	Multiplier               float64
+	AudioGeneration          bool
+	AudioGenerationSurcharge float64
 }
 
 func (a *TaskAdaptor) Init(info *relaycommon.RelayInfo) {
@@ -115,8 +115,9 @@ func (a *TaskAdaptor) EstimateBilling(c *gin.Context, info *relaycommon.RelayInf
 			"seconds":    float64(soraPricing.Seconds),
 			"resolution": soraPricing.Multiplier,
 		}
-		if soraPricing.AudioGeneration && soraPricing.AudioGenerationMultiplier > 0 {
-			ratios["audio_generation"] = soraPricing.AudioGenerationMultiplier
+		if soraPricing.AudioGeneration && soraPricing.AudioGenerationSurcharge > 0 {
+			fixedQuota := int(soraPricing.AudioGenerationSurcharge * common.QuotaPerUnit * info.PriceData.GroupRatioInfo.GroupRatio)
+			info.PriceData.AddFixedQuota("audio_generation", fixedQuota)
 		}
 		return ratios
 	}
@@ -184,19 +185,19 @@ func (a *TaskAdaptor) validateSoraParamPricing(c *gin.Context) *dto.TaskError {
 	}
 
 	audioGenerationEnabled := isSoraAudioGenerationEnabled(req.AudioGeneration)
-	audioGenerationMultiplier := 0.0
+	audioGenerationSurcharge := 0.0
 	if audioGenerationEnabled {
-		if multiplier, ok := rule.AudioGenerationRatio(); ok {
-			audioGenerationMultiplier = multiplier
+		if surcharge, ok := rule.AudioGenerationSurchargePrice(); ok {
+			audioGenerationSurcharge = surcharge
 		}
 	}
 
 	common.SetContextKey(c, constant.ContextKeySoraPricingContext, soraPricingContext{
-		Resolution:                resolution,
-		Seconds:                   seconds,
-		Multiplier:                multiplier,
-		AudioGeneration:           audioGenerationEnabled,
-		AudioGenerationMultiplier: audioGenerationMultiplier,
+		Resolution:               resolution,
+		Seconds:                  seconds,
+		Multiplier:               multiplier,
+		AudioGeneration:          audioGenerationEnabled,
+		AudioGenerationSurcharge: audioGenerationSurcharge,
 	})
 	return nil
 }

@@ -115,6 +115,9 @@ func ResolveOriginTask(c *gin.Context, info *relaycommon.RelayInfo) *dto.TaskErr
 			for s, f := range originTask.PrivateData.BillingContext.OtherRatios {
 				info.PriceData.AddOtherRatio(s, f)
 			}
+			for s, q := range originTask.PrivateData.BillingContext.FixedQuotas {
+				info.PriceData.AddFixedQuota(s, q)
+			}
 		} else {
 			// 旧的 remix 逻辑：直接从 task data 解析 seconds 和 size（如果存在）
 			var taskData map[string]interface{}
@@ -181,11 +184,19 @@ func RelayTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo) (*TaskSubmitRe
 
 	// 4. 价格计算：基础模型价格
 	info.OriginModelName = modelName
+	presetOtherRatios := info.PriceData.OtherRatios
+	presetFixedQuotas := info.PriceData.FixedQuotas
 	priceData, err := helper.ModelPriceHelperPerCall(c, info)
 	if err != nil {
 		return nil, service.TaskErrorWrapper(err, "model_price_error", http.StatusBadRequest)
 	}
 	info.PriceData = priceData
+	for k, v := range presetOtherRatios {
+		info.PriceData.AddOtherRatio(k, v)
+	}
+	for k, v := range presetFixedQuotas {
+		info.PriceData.AddFixedQuota(k, v)
+	}
 
 	// 5. 计费估算：让适配器根据用户请求提供 OtherRatios（时长、分辨率等）
 	//    必须在 ModelPriceHelperPerCall 之后调用（它会重建 PriceData）。
@@ -203,6 +214,10 @@ func RelayTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo) (*TaskSubmitRe
 				info.PriceData.Quota = int(float64(info.PriceData.Quota) * ra)
 			}
 		}
+	}
+	if fixedQuota := info.PriceData.FixedQuotaTotal(); fixedQuota > 0 {
+		info.PriceData.Quota += fixedQuota
+		info.PriceData.FreeModel = false
 	}
 
 	// 7. 预扣费（仅首次 — 重试时 info.Billing 已存在，跳过）
@@ -264,7 +279,11 @@ func RelayTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo) (*TaskSubmitRe
 // 公式: baseQuota × ∏(ratio) — 其中 baseQuota 是不含 OtherRatios 的基础额度。
 func recalcQuotaFromRatios(info *relaycommon.RelayInfo, ratios map[string]float64) int {
 	// 从 PriceData 获取不含 OtherRatios 的基础价格
-	baseQuota := info.PriceData.Quota
+	fixedQuota := info.PriceData.FixedQuotaTotal()
+	baseQuota := info.PriceData.Quota - fixedQuota
+	if baseQuota < 0 {
+		baseQuota = 0
+	}
 	// 先除掉原有的 OtherRatios 恢复基础额度
 	for _, ra := range info.PriceData.OtherRatios {
 		if ra != 1.0 && ra > 0 {
@@ -278,7 +297,7 @@ func recalcQuotaFromRatios(info *relaycommon.RelayInfo, ratios map[string]float6
 			result *= ra
 		}
 	}
-	return int(result)
+	return int(result) + fixedQuota
 }
 
 var fetchRespBuilders = map[int]func(c *gin.Context) (respBody []byte, taskResp *dto.TaskError){
