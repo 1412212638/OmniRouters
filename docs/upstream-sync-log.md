@@ -2,6 +2,22 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-05-19
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `f69ceb6967901d3939f69d6467d9929ab41d8eae`
+- Upstream `main` synced through: `2d1ca1538457869c8fbb650c02df628b6d943e5e`
+- Local integration scope:
+  - Integrated upstream auth fixes for registration visibility, affiliate payload field naming, forgot/reset password submission, and reset-confirm translations.
+  - Integrated user/admin handling fixes for user deletion errors, create-user password validation, role-management checks, and sensitive access token JSON hiding.
+  - Integrated default frontend fixes for wallet dark-mode preset selection, model detail tabs, table filter popover width, model-card pagination labels, API key drawer save handling, and API info color dots/save result handling.
+  - Integrated upstream dashboard content visibility handling so overview panels respect the status switches.
+  - Integrated upstream param override audit expansion for sensitive request body fields and log detail display.
+  - Integrated upstream analytics placeholders and debug logging lazy-formatting cleanup.
+- Notes:
+  - Upstream commits were selectively integrated because local OmniRouters auth, wallet, pricing, i18n, and system-settings customizations touch the same files.
+  - Preserved local wallet corporate transfer display, Sora/audio pricing, mail settings, OAuth icon URL support, and model marketplace custom labels.
+
 ## 2026-05-17
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
