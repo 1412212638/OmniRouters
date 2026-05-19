@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useSystemConfig } from '@/hooks/use-system-config'
+import { PublicHeader } from '@/components/layout'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AuthMascot } from './components/auth-mascot'
 
@@ -407,6 +408,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <div className='auth-classic-shell'>
       <style>{authClassicStyles}</style>
+      <PublicHeader showAuthButtons={false} showNotifications={false} />
       <div className='auth-classic-grid'>
         <section className='auth-classic-hero' aria-hidden='true'>
           <AuthMascot />
