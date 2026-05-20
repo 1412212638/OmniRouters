@@ -4660,6 +4660,19 @@
     "Urgent": "Urgent",
     "admin": "Admin",
     "system": "System",
-    "user": "User"
+    "user": "User",
+    "Correspondence": "Correspondence",
+    "Last Reply": "Last Reply",
+    "Post Reply": "Post Reply",
+    "Replies will appear here.": "Replies will appear here.",
+    "Reply to ticket": "Reply to ticket",
+    "Requester": "Requester",
+    "Support": "Support",
+    "Ticket Inbox": "Ticket Inbox",
+    "Ticket details": "Ticket details",
+    "Unassigned": "Unassigned",
+    "Unread": "Unread",
+    "messages": "messages",
+    "Select a ticket to view its details.": "Select a ticket to view its details."
   }
 }

@@ -16,18 +16,29 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   CheckCircle2,
+  Clock3,
+  FileText,
   Inbox,
   Lock,
+  Mail,
   Plus,
   RefreshCcw,
+  Reply,
   RotateCcw,
   Search,
   Send,
   ShieldCheck,
+  Tag,
   Ticket as TicketIcon,
   UserRound,
 } from 'lucide-react'
@@ -308,40 +319,50 @@ function TicketListItem({
       type='button'
       onClick={onSelect}
       className={cn(
-        'hover:bg-muted/60 flex w-full flex-col gap-2 border-b px-3 py-3 text-left transition-colors last:border-b-0',
-        selected && 'bg-muted'
+        'group grid w-full gap-2 border-b border-l-2 border-l-transparent px-3.5 py-3 text-left transition-colors last:border-b-0 hover:bg-muted/60',
+        selected && 'border-l-primary bg-muted/70'
       )}
     >
       <div className='flex min-w-0 items-start justify-between gap-3'>
-        <div className='min-w-0'>
+        <div className='min-w-0 space-y-1'>
           <div className='flex min-w-0 items-center gap-2'>
             {unreadCount > 0 && (
-              <span className='bg-primary size-2 shrink-0 rounded-full' />
+              <span
+                className='bg-primary size-2 shrink-0 rounded-full'
+                aria-hidden='true'
+              />
             )}
-            <span className='truncate text-sm font-medium'>
-              #{ticket.id} {ticket.title}
+            <span className='text-muted-foreground shrink-0 text-xs font-medium'>
+              #{ticket.id}
+            </span>
+            <span className='truncate text-sm font-semibold'>
+              {ticket.title}
             </span>
           </div>
-          {admin && (
-            <div className='text-muted-foreground mt-1 flex items-center gap-1 text-xs'>
-              <UserRound className='size-3' />
-              <span className='truncate'>{getUserLabel(ticket)}</span>
-            </div>
-          )}
+          <div className='text-muted-foreground flex min-w-0 items-center gap-1.5 text-xs'>
+            <Mail className='size-3.5 shrink-0' />
+            <span className='truncate'>
+              {admin ? getUserLabel(ticket) : t('Support')}
+            </span>
+          </div>
         </div>
         <span className='text-muted-foreground shrink-0 text-xs'>
           {formatRelativeTime(ticket.last_reply_at || ticket.created_at)}
         </span>
       </div>
-      <div className='flex flex-wrap items-center gap-2'>
+
+      <div className='flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1'>
         <TicketStatusBadge status={ticket.status} />
         <TicketPriorityBadge priority={ticket.priority} />
-        <span className='text-muted-foreground text-xs'>
-          {t(getTicketCategoryLabel(ticket.category))}
+        <span className='text-muted-foreground inline-flex min-w-0 items-center gap-1 text-xs'>
+          <Tag className='size-3 shrink-0' />
+          <span className='truncate'>
+            {t(getTicketCategoryLabel(ticket.category))}
+          </span>
         </span>
         {unreadCount > 0 && (
-          <span className='bg-primary/10 text-primary rounded-full px-1.5 py-0.5 text-xs font-medium'>
-            {unreadCount}
+          <span className='bg-primary/10 text-primary ml-auto rounded px-1.5 py-0.5 text-xs font-medium'>
+            {unreadCount} {t('Unread')}
           </span>
         )}
       </div>
@@ -349,60 +370,182 @@ function TicketListItem({
   )
 }
 
-function TicketMessageItem({
-  message,
-  currentUserId,
-}: {
-  message: TicketMessage
-  currentUserId?: number
-}) {
+function TicketMessageItem({ message }: { message: TicketMessage }) {
   const { t } = useTranslation()
-  const isMine = message.sender_id > 0 && message.sender_id === currentUserId
   const isAdmin = message.sender_role === 'admin'
+  const isSystem = message.sender_role === 'system'
+  const senderLabel = message.internal
+    ? t('Internal note')
+    : message.sender_name || t(message.sender_role)
 
   return (
-    <div
+    <article
       className={cn(
-        'flex gap-3',
-        isMine && !message.internal ? 'justify-end' : 'justify-start'
+        'grid gap-3 px-4 py-4 sm:grid-cols-[2.25rem_minmax(0,1fr)]',
+        message.internal && 'bg-amber-50/70 dark:bg-amber-950/20'
       )}
     >
-      {!isMine && (
-        <div
-          className={cn(
-            'mt-1 flex size-8 shrink-0 items-center justify-center rounded-lg border',
-            isAdmin ? 'bg-primary/10 text-primary' : 'bg-muted'
-          )}
-        >
-          {isAdmin ? (
-            <ShieldCheck className='size-4' />
-          ) : (
-            <UserRound className='size-4' />
-          )}
-        </div>
-      )}
       <div
         className={cn(
-          'max-w-[min(760px,85%)] rounded-lg border px-3 py-2',
-          isMine && !message.internal
-            ? 'bg-primary text-primary-foreground border-primary'
-            : 'bg-background',
-          message.internal && 'border-amber-300 bg-amber-50 text-amber-950'
+          'flex size-9 items-center justify-center rounded-md border',
+          isAdmin && 'border-primary/20 bg-primary/10 text-primary',
+          isSystem && 'bg-muted text-muted-foreground',
+          !isAdmin && !isSystem && 'bg-background text-muted-foreground'
         )}
       >
-        <div className='mb-1 flex flex-wrap items-center gap-2 text-xs opacity-80'>
-          <span className='font-medium'>
-            {message.internal
-              ? t('Internal note')
-              : message.sender_name || t(message.sender_role)}
+        {isAdmin ? (
+          <ShieldCheck className='size-4' />
+        ) : isSystem ? (
+          <FileText className='size-4' />
+        ) : (
+          <UserRound className='size-4' />
+        )}
+      </div>
+
+      <div className='min-w-0'>
+        <div className='flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1'>
+          <span className='truncate text-sm font-semibold'>
+            {senderLabel}
           </span>
-          <span>{formatTimestamp(message.created_at)}</span>
+          <span className='text-muted-foreground text-xs'>
+            {formatTimestamp(message.created_at)}
+          </span>
+          {message.internal && (
+            <span className='rounded border border-amber-300 bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200'>
+              {t('Internal note')}
+            </span>
+          )}
         </div>
-        <div className='whitespace-pre-wrap break-words text-sm leading-6'>
+        <div className='mt-2 whitespace-pre-wrap break-words text-sm leading-6'>
           {message.content}
         </div>
       </div>
+    </article>
+  )
+}
+
+function DetailField({
+  label,
+  value,
+}: {
+  label: string
+  value: ReactNode
+}) {
+  return (
+    <div className='grid gap-1'>
+      <dt className='text-muted-foreground text-xs'>{label}</dt>
+      <dd className='min-w-0 text-sm font-medium'>{value}</dd>
     </div>
+  )
+}
+
+function TicketProperties({
+  ticket,
+  admin,
+}: {
+  ticket: Ticket
+  admin?: boolean
+}) {
+  const { t } = useTranslation()
+
+  return (
+    <aside className='hidden w-72 shrink-0 border-l bg-muted/20 xl:block'>
+      <div className='border-b px-4 py-3'>
+        <h3 className='text-sm font-semibold'>{t('Ticket details')}</h3>
+      </div>
+      <dl className='grid gap-4 p-4'>
+        <DetailField
+          label={t('Status')}
+          value={<TicketStatusBadge status={ticket.status} />}
+        />
+        <DetailField
+          label={t('Priority')}
+          value={<TicketPriorityBadge priority={ticket.priority} />}
+        />
+        <DetailField
+          label={t('Category')}
+          value={t(getTicketCategoryLabel(ticket.category))}
+        />
+        {admin && (
+          <DetailField label={t('Requester')} value={getUserLabel(ticket)} />
+        )}
+        <DetailField
+          label={t('Assignee')}
+          value={ticket.assigned_admin_name || t('Unassigned')}
+        />
+        <DetailField
+          label={t('Created At')}
+          value={formatTimestamp(ticket.created_at)}
+        />
+        <DetailField
+          label={t('Last Reply')}
+          value={formatTimestamp(ticket.last_reply_at || ticket.created_at)}
+        />
+      </dl>
+    </aside>
+  )
+}
+
+function TicketReplyBox({
+  admin,
+  closed,
+  sending,
+  onSend,
+}: {
+  admin?: boolean
+  closed: boolean
+  sending?: boolean
+  onSend: (content: string, internal: boolean) => void
+}) {
+  const { t } = useTranslation()
+  const [content, setContent] = useState('')
+  const [internal, setInternal] = useState(false)
+
+  const submitReply = (event: FormEvent) => {
+    event.preventDefault()
+    if (!content.trim()) return
+    onSend(content, internal)
+    setContent('')
+  }
+
+  return (
+    <form onSubmit={submitReply} className='shrink-0 border-t bg-background p-3'>
+      <div className='mb-2 flex flex-wrap items-center justify-between gap-2'>
+        <div className='flex items-center gap-2 text-sm font-semibold'>
+          <Reply className='size-4' />
+          {t('Reply to ticket')}
+        </div>
+        {admin && (
+          <label className='text-muted-foreground flex items-center gap-2 text-xs font-medium'>
+            <input
+              type='checkbox'
+              checked={internal}
+              onChange={(event) => setInternal(event.target.checked)}
+              className='accent-primary size-3.5'
+            />
+            {t('Internal note')}
+          </label>
+        )}
+      </div>
+
+      <div className='flex flex-col gap-2 sm:flex-row'>
+        <Textarea
+          value={content}
+          onChange={(event) => setContent(event.target.value)}
+          disabled={closed || sending}
+          placeholder={closed ? t('Ticket is closed') : t('Write a reply...')}
+          className='min-h-24 flex-1 resize-y'
+        />
+        <Button
+          type='submit'
+          disabled={closed || sending || !content.trim()}
+          className='sm:self-end'
+        >
+          <Send />
+          {sending ? t('Sending...') : t('Post Reply')}
+        </Button>
+      </div>
+    </form>
   )
 }
 
@@ -430,22 +573,14 @@ function TicketDetailPanel({
   statusChanging?: boolean
 }) {
   const { t } = useTranslation()
-  const currentUserId = useAuthStore((state) => state.auth.user?.id)
-  const [content, setContent] = useState('')
-  const [internal, setInternal] = useState(false)
-
-  useEffect(() => {
-    setContent('')
-    setInternal(false)
-  }, [ticket?.id])
 
   if (!ticket) {
     return (
-      <div className='flex h-full min-h-80 items-center justify-center rounded-lg border'>
+      <div className='flex min-h-[640px] items-center justify-center rounded-lg border bg-background'>
         <EmptyState
           icon={Inbox}
           title={t('No ticket selected')}
-          description={t('Select a ticket to view the conversation.')}
+          description={t('Select a ticket to view its details.')}
         />
       </div>
     )
@@ -453,123 +588,115 @@ function TicketDetailPanel({
 
   const closed = ticket.status === 'closed'
 
-  const submitReply = (event: FormEvent) => {
-    event.preventDefault()
-    if (!content.trim()) return
-    onSend(content, internal)
-    setContent('')
-  }
-
   return (
-    <div className='flex h-full min-h-[560px] flex-col rounded-lg border'>
-      <div className='flex shrink-0 flex-col gap-3 border-b p-3 sm:p-4'>
-        <div className='flex flex-wrap items-start justify-between gap-3'>
-          <div className='min-w-0'>
-            <div className='flex flex-wrap items-center gap-2'>
-              <h3 className='truncate text-base font-semibold'>
-                #{ticket.id} {ticket.title}
+    <div className='flex min-h-[640px] overflow-hidden rounded-lg border bg-background'>
+      <div className='flex min-w-0 flex-1 flex-col'>
+        <div className='shrink-0 border-b px-4 py-3'>
+          <div className='flex flex-wrap items-start justify-between gap-3'>
+            <div className='min-w-0'>
+              <div className='text-muted-foreground mb-1 flex flex-wrap items-center gap-2 text-xs'>
+                <span>#{ticket.id}</span>
+                <span>{t(getTicketCategoryLabel(ticket.category))}</span>
+                <span>{formatTimestamp(ticket.created_at)}</span>
+                {admin && <span>{getUserLabel(ticket)}</span>}
+              </div>
+              <h3 className='break-words text-base font-semibold sm:text-lg'>
+                {ticket.title}
               </h3>
-              <TicketStatusBadge status={ticket.status} />
-              <TicketPriorityBadge priority={ticket.priority} />
-            </div>
-            <div className='text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs'>
-              <span>{t(getTicketCategoryLabel(ticket.category))}</span>
-              <span>{formatTimestamp(ticket.created_at)}</span>
-              {admin && <span>{getUserLabel(ticket)}</span>}
-              {ticket.assigned_admin_name && (
-                <span>
-                  {t('Assignee')}: {ticket.assigned_admin_name}
+              <div className='mt-2 flex flex-wrap items-center gap-2 xl:hidden'>
+                <TicketStatusBadge status={ticket.status} />
+                <TicketPriorityBadge priority={ticket.priority} />
+                <span className='text-muted-foreground text-xs'>
+                  {t('Assignee')}:{' '}
+                  {ticket.assigned_admin_name || t('Unassigned')}
                 </span>
+              </div>
+            </div>
+
+            <div className='flex flex-wrap items-center gap-2'>
+              {admin && (
+                <>
+                  <NativeSelect
+                    size='sm'
+                    value={ticket.status}
+                    disabled={statusChanging}
+                    onChange={(event) => onStatusChange(event.target.value)}
+                  >
+                    {TICKET_STATUSES.map((status) => (
+                      <NativeSelectOption
+                        key={status.value}
+                        value={status.value}
+                      >
+                        {t(status.label)}
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelect>
+                  <Button
+                    size='sm'
+                    variant='outline'
+                    onClick={onAssignToMe}
+                    disabled={statusChanging}
+                  >
+                    <CheckCircle2 />
+                    {t('Assign to me')}
+                  </Button>
+                </>
+              )}
+              {closed ? (
+                !admin && (
+                  <Button size='sm' variant='outline' onClick={onReopen}>
+                    <RotateCcw />
+                    {t('Reopen')}
+                  </Button>
+                )
+              ) : (
+                <Button size='sm' variant='outline' onClick={onClose}>
+                  <Lock />
+                  {t('Close')}
+                </Button>
               )}
             </div>
           </div>
+        </div>
 
-          <div className='flex flex-wrap items-center gap-2'>
-            {admin && (
-              <>
-                <NativeSelect
-                  size='sm'
-                  value={ticket.status}
-                  disabled={statusChanging}
-                  onChange={(event) => onStatusChange(event.target.value)}
-                >
-                  {TICKET_STATUSES.map((status) => (
-                    <NativeSelectOption key={status.value} value={status.value}>
-                      {t(status.label)}
-                    </NativeSelectOption>
-                  ))}
-                </NativeSelect>
-                <Button
-                  size='sm'
-                  variant='outline'
-                  onClick={onAssignToMe}
-                  disabled={statusChanging}
-                >
-                  <CheckCircle2 />
-                  {t('Assign to me')}
-                </Button>
-              </>
-            )}
-            {closed ? (
-              !admin && (
-                <Button size='sm' variant='outline' onClick={onReopen}>
-                  <RotateCcw />
-                  {t('Reopen')}
-                </Button>
-              )
+        <div className='min-h-0 flex-1 overflow-auto bg-muted/20 p-3 sm:p-4'>
+          <div className='mx-auto max-w-5xl overflow-hidden rounded-lg border bg-background'>
+            <div className='flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3'>
+              <div className='flex items-center gap-2 text-sm font-semibold'>
+                <Mail className='size-4' />
+                {t('Correspondence')}
+              </div>
+              <span className='text-muted-foreground text-xs'>
+                {messages.length} {t('messages')}
+              </span>
+            </div>
+            {messages.length === 0 ? (
+              <div className='flex min-h-48 items-center justify-center p-4'>
+                <EmptyState
+                  icon={FileText}
+                  title={t('No messages yet')}
+                  description={t('Replies will appear here.')}
+                />
+              </div>
             ) : (
-              <Button size='sm' variant='outline' onClick={onClose}>
-                <Lock />
-                {t('Close')}
-              </Button>
+              <div className='divide-y'>
+                {messages.map((message) => (
+                  <TicketMessageItem key={message.id} message={message} />
+                ))}
+              </div>
             )}
           </div>
         </div>
+
+        <TicketReplyBox
+          admin={admin}
+          closed={closed}
+          sending={sending}
+          onSend={onSend}
+        />
       </div>
 
-      <div className='min-h-0 flex-1 space-y-4 overflow-auto p-3 sm:p-4'>
-        {messages.map((message) => (
-          <TicketMessageItem
-            key={message.id}
-            message={message}
-            currentUserId={currentUserId}
-          />
-        ))}
-      </div>
-
-      <form
-        onSubmit={submitReply}
-        className='bg-background shrink-0 space-y-2 border-t p-3 sm:p-4'
-      >
-        {admin && (
-          <label className='flex w-fit items-center gap-2 text-xs font-medium'>
-            <input
-              type='checkbox'
-              checked={internal}
-              onChange={(event) => setInternal(event.target.checked)}
-              className='accent-primary size-3.5'
-            />
-            {t('Internal note')}
-          </label>
-        )}
-        <div className='flex flex-col gap-2 sm:flex-row'>
-          <Textarea
-            value={content}
-            onChange={(event) => setContent(event.target.value)}
-            disabled={closed || sending}
-            placeholder={closed ? t('Ticket is closed') : t('Write a reply...')}
-            className='min-h-20 flex-1'
-          />
-          <Button
-            type='submit'
-            disabled={closed || sending || !content.trim()}
-            className='sm:self-end'
-          >
-            <Send />
-            {sending ? t('Sending...') : t('Send')}
-          </Button>
-        </div>
-      </form>
+      <TicketProperties ticket={ticket} admin={admin} />
     </div>
   )
 }
@@ -626,7 +753,11 @@ export function TicketsPage({ admin = false }: TicketsPageProps) {
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   useEffect(() => {
-    if (!selectedId && tickets.length > 0) {
+    if (tickets.length === 0) {
+      setSelectedId(null)
+      return
+    }
+    if (!selectedId || !tickets.some((ticket) => ticket.id === selectedId)) {
       setSelectedId(tickets[0].id)
     }
   }, [selectedId, tickets])
@@ -752,10 +883,31 @@ export function TicketsPage({ admin = false }: TicketsPageProps) {
           )}
         </SectionPageLayout.Actions>
         <SectionPageLayout.Content>
-          <div className='grid min-h-[640px] gap-3 lg:grid-cols-[380px_minmax(0,1fr)]'>
-            <div className='flex min-h-0 flex-col rounded-lg border'>
-              <div className='shrink-0 space-y-3 border-b p-3'>
-                <form onSubmit={runSearch} className='flex gap-2'>
+          <div className='grid min-h-[640px] gap-3 xl:grid-cols-[360px_minmax(0,1fr)]'>
+            <div className='flex min-h-0 flex-col overflow-hidden rounded-lg border bg-background'>
+              <div className='shrink-0 border-b px-3.5 py-3'>
+                <div className='mb-3 flex items-center justify-between gap-3'>
+                  <div className='min-w-0'>
+                    <div className='flex items-center gap-2 text-sm font-semibold'>
+                      <Inbox className='size-4' />
+                      {t('Ticket Inbox')}
+                    </div>
+                    <div className='text-muted-foreground mt-0.5 text-xs'>
+                      {total} {t('tickets')}
+                    </div>
+                  </div>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='icon-sm'
+                    onClick={() => listQuery.refetch()}
+                  >
+                    <RefreshCcw />
+                    <span className='sr-only'>{t('Refresh')}</span>
+                  </Button>
+                </div>
+
+                <form onSubmit={runSearch} className='mb-2 flex gap-2'>
                   <div className='relative min-w-0 flex-1'>
                     <Search className='text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2' />
                     <Input
@@ -768,15 +920,6 @@ export function TicketsPage({ admin = false }: TicketsPageProps) {
                   <Button type='submit' variant='outline' size='icon'>
                     <Search />
                     <span className='sr-only'>{t('Search')}</span>
-                  </Button>
-                  <Button
-                    type='button'
-                    variant='outline'
-                    size='icon'
-                    onClick={() => listQuery.refetch()}
-                  >
-                    <RefreshCcw />
-                    <span className='sr-only'>{t('Refresh')}</span>
                   </Button>
                 </form>
 
@@ -871,9 +1014,10 @@ export function TicketsPage({ admin = false }: TicketsPageProps) {
                 )}
               </div>
 
-              <div className='text-muted-foreground flex shrink-0 items-center justify-between border-t p-3 text-xs'>
-                <span>
-                  {total} {t('tickets')}
+              <div className='text-muted-foreground flex shrink-0 items-center justify-between border-t px-3 py-2.5 text-xs'>
+                <span className='inline-flex items-center gap-1'>
+                  <Clock3 className='size-3.5' />
+                  {t('Page')} {page} / {pageCount}
                 </span>
                 <div className='flex items-center gap-2'>
                   <Button
@@ -884,9 +1028,6 @@ export function TicketsPage({ admin = false }: TicketsPageProps) {
                   >
                     {t('Previous')}
                   </Button>
-                  <span>
-                    {page} / {pageCount}
-                  </span>
                   <Button
                     size='xs'
                     variant='outline'

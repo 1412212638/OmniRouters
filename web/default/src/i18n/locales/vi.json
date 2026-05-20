@@ -4595,6 +4595,19 @@
     "Urgent": "Kh?n c?p",
     "admin": "Qu?n tr? vi?n",
     "system": "H? th?ng",
-    "user": "Ng??i d?ng"
+    "user": "Ng??i d?ng",
+    "Correspondence": "Trao ??i",
+    "Last Reply": "Ph?n h?i cu?i",
+    "Post Reply": "G?i ph?n h?i",
+    "Replies will appear here.": "C?c ph?n h?i s? xu?t hi?n t?i ??y.",
+    "Reply to ticket": "Ph?n h?i phi?u",
+    "Requester": "Ng??i y?u c?u",
+    "Support": "H? tr?",
+    "Ticket Inbox": "H?p phi?u h? tr?",
+    "Ticket details": "Chi ti?t phi?u",
+    "Unassigned": "Ch?a ph?n c?ng",
+    "Unread": "Ch?a ??c",
+    "messages": "tin nh?n",
+    "Select a ticket to view its details.": "Ch?n m?t phi?u ?? xem chi ti?t."
   }
 }

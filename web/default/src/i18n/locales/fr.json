@@ -4609,6 +4609,19 @@
     "Urgent": "Urgent",
     "admin": "Administrateur",
     "system": "Syst?me",
-    "user": "Utilisateur"
+    "user": "Utilisateur",
+    "Correspondence": "Correspondance",
+    "Last Reply": "Derni?re r?ponse",
+    "Post Reply": "Publier la r?ponse",
+    "Replies will appear here.": "Les r?ponses appara?tront ici.",
+    "Reply to ticket": "R?pondre au ticket",
+    "Requester": "Demandeur",
+    "Support": "Support",
+    "Ticket Inbox": "Bo?te des tickets",
+    "Ticket details": "D?tails du ticket",
+    "Unassigned": "Non assign?",
+    "Unread": "Non lu",
+    "messages": "messages",
+    "Select a ticket to view its details.": "S?lectionnez un ticket pour afficher ses d?tails."
   }
 }
