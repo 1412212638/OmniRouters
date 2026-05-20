@@ -177,6 +177,30 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/subscription/epay/return", controller.SubscriptionEpayReturn)
 		apiRouter.POST("/subscription/epay/return", controller.SubscriptionEpayReturn)
 
+		ticketAdminRoute := apiRouter.Group("/tickets/admin")
+		ticketAdminRoute.Use(middleware.AdminAuth())
+		{
+			ticketAdminRoute.GET("", controller.AdminListTickets)
+			ticketAdminRoute.GET("/", controller.AdminListTickets)
+			ticketAdminRoute.GET("/:id", controller.AdminGetTicket)
+			ticketAdminRoute.POST("/:id/messages", controller.AdminAddTicketMessage)
+			ticketAdminRoute.PATCH("/:id/status", controller.AdminUpdateTicketStatus)
+			ticketAdminRoute.PATCH("/:id/assign", controller.AdminAssignTicket)
+			ticketAdminRoute.POST("/:id/close", controller.AdminCloseTicket)
+		}
+		ticketRoute := apiRouter.Group("/tickets")
+		ticketRoute.Use(middleware.UserAuth())
+		{
+			ticketRoute.GET("", controller.ListTickets)
+			ticketRoute.GET("/", controller.ListTickets)
+			ticketRoute.POST("", controller.CreateTicket)
+			ticketRoute.POST("/", controller.CreateTicket)
+			ticketRoute.GET("/:id", controller.GetTicket)
+			ticketRoute.POST("/:id/messages", controller.AddTicketMessage)
+			ticketRoute.POST("/:id/close", controller.CloseTicket)
+			ticketRoute.POST("/:id/reopen", controller.ReopenTicket)
+		}
+
 		emailSettingsRoute := apiRouter.Group("/email_settings")
 		emailSettingsRoute.Use(middleware.AdminAuth())
 		{

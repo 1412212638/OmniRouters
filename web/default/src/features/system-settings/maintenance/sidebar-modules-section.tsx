@@ -114,6 +114,10 @@ export function SidebarModulesSection({
         title: t('Wallet'),
         description: t('Top up balance and view billing history.'),
       },
+      ticket: {
+        title: t('Support Tickets'),
+        description: t('Create and review support conversations.'),
+      },
       personal: {
         title: t('Profile'),
         description: t('Personal settings and profile management.'),
@@ -149,6 +153,10 @@ export function SidebarModulesSection({
         description: t(
           'Configure SMTP, sender templates, and marketing emails.'
         ),
+      },
+      ticket: {
+        title: t('Tickets'),
+        description: t('Review and resolve user support requests.'),
       },
     },
   }

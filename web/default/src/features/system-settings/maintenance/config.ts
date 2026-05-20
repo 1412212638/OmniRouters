@@ -70,6 +70,7 @@ export const SIDEBAR_MODULES_DEFAULT: SidebarModulesAdminConfig = {
   personal: {
     enabled: true,
     topup: true,
+    ticket: true,
     personal: true,
   },
   admin: {
@@ -81,6 +82,7 @@ export const SIDEBAR_MODULES_DEFAULT: SidebarModulesAdminConfig = {
     setting: true,
     subscription: true,
     email: true,
+    ticket: true,
   },
 }
 

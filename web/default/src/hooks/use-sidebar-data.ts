@@ -111,6 +111,11 @@ export function useSidebarData(): SidebarData {
             icon: Wallet,
           },
           {
+            title: t('Support Tickets'),
+            url: '/tickets',
+            icon: MessageSquare,
+          },
+          {
             title: t('Profile'),
             url: '/profile',
             icon: User,
@@ -135,6 +140,11 @@ export function useSidebarData(): SidebarData {
             title: t('Users'),
             url: '/users',
             icon: Users,
+          },
+          {
+            title: t('Tickets'),
+            url: '/admin-tickets',
+            icon: MessageSquare,
           },
           {
             title: t('Redemption Codes'),
