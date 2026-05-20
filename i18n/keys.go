@@ -116,6 +116,21 @@ const (
 	MsgUserQuotaChangeZero           = "user.quota_change_zero"
 )
 
+// Ticket related messages
+const (
+	MsgTicketInvalidId            = "ticket.invalid_id"
+	MsgTicketNotFound             = "ticket.not_found"
+	MsgTicketForbidden            = "ticket.forbidden"
+	MsgTicketTitleRequired        = "ticket.title_required"
+	MsgTicketTitleTooLong         = "ticket.title_too_long"
+	MsgTicketContentRequired      = "ticket.content_required"
+	MsgTicketMessageRequired      = "ticket.message_required"
+	MsgTicketClosed               = "ticket.closed"
+	MsgTicketInvalidStatus        = "ticket.invalid_status"
+	MsgTicketInvalidPriority      = "ticket.invalid_priority"
+	MsgTicketAssignedAdminInvalid = "ticket.assigned_admin_invalid"
+)
+
 // Quota related messages
 const (
 	MsgQuotaNegative        = "quota.negative"

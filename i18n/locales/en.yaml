@@ -103,6 +103,19 @@ user.telegram_not_bound: "This Telegram account is not bound"
 user.linux_do_id_empty: "Linux DO ID is empty!"
 user.quota_change_zero: "Quota change amount cannot be zero"
 
+# Ticket messages
+ticket.invalid_id: "Invalid ticket ID"
+ticket.not_found: "Ticket not found"
+ticket.forbidden: "You do not have permission to access this ticket"
+ticket.title_required: "Ticket title is required"
+ticket.title_too_long: "Ticket title is too long"
+ticket.content_required: "Ticket content is required"
+ticket.message_required: "Message content is required"
+ticket.closed: "Ticket is closed"
+ticket.invalid_status: "Invalid ticket status: {{.Status}}"
+ticket.invalid_priority: "Invalid ticket priority: {{.Priority}}"
+ticket.assigned_admin_invalid: "Assigned admin ID is invalid"
+
 # Quota messages
 quota.negative: "Quota cannot be negative!"
 quota.exceed_max: "Quota value exceeds valid range"

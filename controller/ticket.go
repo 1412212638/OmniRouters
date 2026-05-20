@@ -6,6 +6,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/dto"
+	"github.com/QuantumNous/new-api/i18n"
 	"github.com/QuantumNous/new-api/service"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +15,7 @@ import (
 func getTicketID(c *gin.Context) (int, bool) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil || id <= 0 {
-		common.ApiErrorMsg(c, "invalid ticket id")
+		common.ApiErrorI18n(c, i18n.MsgTicketInvalidId)
 		return 0, false
 	}
 	return id, true
@@ -25,11 +26,20 @@ func handleTicketError(c *gin.Context, err error) {
 		return
 	}
 	if errors.Is(err, service.ErrTicketNotFound) {
-		common.ApiErrorMsg(c, "ticket not found")
+		common.ApiErrorI18n(c, i18n.MsgTicketNotFound)
 		return
 	}
 	if errors.Is(err, service.ErrTicketForbidden) {
-		common.ApiErrorMsg(c, "you do not have permission to access this ticket")
+		common.ApiErrorI18n(c, i18n.MsgTicketForbidden)
+		return
+	}
+	var ticketErr *service.TicketI18nError
+	if errors.As(err, &ticketErr) {
+		if ticketErr.Params != nil {
+			common.ApiErrorI18n(c, ticketErr.Key, ticketErr.Params)
+		} else {
+			common.ApiErrorI18n(c, ticketErr.Key)
+		}
 		return
 	}
 	common.ApiError(c, err)

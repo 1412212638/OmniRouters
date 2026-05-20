@@ -104,6 +104,19 @@ user.telegram_not_bound: "该 Telegram 账户未绑定"
 user.linux_do_id_empty: "Linux DO id 为空！"
 user.quota_change_zero: "额度变更量不能为0"
 
+# Ticket messages
+ticket.invalid_id: "无效的工单 ID"
+ticket.not_found: "工单不存在"
+ticket.forbidden: "无权访问该工单"
+ticket.title_required: "工单标题不能为空"
+ticket.title_too_long: "工单标题过长"
+ticket.content_required: "工单内容不能为空"
+ticket.message_required: "回复内容不能为空"
+ticket.closed: "工单已关闭"
+ticket.invalid_status: "无效的工单状态：{{.Status}}"
+ticket.invalid_priority: "无效的工单优先级：{{.Priority}}"
+ticket.assigned_admin_invalid: "无效的处理人 ID"
+
 # Quota messages
 quota.negative: "额度不能为负数！"
 quota.exceed_max: "额度值超出有效范围"

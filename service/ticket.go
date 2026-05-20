@@ -2,21 +2,40 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/dto"
+	"github.com/QuantumNous/new-api/i18n"
 	"github.com/QuantumNous/new-api/model"
 
 	"gorm.io/gorm"
 )
 
 var (
-	ErrTicketNotFound  = errors.New("ticket not found")
-	ErrTicketForbidden = errors.New("you do not have permission to access this ticket")
+	ErrTicketNotFound  = errors.New(i18n.MsgTicketNotFound)
+	ErrTicketForbidden = errors.New(i18n.MsgTicketForbidden)
 )
+
+type TicketI18nError struct {
+	Key    string
+	Params map[string]any
+}
+
+func (e *TicketI18nError) Error() string {
+	if e == nil {
+		return ""
+	}
+	return e.Key
+}
+
+func newTicketI18nError(key string, params map[string]any) *TicketI18nError {
+	return &TicketI18nError{
+		Key:    key,
+		Params: params,
+	}
+}
 
 var validTicketStatuses = map[string]bool{
 	model.TicketStatusOpen:     true,
@@ -54,7 +73,7 @@ func normalizeTicketPriority(priority string) string {
 func normalizeTicketStatus(status string) (string, error) {
 	status = strings.TrimSpace(strings.ToLower(status))
 	if !validTicketStatuses[status] {
-		return "", fmt.Errorf("invalid ticket status: %s", status)
+		return "", newTicketI18nError(i18n.MsgTicketInvalidStatus, map[string]any{"Status": status})
 	}
 	return status, nil
 }
@@ -97,13 +116,13 @@ func CreateTicket(userID int, req dto.TicketCreateRequest) (*dto.TicketDetailRes
 	title := strings.TrimSpace(req.Title)
 	content := strings.TrimSpace(req.Content)
 	if title == "" {
-		return nil, errors.New("ticket title is required")
+		return nil, newTicketI18nError(i18n.MsgTicketTitleRequired, nil)
 	}
 	if len(title) > 255 {
-		return nil, errors.New("ticket title is too long")
+		return nil, newTicketI18nError(i18n.MsgTicketTitleTooLong, nil)
 	}
 	if content == "" {
-		return nil, errors.New("ticket content is required")
+		return nil, newTicketI18nError(i18n.MsgTicketContentRequired, nil)
 	}
 
 	attachments, err := encodeTicketAttachments(req.Attachments)
@@ -150,14 +169,14 @@ func ListTickets(userID int, admin bool, pageInfo *common.PageInfo, status strin
 		status = ""
 	}
 	if status != "" && !validTicketStatuses[status] {
-		return nil, fmt.Errorf("invalid ticket status: %s", status)
+		return nil, newTicketI18nError(i18n.MsgTicketInvalidStatus, map[string]any{"Status": status})
 	}
 	priority = strings.TrimSpace(strings.ToLower(priority))
 	if priority == "all" {
 		priority = ""
 	}
 	if priority != "" && !validTicketPriorities[priority] {
-		return nil, fmt.Errorf("invalid ticket priority: %s", priority)
+		return nil, newTicketI18nError(i18n.MsgTicketInvalidPriority, map[string]any{"Priority": priority})
 	}
 
 	tickets, total, err := model.ListTickets(model.TicketListQuery{
@@ -228,7 +247,7 @@ func GetTicketDetail(userID int, admin bool, ticketID int) (*dto.TicketDetailRes
 func AddTicketMessage(userID int, admin bool, ticketID int, req dto.TicketMessageRequest) (*dto.TicketDetailResponse, error) {
 	content := strings.TrimSpace(req.Content)
 	if content == "" {
-		return nil, errors.New("message content is required")
+		return nil, newTicketI18nError(i18n.MsgTicketMessageRequired, nil)
 	}
 	attachments, err := encodeTicketAttachments(req.Attachments)
 	if err != nil {
@@ -246,7 +265,7 @@ func AddTicketMessage(userID int, admin bool, ticketID int, req dto.TicketMessag
 		return nil, err
 	}
 	if ticket.Status == model.TicketStatusClosed {
-		return nil, errors.New("ticket is closed")
+		return nil, newTicketI18nError(i18n.MsgTicketClosed, nil)
 	}
 
 	internal := admin && req.Internal
@@ -318,7 +337,7 @@ func UpdateTicketStatus(adminID int, ticketID int, status string) (*dto.TicketDe
 
 func AssignTicket(adminID int, ticketID int, assignedAdminID int) (*dto.TicketDetailResponse, error) {
 	if assignedAdminID < 0 {
-		return nil, errors.New("assigned admin id is invalid")
+		return nil, newTicketI18nError(i18n.MsgTicketAssignedAdminInvalid, nil)
 	}
 	if _, err := model.GetTicketByID(ticketID); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
