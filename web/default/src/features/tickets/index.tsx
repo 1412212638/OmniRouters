@@ -576,7 +576,7 @@ function TicketDetailPanel({
 
   if (!ticket) {
     return (
-      <div className='flex min-h-[640px] items-center justify-center rounded-lg border bg-background'>
+      <div className='flex h-full min-h-0 items-center justify-center rounded-lg border bg-background'>
         <EmptyState
           icon={Inbox}
           title={t('No ticket selected')}
@@ -589,7 +589,7 @@ function TicketDetailPanel({
   const closed = ticket.status === 'closed'
 
   return (
-    <div className='flex min-h-[640px] overflow-hidden rounded-lg border bg-background'>
+    <div className='flex h-full min-h-0 overflow-hidden rounded-lg border bg-background'>
       <div className='flex min-w-0 flex-1 flex-col'>
         <div className='shrink-0 border-b px-4 py-3'>
           <div className='flex flex-wrap items-start justify-between gap-3'>
@@ -883,7 +883,7 @@ export function TicketsPage({ admin = false }: TicketsPageProps) {
           )}
         </SectionPageLayout.Actions>
         <SectionPageLayout.Content>
-          <div className='grid min-h-[640px] gap-3 xl:grid-cols-[360px_minmax(0,1fr)]'>
+          <div className='grid h-[calc(100vh-8.5rem)] min-h-[640px] gap-3 xl:grid-cols-[360px_minmax(0,1fr)]'>
             <div className='flex min-h-0 flex-col overflow-hidden rounded-lg border bg-background'>
               <div className='shrink-0 border-b px-3.5 py-3'>
                 <div className='mb-3 flex items-center justify-between gap-3'>
