@@ -512,7 +512,10 @@ func CovertOpenAI2Gemini(c *gin.Context, textRequest dto.GeneralOpenAIRequest, i
 						Arguments:    args,
 					},
 				}
-				if shouldAttachThoughtSignature && !signatureAttached && hasFunctionCallContent(toolCall.FunctionCall) && len(toolCall.ThoughtSignature) == 0 {
+				if thoughtSignature := geminiThoughtSignatureFromToolExtraContent(call.ExtraContent); len(thoughtSignature) > 0 {
+					toolCall.ThoughtSignature = thoughtSignature
+					signatureAttached = true
+				} else if shouldAttachThoughtSignature && !signatureAttached && hasFunctionCallContent(toolCall.FunctionCall) && len(toolCall.ThoughtSignature) == 0 {
 					toolCall.ThoughtSignature = json.RawMessage(strconv.Quote(thoughtSignatureBypassValue))
 					signatureAttached = true
 				}
@@ -689,6 +692,48 @@ func hasFunctionCallContent(call *dto.FunctionCall) bool {
 	default:
 		return true
 	}
+}
+
+func cloneRawMessage(data json.RawMessage) json.RawMessage {
+	if len(data) == 0 {
+		return nil
+	}
+	cloned := make(json.RawMessage, len(data))
+	copy(cloned, data)
+	return cloned
+}
+
+func geminiThoughtSignatureFromToolExtraContent(extraContent json.RawMessage) json.RawMessage {
+	if len(extraContent) == 0 {
+		return nil
+	}
+
+	var payload struct {
+		Google struct {
+			ThoughtSignature json.RawMessage `json:"thought_signature,omitempty"`
+		} `json:"google,omitempty"`
+	}
+	if err := common.Unmarshal(extraContent, &payload); err != nil {
+		return nil
+	}
+	return cloneRawMessage(payload.Google.ThoughtSignature)
+}
+
+func geminiToolExtraContentFromThoughtSignature(thoughtSignature json.RawMessage) json.RawMessage {
+	if strings.TrimSpace(string(thoughtSignature)) == "" {
+		return nil
+	}
+
+	payload := map[string]map[string]json.RawMessage{
+		"google": {
+			"thought_signature": cloneRawMessage(thoughtSignature),
+		},
+	}
+	data, err := common.Marshal(payload)
+	if err != nil {
+		return nil
+	}
+	return data
 }
 
 // Helper function to get a list of supported MIME types for error messages
@@ -1001,7 +1046,7 @@ func getResponseToolCall(item *dto.GeminiPart) *dto.ToolCallResponse {
 	if err != nil {
 		return nil
 	}
-	return &dto.ToolCallResponse{
+	toolCall := &dto.ToolCallResponse{
 		ID:   fmt.Sprintf("call_%s", common.GetUUID()),
 		Type: "function",
 		Function: dto.FunctionResponse{
@@ -1009,6 +1054,10 @@ func getResponseToolCall(item *dto.GeminiPart) *dto.ToolCallResponse {
 			Name:      item.FunctionCall.FunctionName,
 		},
 	}
+	if extraContent := geminiToolExtraContentFromThoughtSignature(item.ThoughtSignature); len(extraContent) > 0 {
+		toolCall.ExtraContent = extraContent
+	}
+	return toolCall
 }
 
 func buildUsageFromGeminiMetadata(metadata dto.GeminiUsageMetadata, fallbackPromptTokens int) dto.Usage {
