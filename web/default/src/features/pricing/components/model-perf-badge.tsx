@@ -87,8 +87,8 @@ export const ModelPerfBadge = memo(function ModelPerfBadge(
           {t('Status short')}
         </div>
         <div className='flex h-4 items-center justify-end gap-0.5'>
-          <span className='bg-muted-foreground/10 h-2 w-1 rounded-full' />
-          <span className='bg-muted-foreground/15 h-2.5 w-1 rounded-full' />
+          <span className='bg-muted-foreground/30 h-2 w-1 rounded-full' />
+          <span className='bg-muted-foreground/40 h-2.5 w-1 rounded-full' />
           <span className={cn('h-3 w-1 rounded-full', statusColor)} />
         </div>
       </div>
