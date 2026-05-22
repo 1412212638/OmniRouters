@@ -2,6 +2,22 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-05-22
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `2d1ca1538457869c8fbb650c02df628b6d943e5e`
+- Upstream `main` synced through: `b9bc6f0e21fb3b87267475912fc7c31fa0494d6e`
+- Local integration scope:
+  - Integrated upstream performance metric active-group handling, request metadata extraction, route-link cleanup, and model `owned_by` resolution from active channels.
+  - Integrated channel-test UX updates and normalized model pricing display formatting.
+  - Integrated Turnstile handling on the new sign-up page.
+  - Integrated Waffo Pancake wallet top-up and subscription payment support, including admin store/product binding and subscription-plan product IDs.
+  - Integrated the upstream usage-log filtering revert.
+- Notes:
+  - Preserved the local decision to exclude paid-feature compliance confirmation and avoided adding payment/reward locks.
+  - Preserved OmniRouters wallet corporate-transfer display, fee/currency handling, Sora/audio pricing, mail settings, OAuth icon URL support, login header, ticket workspace, and model marketplace custom labels.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-05-19
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`

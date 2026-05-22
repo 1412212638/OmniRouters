@@ -61,24 +61,13 @@ func isWaffoWebhookEnabled() bool {
 }
 
 func isWaffoPancakeTopUpEnabled() bool {
-	if !setting.WaffoPancakeEnabled {
-		return false
-	}
-
-	return isWaffoPancakeWebhookConfigured() &&
-		strings.TrimSpace(setting.WaffoPancakeMerchantID) != "" &&
+	return strings.TrimSpace(setting.WaffoPancakeMerchantID) != "" &&
 		strings.TrimSpace(setting.WaffoPancakePrivateKey) != "" &&
-		strings.TrimSpace(setting.WaffoPancakeStoreID) != "" &&
 		strings.TrimSpace(setting.WaffoPancakeProductID) != ""
 }
 
 func isWaffoPancakeWebhookConfigured() bool {
-	currentWebhookKey := strings.TrimSpace(setting.WaffoPancakeWebhookPublicKey)
-	if setting.WaffoPancakeSandbox {
-		currentWebhookKey = strings.TrimSpace(setting.WaffoPancakeWebhookTestKey)
-	}
-
-	return currentWebhookKey != ""
+	return isWaffoPancakeTopUpEnabled()
 }
 
 func isWaffoPancakeWebhookEnabled() bool {
