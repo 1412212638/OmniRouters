@@ -33,6 +33,11 @@ function SectionPageLayoutTitle(_props: SlotProps) {
 }
 SectionPageLayoutTitle.displayName = 'SectionPageLayout.Title'
 
+function SectionPageLayoutDescription(_props: SlotProps) {
+  return null
+}
+SectionPageLayoutDescription.displayName = 'SectionPageLayout.Description'
+
 function SectionPageLayoutActions(_props: SlotProps) {
   return null
 }
@@ -117,6 +122,7 @@ export function SectionPageLayout(props: SectionPageLayoutProps) {
 }
 
 SectionPageLayout.Title = SectionPageLayoutTitle
+SectionPageLayout.Description = SectionPageLayoutDescription
 SectionPageLayout.Actions = SectionPageLayoutActions
 SectionPageLayout.Content = SectionPageLayoutContent
 SectionPageLayout.Breadcrumb = SectionPageLayoutBreadcrumb
