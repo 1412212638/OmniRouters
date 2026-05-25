@@ -24,7 +24,20 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Channel copy now inserts the cloned channel directly so the response includes the new ID.
   - `/api/status` exposes `password_login_enabled`, and the new login form respects it without changing the login page layout.
   - User search supports server-side `role` and `status` filters, with matching default-frontend query parameters.
-- Deferred the larger v1 frontend restructuring from `92a09594`, `b08febaa`, `88437a18`, and `583da452` because it overlaps with OmniRouters system settings, wallet, mail, pricing, login, and marketplace customizations.
+- The rest of `b302be30` remains selectively deferred where it introduces unrelated frontend-cache behavior or paid-feature compliance locks.
+
+### Large frontend refactor follow-up through upstream `583da45296eda8a9950a346055997e53cb8a7e1e`
+
+- Integrated upstream frontend restructuring commits:
+  - `92a0959448751d858c42f749b46be6a69820998b` drill-in sidebar/navigation refactor.
+  - `b08febaa3c41b7ea1da5118744f661073a585ba5` compact system-settings layout refactor.
+  - `88437a18691ad13687f1aad073b4e67b93ab90c0` default frontend dependency refresh.
+  - `583da45296eda8a9950a346055997e53cb8a7e1e` usage-log filter responsiveness/mobile UX refactor and build metadata helper.
+- Notes:
+  - Preserved OmniRouters admin Email Settings as a standalone admin entry rather than moving SMTP back under System Settings.
+  - Preserved wallet corporate transfer display, payment fee/currency handling, Sora/audio pricing, OAuth icon URL support, login-page custom layout/header behavior, ticket navigation, and model marketplace labels.
+  - Excluded upstream paid-feature compliance confirmation and payment/reward locks by product decision.
+  - Did not import the `initializeFrontendCache` call from the unselected remainder of `b302be30`, so no missing `frontend-cache` dependency is introduced.
 
 ## 2026-05-22
 

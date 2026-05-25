@@ -92,7 +92,7 @@ export function ProviderTable(props: ProviderTableProps) {
                       className='h-5 w-5'
                     />
                   ) : (
-                    <span className='text-muted-foreground text-xs'>--</span>
+                    <span className='text-muted-foreground text-sm'>--</span>
                   )}
                 </TableCell>
                 <TableCell className='font-medium'>{provider.name}</TableCell>
@@ -110,7 +110,7 @@ export function ProviderTable(props: ProviderTableProps) {
                     copyable={false}
                   />
                 </TableCell>
-                <TableCell className='text-muted-foreground max-w-[120px] truncate font-mono text-xs'>
+                <TableCell className='text-muted-foreground max-w-[120px] truncate font-mono'>
                   {provider.client_id}
                 </TableCell>
                 <TableCell className='text-right'>
