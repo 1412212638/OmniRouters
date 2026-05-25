@@ -2,6 +2,22 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-05-25
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `b9bc6f0e21fb3b87267475912fc7c31fa0494d6e`
+- Upstream `main` synced through: `49bc3a1175fd28726bc62596cb321b546ed02e95`
+- Local integration scope:
+  - Integrated upstream relay memory-residency reduction for large base64 request bodies, including byte-based param override processing and disk-backed outbound JSON bodies.
+  - Integrated Gemini response content assembly optimizations for large inline media payloads.
+  - Integrated multi-key channel status cache handling so auto-disabled channels are evicted/re-enabled correctly when individual keys change.
+  - Integrated Waffo Pancake webhook trade number handling using `OrderMerchantExternalID`, including session creation, webhook dispatch, subscription handling, and tests.
+  - Integrated the upstream classic-frontend hiding of Waffo Pancake payment settings.
+- Notes:
+  - Preserved the local decision to exclude paid-feature compliance confirmation and avoided adding payment/reward locks.
+  - Preserved OmniRouters wallet, corporate-transfer, Sora/audio pricing, mail settings, OAuth icon URL, login header, ticket workspace, and model marketplace customizations.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-05-22
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`

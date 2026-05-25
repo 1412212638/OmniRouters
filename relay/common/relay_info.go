@@ -154,6 +154,10 @@ type RelayInfo struct {
 	UseRuntimeHeadersOverride             bool
 	ParamOverrideAudit                    []string
 
+	// UpstreamRequestBodySize is set when a marshaled upstream body is wrapped
+	// in BodyStorage so DoApiRequest can restore ContentLength explicitly.
+	UpstreamRequestBodySize int64
+
 	PriceData types.PriceData
 
 	// TieredBillingSnapshot is a frozen snapshot of tiered billing rules
