@@ -18,6 +18,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved OmniRouters wallet, corporate-transfer, Sora/audio pricing, mail settings, OAuth icon URL, login header, ticket workspace, and model marketplace customizations.
   - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
 
+### Partial follow-up from upstream `b302be30e3fd1e548d47a6add7ea2eedfd3ca6c0`
+
+- Integrated low-risk fixes from the upstream v1 feedback batch:
+  - Channel copy now inserts the cloned channel directly so the response includes the new ID.
+  - `/api/status` exposes `password_login_enabled`, and the new login form respects it without changing the login page layout.
+  - User search supports server-side `role` and `status` filters, with matching default-frontend query parameters.
+- Deferred the larger v1 frontend restructuring from `92a09594`, `b08febaa`, `88437a18`, and `583da452` because it overlaps with OmniRouters system settings, wallet, mail, pricing, login, and marketplace customizations.
+
 ## 2026-05-22
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
