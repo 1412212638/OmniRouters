@@ -35,6 +35,7 @@ import {
   type AudioClip,
 } from '../dialogs/audio-preview-dialog'
 import { FailReasonDialog } from '../dialogs/fail-reason-dialog'
+import { ModelBadge } from '../model-badge'
 import { useUsageLogsContext } from '../usage-logs-provider'
 import {
   createDurationColumn,
@@ -53,6 +54,41 @@ function parseTaskData(data: unknown): unknown[] {
     }
   }
   return []
+}
+
+function getTaskModelInfo(log: TaskLog): {
+  name: string
+  actualModel?: string
+} {
+  const properties = (() => {
+    if (!log.properties) return null
+    if (typeof log.properties === 'string') {
+      try {
+        const parsed = JSON.parse(log.properties)
+        return parsed && typeof parsed === 'object' ? parsed : null
+      } catch {
+        return null
+      }
+    }
+    return log.properties
+  })()
+
+  const originModel =
+    properties && typeof properties.origin_model_name === 'string'
+      ? properties.origin_model_name.trim()
+      : ''
+  const upstreamModel =
+    properties && typeof properties.upstream_model_name === 'string'
+      ? properties.upstream_model_name.trim()
+      : ''
+
+  return {
+    name: originModel || upstreamModel,
+    actualModel:
+      originModel && upstreamModel && originModel !== upstreamModel
+        ? upstreamModel
+        : undefined,
+  }
 }
 
 function AudioPreviewCell({ log }: { log: TaskLog }) {
@@ -192,6 +228,28 @@ export function useTaskLogsColumns(isAdmin: boolean): ColumnDef<TaskLog>[] {
         )
       },
       meta: { label: t('Task ID'), mobileTitle: true },
+    },
+    {
+      accessorKey: 'properties',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('Model')} />
+      ),
+      cell: ({ row }) => {
+        const modelInfo = getTaskModelInfo(row.original)
+        if (!modelInfo.name) {
+          return <span className='text-muted-foreground/60 text-xs'>-</span>
+        }
+
+        return (
+          <div className='flex max-w-[220px] flex-col gap-0.5'>
+            <ModelBadge
+              modelName={modelInfo.name}
+              actualModel={modelInfo.actualModel}
+            />
+          </div>
+        )
+      },
+      meta: { label: t('Model') },
     },
     createDurationColumn<TaskLog>({
       submitTimeKey: 'submit_time',
