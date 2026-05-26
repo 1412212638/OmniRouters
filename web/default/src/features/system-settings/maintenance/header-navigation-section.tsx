@@ -51,6 +51,8 @@ const headerNavSchema = z.object({
   console: z.boolean(),
   pricingEnabled: z.boolean(),
   pricingRequireAuth: z.boolean(),
+  playgroundEnabled: z.boolean(),
+  playgroundRequireAuth: z.boolean(),
   rankingsEnabled: z.boolean(),
   rankingsRequireAuth: z.boolean(),
   docs: z.boolean(),
@@ -79,6 +81,14 @@ const toFormValues = (config: HeaderNavModulesConfig): HeaderNavFormValues => ({
     config.pricing?.requireAuth === undefined
       ? HEADER_NAV_DEFAULT.pricing.requireAuth
       : Boolean(config.pricing.requireAuth),
+  playgroundEnabled:
+    config.playground?.enabled === undefined
+      ? HEADER_NAV_DEFAULT.playground.enabled
+      : Boolean(config.playground.enabled),
+  playgroundRequireAuth:
+    config.playground?.requireAuth === undefined
+      ? HEADER_NAV_DEFAULT.playground.requireAuth
+      : Boolean(config.playground.requireAuth),
   rankingsEnabled:
     config.rankings?.enabled === undefined
       ? HEADER_NAV_DEFAULT.rankings.enabled
@@ -123,6 +133,11 @@ export function HeaderNavigationSection({
         ...(config.pricing ?? HEADER_NAV_DEFAULT.pricing),
         enabled: values.pricingEnabled,
         requireAuth: values.pricingRequireAuth,
+      },
+      playground: {
+        ...(config.playground ?? HEADER_NAV_DEFAULT.playground),
+        enabled: values.playgroundEnabled,
+        requireAuth: values.playgroundRequireAuth,
       },
       rankings: {
         ...(config.rankings ?? HEADER_NAV_DEFAULT.rankings),
@@ -176,7 +191,10 @@ export function HeaderNavigationSection({
   const accessModules: Array<{
     enabledKey: keyof HeaderNavFormValues
     requireAuthKey: keyof HeaderNavFormValues
-    requireAuthDependsOn: 'pricingEnabled' | 'rankingsEnabled'
+    requireAuthDependsOn:
+      | 'pricingEnabled'
+      | 'playgroundEnabled'
+      | 'rankingsEnabled'
     title: string
     description: string
     requireAuthTitle: string
@@ -191,6 +209,17 @@ export function HeaderNavigationSection({
       requireAuthTitle: t('Require login to view models'),
       requireAuthDescription: t(
         'Visitors must authenticate before accessing the pricing directory.'
+      ),
+    },
+    {
+      enabledKey: 'playgroundEnabled',
+      requireAuthKey: 'playgroundRequireAuth',
+      requireAuthDependsOn: 'playgroundEnabled',
+      title: t('Chat'),
+      description: t('Playground experiments and live conversations.'),
+      requireAuthTitle: t('Require login to view chat'),
+      requireAuthDescription: t(
+        'Visitors must authenticate before accessing the chat page.'
       ),
     },
     {

@@ -37,6 +37,7 @@ export type TopNavLink = {
  *   home: true,
  *   console: true,
  *   pricing: { enabled: true, requireAuth: false },
+ *   playground: { enabled: true, requireAuth: false },
  *   rankings: { enabled: true, requireAuth: false },
  *   docs: true,
  *   about: true
@@ -76,6 +77,13 @@ export function useTopNavLinks(): TopNavLink[] {
   if (pricing && typeof pricing === 'object' && pricing.enabled) {
     const requiresAuth = pricing.requireAuth && !isAuthed
     links.push({ title: t('Model Square'), href: '/pricing', requiresAuth })
+  }
+
+  // Chat playground
+  const playground = modules?.playground
+  if (playground && typeof playground === 'object' && playground.enabled) {
+    const requiresAuth = playground.requireAuth && !isAuthed
+    links.push({ title: t('Chat'), href: '/playground', requiresAuth })
   }
 
   // Rankings
