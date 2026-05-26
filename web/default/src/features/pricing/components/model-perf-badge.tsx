@@ -38,6 +38,16 @@ function formatCompactThroughput(tps: number): string {
   return formatThroughput(tps).replace(' t/s', 'tps')
 }
 
+function getStatusBars(successRate: number): string[] {
+  if (successRate < 99) {
+    return ['bg-red-500', 'bg-muted-foreground/25', 'bg-muted-foreground/20']
+  }
+  if (successRate < 99.9) {
+    return ['bg-amber-500', 'bg-amber-500', 'bg-muted-foreground/25']
+  }
+  return ['bg-emerald-500', 'bg-emerald-500', 'bg-emerald-500']
+}
+
 export const ModelPerfBadge = memo(function ModelPerfBadge(
   props: ModelPerfBadgeProps
 ) {
@@ -48,13 +58,7 @@ export const ModelPerfBadge = memo(function ModelPerfBadge(
   }
 
   const { avg_latency_ms, avg_tps, success_rate } = props.perf
-
-  let statusColor = 'bg-emerald-500'
-  if (success_rate < 99) {
-    statusColor = 'bg-red-500'
-  } else if (success_rate < 99.9) {
-    statusColor = 'bg-amber-500'
-  }
+  const statusBars = getStatusBars(success_rate)
 
   return (
     <div
@@ -87,9 +91,9 @@ export const ModelPerfBadge = memo(function ModelPerfBadge(
           {t('Status short')}
         </div>
         <div className='flex h-4 items-center justify-end gap-0.5'>
-          <span className='bg-muted-foreground/30 h-2 w-1 rounded-full' />
-          <span className='bg-muted-foreground/40 h-2.5 w-1 rounded-full' />
-          <span className={cn('h-3 w-1 rounded-full', statusColor)} />
+          <span className={cn('h-2 w-1 rounded-full', statusBars[0])} />
+          <span className={cn('h-2.5 w-1 rounded-full', statusBars[1])} />
+          <span className={cn('h-3 w-1 rounded-full', statusBars[2])} />
         </div>
       </div>
     </div>
