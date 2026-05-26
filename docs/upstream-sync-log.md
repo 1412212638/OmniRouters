@@ -2,6 +2,25 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-05-26
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `583da45296eda8a9950a346055997e53cb8a7e1e`
+- Upstream `main` reviewed through: `5bc4c748139029a8856191d5820f7aff90c5ae3d`
+- Local integration scope:
+  - Integrated relay/backend fixes for image quality handling, oversized upstream error log truncation, Claude/Gemini tool-call conversion, and channel test user IDs.
+  - Integrated default-frontend fixes for API-key search pagination, duplicate channel toast handling, badge sizing/colors, usage-log spacing/typography, chart dark-mode readability, and default-theme font fallback.
+  - Integrated Anthropic theme preset and font customization while keeping the default preset on sans.
+  - Integrated Waffo payment settings save-flow consolidation while preserving OmniRouters corporate-transfer settings and excluding paid-feature compliance confirmation.
+  - Integrated subscription purchases with wallet balance, without adding the upstream compliance-gate check.
+  - Integrated the modular channel create/edit drawer refactor, model-mapping editor improvements, and Base UI multi-select follow-up.
+- Deferred:
+  - `51ca897cf4136bb2ecff7b69ef66bc6a778ff661` home hero redesign remains intentionally deferred.
+- Notes:
+  - Preserved OmniRouters wallet corporate-transfer display, payment fee/currency handling, Sora/audio pricing, mail settings, OAuth icon URL support, login-page layout/header behavior, ticket navigation, task-log model column, and model marketplace labels.
+  - The `33608826` hero-file formatting conflict was resolved by keeping the local hero because the upstream home hero redesign is still deferred.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-05-25
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
