@@ -4301,6 +4301,7 @@
     "User group": "ユーザーグループ",
     "User Group": "ユーザーグループ",
     "User group name": "ユーザーグループ名",
+    "User Role": "ユーザーロール",
     "User Group: {{ratio}}x": "ユーザーグループ：{{ratio}}x",
     "User groups that can access channels with this tag": "このタグを持つチャンネルにアクセスできるユーザーグループ",
     "User groups that can access this channel. ": "このチャネルにアクセスできるユーザグループ。",

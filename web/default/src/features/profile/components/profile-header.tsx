@@ -16,13 +16,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import { Fragment } from 'react'
 import { Activity, BarChart3, WalletCards } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { formatCompactNumber, formatQuota } from '@/lib/format'
 import { getRoleLabel } from '@/lib/roles'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
-import { StatusBadge } from '@/components/status-badge'
 import { getUserInitials, getDisplayName } from '../lib'
 import type { UserProfile } from '../types'
 
@@ -36,7 +36,7 @@ interface ProfileHeaderProps {
 }
 
 export function ProfileHeader({ profile, loading }: ProfileHeaderProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   if (loading) {
     return (
@@ -77,6 +77,13 @@ export function ProfileHeader({ profile, loading }: ProfileHeaderProps) {
   const displayName = getDisplayName(profile)
   const initials = getUserInitials(profile)
   const roleLabel = getRoleLabel(profile.role)
+  const localizedSeparator = i18n.language.startsWith('zh') ? '：' : ': '
+  const profileMeta = [
+    { label: t('Username'), value: `@${profile.username}` },
+    { label: t('ID'), value: String(profile.id) },
+    { label: t('User group'), value: profile.group },
+    { label: t('User Role'), value: roleLabel },
+  ].filter((item) => item.value)
   const stats = [
     {
       label: t('Current Balance'),
@@ -113,27 +120,21 @@ export function ProfileHeader({ profile, loading }: ProfileHeaderProps) {
               <h1 className='truncate text-xl font-semibold tracking-tight sm:text-2xl'>
                 {displayName}
               </h1>
-              <StatusBadge
-                label={roleLabel}
-                variant='neutral'
-                copyable={false}
-              />
             </div>
 
             <div className='text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs sm:gap-x-4 sm:text-sm'>
-              <span className='truncate'>@{profile.username}</span>
-              {profile.email && (
-                <>
-                  <span>•</span>
-                  <span className='truncate'>{profile.email}</span>
-                </>
-              )}
-              {profile.group && (
-                <>
-                  <span>•</span>
-                  <span className='truncate'>{profile.group}</span>
-                </>
-              )}
+              {profileMeta.map((item, index) => (
+                <Fragment key={item.label}>
+                  {index > 0 && <span aria-hidden='true'>&middot;</span>}
+                  <span className='min-w-0 truncate'>
+                    <span className='text-foreground/80'>
+                      {item.label}
+                      {item.label === t('ID') ? ': ' : localizedSeparator}
+                    </span>
+                    {item.value}
+                  </span>
+                </Fragment>
+              ))}
             </div>
           </div>
         </div>

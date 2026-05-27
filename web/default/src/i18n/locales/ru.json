@@ -4292,6 +4292,7 @@
     "User group": "Группа пользователя",
     "User Group": "Группа пользователей",
     "User group name": "Название группы пользователей",
+    "User Role": "Роль пользователя",
     "User Group: {{ratio}}x": "Группа пользователя: {{ratio}}x",
     "User groups that can access channels with this tag": "Группы пользователей, которые могут получить доступ к каналам с этим тегом",
     "User groups that can access this channel. ": "Группы пользователей, которые могут получить доступ к этому каналу. ",

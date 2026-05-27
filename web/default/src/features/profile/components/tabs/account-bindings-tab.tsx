@@ -31,7 +31,6 @@ import {
 import { useDialogs } from '@/hooks/use-dialog'
 import { useStatus } from '@/hooks/use-status'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { StatusBadge } from '@/components/status-badge'
 import { OAUTH_BIND_STORAGE_KEY } from '@/features/auth/constants'
@@ -305,82 +304,70 @@ export function AccountBindingsTab({
             </Button>
           </div>
         ))}
-      </div>
-
-      {/* Custom OAuth Bindings */}
-      {customProviders && customProviders.length > 0 && (
-        <>
-          <Separator className='my-4' />
-          <p className='text-muted-foreground mb-3 text-sm font-medium'>
-            {t('Custom OAuth')}
-          </p>
-          <div className='grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3'>
-            {customProviders.map((provider) => {
-              const binding = customBindings.find(
-                (b) => b.provider_id === provider.id
-              )
-              const isBound = !!binding
-              return (
-                <div
-                  key={provider.id}
-                  className='flex items-center justify-between gap-2.5 rounded-lg border p-2.5 sm:gap-3 sm:p-3'
-                >
-                  <div className='flex min-w-0 items-center gap-2.5 sm:gap-3'>
-                    <div className='bg-muted shrink-0 rounded-md p-1.5 sm:p-2'>
-                      {provider.icon ? (
-                        <OAuthProviderIcon
-                          icon={provider.icon}
-                          name={provider.name}
-                          className='h-4 w-4'
-                        />
-                      ) : (
-                        <Link2 className='h-4 w-4' />
-                      )}
-                    </div>
-                    <div className='min-w-0'>
-                      <div className='flex items-center gap-1.5'>
-                        <p className='text-sm font-medium'>{provider.name}</p>
-                        {isBound && (
-                          <StatusBadge
-                            label={t('Bound')}
-                            variant='success'
-                            copyable={false}
-                          />
-                        )}
-                      </div>
-                      <p className='text-muted-foreground truncate text-xs'>
-                        {isBound
-                          ? binding?.external_id || t('Bound')
-                          : t('Not bound')}
-                      </p>
-                    </div>
-                  </div>
-                  {isBound ? (
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      className='text-destructive hover:text-destructive h-7 shrink-0 px-2.5 text-xs'
-                      onClick={() => setUnbindTarget(binding)}
-                    >
-                      <Unlink className='mr-1 h-3 w-3' />
-                      {t('Unbind')}
-                    </Button>
+        {customProviders?.map((provider) => {
+          const binding = customBindings.find(
+            (item) => item.provider_id === provider.id
+          )
+          const isBound = Boolean(binding)
+          return (
+            <div
+              key={provider.id}
+              className='flex items-center justify-between gap-2.5 rounded-lg border p-2.5 sm:gap-3 sm:p-3'
+            >
+              <div className='flex min-w-0 items-center gap-2.5 sm:gap-3'>
+                <div className='bg-muted shrink-0 rounded-md p-1.5 sm:p-2'>
+                  {provider.icon ? (
+                    <OAuthProviderIcon
+                      icon={provider.icon}
+                      name={provider.name}
+                      className='h-4 w-4'
+                    />
                   ) : (
-                    <Button
-                      variant='outline'
-                      size='sm'
-                      className='h-7 shrink-0 px-2.5 text-xs'
-                      onClick={() => handleBindCustomOAuth(provider)}
-                    >
-                      {t('Bind')}
-                    </Button>
+                    <Link2 className='h-4 w-4' />
                   )}
                 </div>
-              )
-            })}
-          </div>
-        </>
-      )}
+                <div className='min-w-0'>
+                  <div className='flex items-center gap-1.5'>
+                    <p className='text-sm font-medium'>{provider.name}</p>
+                    {isBound && (
+                      <StatusBadge
+                        label={t('Bound')}
+                        variant='success'
+                        copyable={false}
+                      />
+                    )}
+                  </div>
+                  <p className='text-muted-foreground truncate text-xs'>
+                    {isBound
+                      ? binding?.external_id || t('Bound')
+                      : t('Not bound')}
+                  </p>
+                </div>
+              </div>
+              {binding ? (
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  className='text-destructive hover:text-destructive h-7 shrink-0 px-2.5 text-xs'
+                  onClick={() => setUnbindTarget(binding)}
+                >
+                  <Unlink className='mr-1 h-3 w-3' />
+                  {t('Unbind')}
+                </Button>
+              ) : (
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className='h-7 shrink-0 px-2.5 text-xs'
+                  onClick={() => handleBindCustomOAuth(provider)}
+                >
+                  {t('Bind')}
+                </Button>
+              )}
+            </div>
+          )
+        })}
+      </div>
 
       {/* Custom OAuth Unbind Confirmation */}
       <ConfirmDialog

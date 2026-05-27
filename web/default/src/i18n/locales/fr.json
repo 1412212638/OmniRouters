@@ -4310,6 +4310,7 @@
     "User group": "Groupe utilisateur",
     "User Group": "Groupe d'utilisateurs",
     "User group name": "Nom du groupe d'utilisateurs",
+    "User Role": "Rôle utilisateur",
     "User Group: {{ratio}}x": "Groupe utilisateur : {{ratio}}x",
     "User groups that can access channels with this tag": "Groupes d'utilisateurs pouvant accéder aux canaux avec cette balise",
     "User groups that can access this channel. ": "Groupes d'utilisateurs qui peuvent accéder à ce canal. ",
