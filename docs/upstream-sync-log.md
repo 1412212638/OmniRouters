@@ -2,6 +2,21 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-05-27
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `5bc4c748139029a8856191d5820f7aff90c5ae3d`
+- Upstream `main` synced through: `5b86ce0d7001df96bb0f7d32446926c030addf6f`
+- Local integration scope:
+  - Integrated system-settings save detection fixes for dotted option keys and safer numeric inputs.
+  - Integrated the `simple-large` theme preset, `xl` font scale, and related usage-log/channel badge cleanup.
+  - Integrated channel and usage-log UI improvements, including the responsive mobile log card.
+  - Integrated exact log filtering behavior for usage/token log filters unless `%` is explicitly supplied.
+  - Integrated batch update optimization that combines user quota, used quota, and request-count writes.
+- Notes:
+  - Preserved OmniRouters corporate-transfer payment settings, OAuth icon URL support, Telegram login icon display, task-log model column, Sora/audio pricing, mail settings, wallet fee/currency display, and model marketplace status bars.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-05-26
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
