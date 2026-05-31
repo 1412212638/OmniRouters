@@ -2,6 +2,22 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-05-31
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `5b86ce0d7001df96bb0f7d32446926c030addf6f`
+- Upstream `main` synced through: `0c7aceb8319b2fdc67e7eb65773c30ac87174d3f`
+- Local integration scope:
+  - Integrated Claude Opus 4.8 support across Claude, Bedrock, Vertex, default model ratios, and cache ratios.
+  - Integrated admin log ordering/index fixes for `created_at` composite index usage.
+  - Integrated subscription plan balance-redemption toggle while preserving the local decision to exclude paid-feature compliance locks.
+  - Integrated default frontend form-validation focus behavior and API key custom `cc-switch` name persistence fix.
+  - Integrated classic frontend Axios patch update and Playwright MCP artifact ignore rule.
+- Notes:
+  - Preserved OmniRouters wallet corporate-transfer display, payment fee/currency handling, Sora/audio pricing, mail settings, OAuth icon URL support, login-page layout/header behavior, ticket feedback routing, task-log model column, model marketplace labels, and profile display tweaks.
+  - Skipped upstream merge commit `e8c836d7` because its non-merge contents were covered by `63ead2bf` and `e79cee1e`.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-05-27
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
