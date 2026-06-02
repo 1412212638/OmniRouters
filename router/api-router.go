@@ -197,8 +197,8 @@ func SetApiRouter(router *gin.Engine) {
 		{
 			ticketRoute.GET("", controller.ListTickets)
 			ticketRoute.GET("/", controller.ListTickets)
-			ticketRoute.POST("", controller.CreateTicket)
-			ticketRoute.POST("/", controller.CreateTicket)
+			ticketRoute.POST("", middleware.TicketCreateRateLimit(), controller.CreateTicket)
+			ticketRoute.POST("/", middleware.TicketCreateRateLimit(), controller.CreateTicket)
 			ticketRoute.GET("/:id", controller.GetTicket)
 			ticketRoute.POST("/:id/messages", controller.AddTicketMessage)
 			ticketRoute.POST("/:id/close", controller.CloseTicket)

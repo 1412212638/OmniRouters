@@ -4652,6 +4652,14 @@
     "Unassigned": "未割り当て",
     "Unread": "未読",
     "messages": "件のメッセージ",
-    "Select a ticket to view its details.": "チケットを選択して詳細を表示します。"
+    "Select a ticket to view its details.": "チケットを選択して詳細を表示します。",
+    "Closed At": "クローズ日時",
+    "Closed By": "クローズした人",
+    "Close Reason": "クローズ理由",
+    "Reopen Until": "再オープン期限",
+    "Closed manually": "手動でクローズ",
+    "No user reply for 24 hours": "ユーザーから24時間返信なし",
+    "Can be reopened until {{time}}": "{{time}} まで再オープンできます",
+    "Reopen window expired": "再オープン期限が切れました"
   }
 }

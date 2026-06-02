@@ -112,6 +112,62 @@ func ensureTicketAccess(ticket *model.Ticket, userID int, admin bool) error {
 	return nil
 }
 
+func ticketReopenWindowSeconds() int64 {
+	if common.TicketReopenWindowHours <= 0 {
+		return 0
+	}
+	return int64(common.TicketReopenWindowHours) * 3600
+}
+
+func ticketCloseUpdates(userID int, role string, reason string, now int64) map[string]interface{} {
+	reopenUntil := int64(0)
+	if role == model.TicketSenderAdmin || role == model.TicketSenderSystem {
+		if window := ticketReopenWindowSeconds(); window > 0 {
+			reopenUntil = now + window
+		}
+	}
+	return map[string]interface{}{
+		"status":         model.TicketStatusClosed,
+		"closed_at":      now,
+		"closed_by_id":   userID,
+		"closed_by_role": role,
+		"close_reason":   reason,
+		"reopen_until":   reopenUntil,
+	}
+}
+
+func clearTicketCloseUpdates(updates map[string]interface{}) {
+	updates["closed_at"] = 0
+	updates["closed_by_id"] = 0
+	updates["closed_by_role"] = ""
+	updates["close_reason"] = ""
+	updates["reopen_until"] = 0
+}
+
+func ensureTicketCreateAllowed(userID int) error {
+	if common.TicketMaxOpenPerUser <= 0 {
+		return nil
+	}
+	activeCount, err := model.CountUserActiveTickets(userID)
+	if err != nil {
+		return err
+	}
+	if activeCount >= int64(common.TicketMaxOpenPerUser) {
+		return newTicketI18nError(i18n.MsgTicketOpenLimitReached, map[string]any{"Limit": common.TicketMaxOpenPerUser})
+	}
+	return nil
+}
+
+func ensureTicketCanReopen(ticket *model.Ticket, now int64) error {
+	if ticket == nil || ticket.Status != model.TicketStatusClosed {
+		return nil
+	}
+	if ticket.ReopenUntil > 0 && now > ticket.ReopenUntil {
+		return newTicketI18nError(i18n.MsgTicketReopenWindowExpired, nil)
+	}
+	return nil
+}
+
 func CreateTicket(userID int, req dto.TicketCreateRequest) (*dto.TicketDetailResponse, error) {
 	title := strings.TrimSpace(req.Title)
 	content := strings.TrimSpace(req.Content)
@@ -123,6 +179,9 @@ func CreateTicket(userID int, req dto.TicketCreateRequest) (*dto.TicketDetailRes
 	}
 	if content == "" {
 		return nil, newTicketI18nError(i18n.MsgTicketContentRequired, nil)
+	}
+	if err := ensureTicketCreateAllowed(userID); err != nil {
+		return nil, err
 	}
 
 	attachments, err := encodeTicketAttachments(req.Attachments)
@@ -139,6 +198,7 @@ func CreateTicket(userID int, req dto.TicketCreateRequest) (*dto.TicketDetailRes
 		RelatedType:      strings.TrimSpace(req.RelatedType),
 		RelatedID:        req.RelatedID,
 		LastReplyAt:      now,
+		LastUserReplyAt:  now,
 		AdminUnreadCount: 1,
 	}
 	message := &model.TicketMessage{
@@ -294,6 +354,7 @@ func AddTicketMessage(userID int, admin bool, ticketID int, req dto.TicketMessag
 			updates["admin_unread_count"] = 0
 			if !internal {
 				updates["status"] = model.TicketStatusAnswered
+				updates["last_admin_reply_at"] = now
 				updates["user_unread_count"] = gorm.Expr("user_unread_count + ?", 1)
 			}
 			if ticket.AssignedAdminID == 0 {
@@ -301,6 +362,7 @@ func AddTicketMessage(userID int, admin bool, ticketID int, req dto.TicketMessag
 			}
 		} else {
 			updates["status"] = model.TicketStatusOpen
+			updates["last_user_reply_at"] = now
 			updates["user_unread_count"] = 0
 			updates["admin_unread_count"] = gorm.Expr("admin_unread_count + ?", 1)
 		}
@@ -325,6 +387,17 @@ func UpdateTicketStatus(adminID int, ticketID int, status string) (*dto.TicketDe
 	}
 	updates := map[string]interface{}{
 		"status": normalized,
+	}
+	now := time.Now().Unix()
+	if normalized == model.TicketStatusClosed {
+		for key, value := range ticketCloseUpdates(adminID, model.TicketSenderAdmin, model.TicketCloseReasonManual, now) {
+			updates[key] = value
+		}
+	} else {
+		clearTicketCloseUpdates(updates)
+		if normalized == model.TicketStatusAnswered {
+			updates["last_admin_reply_at"] = now
+		}
 	}
 	if ticket.AssignedAdminID == 0 {
 		updates["assigned_admin_id"] = adminID
@@ -362,7 +435,13 @@ func CloseTicket(userID int, admin bool, ticketID int) (*dto.TicketDetailRespons
 	if err := ensureTicketAccess(ticket, userID, admin); err != nil {
 		return nil, err
 	}
-	if err := model.DB.Model(&model.Ticket{}).Where("id = ?", ticketID).Update("status", model.TicketStatusClosed).Error; err != nil {
+	role := model.TicketSenderUser
+	if admin {
+		role = model.TicketSenderAdmin
+	}
+	now := time.Now().Unix()
+	updates := ticketCloseUpdates(userID, role, model.TicketCloseReasonManual, now)
+	if err := model.DB.Model(&model.Ticket{}).Where("id = ?", ticketID).Updates(updates).Error; err != nil {
 		return nil, err
 	}
 	return GetTicketDetail(userID, admin, ticketID)
@@ -380,11 +459,20 @@ func ReopenTicket(userID int, ticketID int) (*dto.TicketDetailResponse, error) {
 		return nil, err
 	}
 	now := time.Now().Unix()
-	if err := model.DB.Model(&model.Ticket{}).Where("id = ?", ticketID).Updates(map[string]interface{}{
+	if err := ensureTicketCanReopen(ticket, now); err != nil {
+		return nil, err
+	}
+	if ticket.Status != model.TicketStatusClosed {
+		return GetTicketDetail(userID, false, ticketID)
+	}
+	updates := map[string]interface{}{
 		"status":             model.TicketStatusOpen,
 		"last_reply_at":      now,
+		"last_user_reply_at": now,
 		"admin_unread_count": gorm.Expr("admin_unread_count + ?", 1),
-	}).Error; err != nil {
+	}
+	clearTicketCloseUpdates(updates)
+	if err := model.DB.Model(&model.Ticket{}).Where("id = ?", ticketID).Updates(updates).Error; err != nil {
 		return nil, err
 	}
 	return GetTicketDetail(userID, false, ticketID)
@@ -429,10 +517,17 @@ func ticketToResponse(ticket model.Ticket, userMap map[int]model.User) dto.Ticke
 		Category:         ticket.Category,
 		Priority:         ticket.Priority,
 		Status:           ticket.Status,
+		ClosedAt:         ticket.ClosedAt,
+		ClosedByID:       ticket.ClosedByID,
+		ClosedByRole:     ticket.ClosedByRole,
+		CloseReason:      ticket.CloseReason,
+		ReopenUntil:      ticket.ReopenUntil,
 		AssignedAdminID:  ticket.AssignedAdminID,
 		RelatedType:      ticket.RelatedType,
 		RelatedID:        ticket.RelatedID,
 		LastReplyAt:      ticket.LastReplyAt,
+		LastUserReplyAt:  ticket.LastUserReplyAt,
+		LastAdminReplyAt: ticket.LastAdminReplyAt,
 		UserUnreadCount:  ticket.UserUnreadCount,
 		AdminUnreadCount: ticket.AdminUnreadCount,
 		CreatedAt:        ticket.CreatedAt,

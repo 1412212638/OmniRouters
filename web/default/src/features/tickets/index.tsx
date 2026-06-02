@@ -105,6 +105,18 @@ function formatRelativeTime(timestamp: number) {
   return dayjs(timestamp * 1000).fromNow()
 }
 
+function canReopenTicket(ticket: Ticket) {
+  if (ticket.status !== 'closed') return false
+  if (!ticket.reopen_until) return true
+  return dayjs(ticket.reopen_until * 1000).isAfter(dayjs())
+}
+
+function getTicketCloseReasonLabel(reason?: string) {
+  if (reason === 'user_idle_timeout') return 'No user reply for 24 hours'
+  if (reason === 'manual') return 'Closed manually'
+  return ''
+}
+
 function TicketStatusBadge({ status }: { status: string }) {
   const { t } = useTranslation()
   const meta = getTicketStatusMeta(status)
@@ -447,6 +459,7 @@ function TicketProperties({
   admin?: boolean
 }) {
   const { t } = useTranslation()
+  const closeReasonLabel = getTicketCloseReasonLabel(ticket.close_reason)
 
   return (
     <aside className='hidden w-72 shrink-0 border-l bg-muted/20 xl:block'>
@@ -481,6 +494,30 @@ function TicketProperties({
           label={t('Last Reply')}
           value={formatTimestamp(ticket.last_reply_at || ticket.created_at)}
         />
+        {ticket.status === 'closed' && (
+          <>
+            <DetailField
+              label={t('Closed At')}
+              value={formatTimestamp(ticket.closed_at)}
+            />
+            <DetailField
+              label={t('Closed By')}
+              value={ticket.closed_by_role ? t(ticket.closed_by_role) : '-'}
+            />
+            {closeReasonLabel && (
+              <DetailField
+                label={t('Close Reason')}
+                value={t(closeReasonLabel)}
+              />
+            )}
+            {ticket.reopen_until > 0 && (
+              <DetailField
+                label={t('Reopen Until')}
+                value={formatTimestamp(ticket.reopen_until)}
+              />
+            )}
+          </>
+        )}
       </dl>
     </aside>
   )
@@ -587,6 +624,14 @@ function TicketDetailPanel({
   }
 
   const closed = ticket.status === 'closed'
+  const canReopen = canReopenTicket(ticket)
+  const closedNotice = ticket.reopen_until
+    ? canReopen
+      ? t('Can be reopened until {{time}}', {
+          time: formatTimestamp(ticket.reopen_until),
+        })
+      : t('Reopen window expired')
+    : t('Ticket is closed')
 
   return (
     <div className='flex h-full min-h-0 overflow-hidden rounded-lg border bg-background'>
@@ -644,13 +689,24 @@ function TicketDetailPanel({
               )}
               {closed ? (
                 !admin && (
-                  <Button size='sm' variant='outline' onClick={onReopen}>
+                  <Button
+                    size='sm'
+                    variant='outline'
+                    onClick={onReopen}
+                    disabled={statusChanging || !canReopen}
+                    title={!canReopen ? t('Reopen window expired') : undefined}
+                  >
                     <RotateCcw />
                     {t('Reopen')}
                   </Button>
                 )
               ) : (
-                <Button size='sm' variant='outline' onClick={onClose}>
+                <Button
+                  size='sm'
+                  variant='outline'
+                  onClick={onClose}
+                  disabled={statusChanging}
+                >
                   <Lock />
                   {t('Close')}
                 </Button>
@@ -659,9 +715,16 @@ function TicketDetailPanel({
           </div>
         </div>
 
-        <div className='min-h-0 flex-1 overflow-auto bg-muted/20 p-3 sm:p-4'>
-          <div className='mx-auto max-w-5xl overflow-hidden rounded-lg border bg-background'>
-            <div className='flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3'>
+        {closed && (
+          <div className='text-muted-foreground flex shrink-0 flex-wrap items-center gap-2 border-b bg-muted/30 px-4 py-2 text-xs'>
+            <Lock className='size-3.5' />
+            <span>{closedNotice}</span>
+          </div>
+        )}
+
+        <div className='min-h-0 flex-1 overflow-hidden bg-muted/20 p-3 sm:p-4'>
+          <div className='flex h-full min-h-0 w-full flex-col overflow-hidden rounded-lg border bg-background shadow-sm'>
+            <div className='flex shrink-0 flex-wrap items-center justify-between gap-2 border-b px-4 py-3'>
               <div className='flex items-center gap-2 text-sm font-semibold'>
                 <Mail className='size-4' />
                 {t('Correspondence')}
@@ -671,7 +734,7 @@ function TicketDetailPanel({
               </span>
             </div>
             {messages.length === 0 ? (
-              <div className='flex min-h-48 items-center justify-center p-4'>
+              <div className='flex min-h-0 flex-1 items-center justify-center p-4'>
                 <EmptyState
                   icon={FileText}
                   title={t('No messages yet')}
@@ -679,7 +742,7 @@ function TicketDetailPanel({
                 />
               </div>
             ) : (
-              <div className='divide-y'>
+              <div className='min-h-0 flex-1 divide-y overflow-auto'>
                 {messages.map((message) => (
                   <TicketMessageItem key={message.id} message={message} />
                 ))}

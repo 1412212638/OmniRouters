@@ -116,6 +116,8 @@ ticket.closed: "工單已關閉"
 ticket.invalid_status: "無效的工單狀態：{{.Status}}"
 ticket.invalid_priority: "無效的工單優先級：{{.Priority}}"
 ticket.assigned_admin_invalid: "無效的處理人 ID"
+ticket.open_limit_reached: "你最多只能同時保留 {{.Limit}} 個未關閉工單"
+ticket.reopen_window_expired: "該工單已超過可重新開啟時間"
 
 # Quota messages
 quota.negative: "額度不能為負數！"

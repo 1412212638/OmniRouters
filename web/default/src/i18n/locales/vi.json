@@ -4643,6 +4643,14 @@
     "Unassigned": "Chưa phân công",
     "Unread": "Chưa đọc",
     "messages": "tin nhắn",
-    "Select a ticket to view its details.": "Chọn một phiếu để xem chi tiết."
+    "Select a ticket to view its details.": "Chọn một phiếu để xem chi tiết.",
+    "Closed At": "Đã đóng lúc",
+    "Closed By": "Đóng bởi",
+    "Close Reason": "Lý do đóng",
+    "Reopen Until": "Có thể mở lại đến",
+    "Closed manually": "Đóng thủ công",
+    "No user reply for 24 hours": "Người dùng không phản hồi trong 24 giờ",
+    "Can be reopened until {{time}}": "Có thể mở lại đến {{time}}",
+    "Reopen window expired": "Đã hết thời gian mở lại"
   }
 }

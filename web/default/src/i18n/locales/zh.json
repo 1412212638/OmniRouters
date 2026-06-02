@@ -4711,6 +4711,14 @@
     "Unassigned": "未指派",
     "Unread": "未读",
     "messages": "条消息",
-    "Select a ticket to view its details.": "选择一个工单查看详情。"
+    "Select a ticket to view its details.": "选择一个工单查看详情。",
+    "Closed At": "关闭时间",
+    "Closed By": "关闭方",
+    "Close Reason": "关闭原因",
+    "Reopen Until": "可重新打开至",
+    "Closed manually": "手动关闭",
+    "No user reply for 24 hours": "用户 24 小时未回复",
+    "Can be reopened until {{time}}": "可重新打开至 {{time}}",
+    "Reopen window expired": "已超过可重新打开时间"
   }
 }

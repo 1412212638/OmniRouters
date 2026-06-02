@@ -36,11 +36,18 @@ export interface Ticket {
   category: string
   priority: TicketPriority
   status: TicketStatus
+  closed_at: number
+  closed_by_id: number
+  closed_by_role?: TicketSenderRole
+  close_reason?: string
+  reopen_until: number
   assigned_admin_id: number
   assigned_admin_name?: string
   related_type?: string
   related_id?: number
   last_reply_at: number
+  last_user_reply_at: number
+  last_admin_reply_at: number
   user_unread_count: number
   admin_unread_count: number
   created_at: number

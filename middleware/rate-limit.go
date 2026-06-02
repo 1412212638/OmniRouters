@@ -203,3 +203,12 @@ func SearchRateLimit() func(c *gin.Context) {
 	}
 	return userRateLimitFactory(common.SearchRateLimitNum, common.SearchRateLimitDuration, "SR")
 }
+
+// TicketCreateRateLimit returns a per-user limiter for creating support tickets.
+// It must be used after UserAuth so the key is tied to the authenticated user.
+func TicketCreateRateLimit() func(c *gin.Context) {
+	if !common.TicketCreateRateLimitEnable {
+		return defNext
+	}
+	return userRateLimitFactory(common.TicketCreateRateLimitNum, common.TicketCreateRateLimitDuration, "TC")
+}

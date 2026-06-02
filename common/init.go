@@ -125,6 +125,13 @@ func InitEnv() {
 	SearchRateLimitEnable = GetEnvOrDefaultBool("SEARCH_RATE_LIMIT_ENABLE", true)
 	SearchRateLimitNum = GetEnvOrDefault("SEARCH_RATE_LIMIT", 10)
 	SearchRateLimitDuration = int64(GetEnvOrDefault("SEARCH_RATE_LIMIT_DURATION", 60))
+
+	TicketCreateRateLimitEnable = GetEnvOrDefaultBool("TICKET_CREATE_RATE_LIMIT_ENABLE", true)
+	TicketCreateRateLimitNum = GetEnvOrDefault("TICKET_CREATE_RATE_LIMIT", 3)
+	TicketCreateRateLimitDuration = int64(GetEnvOrDefault("TICKET_CREATE_RATE_LIMIT_DURATION", 10*60))
+	TicketMaxOpenPerUser = GetEnvOrDefault("TICKET_MAX_OPEN_PER_USER", 10)
+	TicketIdleCloseHours = GetEnvOrDefault("TICKET_IDLE_CLOSE_HOURS", 24)
+	TicketReopenWindowHours = GetEnvOrDefault("TICKET_REOPEN_WINDOW_HOURS", 24)
 	initConstantEnv()
 }
 

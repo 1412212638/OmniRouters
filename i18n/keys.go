@@ -129,6 +129,8 @@ const (
 	MsgTicketInvalidStatus        = "ticket.invalid_status"
 	MsgTicketInvalidPriority      = "ticket.invalid_priority"
 	MsgTicketAssignedAdminInvalid = "ticket.assigned_admin_invalid"
+	MsgTicketOpenLimitReached     = "ticket.open_limit_reached"
+	MsgTicketReopenWindowExpired  = "ticket.reopen_window_expired"
 )
 
 // Quota related messages

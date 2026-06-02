@@ -4661,6 +4661,14 @@
     "Unassigned": "Non assigné",
     "Unread": "Non lu",
     "messages": "messages",
-    "Select a ticket to view its details.": "Sélectionnez un ticket pour afficher ses détails."
+    "Select a ticket to view its details.": "Sélectionnez un ticket pour afficher ses détails.",
+    "Closed At": "Fermé le",
+    "Closed By": "Fermé par",
+    "Close Reason": "Motif de fermeture",
+    "Reopen Until": "Réouverture possible jusqu'à",
+    "Closed manually": "Fermé manuellement",
+    "No user reply for 24 hours": "Aucune réponse utilisateur depuis 24 heures",
+    "Can be reopened until {{time}}": "Peut être rouvert jusqu'à {{time}}",
+    "Reopen window expired": "La période de réouverture a expiré"
   }
 }

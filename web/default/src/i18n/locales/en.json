@@ -4709,6 +4709,14 @@
     "Unassigned": "Unassigned",
     "Unread": "Unread",
     "messages": "messages",
-    "Select a ticket to view its details.": "Select a ticket to view its details."
+    "Select a ticket to view its details.": "Select a ticket to view its details.",
+    "Closed At": "Closed At",
+    "Closed By": "Closed By",
+    "Close Reason": "Close Reason",
+    "Reopen Until": "Reopen Until",
+    "Closed manually": "Closed manually",
+    "No user reply for 24 hours": "No user reply for 24 hours",
+    "Can be reopened until {{time}}": "Can be reopened until {{time}}",
+    "Reopen window expired": "Reopen window expired"
   }
 }

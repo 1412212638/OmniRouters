@@ -4643,6 +4643,14 @@
     "Unassigned": "Не назначено",
     "Unread": "Непрочитано",
     "messages": "сообщений",
-    "Select a ticket to view its details.": "Выберите заявку, чтобы посмотреть сведения."
+    "Select a ticket to view its details.": "Выберите заявку, чтобы посмотреть сведения.",
+    "Closed At": "Закрыто",
+    "Closed By": "Кем закрыто",
+    "Close Reason": "Причина закрытия",
+    "Reopen Until": "Можно открыть до",
+    "Closed manually": "Закрыто вручную",
+    "No user reply for 24 hours": "Нет ответа пользователя 24 часа",
+    "Can be reopened until {{time}}": "Можно открыть до {{time}}",
+    "Reopen window expired": "Период повторного открытия истек"
   }
 }

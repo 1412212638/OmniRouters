@@ -238,6 +238,14 @@ var (
 	SearchRateLimitEnable         = true
 	SearchRateLimitNum            = 10
 	SearchRateLimitDuration int64 = 60
+
+	// Per-user ticket creation controls.
+	TicketCreateRateLimitEnable         = true
+	TicketCreateRateLimitNum            = 3
+	TicketCreateRateLimitDuration int64 = 10 * 60
+	TicketMaxOpenPerUser                = 10
+	TicketIdleCloseHours                = 24
+	TicketReopenWindowHours             = 24
 )
 
 var RateLimitKeyExpirationDuration = 20 * time.Minute

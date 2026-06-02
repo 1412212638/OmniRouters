@@ -40,11 +40,18 @@ type TicketResponse struct {
 	Category          string `json:"category"`
 	Priority          string `json:"priority"`
 	Status            string `json:"status"`
+	ClosedAt          int64  `json:"closed_at"`
+	ClosedByID        int    `json:"closed_by_id"`
+	ClosedByRole      string `json:"closed_by_role,omitempty"`
+	CloseReason       string `json:"close_reason,omitempty"`
+	ReopenUntil       int64  `json:"reopen_until"`
 	AssignedAdminID   int    `json:"assigned_admin_id"`
 	AssignedAdminName string `json:"assigned_admin_name,omitempty"`
 	RelatedType       string `json:"related_type,omitempty"`
 	RelatedID         int    `json:"related_id,omitempty"`
 	LastReplyAt       int64  `json:"last_reply_at"`
+	LastUserReplyAt   int64  `json:"last_user_reply_at"`
+	LastAdminReplyAt  int64  `json:"last_admin_reply_at"`
 	UserUnreadCount   int    `json:"user_unread_count"`
 	AdminUnreadCount  int    `json:"admin_unread_count"`
 	CreatedAt         int64  `json:"created_at"`

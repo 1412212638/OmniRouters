@@ -115,6 +115,8 @@ ticket.closed: "Ticket is closed"
 ticket.invalid_status: "Invalid ticket status: {{.Status}}"
 ticket.invalid_priority: "Invalid ticket priority: {{.Priority}}"
 ticket.assigned_admin_invalid: "Assigned admin ID is invalid"
+ticket.open_limit_reached: "You can have at most {{.Limit}} open tickets at the same time"
+ticket.reopen_window_expired: "This ticket can no longer be reopened"
 
 # Quota messages
 quota.negative: "Quota cannot be negative!"
