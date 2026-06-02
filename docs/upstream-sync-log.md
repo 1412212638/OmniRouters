@@ -2,6 +2,22 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-06-02
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `0c7aceb8319b2fdc67e7eb65773c30ac87174d3f`
+- Upstream `main` synced through: `7aaa5332603f5c8f3d09733cb6ea87f792a67508`
+- Local integration scope:
+  - Integrated model-marketplace custom model icon display while preserving OmniRouters model card badges, pricing labels, Sora/audio pricing, and status display customizations.
+  - Integrated frontend workspace dependency centralization with a shared `web/package.json` and root `web/bun.lock`.
+  - Integrated classic frontend Rsbuild support and updated Docker/release/make build paths to install from the shared `web` workspace.
+  - Integrated classic React 19 Semi adapter injection.
+  - Integrated channel drawer advanced-settings error detection, while keeping model-mapping errors from auto-expanding the advanced section.
+- Notes:
+  - Preserved OmniRouters classic login/register `AuthShell` visual layout instead of reverting those pages to the upstream plain wrapper.
+  - Preserved OmniRouters wallet corporate-transfer display, payment fee/currency handling, mail settings, OAuth icon URL support, ticket navigation, task-log model column, profile display tweaks, and local model marketplace display behavior.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-05-31
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
