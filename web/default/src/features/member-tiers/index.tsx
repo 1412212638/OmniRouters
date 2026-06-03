@@ -124,11 +124,13 @@ function RequirementProgress({
   total,
   target,
   remaining,
+  tone = 'default',
 }: {
   label: string
   total: number
   target: number
   remaining: number
+  tone?: 'default' | 'success'
 }) {
   const { t } = useTranslation()
 
@@ -140,7 +142,13 @@ function RequirementProgress({
       </div>
       <Progress
         value={progressPercent(total, target)}
-        className='gap-1 [&_[data-slot=progress-track]]:h-1.5'
+        className={cn(
+          'gap-1 [&_[data-slot=progress-track]]:h-1.5',
+          tone === 'default' &&
+            '[&_[data-slot=progress-indicator]]:bg-foreground',
+          tone === 'success' &&
+            '[&_[data-slot=progress-track]]:bg-emerald-500/25 [&_[data-slot=progress-indicator]]:bg-emerald-600'
+        )}
       />
       <div className='text-muted-foreground flex items-center justify-between gap-3 text-xs'>
         <span>{formatQuota(total)}</span>
@@ -277,6 +285,7 @@ function TierMatrixRow({
             total={totalTopup}
             target={rule.min_topup_quota}
             remaining={item.topup_remaining}
+            tone='success'
           />
           <RequirementProgress
             label={t('Minimum consumption')}
@@ -287,9 +296,8 @@ function TierMatrixRow({
         </div>
       </TableCell>
       <TableCell className='w-52 px-4 py-3 align-top'>
-        <div className='grid grid-cols-2 gap-2'>
+        <div className='grid gap-2'>
           <RatioBlock label={t('Model ratio')} value={item.group_ratio} />
-          <RatioBlock label={t('Top-up ratio')} value={item.topup_group_ratio} />
         </div>
       </TableCell>
       <TableCell className='w-28 px-4 py-3 text-right align-top'>
@@ -436,19 +444,6 @@ function MemberTierContent({ data }: { data: MemberTierEvaluation }) {
               <TableCell className='px-4 font-mono'>
                 {nextItem
                   ? `x${ratioLabel(nextItem.group_ratio)}`
-                  : t('Max tier reached')}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className='px-4 font-medium'>
-                {t('Top-up ratio')}
-              </TableCell>
-              <TableCell className='px-4 font-mono'>
-                x{ratioLabel(currentItem?.topup_group_ratio)}
-              </TableCell>
-              <TableCell className='px-4 font-mono'>
-                {nextItem
-                  ? `x${ratioLabel(nextItem.topup_group_ratio)}`
                   : t('Max tier reached')}
               </TableCell>
             </TableRow>
