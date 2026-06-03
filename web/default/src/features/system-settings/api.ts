@@ -112,3 +112,20 @@ export async function fetchUpstreamRatios(request: FetchUpstreamRatiosRequest) {
   )
   return res.data
 }
+
+export type MemberTierRecalculateResponse = {
+  success: boolean
+  message?: string
+  data?: {
+    scanned: number
+    upgraded: number
+    skipped_by_active_subscription: number
+  }
+}
+
+export async function recalculateMemberTiers() {
+  const res = await api.post<MemberTierRecalculateResponse>(
+    '/api/member_tiers/admin/recalculate'
+  )
+  return res.data
+}

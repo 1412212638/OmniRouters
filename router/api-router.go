@@ -175,6 +175,17 @@ func SetApiRouter(router *gin.Engine) {
 			subscriptionAdminRoute.DELETE("/user_subscriptions/:id", controller.AdminDeleteUserSubscription)
 		}
 
+		memberTierRoute := apiRouter.Group("/member_tiers")
+		memberTierRoute.Use(middleware.UserAuth())
+		{
+			memberTierRoute.GET("/self", controller.GetMemberTierSelf)
+		}
+		memberTierAdminRoute := apiRouter.Group("/member_tiers/admin")
+		memberTierAdminRoute.Use(middleware.RootAuth())
+		{
+			memberTierAdminRoute.POST("/recalculate", controller.AdminRecalculateMemberTiers)
+		}
+
 		// Subscription payment callbacks (no auth)
 		apiRouter.POST("/subscription/epay/notify", controller.SubscriptionEpayNotify)
 		apiRouter.GET("/subscription/epay/notify", controller.SubscriptionEpayNotify)

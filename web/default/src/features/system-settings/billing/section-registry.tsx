@@ -21,6 +21,7 @@ import { CheckinSettingsSection } from '../general/checkin-settings-section'
 import { PricingSection } from '../general/pricing-section'
 import { QuotaSettingsSection } from '../general/quota-settings-section'
 import { PaymentSettingsSection } from '../integrations/payment-settings-section'
+import { MemberTierSettingsSection } from './member-tier-settings-section'
 import { RatioSettingsCard } from '../models/ratio-settings-card'
 import type { BillingSettings } from '../types'
 import { createSectionRegistry } from '../utils/section-registry'
@@ -120,6 +121,17 @@ const BILLING_SECTIONS = [
         groupDefaults={getGroupDefaults(settings)}
         toolPricesDefault={settings['tool_price_setting.prices']}
         visibleTabs={['groups']}
+      />
+    ),
+  },
+  {
+    id: 'member-tiers',
+    titleKey: 'Member Tiers',
+    build: (settings: BillingSettings) => (
+      <MemberTierSettingsSection
+        defaultValue={settings.MemberTierRules}
+        groupRatio={settings.GroupRatio}
+        topupGroupRatio={settings.TopupGroupRatio}
       />
     ),
   },

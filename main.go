@@ -122,6 +122,9 @@ func main() {
 	// Support ticket maintenance task (idle auto-close and reopen windows)
 	service.StartTicketMaintenanceTask()
 
+	// Member tier upgrade check at local midnight.
+	service.StartMemberTierDailyTask()
+
 	// Wire task polling adaptor factory (breaks service -> relay import cycle)
 	service.GetTaskAdaptorFunc = func(platform constant.TaskPlatform) service.TaskPollingAdaptor {
 		a := relay.GetTaskAdaptor(platform)

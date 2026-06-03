@@ -73,6 +73,20 @@ func (topUp *TopUp) EffectivePaymentProvider() string {
 	return PaymentProviderFromMethod(topUp.PaymentMethod)
 }
 
+func CalculateTopUpCreditedQuota(topUp *TopUp) int64 {
+	if topUp == nil || topUp.Status != common.TopUpStatusSuccess {
+		return 0
+	}
+	switch topUp.EffectivePaymentProvider() {
+	case PaymentProviderStripe:
+		return decimal.NewFromFloat(topUp.Money).Mul(decimal.NewFromFloat(common.QuotaPerUnit)).IntPart()
+	case PaymentProviderCreem:
+		return topUp.Amount
+	default:
+		return decimal.NewFromInt(topUp.Amount).Mul(decimal.NewFromFloat(common.QuotaPerUnit)).IntPart()
+	}
+}
+
 func (topUp *TopUp) Insert() error {
 	var err error
 	err = DB.Create(topUp).Error
@@ -103,6 +117,43 @@ func GetTopUpByTradeNo(tradeNo string) *TopUp {
 		return nil
 	}
 	return topUp
+}
+
+func GetUserSuccessfulTopUpQuotaTotal(userId int) (int64, error) {
+	var topUps []*TopUp
+	err := DB.Model(&TopUp{}).
+		Select("user_id, amount, money, payment_method, payment_provider, status").
+		Where("user_id = ? AND status = ?", userId, common.TopUpStatusSuccess).
+		Find(&topUps).Error
+	if err != nil {
+		return 0, err
+	}
+
+	var total int64
+	for _, topUp := range topUps {
+		total += CalculateTopUpCreditedQuota(topUp)
+	}
+	return total, nil
+}
+
+func GetSuccessfulTopUpQuotaTotals() (map[int]int64, error) {
+	var topUps []*TopUp
+	err := DB.Model(&TopUp{}).
+		Select("user_id, amount, money, payment_method, payment_provider, status").
+		Where("status = ?", common.TopUpStatusSuccess).
+		Find(&topUps).Error
+	if err != nil {
+		return nil, err
+	}
+
+	totals := make(map[int]int64)
+	for _, topUp := range topUps {
+		if topUp == nil || topUp.UserId <= 0 {
+			continue
+		}
+		totals[topUp.UserId] += CalculateTopUpCreditedQuota(topUp)
+	}
+	return totals, nil
 }
 
 func UpdatePendingTopUpStatus(tradeNo string, expectedPaymentProvider string, targetStatus string) error {

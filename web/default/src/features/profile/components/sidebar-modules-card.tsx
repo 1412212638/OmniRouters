@@ -114,6 +114,11 @@ export function SidebarModulesCard() {
           description: t('Balance and top-up management'),
         },
         {
+          key: 'tiers',
+          title: t('Member Tiers'),
+          description: t('Tier progress and group-based benefits'),
+        },
+        {
           key: 'ticket',
           title: t('Support Tickets'),
           description: t('Support request management'),

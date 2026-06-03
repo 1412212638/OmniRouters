@@ -123,6 +123,7 @@ func generateDefaultSidebarConfigForRole(userRole int) string {
 	defaultConfig["personal"] = map[string]interface{}{
 		"enabled":  true,
 		"topup":    true,
+		"tiers":    true,
 		"personal": true,
 	}
 
@@ -848,6 +849,34 @@ func GetUserGroup(id int, fromDB bool) (group string, err error) {
 	}
 
 	return group, nil
+}
+
+func UpdateUserGroupById(id int, group string) error {
+	group = strings.TrimSpace(group)
+	if group == "" {
+		return errors.New("group cannot be empty")
+	}
+	if err := DB.Model(&User{}).Where("id = ?", id).Update("group", group).Error; err != nil {
+		return err
+	}
+	if err := UpdateUserGroupCache(id, group); err != nil {
+		common.SysLog("failed to update user group cache: " + err.Error())
+	}
+	return nil
+}
+
+func ListUsersForMemberTierEvaluation(afterId int, limit int) ([]*User, error) {
+	if limit <= 0 {
+		limit = 500
+	}
+	var users []*User
+	err := DB.Model(&User{}).
+		Select("id, username, "+commonGroupCol+", used_quota, status").
+		Where("id > ? AND status = ?", afterId, common.UserStatusEnabled).
+		Order("id asc").
+		Limit(limit).
+		Find(&users).Error
+	return users, err
 }
 
 // GetUserSetting gets setting from Redis first, falls back to DB if needed

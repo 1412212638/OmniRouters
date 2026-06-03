@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import {
   Activity,
+  BadgeCheck,
   Box,
   CreditCard,
   FileText,
@@ -105,6 +106,11 @@ export function useSidebarData(): SidebarData {
             title: t('Wallet'),
             url: '/wallet',
             icon: Wallet,
+          },
+          {
+            title: t('Member Tiers'),
+            url: '/member-tiers',
+            icon: BadgeCheck,
           },
           {
             title: t('Support Tickets'),

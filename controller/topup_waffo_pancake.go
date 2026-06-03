@@ -532,6 +532,9 @@ func WaffoPancakeWebhook(c *gin.Context) {
 		return
 	}
 
+	if topUp := model.GetTopUpByTradeNo(tradeNo); topUp != nil {
+		service.CheckMemberTierUpgradeAfterTopUp(topUp.UserId)
+	}
 	logger.LogInfo(c.Request.Context(), fmt.Sprintf("Waffo Pancake 充值成功 trade_no=%s event_id=%s order_id=%s client_ip=%s", tradeNo, event.ID, event.Data.OrderID, c.ClientIP()))
 	c.String(http.StatusOK, "OK")
 }

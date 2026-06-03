@@ -293,6 +293,9 @@ func fulfillOrder(ctx context.Context, event stripe.Event, referenceId string, c
 	if shouldNotify {
 		service.TryNotifyTopUpSuccess(topUp, int(topUp.Money*common.QuotaPerUnit))
 	}
+	if topUp != nil {
+		service.CheckMemberTierUpgradeAfterTopUp(topUp.UserId)
+	}
 
 	total, _ := strconv.ParseFloat(event.GetObjectValue("amount_total"), 64)
 	currency := strings.ToUpper(event.GetObjectValue("currency"))
