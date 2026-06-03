@@ -296,8 +296,9 @@ function TierMatrixRow({
         </div>
       </TableCell>
       <TableCell className='w-52 px-4 py-3 align-top'>
-        <div className='grid gap-2'>
+        <div className='grid grid-cols-2 gap-2'>
           <RatioBlock label={t('Model ratio')} value={item.group_ratio} />
+          <RatioBlock label={t('Top-up ratio')} value={item.topup_group_ratio} />
         </div>
       </TableCell>
       <TableCell className='w-28 px-4 py-3 text-right align-top'>
@@ -444,6 +445,19 @@ function MemberTierContent({ data }: { data: MemberTierEvaluation }) {
               <TableCell className='px-4 font-mono'>
                 {nextItem
                   ? `x${ratioLabel(nextItem.group_ratio)}`
+                  : t('Max tier reached')}
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className='px-4 font-medium'>
+                {t('Top-up ratio')}
+              </TableCell>
+              <TableCell className='px-4 font-mono'>
+                x{ratioLabel(currentItem?.topup_group_ratio)}
+              </TableCell>
+              <TableCell className='px-4 font-mono'>
+                {nextItem
+                  ? `x${ratioLabel(nextItem.topup_group_ratio)}`
                   : t('Max tier reached')}
               </TableCell>
             </TableRow>
