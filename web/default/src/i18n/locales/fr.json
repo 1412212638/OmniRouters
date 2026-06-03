@@ -4704,6 +4704,8 @@
     "Tier {{index}} must select a group.": "Le niveau {{index}} doit sélectionner un groupe.",
     "Tier group cannot be duplicated: {{group}}": "Le groupe de niveau ne peut pas être dupliqué : {{group}}",
     "Recalculation finished: {{scanned}} scanned, {{upgraded}} upgraded, {{skipped}} skipped by active subscription.": "Recalcul terminé : {{scanned}} analysés, {{upgraded}} mis à niveau, {{skipped}} ignorés en raison d'un abonnement actif.",
-    "Your active subscription group is currently taking priority over automatic tier upgrades.": "Votre groupe d'abonnement actif est actuellement prioritaire sur les mises à niveau automatiques de niveau."
+    "Your active subscription group is currently taking priority over automatic tier upgrades.": "Votre groupe d'abonnement actif est actuellement prioritaire sur les mises à niveau automatiques de niveau.",
+    "Failed to load member tiers": "Échec du chargement des niveaux membre",
+    "Please refresh and try again.": "Veuillez actualiser la page et réessayer."
   }
 }

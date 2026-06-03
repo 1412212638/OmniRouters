@@ -4686,6 +4686,8 @@
     "Tier {{index}} must select a group.": "Для уровня {{index}} нужно выбрать группу.",
     "Tier group cannot be duplicated: {{group}}": "Группа уровня не может повторяться: {{group}}",
     "Recalculation finished: {{scanned}} scanned, {{upgraded}} upgraded, {{skipped}} skipped by active subscription.": "Пересчет завершен: проверено {{scanned}}, повышено {{upgraded}}, пропущено из-за активной подписки {{skipped}}.",
-    "Your active subscription group is currently taking priority over automatic tier upgrades.": "Ваша активная группа подписки сейчас имеет приоритет над автоматическим повышением уровня."
+    "Your active subscription group is currently taking priority over automatic tier upgrades.": "Ваша активная группа подписки сейчас имеет приоритет над автоматическим повышением уровня.",
+    "Failed to load member tiers": "Не удалось загрузить уровни участника",
+    "Please refresh and try again.": "Обновите страницу и попробуйте еще раз."
   }
 }

@@ -4752,6 +4752,8 @@
     "Tier {{index}} must select a group.": "Tier {{index}} must select a group.",
     "Tier group cannot be duplicated: {{group}}": "Tier group cannot be duplicated: {{group}}",
     "Recalculation finished: {{scanned}} scanned, {{upgraded}} upgraded, {{skipped}} skipped by active subscription.": "Recalculation finished: {{scanned}} scanned, {{upgraded}} upgraded, {{skipped}} skipped by active subscription.",
-    "Your active subscription group is currently taking priority over automatic tier upgrades.": "Your active subscription group is currently taking priority over automatic tier upgrades."
+    "Your active subscription group is currently taking priority over automatic tier upgrades.": "Your active subscription group is currently taking priority over automatic tier upgrades.",
+    "Failed to load member tiers": "Failed to load member tiers",
+    "Please refresh and try again.": "Please refresh and try again."
   }
 }
