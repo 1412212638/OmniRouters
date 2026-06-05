@@ -2,11 +2,29 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-06-05
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `7aaa5332657e00fe801a2a7dd8b421e4ce4c842c`
+- Upstream `main` synced through: `32805849d683fb3347650173932d4f1f4ac613b4`
+- Local integration scope:
+  - Integrated issue-template refinements, relay idle connection timeout configuration, and stream scanner buffer reuse in channel handlers.
+  - Integrated Dify remote-image file pointer initialization, GLM Anthropic-compatible non-chunked relay behavior, and narrower OpenAI o-series adaptation.
+  - Integrated video task lookup model resolution for `GET /v1/video/generations/:task_id`.
+  - Integrated anonymous request body limiting for unauthenticated write callbacks and auth flows.
+  - Integrated configurable channel-affinity retention when a previously affined channel becomes disabled or unusable.
+  - Integrated classic quota amount display using configured exchange-rate conversion.
+  - Reviewed `b0ac0429` usage-log mobile-card TypeScript fix; the same `created_at` row-data guard was already present locally.
+- Notes:
+  - Corrected the previous `7aaa5332` full-hash record from an invalid hash to `7aaa5332657e00fe801a2a7dd8b421e4ce4c842c`.
+  - Preserved OmniRouters wallet corporate-transfer display, payment fee/currency handling, mail settings, ticket routes, profile display, OAuth icon support, Sora/audio pricing, and local model marketplace display behavior.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-06-02
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
 - Previous upstream sync point: `0c7aceb8319b2fdc67e7eb65773c30ac87174d3f`
-- Upstream `main` synced through: `7aaa5332603f5c8f3d09733cb6ea87f792a67508`
+- Upstream `main` synced through: `7aaa5332657e00fe801a2a7dd8b421e4ce4c842c`
 - Local integration scope:
   - Integrated model-marketplace custom model icon display while preserving OmniRouters model card badges, pricing labels, Sora/audio pricing, and status display customizations.
   - Integrated frontend workspace dependency centralization with a shared `web/package.json` and root `web/bun.lock`.
