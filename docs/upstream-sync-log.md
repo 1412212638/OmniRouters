@@ -11,15 +11,15 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Integrated mobile usage-log cost badge alignment while preserving the existing local row-data guard.
   - Integrated multiselect combobox theme-aware popover styling and six-decimal model-pricing editor steps.
   - Integrated public pricing/ranking hero copy simplification.
-  - Integrated the shared default-frontend dialog wrapper component, but did not migrate the broad dialog surface in this batch.
+  - Integrated the shared default-frontend dialog wrapper component and the broad dialog sizing/footer migration across the default frontend.
   - Integrated the model-pricing mode tab placement improvement.
   - Manually integrated the model-pricing visual editor draft-save fix so page-level "Save model prices" first commits the open editor draft.
+  - Integrated the full visual model-pricing module split, model-pricing snapshot/table-column extraction, and reusable JSON code editor migration.
+  - Preserved OmniRouters Sora per-request pricing and fixed per-request `audio_generation` surcharge editing across visual editing, JSON editing, draft detection, deletion, and batch-copy flows.
 - Deferred or skipped:
   - Skipped upstream `b5331936` profile user-id badge because OmniRouters already shows username, ID, user group, and role in a richer profile metadata line.
-  - Deferred the full visual model-pricing module split, reusable JSON editor migration, and related large UX refactor because they overlap with local Sora per-request pricing and `audio_generation` surcharge editing.
-  - Deferred the broad dialog sizing/footer migration (`2eaa943d`) because it touches many locally customized dialogs, including subscription purchase, OAuth provider, model/vendor, and fetch-model flows.
 - Notes:
-  - Preserved OmniRouters Sora per-request pricing, audio-generation fixed surcharge, wallet/payment display, mail settings, ticket routes, profile display, OAuth icon support, and local model marketplace behavior.
+  - Preserved OmniRouters wallet/payment display, mail settings, ticket routes, profile display, OAuth icon URL support, subscription purchase behavior, fetch-model redirect-source filtering, and local model marketplace behavior.
   - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
 
 ## 2026-06-05
