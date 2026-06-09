@@ -4715,6 +4715,10 @@
     "Recalculation finished: {{scanned}} scanned, {{upgraded}} upgraded, {{skipped}} skipped by active subscription.": "Recalcul terminé : {{scanned}} analysés, {{upgraded}} mis à niveau, {{skipped}} ignorés en raison d'un abonnement actif.",
     "Your active subscription group is currently taking priority over automatic tier upgrades.": "Votre groupe d'abonnement actif est actuellement prioritaire sur les mises à niveau automatiques de niveau.",
     "Failed to load member tiers": "Échec du chargement des niveaux membre",
-    "Please refresh and try again.": "Veuillez actualiser la page et réessayer."
+    "Please refresh and try again.": "Veuillez actualiser la page et réessayer.",
+    "Available models": "Modèles disponibles",
+    "All tiers": "Tous les niveaux",
+    "Show all": "Tout afficher",
+    "Show less": "Afficher moins"
   }
 }

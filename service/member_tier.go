@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -29,6 +30,8 @@ type MemberTierProgress struct {
 	UsedRemaining    int64                  `json:"used_remaining"`
 	GroupRatio       float64                `json:"group_ratio"`
 	TopupGroupRatio  float64                `json:"topup_group_ratio"`
+	Models           []string               `json:"models"`
+	ModelCount       int                    `json:"model_count"`
 }
 
 type MemberTierEvaluation struct {
@@ -275,6 +278,11 @@ func buildMemberTierProgress(rules []setting.MemberTierRule, currentGroup string
 		if topupRatio == 0 {
 			topupRatio = 1
 		}
+		models := model.GetGroupEnabledModels(rule.Group)
+		if models == nil {
+			models = []string{}
+		}
+		sort.Strings(models)
 		item := MemberTierProgress{
 			Rule:            rule,
 			Qualified:       totalTopup >= rule.MinTopupQuota && usedQuota >= rule.MinUsedQuota,
@@ -283,6 +291,8 @@ func buildMemberTierProgress(rules []setting.MemberTierRule, currentGroup string
 			UsedRemaining:   positiveDiff(rule.MinUsedQuota, usedQuota),
 			GroupRatio:      ratio_setting.GetGroupRatio(rule.Group),
 			TopupGroupRatio: topupRatio,
+			Models:          models,
+			ModelCount:      len(models),
 		}
 		progress = append(progress, item)
 	}

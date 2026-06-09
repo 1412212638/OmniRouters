@@ -4765,6 +4765,10 @@
     "Recalculation finished: {{scanned}} scanned, {{upgraded}} upgraded, {{skipped}} skipped by active subscription.": "重新计算完成：已扫描 {{scanned}} 个，已升级 {{upgraded}} 个，因有效订阅跳过 {{skipped}} 个。",
     "Your active subscription group is currently taking priority over automatic tier upgrades.": "你的有效订阅分组当前优先于自动等级升级。",
     "Failed to load member tiers": "加载会员等级失败",
-    "Please refresh and try again.": "请刷新后重试。"
+    "Please refresh and try again.": "请刷新后重试。",
+    "Available models": "可用模型",
+    "All tiers": "全部等级",
+    "Show all": "展开全部",
+    "Show less": "收起"
   }
 }

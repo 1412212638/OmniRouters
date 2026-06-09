@@ -4697,6 +4697,10 @@
     "Recalculation finished: {{scanned}} scanned, {{upgraded}} upgraded, {{skipped}} skipped by active subscription.": "Tính lại hoàn tất: đã quét {{scanned}}, đã nâng cấp {{upgraded}}, đã bỏ qua {{skipped}} do đăng ký đang hoạt động.",
     "Your active subscription group is currently taking priority over automatic tier upgrades.": "Nhóm đăng ký đang hoạt động của bạn hiện được ưu tiên hơn nâng cấp cấp tự động.",
     "Failed to load member tiers": "Không tải được cấp thành viên",
-    "Please refresh and try again.": "Vui lòng làm mới và thử lại."
+    "Please refresh and try again.": "Vui lòng làm mới và thử lại.",
+    "Available models": "Mô hình khả dụng",
+    "All tiers": "Tất cả cấp",
+    "Show all": "Hiển thị tất cả",
+    "Show less": "Thu gọn"
   }
 }

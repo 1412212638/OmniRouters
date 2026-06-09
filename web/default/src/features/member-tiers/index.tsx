@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   BadgeCheck,
@@ -25,8 +25,10 @@ import {
   Info,
   Layers3,
   Loader2,
+  Search,
   TrendingUp,
   WalletCards,
+  X,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -37,6 +39,8 @@ import { SectionPageLayout } from '@/components/layout'
 import { EmptyState } from '@/components/empty-state'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
 import {
   Table,
@@ -48,6 +52,10 @@ import {
 } from '@/components/ui/table'
 import { getMemberTierSelf } from './api'
 import type { MemberTierEvaluation, MemberTierProgress } from './types'
+
+const MODEL_PREVIEW_LIMIT = 24
+
+type ModelScope = 'current' | 'next' | 'all'
 
 function ratioLabel(value: number | null | undefined) {
   if (value == null || Number.isNaN(value)) return '1'
@@ -220,6 +228,209 @@ function RatioBlock({ label, value }: { label: string; value: number }) {
         x{ratioLabel(value)}
       </div>
     </div>
+  )
+}
+
+function tierDisplayName(item: MemberTierProgress | undefined) {
+  if (!item) return ''
+  return item.rule.display_name || item.rule.group
+}
+
+function TierModelsGroup({
+  item,
+  query,
+  expanded,
+  onToggleExpanded,
+}: {
+  item: MemberTierProgress
+  query: string
+  expanded: boolean
+  onToggleExpanded: () => void
+}) {
+  const { t } = useTranslation()
+  const models = item.models ?? []
+  const normalizedQuery = query.trim().toLowerCase()
+  const filteredModels = normalizedQuery
+    ? models.filter((model) => model.toLowerCase().includes(normalizedQuery))
+    : models
+  const shouldClamp = filteredModels.length > MODEL_PREVIEW_LIMIT
+  const visibleModels =
+    expanded || !shouldClamp
+      ? filteredModels
+      : filteredModels.slice(0, MODEL_PREVIEW_LIMIT)
+
+  return (
+    <div className='grid gap-3 border-t px-4 py-4 first:border-t-0'>
+      <div className='flex flex-wrap items-center justify-between gap-2'>
+        <div className='flex min-w-0 items-center gap-2'>
+          <span className='truncate font-medium'>{tierDisplayName(item)}</span>
+          <Badge variant='secondary'>
+            {t('{{count}} models', {
+              count: normalizedQuery
+                ? filteredModels.length
+                : (item.model_count ?? models.length),
+            })}
+          </Badge>
+          {item.current && (
+            <Badge className='bg-foreground text-background hover:bg-foreground/90'>
+              {t('Current')}
+            </Badge>
+          )}
+          {item.next && <Badge variant='outline'>{t('Next')}</Badge>}
+        </div>
+        {shouldClamp && (
+          <Button
+            type='button'
+            variant='ghost'
+            size='sm'
+            onClick={onToggleExpanded}
+          >
+            {expanded ? t('Show less') : t('Show all')}
+          </Button>
+        )}
+      </div>
+
+      {filteredModels.length > 0 ? (
+        <div className='flex flex-wrap gap-1.5'>
+          {visibleModels.map((model) => (
+            <Badge
+              key={model}
+              variant='outline'
+              className='max-w-full rounded-md px-2 py-1 font-mono text-[11px]'
+            >
+              <span className='truncate'>{model}</span>
+            </Badge>
+          ))}
+        </div>
+      ) : (
+        <div className='text-muted-foreground rounded-md border border-dashed px-3 py-4 text-sm'>
+          {normalizedQuery
+            ? t('No models match your search')
+            : t('No models available')}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function visibleModelTiers(
+  scope: ModelScope,
+  progress: MemberTierProgress[],
+  currentItem?: MemberTierProgress,
+  nextItem?: MemberTierProgress
+) {
+  if (scope === 'all') return progress
+  if (scope === 'next' && nextItem) return [nextItem]
+  if (currentItem) return [currentItem]
+  return []
+}
+
+function AvailableModelsSection({
+  progress,
+  currentItem,
+  nextItem,
+}: {
+  progress: MemberTierProgress[]
+  currentItem?: MemberTierProgress
+  nextItem?: MemberTierProgress
+}) {
+  const { t } = useTranslation()
+  const [scope, setScope] = useState<ModelScope>('current')
+  const [query, setQuery] = useState('')
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const selectedScope = scope === 'next' && !nextItem ? 'current' : scope
+  const visibleTiers = visibleModelTiers(
+    selectedScope,
+    progress,
+    currentItem,
+    nextItem
+  )
+
+  const setExpandedFor = (group: string) => {
+    setExpanded((current) => ({
+      ...current,
+      [group]: !current[group],
+    }))
+  }
+
+  return (
+    <section className='bg-background overflow-hidden rounded-lg border'>
+      <div className='flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3'>
+        <div className='flex min-w-0 items-center gap-2'>
+          <h3 className='truncate text-lg font-semibold tracking-tight'>
+            {t('Available models')}
+          </h3>
+          <Info className='text-info size-4' />
+        </div>
+        <div className='flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center'>
+          <div className='bg-muted/60 grid grid-cols-3 rounded-lg p-1'>
+            <Button
+              type='button'
+              variant={selectedScope === 'current' ? 'secondary' : 'ghost'}
+              size='sm'
+              onClick={() => setScope('current')}
+            >
+              {t('Current tier')}
+            </Button>
+            <Button
+              type='button'
+              variant={selectedScope === 'next' ? 'secondary' : 'ghost'}
+              size='sm'
+              disabled={!nextItem}
+              onClick={() => setScope('next')}
+            >
+              {t('Next tier')}
+            </Button>
+            <Button
+              type='button'
+              variant={selectedScope === 'all' ? 'secondary' : 'ghost'}
+              size='sm'
+              onClick={() => setScope('all')}
+            >
+              {t('All tiers')}
+            </Button>
+          </div>
+          <div className='relative sm:w-72'>
+            <Search className='text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2' />
+            <Input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={t('Search models...')}
+              className='pr-8 pl-8'
+            />
+            {query && (
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon-xs'
+                className='absolute top-1/2 right-1 -translate-y-1/2'
+                aria-label={t('Clear search')}
+                onClick={() => setQuery('')}
+              >
+                <X className='size-3.5' />
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+      <div>
+        {visibleTiers.length > 0 ? (
+          visibleTiers.map((item) => (
+            <TierModelsGroup
+              key={item.rule.group}
+              item={item}
+              query={query}
+              expanded={Boolean(expanded[item.rule.group])}
+              onToggleExpanded={() => setExpandedFor(item.rule.group)}
+            />
+          ))
+        ) : (
+          <div className='text-muted-foreground px-4 py-6 text-sm'>
+            {t('No models available')}
+          </div>
+        )}
+      </div>
+    </section>
   )
 }
 
@@ -458,6 +669,12 @@ function MemberTierContent({ data }: { data: MemberTierEvaluation }) {
           </TableBody>
         </Table>
       </section>
+
+      <AvailableModelsSection
+        progress={data.progress}
+        currentItem={currentItem}
+        nextItem={nextItem}
+      />
     </div>
   )
 }

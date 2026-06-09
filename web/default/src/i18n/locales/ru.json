@@ -4697,6 +4697,10 @@
     "Recalculation finished: {{scanned}} scanned, {{upgraded}} upgraded, {{skipped}} skipped by active subscription.": "Пересчет завершен: проверено {{scanned}}, повышено {{upgraded}}, пропущено из-за активной подписки {{skipped}}.",
     "Your active subscription group is currently taking priority over automatic tier upgrades.": "Ваша активная группа подписки сейчас имеет приоритет над автоматическим повышением уровня.",
     "Failed to load member tiers": "Не удалось загрузить уровни участника",
-    "Please refresh and try again.": "Обновите страницу и попробуйте еще раз."
+    "Please refresh and try again.": "Обновите страницу и попробуйте еще раз.",
+    "Available models": "Доступные модели",
+    "All tiers": "Все уровни",
+    "Show all": "Показать все",
+    "Show less": "Показать меньше"
   }
 }

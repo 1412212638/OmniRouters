@@ -34,6 +34,8 @@ export type MemberTierProgress = {
   used_remaining: number
   group_ratio: number
   topup_group_ratio: number
+  models: string[]
+  model_count: number
 }
 
 export type MemberTierEvaluation = {

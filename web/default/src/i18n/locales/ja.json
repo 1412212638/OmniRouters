@@ -4706,6 +4706,10 @@
     "Recalculation finished: {{scanned}} scanned, {{upgraded}} upgraded, {{skipped}} skipped by active subscription.": "再計算完了: {{scanned}} 件を確認、{{upgraded}} 件をアップグレード、アクティブなサブスクリプションにより {{skipped}} 件をスキップしました。",
     "Your active subscription group is currently taking priority over automatic tier upgrades.": "現在、有効なサブスクリプショングループが自動ランクアップより優先されています。",
     "Failed to load member tiers": "メンバーランクの読み込みに失敗しました",
-    "Please refresh and try again.": "ページを更新してもう一度お試しください。"
+    "Please refresh and try again.": "ページを更新してもう一度お試しください。",
+    "Available models": "利用可能なモデル",
+    "All tiers": "すべてのランク",
+    "Show all": "すべて表示",
+    "Show less": "折りたたむ"
   }
 }
