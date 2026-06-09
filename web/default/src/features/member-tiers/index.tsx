@@ -195,9 +195,6 @@ function TierRail({ progress }: { progress: MemberTierProgress[] }) {
                   </span>
                 )}
               </div>
-              <div className='text-muted-foreground truncate text-xs'>
-                {item.rule.group}
-              </div>
               <div className='text-muted-foreground mt-1 grid gap-0.5 text-xs leading-5'>
                 <span>
                   {t('Minimum top-up')}: {formatQuota(item.rule.min_topup_quota)}
@@ -266,9 +263,6 @@ function TierMatrixRow({
           <div className='min-w-0'>
             <div className='truncate font-semibold'>
               {rule.display_name || rule.group}
-            </div>
-            <div className='text-muted-foreground truncate text-xs'>
-              {rule.group}
             </div>
             {rule.description && (
               <div className='text-muted-foreground mt-2 line-clamp-2 text-xs leading-5'>
@@ -459,28 +453,6 @@ function MemberTierContent({ data }: { data: MemberTierEvaluation }) {
                 {nextItem
                   ? `x${ratioLabel(nextItem.topup_group_ratio)}`
                   : t('Max tier reached')}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className='px-4 font-medium'>
-                {t('Minimum top-up')}
-              </TableCell>
-              <TableCell className='px-4'>
-                {formatQuota(currentItem?.rule.min_topup_quota ?? 0)}
-              </TableCell>
-              <TableCell className='px-4'>
-                {nextTier ? formatQuota(nextTier.min_topup_quota) : '-'}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className='px-4 font-medium'>
-                {t('Minimum consumption')}
-              </TableCell>
-              <TableCell className='px-4'>
-                {formatQuota(currentItem?.rule.min_used_quota ?? 0)}
-              </TableCell>
-              <TableCell className='px-4'>
-                {nextTier ? formatQuota(nextTier.min_used_quota) : '-'}
               </TableCell>
             </TableRow>
           </TableBody>
