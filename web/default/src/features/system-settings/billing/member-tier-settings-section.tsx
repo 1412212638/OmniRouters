@@ -53,7 +53,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { formatQuota } from '@/lib/format'
+import { getCurrencyDisplay, getCurrencyLabel } from '@/lib/currency'
+import {
+  formatQuota,
+  parseQuotaFromDollars,
+  quotaUnitsToDollars,
+} from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { recalculateMemberTiers } from '../api'
 import { SettingsPageActionsPortal } from '../components/settings-page-context'
@@ -164,6 +169,19 @@ function formatRatio(value: unknown, fallback = '1') {
   return String(numeric)
 }
 
+function formatThresholdInputValue(quota: number, tokensOnly: boolean) {
+  const amount = quotaUnitsToDollars(quota)
+  if (!Number.isFinite(amount)) return '0'
+  if (tokensOnly) return String(Math.round(amount))
+  return amount.toFixed(6).replace(/\.?0+$/, '') || '0'
+}
+
+function parseThresholdInputValue(value: string) {
+  const amount = Number(value)
+  if (!Number.isFinite(amount)) return 0
+  return parseQuotaFromDollars(Math.max(0, amount))
+}
+
 export function MemberTierSettingsSection({
   defaultValue,
   groupRatio,
@@ -171,6 +189,13 @@ export function MemberTierSettingsSection({
 }: MemberTierSettingsSectionProps) {
   const { t } = useTranslation()
   const updateOption = useUpdateOption()
+  const { meta: currencyMeta } = getCurrencyDisplay()
+  const currencyLabel = getCurrencyLabel()
+  const tokensOnly = currencyMeta.kind === 'tokens'
+  const thresholdStep = tokensOnly ? 1 : 0.01
+  const thresholdPlaceholder = tokensOnly
+    ? t('Enter quota in tokens')
+    : t('Enter quota in {{currency}}', { currency: currencyLabel })
   const defaultRules = useMemo(
     () => parseMemberTierRules(defaultValue),
     [defaultValue]
@@ -318,6 +343,22 @@ export function MemberTierSettingsSection({
     </div>
   )
 
+  const renderThresholdInput = (
+    value: number,
+    onChange: (quota: number) => void,
+    label: string
+  ) => (
+    <Input
+      type='number'
+      min={0}
+      step={thresholdStep}
+      value={formatThresholdInputValue(value, tokensOnly)}
+      placeholder={thresholdPlaceholder}
+      aria-label={label}
+      onChange={(event) => onChange(parseThresholdInputValue(event.target.value))}
+    />
+  )
+
   return (
     <TooltipProvider>
       <SettingsSection title={t('Member Tiers')}>
@@ -393,10 +434,20 @@ export function MemberTierSettingsSection({
                     <TableHead className='min-w-48'>{t('Tier')}</TableHead>
                     <TableHead className='min-w-36'>{t('Group')}</TableHead>
                     <TableHead className='min-w-40'>
-                      {t('Minimum top-up')}
+                      <div className='grid gap-0.5'>
+                        <span>{t('Minimum top-up')}</span>
+                        <span className='text-muted-foreground text-xs font-normal'>
+                          {currencyLabel}
+                        </span>
+                      </div>
                     </TableHead>
                     <TableHead className='min-w-40'>
-                      {t('Minimum consumption')}
+                      <div className='grid gap-0.5'>
+                        <span>{t('Minimum consumption')}</span>
+                        <span className='text-muted-foreground text-xs font-normal'>
+                          {currencyLabel}
+                        </span>
+                      </div>
                     </TableHead>
                     <TableHead className='min-w-36'>{t('Benefits')}</TableHead>
                     <TableHead className='w-36 text-right'>
@@ -457,30 +508,24 @@ export function MemberTierSettingsSection({
                         </NativeSelect>
                       </TableCell>
                       <TableCell>
-                        <Input
-                          type='number'
-                          min={0}
-                          step={1}
-                          value={rule.min_topup_quota}
-                          onChange={(event) =>
+                        {renderThresholdInput(
+                          rule.min_topup_quota,
+                          (min_topup_quota) =>
                             updateRule(index, {
-                              min_topup_quota: Number(event.target.value),
-                            })
-                          }
-                        />
+                              min_topup_quota,
+                            }),
+                          t('Minimum top-up')
+                        )}
                       </TableCell>
                       <TableCell>
-                        <Input
-                          type='number'
-                          min={0}
-                          step={1}
-                          value={rule.min_used_quota}
-                          onChange={(event) =>
+                        {renderThresholdInput(
+                          rule.min_used_quota,
+                          (min_used_quota) =>
                             updateRule(index, {
-                              min_used_quota: Number(event.target.value),
-                            })
-                          }
-                        />
+                              min_used_quota,
+                            }),
+                          t('Minimum consumption')
+                        )}
                       </TableCell>
                       <TableCell className='whitespace-normal'>
                         {renderRatioSummary(rule.group)}
@@ -557,30 +602,22 @@ export function MemberTierSettingsSection({
                       ))}
                     </NativeSelect>
                     <div className='grid gap-2 sm:grid-cols-2'>
-                      <Input
-                        type='number'
-                        min={0}
-                        step={1}
-                        value={rule.min_topup_quota}
-                        onChange={(event) =>
+                      {renderThresholdInput(
+                        rule.min_topup_quota,
+                        (min_topup_quota) =>
                           updateRule(index, {
-                            min_topup_quota: Number(event.target.value),
-                          })
-                        }
-                        aria-label={t('Minimum top-up')}
-                      />
-                      <Input
-                        type='number'
-                        min={0}
-                        step={1}
-                        value={rule.min_used_quota}
-                        onChange={(event) =>
+                            min_topup_quota,
+                          }),
+                        t('Minimum top-up')
+                      )}
+                      {renderThresholdInput(
+                        rule.min_used_quota,
+                        (min_used_quota) =>
                           updateRule(index, {
-                            min_used_quota: Number(event.target.value),
-                          })
-                        }
-                        aria-label={t('Minimum consumption')}
-                      />
+                            min_used_quota,
+                          }),
+                        t('Minimum consumption')
+                      )}
                     </div>
                     <Textarea
                       value={rule.description ?? ''}
