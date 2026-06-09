@@ -78,6 +78,95 @@ func validatePrompt(prompt string) *dto.TaskError {
 	return nil
 }
 
+func normalizeTaskMediaInputs(req *TaskSubmitReq) {
+	if len(req.Images) > 0 {
+		return
+	}
+	if image := strings.TrimSpace(req.Image); image != "" {
+		req.Images = []string{image}
+		return
+	}
+	if inputReference := strings.TrimSpace(req.InputReference); inputReference != "" {
+		req.Images = []string{inputReference}
+	}
+}
+
+func hasMultipartTaskFileInput(c *gin.Context) bool {
+	contentType := c.GetHeader("Content-Type")
+	if !strings.Contains(contentType, gin.MIMEMultipartPOSTForm) {
+		return false
+	}
+	formData, err := common.ParseMultipartFormReusable(c)
+	if err != nil || formData == nil {
+		return false
+	}
+	defer formData.RemoveAll()
+	for _, field := range []string{"input_reference", "image", "images"} {
+		if files := formData.File[field]; len(files) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func metadataHasMediaInput(value interface{}) bool {
+	switch v := value.(type) {
+	case map[string]interface{}:
+		hasMediaContentType := false
+		if typeValue, ok := v["type"].(string); ok {
+			switch strings.ToLower(strings.TrimSpace(typeValue)) {
+			case "image_url", "video_url", "audio_url", "input_image", "input_video", "input_audio":
+				hasMediaContentType = true
+			}
+		}
+		for key, item := range v {
+			switch strings.ToLower(strings.TrimSpace(key)) {
+			case "image", "images", "image_url", "video_url", "audio_url", "first_frame_image", "last_frame_image", "input_reference":
+				if hasNonEmptyMediaValue(item) {
+					return true
+				}
+			case "url":
+				if hasMediaContentType && hasNonEmptyMediaValue(item) {
+					return true
+				}
+			}
+			if metadataHasMediaInput(item) {
+				return true
+			}
+		}
+	case []interface{}:
+		for _, item := range v {
+			if metadataHasMediaInput(item) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func hasNonEmptyMediaValue(value interface{}) bool {
+	switch v := value.(type) {
+	case string:
+		return strings.TrimSpace(v) != ""
+	case []interface{}:
+		return len(v) > 0
+	case []string:
+		return len(v) > 0
+	case map[string]interface{}:
+		if urlValue, ok := v["url"].(string); ok {
+			return strings.TrimSpace(urlValue) != ""
+		}
+		return len(v) > 0
+	default:
+		return v != nil
+	}
+}
+
+func taskRequestHasMediaInput(c *gin.Context, req *TaskSubmitReq) bool {
+	normalizeTaskMediaInputs(req)
+	return req.HasImage() || hasMultipartTaskFileInput(c) || metadataHasMediaInput(req.Metadata)
+}
+
 func validateMultipartTaskRequest(c *gin.Context, info *RelayInfo, action string) (TaskSubmitReq, error) {
 	var req TaskSubmitReq
 	if _, err := c.MultipartForm(); err != nil {
@@ -137,20 +226,17 @@ func ValidateMultipartDirect(c *gin.Context, info *RelayInfo) *dto.TaskError {
 	if seconds == 0 {
 		seconds = req.Duration
 	}
-	if req.InputReference != "" {
-		req.Images = []string{req.InputReference}
-	}
 
 	if strings.TrimSpace(req.Model) == "" {
 		return createTaskError(fmt.Errorf("model field is required"), "missing_model", http.StatusBadRequest, true)
 	}
 
-	if req.HasImage() {
-		hasInputReference = true
-	}
+	hasInputReference = taskRequestHasMediaInput(c, &req)
 
-	if taskErr := validatePrompt(prompt); taskErr != nil {
-		return taskErr
+	if !hasInputReference {
+		if taskErr := validatePrompt(prompt); taskErr != nil {
+			return taskErr
+		}
 	}
 
 	action := constant.TaskActionTextGenerate
@@ -210,13 +296,11 @@ func ValidateBasicTaskRequest(c *gin.Context, info *RelayInfo, action string) *d
 		return createTaskError(err, "invalid_request", http.StatusBadRequest, true)
 	}
 
-	if taskErr := validatePrompt(req.Prompt); taskErr != nil {
-		return taskErr
-	}
-
-	if len(req.Images) == 0 && strings.TrimSpace(req.Image) != "" {
-		// 兼容单图上传
-		req.Images = []string{req.Image}
+	hasMediaInput := taskRequestHasMediaInput(c, &req)
+	if !hasMediaInput {
+		if taskErr := validatePrompt(req.Prompt); taskErr != nil {
+			return taskErr
+		}
 	}
 
 	storeTaskRequest(c, info, action, req)
