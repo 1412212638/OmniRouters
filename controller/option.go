@@ -368,6 +368,10 @@ func UpdateOption(c *gin.Context) {
 	if shouldRefreshPricingForOption(option.Key) {
 		model.RefreshPricing()
 	}
+	// Only record the updated option name; values may contain secrets.
+	recordManageAudit(c, "option.update", map[string]interface{}{
+		"key": option.Key,
+	})
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",

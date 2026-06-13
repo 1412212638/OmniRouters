@@ -2,6 +2,25 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-06-13
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `4ca47ee236fd5f09ec71d732fbe3d4270f03bec3`
+- Upstream `main` reviewed through: `51475c8062e53d4f731ce9e5f7e6c8ea9ce77cb9`
+- Local integration scope:
+  - Integrated upstream OpenAI Images API streaming relay and image edit support from `d2576ddcd31ff752c30b54d1781e802e4021f824` plus the follow-up relay split/governance alignment from `59a93cf5c7bb4f7e428e36bfaa2458b474c281a3`.
+  - Integrated channel search debounce and IME-composition handling from `30d3a3a5f7036a005cf2938a66eed5e7606bf76a`.
+  - Integrated Kimi K2.6 temperature normalization from `867d8acfc3cb001cc560869bd52b9c1c21cff99a`.
+  - Integrated upstream DataTable rendering/pinned-column refactor from `6f415428d3e6ac7d136f44808fc76e0f3aebab1e` and the layout/badge display follow-up from `27b2b2c4b95536fb832b9e9059ab00ec79d7e5d9`.
+  - Integrated deleted-user status filtering from `1507229238f08836673c8b4a7138b1d21634b155`, adapted to the current pre-DataTable-refactor table implementation.
+  - Integrated deployment-settings lazy fetch from `51475c8062e53d4f731ce9e5f7e6c8ea9ce77cb9`, keeping the local models page layout while moving deployment settings requests into the deployments-only section.
+  - Integrated localized security audit logs from `d0c4305a16d168e4e3863cae36ba17b91974af14`, preserving local pricing refresh behavior and adding structured operation/login audit display.
+- Deferred:
+  - Deferred upstream `1292b8b2d5e90480521d45af05ff0e8b38a199f6` Codex channel update because it removes Codex OAuth surfaces that require product confirmation here.
+- Notes:
+  - Preserved OmniRouters Codex OAuth surfaces, model marketplace New/discount/promotion badges, Sora/audio pricing, wallet/payment display, mail settings, tickets, profile display, deleted-user filtering, deployment-settings lazy fetch, and OAuth icon URL behavior while adopting the upstream DataTable structure.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-06-07
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
