@@ -78,6 +78,7 @@ const MemoizedDataTableRow = React.memo(DataTableRowInner, (prev, next) => {
   return (
     prev.row === next.row &&
     prev.className === next.className &&
+    prev.getColumnClassName === next.getColumnClassName &&
     prev.isSelected === next.isSelected &&
     prev.cellRenderColumns === next.cellRenderColumns
   )
