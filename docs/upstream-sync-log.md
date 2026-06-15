@@ -2,6 +2,22 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-06-16
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `9bc1a53dea0d9e5c9e6f165d3bd8a681fd925fc1`
+- Upstream `main` synced through: `eb8631160423f4e4548c1949590d34b07f95ccd8`
+- Local integration scope:
+  - Integrated channel test dialog status refresh from `be60e25a94dad0d24188ed28c13c93db9ee7cb7b` and the follow-up state-reset fix from `c67c6fc740a6ce58f625167fe36d9e2404b39201`.
+  - Integrated DataTable header-selector, row-selection memoization, and column-class comparison fixes from `a59e0eb59afeef807095c318b8b9f66e6d5dad76`, `8477f6288b7277388c1f46fd4788d8799c3094e9`, and `179f69dfcaa232600157e8602412eb6a8a744732`.
+  - Integrated wallet/profile/table interaction alignment from `eb8631160423f4e4548c1949590d34b07f95ccd8`.
+- Skipped:
+  - `426c9664e98a36aa5fca308e2cf02f37e23d9d0b` was already satisfied locally after resolving `data-table-row.tsx` with a trailing newline.
+- Notes:
+  - Preserved OmniRouters custom profile metadata line (`username`, `ID`, user group, role), wallet corporate-transfer/payment fee/currency handling, Sora/audio-generation pricing display, custom OAuth icon URL behavior, and user-facing hidden routed-model details.
+  - Did not introduce upstream paid-feature compliance disabling into subscription row actions, because OmniRouters intentionally keeps that feature disabled.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-06-15
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
