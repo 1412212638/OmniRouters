@@ -19,7 +19,11 @@ For commercial licensing, please contact support@quantumnous.com
 import { type ColumnDef } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
 import { getLobeIcon } from '@/lib/lobe-icon'
-import { DataTableColumnHeader, BadgeListCell } from '@/components/data-table'
+import {
+  BadgeCell,
+  BadgeListCell,
+  DataTableColumnHeader,
+} from '@/components/data-table'
 import { GroupBadge } from '@/components/group-badge'
 import { StatusBadge } from '@/components/status-badge'
 import { DEFAULT_TOKEN_UNIT, QUOTA_TYPE_VALUES } from '../constants'
@@ -76,7 +80,7 @@ export function usePricingColumns(
         const modelIcon = modelIconKey ? getLobeIcon(modelIconKey, 14) : null
 
         return (
-          <div className='flex min-w-[200px] items-center gap-2'>
+          <div className='flex max-w-full min-w-0 items-center gap-2'>
             {modelIcon}
             <div className='flex min-w-0 flex-wrap items-center gap-1.5'>
               <span className='truncate font-mono text-sm font-medium'>
@@ -132,7 +136,7 @@ export function usePricingColumns(
         if (dynamicSummary) {
           if (dynamicSummary.isSpecialExpression) {
             return (
-              <div className='max-w-[320px] min-w-[200px]'>
+              <div className='max-w-full min-w-0'>
                 <div className='text-xs font-medium text-amber-700 dark:text-amber-300'>
                   {t('Special billing expression')}
                 </div>
@@ -159,7 +163,7 @@ export function usePricingColumns(
           }
 
           return (
-            <div className='min-w-[180px]'>
+            <div className='max-w-full min-w-0'>
               <span className='font-mono text-sm tabular-nums'>
                 {priceEntries.map((entry, index) => (
                   <span key={entry.key}>
@@ -192,7 +196,7 @@ export function usePricingColumns(
 
         if (soraSummary) {
           return (
-            <div className='min-w-[180px]'>
+            <div className='max-w-full min-w-0'>
               <span className='font-mono text-sm tabular-nums'>
                 {stripTrailingZeros(soraSummary.basePrice)}
                 <span className='text-muted-foreground/40 mx-1'>/</span>s
@@ -237,7 +241,7 @@ export function usePricingColumns(
           )
 
           return (
-            <div className='min-w-[160px]'>
+            <div className='max-w-full min-w-0'>
               <span className='font-mono text-sm tabular-nums'>
                 {inputPrice}
                 <span className='text-muted-foreground/40 mx-1'>/</span>
@@ -260,7 +264,7 @@ export function usePricingColumns(
         )
 
         return (
-          <div className='min-w-[100px]'>
+          <div className='max-w-full min-w-0'>
             <span className='font-mono text-sm tabular-nums'>{price}</span>
             <div className='text-muted-foreground/50 text-[10px]'>
               / {t('request')}
@@ -303,7 +307,7 @@ export function usePricingColumns(
           }
 
           return (
-            <div className='min-w-[80px]'>
+            <div className='max-w-full min-w-0'>
               <span className='font-mono text-sm tabular-nums'>
                 {stripTrailingZeros(cacheEntry.formatted)}
               </span>
@@ -332,7 +336,7 @@ export function usePricingColumns(
         )
 
         return (
-          <div className='min-w-[80px]'>
+          <div className='max-w-full min-w-0'>
             <span className='font-mono text-sm tabular-nums'>
               {cachedPrice}
             </span>
@@ -359,7 +363,7 @@ export function usePricingColumns(
           ? getLobeIcon(model.vendor_icon, 12)
           : null
         return (
-          <span className='flex items-center gap-1.5'>
+          <BadgeCell className='gap-1.5'>
             {vendorIcon}
             <StatusBadge
               label={model.vendor_name}
@@ -367,7 +371,7 @@ export function usePricingColumns(
               size='sm'
               copyable={false}
             />
-          </span>
+          </BadgeCell>
         )
       },
       size: 130,

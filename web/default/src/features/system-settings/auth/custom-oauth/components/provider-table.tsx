@@ -21,7 +21,7 @@ import { Pencil, Trash2, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import { StaticDataTable } from '@/components/data-table'
+import { BadgeCell, StaticDataTable } from '@/components/data-table'
 import { StatusBadge } from '@/components/status-badge'
 import { OAuthProviderIcon } from '@/features/auth/components/oauth-provider-icon'
 import { useDeleteProvider } from '../hooks/use-custom-oauth-mutations'
@@ -88,22 +88,26 @@ export function ProviderTable(props: ProviderTableProps) {
             id: 'slug',
             header: t('Slug'),
             cell: (provider) => (
-              <StatusBadge
-                label={provider.slug}
-                variant='neutral'
-                copyable={false}
-              />
+              <BadgeCell>
+                <StatusBadge
+                  label={provider.slug}
+                  variant='neutral'
+                  copyable={false}
+                />
+              </BadgeCell>
             ),
           },
           {
             id: 'status',
             header: t('Status'),
             cell: (provider) => (
-              <StatusBadge
-                label={provider.enabled ? t('Enabled') : t('Disabled')}
-                variant={provider.enabled ? 'success' : 'neutral'}
-                copyable={false}
-              />
+              <BadgeCell>
+                <StatusBadge
+                  label={provider.enabled ? t('Enabled') : t('Disabled')}
+                  variant={provider.enabled ? 'success' : 'neutral'}
+                  copyable={false}
+                />
+              </BadgeCell>
             ),
           },
           {

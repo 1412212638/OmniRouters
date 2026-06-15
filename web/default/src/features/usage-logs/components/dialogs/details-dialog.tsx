@@ -423,6 +423,8 @@ export function DetailsDialog(props: DetailsDialogProps) {
     !isViolation &&
     other?.billing_mode === 'tiered_expr' &&
     !!other?.expr_b64
+  const mappedModelName =
+    props.isAdmin && other?.is_model_mapped ? other.upstream_model_name : ''
   const hasAudioTokens = other?.ws || other?.audio
   const showTiming = isTimingLogType(props.log.type)
   const showAdminIp =
@@ -472,6 +474,12 @@ export function DetailsDialog(props: DetailsDialogProps) {
     if (hasUsername && hasId) return `${username} (ID: ${id})`
     if (hasUsername) return String(username)
     return `ID: ${id}`
+  })()
+  const authMethodLabel = (() => {
+    if (!isManage || !props.isAdmin || !adminInfo?.auth_method) return ''
+    if (adminInfo.auth_method === 'access_token') return t('Access Token')
+    if (adminInfo.auth_method === 'session') return t('Session')
+    return String(adminInfo.auth_method)
   })()
 
   // Localized operation text rendered from the language-independent op
@@ -806,6 +814,12 @@ export function DetailsDialog(props: DetailsDialogProps) {
               {operationText != null && (
                 <DetailRow label={t('Operation')} value={operationText} />
               )}
+              {authMethodLabel !== '' && (
+                <DetailRow
+                  label={t('Authentication Method')}
+                  value={authMethodLabel}
+                />
+              )}
               {changedFieldsText !== '' && (
                 <DetailRow
                   label={t('Changed Fields')}
@@ -927,7 +941,7 @@ export function DetailsDialog(props: DetailsDialogProps) {
           )}
 
           {/* Model mapping */}
-          {other?.is_model_mapped && other?.upstream_model_name && (
+          {mappedModelName && (
             <DetailSection label={t('Model Mapping')}>
               <DetailRow
                 label={t('Request Model')}
@@ -936,7 +950,7 @@ export function DetailsDialog(props: DetailsDialogProps) {
               />
               <DetailRow
                 label={t('Actual Model')}
-                value={other.upstream_model_name}
+                value={mappedModelName}
                 mono
               />
             </DetailSection>

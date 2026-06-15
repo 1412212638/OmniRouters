@@ -54,7 +54,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { StaticDataTable } from '@/components/data-table'
+import { BadgeCell, StaticDataTable } from '@/components/data-table'
 import { Dialog } from '@/components/dialog'
 import { StatusBadge } from '@/components/status-badge'
 import { SettingsSwitchField } from '../components/settings-form-layout'
@@ -330,22 +330,26 @@ export function ApiInfoSection({ enabled, data }: ApiInfoSectionProps) {
               header: t('URL'),
               cellClassName: 'max-w-xs truncate font-mono text-sm',
               cell: (apiInfo) => (
-                <StatusBadge
-                  label={apiInfo.url}
-                  variant='neutral'
-                  copyable={false}
-                />
+                <BadgeCell>
+                  <StatusBadge
+                    label={apiInfo.url}
+                    variant='neutral'
+                    copyable={false}
+                  />
+                </BadgeCell>
               ),
             },
             {
               id: 'route',
               header: t('Route'),
               cell: (apiInfo) => (
-                <StatusBadge
-                  label={apiInfo.route}
-                  variant='neutral'
-                  copyable={false}
-                />
+                <BadgeCell>
+                  <StatusBadge
+                    label={apiInfo.route}
+                    variant='neutral'
+                    copyable={false}
+                  />
+                </BadgeCell>
               ),
             },
             {

@@ -2,6 +2,21 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-06-15
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `51475c8062e53d4f731ce9e5f7e6c8ea9ce77cb9`
+- Upstream `main` reviewed through: `9bc1a53dea0d9e5c9e6f165d3bd8a681fd925fc1`
+- Local integration scope:
+  - Integrated authentication-method tracking in operation audit logs from `1ac0f5807a8a538fa9a1ec1d86e692210243ed6a`, including default-frontend log detail display and locale entries.
+  - Integrated API key form option refresh behavior from `aeea3fae9bf6deb01a90c71016a7361fb5532ed1`, so the drawer refetches models/groups when opened.
+  - Integrated the CC Switch model selector fix from `9bc1a53dea0d9e5c9e6f165d3bd8a681fd925fc1`, keeping `CC Switch` as an untranslated product name.
+  - Integrated the DataTable text/badge overflow fixes from `3c1bb0a7d3e3b4039dd1caf2220f10967587d841`, including shared truncated/badge cell wrappers and affected list-table columns.
+- Notes:
+  - Preserved OmniRouters custom model-marketplace labels, Sora/audio pricing, wallet/payment display, mail settings, tickets, profile display, OAuth icon URL behavior, task-log model display, and Codex OAuth surfaces.
+  - Kept the local API info settings state/save flow while applying only the upstream table overflow display wrappers there.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-06-13
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
