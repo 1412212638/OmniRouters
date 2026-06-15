@@ -622,7 +622,7 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
             : undefined
 
         return (
-          <div className='flex items-center gap-2'>
+          <div className='flex max-w-full min-w-0 items-center gap-2 overflow-hidden'>
             {isMultiKey && (
               <TooltipProvider delay={100}>
                 <Tooltip>
@@ -637,12 +637,24 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
                 </Tooltip>
               </TooltipProvider>
             )}
-            <ProviderBadge
-              iconKey={iconName}
-              label={typeName}
-              copyable={false}
-              showDot={false}
-            />
+            <TooltipProvider delay={300}>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <div className='max-w-full min-w-0 overflow-hidden' />
+                  }
+                >
+                  <ProviderBadge
+                    iconKey={iconName}
+                    label={typeName}
+                    copyable={false}
+                    showDot={false}
+                    className='max-w-full min-w-0 overflow-hidden'
+                  />
+                </TooltipTrigger>
+                <TooltipContent side='top'>{typeName}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             {isIonet && (
               <TooltipProvider delay={100}>
                 <Tooltip>
@@ -883,7 +895,14 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
         if (!tag)
           return <span className='text-muted-foreground text-xs'>-</span>
 
-        return <StatusBadge label={tag} autoColor={tag} size='sm' className='-ml-1.5' />
+        return (
+          <StatusBadge
+            label={tag}
+            autoColor={tag}
+            size='sm'
+            className='-ml-1.5'
+          />
+        )
       },
       size: 120,
       enableSorting: false,
