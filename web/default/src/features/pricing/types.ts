@@ -27,6 +27,15 @@ export type PricingVendor = {
   description?: string
 }
 
+export type PricingUsableGroupValue =
+  | string
+  | {
+      desc?: string
+      ratio?: number
+    }
+
+export type PricingUsableGroup = Record<string, PricingUsableGroupValue>
+
 export type SoraResolutionTier = {
   value: string
   multiplier: number
@@ -124,7 +133,7 @@ export type PricingData = {
   data: PricingModel[]
   vendors: PricingVendor[]
   group_ratio: Record<string, number>
-  usable_group: Record<string, { desc: string; ratio: number }>
+  usable_group: PricingUsableGroup
   supported_endpoint: Record<string, string>
   auto_groups: string[]
 }

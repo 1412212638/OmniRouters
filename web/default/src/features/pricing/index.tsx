@@ -76,7 +76,14 @@ import {
   getSoraPricingDisplay,
   stripTrailingZeros,
 } from './lib/price'
-import type { Modality, PricingModel, PricingVendor, TokenUnit } from './types'
+import type {
+  Modality,
+  PricingModel,
+  PricingUsableGroup,
+  PricingUsableGroupValue,
+  PricingVendor,
+  TokenUnit,
+} from './types'
 
 type FilterOption = {
   value: string
@@ -174,7 +181,6 @@ function getSearchText(model: PricingModel): string {
     model.description,
     model.vendor_name,
     model.tags,
-    ...(model.enable_groups || []),
     ...(model.supported_endpoint_types || []),
     ...normalizeModalities(model.input_modalities),
     ...normalizeModalities(model.output_modalities),
@@ -285,23 +291,31 @@ function normalizeVendorIconName(icon: string | undefined): string | undefined {
 
 function buildGroupOptions(
   models: PricingModel[],
-  usableGroup: Record<string, { desc: string; ratio: number }>
+  usableGroup: PricingUsableGroup
 ): FilterOption[] {
-  const counts = new Map<string, number>()
-  for (const model of models) {
-    for (const group of model.enable_groups || []) {
-      if (EXCLUDED_GROUPS.includes(group)) continue
-      counts.set(group, (counts.get(group) || 0) + 1)
-    }
-  }
-
-  return Array.from(counts.entries())
-    .map(([value, count]) => ({
+  return Object.entries(usableGroup)
+    .filter(([value]) => !EXCLUDED_GROUPS.includes(value))
+    .map(([value, group]) => ({
       value,
-      label: usableGroup[value]?.desc || value,
-      count,
+      label: getUsableGroupLabel(value, group),
+      count: models.filter((model) => isModelAvailableInGroup(model, value))
+        .length,
     }))
+    .filter((option) => option.count > 0)
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+}
+
+function getUsableGroupLabel(
+  fallback: string,
+  group: PricingUsableGroupValue
+): string {
+  if (typeof group === 'string') return group || fallback
+  return group?.desc || fallback
+}
+
+function isModelAvailableInGroup(model: PricingModel, group: string): boolean {
+  const groups = model.enable_groups || []
+  return groups.includes(group) || groups.includes('all')
 }
 
 function FilterButton(props: {
@@ -1000,7 +1014,7 @@ function CatalogPricing() {
         }
         if (
           groupFilter !== FILTER_ALL &&
-          !(model.enable_groups || []).includes(groupFilter)
+          !isModelAvailableInGroup(model, groupFilter)
         ) {
           return false
         }
@@ -1132,12 +1146,11 @@ function CatalogPricing() {
                 value={vendorFilter}
                 onChange={setVendorFilter}
                 allLabel={t('All')}
-                allCount={models.length}
+                allCount={vendorOptions.length}
                 open={sidebarSectionOpen.vendor}
                 onOpenChange={(open) =>
                   setSidebarSectionExpanded('vendor', open)
                 }
-                limit={8}
               />
               <FilterSection
                 title={t('Group')}
@@ -1145,12 +1158,11 @@ function CatalogPricing() {
                 value={groupFilter}
                 onChange={setGroupFilter}
                 allLabel={t('All')}
-                allCount={models.length}
+                allCount={groupOptions.length}
                 open={sidebarSectionOpen.group}
                 onOpenChange={(open) =>
                   setSidebarSectionExpanded('group', open)
                 }
-                limit={8}
               />
               {hasActiveFilters && (
                 <Button

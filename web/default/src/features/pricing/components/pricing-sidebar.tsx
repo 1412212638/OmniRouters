@@ -159,23 +159,25 @@ export function PricingSidebar(props: PricingSidebarProps) {
   const quotaTypeLabels = getQuotaTypeLabels(t)
   const endpointTypeLabels = getEndpointTypeLabels(t)
 
+  const visibleVendorOptions = props.vendors
+    .map((vendor) => ({
+      value: vendor.name,
+      label: vendor.name,
+      count: countBy(
+        props.models,
+        (model) => model.vendor_name === vendor.name
+      ),
+      icon: vendor.icon ? getLobeIcon(vendor.icon, 14) : undefined,
+    }))
+    .filter((vendor) => vendor.count > 0)
+
   const vendorOptions: FilterOption[] = [
     {
       value: FILTER_ALL,
       label: t('All Vendors'),
-      count: props.models.length,
+      count: visibleVendorOptions.length,
     },
-    ...props.vendors
-      .map((vendor) => ({
-        value: vendor.name,
-        label: vendor.name,
-        count: countBy(
-          props.models,
-          (model) => model.vendor_name === vendor.name
-        ),
-        icon: vendor.icon ? getLobeIcon(vendor.icon, 14) : undefined,
-      }))
-      .filter((vendor) => vendor.count > 0),
+    ...visibleVendorOptions,
   ]
 
   const groupOptions: FilterOption[] = [
