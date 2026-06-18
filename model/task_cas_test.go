@@ -47,6 +47,7 @@ func TestMain(m *testing.M) {
 		&UserSubscription{},
 		&Ticket{},
 		&TicketMessage{},
+		&UserOAuthBinding{},
 		&PerfMetric{},
 	); err != nil {
 		panic("failed to migrate: " + err.Error())
@@ -70,6 +71,7 @@ func truncateTables(t *testing.T) {
 		DB.Exec("DELETE FROM user_subscriptions")
 		DB.Exec("DELETE FROM ticket_messages")
 		DB.Exec("DELETE FROM tickets")
+		DB.Exec("DELETE FROM user_oauth_bindings")
 		DB.Exec("DELETE FROM perf_metrics")
 	})
 }

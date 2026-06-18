@@ -893,7 +893,7 @@ export function PaymentSettingsSection({
                       <Textarea
                         rows={4}
                         placeholder={t(
-                          '[{"name":"支付宝","type":"alipay","color":"#1677FF"}]'
+                          '[{"name":"支付宝","type":"alipay","icon":"SiAlipay"}]'
                         )}
                         {...field}
                         onChange={(event) => field.onChange(event.target.value)}

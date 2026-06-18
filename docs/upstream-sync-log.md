@@ -2,6 +2,29 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-06-18
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `eb8631160423f4e4548c1949590d34b07f95ccd8`
+- Upstream `main` reviewed through: `55b00fcf0956f3f1aa3906dd3c0f236b90e4f062`
+- Local integration scope:
+  - Integrated first-batch low-risk fixes from `17e342738e6cc28d8252e566e15ac9d977db48ca`, `34287afec74392f4518d07873e5c148377566e0a`, `43c7e30a4732590e7bd684ad7fba7bab0af8e7b0`, `b798e3496fa2ebbfd438f6eda3ab0ff674d58aa7`, `502858d35d053c89e68e891a8e5ad53f1c86bfa7`, `97eadbefa667e5405aac352c758dfe7538043f17`, `1aa77e6698f70d1f7e0659653aa5c5c0c354ac54`, and `122a730a7748942ec4a0ec890aa1e9d089f97c6f`.
+  - Integrated second-batch usage-log dialog and channel test dialog fixes from `9b9b19e9d2b42d1ddeaf72ba8b41c692c8d1caab`, `a2f3ac02e4268c3a880f277b993900c13f6e6a83`, `3cc2b1bea44f25dfe2aee70215ed43a25c7b3769`, and `a37ce3d6b5d0b129357b23818447475854ae0628`.
+  - Integrated third-batch performance and model-details updates from `21636fc1b5a5d7bba21a399ce0c09c69363caa1c`, `a95655a245522a9d3b433f7fe3f7c2cb4424e99a`, `208d86e96e5a9f6c08f7e9372bb1b6f066b4a748`, `df013946d77a802c03b0688a9a677059371c6e35`, and `1414569b636c1e66bf88df2d27d82df5f252973e`.
+  - Integrated fourth-batch OAuth/test/payment cleanup from `3b345cfd45a685bd90b8704b1dfe830d89758d15`, `8d87d5fd52b5c9ec5be093870886485632f5c5e0`, `2154fce08d97388e9bf8805801a9c6f7b2d59757`, and `06f9dec915f0cab308bd4bb04a4db2b454c2edee`.
+  - Preserved local ticket test tables while adding upstream OAuth binding cleanup coverage.
+  - Kept the Claude empty tool-call-arguments behavior while using the project JSON wrapper for the touched parse path.
+  - Preserved the local usage-log privacy rule that only admins can see the actual mapped upstream model.
+  - Preserved OmniRouters Sora/audio-generation pricing display, marketplace NEW/discount badges, and three-bar model status display while adopting upstream model details and recent performance metrics.
+  - Preserved OmniRouters wallet currency/fee/corporate-transfer display while adding payment-method icon support and clearer minimum-top-up button labels.
+  - Kept the local decision to skip upstream paid-feature compliance confirmation UI while integrating the safe payment icon and recharge display pieces.
+- Deferred:
+  - New upstream commits after this batch still need separate evaluation: column visibility persistence (`4e8b5e9b`), subscription wallet-overflow/downgrade support (`f6c26043` and `fd557064`), setup guide expansion tweak (`b8f5ba4a`), subscription product GET endpoints (`50784c10`), rankings period removal (`21d4d18d`), and advanced custom channel support (`3f2c0aed` plus `55b00fcf`).
+- Notes:
+  - Legacy OAuth controller files were already absent locally and the API router already uses the unified OAuth handler.
+  - Some reward-hacking test cleanup from `8d87d5fd` was not directly applicable because local test files have diverged or are absent; the applicable redundant/random/timing-heavy cases were removed.
+  - Existing local `web/default/src/routeTree.gen.ts` changes and untracked `bin/sync-upstream.ps1` were not part of this upstream batch.
+
 ## 2026-06-16
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
