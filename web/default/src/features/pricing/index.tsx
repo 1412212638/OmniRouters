@@ -80,7 +80,6 @@ import type {
   Modality,
   PricingModel,
   PricingUsableGroup,
-  PricingUsableGroupValue,
   PricingVendor,
   TokenUnit,
 } from './types'
@@ -296,22 +295,14 @@ function buildGroupOptions(
 ): FilterOption[] {
   return Object.entries(usableGroup)
     .filter(([value]) => !EXCLUDED_GROUPS.includes(value))
-    .map(([value, group]) => ({
+    .map(([value]) => ({
       value,
-      label: getUsableGroupLabel(value, group),
+      label: value,
       count: models.filter((model) => isModelAvailableInGroup(model, value))
         .length,
     }))
     .filter((option) => option.count > 0)
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
-}
-
-function getUsableGroupLabel(
-  fallback: string,
-  group: PricingUsableGroupValue
-): string {
-  if (typeof group === 'string') return group || fallback
-  return group?.desc || fallback
 }
 
 function isModelAvailableInGroup(model: PricingModel, group: string): boolean {
@@ -370,30 +361,31 @@ function FilterSection(props: {
   onOpenChange: (open: boolean) => void
   previewCount?: number
 }) {
-  const [showAllOptions, setShowAllOptions] = useState(false)
+  const [visibleOptionCount, setVisibleOptionCount] = useState<number | null>(
+    null
+  )
   const { t } = useTranslation()
   const hasSelection = props.value !== FILTER_ALL
   const resetLabel = `${t('Reset')} ${props.title}`
   const toggleLabel = `${props.open ? t('Collapse') : t('Expand')} ${props.title}`
   const previewCount = props.previewCount ?? props.options.length
-  const canToggleOptions = props.options.length > previewCount
-  const previewOptions = props.options.slice(0, previewCount)
-  const selectedOption =
-    hasSelection && !showAllOptions
-      ? props.options.find((option) => option.value === props.value)
-      : undefined
+  const visibleCount = visibleOptionCount ?? previewCount
+  const visibleOptions = props.options.slice(0, visibleCount)
+  const selectedOption = hasSelection
+    ? props.options.find((option) => option.value === props.value)
+    : undefined
   const selectedOptionIsPreviewed =
     selectedOption &&
-    previewOptions.some((option) => option.value === selectedOption.value)
-  const options =
-    showAllOptions || !canToggleOptions
-      ? props.options
-      : selectedOption && !selectedOptionIsPreviewed
-        ? [...previewOptions, selectedOption]
-        : previewOptions
-  const hiddenOptionCount = Math.max(props.options.length - options.length, 0)
-  const shouldShowOptionsToggle =
-    canToggleOptions && (showAllOptions || hiddenOptionCount > 0)
+    visibleOptions.some((option) => option.value === selectedOption.value)
+  const options = selectedOptionIsPreviewed
+    ? visibleOptions
+    : selectedOption
+      ? [...visibleOptions, selectedOption]
+      : visibleOptions
+  const hiddenOptionCount = Math.max(props.options.length - visibleCount, 0)
+  const nextOptionCount = Math.min(previewCount, hiddenOptionCount)
+  const canShowMore = hiddenOptionCount > 0
+  const canShowLess = visibleOptionCount !== null && visibleCount > previewCount
 
   return (
     <Collapsible
@@ -443,14 +435,7 @@ function FilterSection(props: {
             count={props.allCount}
             onClick={() => props.onChange(FILTER_ALL)}
           />
-          <div
-            className={cn(
-              'flex flex-col gap-1',
-              showAllOptions &&
-                shouldShowOptionsToggle &&
-                'max-h-72 overflow-y-auto pr-1'
-            )}
-          >
+          <div className='flex flex-col gap-1'>
             {options.map((option) => (
               <FilterButton
                 key={option.value}
@@ -462,18 +447,22 @@ function FilterSection(props: {
               />
             ))}
           </div>
-          {shouldShowOptionsToggle && (
-            <Button
-              type='button'
-              variant='ghost'
-              size='sm'
-              className='text-muted-foreground hover:text-foreground h-8 w-full rounded-md text-sm font-normal'
-              onClick={() => setShowAllOptions((current) => !current)}
-            >
-              {showAllOptions
-                ? t('Show less')
-                : t('Show {{count}} more', { count: hiddenOptionCount })}
-            </Button>
+          {(canShowMore || canShowLess) && (
+            <FilterButton
+              active={false}
+              label={
+                canShowMore
+                  ? t('Show {{count}} more', { count: nextOptionCount })
+                  : t('Show less')
+              }
+              onClick={() => {
+                if (canShowMore) {
+                  setVisibleOptionCount(visibleCount + previewCount)
+                  return
+                }
+                setVisibleOptionCount(null)
+              }}
+            />
           )}
         </div>
       </CollapsibleContent>
