@@ -44,7 +44,8 @@ const TEXT_INPUT_ENDPOINTS = new Set([
 
 const IMAGE_OUTPUT_ENDPOINTS = new Set(['image-generation'])
 const VIDEO_OUTPUT_ENDPOINTS = new Set(['openai-video'])
-const EMBEDDING_ENDPOINTS = new Set(['embeddings', 'jina-rerank'])
+const EMBEDDING_ENDPOINTS = new Set(['embeddings'])
+const RERANK_ENDPOINTS = new Set(['jina-rerank'])
 
 const REASONING_NAME_PATTERNS = [
   /^o[1-4](?:[-:_].+)?$/i,
@@ -131,6 +132,13 @@ const TAG_TO_MODALITY: Record<string, Modality> = {
   file: 'file',
   document: 'file',
   pdf: 'file',
+  embedding: 'embedding',
+  embeddings: 'embedding',
+  rerank: 'rerank',
+  reranking: 'rerank',
+  speech: 'speech',
+  transcription: 'transcription',
+  transcript: 'transcription',
 }
 
 function pickFromBuckets<T>(buckets: T[], rand: () => number): T {
@@ -192,7 +200,8 @@ function inferOutputModalities(
 
   if (endpoints.some((e) => IMAGE_OUTPUT_ENDPOINTS.has(e))) set.add('image')
   if (endpoints.some((e) => VIDEO_OUTPUT_ENDPOINTS.has(e))) set.add('video')
-  if (endpoints.some((e) => EMBEDDING_ENDPOINTS.has(e))) set.add('text')
+  if (endpoints.some((e) => EMBEDDING_ENDPOINTS.has(e))) set.add('embedding')
+  if (endpoints.some((e) => RERANK_ENDPOINTS.has(e))) set.add('rerank')
 
   if (
     model.audio_completion_ratio != null ||
@@ -245,7 +254,17 @@ function inferCapabilities(
 }
 
 function ordered(modalities: Set<Modality>): Modality[] {
-  const order: Modality[] = ['text', 'image', 'audio', 'video', 'file']
+  const order: Modality[] = [
+    'text',
+    'image',
+    'audio',
+    'video',
+    'file',
+    'embedding',
+    'rerank',
+    'speech',
+    'transcription',
+  ]
   return order.filter((m) => modalities.has(m))
 }
 

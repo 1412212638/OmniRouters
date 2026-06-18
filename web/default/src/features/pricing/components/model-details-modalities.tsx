@@ -16,14 +16,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import {
-  FileText,
-  Image as ImageIcon,
-  Mic2,
-  Type as TypeIcon,
-  Video,
-} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import {
+  ZENMUX_MODALITY_ICONS,
+  type ZenMuxIconComponent,
+} from '@/assets/custom/zenmux-modality-icons'
 import { cn } from '@/lib/utils'
 import {
   Tooltip,
@@ -33,20 +30,38 @@ import {
 import { StaticDataTable } from '@/components/data-table'
 import type { Modality } from '../types'
 
-type IconComponent = React.ComponentType<{ className?: string }>
-
 const MODALITY_META: Record<
   Modality,
-  { icon: IconComponent; labelKey: string }
+  { icon: ZenMuxIconComponent; labelKey: string }
 > = {
-  text: { icon: TypeIcon, labelKey: 'Text' },
-  image: { icon: ImageIcon, labelKey: 'Image' },
-  audio: { icon: Mic2, labelKey: 'Audio' },
-  video: { icon: Video, labelKey: 'Video' },
-  file: { icon: FileText, labelKey: 'File' },
+  text: { icon: ZENMUX_MODALITY_ICONS.text, labelKey: 'Text' },
+  image: { icon: ZENMUX_MODALITY_ICONS.image, labelKey: 'Image' },
+  audio: { icon: ZENMUX_MODALITY_ICONS.audio, labelKey: 'Audio' },
+  video: { icon: ZENMUX_MODALITY_ICONS.video, labelKey: 'Video' },
+  file: { icon: ZENMUX_MODALITY_ICONS.file, labelKey: 'File' },
+  embedding: {
+    icon: ZENMUX_MODALITY_ICONS.embedding,
+    labelKey: 'Embedding',
+  },
+  rerank: { icon: ZENMUX_MODALITY_ICONS.rerank, labelKey: 'Rerank' },
+  speech: { icon: ZENMUX_MODALITY_ICONS.speech, labelKey: 'Speech' },
+  transcription: {
+    icon: ZENMUX_MODALITY_ICONS.transcription,
+    labelKey: 'Transcription',
+  },
 }
 
-const ALL_MODALITIES: Modality[] = ['text', 'image', 'audio', 'video', 'file']
+const ALL_MODALITIES: Modality[] = [
+  'text',
+  'image',
+  'audio',
+  'video',
+  'file',
+  'embedding',
+  'rerank',
+  'speech',
+  'transcription',
+]
 
 /** Inline modality icons (used by the quick-stats flow). */
 export function ModalityIcons(props: {

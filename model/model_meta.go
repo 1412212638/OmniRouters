@@ -36,6 +36,8 @@ type Model struct {
 	PromotionNote             string         `json:"promotion_note,omitempty" gorm:"type:varchar(128)"`
 	DisplayOriginalPriceSource string         `json:"display_original_price_source,omitempty" gorm:"type:varchar(32)"`
 	DisplayOriginalPriceGroup  string         `json:"display_original_price_group,omitempty" gorm:"type:varchar(64)"`
+	InputModalities            StringList     `json:"input_modalities,omitempty" gorm:"type:text"`
+	OutputModalities           StringList     `json:"output_modalities,omitempty" gorm:"type:text"`
 	Status                    int            `json:"status" gorm:"default:1"`
 	SyncOfficial              int            `json:"sync_official" gorm:"default:1"`
 	CreatedTime               int64          `json:"created_time" gorm:"bigint"`
@@ -110,6 +112,8 @@ func (mi *Model) Update() error {
 		"promotion_note":                mi.PromotionNote,
 		"display_original_price_source": mi.DisplayOriginalPriceSource,
 		"display_original_price_group":  mi.DisplayOriginalPriceGroup,
+		"input_modalities":              mi.InputModalities,
+		"output_modalities":             mi.OutputModalities,
 		"status":                        mi.Status,
 		"sync_official":                 mi.SyncOfficial,
 		"name_rule":                     mi.NameRule,

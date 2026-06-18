@@ -38,6 +38,9 @@ const SITE_SECTIONS = [
         defaultValues={{
           theme: {
             frontend: settings['theme.frontend'] as 'default' | 'classic',
+            model_square: settings['theme.model_square'] as
+              | 'catalog'
+              | 'classic',
           },
           SystemName: settings.SystemName,
           Logo: settings.Logo,

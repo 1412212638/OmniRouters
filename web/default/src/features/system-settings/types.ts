@@ -89,6 +89,7 @@ export type DeleteLogsResponse = {
 
 export type SiteSettings = {
   'theme.frontend': string
+  'theme.model_square': string
   Notice: string
   SystemName: string
   Logo: string

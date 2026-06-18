@@ -54,6 +54,7 @@ export type PricingModel = {
   promotion_note?: string
   display_original_price_source?: string
   display_original_price_group?: string
+  created_time?: number
   quota_type: number
   model_ratio: number
   completion_ratio: number
@@ -93,7 +94,16 @@ export type PricingModel = {
 }
 
 /** Input/output modalities supported by a model. */
-export type Modality = 'text' | 'image' | 'audio' | 'video' | 'file'
+export type Modality =
+  | 'text'
+  | 'image'
+  | 'audio'
+  | 'video'
+  | 'file'
+  | 'embedding'
+  | 'rerank'
+  | 'speech'
+  | 'transcription'
 
 /** Functional capabilities a model exposes. */
 export type ModelCapability =

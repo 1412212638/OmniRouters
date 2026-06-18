@@ -24,12 +24,26 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import {
+  ZENMUX_MODALITY_ICONS,
+  type ZenMuxIconComponent,
+} from '@/assets/custom/zenmux-modality-icons'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from '@/components/ui/field'
 import {
   Form,
   FormControl,
@@ -50,6 +64,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 import {
   Sheet,
   SheetClose,
@@ -59,7 +74,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -83,7 +97,7 @@ import { safeJsonParse } from '@/features/system-settings/utils/json-parser'
 import { createModel, updateModel, getModel, getVendors } from '../../api'
 import { getNameRuleOptions, ENDPOINT_TEMPLATES } from '../../constants'
 import { modelsQueryKeys, vendorsQueryKeys, parseModelTags } from '../../lib'
-import type { Model } from '../../types'
+import { MODEL_MODALITIES, type Model, type ModelModality } from '../../types'
 
 // Extended schema for ratio configuration (internal form state only)
 const extendedModelFormSchema = z.object({
@@ -101,6 +115,8 @@ const extendedModelFormSchema = z.object({
   promotion_note: z.string(),
   display_original_price_source: z.string(),
   display_original_price_group: z.string(),
+  input_modalities: z.array(z.enum(MODEL_MODALITIES)),
+  output_modalities: z.array(z.enum(MODEL_MODALITIES)),
   name_rule: z.number(),
   status: z.boolean(),
   sync_official: z.boolean(),
@@ -139,6 +155,87 @@ const EMPTY_PRICING_FIELDS: Record<PricingFieldName, string> = {
 const PRICING_FIELD_NAMES = Object.keys(
   EMPTY_PRICING_FIELDS
 ) as PricingFieldName[]
+
+const MODEL_MODALITY_OPTIONS: Array<{
+  value: ModelModality
+  label: string
+  description: string
+  icon: ZenMuxIconComponent
+}> = [
+  {
+    value: 'text',
+    label: 'Text',
+    description: 'Text prompts and messages',
+    icon: ZENMUX_MODALITY_ICONS.text,
+  },
+  {
+    value: 'image',
+    label: 'Image',
+    description: 'Image understanding or generation',
+    icon: ZENMUX_MODALITY_ICONS.image,
+  },
+  {
+    value: 'file',
+    label: 'File',
+    description: 'Documents and uploaded files',
+    icon: ZENMUX_MODALITY_ICONS.file,
+  },
+  {
+    value: 'audio',
+    label: 'Audio',
+    description: 'Speech or audio data',
+    icon: ZENMUX_MODALITY_ICONS.audio,
+  },
+  {
+    value: 'video',
+    label: 'Video',
+    description: 'Video frames or generation',
+    icon: ZENMUX_MODALITY_ICONS.video,
+  },
+  {
+    value: 'embedding',
+    label: 'Embedding',
+    description: 'Vector embeddings',
+    icon: ZENMUX_MODALITY_ICONS.embedding,
+  },
+  {
+    value: 'rerank',
+    label: 'Rerank',
+    description: 'Document ranking and relevance scoring',
+    icon: ZENMUX_MODALITY_ICONS.rerank,
+  },
+  {
+    value: 'speech',
+    label: 'Speech',
+    description: 'Text to speech generation',
+    icon: ZENMUX_MODALITY_ICONS.speech,
+  },
+  {
+    value: 'transcription',
+    label: 'Transcription',
+    description: 'Speech to text transcription',
+    icon: ZENMUX_MODALITY_ICONS.transcription,
+  },
+]
+
+function normalizeSelectedModalities(
+  values: ModelModality[] | undefined
+): ModelModality[] {
+  if (!Array.isArray(values)) return []
+  return MODEL_MODALITIES.filter((modality) => values.includes(modality))
+}
+
+function toggleSelectedModality(
+  values: ModelModality[] | undefined,
+  modality: ModelModality,
+  checked: boolean
+): ModelModality[] {
+  const current = normalizeSelectedModalities(values)
+  if (checked) {
+    return current.includes(modality) ? current : [...current, modality]
+  }
+  return current.filter((value) => value !== modality)
+}
 
 function buildPricingDefaults(
   modelName: string,
@@ -201,9 +298,7 @@ function buildPricingDefaults(
   const promptPrice =
     ratio !== undefined && ratio !== null ? (ratio * 2).toString() : ''
   const completionPrice =
-    promptPrice &&
-    completionRatio !== undefined &&
-    completionRatio !== null
+    promptPrice && completionRatio !== undefined && completionRatio !== null
       ? (parseFloat(promptPrice) * completionRatio).toString()
       : ''
 
@@ -305,6 +400,7 @@ export function ModelMutateDrawer({
       'tool_price_setting.prices': '{}',
       TopupGroupRatio: '',
       GroupRatio: '',
+      MemberTierRules: '[]',
       UserUsableGroups: '',
       GroupGroupRatio: '',
       AutoGroups: '',
@@ -341,6 +437,8 @@ export function ModelMutateDrawer({
       promotion_note: '',
       display_original_price_source: 'none',
       display_original_price_group: 'default',
+      input_modalities: [],
+      output_modalities: [],
       name_rule: 0,
       status: true,
       sync_official: true,
@@ -419,6 +517,8 @@ export function ModelMutateDrawer({
           model.display_original_price_source || 'none',
         display_original_price_group:
           model.display_original_price_group || 'default',
+        input_modalities: normalizeSelectedModalities(model.input_modalities),
+        output_modalities: normalizeSelectedModalities(model.output_modalities),
         name_rule: model.name_rule || 0,
         status: model.status === 1,
         sync_official: model.sync_official === 1,
@@ -452,6 +552,8 @@ export function ModelMutateDrawer({
         promotion_note: '',
         display_original_price_source: 'none',
         display_original_price_group: 'default',
+        input_modalities: [],
+        output_modalities: [],
         name_rule: 0,
         status: true,
         sync_official: true,
@@ -515,6 +617,12 @@ export function ModelMutateDrawer({
             values.display_original_price_source || 'none',
           display_original_price_group:
             values.display_original_price_group || 'default',
+          input_modalities: normalizeSelectedModalities(
+            values.input_modalities
+          ),
+          output_modalities: normalizeSelectedModalities(
+            values.output_modalities
+          ),
           status: values.status ? 1 : 0,
           sync_official: values.sync_official ? 1 : 0,
         }
@@ -911,6 +1019,128 @@ export function ModelMutateDrawer({
                     'These settings only affect visual labels and reference prices in the model marketplace.'
                   )}
                 </p>
+              </div>
+
+              <div className='grid gap-4 md:grid-cols-2'>
+                <FormField
+                  control={form.control}
+                  name='input_modalities'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FieldSet className='rounded-lg border p-4'>
+                        <FieldLegend variant='label'>
+                          {t('Input Types')}
+                        </FieldLegend>
+                        <FieldDescription>
+                          {t(
+                            'Choose what administrators want this model to accept.'
+                          )}
+                        </FieldDescription>
+                        <FieldGroup
+                          data-slot='checkbox-group'
+                          className='grid gap-3 sm:grid-cols-2'
+                        >
+                          {MODEL_MODALITY_OPTIONS.map((option) => {
+                            const id = `model-input-${option.value}`
+                            const Icon = option.icon
+                            return (
+                              <Field
+                                key={option.value}
+                                orientation='horizontal'
+                                className='rounded-md border p-2.5'
+                              >
+                                <Checkbox
+                                  id={id}
+                                  checked={field.value?.includes(option.value)}
+                                  onCheckedChange={(checked) =>
+                                    field.onChange(
+                                      toggleSelectedModality(
+                                        field.value,
+                                        option.value,
+                                        Boolean(checked)
+                                      )
+                                    )
+                                  }
+                                />
+                                <span className='text-muted-foreground inline-flex size-5 shrink-0 items-center justify-center'>
+                                  <Icon className='size-4' />
+                                </span>
+                                <FieldContent>
+                                  <FieldLabel htmlFor={id}>
+                                    {t(option.label)}
+                                  </FieldLabel>
+                                  <FieldDescription className='text-xs'>
+                                    {t(option.description)}
+                                  </FieldDescription>
+                                </FieldContent>
+                              </Field>
+                            )
+                          })}
+                        </FieldGroup>
+                      </FieldSet>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='output_modalities'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FieldSet className='rounded-lg border p-4'>
+                        <FieldLegend variant='label'>
+                          {t('Output Types')}
+                        </FieldLegend>
+                        <FieldDescription>
+                          {t('Choose what this model can return to users.')}
+                        </FieldDescription>
+                        <FieldGroup
+                          data-slot='checkbox-group'
+                          className='grid gap-3 sm:grid-cols-2'
+                        >
+                          {MODEL_MODALITY_OPTIONS.map((option) => {
+                            const id = `model-output-${option.value}`
+                            const Icon = option.icon
+                            return (
+                              <Field
+                                key={option.value}
+                                orientation='horizontal'
+                                className='rounded-md border p-2.5'
+                              >
+                                <Checkbox
+                                  id={id}
+                                  checked={field.value?.includes(option.value)}
+                                  onCheckedChange={(checked) =>
+                                    field.onChange(
+                                      toggleSelectedModality(
+                                        field.value,
+                                        option.value,
+                                        Boolean(checked)
+                                      )
+                                    )
+                                  }
+                                />
+                                <span className='text-muted-foreground inline-flex size-5 shrink-0 items-center justify-center'>
+                                  <Icon className='size-4' />
+                                </span>
+                                <FieldContent>
+                                  <FieldLabel htmlFor={id}>
+                                    {t(option.label)}
+                                  </FieldLabel>
+                                  <FieldDescription className='text-xs'>
+                                    {t(option.description)}
+                                  </FieldDescription>
+                                </FieldContent>
+                              </Field>
+                            )
+                          })}
+                        </FieldGroup>
+                      </FieldSet>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className='grid gap-4 md:grid-cols-2'>

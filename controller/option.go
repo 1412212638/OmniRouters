@@ -192,6 +192,14 @@ func UpdateOption(c *gin.Context) {
 			})
 			return
 		}
+	case "theme.model_square":
+		if option.Value != "catalog" && option.Value != "classic" {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "invalid model square theme, available values: catalog, classic",
+			})
+			return
+		}
 	case "LinuxDOOAuthEnabled":
 		if option.Value == "true" && common.LinuxDOClientId == "" {
 			c.JSON(http.StatusOK, gin.H{

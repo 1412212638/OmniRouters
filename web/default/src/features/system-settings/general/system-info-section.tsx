@@ -54,6 +54,7 @@ import { useUpdateOption } from '../hooks/use-update-option'
 const _systemInfoSchema = z.object({
   theme: z.object({
     frontend: z.enum(['default', 'classic']),
+    model_square: z.enum(['catalog', 'classic']),
   }),
   SystemName: z.string().min(1),
   ServerAddress: z.string().optional(),
@@ -86,6 +87,8 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
     theme: {
       frontend:
         defaultValues.theme?.frontend === 'classic' ? 'classic' : 'default',
+      model_square:
+        defaultValues.theme?.model_square === 'classic' ? 'classic' : 'catalog',
     },
     SystemName: normalizeValue(defaultValues.SystemName),
     ServerAddress: normalizeValue(defaultValues.ServerAddress),
@@ -102,6 +105,7 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
   const systemInfoSchemaWithI18n = z.object({
     theme: z.object({
       frontend: z.enum(['default', 'classic']),
+      model_square: z.enum(['catalog', 'classic']),
     }),
     SystemName: z.string().min(1, {
       error: () => t('System name is required'),
@@ -194,6 +198,50 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                       {t(
                         'Switch between the new frontend and the classic frontend. Changes take effect after page reload.'
                       )}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='theme.model_square'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Model Square Theme')}</FormLabel>
+                    <Select
+                      items={[
+                        {
+                          value: 'catalog',
+                          label: t('Catalog Marketplace'),
+                        },
+                        {
+                          value: 'classic',
+                          label: t('Classic Marketplace'),
+                        },
+                      ]}
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className='w-full'>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent alignItemWithTrigger={false}>
+                        <SelectGroup>
+                          <SelectItem value='catalog'>
+                            {t('Catalog Marketplace')}
+                          </SelectItem>
+                          <SelectItem value='classic'>
+                            {t('Classic Marketplace')}
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      {t('Choose which model marketplace layout users see.')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

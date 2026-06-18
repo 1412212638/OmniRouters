@@ -27,6 +27,9 @@ type Pricing struct {
 	PromotionNote          string                  `json:"promotion_note,omitempty"`
 	DisplayOriginalPriceSource string              `json:"display_original_price_source,omitempty"`
 	DisplayOriginalPriceGroup  string              `json:"display_original_price_group,omitempty"`
+	CreatedTime               int64               `json:"created_time,omitempty"`
+	InputModalities            StringList          `json:"input_modalities,omitempty"`
+	OutputModalities           StringList          `json:"output_modalities,omitempty"`
 	QuotaType              int                     `json:"quota_type"`
 	ModelRatio             float64                 `json:"model_ratio"`
 	ModelPrice             float64                 `json:"model_price"`
@@ -317,6 +320,9 @@ func updatePricing() {
 			pricing.PromotionNote = meta.PromotionNote
 			pricing.DisplayOriginalPriceSource = meta.DisplayOriginalPriceSource
 			pricing.DisplayOriginalPriceGroup = meta.DisplayOriginalPriceGroup
+			pricing.CreatedTime = meta.CreatedTime
+			pricing.InputModalities = meta.InputModalities
+			pricing.OutputModalities = meta.OutputModalities
 		}
 		modelPrice, findPrice := ratio_setting.GetModelPrice(model, false)
 		if findPrice {

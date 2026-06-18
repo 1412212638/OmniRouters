@@ -6,11 +6,13 @@ import (
 )
 
 type ThemeSettings struct {
-	Frontend string `json:"frontend"`
+	Frontend    string `json:"frontend"`
+	ModelSquare string `json:"model_square"`
 }
 
 var themeSettings = ThemeSettings{
-	Frontend: "classic",
+	Frontend:    "classic",
+	ModelSquare: "catalog",
 }
 
 func init() {

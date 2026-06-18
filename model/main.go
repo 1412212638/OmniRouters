@@ -408,6 +408,8 @@ func ensureModelMarketplaceDisplayColumns() error {
 		"PromotionNote",
 		"DisplayOriginalPriceSource",
 		"DisplayOriginalPriceGroup",
+		"InputModalities",
+		"OutputModalities",
 	}
 	for _, column := range columns {
 		if DB.Migrator().HasColumn(&Model{}, column) {

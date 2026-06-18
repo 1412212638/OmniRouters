@@ -26,6 +26,7 @@ import {
 
 const defaultSiteSettings: SiteSettings = {
   'theme.frontend': 'default',
+  'theme.model_square': 'catalog',
   Notice: '',
   SystemName: 'New API',
   Logo: '',

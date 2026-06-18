@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "rsbuild dev",
+    "dev:mock": "rsbuild dev --port 8080",
+    "mock:api": "node mock/server.mjs",
     "build": "rsbuild build",
     "build:check": "tsc -b && rsbuild build",
     "typecheck": "tsc -b",
