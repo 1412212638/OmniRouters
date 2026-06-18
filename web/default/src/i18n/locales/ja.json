@@ -4802,6 +4802,7 @@
     "All tiers": "すべてのランク",
     "Show all": "すべて表示",
     "Show less": "折りたたむ",
+    "Show {{count}} more": "さらに {{count}} 件表示",
     "{{method}} {{route}}": "{{method}} {{route}}",
     "Access a vast selection of models via a standard, unified API protocol. Power AI applications, manage digital assets, and connect the Future.": "標準的で統一されたAPIプロトコルを介して、膨大なモデルにアクセス。AIアプリケーションを強化し、デジタル資産を管理し、未来へと繋げます。",
     "Action": "アクション",

@@ -126,6 +126,7 @@ const TOP_MODALITY_OPTIONS = MODALITY_OPTIONS.filter(
   (option) => option.value !== 'file'
 )
 const LOAD_BATCH_SIZE = DEFAULT_PRICING_PAGE_SIZE
+const FILTER_PREVIEW_COUNT = 8
 const TOKEN_UNIT: TokenUnit = DEFAULT_TOKEN_UNIT
 const VENDOR_ICON_ALIASES: Record<string, string> = {
   anthropic: 'Anthropic',
@@ -367,21 +368,38 @@ function FilterSection(props: {
   allCount: number
   open: boolean
   onOpenChange: (open: boolean) => void
-  limit?: number
+  previewCount?: number
 }) {
-  const options = props.limit
-    ? props.options.slice(0, props.limit)
-    : props.options
+  const [showAllOptions, setShowAllOptions] = useState(false)
   const { t } = useTranslation()
   const hasSelection = props.value !== FILTER_ALL
   const resetLabel = `${t('Reset')} ${props.title}`
   const toggleLabel = `${props.open ? t('Collapse') : t('Expand')} ${props.title}`
+  const previewCount = props.previewCount ?? props.options.length
+  const canToggleOptions = props.options.length > previewCount
+  const previewOptions = props.options.slice(0, previewCount)
+  const selectedOption =
+    hasSelection && !showAllOptions
+      ? props.options.find((option) => option.value === props.value)
+      : undefined
+  const selectedOptionIsPreviewed =
+    selectedOption &&
+    previewOptions.some((option) => option.value === selectedOption.value)
+  const options =
+    showAllOptions || !canToggleOptions
+      ? props.options
+      : selectedOption && !selectedOptionIsPreviewed
+        ? [...previewOptions, selectedOption]
+        : previewOptions
+  const hiddenOptionCount = Math.max(props.options.length - options.length, 0)
+  const shouldShowOptionsToggle =
+    canToggleOptions && (showAllOptions || hiddenOptionCount > 0)
 
   return (
     <Collapsible
       open={props.open}
       onOpenChange={props.onOpenChange}
-      className='space-y-2'
+      className='flex flex-col gap-2'
     >
       <div className='flex h-6 items-center justify-between gap-2'>
         <CollapsibleTrigger
@@ -418,23 +436,45 @@ function FilterSection(props: {
         )}
       </div>
       <CollapsibleContent className={cn(!props.open && 'hidden')}>
-        <div className='space-y-1'>
+        <div className='flex flex-col gap-1'>
           <FilterButton
             active={props.value === FILTER_ALL}
             label={props.allLabel}
             count={props.allCount}
             onClick={() => props.onChange(FILTER_ALL)}
           />
-          {options.map((option) => (
-            <FilterButton
-              key={option.value}
-              active={props.value === option.value}
-              label={option.translateLabel ? t(option.label) : option.label}
-              count={option.count}
-              icon={option.icon}
-              onClick={() => props.onChange(option.value)}
-            />
-          ))}
+          <div
+            className={cn(
+              'flex flex-col gap-1',
+              showAllOptions &&
+                shouldShowOptionsToggle &&
+                'max-h-72 overflow-y-auto pr-1'
+            )}
+          >
+            {options.map((option) => (
+              <FilterButton
+                key={option.value}
+                active={props.value === option.value}
+                label={option.translateLabel ? t(option.label) : option.label}
+                count={option.count}
+                icon={option.icon}
+                onClick={() => props.onChange(option.value)}
+              />
+            ))}
+          </div>
+          {shouldShowOptionsToggle && (
+            <Button
+              type='button'
+              variant='ghost'
+              size='sm'
+              className='text-muted-foreground hover:text-foreground h-8 w-full rounded-md text-sm font-normal'
+              onClick={() => setShowAllOptions((current) => !current)}
+            >
+              {showAllOptions
+                ? t('Show less')
+                : t('Show {{count}} more', { count: hiddenOptionCount })}
+            </Button>
+          )}
         </div>
       </CollapsibleContent>
     </Collapsible>
@@ -1151,6 +1191,7 @@ function CatalogPricing() {
                 onOpenChange={(open) =>
                   setSidebarSectionExpanded('vendor', open)
                 }
+                previewCount={FILTER_PREVIEW_COUNT}
               />
               <FilterSection
                 title={t('Group')}
@@ -1163,6 +1204,7 @@ function CatalogPricing() {
                 onOpenChange={(open) =>
                   setSidebarSectionExpanded('group', open)
                 }
+                previewCount={FILTER_PREVIEW_COUNT}
               />
               {hasActiveFilters && (
                 <Button

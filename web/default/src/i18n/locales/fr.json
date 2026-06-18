@@ -4802,6 +4802,7 @@
     "All tiers": "Tous les niveaux",
     "Show all": "Tout afficher",
     "Show less": "Afficher moins",
+    "Show {{count}} more": "Afficher {{count}} de plus",
     "{{method}} {{route}}": "{{method}} {{route}}",
     "Access a vast selection of models via a standard, unified API protocol. Power AI applications, manage digital assets, and connect the Future.": "Accédez à une vaste sélection de modèles via un protocole API standard et unifié. Propulsez les applications d'IA, gérez les actifs numériques et connectez le futur.",
     "Action": "Action",

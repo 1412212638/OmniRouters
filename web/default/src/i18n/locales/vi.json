@@ -4802,6 +4802,7 @@
     "All tiers": "Tất cả cấp",
     "Show all": "Hiển thị tất cả",
     "Show less": "Thu gọn",
+    "Show {{count}} more": "Hiển thị thêm {{count}}",
     "{{method}} {{route}}": "{{method}} {{route}}",
     "Access a vast selection of models via a standard, unified API protocol. Power AI applications, manage digital assets, and connect the Future.": "Truy cập số lượng lớn các mô hình thông qua giao thức API chuẩn hóa và thống nhất. Thúc đẩy các ứng dụng AI, quản lý tài sản kỹ thuật số và kết nối tương lai.",
     "Action": "Hành động",

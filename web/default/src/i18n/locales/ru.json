@@ -4802,6 +4802,7 @@
     "All tiers": "Все уровни",
     "Show all": "Показать все",
     "Show less": "Показать меньше",
+    "Show {{count}} more": "Показать еще {{count}}",
     "{{method}} {{route}}": "{{method}} {{route}}",
     "Access a vast selection of models via a standard, unified API protocol. Power AI applications, manage digital assets, and connect the Future.": "Получите доступ к огромному выбору моделей через стандартный, единый протокол API. Развивайте приложения ИИ, управляйте цифровыми активами и соединяйте будущее.",
     "Action": "Действие",
