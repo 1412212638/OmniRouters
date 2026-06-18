@@ -94,6 +94,7 @@ const perfSchema = z.object({
     flush_interval: z.coerce.number().min(1),
     bucket_time: z.enum(['minute', '5min', 'hour']),
     retention_days: z.coerce.number().min(0),
+    excluded_status_codes: z.string(),
   }),
 })
 
@@ -113,6 +114,7 @@ type FlatPerfDefaults = {
   'perf_metrics_setting.flush_interval': number
   'perf_metrics_setting.bucket_time': 'minute' | '5min' | 'hour'
   'perf_metrics_setting.retention_days': number
+  'perf_metrics_setting.excluded_status_codes': string
 }
 
 const buildFormDefaults = (defaults: FlatPerfDefaults): PerfFormInput => ({
@@ -136,6 +138,8 @@ const buildFormDefaults = (defaults: FlatPerfDefaults): PerfFormInput => ({
     flush_interval: defaults['perf_metrics_setting.flush_interval'],
     bucket_time: defaults['perf_metrics_setting.bucket_time'],
     retention_days: defaults['perf_metrics_setting.retention_days'],
+    excluded_status_codes:
+      defaults['perf_metrics_setting.excluded_status_codes'] ?? '',
   },
 })
 
@@ -162,6 +166,8 @@ const normalizeFormValues = (values: PerfFormValues): FlatPerfDefaults => ({
   'perf_metrics_setting.bucket_time': values.perf_metrics_setting.bucket_time,
   'perf_metrics_setting.retention_days':
     values.perf_metrics_setting.retention_days,
+  'perf_metrics_setting.excluded_status_codes':
+    values.perf_metrics_setting.excluded_status_codes.trim(),
 })
 
 function formatBytes(bytes: number, decimals = 2): string {
@@ -529,7 +535,7 @@ export function PerformanceSection(props: Props) {
             </p>
           </div>
 
-          <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
+          <div className='grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4'>
             <FormField
               control={form.control}
               name='performance_setting.monitor_enabled'
@@ -708,6 +714,30 @@ export function PerformanceSection(props: Props) {
                   </FormControl>
                   <FormDescription>
                     {t('0 means data is kept permanently')}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='perf_metrics_setting.excluded_status_codes'
+              render={({ field }) => (
+                <FormItem className='md:col-span-2 xl:col-span-4'>
+                  <FormLabel>
+                    {t('Success-rate excluded status codes')}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder='400,401,403,404'
+                      {...field}
+                      disabled={!perfMetricsEnabled}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {t(
+                      'These status codes are ignored when calculating model performance success rate, but errors are still logged.'
+                    )}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

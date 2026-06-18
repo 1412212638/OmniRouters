@@ -54,6 +54,13 @@ func RecordRelaySample(info *relaycommon.RelayInfo, success bool, outputTokens i
 	})
 }
 
+func RecordRelayFailureSample(info *relaycommon.RelayInfo, statusCode int) {
+	if perf_metrics_setting.ShouldExcludeStatusCode(statusCode) {
+		return
+	}
+	RecordRelaySample(info, false, 0)
+}
+
 func Record(sample Sample) {
 	setting := perf_metrics_setting.GetSetting()
 	if !setting.Enabled || sample.Model == "" {
