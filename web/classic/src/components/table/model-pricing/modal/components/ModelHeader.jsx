@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React from 'react';
-import { Typography, Toast, Avatar, Tag } from '@douyinfe/semi-ui';
+import { Typography, Toast, Avatar } from '@douyinfe/semi-ui';
 import { getDisplayIcon } from '../../../../../helpers';
 
 const { Paragraph } = Typography;
@@ -30,11 +30,6 @@ const CARD_STYLES = {
 };
 
 const ModelHeader = ({ modelData, vendorsMap = {}, t }) => {
-  const showNewTag =
-    modelData?.is_new === 1 ||
-    modelData?.is_new === true ||
-    modelData?.is_new === '1';
-
   // 获取模型图标（优先模型图标，其次供应商图标）
   const getModelIcon = () => {
     // 1) 优先使用模型自定义图标
@@ -94,11 +89,6 @@ const ModelHeader = ({ modelData, vendorsMap = {}, t }) => {
               {modelData?.model_name || t('未知模型')}
             </span>
           </Paragraph>
-          {showNewTag && (
-            <Tag color='red' shape='circle' size='small'>
-              NEW
-            </Tag>
-          )}
         </div>
       </div>
     </div>

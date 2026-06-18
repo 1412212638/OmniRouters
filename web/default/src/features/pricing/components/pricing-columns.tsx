@@ -40,7 +40,6 @@ import {
   stripTrailingZeros,
 } from '../lib/price'
 import type { PricingModel, TokenUnit } from '../types'
-import { ModelMarketplaceBadges } from './model-marketplace-badges'
 
 // ----------------------------------------------------------------------------
 // Pricing Table Columns
@@ -86,10 +85,6 @@ export function usePricingColumns(
               <span className='truncate font-mono text-sm font-medium'>
                 {model.model_name}
               </span>
-              <ModelMarketplaceBadges
-                model={model}
-                discountFallback={t('Discount')}
-              />
             </div>
           </div>
         )

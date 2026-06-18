@@ -215,101 +215,10 @@ const PricingCardView = ({
     );
   };
 
-  const isDisplayEnabled = (value) =>
-    value === 1 || value === true || value === '1';
-
-  const getDiscountLabel = (record) => {
-    if (!isDisplayEnabled(record?.discount_enabled)) return '';
-    const customLabel = String(record?.discount_label || '').trim();
-    if (customLabel) return customLabel;
-
-    const percent = Number(record?.discount_percent);
-    if (Number.isFinite(percent) && percent > 0) {
-      return `${Number.isInteger(percent) ? percent : percent.toFixed(2)}% OFF`;
-    }
-
-    return t('折扣');
-  };
-
-  const renderDiscountBadge = (label) => (
-    <span
-      className='inline-flex items-center shrink-0'
-      style={{
-        height: 22,
-        padding: '0 8px',
-        borderRadius: 999,
-        background: 'rgba(249, 115, 22, 0.10)',
-        border: '1px solid rgba(249, 115, 22, 0.24)',
-        color: '#c2410c',
-        fontSize: 12,
-        fontWeight: 700,
-        lineHeight: '22px',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      {label}
-    </span>
-  );
-
-  const getOriginalPriceData = (record, currentPriceData) => {
-    if (!isDisplayEnabled(record?.discount_enabled)) return null;
-
-    const source = record?.display_original_price_source || 'none';
-    if (source === 'none' || currentPriceData?.isDynamicPricing) return null;
-
-    const originalGroup =
-      source === 'default'
-        ? 'default'
-        : String(record?.display_original_price_group || '').trim();
-
-    if (!originalGroup || originalGroup === currentPriceData?.usedGroup) {
-      return null;
-    }
-
-    const originalGroupRatio = {
-      ...(groupRatio || {}),
-      [originalGroup]: (groupRatio || {})[originalGroup] ?? 1,
-    };
-    const currentRatio = Number(currentPriceData?.usedGroupRatio ?? 1);
-    const referenceRatio = Number(originalGroupRatio[originalGroup] ?? 1);
-
-    if (
-      Number.isFinite(currentRatio) &&
-      Number.isFinite(referenceRatio) &&
-      referenceRatio <= currentRatio
-    ) {
-      return null;
-    }
-
-    return calculateModelPrice({
-      record,
-      selectedGroup: originalGroup,
-      groupRatio: originalGroupRatio,
-      tokenUnit,
-      displayPrice,
-      currency,
-      quotaDisplayType: siteDisplayType,
-    });
-  };
-
-  const renderPriceItems = (priceData, originalPriceData) => {
+  const renderPriceItems = (priceData) => {
     const items = getModelPriceItems(priceData, t, siteDisplayType);
-    const originalItems = new Map(
-      (
-        getModelPriceItems(originalPriceData || {}, t, siteDisplayType) || []
-      ).map((item) => [item.key, item]),
-    );
 
     return items.map((item) => {
-      const originalItem = originalItems.get(item.key);
-      const hasOriginal =
-        originalItem &&
-        !item.isDynamic &&
-        originalItem.value !== item.value &&
-        originalItem.value !== null &&
-        originalItem.value !== undefined &&
-        originalItem.value !== '';
-
       return (
         <span
           key={item.key}
@@ -317,19 +226,7 @@ const PricingCardView = ({
           style={{ color: 'var(--semi-color-text-1)' }}
         >
           <span>{item.label}</span>
-          {hasOriginal && (
-            <span
-              className='text-xs'
-              style={{
-                color: 'var(--semi-color-text-2)',
-                textDecoration: 'line-through',
-              }}
-            >
-              {originalItem.value}
-              {originalItem.suffix}
-            </span>
-          )}
-          <span className={hasOriginal ? 'font-semibold text-emerald-600' : ''}>
+          <span>
             {item.value}
             {item.suffix}
           </span>
@@ -338,12 +235,10 @@ const PricingCardView = ({
     });
   };
 
-  const renderCardPriceSummary = (record, priceData) => {
+  const renderCardPriceSummary = (priceData) => {
     if (priceData?.isSoraParamPricing) {
       return renderSoraSummaryTags(priceData);
     }
-
-    const originalPriceData = getOriginalPriceData(record, priceData);
 
     return (
       <div className='flex flex-col gap-1 text-xs mt-2'>
@@ -353,7 +248,7 @@ const PricingCardView = ({
               t,
               priceData.usedGroupRatio,
             )
-          : renderPriceItems(priceData, originalPriceData)}
+          : renderPriceItems(priceData)}
       </div>
     );
   };
@@ -397,10 +292,6 @@ const PricingCardView = ({
             quotaDisplayType: siteDisplayType,
           });
           const description = getModelDescription(model);
-          const discountLabel = getDiscountLabel(model);
-          const promotionNote = String(model?.promotion_note || '').trim();
-          const showNewTag = isDisplayEnabled(model?.is_new);
-
           return (
             <Card
               key={modelKey || index}
@@ -419,17 +310,6 @@ const PricingCardView = ({
                         <h3 className='text-lg font-bold text-gray-900 truncate'>
                           {model.model_name}
                         </h3>
-                        {showNewTag && (
-                          <Tag color='red' shape='circle' size='small'>
-                            NEW
-                          </Tag>
-                        )}
-                        {discountLabel && renderDiscountBadge(discountLabel)}
-                        {promotionNote && discountLabel && (
-                          <Tag color='red' shape='circle' size='small'>
-                            {promotionNote}
-                          </Tag>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -465,7 +345,7 @@ const PricingCardView = ({
                 </div>
 
                 <div className='flex-1 flex flex-col gap-3 mb-4'>
-                  {renderCardPriceSummary(model, priceData)}
+                  {renderCardPriceSummary(priceData)}
                   {description && (
                     <p
                       className='text-xs line-clamp-2 leading-relaxed'

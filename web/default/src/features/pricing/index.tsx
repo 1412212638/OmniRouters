@@ -57,7 +57,6 @@ import { getPerfMetricsSummary } from '@/features/performance-metrics/api'
 import type { PerfModelSummary } from '@/features/performance-metrics/types'
 import { ClassicPricing } from './classic-pricing'
 import { ModelDetailsDrawer } from './components'
-import { ModelMarketplaceBadges } from './components/model-marketplace-badges'
 import {
   DEFAULT_PRICING_PAGE_SIZE,
   DEFAULT_TOKEN_UNIT,
@@ -770,10 +769,6 @@ function CatalogModelCard(props: {
                   {modelTitle}
                 </h2>
               </button>
-              <ModelMarketplaceBadges
-                model={props.model}
-                discountFallback={t('Discount')}
-              />
             </div>
             <div className='text-muted-foreground mt-0.5 flex min-w-0 items-center gap-1.5 text-xs'>
               <span className='truncate font-mono'>

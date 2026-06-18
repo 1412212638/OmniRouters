@@ -290,7 +290,7 @@ func migrateDB() error {
 	if err != nil {
 		return err
 	}
-	if err := ensureModelMarketplaceDisplayColumns(); err != nil {
+	if err := ensureModelMetadataColumns(); err != nil {
 		return err
 	}
 	if common.UsingSQLite {
@@ -367,7 +367,7 @@ func migrateDBFast() error {
 			return err
 		}
 	}
-	if err := ensureModelMarketplaceDisplayColumns(); err != nil {
+	if err := ensureModelMetadataColumns(); err != nil {
 		return err
 	}
 	if common.UsingSQLite {
@@ -396,18 +396,11 @@ type sqliteColumnDef struct {
 	DDL  string
 }
 
-func ensureModelMarketplaceDisplayColumns() error {
+func ensureModelMetadataColumns() error {
 	if !DB.Migrator().HasTable(&Model{}) {
 		return nil
 	}
 	columns := []string{
-		"IsNew",
-		"DiscountEnabled",
-		"DiscountPercent",
-		"DiscountLabel",
-		"PromotionNote",
-		"DisplayOriginalPriceSource",
-		"DisplayOriginalPriceGroup",
 		"InputModalities",
 		"OutputModalities",
 	}

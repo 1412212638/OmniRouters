@@ -55,13 +55,6 @@ export interface Model {
   tags?: string
   vendor_id?: number
   endpoints?: string
-  is_new?: number
-  discount_enabled?: number
-  discount_percent?: number
-  discount_label?: string
-  promotion_note?: string
-  display_original_price_source?: 'none' | 'default' | 'group' | string
-  display_original_price_group?: string
   input_modalities?: ModelModality[]
   output_modalities?: ModelModality[]
   status: number
@@ -258,13 +251,6 @@ export const modelFormSchema = z.object({
   tags: z.array(z.string()).default([]),
   vendor_id: z.number().optional(),
   endpoints: z.string().default(''),
-  is_new: z.boolean().default(false),
-  discount_enabled: z.boolean().default(false),
-  discount_percent: z.string().default(''),
-  discount_label: z.string().default(''),
-  promotion_note: z.string().default(''),
-  display_original_price_source: z.string().default('none'),
-  display_original_price_group: z.string().default('default'),
   input_modalities: z.array(z.enum(MODEL_MODALITIES)).default([]),
   output_modalities: z.array(z.enum(MODEL_MODALITIES)).default([]),
   name_rule: z.number().min(0).max(3).default(0),

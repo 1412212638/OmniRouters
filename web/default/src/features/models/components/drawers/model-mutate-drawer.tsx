@@ -108,13 +108,6 @@ const extendedModelFormSchema = z.object({
   tags: z.array(z.string()),
   vendor_id: z.number().optional(),
   endpoints: z.string(),
-  is_new: z.boolean(),
-  discount_enabled: z.boolean(),
-  discount_percent: z.string(),
-  discount_label: z.string(),
-  promotion_note: z.string(),
-  display_original_price_source: z.string(),
-  display_original_price_group: z.string(),
   input_modalities: z.array(z.enum(MODEL_MODALITIES)),
   output_modalities: z.array(z.enum(MODEL_MODALITIES)),
   name_rule: z.number(),
@@ -430,13 +423,6 @@ export function ModelMutateDrawer({
       tags: [],
       vendor_id: undefined,
       endpoints: '',
-      is_new: false,
-      discount_enabled: false,
-      discount_percent: '',
-      discount_label: '',
-      promotion_note: '',
-      display_original_price_source: 'none',
-      display_original_price_group: 'default',
       input_modalities: [],
       output_modalities: [],
       name_rule: 0,
@@ -451,9 +437,6 @@ export function ModelMutateDrawer({
       audioCompletionRatio: '',
     },
   })
-
-  const discountEnabled = form.watch('discount_enabled')
-  const originalPriceSource = form.watch('display_original_price_source')
 
   const validateNumber = (value: string) => {
     if (value === '') return true
@@ -504,19 +487,6 @@ export function ModelMutateDrawer({
         tags: parseModelTags(model.tags),
         vendor_id: model.vendor_id,
         endpoints: model.endpoints || '',
-        is_new: model.is_new === 1,
-        discount_enabled: model.discount_enabled === 1,
-        discount_percent:
-          model.discount_percent !== undefined &&
-          model.discount_percent !== null
-            ? String(model.discount_percent)
-            : '',
-        discount_label: model.discount_label || '',
-        promotion_note: model.promotion_note || '',
-        display_original_price_source:
-          model.display_original_price_source || 'none',
-        display_original_price_group:
-          model.display_original_price_group || 'default',
         input_modalities: normalizeSelectedModalities(model.input_modalities),
         output_modalities: normalizeSelectedModalities(model.output_modalities),
         name_rule: model.name_rule || 0,
@@ -545,13 +515,6 @@ export function ModelMutateDrawer({
         tags: [],
         vendor_id: undefined,
         endpoints: '',
-        is_new: false,
-        discount_enabled: false,
-        discount_percent: '',
-        discount_label: '',
-        promotion_note: '',
-        display_original_price_source: 'none',
-        display_original_price_group: 'default',
         input_modalities: [],
         output_modalities: [],
         name_rule: 0,
@@ -602,21 +565,6 @@ export function ModelMutateDrawer({
           id: isEditing ? currentRow!.id : undefined,
           icon: values.icon.trim(),
           tags: Array.isArray(values.tags) ? values.tags.join(',') : '',
-          is_new: values.is_new ? 1 : 0,
-          discount_enabled: values.discount_enabled ? 1 : 0,
-          discount_percent: values.discount_enabled
-            ? parseFloat(values.discount_percent || '0') || 0
-            : 0,
-          discount_label: values.discount_enabled
-            ? values.discount_label || ''
-            : '',
-          promotion_note: values.discount_enabled
-            ? values.promotion_note || ''
-            : '',
-          display_original_price_source:
-            values.display_original_price_source || 'none',
-          display_original_price_group:
-            values.display_original_price_group || 'default',
           input_modalities: normalizeSelectedModalities(
             values.input_modalities
           ),
@@ -1014,11 +962,6 @@ export function ModelMutateDrawer({
                 <h3 className='text-sm font-semibold'>
                   {t('Model Marketplace Display')}
                 </h3>
-                <p className='text-muted-foreground mt-1 text-xs'>
-                  {t(
-                    'These settings only affect visual labels and reference prices in the model marketplace.'
-                  )}
-                </p>
               </div>
 
               <div className='grid gap-4 md:grid-cols-2'>
@@ -1137,170 +1080,6 @@ export function ModelMutateDrawer({
                           })}
                         </FieldGroup>
                       </FieldSet>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className='grid gap-4 md:grid-cols-2'>
-                <FormField
-                  control={form.control}
-                  name='is_new'
-                  render={({ field }) => (
-                    <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
-                      <div className='space-y-0.5'>
-                        <FormLabel>{t('Show New Label')}</FormLabel>
-                        <FormDescription>
-                          {t('Display a NEW tag next to the model name')}
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name='discount_enabled'
-                  render={({ field }) => (
-                    <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
-                      <div className='space-y-0.5'>
-                        <FormLabel>{t('Show Discount Label')}</FormLabel>
-                        <FormDescription>
-                          {t('Display a discount tag next to the model name')}
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className='grid gap-4 md:grid-cols-2'>
-                <FormField
-                  control={form.control}
-                  name='discount_percent'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('Discount Percent')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          type='number'
-                          min='0'
-                          max='99'
-                          step='0.01'
-                          placeholder='30'
-                          disabled={!discountEnabled}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name='discount_label'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('Discount Label Text')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='30% OFF'
-                          disabled={!discountEnabled}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name='promotion_note'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('Promotion Note')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder={t('Limited time')}
-                        disabled={!discountEnabled}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className='grid gap-4 md:grid-cols-2'>
-                <FormField
-                  control={form.control}
-                  name='display_original_price_source'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('Strikethrough Original Price')}</FormLabel>
-                      <Select
-                        value={field.value || 'none'}
-                        onValueChange={field.onChange}
-                        disabled={!discountEnabled}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value='none'>
-                            {t('Do not show original price')}
-                          </SelectItem>
-                          <SelectItem value='default'>
-                            {t('Use default group as original price')}
-                          </SelectItem>
-                          <SelectItem value='group'>
-                            {t('Use specified group as original price')}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        {t(
-                          'The original price is only a visual reference and does not change billing.'
-                        )}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name='display_original_price_group'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('Original Price Group')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='default'
-                          disabled={
-                            !discountEnabled || originalPriceSource !== 'group'
-                          }
-                          {...field}
-                        />
-                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

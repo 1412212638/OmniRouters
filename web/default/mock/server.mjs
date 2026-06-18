@@ -81,7 +81,6 @@ const models = [
     model_name: 'gpt-4.1',
     description: 'General purpose flagship model with strong coding and tool use.',
     vendor_id: 1,
-    is_new: 1,
     quota_type: 0,
     model_ratio: 2,
     completion_ratio: 8,
@@ -95,9 +94,6 @@ const models = [
     model_name: 'gpt-4.1-mini',
     description: 'Fast and economical model for everyday product traffic.',
     vendor_id: 1,
-    discount_enabled: 1,
-    discount_percent: 20,
-    discount_label: 'Mock promo',
     quota_type: 0,
     model_ratio: 0.4,
     completion_ratio: 1.6,
@@ -155,7 +151,6 @@ const models = [
     model_name: 'gemini-2.5-pro',
     description: 'Large-context multimodal model for research and analysis.',
     vendor_id: 3,
-    is_new: 1,
     quota_type: 0,
     model_ratio: 1.25,
     completion_ratio: 10,
@@ -207,7 +202,6 @@ const models = [
     model_name: 'sora-2',
     description: 'Video generation model with per-request resolution pricing.',
     vendor_id: 1,
-    is_new: 1,
     quota_type: 1,
     model_ratio: 0,
     completion_ratio: 0,
@@ -248,7 +242,6 @@ const mockVariants = Array.from({ length: 24 }, (_, index) => {
     id: 100 + index,
     model_name: `${source.model_name}-mock-${sequence}`,
     description: `${source.description} Mock catalog variant ${sequence}.`,
-    is_new: index < 4 ? 1 : 0,
   }
 })
 

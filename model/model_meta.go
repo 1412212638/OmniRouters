@@ -29,13 +29,6 @@ type Model struct {
 	Tags                      string         `json:"tags,omitempty" gorm:"type:varchar(255)"`
 	VendorID                  int            `json:"vendor_id,omitempty" gorm:"index"`
 	Endpoints                 string         `json:"endpoints,omitempty" gorm:"type:text"`
-	IsNew                     int            `json:"is_new" gorm:"default:0"`
-	DiscountEnabled           int            `json:"discount_enabled" gorm:"default:0"`
-	DiscountPercent           float64        `json:"discount_percent" gorm:"default:0"`
-	DiscountLabel             string         `json:"discount_label,omitempty" gorm:"type:varchar(64)"`
-	PromotionNote             string         `json:"promotion_note,omitempty" gorm:"type:varchar(128)"`
-	DisplayOriginalPriceSource string         `json:"display_original_price_source,omitempty" gorm:"type:varchar(32)"`
-	DisplayOriginalPriceGroup  string         `json:"display_original_price_group,omitempty" gorm:"type:varchar(64)"`
 	InputModalities            StringList     `json:"input_modalities,omitempty" gorm:"type:text"`
 	OutputModalities           StringList     `json:"output_modalities,omitempty" gorm:"type:text"`
 	Status                    int            `json:"status" gorm:"default:1"`
@@ -61,28 +54,14 @@ func (mi *Model) Insert() error {
 	// Preserve explicit zero values that GORM may replace with defaults on Create.
 	originalStatus := mi.Status
 	originalSyncOfficial := mi.SyncOfficial
-	originalIsNew := mi.IsNew
-	originalDiscountEnabled := mi.DiscountEnabled
-	originalDiscountPercent := mi.DiscountPercent
-	originalDiscountLabel := mi.DiscountLabel
-	originalPromotionNote := mi.PromotionNote
-	originalDisplayOriginalPriceSource := mi.DisplayOriginalPriceSource
-	originalDisplayOriginalPriceGroup := mi.DisplayOriginalPriceGroup
 
 	if err := DB.Create(mi).Error; err != nil {
 		return err
 	}
 
 	return DB.Model(&Model{}).Where("id = ?", mi.Id).Updates(map[string]interface{}{
-		"status":                        originalStatus,
-		"sync_official":                 originalSyncOfficial,
-		"is_new":                        originalIsNew,
-		"discount_enabled":              originalDiscountEnabled,
-		"discount_percent":              originalDiscountPercent,
-		"discount_label":                originalDiscountLabel,
-		"promotion_note":                originalPromotionNote,
-		"display_original_price_source": originalDisplayOriginalPriceSource,
-		"display_original_price_group":  originalDisplayOriginalPriceGroup,
+		"status":        originalStatus,
+		"sync_official": originalSyncOfficial,
 	}).Error
 }
 
@@ -105,13 +84,6 @@ func (mi *Model) Update() error {
 		"tags":                          mi.Tags,
 		"vendor_id":                     mi.VendorID,
 		"endpoints":                     mi.Endpoints,
-		"is_new":                        mi.IsNew,
-		"discount_enabled":              mi.DiscountEnabled,
-		"discount_percent":              mi.DiscountPercent,
-		"discount_label":                mi.DiscountLabel,
-		"promotion_note":                mi.PromotionNote,
-		"display_original_price_source": mi.DisplayOriginalPriceSource,
-		"display_original_price_group":  mi.DisplayOriginalPriceGroup,
 		"input_modalities":              mi.InputModalities,
 		"output_modalities":             mi.OutputModalities,
 		"status":                        mi.Status,

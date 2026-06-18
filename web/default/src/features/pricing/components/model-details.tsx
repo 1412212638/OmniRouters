@@ -83,7 +83,6 @@ import type {
 import { DynamicPricingBreakdown } from './dynamic-pricing-breakdown'
 import { ModelDetailsApi } from './model-details-api'
 import { ModelDetailsPerformance } from './model-details-performance'
-import { ModelMarketplaceBadges } from './model-marketplace-badges'
 
 // ----------------------------------------------------------------------------
 // Local UI helpers
@@ -557,10 +556,6 @@ function ModelHeader(props: { model: PricingModel }) {
         <h1 className='font-mono text-xl font-bold tracking-tight sm:text-2xl'>
           {model.model_name}
         </h1>
-        <ModelMarketplaceBadges
-          model={model}
-          discountFallback={t('Discount')}
-        />
         <CopyButton
           value={model.model_name || ''}
           className='size-6'

@@ -37,9 +37,7 @@ import {
   stripTrailingZeros,
 } from '../lib/price'
 import type { PricingModel, TokenUnit } from '../types'
-import { ModelMarketplaceBadges } from './model-marketplace-badges'
-import { ModelPerfBadge } from './model-perf-badge'
-import type { ModelPerfBadgeData } from './model-perf-badge'
+import { ModelPerfBadge, type ModelPerfBadgeData } from './model-perf-badge'
 
 export interface ModelCardProps {
   model: PricingModel
@@ -122,10 +120,6 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
               <h3 className='text-foreground max-w-full truncate font-mono text-[15px] leading-tight font-bold'>
                 {props.model.model_name}
               </h3>
-              <ModelMarketplaceBadges
-                model={props.model}
-                discountFallback={t('Discount')}
-              />
             </div>
             <div className='mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs sm:mt-1 sm:gap-x-3'>
               {dynamicSummary ? (

@@ -20,7 +20,6 @@ import { type ColumnDef } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
 import { formatTimestampToDate } from '@/lib/format'
 import { getLobeIcon } from '@/lib/lobe-icon'
-import { getMarketplaceDisplay } from '@/lib/marketplace-display'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Tooltip,
@@ -47,49 +46,6 @@ function getCompactModelIcon(iconKey: string) {
   const baseIconKey = iconKey.split('.')[0]
 
   return getLobeIcon(`${baseIconKey}.Avatar.type={'platform'}`, 20)
-}
-
-function renderMarketplaceBadges(model: Model, t: (key: string) => string) {
-  const display = getMarketplaceDisplay(model, t('Discount'))
-  const badges: React.ReactNode[] = []
-
-  if (display.showNew) {
-    badges.push(
-      <StatusBadge
-        key='new'
-        label='NEW'
-        variant='red'
-        size='sm'
-        copyable={false}
-      />
-    )
-  }
-
-  if (display.discountLabel) {
-    badges.push(
-      <StatusBadge
-        key='discount'
-        label={display.discountLabel}
-        variant='orange'
-        size='sm'
-        copyable={false}
-      />
-    )
-  }
-
-  if (display.discountLabel && display.promotionNote) {
-    badges.push(
-      <StatusBadge
-        key='promotion'
-        label={display.promotionNote}
-        variant='red'
-        size='sm'
-        copyable={false}
-      />
-    )
-  }
-
-  return badges
 }
 
 /**
@@ -175,7 +131,6 @@ export function useModelsColumns(vendors: Vendor[] = []): ColumnDef<Model>[] {
       meta: { mobileTitle: true },
       cell: ({ row }) => {
         const name = row.getValue('model_name') as string
-        const marketplaceBadges = renderMarketplaceBadges(row.original, t)
         return (
           <div className='flex max-w-full min-w-0 flex-wrap items-center gap-1.5 overflow-hidden'>
             <StatusBadge
@@ -185,7 +140,6 @@ export function useModelsColumns(vendors: Vendor[] = []): ColumnDef<Model>[] {
               size='sm'
               className='-ml-1.5 font-mono'
             />
-            {marketplaceBadges}
           </div>
         )
       },

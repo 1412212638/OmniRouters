@@ -17,7 +17,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { formatCurrencyFromUSD } from '@/lib/currency'
-import { isDisplayEnabled } from '@/lib/marketplace-display'
 import { QUOTA_TYPE_VALUES, TOKEN_UNIT_DIVISORS } from '../constants'
 import type {
   PricingModel,
@@ -204,35 +203,6 @@ export function getSoraPricingDisplay(
         }
       : {}),
   }
-}
-
-export function getOriginalPriceGroup(model: PricingModel): string | null {
-  if (!isDisplayEnabled(model.discount_enabled)) return null
-  if (model.billing_mode === 'tiered_expr' && model.billing_expr) return null
-
-  const source = model.display_original_price_source || 'none'
-  if (source === 'none') return null
-
-  const group =
-    source === 'default'
-      ? 'default'
-      : String(model.display_original_price_group || '').trim()
-
-  if (!group) return null
-
-  const groupRatio = model.group_ratio || {}
-  const currentRatio = getMinGroupRatio(model.enable_groups || [], groupRatio)
-  const referenceRatio = groupRatio[group] ?? 1
-
-  if (
-    Number.isFinite(currentRatio) &&
-    Number.isFinite(referenceRatio) &&
-    referenceRatio <= currentRatio
-  ) {
-    return null
-  }
-
-  return group
 }
 
 /**

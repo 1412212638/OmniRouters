@@ -56,13 +56,6 @@ export type PricingModel = {
   vendor_name?: string
   vendor_icon?: string
   vendor_description?: string
-  is_new?: number
-  discount_enabled?: number
-  discount_percent?: number
-  discount_label?: string
-  promotion_note?: string
-  display_original_price_source?: string
-  display_original_price_group?: string
   created_time?: number
   quota_type: number
   model_ratio: number
