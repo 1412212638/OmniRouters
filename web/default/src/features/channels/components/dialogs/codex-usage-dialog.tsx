@@ -81,6 +81,8 @@ type CodexUsageDialogProps = {
   onOpenChange: (open: boolean) => void
   channelName?: string
   channelId?: number
+  channelDisplayName?: string
+  channelDisplayId?: string
   response: CodexUsageDialogData | null
   onRefresh?: () => void
   isRefreshing?: boolean
@@ -342,6 +344,8 @@ export function CodexUsageDialog({
   onOpenChange,
   channelName,
   channelId,
+  channelDisplayName,
+  channelDisplayId,
   response,
   onRefresh,
   isRefreshing,
@@ -414,8 +418,8 @@ export function CodexUsageDialog({
       description={
         <>
           {t('Channel:')}
-          <strong>{channelName || '-'}</strong>{' '}
-          {channelId ? `(#${channelId})` : ''}
+          <strong>{channelDisplayName ?? channelName ?? '-'}</strong>{' '}
+          {channelDisplayId ?? (channelId ? `(#${channelId})` : '')}
         </>
       }
       contentClassName='sm:max-w-3xl'

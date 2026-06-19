@@ -24,11 +24,18 @@ import {
   type SortingState,
   type Row,
 } from '@tanstack/react-table'
+import { Eye, EyeOff } from 'lucide-react'
 import { useMediaQuery } from '@/hooks'
 import { useTranslation } from 'react-i18next'
 import { getLobeIcon } from '@/lib/lobe-icon'
 import { useTableUrlState } from '@/hooks/use-table-url-state'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import {
   DISABLED_ROW_DESKTOP,
   DISABLED_ROW_MOBILE,
@@ -73,7 +80,12 @@ function isDisabledChannelRow(channel: Channel) {
 
 export function ChannelsTable() {
   const { t } = useTranslation()
-  const { enableTagMode, idSort } = useChannels()
+  const {
+    enableTagMode,
+    idSort,
+    sensitiveVisible,
+    setSensitiveVisible,
+  } = useChannels()
   const isMobile = useMediaQuery('(max-width: 640px)')
 
   // Table state
@@ -338,7 +350,10 @@ export function ChannelsTable() {
 
   const groupFilterOptions = [
     { label: t('All Groups'), value: 'all' },
-    ...groupOptions,
+    ...groupOptions.map((option) => ({
+      ...option,
+      label: sensitiveVisible ? option.label : '••••',
+    })),
   ]
 
   return (
@@ -389,6 +404,26 @@ export function ChannelsTable() {
             singleSelect: true,
           },
         ],
+        preActions: (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  onClick={() => setSensitiveVisible(!sensitiveVisible)}
+                  aria-label={sensitiveVisible ? t('Hide') : t('Show')}
+                  className='text-muted-foreground hover:text-foreground size-8'
+                />
+              }
+            >
+              {sensitiveVisible ? <Eye /> : <EyeOff />}
+            </TooltipTrigger>
+            <TooltipContent>
+              {sensitiveVisible ? t('Hide') : t('Show')}
+            </TooltipContent>
+          </Tooltip>
+        ),
       }}
       getRowClassName={(row, { isMobile }) =>
         isDisabledChannelRow(row.original)

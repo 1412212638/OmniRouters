@@ -2,6 +2,24 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-06-20
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `f7dae5cbe620c4f643b0802ab9221e221036e996`
+- Upstream `main` reviewed through: `0229dc20573f728ec1140543cdee291197d67e8c`
+- Local integration scope:
+  - Integrated first-pass low-risk frontend updates from `6ad5dbb641c40771b8ca4c2e75f8ee8f56d831c2`, `490395b2f8a62c95ca376d25cb104ab170b523f8`, `0c806db9961c3686db4fbd63764f70bbfcf899fe`, and `6bd69f3edfdd21bcd8817adbed4485f2295e1319`.
+  - Selectively integrated usage-log retry-chain and multi-key index display from `0467d5401430680b7b09a6ce83a5cea2136f0a95`, without taking the upstream frontend branding-copy changes.
+  - Adapted the channel sensitive-info toggle from `9100e15e4e9c9b31bb46dc1348d99ec7c9e1383d` to the current table-only channel UI, preserving local channel table behavior and deferring card-view pieces.
+- Deferred:
+  - Default-frontend OXC tooling migration (`5b4839fa370af1444424f9383e0150805cd4ee36`) is deferred for separate CI/tooling review.
+  - Codex usage UI/backend refactor (`3fcd741c4eb9e620186e9f6f2fb1c1c45dded19b`) is deferred because it touches controller/service/router plus both frontend themes.
+  - DataTable card/table view and channel-card refactors (`685855689232474b55d05dc6d6c9f0ea8b523d4e`, `29c3dcb9c8add1b49d6ba78ce2be0f72d6391ecc`, `a0de4b56090f170ebf69c3ce87f048a236d2cf5c`, `50b8f2a2399322bb3b46ef15086ae64205eb6506`, `4206d7fd7d81def24e7a6f8ad36d0d2d37766c62`, and the remaining model-drawer/toolbar pieces from `0229dc20573f728ec1140543cdee291197d67e8c`) are deferred to the second batch.
+- Notes:
+  - Preserved local `AGENTS.md` and `CLAUDE.md` rules instead of taking the upstream restructuring from `490395b2f8a62c95ca376d25cb104ab170b523f8`.
+  - Preserved OmniRouters-specific marketplace, wallet, mail, Sora/audio pricing, route privacy, and channel table behavior while integrating this first batch.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-06-18
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
