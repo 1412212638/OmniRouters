@@ -41,6 +41,7 @@ import { parseModelTags, formatEndpointsDisplay } from '../lib'
 import type { Model, Vendor } from '../types'
 import { DataTableRowActions } from './data-table-row-actions'
 import { DescriptionCell } from './description-cell'
+import { ModelModalitiesCell } from './model-modalities-cell'
 
 function getCompactModelIcon(iconKey: string) {
   const baseIconKey = iconKey.split('.')[0]
@@ -144,6 +145,23 @@ export function useModelsColumns(vendors: Vendor[] = []): ColumnDef<Model>[] {
         )
       },
       minSize: 200,
+    },
+
+    // Input / Output modalities column
+    {
+      id: 'modalities',
+      accessorFn: (row) =>
+        [
+          ...(row.input_modalities ?? []),
+          ...(row.output_modalities ?? []),
+        ].join(','),
+      header: `${t('Input Types')} / ${t('Output Types')}`,
+      meta: {
+        label: `${t('Input Types')} / ${t('Output Types')}`,
+      },
+      cell: ({ row }) => <ModelModalitiesCell model={row.original} />,
+      size: 260,
+      enableSorting: false,
     },
 
     // Name Rule column
