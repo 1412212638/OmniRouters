@@ -1,3 +1,13 @@
+import { useQueryClient } from '@tanstack/react-query'
+import type { ColumnDef } from '@tanstack/react-table'
+import {
+  AlertTriangle,
+  ChevronDown,
+  ChevronRight,
+  ListOrdered,
+  Shuffle,
+  SlidersHorizontal,
+} from 'lucide-react'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -18,18 +28,24 @@ For commercial licensing, please contact support@quantumnous.com
 */
 /* eslint-disable react-refresh/only-export-components */
 import { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { type ColumnDef } from '@tanstack/react-table'
-import {
-  AlertTriangle,
-  ChevronDown,
-  ChevronRight,
-  ListOrdered,
-  Shuffle,
-  SlidersHorizontal,
-} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+
+import { ConfirmDialog } from '@/components/confirm-dialog'
+import { BadgeListCell } from '@/components/data-table'
+import { GroupBadge } from '@/components/group-badge'
+import { ProviderBadge } from '@/components/provider-badge'
+import { StatusBadge, type StatusBadgeProps } from '@/components/status-badge'
+import { TableId } from '@/components/table-id'
+import { TruncatedText } from '@/components/truncated-text'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import {
   formatCurrencyFromUSD,
   formatQuotaWithCurrency,
@@ -40,21 +56,7 @@ import {
   formatQuota as formatQuotaValue,
 } from '@/lib/format'
 import { truncateText } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { ConfirmDialog } from '@/components/confirm-dialog'
-import { BadgeListCell } from '@/components/data-table'
-import { GroupBadge } from '@/components/group-badge'
-import { ProviderBadge } from '@/components/provider-badge'
-import { StatusBadge } from '@/components/status-badge'
-import { TableId } from '@/components/table-id'
-import { TruncatedText } from '@/components/truncated-text'
+
 import { getCodexUsage } from '../api'
 import { CHANNEL_STATUS_CONFIG, MODEL_FETCHABLE_TYPES } from '../constants'
 import {
@@ -90,7 +92,9 @@ function parseIonetMeta(otherInfo: string | null | undefined): null | {
   source?: string
   deployment_id?: string
 } {
-  if (!otherInfo) return null
+  if (!otherInfo) {
+    return null
+  }
   try {
     const parsed = JSON.parse(otherInfo)
     if (parsed && typeof parsed === 'object') {
@@ -107,14 +111,20 @@ function parseIonetMeta(otherInfo: string | null | undefined): null | {
  */
 function UpstreamUpdateTags({ channel }: { channel: Channel }) {
   const { upstream, setCurrentRow } = useChannels()
-  if (!MODEL_FETCHABLE_TYPES.has(channel.type)) return null
+  if (!MODEL_FETCHABLE_TYPES.has(channel.type)) {
+    return null
+  }
 
   const meta = parseUpstreamUpdateMeta(channel.settings)
-  if (!meta.enabled) return null
+  if (!meta.enabled) {
+    return null
+  }
 
   const addCount = meta.pendingAddModels.length
   const removeCount = meta.pendingRemoveModels.length
-  if (addCount === 0 && removeCount === 0) return null
+  if (addCount === 0 && removeCount === 0) {
+    return null
+  }
 
   return (
     <div className='flex items-center gap-0.5'>
@@ -303,7 +313,9 @@ function BalanceCell({ channel }: { channel: Channel }) {
   const remainingFull = withSuffix(formatBalance(balance))
   const usedDisplay =
     usedFull.length > MAX_INLINE_BALANCE_CHARS
-      ? withSuffix(formatQuotaWithCurrency(usedQuota, { compact: true, locale }))
+      ? withSuffix(
+          formatQuotaWithCurrency(usedQuota, { compact: true, locale })
+        )
       : usedFull
   const remainingDisplay =
     remainingFull.length > MAX_INLINE_BALANCE_CHARS
@@ -347,7 +359,9 @@ function BalanceCell({ channel }: { channel: Channel }) {
   const variant = getBalanceVariant(balance)
 
   const handleClickUpdate = async () => {
-    if (isUpdating) return
+    if (isUpdating) {
+      return
+    }
 
     setIsUpdating(true)
     if (channel.type === 57) {
@@ -383,6 +397,12 @@ function BalanceCell({ channel }: { channel: Channel }) {
   } else if (channel.type === 57) {
     remainingTooltipLabel = t('Click to view Codex usage')
   }
+  let remainingBadgeVariant: StatusBadgeProps['variant'] = variant
+  if (channel.type === 57) {
+    remainingBadgeVariant = 'info'
+  } else if (isUpdating) {
+    remainingBadgeVariant = 'neutral'
+  }
 
   return (
     <TooltipProvider>
@@ -409,13 +429,7 @@ function BalanceCell({ channel }: { channel: Channel }) {
             render={
               <StatusBadge
                 label={remainingBadgeLabel}
-                variant={
-                  channel.type === 57
-                    ? 'info'
-                    : isUpdating
-                      ? 'neutral'
-                      : variant
-                }
+                variant={remainingBadgeVariant}
                 size='sm'
                 copyable={false}
                 showDot={false}
@@ -440,7 +454,9 @@ function BalanceCell({ channel }: { channel: Channel }) {
         channelDisplayId={sensitiveVisible ? undefined : SENSITIVE_MASK}
         response={codexUsageResponse}
         onRefresh={async () => {
-          if (isUpdating) return
+          if (isUpdating) {
+            return
+          }
           setIsUpdating(true)
           try {
             const res = await getCodexUsage(channel.id)
@@ -581,7 +597,7 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
                         render={
                           <AlertTriangle className='h-3.5 w-3.5 flex-shrink-0 text-amber-500' />
                         }
-                      ></TooltipTrigger>
+                      />
                       <TooltipContent side='top'>
                         {t(
                           'Request body pass-through is enabled. The request body will be sent directly to the upstream without any conversion.'
@@ -597,7 +613,7 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
                         render={
                           <SlidersHorizontal className='text-info h-3.5 w-3.5 flex-shrink-0' />
                         }
-                      ></TooltipTrigger>
+                      />
                       <TooltipContent side='top'>
                         {t('Override request parameters')}
                       </TooltipContent>
@@ -714,7 +730,9 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
                         className='flex cursor-pointer items-center gap-1.5 text-xs font-medium'
                         onClick={(e) => {
                           e.stopPropagation()
-                          if (!deploymentId) return
+                          if (!deploymentId) {
+                            return
+                          }
                           const targetUrl = `/models/deployments?dFilter=${encodeURIComponent(String(deploymentId))}`
                           window.open(targetUrl, '_blank', 'noopener')
                         }}
@@ -751,7 +769,9 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
         )
       },
       filterFn: (row, id, value) => {
-        if (!value || value.length === 0 || value.includes('all')) return true
+        if (!value || value.length === 0 || value.includes('all')) {
+          return true
+        }
         return value.includes(String(row.getValue(id)))
       },
       size: 140,
@@ -872,10 +892,16 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
         )
       },
       filterFn: (row, id, value) => {
-        if (!value || value.length === 0 || value.includes('all')) return true
+        if (!value || value.length === 0 || value.includes('all')) {
+          return true
+        }
         const status = row.getValue(id) as number
-        if (value.includes('enabled')) return status === 1
-        if (value.includes('disabled')) return status !== 1
+        if (value.includes('enabled')) {
+          return status === 1
+        }
+        if (value.includes('disabled')) {
+          return status !== 1
+        }
         return false
       },
       size: 120,
@@ -892,9 +918,9 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
         const modelArray = parseModelsList(models)
         return (
           <BadgeListCell
-            items={modelArray.map((model, idx) => (
+            items={modelArray.map((model) => (
               <StatusBadge
-                key={idx}
+                key={model}
                 label={model}
                 autoColor={model}
                 size='sm'
@@ -930,7 +956,9 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
         )
       },
       filterFn: (row, id, value) => {
-        if (!value || value.length === 0 || value.includes('all')) return true
+        if (!value || value.length === 0 || value.includes('all')) {
+          return true
+        }
         const group = row.getValue(id) as string
         const groupArray = parseGroupsList(group)
         return groupArray.some((g) => value.includes(g))
@@ -946,8 +974,9 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
       meta: { mobileHidden: true },
       cell: ({ row }) => {
         const tag = row.getValue('tag') as string | null
-        if (!tag)
+        if (!tag) {
           return <span className='text-muted-foreground text-xs'>-</span>
+        }
 
         return (
           <StatusBadge
@@ -1033,11 +1062,15 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
             <Tooltip>
               <TooltipTrigger
                 render={
-                  <span className='text-muted-foreground cursor-pointer font-mono text-sm' />
+                  <StatusBadge
+                    label={timeText}
+                    variant='neutral'
+                    size='sm'
+                    copyable={false}
+                    className='-ml-1.5 cursor-pointer'
+                  />
                 }
-              >
-                {timeText}
-              </TooltipTrigger>
+              />
               <TooltipContent side='top'>
                 <p className='font-mono text-sm'>{fullDate}</p>
               </TooltipContent>

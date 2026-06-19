@@ -321,7 +321,7 @@ export const RESPONSE_TIME_THRESHOLDS = {
 
 export const RESPONSE_TIME_CONFIG = {
   EXCELLENT: { variant: 'success' as const, label: 'Excellent' },
-  GOOD: { variant: 'info' as const, label: 'Good' },
+  GOOD: { variant: 'success' as const, label: 'Good' },
   FAIR: { variant: 'warning' as const, label: 'Fair' },
   POOR: { variant: 'danger' as const, label: 'Poor' },
   UNKNOWN: { variant: 'neutral' as const, label: 'Not tested' },
