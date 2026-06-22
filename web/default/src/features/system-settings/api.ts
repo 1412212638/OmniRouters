@@ -18,7 +18,6 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { api } from '@/lib/api'
 import type {
-  DeleteLogsResponse,
   FetchUpstreamRatiosRequest,
   LogCleanupTask,
   SearchMarketingEmailUsersParams,
@@ -55,13 +54,6 @@ export async function updateEmailSettingOption(request: UpdateOptionRequest) {
     '/api/email_settings/option',
     request
   )
-  return res.data
-}
-
-export async function deleteLogsBefore(targetTimestamp: number) {
-  const res = await api.delete<DeleteLogsResponse>('/api/log/', {
-    params: { target_timestamp: targetTimestamp },
-  })
   return res.data
 }
 

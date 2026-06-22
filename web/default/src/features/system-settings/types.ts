@@ -81,12 +81,6 @@ export type SendMarketingEmailResponse = {
   }
 }
 
-export type DeleteLogsResponse = {
-  success: boolean
-  message: string
-  data?: number
-}
-
 export type SystemTaskStatus = 'pending' | 'running' | 'succeeded' | 'failed'
 
 export type SystemTask<
