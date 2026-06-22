@@ -20,11 +20,13 @@ import { api } from '@/lib/api'
 import type {
   DeleteLogsResponse,
   FetchUpstreamRatiosRequest,
+  LogCleanupTask,
   SearchMarketingEmailUsersParams,
   SearchMarketingEmailUsersResponse,
   SendMarketingEmailRequest,
   SendMarketingEmailResponse,
   SystemOptionsResponse,
+  SystemTaskResponse,
   UpdateOptionRequest,
   UpdateOptionResponse,
   UpstreamChannelsResponse,
@@ -60,6 +62,34 @@ export async function deleteLogsBefore(targetTimestamp: number) {
   const res = await api.delete<DeleteLogsResponse>('/api/log/', {
     params: { target_timestamp: targetTimestamp },
   })
+  return res.data
+}
+
+export async function startLogCleanupTask(targetTimestamp: number) {
+  const res = await api.post<SystemTaskResponse<LogCleanupTask>>(
+    '/api/system-task/log-cleanup',
+    null,
+    {
+      params: { target_timestamp: targetTimestamp },
+    }
+  )
+  return res.data
+}
+
+export async function getCurrentLogCleanupTask() {
+  const res = await api.get<SystemTaskResponse<LogCleanupTask | null>>(
+    '/api/system-task/current',
+    {
+      params: { type: 'log_cleanup' },
+    }
+  )
+  return res.data
+}
+
+export async function getSystemTask(taskId: string) {
+  const res = await api.get<SystemTaskResponse<LogCleanupTask>>(
+    `/api/system-task/${taskId}`
+  )
   return res.data
 }
 

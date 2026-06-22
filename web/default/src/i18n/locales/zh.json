@@ -2331,6 +2331,8 @@
     "Locations": "位置",
     "Locked": "锁定",
     "log": "日志的完整详情",
+    "Log cleanup progress": "日志清理进度",
+    "Log cleanup task started.": "日志清理任务已启动。",
     "Log Details": "日志详情",
     "Log Directory": "日志目录",
     "Log File Count": "日志文件数",

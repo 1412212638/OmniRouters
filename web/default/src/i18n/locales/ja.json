@@ -2331,6 +2331,8 @@
     "Locations": "場所",
     "Locked": "ロック済み",
     "log": "ログ",
+    "Log cleanup progress": "ログクリーンアップの進行状況",
+    "Log cleanup task started.": "ログクリーンアップタスクを開始しました。",
     "Log Details": "ログの詳細",
     "Log Directory": "ログディレクトリ",
     "Log File Count": "ログファイル数",
