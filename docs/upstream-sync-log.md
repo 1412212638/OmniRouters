@@ -2,6 +2,28 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-06-23
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `0229dc20573f728ec1140543cdee291197d67e8c`
+- Upstream `main` reviewed through: `f8cfbfa4`
+- Local integration scope:
+  - Integrated small backend/frontend fixes from `2c2d9211`, `fae39cd9`, `74091744`, `0c6c1b37`, `d58029c6`, `1f1da553`, `0b7ae4ea`, and `354d0fed`.
+  - Integrated routing reliability, channel-card performance, channel test environment toggles, and passive channel monitoring from `91ab664c`, `f9e508bd`, `44e0e686`, and `efd6c445`.
+  - Integrated Dashboard traffic-flow Sankey chart, node limits, persistent filters, interactive highlighting, and sensitive-data toggle from `a68041f7`, `06194801`, `8ad83bf6`, and `5e866446`.
+  - Integrated ClickHouse log database support and log cleanup task improvements from `6dc4030f`, `a162163b`, `f84b7d59`, and `f8cfbfa4`.
+  - Integrated the default-frontend `tsgo` typecheck tooling migration from `e5694748`.
+- Deferred or skipped:
+  - Skipped `cb841850` because the referenced channel type is not present locally.
+  - Did not introduce upstream `allow_wallet_overflow` / downgrade fields from `dfcb74b5`; only retained applicable low-risk migration cleanup already compatible with local behavior.
+  - Preserved local `AGENTS.md` and `CLAUDE.md` project rules.
+  - Kept OmniRouters mail settings under the admin console mail-settings area instead of moving SMTP/mail options back into upstream operations settings.
+  - Kept the legacy synchronous `DELETE /api/log/` handler and route for the classic frontend while the default frontend now uses the persistent `/api/system-task/log-cleanup` task flow.
+- Notes:
+  - Preserved OmniRouters tickets, member-tier tasks, wallet/payment display, mail settings, marketplace labels, Sora/audio pricing, route privacy, channel sensitive-info masking, and local model metadata migrations while integrating this batch.
+  - `perf_metrics_setting.excluded_status_codes` remains exposed in Monitoring & Alerts after upstream moved performance metrics out of Performance settings.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-06-20
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
