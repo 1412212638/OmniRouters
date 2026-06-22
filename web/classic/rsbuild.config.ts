@@ -1,15 +1,30 @@
 import path from 'path'
 import { createRequire } from 'module'
 import { fileURLToPath } from 'url'
+import { existsSync } from 'fs'
 import { defineConfig, loadEnv } from '@rsbuild/core'
 import { pluginReact } from '@rsbuild/plugin-react'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const require = createRequire(import.meta.url)
+const resolveNestedDependency = (fromPackage: string, dependency: string) => {
+  let dir = path.dirname(require.resolve(fromPackage))
+
+  while (dir !== path.dirname(dir)) {
+    const dependencyDir = path.join(dir, 'node_modules', dependency)
+    if (existsSync(path.join(dependencyDir, 'package.json'))) {
+      return dependencyDir
+    }
+    dir = path.dirname(dir)
+  }
+
+  return path.dirname(require.resolve(`${dependency}/package.json`))
+}
 const semiUiDir = path.resolve(
   path.dirname(require.resolve('@douyinfe/semi-ui')),
   '../..',
 )
+const semiDateFnsDir = resolveNestedDependency('@douyinfe/semi-ui', 'date-fns')
 
 export default defineConfig(({ envMode }) => {
   const env = loadEnv({ mode: envMode, prefixes: ['VITE_'] })
@@ -47,6 +62,7 @@ export default defineConfig(({ envMode }) => {
           semiUiDir,
           'dist/css/semi.css',
         ),
+        'date-fns': semiDateFnsDir,
       },
     },
     html: {
