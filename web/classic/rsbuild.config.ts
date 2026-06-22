@@ -10,11 +10,6 @@ const semiUiDir = path.resolve(
   path.dirname(require.resolve('@douyinfe/semi-ui')),
   '../..',
 )
-const workspaceNodeModules = path.resolve(__dirname, '../node_modules')
-const mermaidDir = path.resolve(
-  workspaceNodeModules,
-  '.bun/mermaid@11.15.0/node_modules/mermaid',
-)
 
 export default defineConfig(({ envMode }) => {
   const env = loadEnv({ mode: envMode, prefixes: ['VITE_'] })
@@ -48,7 +43,6 @@ export default defineConfig(({ envMode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
-        mermaid: mermaidDir,
         '@douyinfe/semi-ui/dist/css/semi.css': path.resolve(
           semiUiDir,
           'dist/css/semi.css',
