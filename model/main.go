@@ -299,6 +299,7 @@ func migrateDB() error {
 		&PerfMetric{},
 		&Ticket{},
 		&TicketMessage{},
+		&SystemInstance{},
 		&SystemTask{},
 		&SystemTaskLock{},
 	)
@@ -358,6 +359,7 @@ func migrateDBFast() error {
 		{&PerfMetric{}, "PerfMetric"},
 		{&Ticket{}, "Ticket"},
 		{&TicketMessage{}, "TicketMessage"},
+		{&SystemInstance{}, "SystemInstance"},
 		{&SystemTask{}, "SystemTask"},
 		{&SystemTaskLock{}, "SystemTaskLock"},
 	}
