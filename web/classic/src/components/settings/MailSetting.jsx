@@ -24,6 +24,7 @@ import {
   Card,
   Col,
   Form,
+  Radio,
   Row,
   Select,
   Spin,
@@ -106,6 +107,8 @@ const DEFAULT_INPUTS = {
   SMTPFrom: '',
   SMTPToken: '',
   SMTPSSLEnabled: false,
+  SMTPStartTLSEnabled: false,
+  SMTPInsecureSkipVerify: false,
   SMTPForceAuthLogin: false,
   EmailLanguage: 'zh',
   EmailDomainRestrictionEnabled: false,
@@ -116,6 +119,8 @@ const DEFAULT_INPUTS = {
 
 const booleanKeys = new Set([
   'SMTPSSLEnabled',
+  'SMTPStartTLSEnabled',
+  'SMTPInsecureSkipVerify',
   'SMTPForceAuthLogin',
   'EmailDomainRestrictionEnabled',
   'EmailAliasRestrictionEnabled',
@@ -364,26 +369,41 @@ const MailSetting = () => {
   };
 
   const submitSMTP = async () => {
+    const smtpSecurityMode = inputs.SMTPSSLEnabled
+      ? 'ssl_tls'
+      : inputs.SMTPStartTLSEnabled
+        ? 'starttls'
+        : 'none';
+    const normalizedInputs = {
+      ...inputs,
+      SMTPSSLEnabled: smtpSecurityMode === 'ssl_tls',
+      SMTPStartTLSEnabled: smtpSecurityMode === 'starttls',
+    };
     const optionKeys = [
       'SMTPServer',
       'SMTPAccount',
       'SMTPFrom',
       'SMTPSSLEnabled',
+      'SMTPStartTLSEnabled',
+      'SMTPInsecureSkipVerify',
       'SMTPForceAuthLogin',
       'EmailLanguage',
     ];
     const options = optionKeys
-      .filter((key) => originInputs[key] !== inputs[key])
-      .map((key) => ({ key, value: inputs[key] }));
+      .filter((key) => originInputs[key] !== normalizedInputs[key])
+      .map((key) => ({ key, value: normalizedInputs[key] }));
 
-    if (originInputs.SMTPPort !== inputs.SMTPPort && inputs.SMTPPort !== '') {
-      options.push({ key: 'SMTPPort', value: inputs.SMTPPort });
+    if (
+      originInputs.SMTPPort !== normalizedInputs.SMTPPort &&
+      normalizedInputs.SMTPPort !== ''
+    ) {
+      options.push({ key: 'SMTPPort', value: normalizedInputs.SMTPPort });
     }
     if (
-      originInputs.SMTPToken !== inputs.SMTPToken &&
-      inputs.SMTPToken !== ''
+      originInputs.SMTPToken !== normalizedInputs.SMTPToken &&
+      normalizedInputs.SMTPToken !== ''
     ) {
-      options.push({ key: 'SMTPToken', value: inputs.SMTPToken });
+      options.push({ key: 'SMTPToken', value: normalizedInputs.SMTPToken });
     }
 
     await updateOptions(options);
@@ -507,6 +527,23 @@ const MailSetting = () => {
 
   const handleCheckboxChange = (key, event) => {
     setInputs((prev) => ({ ...prev, [key]: event.target.checked }));
+  };
+
+  const handleSMTPSecurityModeChange = (event) => {
+    const mode = event && event.target ? event.target.value : event;
+    const nextSMTPSSLEnabled = mode === 'ssl_tls';
+    const nextSMTPStartTLSEnabled = mode === 'starttls';
+
+    formApiRef.current?.setValue('SMTPSSLEnabled', nextSMTPSSLEnabled);
+    formApiRef.current?.setValue(
+      'SMTPStartTLSEnabled',
+      nextSMTPStartTLSEnabled,
+    );
+    setInputs((prev) => ({
+      ...prev,
+      SMTPSSLEnabled: nextSMTPSSLEnabled,
+      SMTPStartTLSEnabled: nextSMTPStartTLSEnabled,
+    }));
   };
 
   const renderTemplatePane = (group) => {
@@ -709,14 +746,38 @@ const MailSetting = () => {
                   style={{ marginTop: 16 }}
                 >
                   <Col xs={24} sm={24} md={8} lg={8} xl={8}>
+                    <Text strong>{t('SMTP 加密方式')}</Text>
+                    <Radio.Group
+                      type='button'
+                      value={
+                        inputs.SMTPSSLEnabled
+                          ? 'ssl_tls'
+                          : inputs.SMTPStartTLSEnabled
+                            ? 'starttls'
+                            : 'none'
+                      }
+                      onChange={handleSMTPSecurityModeChange}
+                      style={{ marginTop: 8, marginBottom: 8 }}
+                    >
+                      <Radio value='none'>{t('无加密')}</Radio>
+                      <Radio value='ssl_tls'>{t('SSL/TLS')}</Radio>
+                      <Radio value='starttls'>{t('STARTTLS')}</Radio>
+                    </Radio.Group>
+                    <Text
+                      type='secondary'
+                      size='small'
+                      style={{ display: 'block', marginBottom: 8 }}
+                    >
+                      {t('请选择一种 SMTP 传输加密方式')}
+                    </Text>
                     <Form.Checkbox
-                      field='SMTPSSLEnabled'
+                      field='SMTPInsecureSkipVerify'
                       noLabel
                       onChange={(event) =>
-                        handleCheckboxChange('SMTPSSLEnabled', event)
+                        handleCheckboxChange('SMTPInsecureSkipVerify', event)
                       }
                     >
-                      {t('启用SMTP SSL')}
+                      {t('跳过 SMTP TLS 证书校验')}
                     </Form.Checkbox>
                     <Form.Checkbox
                       field='SMTPForceAuthLogin'

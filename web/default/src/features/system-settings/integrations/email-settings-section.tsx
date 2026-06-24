@@ -37,6 +37,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
   Select,
   SelectContent,
@@ -151,6 +152,8 @@ const createEmailSchema = (t: (key: string) => string) =>
     }, t('Enter a valid email or leave blank')),
     SMTPToken: z.string(),
     SMTPSSLEnabled: z.boolean(),
+    SMTPStartTLSEnabled: z.boolean(),
+    SMTPInsecureSkipVerify: z.boolean(),
     SMTPForceAuthLogin: z.boolean(),
     EmailLanguage: z.enum(['zh', 'en']),
     EmailDomainRestrictionEnabled: z.boolean(),
@@ -180,6 +183,8 @@ export const defaultEmailSettingsFormValues: EmailFormValues = {
   SMTPFrom: '',
   SMTPToken: '',
   SMTPSSLEnabled: false,
+  SMTPStartTLSEnabled: false,
+  SMTPInsecureSkipVerify: false,
   SMTPForceAuthLogin: false,
   EmailLanguage: 'en',
   EmailDomainRestrictionEnabled: false,
@@ -273,6 +278,8 @@ const templateGroups: TemplateGroup[] = [
 
 const booleanKeys = new Set<keyof EmailFormValues>([
   'SMTPSSLEnabled',
+  'SMTPStartTLSEnabled',
+  'SMTPInsecureSkipVerify',
   'SMTPForceAuthLogin',
   'EmailDomainRestrictionEnabled',
   'EmailAliasRestrictionEnabled',
@@ -331,6 +338,17 @@ function formatUserOption(user: MarketingEmailUser, emptyEmailLabel: string) {
   return `${username} - ${email}`
 }
 
+type SmtpSecurityMode = 'none' | 'ssl_tls' | 'starttls'
+
+function getSmtpSecurityMode(values: {
+  SMTPSSLEnabled: boolean
+  SMTPStartTLSEnabled: boolean
+}): SmtpSecurityMode {
+  if (values.SMTPSSLEnabled) return 'ssl_tls'
+  if (values.SMTPStartTLSEnabled) return 'starttls'
+  return 'none'
+}
+
 export function EmailSettingsSection({
   defaultValues,
   updateOptionRequest,
@@ -360,6 +378,8 @@ export function EmailSettingsSection({
   const changedUpdates = useMemo(() => {
     const current = form.getValues()
     const updates: Array<{ key: string; value: string | boolean }> = []
+    const currentSecurityMode = getSmtpSecurityMode(current)
+    const initialSecurityMode = getSmtpSecurityMode(defaultValues)
 
     const normalizedCurrent: EmailFormValues = {
       ...current,
@@ -368,6 +388,8 @@ export function EmailSettingsSection({
       SMTPAccount: current.SMTPAccount.trim(),
       SMTPFrom: current.SMTPFrom.trim(),
       SMTPToken: current.SMTPToken.trim(),
+      SMTPSSLEnabled: currentSecurityMode === 'ssl_tls',
+      SMTPStartTLSEnabled: currentSecurityMode === 'starttls',
       EmailDomainWhitelist: normalizeDomainWhitelist(
         current.EmailDomainWhitelist
       ),
@@ -379,6 +401,8 @@ export function EmailSettingsSection({
       SMTPAccount: defaultValues.SMTPAccount.trim(),
       SMTPFrom: defaultValues.SMTPFrom.trim(),
       SMTPToken: defaultValues.SMTPToken.trim(),
+      SMTPSSLEnabled: initialSecurityMode === 'ssl_tls',
+      SMTPStartTLSEnabled: initialSecurityMode === 'starttls',
       EmailDomainWhitelist: normalizeDomainWhitelist(
         defaultValues.EmailDomainWhitelist
       ),
@@ -457,6 +481,18 @@ export function EmailSettingsSection({
       if (b.key === 'EmailDomainWhitelist') return 1
       return 0
     })
+    const securityMode = getSmtpSecurityMode(values)
+    const sanitizedValues: EmailFormValues = {
+      ...values,
+      SMTPServer: values.SMTPServer.trim(),
+      SMTPPort: values.SMTPPort.trim(),
+      SMTPAccount: values.SMTPAccount.trim(),
+      SMTPFrom: values.SMTPFrom.trim(),
+      SMTPToken: '',
+      SMTPSSLEnabled: securityMode === 'ssl_tls',
+      SMTPStartTLSEnabled: securityMode === 'starttls',
+      EmailDomainWhitelist: domains,
+    }
 
     setSaving(true)
     try {
@@ -464,15 +500,7 @@ export function EmailSettingsSection({
         await saveOption(update)
       }
       if (updateOptionRequest) {
-        form.reset({
-          ...values,
-          SMTPServer: values.SMTPServer.trim(),
-          SMTPPort: values.SMTPPort.trim(),
-          SMTPAccount: values.SMTPAccount.trim(),
-          SMTPFrom: values.SMTPFrom.trim(),
-          SMTPToken: '',
-          EmailDomainWhitelist: domains,
-        })
+        form.reset(sanitizedValues)
         onSaved?.()
         toast.success(t('Email settings saved successfully'))
       }
@@ -819,6 +847,65 @@ export function EmailSettingsSection({
               )}
             />
 
+            <FormItem>
+              <FormLabel>{t('SMTP encryption')}</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  value={getSmtpSecurityMode({
+                    SMTPSSLEnabled: watchedValues.SMTPSSLEnabled,
+                    SMTPStartTLSEnabled: watchedValues.SMTPStartTLSEnabled,
+                  })}
+                  onValueChange={(value) => {
+                    const mode = value as SmtpSecurityMode
+                    form.setValue('SMTPSSLEnabled', mode === 'ssl_tls', {
+                      shouldDirty: true,
+                    })
+                    form.setValue('SMTPStartTLSEnabled', mode === 'starttls', {
+                      shouldDirty: true,
+                    })
+                  }}
+                  className='grid gap-3 md:grid-cols-3'
+                >
+                  <div className='flex items-center gap-2'>
+                    <RadioGroupItem value='none' id='smtp-security-none' />
+                    <FormLabel
+                      htmlFor='smtp-security-none'
+                      className='cursor-pointer font-normal'
+                    >
+                      {t('No encryption')}
+                    </FormLabel>
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <RadioGroupItem
+                      value='ssl_tls'
+                      id='smtp-security-ssl-tls'
+                    />
+                    <FormLabel
+                      htmlFor='smtp-security-ssl-tls'
+                      className='cursor-pointer font-normal'
+                    >
+                      {t('SSL/TLS')}
+                    </FormLabel>
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <RadioGroupItem
+                      value='starttls'
+                      id='smtp-security-starttls'
+                    />
+                    <FormLabel
+                      htmlFor='smtp-security-starttls'
+                      className='cursor-pointer font-normal'
+                    >
+                      {t('STARTTLS')}
+                    </FormLabel>
+                  </div>
+                </RadioGroup>
+              </FormControl>
+              <FormDescription>
+                {t('Choose one SMTP transport security mode')}
+              </FormDescription>
+            </FormItem>
+
             <div className='grid gap-6 md:grid-cols-2'>
               <FormField
                 control={form.control}
@@ -873,13 +960,17 @@ export function EmailSettingsSection({
             <div className='grid gap-6 md:grid-cols-2'>
               <FormField
                 control={form.control}
-                name='SMTPSSLEnabled'
+                name='SMTPInsecureSkipVerify'
                 render={({ field }) => (
                   <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
                     <div className='space-y-0.5'>
-                      <FormLabel>{t('Enable SSL/TLS')}</FormLabel>
+                      <FormLabel>
+                        {t('Skip SMTP TLS certificate verification')}
+                      </FormLabel>
                       <FormDescription>
-                        {t('Use secure connection when sending emails')}
+                        {t(
+                          'Allow self-signed or hostname-mismatched SMTP certificates'
+                        )}
                       </FormDescription>
                     </div>
                     <FormControl>
