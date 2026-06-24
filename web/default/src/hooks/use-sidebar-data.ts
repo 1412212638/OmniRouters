@@ -29,6 +29,7 @@ import {
   Mail,
   MessageSquare,
   Radio,
+  ServerCog,
   Settings,
   Ticket,
   User,
@@ -36,6 +37,7 @@ import {
   Wallet,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { ROLE } from '@/lib/roles'
 import { type SidebarData } from '@/components/layout/types'
 
 /**
@@ -162,6 +164,12 @@ export function useSidebarData(): SidebarData {
             title: t('Email Settings'),
             url: '/email-settings',
             icon: Mail,
+          },
+          {
+            title: t('System Info'),
+            url: '/system-info',
+            icon: ServerCog,
+            requiredRole: ROLE.SUPER_ADMIN,
           },
           {
             title: t('System Settings'),

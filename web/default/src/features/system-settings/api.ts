@@ -25,6 +25,7 @@ import type {
   SendMarketingEmailRequest,
   SendMarketingEmailResponse,
   SystemOptionsResponse,
+  SystemTaskListResponse,
   SystemTaskResponse,
   UpdateOptionRequest,
   UpdateOptionResponse,
@@ -110,6 +111,13 @@ export async function sendEmailSettingsMarketingEmail(
     '/api/email_settings/marketing_email/send',
     request
   )
+  return res.data
+}
+
+export async function listSystemTasks(limit = 20) {
+  const res = await api.get<SystemTaskListResponse>('/api/system-task/list', {
+    params: { limit },
+  })
   return res.data
 }
 

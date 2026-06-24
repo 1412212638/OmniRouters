@@ -131,6 +131,12 @@ export type SystemTaskResponse<TTask = SystemTask | null> = {
   data?: TTask
 }
 
+export type SystemTaskListResponse = {
+  success: boolean
+  message: string
+  data?: SystemTask[]
+}
+
 export type SiteSettings = {
   'theme.frontend': string
   'theme.model_square': string

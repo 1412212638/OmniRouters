@@ -47,6 +47,7 @@ func TestMain(m *testing.M) {
 		&model.Ticket{},
 		&model.TicketMessage{},
 		&model.SystemTask{},
+		&model.SystemTaskLock{},
 	); err != nil {
 		panic("failed to migrate: " + err.Error())
 	}
@@ -70,6 +71,7 @@ func truncate(t *testing.T) {
 		model.DB.Exec("DELETE FROM user_subscriptions")
 		model.DB.Exec("DELETE FROM ticket_messages")
 		model.DB.Exec("DELETE FROM tickets")
+		model.DB.Exec("DELETE FROM system_task_locks")
 		model.DB.Exec("DELETE FROM system_tasks")
 	})
 }
