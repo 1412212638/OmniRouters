@@ -2,6 +2,24 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-06-25
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `f8cfbfa4dfd92e0a34f1e62225af2223dad48f62`
+- Upstream `main` reviewed and synced through: `9ba251ce5f2acdbeda9d67fac3fb7353ec666955`
+- Local integration scope:
+  - Integrated SMTP STARTTLS/NTLM support, the SMTP PLAIN TLS guard, ClickHouse dependency updates, and DOMPurify dependency hardening from `2f23a667`, `cf6ae6fd`, `993d67eb`, `acb52d0f`, and `0bf42781`.
+  - Integrated small default-frontend fixes for channel card selection, wallet-menu visibility, user token limits, async polling delay, token-limit translations, and neutral drawing task labels from `de0d6ac9`, `0b2cf43e`, `5d943281`, `d2dcbc31`, `5814ca90`, and `b191f473`.
+  - Integrated the persistent system task runner and system instance info panel from `53771922` and `2cbdfa03`, while preserving OmniRouters ticket maintenance and member-tier scheduled tasks.
+  - Integrated the expanded default Markdown renderer from `f4473d96`, keeping DOMPurify locked to `3.4.11`.
+  - Integrated the DataTable row-action/destructive-dialog refactor from `9ba251ce`, preserving OmniRouters API-key CC Switch/chat actions and keeping subscription row actions free of the upstream paid-feature compliance gate.
+- Deferred or skipped:
+  - Reviewed but did not integrate upstream agent/skill metadata rewrites from `9fc9c8f1`, `72b3f345`, and `ad35ab1d`; local `.agents` skills and project rules remain the source of truth.
+  - Did not take the date-fns/classic release build commits `64eafc94`, `48da37a3`, `69b0f0b5`, and `c12e5db4` because OmniRouters already carries the local classic date-fns resolution and Docker/GHCR image builds are handled by GitHub Actions.
+- Notes:
+  - Preserved OmniRouters mail settings under the admin console mail-settings page, existing ticket/member-tier background tasks, local model marketplace pricing/badge behavior, Sora/audio-generation pricing customizations, and API-key chat/CC Switch integrations.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-06-23
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
