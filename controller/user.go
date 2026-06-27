@@ -580,6 +580,20 @@ func GetUserModels(c *gin.Context) {
 		return
 	}
 	groups := service.GetUserUsableGroups(user.Group)
+	group := strings.TrimSpace(c.Query("group"))
+	if group != "" {
+		description, ok := groups[group]
+		if !ok {
+			c.JSON(http.StatusOK, gin.H{
+				"success": true,
+				"message": "",
+				"data":    []string{},
+			})
+			return
+		}
+		groups = map[string]string{group: description}
+	}
+
 	var models []string
 	endpointType := constant.EndpointType(strings.TrimSpace(c.Query("endpoint_type")))
 	if endpointType == "" {
