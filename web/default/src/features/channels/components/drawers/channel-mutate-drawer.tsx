@@ -44,6 +44,7 @@ import {
   Eraser,
   Plus,
   Eye,
+  Link2,
   RefreshCw,
   Code,
   Route,
@@ -142,10 +143,8 @@ import {
 import { useChannelMutateForm } from '../../hooks/use-channel-mutate-form'
 import {
   CHANNEL_FORM_DEFAULT_VALUES,
-  CHANNEL_TYPE_ADVANCED_CUSTOM,
   channelFormSchema,
   channelsQueryKeys,
-  getAdvancedCustomStats,
   transformChannelToFormDefaults,
   type ChannelFormValues,
   deduplicateKeys,
@@ -166,7 +165,7 @@ import {
 } from '../../lib/status-code-risk-guard'
 import type { Channel } from '../../types'
 import { useChannels } from '../channels-provider'
-import { AdvancedCustomEditorDialog } from '../dialogs/advanced-custom-editor-dialog'
+import { CodexOAuthDialog } from '../dialogs/codex-oauth-dialog'
 import { FetchModelsDialog } from '../dialogs/fetch-models-dialog'
 import {
   MissingModelsConfirmationDialog,
@@ -199,6 +198,12 @@ type ModelMappingGuardrail = {
 
 type ChannelEditorSectionStatus = 'complete' | 'configured' | 'error' | 'idle'
 
+type ChannelEditorNavChildItem = {
+  id: string
+  title: string
+  configured?: boolean
+}
+
 type ChannelEditorNavItem = {
   id: string
   title: string
@@ -206,6 +211,8 @@ type ChannelEditorNavItem = {
   statusLabel: string
   status: ChannelEditorSectionStatus
   icon: ReactNode
+  configured?: boolean
+  children?: ChannelEditorNavChildItem[]
 }
 
 // Helper functions
@@ -225,6 +232,29 @@ const MODEL_MAPPING_PREVIEW_FALLBACK: Array<{
 }> = [{ source: 'client-model', target: 'upstream-model' }]
 
 const ADVANCED_SETTINGS_EXPANDED_KEY = 'channel-advanced-settings-expanded'
+const CHANNEL_EDITOR_SECTION_IDS = {
+  identity: 'channel-section-identity',
+  credentials: 'channel-section-credentials',
+  models: 'channel-section-models',
+  advanced: 'channel-section-advanced',
+} as const
+const CHANNEL_EDITOR_MAIN_SECTION_IDS = [
+  CHANNEL_EDITOR_SECTION_IDS.identity,
+  CHANNEL_EDITOR_SECTION_IDS.credentials,
+  CHANNEL_EDITOR_SECTION_IDS.models,
+  CHANNEL_EDITOR_SECTION_IDS.advanced,
+]
+const ADVANCED_SETTINGS_SECTION_IDS = {
+  routingStrategy: 'channel-section-advanced-routing-strategy',
+  internalNotes: 'channel-section-advanced-internal-notes',
+  overrideRules: 'channel-section-advanced-override-rules',
+  extraSettings: 'channel-section-advanced-extra-settings',
+  fieldPassthrough: 'channel-section-advanced-field-passthrough',
+  upstreamModelDetection: 'channel-section-advanced-upstream-model-detection',
+} as const
+const ADVANCED_SETTINGS_CHILD_SECTION_IDS: string[] = Object.values(
+  ADVANCED_SETTINGS_SECTION_IDS
+)
 const UPSTREAM_DETECTED_MODEL_PREVIEW_LIMIT = 8
 const SENSITIVE_FORM_FIELDS = [
   'type',
@@ -237,7 +267,6 @@ const SENSITIVE_FORM_FIELDS = [
   'header_override',
   'settings',
   'setting',
-  'advanced_custom',
   'is_enterprise_account',
   'vertex_key_type',
   'aws_key_type',
@@ -266,12 +295,29 @@ function readAdvancedSettingsPreference(): boolean {
   return window.localStorage.getItem(ADVANCED_SETTINGS_EXPANDED_KEY) === 'true'
 }
 
+function hasConfiguredOverrideValue(value: unknown): boolean {
+  if (typeof value !== 'string') return false
+
+  const trimmed = value.trim()
+  if (!trimmed || trimmed === 'null') return false
+
+  try {
+    const parsed = JSON.parse(trimmed)
+    if (parsed === null) return false
+    if (Array.isArray(parsed)) return parsed.length > 0
+    if (typeof parsed === 'object') return Object.keys(parsed).length > 0
+  } catch {
+    return true
+  }
+
+  return true
+}
+
 function hasAdvancedSettingsValues(values: ChannelFormValues): boolean {
   return Boolean(
-    values.param_override?.trim() ||
-    values.header_override?.trim() ||
-    values.advanced_custom?.trim() ||
-    values.status_code_mapping?.trim() ||
+    hasConfiguredOverrideValue(values.param_override) ||
+    hasConfiguredOverrideValue(values.header_override) ||
+    hasConfiguredOverrideValue(values.status_code_mapping) ||
     values.tag?.trim() ||
     values.remark?.trim() ||
     values.priority ||
@@ -331,6 +377,17 @@ function SubHeading({ title, icon }: { title: string; icon?: ReactNode }) {
         {title}
       </h4>
     </div>
+  )
+}
+
+function configuredAdvancedSectionClassName(
+  className: string,
+  configured: boolean
+) {
+  return cn(
+    className,
+    'border-border/60 rounded-lg border p-3 transition-colors',
+    configured && 'border-primary/35 ring-primary/20 ring-1'
   )
 }
 
@@ -398,6 +455,9 @@ function ChannelEditorNav(props: {
   progressLabel: string
   navigationLabel: string
   items: ChannelEditorNavItem[]
+  activeItemId?: string
+  expandedItemId?: string
+  onNavigate: (targetId: string) => void
 }) {
   return (
     <aside className='hidden self-start lg:sticky lg:top-4 lg:z-20 lg:block'>
@@ -426,50 +486,87 @@ function ChannelEditorNav(props: {
             const isError = item.status === 'error'
             const isDone =
               item.status === 'complete' || item.status === 'configured'
+            const isConfigured = Boolean(item.configured)
+            const isActive = props.activeItemId === item.id
+            const isExpanded = props.expandedItemId === item.id
             return (
-              <button
-                key={item.id}
-                type='button'
-                className={cn(
-                  'hover:bg-muted/60 flex w-full items-start gap-2 rounded-md px-2 py-2 text-left transition-colors',
-                  isError && 'text-destructive hover:bg-destructive/10'
-                )}
-                onClick={() => {
-                  document
-                    .querySelector<HTMLElement>(`#${item.id}`)
-                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }}
-              >
-                <span
+              <div key={item.id}>
+                <button
+                  type='button'
                   className={cn(
-                    'bg-muted text-muted-foreground mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md',
-                    isError && 'bg-destructive/10 text-destructive',
-                    isDone && !isError && 'text-primary'
+                    'hover:bg-muted/60 flex w-full items-start gap-2 rounded-md px-2 py-2 text-left transition-colors',
+                    isActive && 'bg-muted/70',
+                    isConfigured && !isError && 'text-primary',
+                    isError && 'text-destructive hover:bg-destructive/10'
                   )}
+                  onClick={() => props.onNavigate(item.id)}
+                  aria-current={isActive ? 'true' : undefined}
                 >
-                  {item.icon}
-                </span>
-                <span className='min-w-0 flex-1'>
-                  <span className='block truncate text-sm font-medium'>
-                    {item.title}
+                  <span
+                    className={cn(
+                      'bg-muted text-muted-foreground mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md',
+                      isConfigured && !isError && 'bg-primary/10 text-primary',
+                      isError && 'bg-destructive/10 text-destructive',
+                      isDone && !isError && 'text-primary'
+                    )}
+                  >
+                    {item.icon}
                   </span>
-                  {item.description && (
-                    <span className='text-muted-foreground block truncate text-xs'>
-                      {item.description}
+                  <span className='min-w-0 flex-1'>
+                    <span className='block truncate text-sm font-medium'>
+                      {item.title}
                     </span>
-                  )}
-                </span>
-                <span
-                  className={cn(
-                    'text-muted-foreground mt-1 shrink-0',
-                    isError && 'text-destructive',
-                    isDone && !isError && 'text-primary'
-                  )}
-                  aria-label={item.statusLabel}
-                >
-                  {getSectionStatusIcon(item.status)}
-                </span>
-              </button>
+                    {item.description && (
+                      <span className='text-muted-foreground block truncate text-xs'>
+                        {item.description}
+                      </span>
+                    )}
+                  </span>
+                  <span
+                    className={cn(
+                      'text-muted-foreground mt-1 shrink-0',
+                      isError && 'text-destructive',
+                      isDone && !isError && 'text-primary',
+                      isConfigured && !isError && 'pt-1.5'
+                    )}
+                    aria-label={item.statusLabel}
+                  >
+                    {isConfigured && !isError && !isDone ? (
+                      <span
+                        className='bg-success block size-2 rounded-full'
+                        aria-hidden='true'
+                      />
+                    ) : (
+                      getSectionStatusIcon(item.status)
+                    )}
+                  </span>
+                </button>
+                {item.children && isExpanded && (
+                  <div className='border-border/60 ml-5 flex flex-col gap-0.5 border-l py-1 pl-3'>
+                    {item.children.map((child) => (
+                      <button
+                        key={child.id}
+                        type='button'
+                        className={cn(
+                          'text-muted-foreground hover:bg-muted/50 hover:text-foreground flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs transition-colors',
+                          child.configured && 'text-primary'
+                        )}
+                        onClick={() => props.onNavigate(child.id)}
+                      >
+                        <span className='min-w-0 flex-1 truncate'>
+                          {child.title}
+                        </span>
+                        {child.configured && (
+                          <span
+                            className='bg-success size-1.5 shrink-0 rounded-full'
+                            aria-hidden='true'
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )
           })}
         </nav>
@@ -496,6 +593,7 @@ export function ChannelMutateDrawer({
   const [fetchModelsDialogOpen, setFetchModelsDialogOpen] = useState(false)
   const [channelKey, setChannelKey] = useState<string | null>(null)
   const [isChannelKeyLoading, setIsChannelKeyLoading] = useState(false)
+  const [codexOAuthDialogOpen, setCodexOAuthDialogOpen] = useState(false)
   const [isCodexCredentialRefreshing, setIsCodexCredentialRefreshing] =
     useState(false)
   const initialModelsRef = useRef<string[]>([])
@@ -513,10 +611,16 @@ export function ChannelMutateDrawer({
   const missingModelsResolveRef = useRef<
     ((action: MissingModelsAction) => void) | null
   >(null)
+  const channelFormRef = useRef<HTMLFormElement>(null)
+  const advancedNavScrollPendingRef = useRef(false)
+  const [activeEditorSectionId, setActiveEditorSectionId] = useState<string>(
+    CHANNEL_EDITOR_SECTION_IDS.identity
+  )
+  const [expandedEditorNavItemId, setExpandedEditorNavItemId] = useState<
+    string | undefined
+  >()
   const [advancedSettingsOpen, setAdvancedSettingsOpen] = useState(false)
   const [paramOverrideEditorOpen, setParamOverrideEditorOpen] = useState(false)
-  const [advancedCustomEditorOpen, setAdvancedCustomEditorOpen] =
-    useState(false)
 
   const isEditing = Boolean(currentRow)
   const channelId = currentRow?.id ?? null
@@ -598,7 +702,39 @@ export function ChannelMutateDrawer({
     'upstream_model_update_check_enabled'
   )
   const currentSettings = form.watch('settings')
-  const currentAdvancedCustom = form.watch('advanced_custom')
+  const currentPriority = form.watch('priority')
+  const currentWeight = form.watch('weight')
+  const currentTestModel = form.watch('test_model')
+  const currentAutoBan = form.watch('auto_ban')
+  const currentTag = form.watch('tag')
+  const currentRemark = form.watch('remark')
+  const currentStatusCodeMapping = form.watch('status_code_mapping')
+  const currentParamOverride = form.watch('param_override')
+  const currentHeaderOverride = form.watch('header_override')
+  const currentForceFormat = form.watch('force_format')
+  const currentThinkingToContent = form.watch('thinking_to_content')
+  const currentPassThroughBodyEnabled = form.watch('pass_through_body_enabled')
+  const currentDisableTaskPollingSleep = form.watch(
+    'disable_task_polling_sleep'
+  )
+  const currentProxy = form.watch('proxy')
+  const currentSystemPrompt = form.watch('system_prompt')
+  const currentSystemPromptOverride = form.watch('system_prompt_override')
+  const currentAllowServiceTier = form.watch('allow_service_tier')
+  const currentDisableStore = form.watch('disable_store')
+  const currentAllowSafetyIdentifier = form.watch('allow_safety_identifier')
+  const currentAllowIncludeObfuscation = form.watch(
+    'allow_include_obfuscation'
+  )
+  const currentAllowInferenceGeo = form.watch('allow_inference_geo')
+  const currentAllowSpeed = form.watch('allow_speed')
+  const currentClaudeBetaQuery = form.watch('claude_beta_query')
+  const currentUpstreamModelUpdateAutoSyncEnabled = form.watch(
+    'upstream_model_update_auto_sync_enabled'
+  )
+  const currentUpstreamModelUpdateIgnoredModels = form.watch(
+    'upstream_model_update_ignored_models'
+  )
   const {
     unlocked: doubaoApiEditUnlocked,
     handleClick: handleApiConfigSecretClick,
@@ -629,11 +765,6 @@ export function ChannelMutateDrawer({
         ? ADD_MODE_OPTIONS
         : ADD_MODE_OPTIONS.filter((option) => option.value === 'single'),
     [supportsMultiKeyAddMode]
-  )
-
-  const advancedCustomStats = useMemo(
-    () => getAdvancedCustomStats(currentAdvancedCustom),
-    [currentAdvancedCustom]
   )
 
   // Get all models list
@@ -720,8 +851,7 @@ export function ChannelMutateDrawer({
   const modelsHaveErrors = Boolean(
     formErrors.models || formErrors.group || formErrors.model_mapping
   )
-  const advancedHaveErrors =
-    hasAdvancedSettingsErrors(formErrors) || Boolean(formErrors.advanced_custom)
+  const advancedHaveErrors = hasAdvancedSettingsErrors(formErrors)
   const providerRequiresBaseUrl = [3, 8, 36, 45].includes(currentType)
   const providerRequiresOther = [3, 18, 21, 39, 41, 49].includes(currentType)
   const identityComplete = Boolean(currentName?.trim() && currentType > 0)
@@ -756,9 +886,98 @@ export function ChannelMutateDrawer({
     ? 'error'
     : 'idle'
   const advancedSummary = advancedHaveErrors ? t('Error') : undefined
+  const routingStrategyConfigured = Boolean(
+    currentPriority ||
+      currentWeight ||
+      currentTestModel?.trim() ||
+      (currentAutoBan ?? 1) !== 1
+  )
+  const internalNotesConfigured = Boolean(
+    currentTag?.trim() || currentRemark?.trim()
+  )
+  const overrideRulesConfigured = Boolean(
+    hasConfiguredOverrideValue(currentStatusCodeMapping) ||
+      hasConfiguredOverrideValue(currentParamOverride) ||
+      hasConfiguredOverrideValue(currentHeaderOverride)
+  )
+  const extraSettingsConfigured = Boolean(
+    currentForceFormat ||
+      currentThinkingToContent ||
+      currentPassThroughBodyEnabled ||
+      currentDisableTaskPollingSleep ||
+      currentProxy?.trim() ||
+      currentSystemPrompt?.trim() ||
+      currentSystemPromptOverride
+  )
+  let fieldPassthroughConfigured = false
+  if (currentType === 1) {
+    fieldPassthroughConfigured = Boolean(
+      currentAllowServiceTier ||
+        currentDisableStore ||
+        currentAllowSafetyIdentifier ||
+        currentAllowIncludeObfuscation ||
+        currentAllowInferenceGeo
+    )
+  } else if (currentType === 14) {
+    fieldPassthroughConfigured = Boolean(
+      currentAllowServiceTier ||
+        currentAllowInferenceGeo ||
+        currentAllowSpeed ||
+        currentClaudeBetaQuery
+    )
+  }
+  const upstreamModelDetectionConfigured = Boolean(
+    upstreamModelUpdateCheckEnabled ||
+      currentUpstreamModelUpdateAutoSyncEnabled ||
+      currentUpstreamModelUpdateIgnoredModels?.trim()
+  )
+  const advancedConfigured = Boolean(
+    routingStrategyConfigured ||
+      internalNotesConfigured ||
+      overrideRulesConfigured ||
+      extraSettingsConfigured ||
+      fieldPassthroughConfigured ||
+      upstreamModelDetectionConfigured
+  )
+  const advancedNavChildren: ChannelEditorNavChildItem[] = [
+    {
+      id: ADVANCED_SETTINGS_SECTION_IDS.routingStrategy,
+      title: t('Routing Strategy'),
+      configured: routingStrategyConfigured,
+    },
+    {
+      id: ADVANCED_SETTINGS_SECTION_IDS.internalNotes,
+      title: t('Internal Notes'),
+      configured: internalNotesConfigured,
+    },
+    {
+      id: ADVANCED_SETTINGS_SECTION_IDS.overrideRules,
+      title: t('Override Rules'),
+      configured: overrideRulesConfigured,
+    },
+    {
+      id: ADVANCED_SETTINGS_SECTION_IDS.extraSettings,
+      title: t('Channel Extra Settings'),
+      configured: extraSettingsConfigured,
+    },
+  ]
+  if (currentType === 1 || currentType === 14) {
+    advancedNavChildren.push({
+      id: ADVANCED_SETTINGS_SECTION_IDS.fieldPassthrough,
+      title: t('Field passthrough controls'),
+      configured: fieldPassthroughConfigured,
+    })
+  }
+  if (MODEL_FETCHABLE_TYPES.has(currentType)) {
+    advancedNavChildren.push({
+      id: ADVANCED_SETTINGS_SECTION_IDS.upstreamModelDetection,
+      title: t('Upstream Model Detection Settings'),
+      configured: upstreamModelDetectionConfigured,
+    })
+  }
   const editorNavItems: ChannelEditorNavItem[] = [
     {
-      id: 'channel-section-identity',
+      id: CHANNEL_EDITOR_SECTION_IDS.identity,
       title: t('Basic Information'),
       description: getSectionStatusLabel(identityStatus, t),
       statusLabel: getSectionStatusLabel(identityStatus, t),
@@ -766,7 +985,7 @@ export function ChannelMutateDrawer({
       icon: <Server className='h-4 w-4' aria-hidden='true' />,
     },
     {
-      id: 'channel-section-credentials',
+      id: CHANNEL_EDITOR_SECTION_IDS.credentials,
       title: t('Credentials'),
       description: getSectionStatusLabel(credentialsStatus, t),
       statusLabel: getSectionStatusLabel(credentialsStatus, t),
@@ -774,7 +993,7 @@ export function ChannelMutateDrawer({
       icon: <KeyRound className='h-4 w-4' aria-hidden='true' />,
     },
     {
-      id: 'channel-section-models',
+      id: CHANNEL_EDITOR_SECTION_IDS.models,
       title: t('Models & Groups'),
       description: getSectionStatusLabel(modelsStatus, t),
       statusLabel: getSectionStatusLabel(modelsStatus, t),
@@ -782,12 +1001,14 @@ export function ChannelMutateDrawer({
       icon: <Boxes className='h-4 w-4' aria-hidden='true' />,
     },
     {
-      id: 'channel-section-advanced',
+      id: CHANNEL_EDITOR_SECTION_IDS.advanced,
       title: t('Advanced Settings'),
       description: advancedSummary,
       statusLabel: advancedSummary ?? t('Advanced Settings'),
       status: advancedStatus,
       icon: <Settings className='h-4 w-4' aria-hidden='true' />,
+      configured: advancedConfigured,
+      children: advancedNavChildren,
     },
   ]
 
@@ -1381,6 +1602,10 @@ export function ChannelMutateDrawer({
   )
 
   const handleAdvancedSettingsOpenChange = useCallback((nextOpen: boolean) => {
+    if (!nextOpen) {
+      advancedNavScrollPendingRef.current = false
+      setExpandedEditorNavItemId(undefined)
+    }
     setAdvancedSettingsOpen(nextOpen)
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(
@@ -1389,6 +1614,90 @@ export function ChannelMutateDrawer({
       )
     }
   }, [])
+
+  const handleEditorNavNavigate = useCallback(
+    (targetId: string) => {
+      const isAdvancedTarget =
+        targetId === CHANNEL_EDITOR_SECTION_IDS.advanced ||
+        ADVANCED_SETTINGS_CHILD_SECTION_IDS.includes(targetId)
+
+      if (isAdvancedTarget) {
+        advancedNavScrollPendingRef.current = true
+        handleAdvancedSettingsOpenChange(true)
+        setActiveEditorSectionId(CHANNEL_EDITOR_SECTION_IDS.advanced)
+        setExpandedEditorNavItemId(CHANNEL_EDITOR_SECTION_IDS.advanced)
+      } else {
+        advancedNavScrollPendingRef.current = false
+        setActiveEditorSectionId(targetId)
+        setExpandedEditorNavItemId(undefined)
+      }
+
+      const scrollTargetIntoView = () => {
+        document
+          .querySelector<HTMLElement>(`#${targetId}`)
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+
+      if (isAdvancedTarget && !advancedSettingsOpen) {
+        window.requestAnimationFrame(scrollTargetIntoView)
+        return
+      }
+
+      scrollTargetIntoView()
+    },
+    [advancedSettingsOpen, handleAdvancedSettingsOpenChange]
+  )
+
+  const updateActiveEditorSection = useCallback(() => {
+    const formElement = channelFormRef.current
+    if (!formElement) return
+
+    const activationY = formElement.getBoundingClientRect().top + 80
+    let nextActiveSectionId: string = CHANNEL_EDITOR_SECTION_IDS.identity
+
+    for (const sectionId of CHANNEL_EDITOR_MAIN_SECTION_IDS) {
+      const sectionElement = document.querySelector<HTMLElement>(
+        `#${sectionId}`
+      )
+      if (!sectionElement) continue
+      if (sectionElement.getBoundingClientRect().top <= activationY) {
+        nextActiveSectionId = sectionId
+      } else {
+        break
+      }
+    }
+
+    setActiveEditorSectionId((current) =>
+      current === nextActiveSectionId ? current : nextActiveSectionId
+    )
+
+    if (nextActiveSectionId === CHANNEL_EDITOR_SECTION_IDS.advanced) {
+      advancedNavScrollPendingRef.current = false
+      setExpandedEditorNavItemId(CHANNEL_EDITOR_SECTION_IDS.advanced)
+      if (!advancedSettingsOpen) {
+        handleAdvancedSettingsOpenChange(true)
+      }
+    } else if (!advancedNavScrollPendingRef.current) {
+      setExpandedEditorNavItemId(undefined)
+    }
+  }, [advancedSettingsOpen, handleAdvancedSettingsOpenChange])
+
+  useEffect(() => {
+    if (!open || isChannelDetailLoading) return
+    const formElement = channelFormRef.current
+    if (!formElement) return
+
+    updateActiveEditorSection()
+    formElement.addEventListener('scroll', updateActiveEditorSection, {
+      passive: true,
+    })
+    window.addEventListener('resize', updateActiveEditorSection)
+
+    return () => {
+      formElement.removeEventListener('scroll', updateActiveEditorSection)
+      window.removeEventListener('resize', updateActiveEditorSection)
+    }
+  }, [isChannelDetailLoading, open, updateActiveEditorSection])
 
   const onInvalid: SubmitErrorHandler<ChannelFormValues> = useCallback(
     (errors) => {
@@ -1406,6 +1715,9 @@ export function ChannelMutateDrawer({
       onOpenChange(v)
       if (!v) {
         form.reset(CHANNEL_FORM_DEFAULT_VALUES)
+        advancedNavScrollPendingRef.current = false
+        setActiveEditorSectionId(CHANNEL_EDITOR_SECTION_IDS.identity)
+        setExpandedEditorNavItemId(undefined)
         setAdvancedSettingsOpen(false)
       }
     },
@@ -1455,6 +1767,7 @@ export function ChannelMutateDrawer({
           <Form {...form}>
             <form
               id='channel-form'
+              ref={channelFormRef}
               onSubmit={form.handleSubmit(onSubmit, onInvalid)}
               className={sideDrawerFormClassName('gap-5')}
             >
@@ -1471,10 +1784,16 @@ export function ChannelMutateDrawer({
                     progressLabel={progressLabel}
                     navigationLabel={t('Channels')}
                     items={editorNavItems}
+                    activeItemId={activeEditorSectionId}
+                    expandedItemId={expandedEditorNavItemId}
+                    onNavigate={handleEditorNavNavigate}
                   />
                   <div className='flex min-w-0 flex-col gap-5'>
                     {/* ── Basic Information ── */}
-                    <div id='channel-section-identity' className='scroll-mt-4'>
+                    <div
+                      id={CHANNEL_EDITOR_SECTION_IDS.identity}
+                      className='scroll-mt-4'
+                    >
                       <ChannelBasicSection>
                         <div className='grid gap-4 sm:grid-cols-2'>
                           <fieldset
@@ -1514,6 +1833,7 @@ export function ChannelMutateDrawer({
                                         emptyText={t('No channel type found.')}
                                         className='pl-10'
                                         allowCustomValue
+                                        openOnFocus={false}
                                       />
                                     </div>
                                   </FormControl>
@@ -1612,7 +1932,7 @@ export function ChannelMutateDrawer({
 
                     {/* ── API Access ── */}
                     <div
-                      id='channel-section-credentials'
+                      id={CHANNEL_EDITOR_SECTION_IDS.credentials}
                       className='scroll-mt-4'
                     >
                       <ChannelApiAccessSection>
@@ -2300,50 +2620,6 @@ export function ChannelMutateDrawer({
                               />
                             )}
 
-                            {currentType === CHANNEL_TYPE_ADVANCED_CUSTOM && (
-                              <FormField
-                                control={form.control}
-                                name='advanced_custom'
-                                render={({ field }) => (
-                                  <FormItem className='space-y-3 border-y py-4'>
-                                    <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
-                                      <div className='space-y-2'>
-                                        <FormLabel>
-                                          {t('Advanced Custom Routes')}
-                                        </FormLabel>
-                                        <div className='flex flex-wrap gap-2'>
-                                          <Badge variant='secondary'>
-                                            {t('Routes')}:{' '}
-                                            {advancedCustomStats.routeCount}
-                                          </Badge>
-                                          {!advancedCustomStats.valid && (
-                                            <Badge variant='destructive'>
-                                              {t('Incomplete')}
-                                            </Badge>
-                                          )}
-                                        </div>
-                                      </div>
-                                      <Button
-                                        type='button'
-                                        variant='outline'
-                                        size='sm'
-                                        onClick={() =>
-                                          setAdvancedCustomEditorOpen(true)
-                                        }
-                                      >
-                                        <Route className='mr-2 h-4 w-4' />
-                                        {t('Configure routes')}
-                                      </Button>
-                                    </div>
-                                    <FormControl>
-                                      <input type='hidden' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            )}
-
                             <ChannelAuthSection>
                               {!isEditing && (
                                 <FormField
@@ -2559,12 +2835,29 @@ export function ChannelMutateDrawer({
                               {currentType === 57 && (
                                 <div className='border-border/60 flex flex-col gap-3 border-y py-4'>
                                   <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
-                                    <div className='text-muted-foreground text-xs'>
-                                      {t(
-                                        'Codex channels use an OAuth JSON credential as the key.'
-                                      )}
+                                    <div className='flex flex-col gap-0.5'>
+                                      <div className='text-sm font-semibold'>
+                                        {t('Codex Authorization')}
+                                      </div>
+                                      <div className='text-muted-foreground text-xs'>
+                                        {t(
+                                          'Codex channels use an OAuth JSON credential as the key.'
+                                        )}
+                                      </div>
                                     </div>
                                     <div className='flex flex-wrap items-center gap-2'>
+                                      <Button
+                                        type='button'
+                                        variant='outline'
+                                        size='sm'
+                                        onClick={() =>
+                                          setCodexOAuthDialogOpen(true)
+                                        }
+                                        disabled={!canEditSensitive}
+                                      >
+                                        <Link2 className='mr-2 h-4 w-4' />
+                                        {t('Authorize')}
+                                      </Button>
                                       {isEditing && channelId && (
                                         <Button
                                           type='button'
@@ -2588,6 +2881,13 @@ export function ChannelMutateDrawer({
                                       )}
                                     </div>
                                   </div>
+                                  <Alert>
+                                    <AlertDescription>
+                                      {t(
+                                        'If authorization succeeds, the generated JSON will be inserted into the key field. You still need to save the channel to persist it.'
+                                      )}
+                                    </AlertDescription>
+                                  </Alert>
                                   <Alert className='border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-50'>
                                     <AlertDescription>
                                       {t(
@@ -2723,7 +3023,10 @@ export function ChannelMutateDrawer({
                     </div>
 
                     {/* ── Models & Groups ── */}
-                    <div id='channel-section-models' className='scroll-mt-4'>
+                    <div
+                      id={CHANNEL_EDITOR_SECTION_IDS.models}
+                      className='scroll-mt-4'
+                    >
                       <ChannelModelsSection>
                         <div className='space-y-5'>
                           <div className='border-border/60 bg-muted/10 rounded-lg border p-4'>
@@ -3086,7 +3389,10 @@ export function ChannelMutateDrawer({
                       </ChannelModelsSection>
                     </div>
 
-                    <div id='channel-section-advanced' className='scroll-mt-4'>
+                    <div
+                      id={CHANNEL_EDITOR_SECTION_IDS.advanced}
+                      className='scroll-mt-4'
+                    >
                       <ChannelAdvancedSection
                         open={advancedSettingsOpen}
                         onOpenChange={handleAdvancedSettingsOpenChange}
@@ -3098,7 +3404,13 @@ export function ChannelMutateDrawer({
                             title={t('Routing & Overrides')}
                             icon={<Route className='h-4 w-4' />}
                           />
-                          <div className='flex flex-col gap-4'>
+                          <div
+                            id={ADVANCED_SETTINGS_SECTION_IDS.routingStrategy}
+                            className={configuredAdvancedSectionClassName(
+                              'flex scroll-mt-4 flex-col gap-4',
+                              routingStrategyConfigured
+                            )}
+                          >
                             <SubHeading
                               title={t('Routing Strategy')}
                               icon={<Route className='h-3.5 w-3.5' />}
@@ -3199,7 +3511,13 @@ export function ChannelMutateDrawer({
                             />
                           </div>
 
-                          <div className='flex flex-col gap-4 border-t pt-4'>
+                          <div
+                            id={ADVANCED_SETTINGS_SECTION_IDS.internalNotes}
+                            className={configuredAdvancedSectionClassName(
+                              'flex scroll-mt-4 flex-col gap-4 border-t pt-4',
+                              internalNotesConfigured
+                            )}
+                          >
                             <SubHeading
                               title={t('Internal Notes')}
                               icon={<FileText className='h-3.5 w-3.5' />}
@@ -3250,7 +3568,13 @@ export function ChannelMutateDrawer({
                             </div>
                           </div>
 
-                          <div className='flex flex-col gap-4 border-t pt-4'>
+                          <div
+                            id={ADVANCED_SETTINGS_SECTION_IDS.overrideRules}
+                            className={configuredAdvancedSectionClassName(
+                              'flex scroll-mt-4 flex-col gap-4 border-t pt-4',
+                              overrideRulesConfigured
+                            )}
+                          >
                             <SubHeading
                               title={t('Override Rules')}
                               icon={<Code className='h-3.5 w-3.5' />}
@@ -3508,7 +3832,15 @@ export function ChannelMutateDrawer({
                         </div>
 
                         {/* ── Extra Settings ── */}
-                        <div className={sideDrawerSectionClassName()}>
+                        <div
+                          id={ADVANCED_SETTINGS_SECTION_IDS.extraSettings}
+                          className={sideDrawerSectionClassName(
+                            configuredAdvancedSectionClassName(
+                              'scroll-mt-4',
+                              extraSettingsConfigured
+                            )
+                          )}
+                        >
                           <CardHeading
                             title={t('Channel Extra Settings')}
                             icon={<Settings className='h-4 w-4' />}
@@ -3524,239 +3856,6 @@ export function ChannelMutateDrawer({
                             disabled={sensitiveLocked}
                             className='space-y-4 disabled:opacity-60'
                           >
-                            {(currentType === 1 || currentType === 14) && (
-                              <div className='border-border/60 flex flex-col gap-3 border-y py-4'>
-                                <SubHeading
-                                  title={t('Field passthrough controls')}
-                                  icon={
-                                    <SlidersHorizontal className='h-3.5 w-3.5' />
-                                  }
-                                />
-
-                                <div className='divide-border space-y-0 divide-y border-y'>
-                                  <FormField
-                                    control={form.control}
-                                    name='allow_service_tier'
-                                    render={({ field }) => (
-                                      <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
-                                        <div className='space-y-0.5'>
-                                          <FormLabel className='text-sm'>
-                                            {t(
-                                              'Allow service_tier passthrough'
-                                            )}
-                                          </FormLabel>
-                                          <FormDescription>
-                                            {t(
-                                              'Pass through the service_tier field'
-                                            )}
-                                          </FormDescription>
-                                        </div>
-                                        <FormControl>
-                                          <Switch
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                          />
-                                        </FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-
-                                  {currentType === 1 && (
-                                    <>
-                                      <FormField
-                                        control={form.control}
-                                        name='disable_store'
-                                        render={({ field }) => (
-                                          <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
-                                            <div className='space-y-0.5'>
-                                              <FormLabel className='text-sm'>
-                                                {t('Disable store passthrough')}
-                                              </FormLabel>
-                                              <FormDescription>
-                                                {t(
-                                                  'When enabled, the store field will be blocked'
-                                                )}
-                                              </FormDescription>
-                                            </div>
-                                            <FormControl>
-                                              <Switch
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                              />
-                                            </FormControl>
-                                          </FormItem>
-                                        )}
-                                      />
-
-                                      <FormField
-                                        control={form.control}
-                                        name='allow_safety_identifier'
-                                        render={({ field }) => (
-                                          <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
-                                            <div className='space-y-0.5'>
-                                              <FormLabel className='text-sm'>
-                                                {t(
-                                                  'Allow safety_identifier passthrough'
-                                                )}
-                                              </FormLabel>
-                                              <FormDescription>
-                                                {t(
-                                                  'Pass through the safety_identifier field'
-                                                )}
-                                              </FormDescription>
-                                            </div>
-                                            <FormControl>
-                                              <Switch
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                              />
-                                            </FormControl>
-                                          </FormItem>
-                                        )}
-                                      />
-
-                                      <FormField
-                                        control={form.control}
-                                        name='allow_include_obfuscation'
-                                        render={({ field }) => (
-                                          <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
-                                            <div className='space-y-0.5'>
-                                              <FormLabel className='text-sm'>
-                                                {t(
-                                                  'Allow include usage obfuscation passthrough'
-                                                )}
-                                              </FormLabel>
-                                              <FormDescription>
-                                                {t(
-                                                  'Pass through the include field for usage obfuscation'
-                                                )}
-                                              </FormDescription>
-                                            </div>
-                                            <FormControl>
-                                              <Switch
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                              />
-                                            </FormControl>
-                                          </FormItem>
-                                        )}
-                                      />
-
-                                      <FormField
-                                        control={form.control}
-                                        name='allow_inference_geo'
-                                        render={({ field }) => (
-                                          <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
-                                            <div className='space-y-0.5'>
-                                              <FormLabel className='text-sm'>
-                                                {t(
-                                                  'Allow inference geography passthrough'
-                                                )}
-                                              </FormLabel>
-                                              <FormDescription>
-                                                {t(
-                                                  'Pass through the inference_geo field for geographic routing'
-                                                )}
-                                              </FormDescription>
-                                            </div>
-                                            <FormControl>
-                                              <Switch
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                              />
-                                            </FormControl>
-                                          </FormItem>
-                                        )}
-                                      />
-                                    </>
-                                  )}
-
-                                  {currentType === 14 && (
-                                    <>
-                                      <FormField
-                                        control={form.control}
-                                        name='allow_inference_geo'
-                                        render={({ field }) => (
-                                          <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
-                                            <div className='space-y-0.5'>
-                                              <FormLabel className='text-sm'>
-                                                {t(
-                                                  'Allow inference_geo passthrough'
-                                                )}
-                                              </FormLabel>
-                                              <FormDescription>
-                                                {t(
-                                                  'Pass through the inference_geo field for Claude data residency region control'
-                                                )}
-                                              </FormDescription>
-                                            </div>
-                                            <FormControl>
-                                              <Switch
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                              />
-                                            </FormControl>
-                                          </FormItem>
-                                        )}
-                                      />
-
-                                      <FormField
-                                        control={form.control}
-                                        name='allow_speed'
-                                        render={({ field }) => (
-                                          <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
-                                            <div className='space-y-0.5'>
-                                              <FormLabel className='text-sm'>
-                                                {t('Allow speed passthrough')}
-                                              </FormLabel>
-                                              <FormDescription>
-                                                {t(
-                                                  'Pass through the speed field for Claude inference speed mode control'
-                                                )}
-                                              </FormDescription>
-                                            </div>
-                                            <FormControl>
-                                              <Switch
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                              />
-                                            </FormControl>
-                                          </FormItem>
-                                        )}
-                                      />
-
-                                      <FormField
-                                        control={form.control}
-                                        name='claude_beta_query'
-                                        render={({ field }) => (
-                                          <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
-                                            <div className='space-y-0.5'>
-                                              <FormLabel className='text-sm'>
-                                                {t(
-                                                  'Allow Claude beta query passthrough'
-                                                )}
-                                              </FormLabel>
-                                              <FormDescription>
-                                                {t(
-                                                  'Pass through the anthropic-beta header for beta features'
-                                                )}
-                                              </FormDescription>
-                                            </div>
-                                            <FormControl>
-                                              <Switch
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                              />
-                                            </FormControl>
-                                          </FormItem>
-                                        )}
-                                      />
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
                             <div className='divide-border space-y-0 divide-y border-y'>
                               {currentType === 1 && (
                                 <FormField
@@ -3934,136 +4033,394 @@ export function ChannelMutateDrawer({
                                 </FormItem>
                               )}
                             />
+                          </fieldset>
+                        </div>
 
-                            {MODEL_FETCHABLE_TYPES.has(currentType) && (
-                              <div className='border-border/60 flex flex-col gap-3 border-y py-4'>
-                                <SubHeading
-                                  title={t('Upstream Model Detection Settings')}
-                                  icon={<RefreshCw className='h-3.5 w-3.5' />}
-                                />
-                                <div className='divide-border space-y-0 divide-y border-y'>
-                                  <FormField
-                                    control={form.control}
-                                    name='upstream_model_update_check_enabled'
-                                    render={({ field }) => (
-                                      <FormItem className='flex items-center justify-between px-4 py-3'>
-                                        <div className='space-y-0.5'>
-                                          <FormLabel>
-                                            {t('Upstream Model Update Check')}
-                                          </FormLabel>
-                                          <FormDescription>
-                                            {t(
-                                              'Periodically check for upstream model changes'
-                                            )}
-                                          </FormDescription>
-                                        </div>
-                                        <FormControl>
-                                          <Switch
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                          />
-                                        </FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={form.control}
-                                    name='upstream_model_update_auto_sync_enabled'
-                                    render={({ field }) => (
-                                      <FormItem className='flex items-center justify-between px-4 py-3'>
-                                        <div className='space-y-0.5'>
-                                          <FormLabel>
-                                            {t('Auto Sync Upstream Models')}
-                                          </FormLabel>
-                                          <FormDescription>
-                                            {t(
-                                              'Automatically sync model list when upstream changes are detected'
-                                            )}
-                                          </FormDescription>
-                                        </div>
-                                        <FormControl>
-                                          <Switch
-                                            checked={field.value}
-                                            disabled={
-                                              !upstreamModelUpdateCheckEnabled
-                                            }
-                                            onCheckedChange={field.onChange}
-                                          />
-                                        </FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                </div>
+                        {(currentType === 1 || currentType === 14) && (
+                          <div
+                            id={ADVANCED_SETTINGS_SECTION_IDS.fieldPassthrough}
+                            className={sideDrawerSectionClassName(
+                              configuredAdvancedSectionClassName(
+                                'scroll-mt-4',
+                                fieldPassthroughConfigured
+                              )
+                            )}
+                          >
+                            <CardHeading
+                              title={t('Field passthrough controls')}
+                              icon={
+                                <SlidersHorizontal className='h-4 w-4' />
+                              }
+                            />
+                            <fieldset
+                              disabled={sensitiveLocked}
+                              className='disabled:opacity-60'
+                            >
+                              <div className='divide-border space-y-0 divide-y border-y'>
                                 <FormField
                                   control={form.control}
-                                  name='upstream_model_update_ignored_models'
+                                  name='allow_service_tier'
                                   render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>
-                                        {t('Ignored upstream models')}
-                                      </FormLabel>
-                                      <FormControl>
-                                        <Input
-                                          placeholder={t(
-                                            'e.g., gpt-4.1-nano,regex:^claude-.*$,regex:^sora-.*$'
+                                    <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
+                                      <div className='space-y-0.5'>
+                                        <FormLabel className='text-sm'>
+                                          {t('Allow service_tier passthrough')}
+                                        </FormLabel>
+                                        <FormDescription>
+                                          {t(
+                                            'Pass through the service_tier field'
                                           )}
-                                          {...field}
+                                        </FormDescription>
+                                      </div>
+                                      <FormControl>
+                                        <Switch
+                                          checked={field.value}
+                                          onCheckedChange={field.onChange}
                                         />
                                       </FormControl>
-                                      <FormDescription>
-                                        {t(
-                                          'Comma-separated exact model names. Prefix with regex: to ignore by regular expression.'
-                                        )}
-                                      </FormDescription>
-                                      <FormMessage />
                                     </FormItem>
                                   )}
                                 />
-                                <div className='text-muted-foreground space-y-2 border-t pt-3 text-xs'>
-                                  <div>
-                                    <span className='text-foreground font-medium'>
-                                      {t('Last check time')}:
-                                    </span>{' '}
-                                    {formatUnixTime(
-                                      upstreamUpdateMeta.lastCheckTime
-                                    )}
-                                  </div>
-                                  <div>
-                                    <span className='text-foreground font-medium'>
-                                      {t('Last detected addable models')}:
-                                    </span>{' '}
-                                    {upstreamUpdateMeta.detectedModels
-                                      .length === 0 ? (
-                                      t('None')
-                                    ) : (
-                                      <>
-                                        <span className='break-all'>
-                                          {upstreamDetectedModelsPreview.join(
-                                            ', '
+
+                                {currentType === 1 && (
+                                  <>
+                                    <FormField
+                                      control={form.control}
+                                      name='disable_store'
+                                      render={({ field }) => (
+                                        <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
+                                          <div className='space-y-0.5'>
+                                            <FormLabel className='text-sm'>
+                                              {t('Disable store passthrough')}
+                                            </FormLabel>
+                                            <FormDescription>
+                                              {t(
+                                                'When enabled, the store field will be blocked'
+                                              )}
+                                            </FormDescription>
+                                          </div>
+                                          <FormControl>
+                                            <Switch
+                                              checked={field.value}
+                                              onCheckedChange={field.onChange}
+                                            />
+                                          </FormControl>
+                                        </FormItem>
+                                      )}
+                                    />
+
+                                    <FormField
+                                      control={form.control}
+                                      name='allow_safety_identifier'
+                                      render={({ field }) => (
+                                        <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
+                                          <div className='space-y-0.5'>
+                                            <FormLabel className='text-sm'>
+                                              {t(
+                                                'Allow safety_identifier passthrough'
+                                              )}
+                                            </FormLabel>
+                                            <FormDescription>
+                                              {t(
+                                                'Pass through the safety_identifier field'
+                                              )}
+                                            </FormDescription>
+                                          </div>
+                                          <FormControl>
+                                            <Switch
+                                              checked={field.value}
+                                              onCheckedChange={field.onChange}
+                                            />
+                                          </FormControl>
+                                        </FormItem>
+                                      )}
+                                    />
+
+                                    <FormField
+                                      control={form.control}
+                                      name='allow_include_obfuscation'
+                                      render={({ field }) => (
+                                        <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
+                                          <div className='space-y-0.5'>
+                                            <FormLabel className='text-sm'>
+                                              {t(
+                                                'Allow include usage obfuscation passthrough'
+                                              )}
+                                            </FormLabel>
+                                            <FormDescription>
+                                              {t(
+                                                'Pass through the include field for usage obfuscation'
+                                              )}
+                                            </FormDescription>
+                                          </div>
+                                          <FormControl>
+                                            <Switch
+                                              checked={field.value}
+                                              onCheckedChange={field.onChange}
+                                            />
+                                          </FormControl>
+                                        </FormItem>
+                                      )}
+                                    />
+
+                                    <FormField
+                                      control={form.control}
+                                      name='allow_inference_geo'
+                                      render={({ field }) => (
+                                        <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
+                                          <div className='space-y-0.5'>
+                                            <FormLabel className='text-sm'>
+                                              {t(
+                                                'Allow inference geography passthrough'
+                                              )}
+                                            </FormLabel>
+                                            <FormDescription>
+                                              {t(
+                                                'Pass through the inference_geo field for geographic routing'
+                                              )}
+                                            </FormDescription>
+                                          </div>
+                                          <FormControl>
+                                            <Switch
+                                              checked={field.value}
+                                              onCheckedChange={field.onChange}
+                                            />
+                                          </FormControl>
+                                        </FormItem>
+                                      )}
+                                    />
+                                  </>
+                                )}
+
+                                {currentType === 14 && (
+                                  <>
+                                    <FormField
+                                      control={form.control}
+                                      name='allow_inference_geo'
+                                      render={({ field }) => (
+                                        <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
+                                          <div className='space-y-0.5'>
+                                            <FormLabel className='text-sm'>
+                                              {t(
+                                                'Allow inference_geo passthrough'
+                                              )}
+                                            </FormLabel>
+                                            <FormDescription>
+                                              {t(
+                                                'Pass through the inference_geo field for Claude data residency region control'
+                                              )}
+                                            </FormDescription>
+                                          </div>
+                                          <FormControl>
+                                            <Switch
+                                              checked={field.value}
+                                              onCheckedChange={field.onChange}
+                                            />
+                                          </FormControl>
+                                        </FormItem>
+                                      )}
+                                    />
+
+                                    <FormField
+                                      control={form.control}
+                                      name='allow_speed'
+                                      render={({ field }) => (
+                                        <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
+                                          <div className='space-y-0.5'>
+                                            <FormLabel className='text-sm'>
+                                              {t('Allow speed passthrough')}
+                                            </FormLabel>
+                                            <FormDescription>
+                                              {t(
+                                                'Pass through the speed field for Claude inference speed mode control'
+                                              )}
+                                            </FormDescription>
+                                          </div>
+                                          <FormControl>
+                                            <Switch
+                                              checked={field.value}
+                                              onCheckedChange={field.onChange}
+                                            />
+                                          </FormControl>
+                                        </FormItem>
+                                      )}
+                                    />
+
+                                    <FormField
+                                      control={form.control}
+                                      name='claude_beta_query'
+                                      render={({ field }) => (
+                                        <FormItem className='flex items-center justify-between gap-3 px-4 py-3'>
+                                          <div className='space-y-0.5'>
+                                            <FormLabel className='text-sm'>
+                                              {t(
+                                                'Allow Claude beta query passthrough'
+                                              )}
+                                            </FormLabel>
+                                            <FormDescription>
+                                              {t(
+                                                'Pass through the anthropic-beta header for beta features'
+                                              )}
+                                            </FormDescription>
+                                          </div>
+                                          <FormControl>
+                                            <Switch
+                                              checked={field.value}
+                                              onCheckedChange={field.onChange}
+                                            />
+                                          </FormControl>
+                                        </FormItem>
+                                      )}
+                                    />
+                                  </>
+                                )}
+                              </div>
+                            </fieldset>
+                          </div>
+                        )}
+
+                        {MODEL_FETCHABLE_TYPES.has(currentType) && (
+                          <div
+                            id={
+                              ADVANCED_SETTINGS_SECTION_IDS.upstreamModelDetection
+                            }
+                            className={sideDrawerSectionClassName(
+                              configuredAdvancedSectionClassName(
+                                'scroll-mt-4',
+                                upstreamModelDetectionConfigured
+                              )
+                            )}
+                          >
+                            <CardHeading
+                              title={t('Upstream Model Detection Settings')}
+                              icon={<RefreshCw className='h-4 w-4' />}
+                            />
+                            <fieldset
+                              disabled={sensitiveLocked}
+                              className='space-y-4 disabled:opacity-60'
+                            >
+                              <div className='divide-border space-y-0 divide-y border-y'>
+                                <FormField
+                                  control={form.control}
+                                  name='upstream_model_update_check_enabled'
+                                  render={({ field }) => (
+                                    <FormItem className='flex items-center justify-between px-4 py-3'>
+                                      <div className='space-y-0.5'>
+                                        <FormLabel>
+                                          {t('Upstream Model Update Check')}
+                                        </FormLabel>
+                                        <FormDescription>
+                                          {t(
+                                            'Periodically check for upstream model changes'
+                                          )}
+                                        </FormDescription>
+                                      </div>
+                                      <FormControl>
+                                        <Switch
+                                          checked={field.value}
+                                          onCheckedChange={field.onChange}
+                                        />
+                                      </FormControl>
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name='upstream_model_update_auto_sync_enabled'
+                                  render={({ field }) => (
+                                    <FormItem className='flex items-center justify-between px-4 py-3'>
+                                      <div className='space-y-0.5'>
+                                        <FormLabel>
+                                          {t('Auto Sync Upstream Models')}
+                                        </FormLabel>
+                                        <FormDescription>
+                                          {t(
+                                            'Automatically sync model list when upstream changes are detected'
+                                          )}
+                                        </FormDescription>
+                                      </div>
+                                      <FormControl>
+                                        <Switch
+                                          checked={field.value}
+                                          disabled={
+                                            !upstreamModelUpdateCheckEnabled
+                                          }
+                                          onCheckedChange={field.onChange}
+                                        />
+                                      </FormControl>
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                              <FormField
+                                control={form.control}
+                                name='upstream_model_update_ignored_models'
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>
+                                      {t('Ignored upstream models')}
+                                    </FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder={t(
+                                          'e.g., gpt-4.1-nano,regex:^claude-.*$,regex:^sora-.*$'
+                                        )}
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormDescription>
+                                      {t(
+                                        'Comma-separated exact model names. Prefix with regex: to ignore by regular expression.'
+                                      )}
+                                    </FormDescription>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <div className='text-muted-foreground space-y-2 border-t pt-3 text-xs'>
+                                <div>
+                                  <span className='text-foreground font-medium'>
+                                    {t('Last check time')}:
+                                  </span>{' '}
+                                  {formatUnixTime(
+                                    upstreamUpdateMeta.lastCheckTime
+                                  )}
+                                </div>
+                                <div>
+                                  <span className='text-foreground font-medium'>
+                                    {t('Last detected addable models')}:
+                                  </span>{' '}
+                                  {upstreamUpdateMeta.detectedModels.length ===
+                                  0 ? (
+                                    t('None')
+                                  ) : (
+                                    <>
+                                      <span className='break-all'>
+                                        {upstreamDetectedModelsPreview.join(
+                                          ', '
+                                        )}
+                                      </span>
+                                      {upstreamDetectedModelsOmittedCount >
+                                        0 && (
+                                        <span className='ml-1'>
+                                          {t(
+                                            '({{total}} total, {{omit}} omitted)',
+                                            {
+                                              total:
+                                                upstreamUpdateMeta
+                                                  .detectedModels.length,
+                                              omit: upstreamDetectedModelsOmittedCount,
+                                            }
                                           )}
                                         </span>
-                                        {upstreamDetectedModelsOmittedCount >
-                                          0 && (
-                                          <span className='ml-1'>
-                                            {t(
-                                              '({{total}} total, {{omit}} omitted)',
-                                              {
-                                                total:
-                                                  upstreamUpdateMeta
-                                                    .detectedModels.length,
-                                                omit: upstreamDetectedModelsOmittedCount,
-                                              }
-                                            )}
-                                          </span>
-                                        )}
-                                      </>
-                                    )}
-                                  </div>
+                                      )}
+                                    </>
+                                  )}
                                 </div>
                               </div>
-                            )}
-                          </fieldset>
-                        </div>
+                            </fieldset>
+                          </div>
+                        )}
                       </ChannelAdvancedSection>
                     </div>
                   </div>
@@ -4102,19 +4459,16 @@ export function ChannelMutateDrawer({
         />
       )}
 
-      {advancedCustomEditorOpen && !sensitiveLocked && (
-        <AdvancedCustomEditorDialog
-          open={advancedCustomEditorOpen}
-          value={form.watch('advanced_custom') || ''}
-          onOpenChange={setAdvancedCustomEditorOpen}
-          onSave={(nextValue) => {
-            form.setValue('advanced_custom', nextValue, {
-              shouldDirty: true,
-              shouldValidate: true,
-            })
-          }}
-        />
-      )}
+      <CodexOAuthDialog
+        open={codexOAuthDialogOpen}
+        onOpenChange={setCodexOAuthDialogOpen}
+        onKeyGenerated={(key) => {
+          form.setValue('key', key, {
+            shouldDirty: true,
+            shouldValidate: true,
+          })
+        }}
+      />
 
       {/* Fetch Models Dialog */}
       <FetchModelsDialog

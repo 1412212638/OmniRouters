@@ -16,26 +16,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import {
-  type OnChangeFn,
-  type SortingState,
-  type Row,
-} from '@tanstack/react-table'
+import type { OnChangeFn, SortingState, Row } from '@tanstack/react-table'
 import { Eye, EyeOff } from 'lucide-react'
-import { useMediaQuery } from '@/hooks'
+import { useState, useMemo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getLobeIcon } from '@/lib/lobe-icon'
-import { useTableUrlState } from '@/hooks/use-table-url-state'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+
 import {
   DISABLED_ROW_DESKTOP,
   DISABLED_ROW_MOBILE,
@@ -43,6 +30,17 @@ import {
   useDebouncedColumnFilter,
   useDataTable,
 } from '@/components/data-table'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { useMediaQuery } from '@/hooks'
+import { useTableUrlState } from '@/hooks/use-table-url-state'
+import { getLobeIcon } from '@/lib/lobe-icon'
+
 import { getChannels, searchChannels, getGroups } from '../api'
 import {
   DEFAULT_PAGE_SIZE,
@@ -57,14 +55,13 @@ import {
   getChannelTypeLabel,
 } from '../lib'
 import type { Channel, ChannelSortBy } from '../types'
-import { useChannelsColumns } from './channels-columns'
 import { ChannelCard } from './channel-card'
+import { useChannelsColumns } from './channels-columns'
 import { useChannels } from './channels-provider'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 
 const route = getRouteApi('/_authenticated/channels/')
-const CHANNELS_COLUMN_VISIBILITY_STORAGE_KEY =
-  'channels:column-visibility'
+const CHANNELS_COLUMN_VISIBILITY_STORAGE_KEY = 'channels:column-visibility'
 const CHANNELS_VIEW_MODE_STORAGE_KEY = 'channels:view-mode'
 
 const CHANNEL_SORTABLE_COLUMNS = new Set<ChannelSortBy>([
@@ -87,6 +84,7 @@ export function ChannelsTable() {
   const {
     enableTagMode,
     idSort,
+    batchMode,
     sensitiveVisible,
     setSensitiveVisible,
   } = useChannels()
@@ -272,7 +270,7 @@ export function ChannelsTable() {
   const typeCounts = data?.data?.type_counts
 
   // Columns configuration
-  const columns = useChannelsColumns()
+  const columns = useChannelsColumns({ enableSelection: batchMode })
 
   // React Table instance
   const { table } = useDataTable({
@@ -288,7 +286,9 @@ export function ChannelsTable() {
     columnFilters,
     pagination,
     globalFilter,
-    enableRowSelection: (row: Row<Channel>) => !isTagAggregateRow(row.original),
+    enableRowSelection: batchMode
+      ? (row: Row<Channel>) => !isTagAggregateRow(row.original)
+      : false,
     onSortingChange: handleSortingChange,
     onColumnFiltersChange,
     onPaginationChange,
@@ -300,6 +300,12 @@ export function ChannelsTable() {
     withExpandedRowModel: true,
     ensurePageInRange,
   })
+
+  useEffect(() => {
+    if (!batchMode) {
+      table.resetRowSelection()
+    }
+  }, [batchMode, table])
 
   // Prepare filter options from existing channel types only.
   const typeFilterOptions = useMemo(() => {
@@ -436,14 +442,16 @@ export function ChannelsTable() {
           </Tooltip>
         ),
       }}
-      getRowClassName={(row, { isMobile }) =>
-        isDisabledChannelRow(row.original)
-          ? isMobile
-            ? DISABLED_ROW_MOBILE
-            : DISABLED_ROW_DESKTOP
-          : undefined
-      }
-      bulkActions={<DataTableBulkActions table={table} />}
+      getRowClassName={(row, { isMobile }) => {
+        if (!isDisabledChannelRow(row.original)) {
+          return undefined
+        }
+        if (isMobile) {
+          return DISABLED_ROW_MOBILE
+        }
+        return DISABLED_ROW_DESKTOP
+      }}
+      bulkActions={batchMode ? <DataTableBulkActions table={table} /> : null}
     />
   )
 }
