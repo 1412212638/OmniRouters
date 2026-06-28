@@ -19,8 +19,9 @@ For commercial licensing, please contact support@quantumnous.com
 import * as React from 'react'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { cn } from '@/lib/utils'
+
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 
 export type ComboboxInputOption = {
   value: string

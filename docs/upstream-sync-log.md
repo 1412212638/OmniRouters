@@ -21,6 +21,23 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Added regression coverage for the local Codex OAuth channel routes and combined Playground group/endpoint filtering.
   - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
 
+## 2026-06-29 (follow-up)
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `3a506f50f08b4c11968f102972bc814e0fc9da0d`
+- Upstream `main` reviewed and synced through: `25f998595d2da4ac9c749f3eae8fffcf9047bc3e`
+- Local integration scope:
+  - Integrated the Responses-to-Chat and Chat-to-Responses conversion expansion from `2d5a041639e56316a45e8a2a11e5b5fb50c7a6ac`, including Gemini Responses relay support, stream handling, and conversion regression tests.
+  - Integrated the channel editor section navigation and layout update from `1d166532fe954a45207dffd2924697796a984159`.
+  - Integrated the channel management refinements from `25f998595d2da4ac9c749f3eae8fffcf9047bc3e`, including opt-in batch operations, consistency-repair confirmation, card/table sensitive-data masking, JSON editor initialization, and channel drawer navigation refinements.
+- Adaptations:
+  - Excluded Advanced Custom channel DTO, adapter, editor, and translation fragments because that channel remains intentionally deferred in OmniRouters.
+  - Restored the local Codex OAuth authorization dialog and credential workflow in the refactored channel drawer.
+  - Preserved channel-scoped administrator permissions, sensitive-field write protection, and the local Codex usage/operation route classifications.
+- Notes:
+  - Preserved OmniRouters mail settings and marketing mail, wallet fee/currency and corporate-transfer display, Sora per-request/audio-generation surcharge pricing, model marketplace labels, custom OAuth/login behavior, tickets, task-log model privacy, OpenAI asynchronous image handling, and external homepage/about integration.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-06-25
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
