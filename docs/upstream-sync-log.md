@@ -2,6 +2,25 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-06-29
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `9ba251ce5f2acdbeda9d67fac3fb7353ec666955`
+- Upstream `main` reviewed and synced through: `3a506f50f08b4c11968f102972bc814e0fc9da0d`
+- Local integration scope:
+  - Integrated Waffo goods information and SDK updates, tiered-pricing editor refresh, theme-switch route reset, async task node attribution, ClickHouse `LIKE` filtering, and password validation copy from `79396745`, `3245b2b7`, `c0e42bfb`, `d10fc762`, `df44a75d`, and `df5ba9fa`.
+  - Integrated rich HTML/Markdown rendering and sanitization from `0b48ad86` and `626dadb5`, while retaining the local external-page theme, language, and scroll bridge.
+  - Integrated OpenAI Chat-to-Responses compatibility hardening from `3a506f50`.
+  - Integrated the Playground experience and Markdown renderer refactor from `966af88e`, preserving group-aware OpenAI endpoint model filtering.
+  - Integrated channel-scoped administrator permissions from `4aee5f7d`, preserving the local Codex OAuth/usage routes and classifying credential-changing operations as sensitive.
+- Already satisfied or skipped:
+  - `35074345` was already satisfied by the existing exact DOMPurify `3.4.11` package and lock entries.
+  - `6c35e1ef` only updates upstream i18n skill metadata; local project skills and rules remain authoritative.
+- Notes:
+  - Preserved OmniRouters mail settings and marketing mail, wallet fee/currency and corporate-transfer display, Sora per-request/audio-generation surcharge pricing, model marketplace labels, custom OAuth/login behavior, ticket routes, task-log model display, OpenAI asynchronous image handling, and external homepage/about integration.
+  - Added regression coverage for the local Codex OAuth channel routes and combined Playground group/endpoint filtering.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-06-25
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
