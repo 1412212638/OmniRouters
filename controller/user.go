@@ -18,6 +18,7 @@ import (
 	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/service/authz"
 	"github.com/QuantumNous/new-api/setting"
+	"github.com/QuantumNous/new-api/setting/ratio_setting"
 
 	"github.com/QuantumNous/new-api/constant"
 
@@ -583,7 +584,7 @@ func GetUserModels(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
-	groups := service.GetUserUsableGroups(user.Group)
+	groups := service.GetUserUsableGroupsWithExtras(user.Group, user.GetExtraGroups())
 	group := strings.TrimSpace(c.Query("group"))
 	if group != "" {
 		description, ok := groups[group]
@@ -691,6 +692,16 @@ func UpdateUser(c *gin.Context) {
 		common.ApiErrorI18n(c, i18n.MsgUserNoPermissionHigherLevel)
 		return
 	}
+	if updatedUser.ExtraGroups == nil {
+		updatedUser.ExtraGroups = originUser.ExtraGroups
+	} else {
+		extraGroups, err := normalizeUserExtraGroups(updatedUser.Group, updatedUser.ExtraGroups)
+		if err != nil {
+			common.ApiError(c, err)
+			return
+		}
+		updatedUser.ExtraGroups = extraGroups
+	}
 	if updatedUser.Password == "$I_LOVE_U" {
 		updatedUser.Password = "" // rollback to what it should be
 	}
@@ -717,14 +728,36 @@ func UpdateUser(c *gin.Context) {
 		common.SysLog(fmt.Sprintf("failed to invalidate user cache for user %d: %s", updatedUser.Id, err.Error()))
 	}
 	recordManageAuditFor(c, updatedUser.Id, "user.update", map[string]interface{}{
-		"username": originUser.Username,
-		"id":       updatedUser.Id,
+		"username":     originUser.Username,
+		"id":           updatedUser.Id,
+		"group":        updatedUser.Group,
+		"extra_groups": updatedUser.ExtraGroups,
 	})
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
 	})
 	return
+}
+
+func normalizeUserExtraGroups(primaryGroup string, groups model.StringList) (model.StringList, error) {
+	normalized := make(model.StringList, 0, len(groups))
+	seen := make(map[string]struct{}, len(groups))
+	for _, group := range groups {
+		group = strings.TrimSpace(group)
+		if group == "" || group == "auto" || group == primaryGroup {
+			continue
+		}
+		if !ratio_setting.ContainsGroupRatio(group) {
+			return nil, fmt.Errorf("group %s is not available", group)
+		}
+		if _, ok := seen[group]; ok {
+			continue
+		}
+		seen[group] = struct{}{}
+		normalized = append(normalized, group)
+	}
+	return normalized, nil
 }
 
 func AdminClearUserBinding(c *gin.Context) {

@@ -69,3 +69,12 @@ func (l StringList) Value() (driver.Value, error) {
 	}
 	return string(data), nil
 }
+
+func serializeStringList(items StringList) string {
+	data, err := common.Marshal([]string(normalizeStringList([]string(items))))
+	if err != nil {
+		common.SysLog("failed to serialize string list: " + err.Error())
+		return "[]"
+	}
+	return string(data)
+}

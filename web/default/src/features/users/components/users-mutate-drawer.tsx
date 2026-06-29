@@ -34,6 +34,7 @@ import { getCurrencyDisplay, getCurrencyLabel } from '@/lib/currency'
 import { formatQuota, parseQuotaFromDollars } from '@/lib/format'
 import { ROLE } from '@/lib/roles'
 import { useAuthStore } from '@/stores/auth-store'
+import { MultiSelect } from '@/components/multi-select'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -151,8 +152,15 @@ export function UsersMutateDrawer({
 
   const currentQuotaRaw = form.watch('quota_dollars') || 0
   const selectedRole = form.watch('role')
+  const selectedPrimaryGroup = form.watch('group')
   const canEditAdminPermissions = currentUser?.role === ROLE.SUPER_ADMIN
   const targetIsAdmin = (selectedRole ?? currentRow?.role ?? 0) >= ROLE.ADMIN
+  const extraGroupOptions = groups
+    .filter(
+      (group) =>
+        group !== selectedPrimaryGroup && group.toLowerCase() !== 'auto'
+    )
+    .map((group) => ({ value: group, label: group }))
 
   const onSubmit = async (data: UserFormValues) => {
     if (!isUpdate) {
@@ -364,7 +372,19 @@ export function UsersMutateDrawer({
                               label: group,
                             })),
                           ]}
-                          onValueChange={field.onChange}
+                          onValueChange={(value) => {
+                            if (value === null) return
+                            field.onChange(value)
+                            const extraGroups =
+                              form.getValues('extra_groups') || []
+                            if (extraGroups.includes(value)) {
+                              form.setValue(
+                                'extra_groups',
+                                extraGroups.filter((group) => group !== value),
+                                { shouldDirty: true }
+                              )
+                            }
+                          }}
                           value={field.value}
                         >
                           <FormControl>
@@ -382,6 +402,33 @@ export function UsersMutateDrawer({
                             </SelectGroup>
                           </SelectContent>
                         </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='extra_groups'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Extra usable groups')}</FormLabel>
+                        <FormControl>
+                          <MultiSelect
+                            id='user-extra-groups'
+                            options={extraGroupOptions}
+                            selected={field.value}
+                            onChange={field.onChange}
+                            placeholder={t('Select additional groups')}
+                            emptyText={t('No additional groups available')}
+                            maxVisibleChips={4}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          {t(
+                            'Grant this user access to additional groups without changing their primary group or membership tier.'
+                          )}
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}

@@ -179,18 +179,20 @@ func getModelListGroups(c *gin.Context) (modelListGroups, error) {
 	tokenGroup := common.GetContextKeyString(c, constant.ContextKeyTokenGroup)
 	userGroup := common.GetContextKeyString(c, constant.ContextKeyUserGroup)
 	if userGroup == "" && (tokenGroup == "" || tokenGroup == "auto") {
-		var err error
-		userGroup, err = model.GetUserGroup(c.GetInt("id"), false)
+		user, err := model.GetUserCache(c.GetInt("id"))
 		if err != nil {
 			return modelListGroups{}, err
 		}
+		userGroup = user.Group
+		common.SetContextKey(c, constant.ContextKeyUserGroup, user.Group)
+		common.SetContextKey(c, constant.ContextKeyUserExtraGroups, user.GetExtraGroups())
 	}
 
 	if tokenGroup == "auto" {
 		return modelListGroups{
 			userGroup:   userGroup,
 			tokenGroup:  tokenGroup,
-			ownerGroups: service.GetUserAutoGroup(userGroup),
+			ownerGroups: service.GetUserAutoGroupForContext(c),
 		}, nil
 	}
 

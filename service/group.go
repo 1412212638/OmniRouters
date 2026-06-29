@@ -3,11 +3,18 @@ package service
 import (
 	"strings"
 
+	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
+	"github.com/gin-gonic/gin"
 )
 
 func GetUserUsableGroups(userGroup string) map[string]string {
+	return GetUserUsableGroupsWithExtras(userGroup, nil)
+}
+
+func GetUserUsableGroupsWithExtras(userGroup string, extraGroups []string) map[string]string {
 	groupsCopy := setting.GetUserUsableGroupsCopy()
 	if userGroup != "" {
 		specialSettings, b := ratio_setting.GetGroupRatioSetting().GroupSpecialUsableGroup.Get(userGroup)
@@ -33,6 +40,16 @@ func GetUserUsableGroups(userGroup string) map[string]string {
 			groupsCopy[userGroup] = "用户分组"
 		}
 	}
+	for _, group := range extraGroups {
+		group = strings.TrimSpace(group)
+		if group == "" || group == "auto" || group == userGroup {
+			continue
+		}
+		if !ratio_setting.ContainsGroupRatio(group) {
+			continue
+		}
+		groupsCopy[group] = setting.GetUsableGroupDescription(group)
+	}
 	return groupsCopy
 }
 
@@ -41,9 +58,23 @@ func GroupInUserUsableGroups(userGroup, groupName string) bool {
 	return ok
 }
 
+func GroupInUserUsableGroupsForContext(c *gin.Context, groupName string) bool {
+	_, ok := GetUserUsableGroupsForContext(c)[groupName]
+	return ok
+}
+
+func GetUserUsableGroupsForContext(c *gin.Context) map[string]string {
+	userGroup := common.GetContextKeyString(c, constant.ContextKeyUserGroup)
+	return GetUserUsableGroupsWithExtras(userGroup, getUserExtraGroupsFromContext(c))
+}
+
 // GetUserAutoGroup 根据用户分组获取自动分组设置
 func GetUserAutoGroup(userGroup string) []string {
-	groups := GetUserUsableGroups(userGroup)
+	return GetUserAutoGroupWithExtras(userGroup, nil)
+}
+
+func GetUserAutoGroupWithExtras(userGroup string, extraGroups []string) []string {
+	groups := GetUserUsableGroupsWithExtras(userGroup, extraGroups)
 	autoGroups := make([]string, 0)
 	for _, group := range setting.GetAutoGroups() {
 		if _, ok := groups[group]; ok {
@@ -51,6 +82,23 @@ func GetUserAutoGroup(userGroup string) []string {
 		}
 	}
 	return autoGroups
+}
+
+func GetUserAutoGroupForContext(c *gin.Context) []string {
+	userGroup := common.GetContextKeyString(c, constant.ContextKeyUserGroup)
+	return GetUserAutoGroupWithExtras(userGroup, getUserExtraGroupsFromContext(c))
+}
+
+func getUserExtraGroupsFromContext(c *gin.Context) []string {
+	value, ok := common.GetContextKey(c, constant.ContextKeyUserExtraGroups)
+	if !ok {
+		return nil
+	}
+	groups, ok := value.([]string)
+	if !ok {
+		return nil
+	}
+	return groups
 }
 
 // GetUserGroupRatio 获取用户使用某个分组的倍率
