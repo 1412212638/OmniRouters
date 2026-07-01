@@ -122,3 +122,23 @@ func TestValidateMultipartDirectAllowsInputReferenceFileWithoutPrompt(t *testing
 		t.Fatalf("action = %s, want %s", info.Action, constant.TaskActionGenerate)
 	}
 }
+
+func TestValidateMultipartDirectNormalizesWanImageField(t *testing.T) {
+	c := newJSONTaskTestContext(`{"model":"wan2.7-i2v","prompt":"animate","image":" https://example.com/first.png "}`)
+	info := newTaskRelayInfo()
+
+	if taskErr := ValidateMultipartDirect(c, info); taskErr != nil {
+		t.Fatalf("unexpected validation error: %v", taskErr)
+	}
+	if info.Action != constant.TaskActionGenerate {
+		t.Fatalf("action = %s, want %s", info.Action, constant.TaskActionGenerate)
+	}
+
+	req, err := GetTaskRequest(c)
+	if err != nil {
+		t.Fatalf("get task request: %v", err)
+	}
+	if len(req.Images) != 1 || req.Images[0] != "https://example.com/first.png" {
+		t.Fatalf("single image was not normalized into images: %#v", req.Images)
+	}
+}
