@@ -2,6 +2,24 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-07-01
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `25f998595d2da4ac9c749f3eae8fffcf9047bc3e`
+- Upstream `main` reviewed through: `5bf346836273fc201a0a479aff5b257b4553e478`
+- Local integration scope:
+  - Integrated `c8491b41bc4491f9cda5a440b481bb53f9d2d7e1` so Doubao Seedance 2.0 task billing reflects output resolution and video input.
+  - Integrated `e514db20f762649014bce8950ef85b182f5f1b3f` for Seedance 2.0 `safety_identifier`, explicit-zero-safe `priority`, and 4K billing.
+  - Added focused regression coverage for the standard/fast model billing matrix, request metadata extraction, explicit `priority: 0` forwarding, and the local blank-prompt behavior.
+- Deferred or skipped:
+  - Kept Advanced Custom channel support deferred, so `43591fba` was not integrated.
+  - Skipped the Electron-only lockfile refresh in `12fc0100`; server and GHCR builds do not consume it.
+  - Skipped the 679-file frontend formatting commit `5bf34683` to avoid unrelated churn across OmniRouters custom UI and project rules.
+- Notes:
+  - Preserved the local Doubao behavior that omits blank prompt content.
+  - Preserved OmniRouters Sora per-request and `audio_generation` fixed-surcharge billing; Seedance uses its own task adapter and `OtherRatios` path.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-06-29
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
