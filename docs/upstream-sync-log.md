@@ -2,6 +2,28 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-07-04
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `8874d1929f97bb3f7fcae2af81c9e114535044f1`
+- Upstream `main` reviewed through: `b6e8ff9dd5d22399ca558193ced497e4aa81680a`
+- Local integration scope:
+  - Integrated `0565e626793da84606190f9ad0d4e2d0fa349202` so transient network and server errors do not invalidate authenticated sessions.
+  - Integrated `bfddc5fea0ba9010a14d7f88f43f08478aac9446` and `dfc0d6324b40c1d6c2972e524409f933541bfb0f` for access-token query protection and race-safe user setting/cache updates.
+  - Integrated `69c4d83df403c834c1476b732add66ca8a08b36e` and `1dcb389d008ea912224abedff3aeb8cde28e2693` for the Go network and image dependency updates.
+  - Integrated `0977965d933f599b0bbed3ca501b67abce6ce712` for Ollama non-stream tool-call conversion and regression tests.
+  - Integrated `a6c02012571602b9d7da8ab3a35c6471460d0b3a`, `aa334c0850b10ca91d56d1b0792927c26575f1c9`, and `70c0b37eec6ec8d31196f2a61090f861cb210a45` for the AI SDK 7 frontend dependency set and nested usage details.
+  - Integrated `c1903607d5c1d22a503153c81b694ed72b50a97d`, `b35dfa32efad17a6acb01ccea6a241cc8d1ab2c5`, and `c5600f9b11b913a8898f8ac340ab56b856afd2c4` for channel filter persistence and channel test dialog improvements.
+- Deferred or skipped:
+  - Skipped `55858f353c95376d1e1d69af8893e9b9e182d0d0` because it replaces local image workflows with upstream Docker Hub publishing and removes workflows still used by OmniRouters.
+  - Skipped the empty Electron dependency commit `917a2cff64feed0acd687298252bd400adf293e0`.
+  - Did not cherry-pick merge wrappers `f5bba114` and `b6e8ff9d`; their selected underlying commits were integrated directly.
+- Notes:
+  - Preserved local member tiers, extra user groups, tickets, email settings, billing extensions, and GHCR publishing.
+  - Extended the upstream non-quota cache refresh to include `ExtraGroups` without overwriting quota fields.
+  - Extended access-token omission to local bulk user queries used by tickets and marketing email services.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-07-03
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
