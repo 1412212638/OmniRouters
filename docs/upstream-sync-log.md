@@ -2,6 +2,27 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-07-03
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `5bf346836273fc201a0a479aff5b257b4553e478`
+- Upstream `main` reviewed through: `8874d1929f97bb3f7fcae2af81c9e114535044f1`
+- Local integration scope:
+  - Integrated `52858ad1e617069b708d820e1ea8a312b8077c85` for Wan2.7 image-to-video media mapping and regression coverage.
+  - Integrated `759ab6bbca57074d85822f6e31b9332b383d3552` so route-local tabs retain their page state.
+  - Integrated `fda8177864d7ce0f3ebf9c615e1700eb234b5b45` and `1f4d8d2b26815e836cda6ca16e8920fdabd7d069` for isolated custom HTML rendering and application style injection.
+  - Integrated `986d90ae046f28e2f7377715a4feb721b57b52eb` and the code changes from `8874d1929f97bb3f7fcae2af81c9e114535044f1` for graceful shutdown, synchronous quota aggregation, and startup logging order.
+  - Integrated `95e8c5eecff54dc032c7bbc9aa2ca2a37b13c766` for the Rsbuild and Tailwind build pipeline update.
+- Deferred or skipped:
+  - Skipped the Makefile-only developer workflow changes in `f9165e7b` and `e1fd9cc2`.
+  - Skipped the upstream-only `AGENTS.md` update in `bff701b0`.
+  - Excluded the poster assets bundled with `8874d192`; they are unrelated to runtime behavior.
+- Notes:
+  - Preserved the local `ExternalContentFrame` handling for external home and about page URLs.
+  - Preserved local mock scripts, `historyApiFallback`, support ticket and member tier startup tasks, and log model-mapping privacy filtering.
+  - Preserved the local unified task media normalization and added the Wan2.7 direct-request regression test without duplicating normalization logic.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-07-01
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
