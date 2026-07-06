@@ -207,13 +207,15 @@ func RelayTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo) (*TaskSubmitRe
 		}
 	}
 
-	// 6. 将 OtherRatios 应用到基础额度
+	// 6. 将 OtherRatios 应用到基础额度（饱和转换，防止溢出成负数）
 	if !common.StringsContains(constant.TaskPricePatches, modelName) {
+		quotaWithRatios := float64(info.PriceData.Quota)
 		for _, ra := range info.PriceData.OtherRatios {
 			if ra != 1.0 {
-				info.PriceData.Quota = int(float64(info.PriceData.Quota) * ra)
+				quotaWithRatios *= ra
 			}
 		}
+		info.PriceData.Quota = common.QuotaFromFloat(quotaWithRatios)
 	}
 	if fixedQuota := info.PriceData.FixedQuotaTotal(); fixedQuota > 0 {
 		info.PriceData.Quota += fixedQuota
@@ -285,19 +287,19 @@ func recalcQuotaFromRatios(info *relaycommon.RelayInfo, ratios map[string]float6
 		baseQuota = 0
 	}
 	// 先除掉原有的 OtherRatios 恢复基础额度
+	result := float64(baseQuota)
 	for _, ra := range info.PriceData.OtherRatios {
 		if ra != 1.0 && ra > 0 {
-			baseQuota = int(float64(baseQuota) / ra)
+			result /= ra
 		}
 	}
 	// 应用新的 ratios
-	result := float64(baseQuota)
 	for _, ra := range ratios {
 		if ra != 1.0 {
 			result *= ra
 		}
 	}
-	return int(result) + fixedQuota
+	return common.QuotaFromFloat(result + float64(fixedQuota))
 }
 
 var fetchRespBuilders = map[int]func(c *gin.Context) (respBody []byte, taskResp *dto.TaskError){
