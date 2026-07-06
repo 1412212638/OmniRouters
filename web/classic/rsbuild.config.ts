@@ -24,8 +24,6 @@ const semiUiDir = path.resolve(
   path.dirname(require.resolve('@douyinfe/semi-ui')),
   '../..',
 )
-const semiDateFnsDir = resolveNestedDependency('@douyinfe/semi-ui', 'date-fns')
-
 export default defineConfig(({ envMode }) => {
   const env = loadEnv({ mode: envMode, prefixes: ['VITE_'] })
   const clientServerUrl =
@@ -62,7 +60,6 @@ export default defineConfig(({ envMode }) => {
           semiUiDir,
           'dist/css/semi.css',
         ),
-        'date-fns': semiDateFnsDir,
       },
     },
     html: {
