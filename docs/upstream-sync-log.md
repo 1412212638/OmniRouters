@@ -2,6 +2,29 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-07-06
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `b6e8ff9dd5d22399ca558193ced497e4aa81680a`
+- Upstream `main` reviewed and synced through: `fc26b88fd131fecf179c94eacb86775748c60fd1`
+- Local integration scope:
+  - Integrated the classic build source fix, redemption-code filtering and cleanup, username normalization, Codex passthrough controls, mobile user-card ordering, Shadow DOM theme synchronization, and authenticated sign-up redirect.
+  - Integrated account email/password hardening, disabled-token read-only protection, opt-in Secure session cookies, and their regression coverage.
+  - Integrated async task quota persistence and Ali video-duration fallback while preserving local Sora per-request and `audio_generation` fixed surcharges.
+  - Integrated dial-time SSRF protection for user-controlled downloads, webhooks, notifications, and media proxies without applying it to operator-configured model upstreams.
+  - Integrated compact dynamic-pricing log display and the group-ratio editor redesign while retaining local fixed-price columns, Sora/audio pricing, and model-mapping privacy.
+- Deferred, skipped, or equivalent:
+  - Skipped `a1301039` because it only renames local Makefile development targets.
+  - Skipped `86021d8e` because the classic deprecation banner and broad generated i18n refresh are not required and include unrelated compliance-copy churn.
+  - Skipped `1e80ce03` because it only changes legacy audit-warning copy and conflicts broadly with local translation files.
+  - `2f91d8cc` is already superseded by the local `ExternalContentFrame` theme, language, and scroll bridge.
+  - Did not replay merge wrappers `722d0366` and `1ae75747`; their selected underlying changes were integrated directly.
+- Notes:
+  - Preserved local email templates, marketing mail, extra user groups, member tiers, tickets, GHCR publishing, wallet behavior, and external homepage/about integration.
+  - Redemption failures no longer expose detailed state to users or write full redemption keys to server logs.
+  - Controller JSON decoding touched by this sync now uses the shared `common/json.go` helpers.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-07-04
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
