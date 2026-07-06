@@ -18,7 +18,9 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import type { Cell, Row } from '@tanstack/react-table'
 import * as React from 'react'
+
 import { StatusBadgeTypeContext } from '@/components/status-badge'
+
 import { getCellLabel, renderCellContent } from './card-cell-utils'
 
 function orderCardCells<TData>(

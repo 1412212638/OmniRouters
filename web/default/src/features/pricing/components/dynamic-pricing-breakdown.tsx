@@ -1,3 +1,4 @@
+import { Tag as TagIcon } from 'lucide-react'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -17,13 +18,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useMemo } from 'react'
-import { Tag as TagIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { formatBillingCurrencyFromUSD } from '@/lib/currency'
-import { useSystemConfigStore } from '@/stores/system-config-store'
-import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
+
 import { StaticDataTable } from '@/components/data-table'
+import { Badge } from '@/components/ui/badge'
+import { formatBillingCurrencyFromUSD } from '@/lib/currency'
+import { cn } from '@/lib/utils'
+import { useSystemConfigStore } from '@/stores/system-config-store'
+
 import {
   BILLING_PRICING_VARS,
   MATCH_CONTAINS,
