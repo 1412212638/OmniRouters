@@ -65,7 +65,7 @@ func ImageTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo, requestBody io
 		ModelPrice:      info.PriceData.ModelPrice,
 		GroupRatio:      info.PriceData.GroupRatioInfo.GroupRatio,
 		ModelRatio:      info.PriceData.ModelRatio,
-		OtherRatios:     info.PriceData.OtherRatios,
+		OtherRatios:     info.PriceData.OtherRatios(),
 		FixedQuotas:     info.PriceData.FixedQuotas,
 		OriginModelName: info.OriginModelName,
 		PerCallBilling:  true,
