@@ -216,10 +216,14 @@ func RelayTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo) (*TaskSubmitRe
 				quotaWithRatios *= ra
 			}
 		}
-		info.PriceData.Quota = common.QuotaFromFloat(quotaWithRatios)
+		quota, clamp := common.QuotaFromFloatChecked(quotaWithRatios)
+		info.PriceData.Quota = quota
+		noteTaskQuotaClamp(info, clamp)
 	}
 	if fixedQuota := info.PriceData.FixedQuotaTotal(); fixedQuota > 0 {
-		info.PriceData.Quota += fixedQuota
+		quota, clamp := common.QuotaFromFloatChecked(float64(info.PriceData.Quota) + float64(fixedQuota))
+		info.PriceData.Quota = quota
+		noteTaskQuotaClamp(info, clamp)
 		info.PriceData.FreeModel = false
 	}
 
@@ -300,7 +304,21 @@ func recalcQuotaFromRatios(info *relaycommon.RelayInfo, ratios map[string]float6
 			result *= ra
 		}
 	}
-	return common.QuotaFromFloat(result + float64(fixedQuota))
+	quota, clamp := common.QuotaFromFloatChecked(result + float64(fixedQuota))
+	noteTaskQuotaClamp(info, clamp)
+	return quota
+}
+
+// noteTaskQuotaClamp records the first quota saturation event onto the task's
+// RelayInfo so LogTaskConsumption can surface it on the submit log's
+// admin_info. First non-nil clamp wins.
+func noteTaskQuotaClamp(info *relaycommon.RelayInfo, clamp *common.QuotaClamp) {
+	if clamp == nil || info == nil {
+		return
+	}
+	if info.QuotaClamp == nil {
+		info.QuotaClamp = clamp
+	}
 }
 
 var fetchRespBuilders = map[int]func(c *gin.Context) (respBody []byte, taskResp *dto.TaskError){
