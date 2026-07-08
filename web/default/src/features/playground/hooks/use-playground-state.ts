@@ -28,7 +28,6 @@ import {
   applyMessageStateUpdate,
   getInitialParameterEnabled,
   getInitialPlaygroundConfig,
-  isClaudeLikePlaygroundModel,
   isPlaygroundParameterKey,
   pickParameterConfig,
   resolveParameterEnabledForModel,
@@ -51,13 +50,13 @@ function getInitialState() {
   const modelParameterSettings = loadModelParameterSettings()
   const modelKey = config.model.trim()
   const savedForModel = modelParameterSettings[modelKey]
+  const modelDefaults = resolveParameterEnabledForModel(modelKey)
   const parameterEnabled = savedForModel
     ? resolveParameterEnabledForModel(modelKey, savedForModel)
     : {
         ...enabled,
-        temperature: isClaudeLikePlaygroundModel(modelKey)
-          ? false
-          : enabled.temperature,
+        temperature: modelDefaults.temperature,
+        top_p: modelDefaults.top_p,
       }
 
   return {

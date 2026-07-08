@@ -64,6 +64,7 @@ export function getDefaultParameterEnabledForModel(
 
   if (isClaudeLikePlaygroundModel(model)) {
     defaults.temperature = false
+    defaults.top_p = false
   }
 
   return defaults
