@@ -16,8 +16,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { memo } from 'react'
 import { ChevronRight, Copy } from 'lucide-react'
+import { memo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getLobeIcon } from '@/lib/lobe-icon'
 import { cn } from '@/lib/utils'
@@ -46,6 +46,7 @@ export interface ModelCardProps {
   usdExchangeRate?: number
   tokenUnit?: TokenUnit
   showRechargePrice?: boolean
+  selectedGroup?: string
   perf?: ModelPerfBadgeData
 }
 
@@ -74,13 +75,17 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
         showRechargePrice,
         priceRate,
         usdExchangeRate,
-        groupRatioMultiplier: getDynamicDisplayGroupRatio(props.model),
+        groupRatioMultiplier: getDynamicDisplayGroupRatio(
+          props.model,
+          props.selectedGroup
+        ),
       })
     : null
   const soraSummary = getSoraPricingDisplay(props.model, {
     showRechargePrice,
     priceRate,
     usdExchangeRate,
+    selectedGroup: props.selectedGroup,
   })
 
   const primaryGroup = groups[0]
@@ -96,6 +101,150 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation()
     copyToClipboard(props.model.model_name || '')
+  }
+
+  let priceSummary: ReactNode
+  if (dynamicSummary) {
+    if (dynamicSummary.isSpecialExpression) {
+      priceSummary = (
+        <span className='min-w-0'>
+          <span className='text-amber-700 dark:text-amber-300'>
+            {t('Special billing expression')}
+          </span>
+          <code className='text-muted-foreground/70 mt-0.5 line-clamp-1 block font-mono text-[11px] break-all'>
+            {dynamicSummary.rawExpression}
+          </code>
+        </span>
+      )
+    } else if (dynamicSummary.primaryEntries.length > 0) {
+      priceSummary = (
+        <>
+          {dynamicSummary.primaryEntries.map((entry) => (
+            <span
+              key={entry.key}
+              className='text-muted-foreground whitespace-nowrap'
+            >
+              {t(entry.shortLabel)}{' '}
+              <span className='text-foreground font-mono font-semibold'>
+                {entry.formatted}
+              </span>
+              {entry.displayUnit === 'token' && `/${tokenUnitLabel}`}
+            </span>
+          ))}
+        </>
+      )
+    } else if (dynamicSummary.secondaryEntries.length > 0) {
+      priceSummary = (
+        <>
+          {dynamicSummary.secondaryEntries.slice(0, 2).map((entry) => (
+            <span
+              key={entry.key}
+              className='text-muted-foreground whitespace-nowrap'
+            >
+              {t(entry.shortLabel)}{' '}
+              <span className='text-foreground font-mono font-semibold'>
+                {entry.formatted}
+              </span>
+              {entry.displayUnit === 'token' && `/${tokenUnitLabel}`}
+            </span>
+          ))}
+        </>
+      )
+    } else {
+      priceSummary = (
+        <span className='text-muted-foreground text-xs'>
+          {t('Dynamic Pricing')}
+        </span>
+      )
+    }
+  } else if (soraSummary) {
+    priceSummary = (
+      <span className='text-muted-foreground whitespace-nowrap'>
+        {t('Fixed price')}{' '}
+        <span className='text-foreground font-mono font-semibold'>
+          {stripTrailingZeros(soraSummary.basePrice)}
+        </span>
+        <span className='text-muted-foreground/40 mx-1'>/</span>
+        <span className='text-foreground font-mono font-semibold'>s</span>
+        {soraSummary.tierCount > 0 && (
+          <span className='text-muted-foreground/60 ml-1 text-xs'>
+            ({t('{{count}} tiers', { count: soraSummary.tierCount })})
+          </span>
+        )}
+        {soraSummary.audioGenerationSurcharge && (
+          <span className='text-muted-foreground/60 ml-1 text-xs'>
+            + {t('Audio')}{' '}
+            {`${stripTrailingZeros(soraSummary.audioGenerationSurcharge)}/${t('request')}`}
+          </span>
+        )}
+      </span>
+    )
+  } else if (isTokenBased) {
+    priceSummary = (
+      <>
+        <span className='text-muted-foreground whitespace-nowrap'>
+          {t('Input')}{' '}
+          <span className='text-foreground font-mono font-semibold'>
+            {formatPrice(
+              props.model,
+              'input',
+              tokenUnit,
+              showRechargePrice,
+              priceRate,
+              usdExchangeRate,
+              props.selectedGroup
+            )}
+          </span>
+          /{tokenUnitLabel}
+        </span>
+        <span className='text-muted-foreground whitespace-nowrap'>
+          {t('Output')}{' '}
+          <span className='text-foreground font-mono font-semibold'>
+            {formatPrice(
+              props.model,
+              'output',
+              tokenUnit,
+              showRechargePrice,
+              priceRate,
+              usdExchangeRate,
+              props.selectedGroup
+            )}
+          </span>
+          /{tokenUnitLabel}
+        </span>
+        {hasCachedPrice && (
+          <span className='text-muted-foreground/60 whitespace-nowrap'>
+            {t('Cached')}{' '}
+            <span className='font-mono'>
+              {formatPrice(
+                props.model,
+                'cache',
+                tokenUnit,
+                showRechargePrice,
+                priceRate,
+                usdExchangeRate,
+                props.selectedGroup
+              )}
+            </span>
+          </span>
+        )}
+      </>
+    )
+  } else {
+    priceSummary = (
+      <span className='text-muted-foreground whitespace-nowrap'>
+        <span className='text-foreground font-mono font-semibold'>
+          {formatRequestPrice(
+            props.model,
+            showRechargePrice,
+            priceRate,
+            usdExchangeRate,
+            props.selectedGroup
+          )}
+        </span>{' '}
+        / {t('request')}
+      </span>
+    )
   }
 
   return (
@@ -122,135 +271,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
               </h3>
             </div>
             <div className='mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs sm:mt-1 sm:gap-x-3'>
-              {dynamicSummary ? (
-                dynamicSummary.isSpecialExpression ? (
-                  <span className='min-w-0'>
-                    <span className='text-amber-700 dark:text-amber-300'>
-                      {t('Special billing expression')}
-                    </span>
-                    <code className='text-muted-foreground/70 mt-0.5 line-clamp-1 block font-mono text-[11px] break-all'>
-                      {dynamicSummary.rawExpression}
-                    </code>
-                  </span>
-                ) : dynamicSummary.primaryEntries.length > 0 ? (
-                  <>
-                    {dynamicSummary.primaryEntries.map((entry) => (
-                      <span
-                        key={entry.key}
-                        className='text-muted-foreground whitespace-nowrap'
-                      >
-                        {t(entry.shortLabel)}{' '}
-                        <span className='text-foreground font-mono font-semibold'>
-                          {entry.formatted}
-                        </span>
-                        {entry.displayUnit === 'token' && `/${tokenUnitLabel}`}
-                      </span>
-                    ))}
-                  </>
-                ) : dynamicSummary.secondaryEntries.length > 0 ? (
-                  <>
-                    {dynamicSummary.secondaryEntries
-                      .slice(0, 2)
-                      .map((entry) => (
-                        <span
-                          key={entry.key}
-                          className='text-muted-foreground whitespace-nowrap'
-                        >
-                          {t(entry.shortLabel)}{' '}
-                          <span className='text-foreground font-mono font-semibold'>
-                            {entry.formatted}
-                          </span>
-                          {entry.displayUnit === 'token' &&
-                            `/${tokenUnitLabel}`}
-                        </span>
-                      ))}
-                  </>
-                ) : (
-                  <span className='text-muted-foreground text-xs'>
-                    {t('Dynamic Pricing')}
-                  </span>
-                )
-              ) : soraSummary ? (
-                <span className='text-muted-foreground whitespace-nowrap'>
-                  {t('Fixed price')}{' '}
-                  <span className='text-foreground font-mono font-semibold'>
-                    {stripTrailingZeros(soraSummary.basePrice)}
-                  </span>
-                  <span className='text-muted-foreground/40 mx-1'>/</span>
-                  <span className='text-foreground font-mono font-semibold'>
-                    s
-                  </span>
-                  {soraSummary.tierCount > 0 && (
-                    <span className='text-muted-foreground/60 ml-1 text-xs'>
-                      ({t('{{count}} tiers', { count: soraSummary.tierCount })})
-                    </span>
-                  )}
-                  {soraSummary.audioGenerationSurcharge && (
-                    <span className='text-muted-foreground/60 ml-1 text-xs'>
-                      + {t('Audio')}{' '}
-                      {`${stripTrailingZeros(soraSummary.audioGenerationSurcharge)}/${t('request')}`}
-                    </span>
-                  )}
-                </span>
-              ) : isTokenBased ? (
-                <>
-                  <span className='text-muted-foreground whitespace-nowrap'>
-                    {t('Input')}{' '}
-                    <span className='text-foreground font-mono font-semibold'>
-                      {formatPrice(
-                        props.model,
-                        'input',
-                        tokenUnit,
-                        showRechargePrice,
-                        priceRate,
-                        usdExchangeRate
-                      )}
-                    </span>
-                    /{tokenUnitLabel}
-                  </span>
-                  <span className='text-muted-foreground whitespace-nowrap'>
-                    {t('Output')}{' '}
-                    <span className='text-foreground font-mono font-semibold'>
-                      {formatPrice(
-                        props.model,
-                        'output',
-                        tokenUnit,
-                        showRechargePrice,
-                        priceRate,
-                        usdExchangeRate
-                      )}
-                    </span>
-                    /{tokenUnitLabel}
-                  </span>
-                  {hasCachedPrice && (
-                    <span className='text-muted-foreground/60 whitespace-nowrap'>
-                      {t('Cached')}{' '}
-                      <span className='font-mono'>
-                        {formatPrice(
-                          props.model,
-                          'cache',
-                          tokenUnit,
-                          showRechargePrice,
-                          priceRate,
-                          usdExchangeRate
-                        )}
-                      </span>
-                    </span>
-                  )}
-                </>
-              ) : (
-                <span className='text-muted-foreground whitespace-nowrap'>
-                  <span className='text-foreground font-mono font-semibold'>
-                    {formatRequestPrice(
-                      props.model,
-                      showRechargePrice,
-                      priceRate,
-                      usdExchangeRate
-                    )}
-                  </span>{' '}
-                  / {t('request')}
-                </span>
-              )}
+              {priceSummary}
             </div>
           </div>
         </div>

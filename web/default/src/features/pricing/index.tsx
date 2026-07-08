@@ -625,6 +625,7 @@ function usePriceRows(props: {
   tokenUnit: TokenUnit
   priceRate: number
   usdExchangeRate: number
+  selectedGroup?: string
 }): CatalogPriceSummary {
   const { t } = useTranslation()
   const isTokenBased = isTokenBasedModel(props.model)
@@ -635,12 +636,16 @@ function usePriceRows(props: {
           tokenUnit: props.tokenUnit,
           priceRate: props.priceRate,
           usdExchangeRate: props.usdExchangeRate,
-          groupRatioMultiplier: getDynamicDisplayGroupRatio(props.model),
+          groupRatioMultiplier: getDynamicDisplayGroupRatio(
+            props.model,
+            props.selectedGroup
+          ),
         })
       : null
   const soraSummary = getSoraPricingDisplay(props.model, {
     priceRate: props.priceRate,
     usdExchangeRate: props.usdExchangeRate,
+    selectedGroup: props.selectedGroup,
   })
 
   if (
@@ -696,7 +701,8 @@ function usePriceRows(props: {
         props.model,
         false,
         props.priceRate,
-        props.usdExchangeRate
+        props.usdExchangeRate,
+        props.selectedGroup
       ),
       outputValue: '-',
       inputUnit: t('request'),
@@ -712,7 +718,8 @@ function usePriceRows(props: {
       props.tokenUnit,
       false,
       props.priceRate,
-      props.usdExchangeRate
+      props.usdExchangeRate,
+      props.selectedGroup
     ),
     outputValue: formatPrice(
       props.model,
@@ -720,7 +727,8 @@ function usePriceRows(props: {
       props.tokenUnit,
       false,
       props.priceRate,
-      props.usdExchangeRate
+      props.usdExchangeRate,
+      props.selectedGroup
     ),
     inputUnit: tokenUnitLabel,
     outputUnit: tokenUnitLabel,
@@ -732,6 +740,7 @@ function CatalogModelCard(props: {
   perf?: PerfModelSummary
   priceRate: number
   usdExchangeRate: number
+  selectedGroup?: string
   onOpen: () => void
 }) {
   const { t } = useTranslation()
@@ -745,6 +754,7 @@ function CatalogModelCard(props: {
     tokenUnit: TOKEN_UNIT,
     priceRate: props.priceRate,
     usdExchangeRate: props.usdExchangeRate,
+    selectedGroup: props.selectedGroup,
   })
 
   return (
@@ -1284,6 +1294,7 @@ function CatalogPricing() {
                       perf={perfMap.get(model.model_name || '')}
                       priceRate={priceRate}
                       usdExchangeRate={usdExchangeRate}
+                      selectedGroup={groupFilter}
                       onOpen={() =>
                         setSelectedModelName(model.model_name || '')
                       }
