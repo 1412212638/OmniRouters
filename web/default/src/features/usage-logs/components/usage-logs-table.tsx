@@ -166,6 +166,10 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
     manualFiltering: true,
     totalCount: data?.total || 0,
     ensurePageInRange,
+    columnVisibilityStorageKey: getColumnVisibilityStorageKey(
+      logCategory,
+      isAdmin
+    ),
   })
 
   const isCommon = logCategory === 'common'

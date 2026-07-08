@@ -2,6 +2,24 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-07-08
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `fc26b88fd131fecf179c94eacb86775748c60fd1`
+- Upstream `main` reviewed and synced through: `6ce7305cd36f16506fb6a2c3c524a5a318539ba7`
+- Local integration scope:
+  - Integrated stale stream-write protection after client disconnects, quantity parameter validation, saturating quota conversions, quota saturation admin indicators, transactional row locking, adjusted quota bounds, and the tiered-expression default token estimate.
+  - Integrated the PriceData other-ratio encapsulation while preserving local fixed-quota support for Sora and `audio_generation` surcharges.
+  - Integrated subscription quota reset actions, stale system-instance cleanup, wallet reward-transfer quota-unit handling, zh-TW locale resources, Intl locale normalization, Chinese browser-language detection mapping, and the classic build source fix.
+  - Restored the upstream classic-builder filtered dependency install so classic builds do not resolve against the default frontend `date-fns` dependency set.
+  - Integrated the 5.6 preparation, group-ratio decimal draft editing fix, and GPT-5.6 token ratios.
+- Deferred, skipped, or equivalent:
+  - Skipped `5cbb7b0be17c7258def3ec835e0fee26076caac0` because it only updates upstream README architecture requirements.
+  - Skipped `8bc4bf1d6b1fd7d117100edadcf4257d3a4eb479` because Docker cosign signing and publishing permissions are handled by the GitHub image workflow policy rather than local source sync.
+- Notes:
+  - Preserved OmniRouters email settings, marketing mail, wallet/corporate-transfer display, Sora per-request and `audio_generation` fixed-surcharge billing, model-mapping privacy, external homepage/about integration, tickets, custom OAuth behavior, and local no-payment-compliance-gate policy.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-07-06
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
