@@ -27,11 +27,18 @@ import {
 } from '@/components/ai-elements/prompt-input'
 
 import { getSubmittableInputText } from '../../lib'
-import type { ModelOption, GroupOption } from '../../types'
+import type {
+  ModelOption,
+  GroupOption,
+  ParameterEnabled,
+  PlaygroundConfig,
+  PlaygroundParameterKey,
+} from '../../types'
 import { PlaygroundInputControls } from './playground-input-controls'
 import { PlaygroundInputTools } from './playground-input-tools'
 
 interface PlaygroundInputProps {
+  config: PlaygroundConfig
   onSubmit: (text: string) => void
   onStop?: () => void
   disabled?: boolean
@@ -44,10 +51,20 @@ interface PlaygroundInputProps {
   groupValue: string
   onGroupChange: (value: string) => void
   hasMessages?: boolean
+  parameterEnabled: ParameterEnabled
+  onConfigChange: <K extends keyof PlaygroundConfig>(
+    key: K,
+    value: PlaygroundConfig[K]
+  ) => void
   onClearMessages?: () => void
+  onParameterEnabledChange: (
+    key: PlaygroundParameterKey,
+    value: boolean
+  ) => void
 }
 
 export function PlaygroundInput({
+  config,
   onSubmit,
   onStop,
   disabled,
@@ -60,7 +77,10 @@ export function PlaygroundInput({
   groupValue,
   onGroupChange,
   hasMessages = false,
+  parameterEnabled,
+  onConfigChange,
   onClearMessages,
+  onParameterEnabledChange,
 }: PlaygroundInputProps) {
   const { t } = useTranslation()
   const [text, setText] = useState('')
@@ -107,9 +127,14 @@ export function PlaygroundInput({
             text={text}
             tools={
               <PlaygroundInputTools
+                config={config}
                 disabled={disabled}
                 hasMessages={hasMessages}
+                modelValue={modelValue}
+                parameterEnabled={parameterEnabled}
+                onConfigChange={onConfigChange}
                 onClearMessages={onClearMessages}
+                onParameterEnabledChange={onParameterEnabledChange}
               />
             }
           />

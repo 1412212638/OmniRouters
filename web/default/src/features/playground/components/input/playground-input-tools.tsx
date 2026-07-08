@@ -43,17 +43,39 @@ import {
   getAttachmentActionNotice,
   getSearchActionNotice,
 } from '../../lib'
+import type {
+  ParameterEnabled,
+  PlaygroundConfig,
+  PlaygroundParameterKey,
+} from '../../types'
+import { PlaygroundParameterSettings } from './playground-parameter-settings'
 
 type PlaygroundInputToolsProps = {
+  config: PlaygroundConfig
   disabled?: boolean
   hasMessages?: boolean
+  modelValue: string
+  parameterEnabled: ParameterEnabled
+  onConfigChange: <K extends keyof PlaygroundConfig>(
+    key: K,
+    value: PlaygroundConfig[K]
+  ) => void
   onClearMessages?: () => void
+  onParameterEnabledChange: (
+    key: PlaygroundParameterKey,
+    value: boolean
+  ) => void
 }
 
 export function PlaygroundInputTools({
+  config,
   disabled,
   hasMessages = false,
+  modelValue,
+  parameterEnabled,
+  onConfigChange,
   onClearMessages,
+  onParameterEnabledChange,
 }: PlaygroundInputToolsProps) {
   const { t } = useTranslation()
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false)
@@ -79,6 +101,15 @@ export function PlaygroundInputTools({
   return (
     <>
       <PromptInputTools className='bg-background/70 border-border/60 rounded-lg border p-1 shadow-xs'>
+        <PlaygroundParameterSettings
+          config={config}
+          disabled={disabled}
+          modelValue={modelValue}
+          parameterEnabled={parameterEnabled}
+          onConfigChange={onConfigChange}
+          onParameterEnabledChange={onParameterEnabledChange}
+        />
+
         <Tooltip>
           <DropdownMenu>
             <TooltipTrigger

@@ -45,6 +45,24 @@ export const parameterEnabledSchema = z.object({
   seed: z.boolean().optional(),
 })
 
+export const modelParameterSettingsSchema = z.record(
+  z.string(),
+  z.object({
+    config: playgroundConfigSchema
+      .pick({
+        temperature: true,
+        top_p: true,
+        max_tokens: true,
+        frequency_penalty: true,
+        presence_penalty: true,
+        seed: true,
+      })
+      .partial()
+      .optional(),
+    parameterEnabled: parameterEnabledSchema.optional(),
+  })
+)
+
 const messageRoleSchema = z.enum(['user', 'assistant', 'system'])
 const messageStatusSchema = z.enum([
   'loading',

@@ -137,6 +137,18 @@ export interface ParameterEnabled {
   seed: boolean
 }
 
+export type PlaygroundParameterKey = keyof ParameterEnabled
+
+export type PlaygroundParameterConfig = Pick<
+  PlaygroundConfig,
+  PlaygroundParameterKey
+>
+
+export type PlaygroundModelParameterSettings = {
+  config?: Partial<PlaygroundParameterConfig>
+  parameterEnabled?: Partial<ParameterEnabled>
+}
+
 // Model and group options
 export interface ModelOption {
   label: string

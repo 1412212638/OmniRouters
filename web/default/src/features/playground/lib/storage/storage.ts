@@ -17,7 +17,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { MESSAGE_STATUS, STORAGE_KEYS } from '../../constants'
-import type { PlaygroundConfig, ParameterEnabled, Message } from '../../types'
+import type {
+  PlaygroundConfig,
+  ParameterEnabled,
+  Message,
+  PlaygroundModelParameterSettings,
+} from '../../types'
 import {
   finalizeMessage,
   isAssistantMessagePending,
@@ -31,6 +36,7 @@ import {
   MAX_STORED_MESSAGES,
   MAX_STORED_MESSAGES_BYTES,
   STORAGE_VERSION,
+  modelParameterSettingsSchema,
   messagesSchema,
   parameterEnabledSchema,
   playgroundConfigSchema,
@@ -336,6 +342,40 @@ export function saveParameterEnabled(
 }
 
 /**
+ * Load per-model parameter settings from localStorage
+ */
+export function loadModelParameterSettings(): Record<
+  string,
+  PlaygroundModelParameterSettings
+> {
+  try {
+    const saved = readStoredValue(STORAGE_KEYS.MODEL_PARAMETER_SETTINGS)
+    if (!saved) return {}
+
+    return modelParameterSettingsSchema.parse(unwrapStoredValue(saved))
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Failed to load model parameter settings:', error)
+  }
+  return {}
+}
+
+/**
+ * Save per-model parameter settings to localStorage
+ */
+export function saveModelParameterSettings(
+  settings: Record<string, PlaygroundModelParameterSettings>
+): void {
+  try {
+    const parsed = modelParameterSettingsSchema.parse(settings)
+    writeStoredValue(STORAGE_KEYS.MODEL_PARAMETER_SETTINGS, parsed)
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Failed to save model parameter settings:', error)
+  }
+}
+
+/**
  * Load messages from localStorage
  */
 export function loadMessages(): Message[] | null {
@@ -390,6 +430,7 @@ export function clearPlaygroundData(): void {
   try {
     localStorage.removeItem(STORAGE_KEYS.CONFIG)
     localStorage.removeItem(STORAGE_KEYS.PARAMETER_ENABLED)
+    localStorage.removeItem(STORAGE_KEYS.MODEL_PARAMETER_SETTINGS)
     localStorage.removeItem(STORAGE_KEYS.MESSAGES)
   } catch (error) {
     // eslint-disable-next-line no-console

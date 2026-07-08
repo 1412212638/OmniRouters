@@ -2,6 +2,21 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-07-08 (follow-up)
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `6ce7305cd36f16506fb6a2c3c524a5a318539ba7`
+- Upstream `main` reviewed and synced through: `8739c05c0e2aa96d69faec3b9f76b4d2c7f66108`
+- Local integration scope:
+  - Integrated default channel connection paste restoration and OAuth callback URL display/copy helpers.
+  - Integrated browser-translation protection on React roots.
+  - Integrated group-aware model-square dynamic pricing display, preserving OmniRouters Sora per-request pricing and `audio_generation` fixed surcharge display.
+  - Integrated channel table manual column resizing.
+  - Added playground per-model parameter settings, with Claude/Anthropic-like models defaulting `temperature` off.
+- Notes:
+  - Preserved local deferred Advanced Custom channel policy, custom OAuth behavior, model marketplace labels, Sora/audio surcharge pricing, model-mapping privacy, and the no local Docker image build policy.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-07-08
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
