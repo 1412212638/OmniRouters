@@ -361,7 +361,7 @@ func SyncUpstreamModels(c *gin.Context) {
 
 		// 若本地已存在且设置为不同步，则跳过（极端情况：缺失列表与本地状态不同步时）
 		var existing model.Model
-		if err := model.DB.Where("model_name = ?", name).First(&existing).Error; err == nil {
+		if err := model.WhereModelNameExact(model.DB, name).First(&existing).Error; err == nil {
 			if existing.SyncOfficial == 0 {
 				skipped = append(skipped, name)
 				continue
@@ -398,7 +398,7 @@ func SyncUpstreamModels(c *gin.Context) {
 				continue
 			}
 			var local model.Model
-			if err := model.DB.Where("model_name = ?", ow.ModelName).First(&local).Error; err != nil {
+			if err := model.WhereModelNameExact(model.DB, ow.ModelName).First(&local).Error; err != nil {
 				continue
 			}
 

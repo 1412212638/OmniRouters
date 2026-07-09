@@ -70,8 +70,17 @@ func IsModelNameDuplicated(id int, name string) (bool, error) {
 		return false, nil
 	}
 	var cnt int64
-	err := DB.Model(&Model{}).Where("model_name = ? AND id <> ?", name, id).Count(&cnt).Error
+	err := WhereModelNameExact(DB.Model(&Model{}), name).
+		Where("id <> ?", id).
+		Count(&cnt).Error
 	return cnt > 0, err
+}
+
+func WhereModelNameExact(db *gorm.DB, name string) *gorm.DB {
+	if common.UsingMainDatabase(common.DatabaseTypeMySQL) {
+		return db.Where("BINARY model_name = BINARY ?", name)
+	}
+	return db.Where("model_name = ?", name)
 }
 
 func (mi *Model) Update() error {

@@ -782,7 +782,7 @@ function CatalogModelCard(props: {
             </div>
             <div className='text-muted-foreground mt-0.5 flex min-w-0 items-center gap-1.5 text-xs'>
               <span className='truncate font-mono'>
-                {props.model.model_name?.toLowerCase()}
+                {props.model.model_name}
               </span>
               <Button
                 type='button'
