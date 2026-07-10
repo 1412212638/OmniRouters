@@ -841,45 +841,41 @@ function CatalogModelCard(props: {
       </p>
 
       <div className='mt-4 grid gap-x-3 gap-y-2.5 sm:grid-cols-2 2xl:gap-x-5'>
-        <div className='flex min-w-0 flex-col gap-2'>
-          <InfoLine label={`${t('Input Types')}:`}>
-            <TinyModalities modalities={props.model.input_modalities} />
-          </InfoLine>
-          {priceRows.kind === 'paired' && (
-            <InfoLine label={`${t('Input')}:`} valueClassName='truncate'>
-              <span className='font-mono font-medium'>
-                {priceRows.inputValue}
+        <InfoLine label={`${t('Input Types')}:`}>
+          <TinyModalities modalities={props.model.input_modalities} />
+        </InfoLine>
+        <InfoLine label={`${t('Output Types')}:`}>
+          <TinyModalities modalities={props.model.output_modalities} />
+        </InfoLine>
+        {priceRows.kind === 'paired' && priceRows.isTiered && (
+          <div className='sm:col-span-2'>
+            <Badge variant='secondary'>{t('Tiered pricing')}</Badge>
+          </div>
+        )}
+        {priceRows.kind === 'paired' && (
+          <InfoLine label={`${t('Input')}:`} valueClassName='truncate'>
+            <span className='font-mono font-medium'>
+              {priceRows.inputValue}
+            </span>
+            {priceRows.inputUnit && (
+              <span className='text-muted-foreground ml-1 text-xs'>
+                /{priceRows.inputUnit}
               </span>
-              {priceRows.inputUnit && (
-                <span className='text-muted-foreground ml-1 text-xs'>
-                  /{priceRows.inputUnit}
-                </span>
-              )}
-              {priceRows.isTiered && (
-                <Badge variant='secondary' className='ml-1.5'>
-                  {t('Tiered pricing')}
-                </Badge>
-              )}
-            </InfoLine>
-          )}
-        </div>
-        <div className='flex min-w-0 flex-col gap-2'>
-          <InfoLine label={`${t('Output Types')}:`}>
-            <TinyModalities modalities={props.model.output_modalities} />
+            )}
           </InfoLine>
-          {priceRows.kind === 'paired' && (
-            <InfoLine label={`${t('Output')}:`} valueClassName='truncate'>
-              <span className='font-mono font-medium'>
-                {priceRows.outputValue}
+        )}
+        {priceRows.kind === 'paired' && (
+          <InfoLine label={`${t('Output')}:`} valueClassName='truncate'>
+            <span className='font-mono font-medium'>
+              {priceRows.outputValue}
+            </span>
+            {priceRows.outputUnit && (
+              <span className='text-muted-foreground ml-1 text-xs'>
+                /{priceRows.outputUnit}
               </span>
-              {priceRows.outputUnit && (
-                <span className='text-muted-foreground ml-1 text-xs'>
-                  /{priceRows.outputUnit}
-                </span>
-              )}
-            </InfoLine>
-          )}
-        </div>
+            )}
+          </InfoLine>
+        )}
         {priceRows.kind === 'single' && (
           <div className='min-w-0 sm:col-span-2'>
             <InfoLine label={`${priceRows.label}:`} valueClassName='truncate'>
