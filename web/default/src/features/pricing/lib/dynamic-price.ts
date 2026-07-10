@@ -48,6 +48,15 @@ export type DynamicPriceEntry = {
   displayUnit: 'token' | 'request'
 }
 
+export type DynamicPriceRange = {
+  key: string
+  field: string
+  minValue: number
+  maxValue: number
+  formatted: string
+  displayUnit: 'token'
+}
+
 export type DynamicPricingSummary = {
   tiers: ParsedTier[]
   tier: ParsedTier | null
@@ -58,6 +67,7 @@ export type DynamicPricingSummary = {
   entries: DynamicPriceEntry[]
   primaryEntries: DynamicPriceEntry[]
   secondaryEntries: DynamicPriceEntry[]
+  primaryRanges: DynamicPriceRange[]
 }
 
 const PRIMARY_DYNAMIC_FIELDS = new Set(['inputPrice', 'outputPrice'])
@@ -185,6 +195,47 @@ export function getDynamicPriceEntries(
   return entries
 }
 
+function getDynamicPriceRange(
+  tiers: ParsedTier[],
+  variable: BillingVar,
+  options: DynamicPriceOptions
+): DynamicPriceRange | null {
+  if (!variable.field || tiers.length < 2) return null
+
+  const values = tiers.map((tier) => Number(tier[variable.field]))
+  if (values.some((value) => !Number.isFinite(value) || value < 0)) {
+    return null
+  }
+
+  const minValue = Math.min(...values)
+  const maxValue = Math.max(...values)
+  const minFormatted = formatDynamicUnitPrice(minValue, options)
+  const maxFormatted = formatDynamicUnitPrice(maxValue, options)
+
+  return {
+    key: variable.key,
+    field: variable.field,
+    minValue,
+    maxValue,
+    formatted:
+      minValue === maxValue
+        ? minFormatted
+        : `${minFormatted}-${maxFormatted}`,
+    displayUnit: 'token',
+  }
+}
+
+function getDynamicPrimaryPriceRanges(
+  tiers: ParsedTier[],
+  options: DynamicPriceOptions
+): DynamicPriceRange[] {
+  return BILLING_PRICING_VARS.flatMap((variable) => {
+    if (!PRIMARY_DYNAMIC_FIELDS.has(variable.field || '')) return []
+    const range = getDynamicPriceRange(tiers, variable, options)
+    return range ? [range] : []
+  })
+}
+
 export function getDynamicPricingSummary(
   model: PricingModel,
   options: DynamicPriceOptions
@@ -195,12 +246,13 @@ export function getDynamicPricingSummary(
   const tier = tiers[0] || null
   const entries = getDynamicPriceEntries(tier, options)
   const rawExpression = model.billing_expr || ''
+  const hasRequestRules = hasDynamicRequestRules(model)
 
   return {
     tiers,
     tier,
     tierCount: tiers.length,
-    hasRequestRules: hasDynamicRequestRules(model),
+    hasRequestRules,
     isSpecialExpression: rawExpression.trim().length > 0 && tiers.length === 0,
     rawExpression,
     entries,
@@ -210,5 +262,8 @@ export function getDynamicPricingSummary(
     secondaryEntries: entries.filter(
       (entry) => !PRIMARY_DYNAMIC_FIELDS.has(entry.field)
     ),
+    primaryRanges: hasRequestRules
+      ? []
+      : getDynamicPrimaryPriceRanges(tiers, options),
   }
 }

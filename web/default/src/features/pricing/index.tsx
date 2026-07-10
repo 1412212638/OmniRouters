@@ -44,6 +44,7 @@ import { getLobeIcon } from '@/lib/lobe-icon'
 import { cn } from '@/lib/utils'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { useStatus } from '@/hooks/use-status'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Collapsible,
@@ -612,6 +613,7 @@ type CatalogPriceSummary =
       outputValue: string
       inputUnit: string
       outputUnit: string
+      isTiered?: boolean
     }
   | {
       kind: 'single'
@@ -650,12 +652,33 @@ function usePriceRows(props: {
 
   if (
     dynamicSummary &&
-    (dynamicSummary.isSpecialExpression || dynamicSummary.entries.length === 0)
+    (dynamicSummary.isSpecialExpression ||
+      dynamicSummary.hasRequestRules ||
+      (dynamicSummary.entries.length === 0 &&
+        dynamicSummary.primaryRanges.length === 0))
   ) {
     return {
       kind: 'single',
       label: t('Billing'),
       value: t('Dynamic Pricing'),
+    }
+  }
+
+  if (dynamicSummary && dynamicSummary.primaryRanges.length > 0) {
+    const inputRange = dynamicSummary.primaryRanges.find(
+      (entry) => entry.field === 'inputPrice'
+    )
+    const outputRange = dynamicSummary.primaryRanges.find(
+      (entry) => entry.field === 'outputPrice'
+    )
+
+    return {
+      kind: 'paired',
+      inputValue: inputRange?.formatted || t('Dynamic Pricing'),
+      outputValue: outputRange?.formatted || '-',
+      inputUnit: tokenUnitLabel,
+      outputUnit: tokenUnitLabel,
+      isTiered: true,
     }
   }
 
@@ -831,6 +854,11 @@ function CatalogModelCard(props: {
                 <span className='text-muted-foreground ml-1 text-xs'>
                   /{priceRows.inputUnit}
                 </span>
+              )}
+              {priceRows.isTiered && (
+                <Badge variant='secondary' className='ml-1.5'>
+                  {t('Tiered pricing')}
+                </Badge>
               )}
             </InfoLine>
           )}
