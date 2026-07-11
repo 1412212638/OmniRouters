@@ -44,7 +44,6 @@ import { getLobeIcon } from '@/lib/lobe-icon'
 import { cn } from '@/lib/utils'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { useStatus } from '@/hooks/use-status'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Collapsible,
@@ -613,7 +612,6 @@ type CatalogPriceSummary =
       outputValue: string
       inputUnit: string
       outputUnit: string
-      isTiered?: boolean
     }
   | {
       kind: 'single'
@@ -678,7 +676,6 @@ function usePriceRows(props: {
       outputValue: outputRange?.formatted || '-',
       inputUnit: tokenUnitLabel,
       outputUnit: tokenUnitLabel,
-      isTiered: true,
     }
   }
 
@@ -847,11 +844,6 @@ function CatalogModelCard(props: {
         <InfoLine label={`${t('Output Types')}:`}>
           <TinyModalities modalities={props.model.output_modalities} />
         </InfoLine>
-        {priceRows.kind === 'paired' && priceRows.isTiered && (
-          <div className='sm:col-span-2'>
-            <Badge variant='secondary'>{t('Tiered pricing')}</Badge>
-          </div>
-        )}
         {priceRows.kind === 'paired' && (
           <InfoLine label={`${t('Input')}:`} valueClassName='truncate'>
             <span className='font-mono font-medium'>
