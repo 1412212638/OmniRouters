@@ -9,6 +9,7 @@ import (
 	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/dto"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
+	"github.com/QuantumNous/new-api/service/relayconvert"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
@@ -25,9 +26,16 @@ func TestResponseToolCallIncludesGoogleThoughtSignatureExtraContent(t *testing.T
 		ThoughtSignature: json.RawMessage(`"sig-123"`),
 	}
 
-	call := getResponseToolCall(&part)
-	require.NotNil(t, call)
-	require.Equal(t, "sig-123", gjson.GetBytes(call.ExtraContent, "google.thought_signature").String())
+	response := relayconvert.ResponseGeminiChat2OpenAI("test-response", 0, &dto.GeminiChatResponse{
+		Candidates: []dto.GeminiChatCandidate{{
+			Content: dto.GeminiChatContent{Parts: []dto.GeminiPart{part}},
+		}},
+	})
+	require.Len(t, response.Choices, 1)
+	var calls []dto.ToolCallResponse
+	require.NoError(t, common.Unmarshal(response.Choices[0].Message.ToolCalls, &calls))
+	require.Len(t, calls, 1)
+	require.Equal(t, "sig-123", gjson.GetBytes(calls[0].ExtraContent, "google.thought_signature").String())
 }
 
 func TestCovertOpenAI2GeminiRestoresGoogleThoughtSignatureExtraContent(t *testing.T) {
@@ -66,7 +74,7 @@ func TestCovertOpenAI2GeminiRestoresGoogleThoughtSignatureExtraContent(t *testin
 		},
 	}
 
-	geminiRequest, err := CovertOpenAI2Gemini(c, request, info)
+	geminiRequest, err := relayconvert.OpenAIChatRequestToGeminiGenerateContent(c, request, info)
 	require.NoError(t, err)
 	require.Len(t, geminiRequest.Contents, 3)
 
