@@ -116,8 +116,16 @@ func (a *TaskAdaptor) EstimateBilling(c *gin.Context, info *relaycommon.RelayInf
 			"resolution": soraPricing.Multiplier,
 		}
 		if soraPricing.AudioGeneration && soraPricing.AudioGenerationSurcharge > 0 {
-			fixedQuota := int(soraPricing.AudioGenerationSurcharge * common.QuotaPerUnit * info.PriceData.GroupRatioInfo.GroupRatio)
-			info.PriceData.AddFixedQuota("audio_generation", fixedQuota)
+			fixedQuota, clamp := common.QuotaFromFloatChecked(
+				soraPricing.AudioGenerationSurcharge * common.QuotaPerUnit * info.PriceData.GroupRatioInfo.GroupRatio,
+			)
+			if clamp != nil {
+				if info.QuotaClamp == nil {
+					info.QuotaClamp = clamp
+				}
+			} else {
+				info.PriceData.AddFixedQuota("audio_generation", fixedQuota)
+			}
 		}
 		return ratios
 	}

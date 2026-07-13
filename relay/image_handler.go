@@ -128,14 +128,6 @@ func ImageHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *type
 		imageN = *request.N
 	}
 
-	// Fixed-price image models need n applied once at settlement. Ratio-based
-	// models rely on usage, and tiered expressions should opt in via param("n").
-	if info.PriceData.UsePrice {
-		if !info.PriceData.HasOtherRatio("n") {
-			info.PriceData.AddOtherRatio("n", float64(imageN))
-		}
-	}
-
 	if usage.(*dto.Usage).TotalTokens == 0 {
 		usage.(*dto.Usage).TotalTokens = 1
 	}
