@@ -2,6 +2,27 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-07-13
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `8739c05c0e2aa96d69faec3b9f76b4d2c7f66108`
+- Upstream `main` reviewed and selectively synced through: `7c28993f6bd9e92616f3f578212577f8b7c40b45`
+- Local integration scope:
+  - Integrated table resizing, Playground selector synchronization, GORM v2 row locks, case-sensitive custom model names, external iframe navigation, the `x/crypto` update, Codex field synchronization, model filtering, and referral-copy fixes.
+  - Integrated upstream pricing-sync improvements, the unset-price channel-model workflow and hardening, stream/timing log details, and stale-instance actions while preserving local pricing columns.
+  - Integrated saturated pre-consume rejection, image-count billing corrections, OpenAI image-stream disconnect protection, and the local Sora surcharge overflow audit path.
+  - Selectively migrated `c36418c86` protocol conversion into the registry architecture with `BillingUsage` propagation across OpenAI, Responses, Claude, and Gemini formats.
+  - Integrated native OpenAI `cache_write_tokens` parsing and cache-creation pricing, non-negative uncached remainder handling, tiered-expression propagation, and Compact `prompt_cache_key` forwarding from `48068ce92` and `92d3c9d18`.
+- Deferred, skipped, or excluded:
+  - Excluded Advanced Custom channel backend/frontend routing, channel-settings DTOs, model ability/cache/pricing rewrites, related translations, poster deletion, and upstream workflow changes from `c36418c86`.
+  - Did not retain the broad design-system refactors in `262ab9312`, `0918bdb49`, and `9d1ca545e`; upstream subsequently reverted that line in `337169e0a` and `1b1b23d1d`.
+  - Excluded unrelated dashboard/theme, sidebar hover-color, model-card unit, mobile log-card width, and branding/rules churn bundled with otherwise selected fixes.
+  - Did not replay merge wrapper `ad900bbba`; selected underlying changes were integrated directly.
+- Notes:
+  - Preserved OmniRouters Sora per-request and `audio_generation` fixed surcharge billing, asynchronous OpenAI image handling, email settings and marketing mail, wallet/corporate-transfer behavior, model-mapping privacy, external homepage/about integration, tickets, custom OAuth/login behavior, and marketplace pricing labels.
+  - Local validation was source-only because Go and Bun are not installed; conflict-marker checks, staged diff checks, relay-converter export checks, and all frontend locale JSON parsing passed.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-07-08 (follow-up)
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
