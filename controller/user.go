@@ -612,31 +612,32 @@ func GetUserModels(c *gin.Context) {
 	}
 	groups := service.GetUserUsableGroupsWithExtras(user.Group, user.GetExtraGroups())
 	group := strings.TrimSpace(c.Query("group"))
-	if group != "" {
-		description, ok := groups[group]
-		if !ok {
-			c.JSON(http.StatusOK, gin.H{
-				"success": true,
-				"message": "",
-				"data":    []string{},
-			})
-			return
+	groupsToQuery := make([]string, 0, len(groups))
+	switch {
+	case group == "":
+		for groupName := range groups {
+			groupsToQuery = append(groupsToQuery, groupName)
 		}
-		groups = map[string]string{group: description}
+	case group == "auto":
+		if _, ok := groups[group]; ok {
+			groupsToQuery = service.GetUserAutoGroupWithExtras(user.Group, user.GetExtraGroups())
+		}
+	default:
+		if _, ok := groups[group]; ok {
+			groupsToQuery = append(groupsToQuery, group)
+		}
 	}
 
 	var models []string
 	endpointType := constant.EndpointType(strings.TrimSpace(c.Query("endpoint_type")))
 	if endpointType == "" {
-		for group := range groups {
-			for _, g := range model.GetGroupEnabledModels(group) {
-				if !common.StringsContains(models, g) {
-					models = append(models, g)
-				}
-			}
-		}
+		models = service.GetGroupsEnabledModels(groupsToQuery)
 	} else {
-		models, err = getUserModelsByEndpointType(groups, endpointType)
+		selectedGroups := make(map[string]string, len(groupsToQuery))
+		for _, groupName := range groupsToQuery {
+			selectedGroups[groupName] = groups[groupName]
+		}
+		models, err = getUserModelsByEndpointType(selectedGroups, endpointType)
 		if err != nil {
 			common.ApiError(c, err)
 			return

@@ -1,3 +1,4 @@
+import { Check, Copy, Loader2 } from 'lucide-react'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -17,9 +18,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useState, useCallback } from 'react'
-import { Check, Copy, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { copyToClipboard } from '@/lib/copy-to-clipboard'
+
+import { BadgeCell } from '@/components/data-table'
+import { StatusBadge } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -31,8 +33,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { BadgeCell } from '@/components/data-table'
-import { StatusBadge } from '@/components/status-badge'
+import { copyToClipboard } from '@/lib/copy-to-clipboard'
+import { formatQuota } from '@/lib/format'
+
 import { type ApiKey } from '../types'
 import { useApiKeys } from './api-keys-provider'
 
@@ -138,6 +141,40 @@ export function ApiKeyCell({ apiKey }: { apiKey: ApiKey }) {
         </TooltipContent>
       </Tooltip>
     </div>
+  )
+}
+
+type UnlimitedQuotaBadgeProps = {
+  used: number
+}
+
+export function UnlimitedQuotaBadge(props: UnlimitedQuotaBadgeProps) {
+  const { t } = useTranslation()
+  const formattedUsed = formatQuota(props.used)
+
+  return (
+    <Popover>
+      <PopoverTrigger
+        render={
+          <button
+            type='button'
+            className='focus-visible:ring-ring/50 -ml-1.5 cursor-help rounded-4xl focus-visible:ring-[3px] focus-visible:outline-none'
+            aria-label={`${t('Unlimited')}; ${t('Used:')} ${formattedUsed}`}
+          />
+        }
+      >
+        <StatusBadge
+          label={t('Unlimited')}
+          variant='neutral'
+          copyable={false}
+        />
+      </PopoverTrigger>
+      <PopoverContent className='w-auto p-2' side='top'>
+        <span className='text-xs'>
+          {t('Used:')} {formattedUsed}
+        </span>
+      </PopoverContent>
+    </Popover>
   )
 }
 

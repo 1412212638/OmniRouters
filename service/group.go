@@ -5,6 +5,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
+	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/gin-gonic/gin"
@@ -87,6 +88,21 @@ func GetUserAutoGroupWithExtras(userGroup string, extraGroups []string) []string
 func GetUserAutoGroupForContext(c *gin.Context) []string {
 	userGroup := common.GetContextKeyString(c, constant.ContextKeyUserGroup)
 	return GetUserAutoGroupWithExtras(userGroup, getUserExtraGroupsFromContext(c))
+}
+
+func GetGroupsEnabledModels(groups []string) []string {
+	seen := make(map[string]struct{})
+	models := make([]string, 0)
+	for _, group := range groups {
+		for _, modelName := range model.GetGroupEnabledModels(group) {
+			if _, ok := seen[modelName]; ok {
+				continue
+			}
+			seen[modelName] = struct{}{}
+			models = append(models, modelName)
+		}
+	}
+	return models
 }
 
 func getUserExtraGroupsFromContext(c *gin.Context) []string {

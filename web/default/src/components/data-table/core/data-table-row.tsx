@@ -1,3 +1,9 @@
+import {
+  flexRender,
+  type Cell,
+  type Row,
+  type Table as TanstackTable,
+} from '@tanstack/react-table'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -17,14 +23,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import * as React from 'react'
-import {
-  flexRender,
-  type Cell,
-  type Row,
-  type Table as TanstackTable,
-} from '@tanstack/react-table'
-import { cn } from '@/lib/utils'
+
 import { TableCell, TableRow } from '@/components/ui/table'
+import { cn } from '@/lib/utils'
+
 import { TruncatedCell } from './truncated-cell'
 import type { DataTableColumnClassName } from './types'
 
@@ -37,6 +39,7 @@ type DataTableRowProps<TData> = {
 
 type DataTableRowInnerProps<TData> = DataTableRowProps<TData> & {
   isSelected: boolean
+  visibleColumnIds: string
 }
 
 function DataTableRowInner<TData>({
@@ -45,9 +48,11 @@ function DataTableRowInner<TData>({
   className,
   getColumnClassName,
   cellRenderColumns,
+  visibleColumnIds,
   ...rowProps
 }: DataTableRowInnerProps<TData>) {
   void cellRenderColumns
+  void visibleColumnIds
 
   return (
     <TableRow
@@ -86,13 +91,23 @@ const MemoizedDataTableRow = React.memo(DataTableRowInner, (prev, next) => {
     prev.className === next.className &&
     prev.getColumnClassName === next.getColumnClassName &&
     prev.isSelected === next.isSelected &&
+    prev.visibleColumnIds === next.visibleColumnIds &&
     prev.cellRenderColumns === next.cellRenderColumns
   )
 }) as typeof DataTableRowInner
 
 export function DataTableRow<TData>(props: DataTableRowProps<TData>) {
+  const visibleColumnIds = props.row
+    .getVisibleCells()
+    .map((cell) => cell.column.id)
+    .join('\0')
+
   return (
-    <MemoizedDataTableRow {...props} isSelected={props.row.getIsSelected()} />
+    <MemoizedDataTableRow
+      {...props}
+      isSelected={props.row.getIsSelected()}
+      visibleColumnIds={visibleColumnIds}
+    />
   )
 }
 
