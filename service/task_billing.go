@@ -172,17 +172,37 @@ func taskModelName(task *model.Task) string {
 
 // RefundTaskQuota 统一的任务失败退款逻辑。
 // 当异步任务失败时，将预扣的 quota 退还给用户（支持钱包和订阅），并退还令牌额度。
-func RefundTaskQuota(ctx context.Context, task *model.Task, reason string) {
+// 返回资金来源是否已成功退还；失败时保留 quota 作为后续对账标记。
+func RefundTaskQuota(ctx context.Context, task *model.Task, reason string) bool {
 	quota := task.Quota
 	if quota == 0 {
-		return
+		return true
 	}
+	claimed, err := model.ClaimQuotaForRefund(task.ID, quota)
+	if err != nil {
+		logger.LogError(ctx, fmt.Sprintf("领取退款额度失败 task %s: %s", task.TaskID, err.Error()))
+		return false
+	}
+	if !claimed {
+		logger.LogDebug(ctx, "退款额度已被其他处理者领取 task %s", task.TaskID)
+		return true
+	}
+	task.RefundPending = false
 
 	// 1. 退还资金来源（钱包或订阅）
 	if err := taskAdjustFunding(task, -quota); err != nil {
 		logger.LogWarn(ctx, fmt.Sprintf("退还资金来源失败 task %s: %s", task.TaskID, err.Error()))
-		return
+		restored, restoreErr := model.RestoreQuotaAfterFailedRefund(task.ID, quota)
+		if restoreErr != nil {
+			logger.LogError(ctx, fmt.Sprintf("恢复退款标记失败 task %s: %s", task.TaskID, restoreErr.Error()))
+		} else if !restored {
+			logger.LogError(ctx, fmt.Sprintf("退款失败且无法恢复退款标记 task %s", task.TaskID))
+		} else {
+			task.RefundPending = true
+		}
+		return false
 	}
+	task.Quota = 0
 
 	// 2. 退还令牌额度
 	taskAdjustTokenQuota(ctx, task, -quota)
@@ -202,6 +222,8 @@ func RefundTaskQuota(ctx context.Context, task *model.Task, reason string) {
 		Group:     task.Group,
 		Other:     other,
 	})
+
+	return true
 }
 
 // RecalculateTaskQuota 通用的异步差额结算。

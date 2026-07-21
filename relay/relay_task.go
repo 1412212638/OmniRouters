@@ -570,6 +570,7 @@ func tryRealtimeImageFetch(task *model.Task) {
 		task.FailReason = taskResult.Reason
 		if task.Quota != 0 {
 			shouldRefund = true
+			task.RefundPending = true
 		}
 	default:
 		return

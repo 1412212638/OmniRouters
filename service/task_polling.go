@@ -37,6 +37,11 @@ type TaskPollingAdaptor interface {
 // 打破 service -> relay -> relay/channel -> service 的循环依赖。
 var GetTaskAdaptorFunc func(platform constant.TaskPlatform) TaskPollingAdaptor
 
+const (
+	refundReconciliationLimit       = 100
+	refundReconciliationGracePeriod = 30 * time.Second
+)
+
 // sweepTimedOutTasks 在主轮询之前独立清理超时任务。
 // 每次最多处理 100 条，剩余的下个周期继续处理。
 // 使用 per-task CAS (UpdateWithStatus) 防止覆盖被正常轮询已推进的任务。
@@ -50,14 +55,13 @@ func sweepTimedOutTasks(ctx context.Context) {
 		return
 	}
 
-	const legacyTaskCutoff int64 = 1740182400 // 2026-02-22 00:00:00 UTC
 	reason := fmt.Sprintf("任务超时（%d分钟）", constant.TaskTimeoutMinutes)
 	legacyReason := "任务超时（旧系统遗留任务，不进行退款，请联系管理员）"
 	now := time.Now().Unix()
 	timedOutCount := 0
 
 	for _, task := range tasks {
-		isLegacy := task.SubmitTime > 0 && task.SubmitTime < legacyTaskCutoff
+		isLegacy := task.SubmitTime > 0 && task.SubmitTime < model.TaskRefundLegacyCutoff
 
 		oldStatus := task.Status
 		task.Status = model.TaskStatusFailure
@@ -65,8 +69,12 @@ func sweepTimedOutTasks(ctx context.Context) {
 		task.FinishTime = now
 		if isLegacy {
 			task.FailReason = legacyReason
+			// 旧系统任务明确不退款，随终态 CAS 一并清掉 quota，避免被后续对账误判。
+			task.Quota = 0
+			task.RefundPending = false
 		} else {
 			task.FailReason = reason
+			task.RefundPending = task.Quota != 0
 		}
 
 		won, err := task.UpdateWithStatus(oldStatus)
@@ -86,6 +94,23 @@ func sweepTimedOutTasks(ctx context.Context) {
 
 	if timedOutCount > 0 {
 		logger.LogInfo(ctx, fmt.Sprintf("sweepTimedOutTasks: timed out %d tasks", timedOutCount))
+	}
+}
+
+// sweepUnrefundedFailedTasks 重试已落 FAILURE 终态但仍保留 quota 的欠退款任务。
+// 先等待一个短暂宽限期，让终态 CAS 的胜出者完成主路径即时退款，避免正常
+// 轮询与对账同时处理刚失败的任务。
+func sweepUnrefundedFailedTasks(ctx context.Context) {
+	updatedBefore := time.Now().Add(-refundReconciliationGracePeriod).Unix()
+	tasks := model.GetUnrefundedFailedTasks(updatedBefore, refundReconciliationLimit)
+	for _, task := range tasks {
+		if ctx.Err() != nil {
+			return
+		}
+
+		// RefundTaskQuota 内部通过 quota CAS 领取退款权，所有即时退款与对账
+		// 共用同一防重入口。领取后进程崩溃会偏向漏退而不是双退，需人工对账兜底。
+		RefundTaskQuota(ctx, task, task.FailReason)
 	}
 }
 
@@ -113,6 +138,7 @@ func RunTaskPollingOnce(ctx context.Context, report func(processed, total int)) 
 
 	common.SysLog("任务进度轮询开始")
 	sweepTimedOutTasks(ctx)
+	sweepUnrefundedFailedTasks(ctx)
 	allTasks := model.GetAllUnFinishSyncTasks(constant.TaskQueryLimit)
 	summary.UnfinishedTasks = len(allTasks)
 	platformTask := make(map[constant.TaskPlatform][]*model.Task)
@@ -150,8 +176,9 @@ func RunTaskPollingOnce(ctx context.Context, report func(processed, total int)) 
 		if len(nullTaskIds) > 0 {
 			summary.NullTasksFailed += len(nullTaskIds)
 			err := model.TaskBulkUpdateByID(nullTaskIds, map[string]any{
-				"status":   "FAILURE",
-				"progress": "100%",
+				"status":         "FAILURE",
+				"progress":       "100%",
+				"refund_pending": true,
 			})
 			if err != nil {
 				logger.LogError(ctx, fmt.Sprintf("Fix null task_id task error: %v", err))
@@ -222,9 +249,10 @@ func updateSunoTasks(ctx context.Context, channelId int, taskIds []string, taskM
 			}
 		}
 		err = model.TaskBulkUpdateByID(failedIDs, map[string]any{
-			"fail_reason": fmt.Sprintf("获取渠道信息失败，请联系管理员，渠道ID：%d", channelId),
-			"status":      "FAILURE",
-			"progress":    "100%",
+			"fail_reason":    fmt.Sprintf("获取渠道信息失败，请联系管理员，渠道ID：%d", channelId),
+			"status":         "FAILURE",
+			"progress":       "100%",
+			"refund_pending": true,
 		})
 		if err != nil {
 			common.SysLog(fmt.Sprintf("UpdateSunoTask error: %v", err))
@@ -277,24 +305,32 @@ func updateSunoTasks(ctx context.Context, channelId int, taskIds []string, taskM
 			continue
 		}
 
+		prevStatus := task.Status
 		task.Status = lo.If(model.TaskStatus(responseItem.Status) != "", model.TaskStatus(responseItem.Status)).Else(task.Status)
 		task.FailReason = lo.If(responseItem.FailReason != "", responseItem.FailReason).Else(task.FailReason)
 		task.SubmitTime = lo.If(responseItem.SubmitTime != 0, responseItem.SubmitTime).Else(task.SubmitTime)
 		task.StartTime = lo.If(responseItem.StartTime != 0, responseItem.StartTime).Else(task.StartTime)
 		task.FinishTime = lo.If(responseItem.FinishTime != 0, responseItem.FinishTime).Else(task.FinishTime)
-		if responseItem.FailReason != "" || task.Status == model.TaskStatusFailure {
+		isFailure := responseItem.FailReason != "" || task.Status == model.TaskStatusFailure
+		if isFailure {
 			logger.LogInfo(ctx, task.TaskID+" 构建失败，"+task.FailReason)
+			task.Status = model.TaskStatusFailure
 			task.Progress = "100%"
-			RefundTaskQuota(ctx, task, task.FailReason)
+			task.RefundPending = task.Quota != 0
 		}
 		if responseItem.Status == model.TaskStatusSuccess {
 			task.Progress = "100%"
 		}
 		task.Data = responseItem.Data
 
-		err = task.Update()
+		// 持久化走 CAS，防止重叠轮询/sweep/多实例/持久化失败重试导致重复退款或覆盖终态。
+		won, err := task.UpdateWithStatus(prevStatus)
 		if err != nil {
-			common.SysLog("UpdateSunoTask task error: " + err.Error())
+			logger.LogError(ctx, fmt.Sprintf("UpdateSunoTask task %s error: %v", task.TaskID, err))
+		} else if !won {
+			logger.LogWarn(ctx, fmt.Sprintf("Task %s CAS lost or no-op update, skip billing", task.TaskID))
+		} else if isFailure && prevStatus != model.TaskStatusFailure && task.Quota != 0 {
+			RefundTaskQuota(ctx, task, task.FailReason)
 		}
 	}
 	return nil
@@ -390,9 +426,10 @@ func updateVideoTasks(ctx context.Context, platform constant.TaskPlatform, chann
 			}
 		}
 		errUpdate := model.TaskBulkUpdateByID(failedIDs, map[string]any{
-			"fail_reason": fmt.Sprintf("Failed to get channel info, channel ID: %d", channelId),
-			"status":      "FAILURE",
-			"progress":    "100%",
+			"fail_reason":    fmt.Sprintf("Failed to get channel info, channel ID: %d", channelId),
+			"status":         "FAILURE",
+			"progress":       "100%",
+			"refund_pending": true,
 		})
 		if errUpdate != nil {
 			common.SysLog(fmt.Sprintf("UpdateVideoTask error: %v", errUpdate))
@@ -555,6 +592,7 @@ func updateVideoSingleTask(ctx context.Context, adaptor TaskPollingAdaptor, ch *
 		taskResult.Progress = taskcommon.ProgressComplete
 		if quota != 0 {
 			shouldRefund = true
+			task.RefundPending = true
 		}
 	default:
 		return fmt.Errorf("unknown task status %s for task %s", taskResult.Status, task.TaskID)
@@ -571,7 +609,7 @@ func updateVideoSingleTask(ctx context.Context, adaptor TaskPollingAdaptor, ch *
 			shouldRefund = false
 			shouldSettle = false
 		} else if !won {
-			logger.LogWarn(ctx, fmt.Sprintf("Task %s already transitioned by another process, skip billing", task.TaskID))
+			logger.LogWarn(ctx, fmt.Sprintf("Task %s CAS lost or no-op update, skip billing", task.TaskID))
 			shouldRefund = false
 			shouldSettle = false
 		}
