@@ -2,6 +2,27 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-07-22
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `7c28993f6bd9e92616f3f578212577f8b7c40b45`
+- Upstream `main` reviewed and selectively synced through: `1721144221ec5c94dd87891a7ae1bee228e7bb63`
+- Local integration scope:
+  - Integrated authentication-data cleanup on hard user deletion, Telegram callback verification hardening, fail-closed 2FA queries, and concurrency-safe authentication updates.
+  - Integrated server-side user sorting, immediate DataTable column updates, action-column sizing, fixed-height Playground model groups, unlimited-key used-quota display, and high-risk retry confirmation copy.
+  - Integrated Responses-to-Chat streaming tool-call deduplication, MiniMax vendor inference, realtime GA header/model updates, and auto-group model listing while preserving local `ExtraGroups` behavior.
+  - Integrated Codex upstream model discovery, compact model variants, proxy URL validation, canonical proxy-client caching, and precise cache invalidation while retaining the complete local static Codex model list.
+  - Integrated async task failure compare-and-swap handling and refund reconciliation. OmniRouters additionally records `refund_pending` so only failures produced by the new transition path are eligible for reconciliation; historical failed tasks cannot be refunded a second time.
+- Deferred, skipped, or excluded:
+  - Deferred `a6cf42c0f` and `5a6c53d49` because Advanced Custom upstream model fetching and its wording changes remain outside the current channel policy.
+  - Deferred `31d70fca3` and dependent `172114422` because the stateless-auth and `web/default` to `web` architecture migration is a high-impact authentication/frontend restructuring that requires a dedicated migration and rollout plan.
+  - Skipped `d0e23e1e0` because it only changes repository language-statistics configuration.
+- Notes:
+  - Preserved OmniRouters Sora per-request pricing, `audio_generation` fixed surcharge and refund accounting, tickets, member tiers, extra user groups, email settings, marketing mail, wallet behavior, and model-mapping privacy.
+  - Task refunds use the persisted total task quota and never reprice Sora or audio surcharges during recovery.
+  - Source-level checks passed for whitespace, locale JSON parsing, and targeted frontend formatting. Go tests could not be run because Go is unavailable locally; GitHub Actions remains responsible for the full build and test run after push.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-07-13
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
