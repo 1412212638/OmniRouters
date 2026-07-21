@@ -1,22 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import * as React from 'react'
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -38,6 +19,25 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+/*
+Copyright (C) 2023-2026 QuantumNous
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+For commercial licensing, please contact support@quantumnous.com
+*/
+import * as React from 'react'
 
 type DataTableFeatureOptions<TData> = Pick<
   TableOptions<TData>,
@@ -49,6 +49,7 @@ type DataTableFeatureOptions<TData> = Pick<
   | 'manualFiltering'
   | 'manualPagination'
   | 'manualSorting'
+  | 'enableSorting'
   | 'enableColumnResizing'
 >
 
@@ -292,7 +293,7 @@ export function useDataTable<TData>(options: UseDataTableOptions<TData>) {
     initialPagination = { pageIndex: 0, pageSize: 20 },
     withFilteredRowModel = !manualFiltering,
     withPaginationRowModel = !manualPagination,
-    withSortedRowModel = !manualSorting,
+    withSortedRowModel = !manualSorting && !manualPagination,
     withFacetedRowModel = !manualFiltering,
     withExpandedRowModel = false,
   } = options
@@ -370,6 +371,11 @@ export function useDataTable<TData>(options: UseDataTableOptions<TData>) {
     (totalCount !== undefined
       ? Math.ceil(totalCount / pagination.pageSize)
       : undefined)
+  const resolvedEnableSorting =
+    options.enableSorting ??
+    (!manualPagination ||
+      Boolean(options.sorting) ||
+      Boolean(options.onSortingChange))
 
   const table = useReactTable({
     data,
@@ -387,6 +393,7 @@ export function useDataTable<TData>(options: UseDataTableOptions<TData>) {
       pagination,
     },
     enableRowSelection: options.enableRowSelection,
+    enableSorting: resolvedEnableSorting,
     getRowId: options.getRowId,
     getSubRows: options.getSubRows,
     globalFilterFn: options.globalFilterFn,
