@@ -2,6 +2,26 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-07-26
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `1721144221ec5c94dd87891a7ae1bee228e7bb63`
+- Upstream `main` reviewed and selectively synced through: `3e1e728279884d83358811aec00980dd55f6ad4e`
+- Local integration commits:
+  - `f12f5a017` protects existing model pricing during create/rename, keeps open model forms stable during option refreshes, adds Gemini image GA models, fixes clearable/minimum top-up input behavior, debounces user search, and safely logs empty upstream errors.
+  - `5127f76af` stabilizes debounced channel priority/weight updates and table row IDs, and adds Tencent TokenHub single-key routing while preserving native TC3 credentials.
+  - `087c453a1` migrates real JSON configuration fields to the Yace-based unified editor with syntax highlighting, line numbers, formatting, copy, cursor location, form integration, and focused utility tests.
+- Deferred, skipped, or excluded:
+  - Skipped `cb96ab020` and `cbd9b30aa` because they only replace upstream GitHub issue templates and do not affect OmniRouters runtime behavior.
+  - Skipped `257223be2` and `5ede832d8` because they only change upstream README badges.
+  - Did not add `happy-dom`; it is only needed by upstream DOM-specific editor tests. OmniRouters keeps focused dependency-light utility coverage instead.
+- Notes:
+  - Preserved OmniRouters Sora per-request pricing, `audio_generation` fixed surcharge, payment and corporate-transfer settings, custom OAuth behavior, tickets, member tiers, mail settings, wallet behavior, and model-mapping privacy.
+  - Kept the product decision to exclude paid-feature compliance confirmation.
+  - Source checks passed for staged whitespace, locale JSON parsing, protected headers, and targeted frontend lint. Full typecheck still requires Actions to install the new `yace` dependency and continues to expose the previously known dynamic-price and upstream-ratio-sync errors.
+  - Followed the source-only workflow; no local Docker image was built and GitHub Actions remains responsible for dependency installation and image publishing after a later push.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-07-22
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
