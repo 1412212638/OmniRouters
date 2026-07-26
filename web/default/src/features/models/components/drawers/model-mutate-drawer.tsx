@@ -1,3 +1,6 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { ChevronDown, Loader2 } from 'lucide-react'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -16,18 +19,26 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useEffect, useState, useCallback, useMemo } from 'react'
-import * as z from 'zod'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronDown, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import * as z from 'zod'
+
 import {
   ZENMUX_MODALITY_ICONS,
   type ZenMuxIconComponent,
 } from '@/assets/custom/zenmux-modality-icons'
+import {
+  SideDrawerSection,
+  sideDrawerContentClassName,
+  sideDrawerFooterClassName,
+  sideDrawerFormClassName,
+  sideDrawerHeaderClassName,
+  sideDrawerSwitchItemClassName,
+} from '@/components/drawer-layout'
+import { JsonEditor } from '@/components/json-editor'
+import { TagInput } from '@/components/tag-input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -77,16 +88,6 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import {
-  SideDrawerSection,
-  sideDrawerContentClassName,
-  sideDrawerFooterClassName,
-  sideDrawerFormClassName,
-  sideDrawerHeaderClassName,
-  sideDrawerSwitchItemClassName,
-} from '@/components/drawer-layout'
-import { JsonEditor } from '@/components/json-editor'
-import { TagInput } from '@/components/tag-input'
-import {
   useSystemOptions,
   getOptionValue,
 } from '@/features/system-settings/hooks/use-system-options'
@@ -94,6 +95,7 @@ import { useUpdateOption } from '@/features/system-settings/hooks/use-update-opt
 import { normalizeJsonString } from '@/features/system-settings/models/utils'
 import type { ModelSettings } from '@/features/system-settings/types'
 import { safeJsonParse } from '@/features/system-settings/utils/json-parser'
+
 import { createModel, updateModel, getModel, getVendors } from '../../api'
 import { getNameRuleOptions, ENDPOINT_TEMPLATES } from '../../constants'
 import { modelsQueryKeys, vendorsQueryKeys, parseModelTags } from '../../lib'
@@ -144,10 +146,6 @@ const EMPTY_PRICING_FIELDS: Record<PricingFieldName, string> = {
   audioRatio: '',
   audioCompletionRatio: '',
 }
-
-const PRICING_FIELD_NAMES = Object.keys(
-  EMPTY_PRICING_FIELDS
-) as PricingFieldName[]
 
 const MODEL_MODALITY_OPTIONS: Array<{
   value: ModelModality
@@ -307,12 +305,12 @@ function buildPricingDefaults(
     pricingMode: 'per-token',
     promptPrice,
     completionPrice,
-    advancedOpen: !!(
-      cacheRatio ||
-      imageRatio ||
-      audioRatio ||
-      audioCompletionRatio
-    ),
+    advancedOpen: [
+      cacheRatio,
+      imageRatio,
+      audioRatio,
+      audioCompletionRatio,
+    ].some((value) => value !== undefined && value !== null),
   }
 }
 
@@ -338,6 +336,8 @@ export function ModelMutateDrawer({
   const [promptPrice, setPromptPrice] = useState('')
   const [completionPrice, setCompletionPrice] = useState('')
   const [oldModelName, setOldModelName] = useState<string>('')
+  const [loadedPricingName, setLoadedPricingName] = useState<string>('')
+  const modelSettingsRef = useRef<ModelSettings | null>(null)
 
   // Fetch vendors for dropdown
   const { data: vendorsData } = useQuery({
@@ -431,6 +431,11 @@ export function ModelMutateDrawer({
     return getOptionValue(systemOptionsData.data, defaultModelSettings)
   }, [systemOptionsData])
 
+  const hasModelSettings = modelSettings !== null
+  useEffect(() => {
+    modelSettingsRef.current = modelSettings
+  })
+
   const form = useForm<ExtendedModelFormValues>({
     resolver: zodResolver(extendedModelFormSchema),
     defaultValues: {
@@ -479,23 +484,34 @@ export function ModelMutateDrawer({
       !Number.isNaN(Number.parseFloat(promptPrice)) &&
       Number.parseFloat(promptPrice) > 0
     ) {
-      const completionRatio = Number.parseFloat(value) / Number.parseFloat(promptPrice)
+      const completionRatio =
+        Number.parseFloat(value) / Number.parseFloat(promptPrice)
       form.setValue('completionRatio', completionRatio.toString())
     } else {
       form.setValue('completionRatio', '')
     }
   }
 
-  // Load model data. Pricing is applied in a separate effect so later system
-  // option refreshes do not overwrite edited metadata like icon URLs.
+  // Load model metadata and the pricing snapshot together. Later option
+  // refetches update the ref without resetting a form the user is editing.
   useEffect(() => {
     if (open && isEditing && modelData?.data) {
       const model = modelData.data
+      const pricing = modelSettingsRef.current
+        ? buildPricingDefaults(model.model_name, modelSettingsRef.current)
+        : {
+            fields: { ...EMPTY_PRICING_FIELDS },
+            pricingMode: 'per-token' as PricingMode,
+            promptPrice: '',
+            completionPrice: '',
+            advancedOpen: false,
+          }
       setOldModelName(model.model_name)
-      setPricingMode('per-token')
-      setPromptPrice('')
-      setCompletionPrice('')
-      setAdvancedOpen(false)
+      setLoadedPricingName(model.model_name)
+      setPricingMode(pricing.pricingMode)
+      setPromptPrice(pricing.promptPrice)
+      setCompletionPrice(pricing.completionPrice)
+      setAdvancedOpen(pricing.advancedOpen)
       form.reset({
         id: model.id,
         model_name: model.model_name,
@@ -509,24 +525,28 @@ export function ModelMutateDrawer({
         name_rule: model.name_rule || 0,
         status: model.status === 1,
         sync_official: model.sync_official === 1,
-        price: '',
-        ratio: '',
-        cacheRatio: '',
-        completionRatio: '',
-        imageRatio: '',
-        audioRatio: '',
-        audioCompletionRatio: '',
+        ...pricing.fields,
       })
     } else if (open && !isEditing) {
-      // Pre-fill model name if passed from missing models
+      const modelName = currentRow?.model_name || ''
+      const pricing = modelSettingsRef.current
+        ? buildPricingDefaults(modelName, modelSettingsRef.current)
+        : {
+            fields: { ...EMPTY_PRICING_FIELDS },
+            pricingMode: 'per-token' as PricingMode,
+            promptPrice: '',
+            completionPrice: '',
+            advancedOpen: false,
+          }
       setOldModelName('')
-      setPricingMode('per-token')
+      setLoadedPricingName(modelName)
+      setPricingMode(pricing.pricingMode)
       setPricingSubMode('ratio')
-      setPromptPrice('')
-      setCompletionPrice('')
-      setAdvancedOpen(false)
+      setPromptPrice(pricing.promptPrice)
+      setCompletionPrice(pricing.completionPrice)
+      setAdvancedOpen(pricing.advancedOpen)
       form.reset({
-        model_name: currentRow?.model_name || '',
+        model_name: modelName,
         description: '',
         icon: '',
         tags: [],
@@ -537,41 +557,10 @@ export function ModelMutateDrawer({
         name_rule: 0,
         status: true,
         sync_official: true,
-        price: '',
-        ratio: '',
-        cacheRatio: '',
-        completionRatio: '',
-        imageRatio: '',
-        audioRatio: '',
-        audioCompletionRatio: '',
+        ...pricing.fields,
       })
     }
-  }, [open, isEditing, modelData, currentRow, form])
-
-  useEffect(() => {
-    if (!open || !isEditing || !modelData?.data || !modelSettings) return
-    const pricingFieldsDirty = PRICING_FIELD_NAMES.some(
-      (name) => form.getFieldState(name).isDirty
-    )
-    if (pricingFieldsDirty) return
-
-    const defaults = buildPricingDefaults(
-      modelData.data.model_name,
-      modelSettings
-    )
-    setPricingMode(defaults.pricingMode)
-    setPromptPrice(defaults.promptPrice)
-    setCompletionPrice(defaults.completionPrice)
-    setAdvancedOpen(defaults.advancedOpen)
-
-    PRICING_FIELD_NAMES.forEach((name) => {
-      form.setValue(name, defaults.fields[name], {
-        shouldDirty: false,
-        shouldTouch: false,
-        shouldValidate: false,
-      })
-    })
-  }, [open, isEditing, modelData, modelSettings, form])
+  }, [open, isEditing, modelData, currentRow, form, hasModelSettings])
 
   const onSubmit = useCallback(
     async (values: ExtendedModelFormValues): Promise<void> => {
@@ -668,15 +657,18 @@ export function ModelMutateDrawer({
               delete audioCompletionMap[oldModelName]
             }
 
-            // Remove current model name from all maps first (always, to handle mode switches or clearing)
-            // This ensures stale entries are removed even when user clears all fields
-            delete priceMap[finalModelName]
-            delete ratioMap[finalModelName]
-            delete cacheMap[finalModelName]
-            delete completionMap[finalModelName]
-            delete imageMap[finalModelName]
-            delete audioMap[finalModelName]
-            delete audioCompletionMap[finalModelName]
+            // Only rewrite pricing that this form loaded or explicitly defines.
+            // Creating or renaming onto an existing model name must not erase
+            // pricing configured elsewhere.
+            if (hasRatioConfig || finalModelName === loadedPricingName) {
+              delete priceMap[finalModelName]
+              delete ratioMap[finalModelName]
+              delete cacheMap[finalModelName]
+              delete completionMap[finalModelName]
+              delete imageMap[finalModelName]
+              delete audioMap[finalModelName]
+              delete audioCompletionMap[finalModelName]
+            }
 
             // Only add new entries if user provided new configuration
             if (hasRatioConfig) {
@@ -691,7 +683,9 @@ export function ModelMutateDrawer({
                   ratioMap[finalModelName] = Number.parseFloat(values.ratio)
                 }
                 if (values.cacheRatio && values.cacheRatio !== '') {
-                  cacheMap[finalModelName] = Number.parseFloat(values.cacheRatio)
+                  cacheMap[finalModelName] = Number.parseFloat(
+                    values.cacheRatio
+                  )
                 }
                 if (values.completionRatio && values.completionRatio !== '') {
                   completionMap[finalModelName] = Number.parseFloat(
@@ -699,10 +693,14 @@ export function ModelMutateDrawer({
                   )
                 }
                 if (values.imageRatio && values.imageRatio !== '') {
-                  imageMap[finalModelName] = Number.parseFloat(values.imageRatio)
+                  imageMap[finalModelName] = Number.parseFloat(
+                    values.imageRatio
+                  )
                 }
                 if (values.audioRatio && values.audioRatio !== '') {
-                  audioMap[finalModelName] = Number.parseFloat(values.audioRatio)
+                  audioMap[finalModelName] = Number.parseFloat(
+                    values.audioRatio
+                  )
                 }
                 if (
                   values.audioCompletionRatio &&
@@ -809,6 +807,7 @@ export function ModelMutateDrawer({
       onOpenChange,
       pricingMode,
       oldModelName,
+      loadedPricingName,
       modelSettings,
       updateOption,
     ]
@@ -920,9 +919,9 @@ export function ModelMutateDrawer({
                     <FormLabel>{t('Vendor')}</FormLabel>
                     <Select
                       items={vendors.map((vendor) => ({
-                          value: String(vendor.id),
-                          label: vendor.name,
-                        }))}
+                        value: String(vendor.id),
+                        label: vendor.name,
+                      }))}
                       onValueChange={(value) =>
                         field.onChange(
                           value ? Number.parseInt(value) : undefined
@@ -1159,9 +1158,9 @@ export function ModelMutateDrawer({
                 <h3 className='text-sm font-semibold'>{t('Endpoints')}</h3>
                 <Select<string>
                   items={Object.keys(ENDPOINT_TEMPLATES).map((key) => ({
-                      value: key,
-                      label: key,
-                    }))}
+                    value: key,
+                    label: key,
+                  }))}
                   onValueChange={(v) =>
                     v !== null && handleFillEndpointTemplate(v)
                   }
@@ -1312,7 +1311,9 @@ export function ModelMutateDrawer({
                                     field.onChange(value)
                                     if (value) {
                                       setPromptPrice(
-                                        (Number.parseFloat(value) * 2).toString()
+                                        (
+                                          Number.parseFloat(value) * 2
+                                        ).toString()
                                       )
                                     } else {
                                       setPromptPrice('')
@@ -1322,7 +1323,8 @@ export function ModelMutateDrawer({
                               />
                             </FormControl>
                             <FormDescription>
-                              {field.value && !Number.isNaN(Number.parseFloat(field.value))
+                              {field.value &&
+                              !Number.isNaN(Number.parseFloat(field.value))
                                 ? `Calculated price: $${(Number.parseFloat(field.value) * 2).toFixed(4)} per 1M tokens`
                                 : t('Multiplier for prompt tokens.')}
                             </FormDescription>
@@ -1375,43 +1377,44 @@ export function ModelMutateDrawer({
                     </>
                   ) : (
                     <div className='space-y-4'>
-                        <div className='space-y-2'>
-                          <Label>{t('Prompt price ($/1M tokens)')}</Label>
-                          <Input
-                            type='text'
-                            placeholder='2.0'
-                            value={promptPrice}
-                            onChange={(e) =>
-                              handlePromptPriceChange(e.target.value)
-                            }
-                          />
-                          <p className='text-muted-foreground text-sm'>
-                            {promptPrice && !Number.isNaN(Number.parseFloat(promptPrice))
-                              ? `Calculated ratio: ${(Number.parseFloat(promptPrice) / 2).toFixed(4)}`
-                              : t('Enter Input price to calculate ratio')}
-                          </p>
-                        </div>
+                      <div className='space-y-2'>
+                        <Label>{t('Prompt price ($/1M tokens)')}</Label>
+                        <Input
+                          type='text'
+                          placeholder='2.0'
+                          value={promptPrice}
+                          onChange={(e) =>
+                            handlePromptPriceChange(e.target.value)
+                          }
+                        />
+                        <p className='text-muted-foreground text-sm'>
+                          {promptPrice &&
+                          !Number.isNaN(Number.parseFloat(promptPrice))
+                            ? `Calculated ratio: ${(Number.parseFloat(promptPrice) / 2).toFixed(4)}`
+                            : t('Enter Input price to calculate ratio')}
+                        </p>
+                      </div>
 
-                        <div className='space-y-2'>
-                          <Label>{t('Completion price ($/1M tokens)')}</Label>
-                          <Input
-                            type='text'
-                            placeholder='4.0'
-                            value={completionPrice}
-                            onChange={(e) =>
-                              handleCompletionPriceChange(e.target.value)
-                            }
-                          />
-                          <p className='text-muted-foreground text-sm'>
-                            {completionPrice &&
-                            !Number.isNaN(Number.parseFloat(completionPrice)) &&
-                            promptPrice &&
-                            !Number.isNaN(Number.parseFloat(promptPrice)) &&
-                            Number.parseFloat(promptPrice) > 0
-                              ? `Calculated ratio: ${(Number.parseFloat(completionPrice) / Number.parseFloat(promptPrice)).toFixed(4)}`
-                              : t('Enter Completion price to calculate ratio')}
-                          </p>
-                        </div>
+                      <div className='space-y-2'>
+                        <Label>{t('Completion price ($/1M tokens)')}</Label>
+                        <Input
+                          type='text'
+                          placeholder='4.0'
+                          value={completionPrice}
+                          onChange={(e) =>
+                            handleCompletionPriceChange(e.target.value)
+                          }
+                        />
+                        <p className='text-muted-foreground text-sm'>
+                          {completionPrice &&
+                          !Number.isNaN(Number.parseFloat(completionPrice)) &&
+                          promptPrice &&
+                          !Number.isNaN(Number.parseFloat(promptPrice)) &&
+                          Number.parseFloat(promptPrice) > 0
+                            ? `Calculated ratio: ${(Number.parseFloat(completionPrice) / Number.parseFloat(promptPrice)).toFixed(4)}`
+                            : t('Enter Completion price to calculate ratio')}
+                        </p>
+                      </div>
                     </div>
                   )}
 
