@@ -2263,6 +2263,7 @@
     "Include Model": "Bao gồm mô hình",
     "Include Rule Name": "Bao gồm tên quy tắc",
     "Includes request rules": "Bao gồm quy tắc yêu cầu",
+    "Includes tool-call surcharge": "Bao gồm phụ phí gọi công cụ",
     "Including failed requests, 0 = unlimited": "Bao gồm các yêu cầu thất bại, 0 = không giới hạn",
     "Index": "Chỉ mục",
     "Initial quota given to new users": "Hạn mức ban đầu cấp cho người dùng mới",

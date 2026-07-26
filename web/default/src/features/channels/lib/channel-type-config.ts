@@ -134,6 +134,16 @@ export const CHANNEL_TYPE_CONFIGS: Record<number, ChannelTypeConfig> = {
       baseUrl: 'Default: https://api.replicate.com',
     },
   },
+  59: {
+    id: 59,
+    name: CHANNEL_TYPES[59],
+    icon: 'Sub2API',
+    hints: {
+      baseUrl: 'Sub2API endpoint URL',
+      key: 'Sub2API API key',
+      models: 'Use model IDs from the upstream gateway',
+    },
+  },
 }
 
 /**
