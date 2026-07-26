@@ -23,6 +23,7 @@ import type { UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { JsonCodeEditor } from '@/components/json-code-editor'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -34,7 +35,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Switch } from '@/components/ui/switch'
-import { JsonCodeEditor } from '@/components/json-code-editor'
 import { getEnabledModels } from '@/features/channels/api'
 
 import {
@@ -156,6 +156,9 @@ function ModelJsonTextareaField(props: {
             <JsonCodeEditor
               value={field.value}
               onChange={(value) => field.onChange(value)}
+              name={field.name}
+              onBlur={field.onBlur}
+              textareaRef={field.ref}
             />
           </FormControl>
           <FormDescription className='text-xs leading-5'>

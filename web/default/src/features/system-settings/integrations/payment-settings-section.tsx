@@ -16,14 +16,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import * as React from 'react'
-import * as z from 'zod'
-import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { Code2, Eye } from 'lucide-react'
+import * as React from 'react'
+import { useForm, type Resolver } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import * as z from 'zod'
+
+import { JsonCodeEditor } from '@/components/json-code-editor'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -38,6 +40,7 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+
 import {
   SettingsForm,
   SettingsSwitchContent,
@@ -340,7 +343,8 @@ export function PaymentSettingsSection({
       CorporateTransferBankAccount: values.CorporateTransferBankAccount.trim(),
       CorporateTransferOperatorPhone:
         values.CorporateTransferOperatorPhone.trim(),
-      CorporateTransferSupportEmail: values.CorporateTransferSupportEmail.trim(),
+      CorporateTransferSupportEmail:
+        values.CorporateTransferSupportEmail.trim(),
       WaffoEnabled: values.WaffoEnabled,
       WaffoSandbox: values.WaffoSandbox,
       WaffoMerchantId: values.WaffoMerchantId.trim(),
@@ -388,7 +392,8 @@ export function PaymentSettingsSection({
       CreemProducts: initialRef.current.CreemProducts.trim(),
       CorporateTransferEnabled: initialRef.current.CorporateTransferEnabled,
       CorporateTransferTitle: initialRef.current.CorporateTransferTitle.trim(),
-      CorporateTransferNotice: initialRef.current.CorporateTransferNotice.trim(),
+      CorporateTransferNotice:
+        initialRef.current.CorporateTransferNotice.trim(),
       CorporateTransferAccountName:
         initialRef.current.CorporateTransferAccountName.trim(),
       CorporateTransferBankName:
@@ -890,13 +895,17 @@ export function PaymentSettingsSection({
                         onChange={field.onChange}
                       />
                     ) : (
-                      <Textarea
-                        rows={4}
+                      <JsonCodeEditor
+                        value={field.value}
+                        onChange={field.onChange}
+                        name={field.name}
+                        onBlur={field.onBlur}
+                        textareaRef={field.ref}
                         placeholder={t(
                           '[{"name":"支付宝","type":"alipay","icon":"SiAlipay"}]'
                         )}
-                        {...field}
-                        onChange={(event) => field.onChange(event.target.value)}
+                        heightClassName='h-40 min-h-40 max-h-40'
+                        aria-invalid={Boolean(form.formState.errors.PayMethods)}
                       />
                     )}
                   </FormControl>
@@ -947,13 +956,17 @@ export function PaymentSettingsSection({
                           onChange={field.onChange}
                         />
                       ) : (
-                        <Textarea
-                          rows={4}
+                        <JsonCodeEditor
+                          value={field.value}
+                          onChange={field.onChange}
+                          name={field.name}
+                          onBlur={field.onBlur}
+                          textareaRef={field.ref}
                           placeholder='[10, 20, 50, 100]'
-                          {...field}
-                          onChange={(event) =>
-                            field.onChange(event.target.value)
-                          }
+                          heightClassName='h-40 min-h-40 max-h-40'
+                          aria-invalid={Boolean(
+                            form.formState.errors.AmountOptions
+                          )}
                         />
                       )}
                     </FormControl>
@@ -1001,13 +1014,17 @@ export function PaymentSettingsSection({
                           onChange={field.onChange}
                         />
                       ) : (
-                        <Textarea
-                          rows={4}
+                        <JsonCodeEditor
+                          value={field.value}
+                          onChange={field.onChange}
+                          name={field.name}
+                          onBlur={field.onBlur}
+                          textareaRef={field.ref}
                           placeholder='{"100":0.95,"200":0.9}'
-                          {...field}
-                          onChange={(event) =>
-                            field.onChange(event.target.value)
-                          }
+                          heightClassName='h-40 min-h-40 max-h-40'
+                          aria-invalid={Boolean(
+                            form.formState.errors.AmountDiscount
+                          )}
                         />
                       )}
                     </FormControl>
@@ -1436,11 +1453,17 @@ export function PaymentSettingsSection({
                         onChange={field.onChange}
                       />
                     ) : (
-                      <Textarea
-                        rows={4}
+                      <JsonCodeEditor
+                        value={field.value}
+                        onChange={field.onChange}
+                        name={field.name}
+                        onBlur={field.onBlur}
+                        textareaRef={field.ref}
                         placeholder='[{"name":"Basic","productId":"prod_xxx","price":10,"quota":500000,"currency":"USD"}]'
-                        {...field}
-                        onChange={(event) => field.onChange(event.target.value)}
+                        heightClassName='h-40 min-h-40 max-h-40'
+                        aria-invalid={Boolean(
+                          form.formState.errors.CreemProducts
+                        )}
                       />
                     )}
                   </FormControl>
