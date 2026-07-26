@@ -16,12 +16,21 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-// Re-export all library functions
-export * from './channel-actions'
-export * from './channel-form-errors'
-export * from './channel-form'
-export * from './channel-field-update'
-export * from './channel-type-config'
-export * from './channel-utils'
-export * from './multi-key-utils'
-export * from './model-mapping-validation'
+import assert from 'node:assert/strict'
+import { describe, test } from 'node:test'
+
+import type { Channel } from '../../types'
+import { getChannelTableRowId, type TagRow } from '../channel-utils'
+
+describe('channel table row identity', () => {
+  test('uses stable, separate channel and tag namespaces', () => {
+    const channel = { id: 202 } as Channel
+    const tag = {
+      id: '202' as unknown as number,
+      tag: '202',
+      children: [channel],
+    } as TagRow
+    assert.equal(getChannelTableRowId(channel), 'channel:202')
+    assert.equal(getChannelTableRowId(tag), 'tag:202')
+  })
+})

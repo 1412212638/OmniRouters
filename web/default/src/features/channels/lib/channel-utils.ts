@@ -615,6 +615,10 @@ export function isTagAggregateRow(row: Channel | TagRow): row is TagRow {
   return Array.isArray((row as TagRow).children)
 }
 
+export function getChannelTableRowId(row: Channel | TagRow): string {
+  return isTagAggregateRow(row) ? `tag:${row.tag || ''}` : `channel:${row.id}`
+}
+
 /**
  * Aggregate channels by tag for tag mode display
  * Converts flat array into tree structure grouped by tag
