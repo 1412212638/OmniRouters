@@ -338,6 +338,8 @@ var streamSupportedChannels = map[int]bool{
 	constant.ChannelTypeMoonshot:    true,
 	constant.ChannelTypeMiniMax:     true,
 	constant.ChannelTypeSiliconFlow: true,
+	constant.ChannelTypeSub2API:     true,
+	constant.ChannelTypeNewAPI:      true,
 	constant.ChannelTypeTencent:     true,
 }
 
