@@ -2,6 +2,30 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-07-28
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `3e1e728279884d83358811aec00980dd55f6ad4e`
+- Upstream `main` reviewed and selectively synced through: `afe16c64cd73853da1eda3bf236f15d69637b4bf`
+- Local integration commits:
+  - `f9531cc27` parameterizes and sanitizes slow/error SQL logging, adds `SQL_SLOW_THRESHOLD_MS`, and removes the ineffective copied `CustomEvent` mutex.
+  - `b0a13c1b7` adds configurable tool surcharges, Alpha Search billing, and the Sub2API channel while preserving checked quota conversion.
+  - `b27dcec4a` adds New API channel type `60`; numeric type `58` remains reserved for upstream compatibility without enabling Advanced Custom.
+  - `fdace003a`, `10b3a8056`, `b28cc9777`, and `249468137` migrate protocol conversion into the standalone RelayKit module, restore host-owned pricing/container types, configure trusted proxies in middleware, and harden Gemini stream state and terminal handling.
+  - `32b1b9beb` adds per-channel HTTP protocol and HTTP/2 connection-shard controls across validation, client caching, runtime transport selection, tests, channel editing, and locales.
+- Deferred, skipped, or equivalent:
+  - Skipped `bc14c18f6` because it removes OmniRouters refund-pending, atomic refund-claim, reconciliation retry, and legacy-cutoff protections.
+  - Skipped `f51dd4d80` because Advanced Custom remains disabled by product decision; its DTO compatibility plumbing stays dormant inside RelayKit.
+  - Deferred `b27b2b1d6` because no equivalent iPad-specific session regression has been established locally.
+  - `60a1acb70`, `c3db41407`, and the applicable part of `8e2bfe278` are already represented by the local migration and logging commits.
+  - Skipped GitCode release workflows, upstream CI/rules changes, and RelayKit documentation-only commits because OmniRouters keeps its own GitHub/GHCR source-build workflow and project documentation policy.
+- Notes:
+  - Preserved Sora per-request pricing, the fixed per-call `audio_generation` surcharge, checked/saturated quota accounting, async OpenAI image tasks, task refund reconciliation, tickets, mail settings, wallet behavior, and model-mapping privacy.
+  - HTTP transport settings validate `auto` or forced HTTP/1.1 and allow 1-8 HTTP/2 connection shards; Advanced Custom validation was intentionally excluded.
+  - Locale JSON parsing, targeted channel formatting, conflict-marker checks, and source diff checks passed. Frontend typecheck no longer reports New API channel errors and only retains the previously known local `yace` installation, dynamic-price null-index, and duplicate `StatusBadge` issues.
+  - Go tests could not run because Go is unavailable locally. The source-only workflow was followed; GitHub Actions remains responsible for dependency installation, tests, and image publishing after push.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-07-26
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
