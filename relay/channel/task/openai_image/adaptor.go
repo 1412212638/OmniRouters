@@ -148,7 +148,7 @@ func (a *TaskAdaptor) DoResponse(c *gin.Context, resp *http.Response, info *rela
 
 	status := toImageTaskFetchStatus(submitResp.Status)
 	if status == "" {
-		status = dto.VideoStatusQueued
+		status = relaydto.VideoStatusQueued
 	}
 
 	c.JSON(http.StatusOK, dto.OpenAIImageTaskSubmitResponse{
@@ -352,14 +352,14 @@ func toTaskStatus(status string) string {
 func toImageTaskFetchStatus(status string) string {
 	switch strings.ToLower(strings.TrimSpace(status)) {
 	case "", "submitted", "pending", "queued":
-		return dto.VideoStatusQueued
+		return relaydto.VideoStatusQueued
 	case "processing", "in_progress", "running", "generating":
-		return dto.VideoStatusInProgress
+		return relaydto.VideoStatusInProgress
 	case "completed", "complete", "succeeded", "success", "finished":
-		return dto.VideoStatusCompleted
+		return relaydto.VideoStatusCompleted
 	case "failed", "failure", "error", "cancelled", "canceled":
-		return dto.VideoStatusFailed
+		return relaydto.VideoStatusFailed
 	default:
-		return dto.VideoStatusQueued
+		return relaydto.VideoStatusQueued
 	}
 }

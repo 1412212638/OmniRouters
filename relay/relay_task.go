@@ -601,15 +601,15 @@ func tryRealtimeImageFetch(task *model.Task) {
 func imageTaskStatusToOpenAI(status model.TaskStatus) string {
 	switch status {
 	case model.TaskStatusSubmitted, model.TaskStatusQueued, model.TaskStatusNotStart:
-		return dto.VideoStatusQueued
+		return relaydto.VideoStatusQueued
 	case model.TaskStatusInProgress:
-		return dto.VideoStatusInProgress
+		return relaydto.VideoStatusInProgress
 	case model.TaskStatusSuccess:
-		return dto.VideoStatusCompleted
+		return relaydto.VideoStatusCompleted
 	case model.TaskStatusFailure:
-		return dto.VideoStatusFailed
+		return relaydto.VideoStatusFailed
 	default:
-		return dto.VideoStatusUnknown
+		return relaydto.VideoStatusUnknown
 	}
 }
 
