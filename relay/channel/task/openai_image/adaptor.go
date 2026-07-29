@@ -16,6 +16,7 @@ import (
 	openaichannel "github.com/QuantumNous/new-api/relay/channel/openai"
 	taskcommon "github.com/QuantumNous/new-api/relay/channel/task/taskcommon"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
+	relaydto "github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting/model_setting"
 
@@ -47,7 +48,7 @@ func (a *TaskAdaptor) Init(info *relaycommon.RelayInfo) {
 }
 
 func (a *TaskAdaptor) ValidateRequestAndSetAction(c *gin.Context, info *relaycommon.RelayInfo) *dto.TaskError {
-	if _, ok := info.Request.(*dto.ImageRequest); !ok {
+	if _, ok := info.Request.(*relaydto.ImageRequest); !ok {
 		return service.TaskErrorWrapperLocal(fmt.Errorf("invalid request type"), "invalid_request", http.StatusBadRequest)
 	}
 	info.Action = constant.TaskActionGenerate
@@ -81,7 +82,7 @@ func (a *TaskAdaptor) BuildRequestHeader(c *gin.Context, req *http.Request, info
 }
 
 func (a *TaskAdaptor) BuildRequestBody(c *gin.Context, info *relaycommon.RelayInfo) (io.Reader, error) {
-	request, ok := info.Request.(*dto.ImageRequest)
+	request, ok := info.Request.(*relaydto.ImageRequest)
 	if !ok {
 		return nil, fmt.Errorf("invalid request type")
 	}
@@ -234,11 +235,11 @@ func (a *TaskAdaptor) GetChannelName() string {
 	return "OpenAI Image"
 }
 
-func ExtractImageData(respBody []byte) []dto.ImageData {
+func ExtractImageData(respBody []byte) []relaydto.ImageData {
 	var response struct {
-		Data   []dto.ImageData `json:"data,omitempty"`
-		Images []dto.ImageData `json:"images,omitempty"`
-		Output []dto.ImageData `json:"output,omitempty"`
+		Data   []relaydto.ImageData `json:"data,omitempty"`
+		Images []relaydto.ImageData `json:"images,omitempty"`
+		Output []relaydto.ImageData `json:"output,omitempty"`
 		URL    string          `json:"url,omitempty"`
 	}
 	if err := common.Unmarshal(respBody, &response); err == nil {
@@ -250,7 +251,7 @@ func ExtractImageData(respBody []byte) []dto.ImageData {
 		case len(response.Output) > 0:
 			return response.Output
 		case response.URL != "":
-			return []dto.ImageData{{Url: response.URL}}
+			return []relaydto.ImageData{{Url: response.URL}}
 		}
 	}
 
@@ -263,12 +264,12 @@ func ExtractImageData(respBody []byte) []dto.ImageData {
 		if !ok || len(items) == 0 {
 			continue
 		}
-		result := make([]dto.ImageData, 0, len(items))
+		result := make([]relaydto.ImageData, 0, len(items))
 		for _, item := range items {
 			switch value := item.(type) {
 			case string:
 				if value != "" {
-					result = append(result, dto.ImageData{Url: value})
+					result = append(result, relaydto.ImageData{Url: value})
 				}
 			case map[string]any:
 				imageURL := common.Interface2String(value["url"])
@@ -276,7 +277,7 @@ func ExtractImageData(respBody []byte) []dto.ImageData {
 					imageURL = common.Interface2String(value["image_url"])
 				}
 				if imageURL != "" {
-					result = append(result, dto.ImageData{Url: imageURL})
+					result = append(result, relaydto.ImageData{Url: imageURL})
 				}
 			}
 		}
@@ -286,7 +287,7 @@ func ExtractImageData(respBody []byte) []dto.ImageData {
 	}
 
 	if url := common.Interface2String(raw["url"]); url != "" {
-		return []dto.ImageData{{Url: url}}
+		return []relaydto.ImageData{{Url: url}}
 	}
 	return nil
 }
@@ -324,7 +325,7 @@ func extractImageTaskError(raw map[string]any) *imageTaskError {
 	return nil
 }
 
-func firstImageURL(items []dto.ImageData) string {
+func firstImageURL(items []relaydto.ImageData) string {
 	for _, item := range items {
 		if item.Url != "" {
 			return item.Url

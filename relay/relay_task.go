@@ -21,6 +21,7 @@ import (
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	relayconstant "github.com/QuantumNous/new-api/relay/constant"
 	"github.com/QuantumNous/new-api/relay/helper"
+	relaydto "github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/service"
 	"github.com/gin-gonic/gin"
 )
@@ -481,7 +482,7 @@ func imageFetchByIDRespBodyBuilder(c *gin.Context) (respBody []byte, taskResp *d
 	if task.Status == model.TaskStatusSuccess {
 		response.Data = taskopenaiimage.ExtractImageData(task.Data)
 		if len(response.Data) == 0 && task.GetResultURL() != "" {
-			response.Data = []dto.ImageData{{Url: task.GetResultURL()}}
+			response.Data = []relaydto.ImageData{{Url: task.GetResultURL()}}
 		}
 	}
 	if task.Status == model.TaskStatusFailure && task.FailReason != "" {

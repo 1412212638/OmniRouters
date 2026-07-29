@@ -1,16 +1,17 @@
-package dto
+package dto_test
 
 import (
 	"encoding/json"
 	"testing"
 
 	"github.com/QuantumNous/new-api/common"
+	relaydto "github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/stretchr/testify/require"
 	"github.com/tidwall/gjson"
 )
 
 func TestMessageToolCallsPreserveExtraContentThroughParseAndSet(t *testing.T) {
-	msg := Message{
+	msg := relaydto.Message{
 		Role: "assistant",
 		ToolCalls: json.RawMessage(`[
 			{
@@ -31,9 +32,9 @@ func TestMessageToolCallsPreserveExtraContentThroughParseAndSet(t *testing.T) {
 }
 
 func TestGeneralOpenAIRequestDeepCopyPreservesToolCallExtraContent(t *testing.T) {
-	request := GeneralOpenAIRequest{
+	request := relaydto.GeneralOpenAIRequest{
 		Model: "gemini-3.1-pro-preview",
-		Messages: []Message{
+		Messages: []relaydto.Message{
 			{
 				Role: "assistant",
 				ToolCalls: json.RawMessage(`[
@@ -54,7 +55,7 @@ func TestGeneralOpenAIRequestDeepCopyPreservesToolCallExtraContent(t *testing.T)
 }
 
 func TestStreamToolCallResponsePreservesExtraContent(t *testing.T) {
-	var response ChatCompletionsStreamResponse
+	var response relaydto.ChatCompletionsStreamResponse
 	err := common.Unmarshal([]byte(`{
 		"choices":[
 			{
