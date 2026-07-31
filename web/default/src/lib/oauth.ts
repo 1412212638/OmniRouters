@@ -17,6 +17,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { api } from './api'
+import {
+  getOAuthSessionStorage,
+  markOAuthBindPopup,
+} from '@/features/auth/lib/oauth-callback-mode'
 
 // ============================================================================
 // OAuth URL Builders
@@ -104,7 +108,7 @@ export async function handleGitHubOAuth(clientId: string): Promise<void> {
   if (!state) return
 
   const url = buildGitHubOAuthUrl(clientId, state)
-  window.open(url, '_blank')
+  openOAuthBindWindow(url, 'github', state)
 }
 
 /**
@@ -115,7 +119,7 @@ export async function handleDiscordOAuth(clientId: string): Promise<void> {
   if (!state) return
 
   const url = buildDiscordOAuthUrl(clientId, state)
-  window.open(url, '_blank')
+  openOAuthBindWindow(url, 'discord', state)
 }
 
 /**
@@ -129,7 +133,7 @@ export async function handleOIDCOAuth(
   if (!state) return
 
   const url = buildOIDCOAuthUrl(authUrl, clientId, state)
-  window.open(url, '_blank')
+  openOAuthBindWindow(url, 'oidc', state)
 }
 
 /**
@@ -140,5 +144,19 @@ export async function handleLinuxDOOAuth(clientId: string): Promise<void> {
   if (!state) return
 
   const url = buildLinuxDOOAuthUrl(clientId, state)
-  window.open(url, '_blank')
+  openOAuthBindWindow(url, 'linuxdo', state)
+}
+
+function openOAuthBindWindow(
+  url: string,
+  provider: string,
+  state: string
+): void {
+  const popup = window.open('', '_blank')
+  if (!popup) return
+  if (!markOAuthBindPopup(getOAuthSessionStorage(popup), provider, state)) {
+    popup.close()
+    return
+  }
+  popup.location.replace(url)
 }
