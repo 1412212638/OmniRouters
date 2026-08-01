@@ -64,6 +64,18 @@ func GroupInUserUsableGroupsForContext(c *gin.Context, groupName string) bool {
 	return ok
 }
 
+func IsUserSelectableGroup(userGroup, groupName string) bool {
+	return isUserSelectableGroupWithExtras(userGroup, groupName, nil)
+}
+
+func isUserSelectableGroupWithExtras(userGroup, groupName string, extraGroups []string) bool {
+	if groupName == "" || groupName == "auto" {
+		return false
+	}
+	_, ok := GetUserUsableGroupsWithExtras(userGroup, extraGroups)[groupName]
+	return ok && ratio_setting.ContainsGroupRatio(groupName)
+}
+
 func GetUserUsableGroupsForContext(c *gin.Context) map[string]string {
 	userGroup := common.GetContextKeyString(c, constant.ContextKeyUserGroup)
 	return GetUserUsableGroupsWithExtras(userGroup, getUserExtraGroupsFromContext(c))
@@ -77,10 +89,16 @@ func GetUserAutoGroup(userGroup string) []string {
 func GetUserAutoGroupWithExtras(userGroup string, extraGroups []string) []string {
 	groups := GetUserUsableGroupsWithExtras(userGroup, extraGroups)
 	autoGroups := make([]string, 0)
+	seen := make(map[string]struct{})
 	for _, group := range setting.GetAutoGroups() {
-		if _, ok := groups[group]; ok {
-			autoGroups = append(autoGroups, group)
+		if _, ok := groups[group]; !ok || !isUserSelectableGroupWithExtras(userGroup, group, extraGroups) {
+			continue
 		}
+		if _, ok := seen[group]; ok {
+			continue
+		}
+		seen[group] = struct{}{}
+		autoGroups = append(autoGroups, group)
 	}
 	return autoGroups
 }
@@ -88,6 +106,44 @@ func GetUserAutoGroupWithExtras(userGroup string, extraGroups []string) []string
 func GetUserAutoGroupForContext(c *gin.Context) []string {
 	userGroup := common.GetContextKeyString(c, constant.ContextKeyUserGroup)
 	return GetUserAutoGroupWithExtras(userGroup, getUserExtraGroupsFromContext(c))
+}
+
+func FilterUserTokenAutoGroups(userGroup string, groups []string) []string {
+	return filterUserTokenAutoGroups(userGroup, groups, nil)
+}
+
+func filterUserTokenAutoGroups(userGroup string, groups, extraGroups []string) []string {
+	maxCount := setting.GetMaxTokenAutoGroups()
+	filtered := make([]string, 0, min(len(groups), maxCount))
+	seen := make(map[string]struct{})
+	for _, group := range groups {
+		if !isUserSelectableGroupWithExtras(userGroup, group, extraGroups) {
+			continue
+		}
+		if _, ok := seen[group]; ok {
+			continue
+		}
+		seen[group] = struct{}{}
+		filtered = append(filtered, group)
+		if len(filtered) == maxCount {
+			break
+		}
+	}
+	return filtered
+}
+
+// GetRequestAutoGroups resolves the token-specific Auto order while applying
+// the user's current base and extra-group permissions.
+func GetRequestAutoGroups(c *gin.Context, userGroup string) []string {
+	value, ok := common.GetContextKey(c, constant.ContextKeyTokenAutoGroups)
+	if !ok {
+		return GetUserAutoGroupWithExtras(userGroup, getUserExtraGroupsFromContext(c))
+	}
+	groups, ok := value.([]string)
+	if !ok {
+		return []string{}
+	}
+	return filterUserTokenAutoGroups(userGroup, groups, getUserExtraGroupsFromContext(c))
 }
 
 func GetGroupsEnabledModels(groups []string) []string {

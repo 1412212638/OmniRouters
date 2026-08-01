@@ -198,7 +198,7 @@ func getModelListGroups(c *gin.Context) (modelListGroups, error) {
 		return modelListGroups{
 			userGroup:   userGroup,
 			tokenGroup:  tokenGroup,
-			ownerGroups: service.GetUserAutoGroupForContext(c),
+			ownerGroups: service.GetRequestAutoGroups(c, userGroup),
 		}, nil
 	}
 
