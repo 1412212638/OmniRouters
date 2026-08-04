@@ -200,9 +200,10 @@ function getDynamicPriceRange(
   variable: BillingVar,
   options: DynamicPriceOptions
 ): DynamicPriceRange | null {
-  if (!variable.field || tiers.length < 2) return null
+  const field = variable.field
+  if (!field || tiers.length < 2) return null
 
-  const values = tiers.map((tier) => Number(tier[variable.field]))
+  const values = tiers.map((tier) => Number(tier[field]))
   if (values.some((value) => !Number.isFinite(value) || value < 0)) {
     return null
   }
@@ -214,7 +215,7 @@ function getDynamicPriceRange(
 
   return {
     key: variable.key,
-    field: variable.field,
+    field,
     minValue,
     maxValue,
     formatted:

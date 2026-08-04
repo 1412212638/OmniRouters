@@ -2,6 +2,27 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-08-05
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `afe16c64cd73853da1eda3bf236f15d69637b4bf`
+- Upstream `main` reviewed and selectively synced through: `0ab02020603d22e5613bc4cf46bfab06f8567769`
+- Integrated:
+  - Configurable OIDC display name, Qwen `thinking_budget` zero-value passthrough, zstd request decoding, owner-visible stream status, multipart image-edit preservation, safe OAuth callback-mode detection, and DeepSeek Responses support.
+  - Final-group tiered retry settlement and group-switch billing hardening, preserving local checked quota conversion, saturation auditing, refund reconciliation, Sora pricing, and fixed per-call `audio_generation` surcharge.
+  - Bedrock client-disconnect cancellation and effective billing-path logging.
+  - Per-API-key custom Auto group ordering across token persistence/cache, channel selection, model ownership, settings, editor UI, and tests.
+- Local adaptations:
+  - Auto group resolution combines the token-specific order with current base and extra-group permissions; it cannot bypass either permission source.
+  - Ported active frontend changes to `web/default`, retained the local DataTable timestamp implementation and drawer layout, and kept the startup nil-adapter guard for intentionally disabled Advanced Custom.
+  - Preserved existing locale dictionaries and added the new Chinese Auto-order UI strings without accepting upstream locale deletions.
+- Skipped:
+  - `c27d1ef65` (`.gitattributes`) and `aa7d0d39a` (public-nav font-size only), because neither changes required OmniRouters runtime behavior.
+- Validation notes:
+  - Source conflict-marker and whitespace checks passed. TypeScript errors introduced by the Auto group port were resolved; remaining local typecheck dependency errors require the frozen Bun install used by Actions.
+  - Go is unavailable locally, so GitHub Actions remains responsible for Go compilation/tests and image publishing. No local Docker image was built.
+  - `bin/sync-upstream.ps1` remains an untracked local helper and was not included.
+
 ## 2026-07-28
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
