@@ -43,6 +43,7 @@ func TestCORSHandlesTokenPlanPreflight(t *testing.T) {
 	request := httptest.NewRequest(http.MethodOptions, "/api/status", nil)
 	request.Header.Set("Origin", "https://tokenplan.omnirouters.com")
 	request.Header.Set("Access-Control-Request-Method", http.MethodGet)
+	request.Header.Set("Access-Control-Request-Headers", "content-type,new-api-user")
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, request)
 
@@ -51,6 +52,9 @@ func TestCORSHandlesTokenPlanPreflight(t *testing.T) {
 	}
 	if origin := recorder.Header().Get("Access-Control-Allow-Origin"); origin != "https://tokenplan.omnirouters.com" {
 		t.Fatalf("unexpected allowed origin %q", origin)
+	}
+	if headers := recorder.Header().Get("Access-Control-Allow-Headers"); headers != "Content-Type,New-Api-User" {
+		t.Fatalf("unexpected allowed headers %q", headers)
 	}
 }
 
