@@ -198,6 +198,16 @@ func Relay(c *gin.Context, relayFormat types.RelayFormat) {
 			newAPIError = channelErr
 			break
 		}
+		if !service.SubscriptionGroupAllowedForContext(c, relayInfo.UsingGroup) {
+			newAPIError = types.NewErrorWithStatusCode(
+				fmt.Errorf("the active subscription cannot be used with group %s", relayInfo.UsingGroup),
+				types.ErrorCodeInsufficientUserQuota,
+				http.StatusForbidden,
+				types.ErrOptionWithSkipRetry(),
+				types.ErrOptionWithNoRecordErrorLog(),
+			)
+			break
+		}
 		addUsedChannel(c, channel.Id)
 		if billingErr := service.PrepareTieredBillingForSelectedGroup(c, relayInfo); billingErr != nil {
 			newAPIError = billingErr

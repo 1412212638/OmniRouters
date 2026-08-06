@@ -70,3 +70,24 @@ func TestGetRequestAutoGroupsDoesNotFallBackAfterPermissionChange(t *testing.T) 
 
 	assert.Empty(t, groups)
 }
+
+func TestGetRequestAutoGroupsPreservesTokenOrderWithinSubscriptionGroups(t *testing.T) {
+	configureRequestAutoGroupsTest(t)
+	ctx := newRequestAutoGroupsContext()
+	common.SetContextKey(ctx, constant.ContextKeyTokenAutoGroups, []string{"svip", "vip", "default"})
+	common.SetContextKey(ctx, constant.ContextKeySubscriptionAllowedGroups, []string{"vip", "svip"})
+
+	assert.Equal(t, []string{"svip", "vip"}, GetRequestAutoGroups(ctx, "default"))
+
+	common.SetContextKey(ctx, constant.ContextKeyTokenAutoGroups, []string{"vip", "svip", "default"})
+	assert.Equal(t, []string{"vip", "svip"}, GetRequestAutoGroups(ctx, "default"))
+}
+
+func TestGetRequestAutoGroupsSubscriptionRestrictionIsOptional(t *testing.T) {
+	configureRequestAutoGroupsTest(t)
+	ctx := newRequestAutoGroupsContext()
+	assert.Equal(t, []string{"vip", "default", "svip"}, GetRequestAutoGroups(ctx, "default"))
+
+	common.SetContextKey(ctx, constant.ContextKeySubscriptionAllowedGroups, []string{})
+	assert.Equal(t, []string{"vip", "default", "svip"}, GetRequestAutoGroups(ctx, "default"))
+}

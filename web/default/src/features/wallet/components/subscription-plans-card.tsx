@@ -469,6 +469,12 @@ export function SubscriptionPlansCard({
                         </div>
                       )}
                       <div className='text-muted-foreground mt-1'>
+                        {t('Allowed Groups')}:{' '}
+                        {(subscription?.allowed_groups || []).length > 0
+                          ? subscription?.allowed_groups?.join(', ')
+                          : t('All groups')}
+                      </div>
+                      <div className='text-muted-foreground mt-1'>
                         {t('Total Quota')}:{' '}
                         {totalAmount > 0 ? (
                           <Tooltip>
@@ -535,6 +541,9 @@ export function SubscriptionPlansCard({
                 plan.upgrade_group
                   ? `${t('Upgrade Group')}: ${plan.upgrade_group}`
                   : null,
+                (plan.allowed_groups || []).length > 0
+                  ? `${t('Allowed Groups')}: ${(plan.allowed_groups || []).join(', ')}`
+                  : `${t('Allowed Groups')}: ${t('All groups')}`,
               ].filter(Boolean) as string[]
 
               return (

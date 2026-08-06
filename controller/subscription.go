@@ -26,6 +26,25 @@ type SubscriptionBalancePayRequest struct {
 	PlanId int `json:"plan_id"`
 }
 
+func normalizeSubscriptionPlanGroups(groups model.SubscriptionGroupList) (model.SubscriptionGroupList, error) {
+	for _, group := range groups {
+		if strings.TrimSpace(group) == "auto" {
+			return nil, fmt.Errorf("auto is a routing mode, not a billable subscription group")
+		}
+	}
+	normalized := model.NormalizeSubscriptionGroups(groups)
+	if len(normalized) > 32 {
+		return nil, fmt.Errorf("a subscription plan cannot contain more than 32 allowed groups")
+	}
+	knownGroups := ratio_setting.GetGroupRatioCopy()
+	for _, group := range normalized {
+		if _, ok := knownGroups[group]; !ok {
+			return nil, fmt.Errorf("subscription allowed group does not exist: %s", group)
+		}
+	}
+	return normalized, nil
+}
+
 // ---- User APIs ----
 
 func GetSubscriptionPlans(c *gin.Context) {
@@ -175,12 +194,18 @@ func AdminCreateSubscriptionPlan(c *gin.Context) {
 			return
 		}
 	}
+	allowedGroups, err := normalizeSubscriptionPlanGroups(req.Plan.AllowedGroups)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	req.Plan.AllowedGroups = allowedGroups
 	req.Plan.QuotaResetPeriod = model.NormalizeResetPeriod(req.Plan.QuotaResetPeriod)
 	if req.Plan.QuotaResetPeriod == model.SubscriptionResetCustom && req.Plan.QuotaResetCustomSeconds <= 0 {
 		common.ApiErrorMsg(c, "自定义重置周期需大于0秒")
 		return
 	}
-	err := model.DB.Create(&req.Plan).Error
+	err = model.DB.Create(&req.Plan).Error
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -244,7 +269,13 @@ func AdminUpdateSubscriptionPlan(c *gin.Context) {
 		return
 	}
 
-	err := model.DB.Transaction(func(tx *gorm.DB) error {
+	allowedGroups, err := normalizeSubscriptionPlanGroups(req.Plan.AllowedGroups)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	req.Plan.AllowedGroups = allowedGroups
+	err = model.DB.Transaction(func(tx *gorm.DB) error {
 		// update plan (allow zero values updates with map)
 		updateMap := map[string]interface{}{
 			"title":                      req.Plan.Title,
@@ -262,6 +293,7 @@ func AdminUpdateSubscriptionPlan(c *gin.Context) {
 			"max_purchase_per_user":      req.Plan.MaxPurchasePerUser,
 			"total_amount":               req.Plan.TotalAmount,
 			"upgrade_group":              req.Plan.UpgradeGroup,
+			"allowed_groups":             req.Plan.AllowedGroups,
 			"quota_reset_period":         req.Plan.QuotaResetPeriod,
 			"quota_reset_custom_seconds": req.Plan.QuotaResetCustomSeconds,
 			"updated_at":                 common.GetTimestamp(),

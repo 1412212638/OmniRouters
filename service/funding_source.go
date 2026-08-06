@@ -70,6 +70,7 @@ func (w *WalletFunding) Refund() error {
 type SubscriptionFunding struct {
 	requestId      string
 	userId         int
+	usingGroup     string
 	modelName      string
 	amount         int64 // 预扣的订阅额度（subConsume）
 	subscriptionId int
@@ -79,13 +80,14 @@ type SubscriptionFunding struct {
 	AmountUsedAfter int64
 	PlanId          int
 	PlanTitle       string
+	AllowedGroups   model.SubscriptionGroupList
 }
 
 func (s *SubscriptionFunding) Source() string { return BillingSourceSubscription }
 
 func (s *SubscriptionFunding) PreConsume(_ int) error {
 	// amount 参数被忽略，使用内部 s.amount（已在构造时根据 preConsumedQuota 计算）
-	res, err := model.PreConsumeUserSubscription(s.requestId, s.userId, s.modelName, 0, s.amount)
+	res, err := model.PreConsumeUserSubscription(s.requestId, s.userId, s.usingGroup, s.modelName, 0, s.amount)
 	if err != nil {
 		return err
 	}
@@ -93,6 +95,7 @@ func (s *SubscriptionFunding) PreConsume(_ int) error {
 	s.preConsumed = res.PreConsumed
 	s.AmountTotal = res.AmountTotal
 	s.AmountUsedAfter = res.AmountUsedAfter
+	s.AllowedGroups = model.NormalizeSubscriptionGroups(res.AllowedGroups)
 	// 获取订阅计划信息
 	if planInfo, err := model.GetSubscriptionPlanInfoByUserSubscriptionId(res.UserSubscriptionId); err == nil && planInfo != nil {
 		s.PlanId = planInfo.PlanId

@@ -192,6 +192,13 @@ func RelayTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo) (*TaskSubmitRe
 	if err != nil {
 		return nil, service.TaskErrorWrapper(err, "model_price_error", http.StatusBadRequest)
 	}
+	if !service.SubscriptionGroupAllowedForContext(c, info.UsingGroup) {
+		return nil, service.TaskErrorWrapperLocal(
+			fmt.Errorf("the active subscription cannot be used with group %s", info.UsingGroup),
+			"subscription_group_not_allowed",
+			http.StatusForbidden,
+		)
+	}
 	info.PriceData = priceData
 	for k, v := range presetOtherRatios {
 		info.PriceData.AddOtherRatio(k, v)

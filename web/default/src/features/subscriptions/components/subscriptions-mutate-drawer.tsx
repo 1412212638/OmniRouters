@@ -23,6 +23,7 @@ import { CalendarClock, CreditCard, RefreshCw, Settings2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { MultiSelect } from '@/components/multi-select'
 import {
   Form,
   FormControl,
@@ -355,6 +356,36 @@ export function SubscriptionsMutateDrawer({
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name='allowed_groups'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Allowed Subscription Groups')}</FormLabel>
+                    <FormControl>
+                      <MultiSelect
+                        id='subscription-allowed-groups'
+                        options={groupOptions.map((group) => ({
+                          value: group,
+                          label: group,
+                        }))}
+                        selected={field.value}
+                        onChange={field.onChange}
+                        placeholder={t('All groups (unrestricted)')}
+                        emptyText={t('No groups available')}
+                        maxVisibleChips={4}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {t(
+                        'Select the actual groups whose requests may consume this subscription. Leave empty for unrestricted access; auto routing is configured on the API key.'
+                      )}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
                 <FormField

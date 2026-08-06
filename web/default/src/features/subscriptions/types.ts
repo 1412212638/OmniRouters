@@ -39,6 +39,7 @@ export const subscriptionPlanSchema = z.object({
   max_purchase_per_user: z.number(),
   total_amount: z.number(),
   upgrade_group: z.string().optional(),
+  allowed_groups: z.array(z.string()).optional().default([]),
   stripe_price_id: z.string().optional(),
   creem_product_id: z.string().optional(),
   waffo_pancake_product_id: z.string().optional(),
@@ -64,6 +65,7 @@ export const userSubscriptionSchema = z.object({
   end_time: z.number(),
   amount_total: z.number(),
   amount_used: z.number(),
+  allowed_groups: z.array(z.string()).optional().default([]),
   next_reset_time: z.number().optional(),
 })
 

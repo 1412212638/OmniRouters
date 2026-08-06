@@ -137,13 +137,54 @@ func filterUserTokenAutoGroups(userGroup string, groups, extraGroups []string) [
 func GetRequestAutoGroups(c *gin.Context, userGroup string) []string {
 	value, ok := common.GetContextKey(c, constant.ContextKeyTokenAutoGroups)
 	if !ok {
-		return GetUserAutoGroupWithExtras(userGroup, getUserExtraGroupsFromContext(c))
+		groups := GetUserAutoGroupWithExtras(userGroup, getUserExtraGroupsFromContext(c))
+		return filterSubscriptionAllowedGroups(c, groups)
 	}
 	groups, ok := value.([]string)
 	if !ok {
 		return []string{}
 	}
-	return filterUserTokenAutoGroups(userGroup, groups, getUserExtraGroupsFromContext(c))
+	filtered := filterUserTokenAutoGroups(userGroup, groups, getUserExtraGroupsFromContext(c))
+	return filterSubscriptionAllowedGroups(c, filtered)
+}
+
+func filterSubscriptionAllowedGroups(c *gin.Context, groups []string) []string {
+	value, ok := common.GetContextKey(c, constant.ContextKeySubscriptionAllowedGroups)
+	if !ok {
+		return groups
+	}
+	allowedGroups, ok := value.([]string)
+	if !ok || len(allowedGroups) == 0 {
+		return groups
+	}
+	allowed := make(map[string]struct{}, len(allowedGroups))
+	for _, group := range allowedGroups {
+		allowed[group] = struct{}{}
+	}
+	filtered := make([]string, 0, len(groups))
+	for _, group := range groups {
+		if _, ok := allowed[group]; ok {
+			filtered = append(filtered, group)
+		}
+	}
+	return filtered
+}
+
+func SubscriptionGroupAllowedForContext(c *gin.Context, group string) bool {
+	value, ok := common.GetContextKey(c, constant.ContextKeySubscriptionAllowedGroups)
+	if !ok {
+		return true
+	}
+	allowedGroups, ok := value.([]string)
+	if !ok || len(allowedGroups) == 0 {
+		return true
+	}
+	for _, allowed := range allowedGroups {
+		if allowed == group {
+			return true
+		}
+	}
+	return false
 }
 
 func GetGroupsEnabledModels(groups []string) []string {
