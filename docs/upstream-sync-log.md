@@ -2,6 +2,29 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-08-10
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `0ab02020603d22e5613bc4cf46bfab06f8567769`
+- Reviewed and selectively integrated through upstream `main`: `823e26304`
+- Integrated:
+  - Native Claude/Gemini channel test requests and Gemini streaming test URL handling (`b941253ae`).
+  - Per-user critical rate limits for access-token generation and affiliate quota transfer (`1da23d6b3`), retaining local route protections.
+  - Ali/Qwen `top_p` behavior: omitted values remain omitted; explicit boundary values are clamped (`2399de97d`).
+  - Default frontend fetched-model categorization and Qwen TTS classification (`c9bc03864`, `823e26304`).
+  - Redemption-code editable precision and stale-update protection, adapted to the local currency and drawer implementation (`e926e5cac`).
+  - Replayable outbound request bodies with `GetBody`, independent memory/disk readers, redirect handling, and HTTP/2 stream-reset retry support (`d6b5ce99d`, `ea4f02101`).
+- Local safety adaptations:
+  - Kept Sora per-request pricing, fixed per-call `audio_generation` surcharge, quota saturation audit, async image request handling, and all existing RelayInfo billing fields.
+  - Merged the new Sora pass-through replay test with local audio surcharge overflow tests.
+  - Moved upstream frontend tests from `web/src` to the deployed `web/default` tree.
+- Skipped:
+  - `5c3abffe8`, because it only changes upstream GitCode release synchronization workflow and OmniRouters uses GitHub Actions/GHCR.
+- Validation notes:
+  - Checked replay metadata call sites and confirmed no stale `UpstreamRequestBodySize`/`UpstreamRequestGetBody` references remain.
+  - `git diff --check` and conflict-marker scans passed. Go tests require the unavailable local Go toolchain; frontend dependency/build validation remains delegated to GitHub Actions.
+  - `bin/sync-upstream.ps1` and i18n temporary reports remain untracked and are excluded.
+
 ## 2026-08-05
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
