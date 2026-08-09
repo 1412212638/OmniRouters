@@ -92,7 +92,7 @@ func (a *TaskAdaptor) BuildRequestBody(c *gin.Context, info *relaycommon.RelayIn
 		if err != nil {
 			return nil, err
 		}
-		return common.ReaderOnly(storage), nil
+		return storage.NewReader()
 	}
 
 	convertedRequest, err := a.openAIAdaptor.ConvertImageRequest(c, info, *request)
