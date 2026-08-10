@@ -123,7 +123,7 @@ func GetTopUpInfo(c *gin.Context) {
 			"operator_phone": paymentSetting.CorporateTransferOperatorPhone,
 			"support_email":  paymentSetting.CorporateTransferSupportEmail,
 		},
-		"topup_link":              common.TopUpLink,
+		"topup_link": common.TopUpLink,
 	}
 	common.ApiSuccess(c, data)
 }

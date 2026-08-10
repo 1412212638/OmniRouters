@@ -311,7 +311,6 @@ func TestRechargeEpayRejectsQuotaOverflowBeforeCompletingOrder(t *testing.T) {
 	assert.Equal(t, 3, getUserQuotaForPaymentGuardTest(t, user.Id))
 	assert.Equal(t, common.TopUpStatusPending, getTopUpStatusForPaymentGuardTest(t, order.TradeNo))
 }
-
 func TestRechargeEpayEnforcesFinalWalletQuotaLimit(t *testing.T) {
 	oldQuotaPerUnit := common.QuotaPerUnit
 	common.QuotaPerUnit = 500000
