@@ -2043,6 +2043,8 @@
     "Forward requests directly to upstream providers without any post-processing.": "将请求直接转发给上游提供商，不进行任何后处理。",
     "Frames per second": "帧率",
     "Free": "可用",
+    "Free pricing": "免费",
+    "{{percent}}% discount": "{{percent}}% 折扣",
     "Free: {{free}} / Total: {{total}}": "可用空间: {{free}} / 总空间: {{total}}",
     "Friendly name to identify this channel": "用于识别此渠道的友好名称",
     "From Address": "发件地址",

@@ -2023,6 +2023,8 @@
     "Forward requests directly to upstream providers without any post-processing.": "Перенаправлять запросы напрямую upstream-провайдерам без какой-либо постобработки.",
     "Frames per second": "Кадров в секунду",
     "Free": "Свободно",
+    "Free pricing": "Бесплатно",
+    "{{percent}}% discount": "Скидка {{percent}}%",
     "Free: {{free}} / Total: {{total}}": "Свободно: {{free}} / Всего: {{total}}",
     "Friendly name to identify this channel": "Дружественное имя для идентификации этого канала",
     "From Address": "Отправитель",

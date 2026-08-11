@@ -2024,6 +2024,8 @@
     "Forward requests directly to upstream providers without any post-processing.": "Chuyển tiếp các yêu cầu trực tiếp đến các nhà cung cấp ngược dòng mà không cần xử lý hậu kỳ nào.",
     "Frames per second": "Khung hình / giây",
     "Free": "Trống",
+    "Free pricing": "Miễn phí",
+    "{{percent}}% discount": "Giảm {{percent}}%",
     "Free: {{free}} / Total: {{total}}": "Còn trống: {{free}} / Tổng: {{total}}",
     "Friendly name to identify this channel": "Tên thân thiện để nhận dạng kênh này",
     "From Address": "Địa chỉ Người gửi",

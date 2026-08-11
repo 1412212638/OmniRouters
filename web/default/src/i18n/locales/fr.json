@@ -2023,6 +2023,8 @@
     "Forward requests directly to upstream providers without any post-processing.": "Transférer les requêtes directement aux fournisseurs amont sans aucun post-traitement.",
     "Frames per second": "Images par seconde",
     "Free": "Libre",
+    "Free pricing": "Gratuit",
+    "{{percent}}% discount": "-{{percent}} %",
     "Free: {{free}} / Total: {{total}}": "Disponible : {{free}} / Total : {{total}}",
     "Friendly name to identify this channel": "Nom convivial pour identifier ce canal",
     "From Address": "De l'adresse",

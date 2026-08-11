@@ -45,6 +45,7 @@ import { cn } from '@/lib/utils'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { useStatus } from '@/hooks/use-status'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
   Collapsible,
   CollapsibleContent,
@@ -68,7 +69,11 @@ import {
   getDynamicDisplayGroupRatio,
   getDynamicPricingSummary,
 } from './lib/dynamic-price'
-import { isTokenBasedModel } from './lib/model-helpers'
+import {
+  getAvailableGroups,
+  getDisplayGroupRatio,
+  isTokenBasedModel,
+} from './lib/model-helpers'
 import {
   formatPrice,
   formatRequestPrice,
@@ -626,23 +631,28 @@ function usePriceRows(props: {
   priceRate: number
   usdExchangeRate: number
   selectedGroup?: string
+  usableGroup: PricingUsableGroup
 }): CatalogPriceSummary {
   const { t } = useTranslation()
-  const isTokenBased = isTokenBasedModel(props.model)
+  const pricingModel = {
+    ...props.model,
+    enable_groups: getAvailableGroups(props.model, props.usableGroup),
+  }
+  const isTokenBased = isTokenBasedModel(pricingModel)
   const tokenUnitLabel = props.tokenUnit === 'K' ? '1K tokens' : '1M tokens'
   const dynamicSummary =
-    props.model.billing_mode === 'tiered_expr' && props.model.billing_expr
-      ? getDynamicPricingSummary(props.model, {
+    pricingModel.billing_mode === 'tiered_expr' && pricingModel.billing_expr
+      ? getDynamicPricingSummary(pricingModel, {
           tokenUnit: props.tokenUnit,
           priceRate: props.priceRate,
           usdExchangeRate: props.usdExchangeRate,
           groupRatioMultiplier: getDynamicDisplayGroupRatio(
-            props.model,
+            pricingModel,
             props.selectedGroup
           ),
         })
       : null
-  const soraSummary = getSoraPricingDisplay(props.model, {
+  const soraSummary = getSoraPricingDisplay(pricingModel, {
     priceRate: props.priceRate,
     usdExchangeRate: props.usdExchangeRate,
     selectedGroup: props.selectedGroup,
@@ -718,7 +728,7 @@ function usePriceRows(props: {
     return {
       kind: 'paired',
       inputValue: formatRequestPrice(
-        props.model,
+        pricingModel,
         false,
         props.priceRate,
         props.usdExchangeRate,
@@ -733,7 +743,7 @@ function usePriceRows(props: {
   return {
     kind: 'paired',
     inputValue: formatPrice(
-      props.model,
+      pricingModel,
       'input',
       props.tokenUnit,
       false,
@@ -742,7 +752,7 @@ function usePriceRows(props: {
       props.selectedGroup
     ),
     outputValue: formatPrice(
-      props.model,
+      pricingModel,
       'output',
       props.tokenUnit,
       false,
@@ -761,6 +771,7 @@ function CatalogModelCard(props: {
   priceRate: number
   usdExchangeRate: number
   selectedGroup?: string
+  usableGroup: PricingUsableGroup
   onOpen: () => void
 }) {
   const { t } = useTranslation()
@@ -775,7 +786,16 @@ function CatalogModelCard(props: {
     priceRate: props.priceRate,
     usdExchangeRate: props.usdExchangeRate,
     selectedGroup: props.selectedGroup,
+    usableGroup: props.usableGroup,
   })
+  const displayGroupRatio = getDisplayGroupRatio(
+    props.model,
+    props.selectedGroup,
+    props.usableGroup
+  )
+  const hasDiscount = displayGroupRatio >= 0 && displayGroupRatio < 1
+  const isFree = displayGroupRatio === 0
+  const discountPercent = Math.round((1 - displayGroupRatio) * 100)
 
   return (
     <article className='group bg-background hover:bg-muted/20 flex min-h-[284px] flex-col border-b p-4 transition-colors lg:border-r 2xl:p-5 dark:border-white/10 dark:hover:bg-white/[0.03]'>
@@ -819,6 +839,16 @@ function CatalogModelCard(props: {
         </div>
 
         <div className='flex shrink-0 items-center gap-1'>
+          {hasDiscount && (
+            <Badge
+              variant={isFree ? 'secondary' : 'warning'}
+              className={cn(isFree && 'bg-success/10 text-success')}
+            >
+              {isFree
+                ? t('Free pricing')
+                : t('{{percent}}% discount', { percent: discountPercent })}
+            </Badge>
+          )}
           <Button
             type='button'
             variant='ghost'
@@ -846,7 +876,12 @@ function CatalogModelCard(props: {
         </InfoLine>
         {priceRows.kind === 'paired' && (
           <InfoLine label={`${t('Input')}:`} valueClassName='truncate'>
-            <span className='font-mono font-medium'>
+            <span
+              className={cn(
+                'font-mono font-medium',
+                hasDiscount && 'text-success'
+              )}
+            >
               {priceRows.inputValue}
             </span>
             {priceRows.inputUnit && (
@@ -858,7 +893,12 @@ function CatalogModelCard(props: {
         )}
         {priceRows.kind === 'paired' && (
           <InfoLine label={`${t('Output')}:`} valueClassName='truncate'>
-            <span className='font-mono font-medium'>
+            <span
+              className={cn(
+                'font-mono font-medium',
+                hasDiscount && 'text-success'
+              )}
+            >
               {priceRows.outputValue}
             </span>
             {priceRows.outputUnit && (
@@ -1311,6 +1351,7 @@ function CatalogPricing() {
                       priceRate={priceRate}
                       usdExchangeRate={usdExchangeRate}
                       selectedGroup={groupFilter}
+                      usableGroup={usableGroup}
                       onOpen={() =>
                         setSelectedModelName(model.model_name || '')
                       }

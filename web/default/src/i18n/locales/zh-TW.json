@@ -2052,6 +2052,8 @@
     "Forward requests directly to upstream providers without any post-processing.": "將請求直接轉發給上游供應商，不進行任何後處理。",
     "Frames per second": "幀率",
     "Free": "可用",
+    "Free pricing": "免費",
+    "{{percent}}% discount": "{{percent}}% 折扣",
     "Free: {{free}} / Total: {{total}}": "可用空間: {{free}} / 總空間: {{total}}",
     "Friendly name to identify this channel": "用於識別此渠道的友好名稱",
     "From Address": "發件地址",

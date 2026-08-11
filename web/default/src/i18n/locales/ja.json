@@ -2023,6 +2023,8 @@
     "Forward requests directly to upstream providers without any post-processing.": "ポストプロセスなしで、リクエストをアップストリームプロバイダーに直接転送します。",
     "Frames per second": "フレームレート",
     "Free": "空き",
+    "Free pricing": "無料",
+    "{{percent}}% discount": "{{percent}}% 割引",
     "Free: {{free}} / Total: {{total}}": "空き容量: {{free}} / 合計: {{total}}",
     "Friendly name to identify this channel": "このチャネルを識別するための表示名",
     "From Address": "差出人アドレス",

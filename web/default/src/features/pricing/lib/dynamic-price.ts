@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { formatBillingCurrencyFromUSD } from '@/lib/currency'
 import { TOKEN_UNIT_DIVISORS } from '../constants'
-import type { PricingModel, TokenUnit } from '../types'
+import type { PricingModel, PricingUsableGroup, TokenUnit } from '../types'
 import {
   BILLING_PRICING_VARS,
   parseTiersFromExpr,
@@ -78,9 +78,10 @@ export function isDynamicPricingModel(model: PricingModel): boolean {
 
 export function getDynamicDisplayGroupRatio(
   model: PricingModel,
-  selectedGroup?: string
+  selectedGroup?: string,
+  usableGroup?: PricingUsableGroup
 ): number {
-  return getDisplayGroupRatio(model, selectedGroup)
+  return getDisplayGroupRatio(model, selectedGroup, usableGroup)
 }
 
 function applyRechargeRate(

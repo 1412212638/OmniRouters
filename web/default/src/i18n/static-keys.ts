@@ -36,6 +36,8 @@ export const STATIC_I18N_KEYS = [
 
   // System settings sidebar
   'System Administration',
+  'Free pricing',
+  '{{percent}}% discount',
   'General',
   'Authentication',
   'Request Limits',
