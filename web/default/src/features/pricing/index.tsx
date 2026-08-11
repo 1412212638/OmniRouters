@@ -1,3 +1,7 @@
+import { ArrowRight01Icon, SearchIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { useQuery } from '@tanstack/react-query'
+import { ChevronDown } from 'lucide-react'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -24,11 +28,8 @@ import {
   useRef,
   useState,
 } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { ArrowRight01Icon, SearchIcon } from '@hugeicons/core-free-icons'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+
 import {
   ZenMuxCopyIcon,
   ZenMuxModelsIcon,
@@ -40,22 +41,32 @@ import {
   ZENMUX_MODALITY_ICONS,
   type ZenMuxIconComponent,
 } from '@/assets/custom/zenmux-modality-icons'
-import { getLobeIcon } from '@/lib/lobe-icon'
-import { cn } from '@/lib/utils'
-import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
-import { useStatus } from '@/hooks/use-status'
-import { Button } from '@/components/ui/button'
+import { PublicLayout } from '@/components/layout'
+import { PageTransition } from '@/components/page-transition'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
-import { PublicLayout } from '@/components/layout'
-import { PageTransition } from '@/components/page-transition'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { getPerfMetricsSummary } from '@/features/performance-metrics/api'
 import type { PerfModelSummary } from '@/features/performance-metrics/types'
+import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
+import { useStatus } from '@/hooks/use-status'
+import { getLobeIcon } from '@/lib/lobe-icon'
+import { cn } from '@/lib/utils'
+
 import { ClassicPricing } from './classic-pricing'
 import { ModelDetailsDrawer } from './components'
 import {
@@ -96,7 +107,15 @@ type FilterOption = {
   translateLabel?: boolean
 }
 
-type SidebarSectionId = 'input' | 'output' | 'vendor' | 'group'
+type SidebarSectionId = 'input' | 'vendor' | 'group'
+
+type CatalogPriceFilter = 'all' | 'discount' | 'free'
+type CatalogSort =
+  | 'newest'
+  | 'name-asc'
+  | 'price-asc'
+  | 'price-desc'
+  | 'latency-asc'
 
 type ModalityOption = {
   value: Modality
@@ -198,6 +217,33 @@ function sortByCreatedTime(a: PricingModel, b: PricingModel): number {
   const createdDiff = (b.created_time || 0) - (a.created_time || 0)
   if (createdDiff !== 0) return createdDiff
   return (a.model_name || '').localeCompare(b.model_name || '')
+}
+
+function getCatalogSortPrice(
+  model: PricingModel,
+  selectedGroup: string,
+  usableGroup: PricingUsableGroup
+): number | null {
+  if (model.billing_mode === 'tiered_expr' && model.billing_expr) return null
+
+  const ratio = getDisplayGroupRatio(model, selectedGroup, usableGroup)
+  const basePrice = isTokenBasedModel(model)
+    ? Number(model.model_ratio) * 2
+    : Number(model.model_price)
+  const price = basePrice * ratio
+
+  return Number.isFinite(price) && price >= 0 ? price : null
+}
+
+function compareNullableNumbers(
+  left: number | null,
+  right: number | null,
+  direction: 'asc' | 'desc'
+): number {
+  if (left === null && right === null) return 0
+  if (left === null) return 1
+  if (right === null) return -1
+  return direction === 'asc' ? left - right : right - left
 }
 
 function getCatalogModelTitle(model: PricingModel): string {
@@ -1023,11 +1069,12 @@ function CatalogPricing() {
   const [outputFilter, setOutputFilter] = useState<string>(FILTER_ALL)
   const [vendorFilter, setVendorFilter] = useState<string>(FILTER_ALL)
   const [groupFilter, setGroupFilter] = useState<string>(FILTER_ALL)
+  const [priceFilter, setPriceFilter] = useState<CatalogPriceFilter>('all')
+  const [sortBy, setSortBy] = useState<CatalogSort>('newest')
   const [sidebarSectionOpen, setSidebarSectionOpen] = useState<
     Record<SidebarSectionId, boolean>
   >({
     input: true,
-    output: true,
     vendor: true,
     group: true,
   })
@@ -1081,12 +1128,12 @@ function CatalogPricing() {
     [models, usableGroup]
   )
 
-  const inputCounts = useMemo(
+  const outputCounts = useMemo(
     () =>
       Object.fromEntries(
-        inputOptions.map((option) => [option.value, option.count])
+        outputOptions.map((option) => [option.value, option.count])
       ),
-    [inputOptions]
+    [outputOptions]
   )
 
   const searchQuery = searchInput.trim().toLowerCase()
@@ -1114,15 +1161,61 @@ function CatalogPricing() {
         ) {
           return false
         }
+        const displayRatio = getDisplayGroupRatio(
+          model,
+          groupFilter,
+          usableGroup
+        )
+        if (priceFilter === 'free' && displayRatio !== 0) return false
+        if (
+          priceFilter === 'discount' &&
+          !(displayRatio > 0 && displayRatio < 1)
+        ) {
+          return false
+        }
         return true
       })
-      .sort(sortByCreatedTime)
+      .sort((left, right) => {
+        let result = 0
+
+        if (sortBy === 'name-asc') {
+          result = getCatalogModelTitle(left).localeCompare(
+            getCatalogModelTitle(right)
+          )
+        } else if (sortBy === 'price-asc' || sortBy === 'price-desc') {
+          result = compareNullableNumbers(
+            getCatalogSortPrice(left, groupFilter, usableGroup),
+            getCatalogSortPrice(right, groupFilter, usableGroup),
+            sortBy === 'price-asc' ? 'asc' : 'desc'
+          )
+        } else if (sortBy === 'latency-asc') {
+          const leftLatency = perfMap.get(left.model_name)?.avg_latency_ms
+          const rightLatency = perfMap.get(right.model_name)?.avg_latency_ms
+          result = compareNullableNumbers(
+            Number.isFinite(leftLatency) && Number(leftLatency) > 0
+              ? Number(leftLatency)
+              : null,
+            Number.isFinite(rightLatency) && Number(rightLatency) > 0
+              ? Number(rightLatency)
+              : null,
+            'asc'
+          )
+        } else {
+          result = sortByCreatedTime(left, right)
+        }
+
+        return result || sortByCreatedTime(left, right)
+      })
   }, [
     groupFilter,
     inputFilter,
     models,
     outputFilter,
+    perfMap,
+    priceFilter,
     searchQuery,
+    sortBy,
+    usableGroup,
     vendorFilter,
   ])
 
@@ -1132,6 +1225,8 @@ function CatalogPricing() {
     outputFilter,
     vendorFilter,
     groupFilter,
+    priceFilter,
+    sortBy,
   ].join('|')
 
   const visibleCount =
@@ -1178,7 +1273,8 @@ function CatalogPricing() {
     inputFilter !== FILTER_ALL ||
     outputFilter !== FILTER_ALL ||
     vendorFilter !== FILTER_ALL ||
-    groupFilter !== FILTER_ALL
+    groupFilter !== FILTER_ALL ||
+    priceFilter !== 'all'
 
   const clearFilters = useCallback(() => {
     setSearchInput('')
@@ -1186,6 +1282,7 @@ function CatalogPricing() {
     setOutputFilter(FILTER_ALL)
     setVendorFilter(FILTER_ALL)
     setGroupFilter(FILTER_ALL)
+    setPriceFilter('all')
   }, [])
 
   const setSidebarSectionExpanded = useCallback(
@@ -1222,18 +1319,6 @@ function CatalogPricing() {
                 open={sidebarSectionOpen.input}
                 onOpenChange={(open) =>
                   setSidebarSectionExpanded('input', open)
-                }
-              />
-              <FilterSection
-                title={t('Output Types')}
-                options={outputOptions}
-                value={outputFilter}
-                onChange={setOutputFilter}
-                allLabel={t('All')}
-                allCount={models.length}
-                open={sidebarSectionOpen.output}
-                onOpenChange={(open) =>
-                  setSidebarSectionExpanded('output', open)
                 }
               />
               <FilterSection
@@ -1288,8 +1373,8 @@ function CatalogPricing() {
                   </p>
                 </div>
 
-                <div className='flex w-full items-center gap-2 sm:w-auto'>
-                  <label className='border-border bg-background text-muted-foreground focus-within:ring-ring/20 flex h-8 w-[190px] max-w-full shrink-0 items-center rounded-[6px] border transition-colors focus-within:border-neutral-300 focus-within:ring-2 dark:border-white/10 dark:bg-neutral-950 dark:focus-within:border-white/20'>
+                <div className='flex w-full flex-wrap items-center gap-2 xl:w-auto xl:justify-end'>
+                  <label className='border-border bg-background text-muted-foreground focus-within:ring-ring/20 flex h-8 min-w-[180px] flex-1 items-center rounded-[6px] border transition-colors focus-within:ring-2 sm:max-w-[220px] xl:flex-none'>
                     <ZenMuxSearchIcon className='ml-3 size-3.5 shrink-0' />
                     <input
                       type='text'
@@ -1299,24 +1384,96 @@ function CatalogPricing() {
                       className='text-foreground h-full min-w-0 flex-1 bg-transparent px-2 text-sm outline-none'
                     />
                   </label>
-                  <Button
-                    type='button'
-                    variant='outline'
+
+                  <ToggleGroup
+                    value={[priceFilter]}
+                    onValueChange={(value) => {
+                      const nextValue = value[0] as
+                        | CatalogPriceFilter
+                        | undefined
+                      if (nextValue) setPriceFilter(nextValue)
+                    }}
+                    variant='default'
                     size='sm'
-                    className='border-border bg-background hover:bg-muted h-8 gap-1.5 rounded-[6px] px-3 text-sm font-normal dark:border-white/10 dark:bg-neutral-950 dark:hover:bg-neutral-900'
+                    className='bg-muted/60 h-8 rounded-[6px] border p-0.5'
                   >
-                    <ZenMuxSortIcon className='text-muted-foreground size-4' />
-                    {t('Latest')}
-                  </Button>
+                    <ToggleGroupItem
+                      value='all'
+                      aria-label={t('All')}
+                      className='aria-pressed:bg-background h-7 rounded-[4px] px-3 aria-pressed:shadow-sm'
+                    >
+                      {t('All')}
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value='discount'
+                      aria-label={t('Discount')}
+                      className='aria-pressed:bg-background h-7 rounded-[4px] px-3 aria-pressed:shadow-sm'
+                    >
+                      {t('Discount')}
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value='free'
+                      aria-label={t('Free pricing')}
+                      className='aria-pressed:bg-background h-7 rounded-[4px] px-3 aria-pressed:shadow-sm'
+                    >
+                      {t('Free pricing')}
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button
+                          type='button'
+                          variant='outline'
+                          size='sm'
+                          className='h-8 rounded-[6px] px-3 text-sm font-normal'
+                        />
+                      }
+                    >
+                      <ZenMuxSortIcon data-icon='inline-start' />
+                      {sortBy === 'newest' && t('Latest')}
+                      {sortBy === 'name-asc' && t('Name (A-Z)')}
+                      {sortBy === 'price-asc' && t('Price ↑')}
+                      {sortBy === 'price-desc' && t('Price ↓')}
+                      {sortBy === 'latency-asc' && t('Latency ↑')}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align='end' className='min-w-36'>
+                      <DropdownMenuGroup>
+                        <DropdownMenuRadioGroup
+                          value={sortBy}
+                          onValueChange={(value) =>
+                            setSortBy(value as CatalogSort)
+                          }
+                        >
+                          <DropdownMenuRadioItem value='newest'>
+                            {t('Latest')}
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value='name-asc'>
+                            {t('Name (A-Z)')}
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value='price-asc'>
+                            {t('Price ↑')}
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value='price-desc'>
+                            {t('Price ↓')}
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value='latency-asc'>
+                            {t('Latency ↑')}
+                          </DropdownMenuRadioItem>
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
               <div className='mt-5'>
                 <TopModalityTabs
-                  value={inputFilter}
-                  counts={inputCounts}
+                  value={outputFilter}
+                  counts={outputCounts}
                   total={models.length}
-                  onChange={setInputFilter}
+                  onChange={setOutputFilter}
                 />
               </div>
             </header>
