@@ -272,7 +272,8 @@ export function evalExprLocally(
   exprStr: string,
   promptTokens: number,
   completionTokens: number,
-  extraTokenValues: ExtraTokenValues
+  extraTokenValues: ExtraTokenValues,
+  requestParams: unknown = {}
 ): EvalResult {
   try {
     if (!exprStr || !exprStr.trim()) {
@@ -298,6 +299,18 @@ export function evalExprLocally(
       abs: Math.abs,
       ceil: Math.ceil,
       floor: Math.floor,
+      param: (path: string) => {
+        if (!path) return requestParams
+        return String(path)
+          .replace(/\[([^\]]+)\]/g, '.$1')
+          .split('.')
+          .filter(Boolean)
+          .reduce<unknown>((value, key) => {
+            if (value === null || value === undefined) return undefined
+            if (typeof value !== 'object') return undefined
+            return (value as Record<string, unknown>)[key]
+          }, requestParams)
+      },
     }
     for (const field of ESTIMATOR_VARS) {
       env[field.var] = extraTokenValues[field.stateKey] || 0

@@ -1,3 +1,4 @@
+import { ChevronDown, Copy, Plus, Trash2 } from 'lucide-react'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -28,10 +29,9 @@ import {
   type InputHTMLAttributes,
   type MouseEvent as ReactMouseEvent,
 } from 'react'
-import { ChevronDown, Copy, Plus, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -98,6 +98,7 @@ import {
   normalizeVisualTier,
   tryParseVisualConfig,
 } from '@/features/pricing/lib/tier-expr'
+import { cn } from '@/lib/utils'
 
 const PRICE_SUFFIX = '$/1M tokens'
 const CACHE_PRICE_VARS = BILLING_EXTRA_VARS.filter(
@@ -1362,6 +1363,7 @@ function CostEstimator({ effectiveExpr }: EstimatorProps) {
   const { t } = useTranslation()
   const [promptTokens, setPromptTokens] = useState(0)
   const [completionTokens, setCompletionTokens] = useState(0)
+  const [requestParamsText, setRequestParamsText] = useState('{}')
   const [extras, setExtras] = useState<ExtraTokenValues>({
     cacheReadTokens: 0,
     cacheCreateTokens: 0,
@@ -1377,11 +1379,31 @@ function CostEstimator({ effectiveExpr }: EstimatorProps) {
     [effectiveExpr]
   )
 
-  const result = useMemo(
-    () =>
-      evalExprLocally(effectiveExpr, promptTokens, completionTokens, extras),
-    [effectiveExpr, promptTokens, completionTokens, extras]
-  )
+  const result = useMemo(() => {
+    try {
+      const requestParams = JSON.parse(requestParamsText || '{}')
+      return evalExprLocally(
+        effectiveExpr,
+        promptTokens,
+        completionTokens,
+        extras,
+        requestParams
+      )
+    } catch {
+      return {
+        cost: 0,
+        matchedTier: '',
+        error: t('Preview request parameters must be valid JSON'),
+      }
+    }
+  }, [
+    effectiveExpr,
+    promptTokens,
+    completionTokens,
+    extras,
+    requestParamsText,
+    t,
+  ])
 
   return (
     <div className='bg-muted/30 space-y-3 rounded-md border p-3'>
@@ -1410,6 +1432,18 @@ function CostEstimator({ effectiveExpr }: EstimatorProps) {
             onValueChange={setCompletionTokens}
           />
         </div>
+      </div>
+      <div className='space-y-1'>
+        <Label className='text-xs'>{t('Preview request parameters')}</Label>
+        <Textarea
+          value={requestParamsText}
+          onChange={(event) => setRequestParamsText(event.target.value)}
+          placeholder='{"resolution":"1K"}'
+          className='min-h-16 font-mono text-xs'
+        />
+        <p className='text-muted-foreground text-xs'>
+          {t('Used by param(path), for example: {"resolution":"1K"}.')}
+        </p>
       </div>
       {usesExtras && (
         <div className='grid grid-cols-2 gap-3'>

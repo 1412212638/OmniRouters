@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { formatBillingCurrencyFromUSD } from '@/lib/currency'
+
 import { TOKEN_UNIT_DIVISORS } from '../constants'
 import type { PricingModel, PricingUsableGroup, TokenUnit } from '../types'
 import {
@@ -68,6 +69,7 @@ export type DynamicPricingSummary = {
   primaryEntries: DynamicPriceEntry[]
   secondaryEntries: DynamicPriceEntry[]
   primaryRanges: DynamicPriceRange[]
+  requestPriceRange: string | null
 }
 
 const PRIMARY_DYNAMIC_FIELDS = new Set(['inputPrice', 'outputPrice'])
@@ -220,9 +222,7 @@ function getDynamicPriceRange(
     minValue,
     maxValue,
     formatted:
-      minValue === maxValue
-        ? minFormatted
-        : `${minFormatted}-${maxFormatted}`,
+      minValue === maxValue ? minFormatted : `${minFormatted}-${maxFormatted}`,
     displayUnit: 'token',
   }
 }
@@ -236,6 +236,33 @@ function getDynamicPrimaryPriceRanges(
     const range = getDynamicPriceRange(tiers, variable, options)
     return range ? [range] : []
   })
+}
+
+function getDynamicRequestPriceRange(
+  tiers: ParsedTier[],
+  options: DynamicPriceOptions
+): string | null {
+  const values = tiers
+    .map((tier) => Number(tier.fixedPrice))
+    .filter((value) => Number.isFinite(value) && value > 0)
+  if (values.length === 0) return null
+
+  const groupRatio = options.groupRatioMultiplier ?? 1
+  const priceRate = options.priceRate ?? 1
+  const usdExchangeRate = options.usdExchangeRate ?? 1
+  const formatted = (value: number) =>
+    formatBillingCurrencyFromUSD(
+      applyRechargeRate(
+        value * groupRatio,
+        options.showRechargePrice ?? false,
+        priceRate,
+        usdExchangeRate
+      ),
+      { digitsLarge: 4, digitsSmall: 6, abbreviate: false }
+    )
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  return min === max ? formatted(min) : `${formatted(min)}-${formatted(max)}`
 }
 
 export function getDynamicPricingSummary(
@@ -267,5 +294,6 @@ export function getDynamicPricingSummary(
     primaryRanges: hasRequestRules
       ? []
       : getDynamicPrimaryPriceRanges(tiers, options),
+    requestPriceRange: getDynamicRequestPriceRange(tiers, options),
   }
 }

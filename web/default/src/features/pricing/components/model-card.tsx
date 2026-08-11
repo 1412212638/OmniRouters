@@ -19,10 +19,12 @@ For commercial licensing, please contact support@quantumnous.com
 import { ChevronRight, Copy } from 'lucide-react'
 import { memo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+
+import { StatusBadge } from '@/components/status-badge'
+import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { getLobeIcon } from '@/lib/lobe-icon'
 import { cn } from '@/lib/utils'
-import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
-import { StatusBadge } from '@/components/status-badge'
+
 import { DEFAULT_TOKEN_UNIT } from '../constants'
 import {
   getDynamicDisplayGroupRatio,
@@ -114,6 +116,15 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           <code className='text-muted-foreground/70 mt-0.5 line-clamp-1 block font-mono text-[11px] break-all'>
             {dynamicSummary.rawExpression}
           </code>
+        </span>
+      )
+    } else if (dynamicSummary.requestPriceRange) {
+      priceSummary = (
+        <span className='text-muted-foreground whitespace-nowrap'>
+          {t('Billing')}{' '}
+          <span className='text-foreground font-mono font-semibold'>
+            {dynamicSummary.requestPriceRange}/{t('request')}
+          </span>
         </span>
       )
     } else if (dynamicSummary.primaryEntries.length > 0) {

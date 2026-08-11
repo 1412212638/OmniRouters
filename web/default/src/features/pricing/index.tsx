@@ -718,6 +718,15 @@ function usePriceRows(props: {
     }
   }
 
+  if (dynamicSummary?.requestPriceRange) {
+    return {
+      kind: 'single',
+      label: t('Billing'),
+      value: dynamicSummary.requestPriceRange,
+      unit: t('request'),
+    }
+  }
+
   if (dynamicSummary && dynamicSummary.primaryRanges.length > 0) {
     const inputRange = dynamicSummary.primaryRanges.find(
       (entry) => entry.field === 'inputPrice'
