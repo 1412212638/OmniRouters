@@ -839,16 +839,6 @@ function CatalogModelCard(props: {
         </div>
 
         <div className='flex shrink-0 items-center gap-1'>
-          {hasDiscount && (
-            <Badge
-              variant={isFree ? 'secondary' : 'warning'}
-              className={cn(isFree && 'bg-success/10 text-success')}
-            >
-              {isFree
-                ? t('Free pricing')
-                : t('{{percent}}% discount', { percent: discountPercent })}
-            </Badge>
-          )}
           <Button
             type='button'
             variant='ghost'
@@ -863,7 +853,23 @@ function CatalogModelCard(props: {
         </div>
       </div>
 
-      <p className='text-foreground/90 mt-8 line-clamp-2 min-h-[2.5rem] text-sm leading-5'>
+      <div className='mt-3 flex h-5 items-center justify-end'>
+        {hasDiscount && (
+          <Badge
+            variant={isFree ? 'secondary' : 'warning'}
+            className={cn(
+              'h-5 rounded-[4px] px-2 py-0 text-[11px] leading-none',
+              isFree && 'border-success/30 bg-success/10 text-success'
+            )}
+          >
+            {isFree
+              ? t('Free pricing')
+              : t('{{percent}}% discount', { percent: discountPercent })}
+          </Badge>
+        )}
+      </div>
+
+      <p className='text-foreground/90 mt-1 line-clamp-2 min-h-[2.5rem] text-sm leading-5'>
         {props.model.description || t('No description available.')}
       </p>
 
