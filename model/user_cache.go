@@ -71,12 +71,6 @@ func invalidateUserCache(userId int) error {
 	return common.RedisDelKey(getUserCacheKey(userId))
 }
 
-// InvalidateUserCache is the exported version of invalidateUserCache.
-// 供 controller 等上层包在用户状态变更（如禁用、删除、角色变更）后主动清理缓存。
-func InvalidateUserCache(userId int) error {
-	return invalidateUserCache(userId)
-}
-
 func populateUserCache(user User) error {
 	if !common.RedisEnabled {
 		return nil
@@ -214,14 +208,6 @@ func getUserQuotaCache(userId int) (int, error) {
 	return cache.Quota, nil
 }
 
-func getUserStatusCache(userId int) (int, error) {
-	cache, err := GetUserCache(userId)
-	if err != nil {
-		return 0, err
-	}
-	return cache.Status, nil
-}
-
 func getUserNameCache(userId int) (string, error) {
 	cache, err := GetUserCache(userId)
 	if err != nil {
@@ -266,6 +252,18 @@ func updateUserGroupCache(userId int, group string) error {
 
 func UpdateUserGroupCache(userId int, group string) error {
 	return updateUserGroupCache(userId, group)
+}
+
+// RefreshUserGroupCache writes the database-authoritative group into cache.
+func RefreshUserGroupCache(userId int) error {
+	if !common.RedisEnabled {
+		return nil
+	}
+	var user User
+	if err := DB.Select(commonGroupCol).Where("id = ?", userId).First(&user).Error; err != nil {
+		return err
+	}
+	return updateUserGroupCache(userId, user.Group)
 }
 
 func updateUserExtraGroupsCache(userId int, groups StringList) error {
