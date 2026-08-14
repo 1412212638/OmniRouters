@@ -971,7 +971,14 @@ function CatalogModelCard(props: {
         {priceRows.kind === 'single' && (
           <div className='min-w-0 sm:col-span-2'>
             <InfoLine label={`${priceRows.label}:`} valueClassName='truncate'>
-              <span className='font-medium'>{priceRows.value}</span>
+              <span
+                className={cn(
+                  'font-mono font-medium',
+                  hasDiscount && 'text-success'
+                )}
+              >
+                {priceRows.value}
+              </span>
               {priceRows.unit && (
                 <span className='text-muted-foreground ml-1 text-xs'>
                   /{priceRows.unit}
