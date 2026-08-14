@@ -1673,9 +1673,20 @@ export const TieredPricingEditor = memo(function TieredPricingEditor({
   onRequestRuleExprChange,
 }: TieredPricingEditorProps) {
   const { t } = useTranslation()
-  const [editorMode, setEditorMode] = useState<EditorMode>('visual')
-  const [visualConfig, setVisualConfig] = useState<VisualConfig | null>(() =>
-    tryParseVisualConfig(currentExpr)
+  const initialVisualConfig = useMemo(
+    () => tryParseVisualConfig(currentExpr),
+    // The parent remounts this editor when the selected model changes.
+    // Only use the initial expression here to prevent a raw expression from
+    // being replaced by the visual editor's zero-value default on first render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  )
+  const [editorMode, setEditorMode] = useState<EditorMode>(() =>
+    currentExpr && !initialVisualConfig ? 'raw' : 'visual'
+  )
+  const [visualConfig, setVisualConfig] = useState<VisualConfig | null>(
+    () =>
+      initialVisualConfig || (currentExpr ? null : createDefaultVisualConfig())
   )
   const [rawExpr, setRawExpr] = useState(() =>
     combineBillingExpr(currentExpr || '', currentRequestRuleExpr || '')

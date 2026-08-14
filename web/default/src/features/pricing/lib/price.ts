@@ -93,6 +93,7 @@ export type SoraPricingDisplayTier = {
 
 export type SoraPricingDisplay = {
   basePrice: string
+  tierPriceRange: string
   tierCount: number
   resolutionTiers: SoraPricingDisplayTier[]
   audioGenerationSurcharge?: string
@@ -123,7 +124,9 @@ function getSoraBasePriceUSD(
   model: PricingModel,
   selectedGroup?: string
 ): number {
-  return (model.model_price || 0) * getSoraDisplayGroupRatio(model, selectedGroup)
+  return (
+    (model.model_price || 0) * getSoraDisplayGroupRatio(model, selectedGroup)
+  )
 }
 
 function normalizeSoraResolutionTiers(
@@ -202,9 +205,24 @@ export function getSoraPricingDisplay(
       price: formatSoraPrice(tierPriceInUSD),
     }
   })
+  const tierPricesInUSD = resolutionTiers.map(
+    (tier) => basePriceInUSD * tier.multiplier
+  )
+  const tierPriceRange =
+    tierPricesInUSD.length > 0
+      ? (() => {
+          const minPrice = Math.min(...tierPricesInUSD)
+          const maxPrice = Math.max(...tierPricesInUSD)
+          const minFormatted = stripTrailingZeros(formatSoraPrice(minPrice))
+          return minPrice === maxPrice
+            ? minFormatted
+            : `${minFormatted}-${stripTrailingZeros(formatSoraPrice(maxPrice))}`
+        })()
+      : basePrice
 
   return {
     basePrice,
+    tierPriceRange,
     tierCount: resolutionTiers.length,
     resolutionTiers,
     ...(hasAudioGenerationSurcharge

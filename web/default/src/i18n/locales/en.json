@@ -593,6 +593,7 @@
     "Base multipliers applied when users select specific groups.": "Base multipliers applied when users select specific groups.",
     "Base Price": "Base Price",
     "Base price per second": "Base price per second",
+    "Tier price range per second": "Tier price range per second",
     "Base price per second is required when Sora pricing is enabled.": "Base price per second is required when Sora pricing is enabled.",
     "Base rate limit windows for this account.": "Base rate limit windows for this account.",
     "Base URL": "Base URL",

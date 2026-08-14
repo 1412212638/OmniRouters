@@ -587,6 +587,7 @@
     "Base multipliers applied when users select specific groups.": "Базовые множители, применяемые, когда пользователи выбирают определенные группы.",
     "Base Price": "Базовая цена",
     "Base price per second": "Base price per second",
+    "Tier price range per second": "Диапазон цен уровня за секунду",
     "Base price per second is required when Sora pricing is enabled.": "Base price per second is required when Sora pricing is enabled.",
     "Base rate limit windows for this account.": "Окна базовых лимитов для этого аккаунта.",
     "Base URL": "Адрес API",

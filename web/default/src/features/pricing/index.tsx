@@ -771,11 +771,10 @@ function usePriceRows(props: {
 
   if (soraSummary) {
     return {
-      kind: 'paired',
-      inputValue: stripTrailingZeros(soraSummary.basePrice),
-      outputValue: '-',
-      inputUnit: t('request'),
-      outputUnit: '',
+      kind: 'single',
+      label: t('Billing'),
+      value: stripTrailingZeros(soraSummary.tierPriceRange),
+      unit: t('seconds'),
     }
   }
 

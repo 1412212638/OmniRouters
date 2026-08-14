@@ -607,6 +607,7 @@
     "Base multipliers applied when users select specific groups.": "当用户选择特定分组时应用的基础乘数。",
     "Base Price": "基础价格",
     "Base price per second": "基础每秒单价",
+    "Tier price range per second": "每秒档位价格范围",
     "Base price per second is required when Sora pricing is enabled.": "启用 Sora 计费时必须填写基础每秒单价。",
     "Base rate limit windows for this account.": "当前账号的基础额度窗口。",
     "Base URL": "API 地址",

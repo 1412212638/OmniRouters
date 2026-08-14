@@ -171,17 +171,12 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   } else if (soraSummary) {
     priceSummary = (
       <span className='text-muted-foreground whitespace-nowrap'>
-        {t('Fixed price')}{' '}
+        {t('Billing')}{' '}
         <span className='text-foreground font-mono font-semibold'>
-          {stripTrailingZeros(soraSummary.basePrice)}
+          {stripTrailingZeros(soraSummary.tierPriceRange)}
         </span>
         <span className='text-muted-foreground/40 mx-1'>/</span>
-        <span className='text-foreground font-mono font-semibold'>s</span>
-        {soraSummary.tierCount > 0 && (
-          <span className='text-muted-foreground/60 ml-1 text-xs'>
-            ({t('{{count}} tiers', { count: soraSummary.tierCount })})
-          </span>
-        )}
+        <span className='text-foreground font-semibold'>{t('seconds')}</span>
         {soraSummary.audioGenerationSurcharge && (
           <span className='text-muted-foreground/60 ml-1 text-xs'>
             + {t('Audio')}{' '}

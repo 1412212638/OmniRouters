@@ -587,6 +587,7 @@
     "Base multipliers applied when users select specific groups.": "Multiplicateurs de base appliqués lorsque les utilisateurs sélectionnent des groupes spécifiques.",
     "Base Price": "Prix de base",
     "Base price per second": "Prix de base par seconde",
+    "Tier price range per second": "Plage de prix par seconde selon le niveau",
     "Base price per second is required when Sora pricing is enabled.": "Le prix de base par seconde est requis lorsque la tarification Sora est activée.",
     "Base rate limit windows for this account.": "Fenêtres de limitation de débit de base pour ce compte.",
     "Base URL": "URL de base",

@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import type { ColumnDef } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
-import { getLobeIcon } from '@/lib/lobe-icon'
+
 import {
   BadgeCell,
   BadgeListCell,
@@ -26,6 +26,8 @@ import {
 } from '@/components/data-table'
 import { GroupBadge } from '@/components/group-badge'
 import { StatusBadge } from '@/components/status-badge'
+import { getLobeIcon } from '@/lib/lobe-icon'
+
 import { DEFAULT_TOKEN_UNIT, QUOTA_TYPE_VALUES } from '../constants'
 import {
   getDynamicDisplayGroupRatio,
@@ -199,11 +201,13 @@ export function usePricingColumns(
           return (
             <div className='max-w-full min-w-0'>
               <span className='font-mono text-sm tabular-nums'>
-                {stripTrailingZeros(soraSummary.basePrice)}
+                {stripTrailingZeros(soraSummary.tierPriceRange)}
                 <span className='text-muted-foreground/40 mx-1'>/</span>s
               </span>
               <div className='text-muted-foreground/50 text-[10px]'>
-                {t('Base price per second')}
+                {soraSummary.tierCount > 0
+                  ? t('Tier price range per second')
+                  : t('Base price per second')}
                 {soraSummary.tierCount > 0 &&
                   ` • ${t('{{count}} tiers', {
                     count: soraSummary.tierCount,

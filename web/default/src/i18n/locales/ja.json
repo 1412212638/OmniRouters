@@ -587,6 +587,7 @@
     "Base multipliers applied when users select specific groups.": "ユーザーが特定のグループを選択したときに適用される基本乗数。",
     "Base Price": "基本価格",
     "Base price per second": "1秒あたりの基本価格",
+    "Tier price range per second": "1秒あたりのティア価格範囲",
     "Base price per second is required when Sora pricing is enabled.": "Sora 課金を有効にする場合、1秒あたりの基本価格が必要です。",
     "Base rate limit windows for this account.": "このアカウント向けの基本レート制限ウィンドウ。",
     "Base URL": "ベースURL",
