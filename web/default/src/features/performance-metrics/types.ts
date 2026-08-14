@@ -49,6 +49,11 @@ export type PerfModelSummary = {
   success_rate: number
   avg_tps: number
   recent_success_rates?: number[]
+  recent_buckets?: {
+    ts: number
+    success_rate: number
+    request_count: number
+  }[]
   request_count?: number
 }
 

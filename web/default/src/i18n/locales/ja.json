@@ -2854,6 +2854,8 @@
     "No deployments available. Create one to get started.": "利用可能なデプロイメントがありません。開始するには1つ作成してください。",
     "No Deployments Found": "デプロイメントが見つかりません",
     "No description available.": "説明はありません。",
+    "No requests": "リクエストなし",
+    "{{count}} requests": "{{count}} 件のリクエスト",
     "No discount tiers configured. Click \"Add discount tier\" to get started.": "割引ティアは設定されていません。「割引ティアを追加」をクリックして開始してください。",
     "No duplicate keys found": "重複キーが見つかりませんでした",
     "No enabled tokens available": "有効なトークンがありません",

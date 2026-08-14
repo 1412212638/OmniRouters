@@ -2855,6 +2855,8 @@
     "No deployments available. Create one to get started.": "Không có triển khai nào khả dụng. Tạo một cái để bắt đầu.",
     "No Deployments Found": "Không tìm thấy triển khai nào",
     "No description available.": "Chưa có mô tả.",
+    "No requests": "Không có yêu cầu",
+    "{{count}} requests": "{{count}} yêu cầu",
     "No discount tiers configured. Click \"Add discount tier\" to get started.": "Chưa cấu hình cấp chiết khấu nào. Nhấp vào \"Thêm cấp chiết khấu\" để bắt đầu.",
     "No duplicate keys found": "Không tìm thấy khóa trùng lặp",
     "No enabled tokens available": "Không có token nào được kích hoạt",

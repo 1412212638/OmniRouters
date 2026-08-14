@@ -2860,6 +2860,8 @@
     "No deployments available. Create one to get started.": "No deployments available. Create one to get started.",
     "No Deployments Found": "No Deployments Found",
     "No description available.": "No description available.",
+    "No requests": "No requests",
+    "{{count}} requests": "{{count}} requests",
     "No discount tiers configured. Click \"Add discount tier\" to get started.": "No discount tiers configured. Click \"Add discount tier\" to get started.",
     "No duplicate keys found": "No duplicate keys found",
     "No enabled tokens available": "No enabled tokens available",

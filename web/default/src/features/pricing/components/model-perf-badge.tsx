@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
+
 import { cn } from '@/lib/utils'
 
 export type ModelPerfBadgeData = {
@@ -49,10 +50,10 @@ function formatCompactLatency(ms: number): string {
 }
 
 function getStatusBars(successRate: number): string[] {
-  if (successRate < 99) {
+  if (successRate < 80) {
     return ['bg-red-500', 'bg-muted-foreground/25', 'bg-muted-foreground/20']
   }
-  if (successRate < 99.9) {
+  if (successRate < 90) {
     return ['bg-amber-500', 'bg-amber-500', 'bg-muted-foreground/25']
   }
   return ['bg-emerald-500', 'bg-emerald-500', 'bg-emerald-500']

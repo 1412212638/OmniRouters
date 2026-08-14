@@ -195,6 +195,7 @@ func QuerySummaryAll(hours int, groups []string) (SummaryAllResult, error) {
 			SuccessRate:        math.Round(successRate*100) / 100,
 			AvgTps:             math.Round(avgTps*100) / 100,
 			RecentSuccessRates: recentSuccessRates(modelBuckets[name], 3),
+			RecentBuckets:      recentBuckets(modelBuckets[name], endTs, hours),
 			RequestCount:       total.requestCount,
 		})
 	}
@@ -203,6 +204,34 @@ func QuerySummaryAll(hours int, groups []string) (SummaryAllResult, error) {
 	})
 
 	return SummaryAllResult{Models: models}, nil
+}
+
+func recentBuckets(buckets map[int64]counters, endTs int64, hours int) []RecentBucket {
+	bucketSeconds := perf_metrics_setting.GetBucketSeconds()
+	if bucketSeconds <= 0 {
+		bucketSeconds = 3600
+	}
+	windowSeconds := int64(hours) * 3600
+	count := int((windowSeconds + bucketSeconds - 1) / bucketSeconds)
+	if count < 1 {
+		count = 1
+	}
+	if count > 36 {
+		count = 36
+	}
+
+	lastTs := endTs - (endTs % bucketSeconds)
+	result := make([]RecentBucket, 0, count)
+	for i := count - 1; i >= 0; i-- {
+		ts := lastTs - int64(i)*bucketSeconds
+		value := buckets[ts]
+		bucket := RecentBucket{Ts: ts, RequestCount: value.requestCount}
+		if value.requestCount > 0 {
+			bucket.SuccessRate = math.Round(successRate(value)*100) / 100
+		}
+		result = append(result, bucket)
+	}
+	return result
 }
 
 func mergeModelTotals(totals map[string]counters, modelName string, value counters) {

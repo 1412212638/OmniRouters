@@ -2874,6 +2874,8 @@
     "No deployments available. Create one to get started.": "没有可用的部署。创建一个开始吧。",
     "No Deployments Found": "未找到部署",
     "No description available.": "暂无描述。",
+    "No requests": "无请求",
+    "{{count}} requests": "{{count}} 个请求",
     "No discount tiers configured. Click \"Add discount tier\" to get started.": "未配置折扣等级。点击“添加折扣等级”即可开始使用。",
     "No duplicate keys found": "未发现重复密钥",
     "No enabled tokens available": "当前没有可用的启用令牌",
