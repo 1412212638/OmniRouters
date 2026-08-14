@@ -582,44 +582,29 @@ function TopModalityTabs(props: {
 }
 
 function SuccessRateStrip(props: { perf?: PerfModelSummary }) {
-  const { t } = useTranslation()
   const normalized = normalizeSuccessRate(props.perf?.success_rate)
-  const buckets = props.perf?.recent_buckets
-  const segments = buckets?.length || 36
-  const getTone = (rate: number | null) =>
-    rate === null
+  const segments = 36
+  const filled =
+    normalized === null ? 0 : Math.round((normalized / 100) * segments)
+  const tone =
+    normalized === null
       ? 'bg-muted'
-      : rate >= 90
+      : normalized >= 90
         ? 'bg-emerald-500'
-        : rate >= 80
+        : normalized >= 80
           ? 'bg-amber-500'
           : 'bg-destructive'
-  const segmentData = Array.from({ length: segments }).map((_, index) => {
-    const bucket = buckets?.[index]
-    const rate = bucket?.request_count
-      ? normalizeSuccessRate(bucket.success_rate)
-      : buckets
-        ? null
-        : normalized
-    const title = bucket
-      ? bucket.request_count > 0
-        ? `${new Date(bucket.ts * 1000).toLocaleString()} · ${bucket.success_rate.toFixed(2)}% · ${t('{{count}} requests', { count: bucket.request_count })}`
-        : `${new Date(bucket.ts * 1000).toLocaleString()} · ${t('No requests')}`
-      : undefined
-    return { bucket, index, rate, title }
-  })
 
   return (
     <div className='min-w-0'>
-      <div
-        className='grid gap-0.5'
-        style={{ gridTemplateColumns: `repeat(${segments}, minmax(0, 1fr))` }}
-      >
-        {segmentData.map(({ bucket, index, rate, title }) => (
+      <div className='grid grid-cols-[repeat(36,minmax(0,1fr))] gap-0.5'>
+        {Array.from({ length: segments }).map((_, index) => (
           <span
-            key={bucket?.ts ?? index}
-            title={title}
-            className={cn('h-2 rounded-[2px]', getTone(rate))}
+            key={index}
+            className={cn(
+              'h-2 rounded-[2px]',
+              index < filled ? tone : 'bg-muted'
+            )}
           />
         ))}
       </div>
