@@ -450,6 +450,7 @@ func TestRefundTaskQuota_RepeatedCallRefundsExactlyOnce(t *testing.T) {
 	task.Status = model.TaskStatusFailure
 	task.RefundPending = true
 	require.NoError(t, model.DB.Create(task).Error)
+	require.NoError(t, model.DB.Model(&model.User{}).Where("id = ?", userID).Update("used_quota", preConsumed).Error)
 
 	firstCopy := *task
 	secondCopy := *task
@@ -457,6 +458,9 @@ func TestRefundTaskQuota_RepeatedCallRefundsExactlyOnce(t *testing.T) {
 	assert.True(t, RefundTaskQuota(ctx, &secondCopy, "duplicate failure callback"))
 
 	assert.Equal(t, initialQuota+preConsumed, getUserQuota(t, userID))
+	var user model.User
+	require.NoError(t, model.DB.Select("used_quota").First(&user, userID).Error)
+	assert.Zero(t, user.UsedQuota)
 	assert.Zero(t, getTaskQuota(t, task.ID))
 	assert.False(t, getTaskRefundPending(t, task.ID))
 	assert.Equal(t, int64(1), countLogs(t))

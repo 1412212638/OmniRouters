@@ -1,3 +1,5 @@
+import { useQueryClient } from '@tanstack/react-query'
+import { Loader2, Search, Info, ChevronDown } from 'lucide-react'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -17,10 +19,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useState, useEffect, useMemo, type ReactNode } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { Loader2, Search, Info, ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+
+import { Dialog } from '@/components/dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -36,7 +38,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Dialog } from '@/components/dialog'
+
 import { fetchUpstreamModels, updateChannel } from '../../api'
 import {
   categorizeModels,
@@ -51,16 +53,26 @@ function normalizeModelNameList(models: readonly string[]): string[] {
   return [...new Set(models.map((m) => normalizeModelName(m)).filter(Boolean))]
 }
 
-type FetchModelsDialogProps = {
+type FetchModelsDialogBaseProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onModelsSelected?: (models: string[]) => void
   redirectModels?: string[]
   redirectSourceModels?: string[]
   customFetcher?: () => Promise<string[]>
-  existingModelsOverride?: string[]
   channelName?: string | null
 }
+
+type FetchModelsDialogProps = FetchModelsDialogBaseProps &
+  (
+    | {
+        onModelsSelected: (models: string[]) => void
+        existingModelsOverride: string[]
+      }
+    | {
+        onModelsSelected?: undefined
+        existingModelsOverride?: undefined
+      }
+  )
 
 export function FetchModelsDialog({
   open,

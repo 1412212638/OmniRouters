@@ -2,6 +2,28 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-08-15
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous upstream sync point: `823e26304a396854ace30b52b98ec497c2dd9c36`
+- Reviewed and selectively integrated through upstream `main`: `e2c7aa7b102c2075eae2377df3508658d45e88dc`
+- Integrated:
+  - Async task refunds now reverse user and channel accumulated usage exactly once through the existing `refund_pending` and quota CAS path (`58d4e9bd3`).
+  - Ali image protocol selection uses the mapped upstream model (`93d2df85f`).
+  - Recharge requests reject uncreditable amounts before payment, and settlement atomically enforces the final wallet quota ceiling across Epay, Stripe, Creem, Waffo, Waffo Pancake, and manual completion (`2a0ce3475`, `47ba9d2c6`).
+  - Channel fetched-model selection follows the current unsaved form state (`15cfdedde`).
+  - OpenAI Chat to Responses conversion preserves `prompt_cache_key`, and Claude conversion omits empty tools (`7d09c6954`, `4442bb302`).
+  - Updated DOMPurify to `3.4.13` and added reusable custom OAuth access-policy/message templates without changing the local unified OAuth binding layout (`f250f3b58`, adapted from `116255f07`).
+- Already present:
+  - Gateway channel field-passthrough controls from `e90a7c48e` were already implemented in `web/default`; no duplicate UI was added.
+- Skipped:
+  - Electron-only dependency updates (`626058075`, `53a8739ee`, `e5efc73cd`, `cf38105a9`, `bbf67df04`) because they do not affect the server or GHCR deployment.
+  - The broad Vitest migration in `e2c7aa7b`; it changes test infrastructure without runtime benefit and is independent of the fixes above.
+- Validation notes:
+  - Targeted frontend lint and TypeScript typecheck passed using the existing dependencies.
+  - `git diff --check`, call-signature scans, and conflict-marker scans passed. Go execution remains delegated to GitHub Actions because no local Go runtime is installed.
+  - `bin/sync-upstream.ps1` and i18n temporary reports remain untracked and are excluded.
+
 ## 2026-08-10
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
