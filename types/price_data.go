@@ -8,9 +8,13 @@ import (
 )
 
 type GroupRatioInfo struct {
-	GroupRatio        float64
-	GroupSpecialRatio float64
-	HasSpecialRatio   bool
+	GroupRatio         float64
+	BaseGroupRatio     float64
+	ModelGroupRatio    float64
+	HasModelGroupRatio bool
+	HasUserModelRatio  bool
+	GroupSpecialRatio  float64
+	HasSpecialRatio    bool
 }
 
 type PriceData struct {

@@ -74,6 +74,9 @@ func GenerateTextOtherInfo(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, m
 	other := make(map[string]interface{})
 	other["model_ratio"] = modelRatio
 	other["group_ratio"] = groupRatio
+	if relayInfo != nil {
+		appendGroupModelRatioInfo(other, relayInfo.PriceData.GroupRatioInfo)
+	}
 	other["completion_ratio"] = completionRatio
 	other["cache_tokens"] = cacheTokens
 	other["cache_ratio"] = cacheRatio
@@ -294,11 +297,23 @@ func GenerateMjOtherInfo(relayInfo *relaycommon.RelayInfo, priceData hosttypes.P
 	other := make(map[string]interface{})
 	other["model_price"] = priceData.ModelPrice
 	other["group_ratio"] = priceData.GroupRatioInfo.GroupRatio
+	appendGroupModelRatioInfo(other, priceData.GroupRatioInfo)
 	if priceData.GroupRatioInfo.HasSpecialRatio {
 		other["user_group_ratio"] = priceData.GroupRatioInfo.GroupSpecialRatio
 	}
 	appendRequestPath(nil, relayInfo, other)
 	return other
+}
+
+func appendGroupModelRatioInfo(other map[string]interface{}, info hosttypes.GroupRatioInfo) {
+	if other == nil || !info.HasModelGroupRatio {
+		return
+	}
+	other["base_group_ratio"] = info.BaseGroupRatio
+	other["group_model_ratio"] = info.ModelGroupRatio
+	if info.HasUserModelRatio {
+		other["user_model_ratio_applied"] = true
+	}
 }
 
 // InjectTieredBillingInfo overlays tiered billing fields onto an existing

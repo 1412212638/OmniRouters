@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -17,8 +18,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+
 import { useStatus } from '@/hooks/use-status'
+
 import { getPricing } from '../api'
 
 export function usePricingData() {
@@ -55,7 +57,12 @@ export function usePricingData() {
         vendor_name: vendor?.name,
         vendor_icon: vendor?.icon,
         vendor_description: vendor?.description,
-        group_ratio: data.group_ratio,
+        group_ratio: Object.fromEntries(
+          Object.entries(data.group_ratio).map(([group, ratio]) => [
+            group,
+            ratio * (data.group_model_ratio?.[group]?.[model.model_name] ?? 1),
+          ])
+        ),
       }
     })
   }, [data])

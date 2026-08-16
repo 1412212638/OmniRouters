@@ -6,8 +6,8 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/logger"
-	"github.com/QuantumNous/new-api/pkg/billingexpr"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/pkg/billingexpr"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relaykit/types"
 	"github.com/QuantumNous/new-api/setting/billing_setting"
@@ -45,6 +45,8 @@ const defaultTieredPreConsumeMaxTokens = 8192
 func HandleGroupRatio(ctx *gin.Context, relayInfo *relaycommon.RelayInfo) hosttypes.GroupRatioInfo {
 	groupRatioInfo := hosttypes.GroupRatioInfo{
 		GroupRatio:        1.0, // default ratio
+		BaseGroupRatio:    1.0,
+		ModelGroupRatio:   1.0,
 		GroupSpecialRatio: -1,
 	}
 
@@ -66,6 +68,14 @@ func HandleGroupRatio(ctx *gin.Context, relayInfo *relaycommon.RelayInfo) hostty
 		// normal group ratio
 		groupRatioInfo.GroupRatio = ratio_setting.GetGroupRatio(relayInfo.UsingGroup)
 	}
+	groupRatioInfo.BaseGroupRatio = groupRatioInfo.GroupRatio
+	modelGroupRatio, hasModelGroupRatio, hasUserModelRatio := ratio_setting.ResolveGroupModelRatio(
+		relayInfo.UsingGroup, relayInfo.OriginModelName, relayInfo.UserId,
+	)
+	groupRatioInfo.ModelGroupRatio = modelGroupRatio
+	groupRatioInfo.HasModelGroupRatio = hasModelGroupRatio
+	groupRatioInfo.HasUserModelRatio = hasUserModelRatio
+	groupRatioInfo.GroupRatio *= modelGroupRatio
 
 	return groupRatioInfo
 }

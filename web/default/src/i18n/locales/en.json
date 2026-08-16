@@ -5408,6 +5408,23 @@
     "Test a model with a starter prompt, or write your own request below.": "Test a model with a starter prompt, or write your own request below.",
     "Thinking...": "Thinking...",
     "Thought for {{duration}} seconds": "Thought for {{duration}} seconds",
-    "Tip": "Tip"
+    "Tip": "Tip",
+    "Model pricing rules": "Model pricing rules",
+    "Set a model multiplier for everyone in a billing group, then optionally override it for selected customers.": "Set a model multiplier for everyone in a billing group, then optionally override it for selected customers.",
+    "Add rule": "Add rule",
+    "General multiplier": "General multiplier",
+    "Customer overrides": "Customer overrides",
+    "Inherited": "Inherited",
+    "{{count}} customer(s)": "{{count}} customer(s)",
+    "No model pricing rules configured.": "No model pricing rules configured.",
+    "Edit model pricing rule": "Edit model pricing rule",
+    "Add model pricing rule": "Add model pricing rule",
+    "Customer-specific multipliers take priority over the general model multiplier.": "Customer-specific multipliers take priority over the general model multiplier.",
+    "Search username, name or email": "Search username, name or email",
+    "Multiplier": "Multiplier",
+    "Group model ratios": "Group model ratios",
+    "Customer model ratios": "Customer model ratios",
+    "Nested JSON: billing group → model → multiplier.": "Nested JSON: billing group → model → multiplier.",
+    "Nested JSON: billing group → model → user ID → multiplier.": "Nested JSON: billing group → model → user ID → multiplier."
   }
 }

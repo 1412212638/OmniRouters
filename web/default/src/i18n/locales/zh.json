@@ -5422,6 +5422,23 @@
     "Test a model with a starter prompt, or write your own request below.": "使用入门提示词测试模型，或在下方编写自己的请求。",
     "Thinking...": "思考中...",
     "Thought for {{duration}} seconds": "思考了 {{duration}} 秒",
-    "Tip": "提示"
+    "Tip": "提示",
+    "Model pricing rules": "模型定价规则",
+    "Set a model multiplier for everyone in a billing group, then optionally override it for selected customers.": "为计费分组中的所有用户设置模型倍率，并可为指定客户设置专属倍率。",
+    "Add rule": "添加规则",
+    "General multiplier": "通用倍率",
+    "Customer overrides": "客户专属倍率",
+    "Inherited": "继承",
+    "{{count}} customer(s)": "{{count}} 位客户",
+    "No model pricing rules configured.": "尚未配置模型定价规则。",
+    "Edit model pricing rule": "编辑模型定价规则",
+    "Add model pricing rule": "添加模型定价规则",
+    "Customer-specific multipliers take priority over the general model multiplier.": "客户专属倍率优先于模型通用倍率。",
+    "Search username, name or email": "搜索用户名、显示名称或邮箱",
+    "Multiplier": "倍率",
+    "Group model ratios": "分组模型倍率",
+    "Customer model ratios": "客户模型倍率",
+    "Nested JSON: billing group → model → multiplier.": "嵌套 JSON：计费分组 → 模型 → 倍率。",
+    "Nested JSON: billing group → model → user ID → multiplier.": "嵌套 JSON：计费分组 → 模型 → 用户 ID → 倍率。"
   }
 }

@@ -73,6 +73,8 @@ type GroupFormValues = {
   MaxTokenAutoGroups: number
   DefaultUseAutoGroup: boolean
   GroupSpecialUsableGroup: string
+  GroupModelRatio: string
+  GroupModelUserRatio: string
 }
 
 type GroupRatioFormProps = {
@@ -201,6 +203,8 @@ export const GroupRatioForm = memo(function GroupRatioForm({
                 />
               }
               groupSpecialUsableGroup={form.watch('GroupSpecialUsableGroup')}
+              groupModelRatio={form.watch('GroupModelRatio')}
+              groupModelUserRatio={form.watch('GroupModelUserRatio')}
               onChange={(field, value) =>
                 handleFieldChange(field as keyof GroupFormValues, value)
               }
@@ -214,6 +218,50 @@ export const GroupRatioForm = memo(function GroupRatioForm({
               }
             />
 
+            <FormField
+              control={form.control}
+              name='GroupModelRatio'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('Group model ratios')}</FormLabel>
+                  <FormControl>
+                    <JsonCodeEditor
+                      {...field}
+                      value={field.value}
+                      onChange={field.onChange}
+                      textareaRef={field.ref}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {t('Nested JSON: billing group → model → multiplier.')}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='GroupModelUserRatio'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('Customer model ratios')}</FormLabel>
+                  <FormControl>
+                    <JsonCodeEditor
+                      {...field}
+                      value={field.value}
+                      onChange={field.onChange}
+                      textareaRef={field.ref}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {t(
+                      'Nested JSON: billing group → model → user ID → multiplier.'
+                    )}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name='DefaultUseAutoGroup'

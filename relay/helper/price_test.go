@@ -16,6 +16,54 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestHandleGroupRatioAppliesModelAndUserRules(t *testing.T) {
+	saved := map[string]string{}
+	require.NoError(t, config.GlobalConfig.SaveToDB(func(key, value string) error { saved[key] = value; return nil }))
+	t.Cleanup(func() { require.NoError(t, config.GlobalConfig.LoadFromDB(saved)) })
+	require.NoError(t, config.GlobalConfig.LoadFromDB(map[string]string{
+		"group_ratio_setting.group_ratio":            `{"default":0.8}`,
+		"group_ratio_setting.group_model_ratio":      `{"default":{"gemini-test":0.5}}`,
+		"group_ratio_setting.group_model_user_ratio": `{"default":{"gemini-test":{"42":0.3}}}`,
+	}))
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	general := HandleGroupRatio(ctx, &relaycommon.RelayInfo{UserId: 1, UserGroup: "default", UsingGroup: "default", OriginModelName: "gemini-test"})
+	require.InDelta(t, 0.4, general.GroupRatio, 1e-9)
+	require.Equal(t, 0.8, general.BaseGroupRatio)
+	require.Equal(t, 0.5, general.ModelGroupRatio)
+	require.False(t, general.HasUserModelRatio)
+
+	contract := HandleGroupRatio(ctx, &relaycommon.RelayInfo{UserId: 42, UserGroup: "default", UsingGroup: "default", OriginModelName: "gemini-test"})
+	require.InDelta(t, 0.24, contract.GroupRatio, 1e-9)
+	require.Equal(t, 0.3, contract.ModelGroupRatio)
+	require.True(t, contract.HasUserModelRatio)
+}
+
+func TestHandleGroupRatioUsesAutoGroupForModelRule(t *testing.T) {
+	saved := map[string]string{}
+	require.NoError(t, config.GlobalConfig.SaveToDB(func(key, value string) error { saved[key] = value; return nil }))
+	t.Cleanup(func() { require.NoError(t, config.GlobalConfig.LoadFromDB(saved)) })
+	require.NoError(t, config.GlobalConfig.LoadFromDB(map[string]string{
+		"group_ratio_setting.group_ratio":       `{"default":1,"vip":0.8}`,
+		"group_ratio_setting.group_model_ratio": `{"default":{"gemini-test":0.9},"vip":{"gemini-test":0.5}}`,
+	}))
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	ctx.Set("auto_group", "vip")
+	relayInfo := &relaycommon.RelayInfo{
+		UserId:          1,
+		UserGroup:       "default",
+		UsingGroup:      "default",
+		OriginModelName: "gemini-test",
+	}
+
+	result := HandleGroupRatio(ctx, relayInfo)
+	require.Equal(t, "vip", relayInfo.UsingGroup)
+	require.Equal(t, 0.8, result.BaseGroupRatio)
+	require.Equal(t, 0.5, result.ModelGroupRatio)
+	require.InDelta(t, 0.4, result.GroupRatio, 1e-9)
+}
+
 func TestModelPriceHelperTieredUsesPreloadedRequestInput(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

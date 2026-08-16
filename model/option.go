@@ -227,6 +227,12 @@ func validateOptionValue(key string, value string) error {
 	if key == "MaxTokenAutoGroups" {
 		return setting.ValidateMaxTokenAutoGroups(value)
 	}
+	if key == "group_ratio_setting.group_model_ratio" {
+		return ratio_setting.CheckGroupModelRatio(value)
+	}
+	if key == "group_ratio_setting.group_model_user_ratio" {
+		return ratio_setting.CheckGroupModelUserRatio(value)
+	}
 	return nil
 }
 

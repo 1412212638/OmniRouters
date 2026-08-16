@@ -33,6 +33,7 @@ import {
   type ReactNode,
 } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 
 import { StaticDataTable } from '@/components/data-table/static/static-data-table'
 import { StaticRowActions } from '@/components/data-table/static/static-row-actions'
@@ -74,6 +75,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { searchUsers } from '@/features/users/api'
+import type { User } from '@/features/users/types'
 
 import { safeJsonParse } from '../utils/json-parser'
 
@@ -85,6 +88,8 @@ type GroupRatioVisualEditorProps = {
   autoGroups: string
   maxTokenAutoGroupsField: ReactNode
   groupSpecialUsableGroup: string
+  groupModelRatio: string
+  groupModelUserRatio: string
   onChange: (field: string, value: string) => void
 }
 
@@ -267,6 +272,8 @@ export const GroupRatioVisualEditor = memo(function GroupRatioVisualEditor({
   autoGroups,
   maxTokenAutoGroupsField,
   groupSpecialUsableGroup,
+  groupModelRatio,
+  groupModelUserRatio,
   onChange,
 }: GroupRatioVisualEditorProps) {
   const { t } = useTranslation()
@@ -345,6 +352,13 @@ export const GroupRatioVisualEditor = memo(function GroupRatioVisualEditor({
       <GroupOverrideRules
         registry={registry}
         groupGroupRatio={groupGroupRatio}
+        onChange={onChange}
+      />
+
+      <GroupModelPricingRules
+        registry={registry}
+        groupModelRatio={groupModelRatio}
+        groupModelUserRatio={groupModelUserRatio}
         onChange={onChange}
       />
 
@@ -682,6 +696,406 @@ function GroupPricingTable({
 type GroupOverride = {
   targetGroup: string
   ratio: number
+}
+
+type GroupModelRule = {
+  group: string
+  model: string
+  ratio?: number
+  users: Record<number, number>
+}
+
+function GroupModelPricingRules({
+  registry,
+  groupModelRatio,
+  groupModelUserRatio,
+  onChange,
+}: {
+  registry: RegistryEntry[]
+  groupModelRatio: string
+  groupModelUserRatio: string
+  onChange: (field: string, value: string) => void
+}) {
+  const { t } = useTranslation()
+  const general = safeJsonParse<Record<string, Record<string, number>>>(
+    groupModelRatio,
+    { fallback: {}, silent: true }
+  )
+  const userSpecific = safeJsonParse<
+    Record<string, Record<string, Record<string, number>>>
+  >(groupModelUserRatio, { fallback: {}, silent: true })
+  const keys = new Set<string>()
+  for (const [group, models] of Object.entries(general)) {
+    for (const model of Object.keys(models)) keys.add(`${group}\u0000${model}`)
+  }
+  for (const [group, models] of Object.entries(userSpecific)) {
+    for (const model of Object.keys(models)) keys.add(`${group}\u0000${model}`)
+  }
+  const rules: GroupModelRule[] = [...keys].map((key) => {
+    const [group, model] = key.split('\u0000')
+    return {
+      group,
+      model,
+      ratio: general[group]?.[model],
+      users: Object.fromEntries(
+        Object.entries(userSpecific[group]?.[model] ?? {}).map(
+          ([id, ratio]) => [Number(id), ratio]
+        )
+      ),
+    }
+  })
+
+  const emit = (next: GroupModelRule[]) => {
+    const nextGeneral: Record<string, Record<string, number>> = {}
+    const nextUsers: Record<string, Record<string, Record<number, number>>> = {}
+    for (const rule of next) {
+      if (!rule.group || !rule.model) continue
+      if (rule.ratio !== undefined) {
+        ;(nextGeneral[rule.group] ??= {})[rule.model] = rule.ratio
+      }
+      if (Object.keys(rule.users).length > 0) {
+        ;(nextUsers[rule.group] ??= {})[rule.model] = rule.users
+      }
+    }
+    onChange('GroupModelRatio', JSON.stringify(nextGeneral, null, 2))
+    onChange('GroupModelUserRatio', JSON.stringify(nextUsers, null, 2))
+  }
+
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editing, setEditing] = useState<GroupModelRule | null>(null)
+  return (
+    <Card className={sectionCardClassName}>
+      <CardHeader className={sectionHeaderClassName}>
+        <div className='flex items-start justify-between gap-3'>
+          <div>
+            <CardTitle>{t('Model pricing rules')}</CardTitle>
+            <CardDescription>
+              {t(
+                'Set a model multiplier for everyone in a billing group, then optionally override it for selected customers.'
+              )}
+            </CardDescription>
+          </div>
+          <Button
+            size='sm'
+            onClick={() => {
+              setEditing(null)
+              setDialogOpen(true)
+            }}
+          >
+            <Plus className='mr-2 h-4 w-4' />
+            {t('Add rule')}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <StaticDataTable
+          data={rules}
+          getRowKey={(row) => `${row.group}:${row.model}`}
+          emptyContent={t('No model pricing rules configured.')}
+          columns={[
+            {
+              id: 'group',
+              header: t('Billing group'),
+              cell: (row) => row.group,
+            },
+            { id: 'model', header: t('Model'), cell: (row) => row.model },
+            {
+              id: 'ratio',
+              header: t('General multiplier'),
+              cell: (row) => row.ratio ?? t('Inherited'),
+            },
+            {
+              id: 'customers',
+              header: t('Customer overrides'),
+              cell: (row) =>
+                t('{{count}} customer(s)', {
+                  count: Object.keys(row.users).length,
+                }),
+            },
+            {
+              id: 'actions',
+              header: t('Actions'),
+              className: 'text-right',
+              cellClassName: 'text-right',
+              cell: (row) => (
+                <StaticRowActions
+                  editLabel={t('Edit')}
+                  deleteLabel={t('Delete')}
+                  menuLabel={t('Open menu')}
+                  onEdit={() => {
+                    setEditing(row)
+                    setDialogOpen(true)
+                  }}
+                  onDelete={() =>
+                    emit(
+                      rules.filter(
+                        (item) =>
+                          item.group !== row.group || item.model !== row.model
+                      )
+                    )
+                  }
+                />
+              ),
+            },
+          ]}
+        />
+      </CardContent>
+      <GroupModelRuleDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        groups={registry.map((entry) => entry.name)}
+        editData={editing}
+        onSave={(rule) => {
+          emit([
+            ...rules.filter(
+              (item) =>
+                (item.group !== rule.group || item.model !== rule.model) &&
+                (!editing ||
+                  item.group !== editing.group ||
+                  item.model !== editing.model)
+            ),
+            rule,
+          ])
+          setDialogOpen(false)
+        }}
+      />
+    </Card>
+  )
+}
+
+function GroupModelRuleDialog({
+  open,
+  onOpenChange,
+  groups,
+  editData,
+  onSave,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  groups: string[]
+  editData: GroupModelRule | null
+  onSave: (rule: GroupModelRule) => void
+}) {
+  const { t } = useTranslation()
+  const [group, setGroup] = useState<string | null>(null)
+  const [model, setModel] = useState('')
+  const [ratio, setRatio] = useState('')
+  const [users, setUsers] = useState<Record<number, number>>({})
+  const [keyword, setKeyword] = useState('')
+  const [results, setResults] = useState<User[]>([])
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [userRatio, setUserRatio] = useState('')
+  const [searching, setSearching] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    setGroup(editData?.group ?? null)
+    setModel(editData?.model ?? '')
+    setRatio(editData?.ratio === undefined ? '' : String(editData.ratio))
+    setUsers(editData?.users ?? {})
+    setKeyword('')
+    setResults([])
+    setSelectedUser(null)
+    setUserRatio('')
+  }, [editData, open])
+
+  const runSearch = async () => {
+    setSearching(true)
+    try {
+      const result = await searchUsers({
+        keyword: keyword.trim(),
+        p: 1,
+        page_size: 20,
+      })
+      setResults(result.data?.items ?? [])
+      if (!result.success) {
+        toast.error(result.message || t('Failed to search users'))
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : t('Failed to search users')
+      )
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  const parsedRatio = ratio.trim() === '' ? undefined : Number(ratio)
+  const parsedUserRatio = Number(userRatio)
+  const canAddUserRatio =
+    userRatio.trim() !== '' &&
+    Number.isFinite(parsedUserRatio) &&
+    parsedUserRatio >= 0
+  const canSave =
+    !!group &&
+    !!model.trim() &&
+    (parsedRatio !== undefined || Object.keys(users).length > 0) &&
+    (parsedRatio === undefined ||
+      (Number.isFinite(parsedRatio) && parsedRatio >= 0))
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={
+        editData ? t('Edit model pricing rule') : t('Add model pricing rule')
+      }
+      description={t(
+        'Customer-specific multipliers take priority over the general model multiplier.'
+      )}
+      contentHeight='min(70vh, 640px)'
+      footer={
+        <>
+          <Button variant='outline' onClick={() => onOpenChange(false)}>
+            {t('Cancel')}
+          </Button>
+          <Button
+            disabled={!canSave}
+            onClick={() =>
+              group &&
+              onSave({ group, model: model.trim(), ratio: parsedRatio, users })
+            }
+          >
+            {t('Save')}
+          </Button>
+        </>
+      }
+    >
+      <div className='space-y-5'>
+        <div className='grid gap-4 sm:grid-cols-3'>
+          <div className='space-y-2'>
+            <Label>{t('Billing group')}</Label>
+            <GroupNameSelect
+              className='w-full'
+              options={groups}
+              value={group}
+              placeholder={t('Select a group')}
+              onValueChange={setGroup}
+            />
+          </div>
+          <div className='space-y-2'>
+            <Label>{t('Model')}</Label>
+            <Input
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              placeholder='gemini-3.7-flash'
+            />
+          </div>
+          <div className='space-y-2'>
+            <Label>{t('General multiplier')}</Label>
+            <Input
+              type='number'
+              min={0}
+              step={0.01}
+              value={ratio}
+              onChange={(e) => setRatio(e.target.value)}
+              placeholder='1.0'
+            />
+          </div>
+        </div>
+        <div className='space-y-3 border-t pt-4'>
+          <Label>{t('Customer overrides')}</Label>
+          <div className='flex gap-2'>
+            <Input
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  runSearch()
+                }
+              }}
+              placeholder={t('Search username, name or email')}
+            />
+            <Button
+              variant='outline'
+              disabled={searching || !keyword.trim()}
+              onClick={runSearch}
+            >
+              {t('Search')}
+            </Button>
+          </div>
+          {results.length > 0 && (
+            <div className='max-h-36 overflow-y-auto rounded-md border'>
+              {results.map((user) => (
+                <button
+                  type='button'
+                  key={user.id}
+                  className='hover:bg-muted flex w-full items-center justify-between px-3 py-2 text-left text-sm'
+                  onClick={() => setSelectedUser(user)}
+                >
+                  <span>
+                    @{user.username} · ID: {user.id}
+                  </span>
+                  <span>{user.group}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {selectedUser && (
+            <div className='flex items-end gap-2 rounded-md border p-3'>
+              <div className='min-w-0 flex-1 text-sm'>
+                <div className='font-medium'>
+                  @{selectedUser.username} · ID: {selectedUser.id}
+                </div>
+                <div className='text-muted-foreground'>
+                  {selectedUser.display_name || selectedUser.email}
+                </div>
+              </div>
+              <div className='w-28 space-y-1'>
+                <Label>{t('Multiplier')}</Label>
+                <Input
+                  type='number'
+                  min={0}
+                  step={0.01}
+                  value={userRatio}
+                  onChange={(e) => setUserRatio(e.target.value)}
+                />
+              </div>
+              <Button
+                disabled={!canAddUserRatio}
+                onClick={() => {
+                  setUsers((current) => ({
+                    ...current,
+                    [selectedUser.id]: parsedUserRatio,
+                  }))
+                  setSelectedUser(null)
+                  setUserRatio('')
+                }}
+              >
+                {t('Add')}
+              </Button>
+            </div>
+          )}
+          {Object.entries(users).length > 0 && (
+            <div className='space-y-2'>
+              {Object.entries(users).map(([id, value]) => (
+                <div
+                  key={id}
+                  className='flex items-center justify-between rounded-md border px-3 py-2 text-sm'
+                >
+                  <span>ID: {id}</span>
+                  <span className='font-medium'>{value}x</span>
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    onClick={() =>
+                      setUsers((current) => {
+                        const next = { ...current }
+                        delete next[Number(id)]
+                        return next
+                      })
+                    }
+                  >
+                    <Trash2 className='h-4 w-4' />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Dialog>
+  )
 }
 
 type GroupOverrideRulesProps = {

@@ -126,6 +126,7 @@ export type PricingData = {
   data: PricingModel[]
   vendors: PricingVendor[]
   group_ratio: Record<string, number>
+  group_model_ratio: Record<string, Record<string, number>>
   usable_group: PricingUsableGroup
   supported_endpoint: Record<string, string>
   auto_groups: string[]

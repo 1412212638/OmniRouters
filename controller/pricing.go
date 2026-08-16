@@ -42,9 +42,11 @@ func GetPricing(c *gin.Context) {
 		groupRatio[s] = f
 	}
 	var group string
+	userID := 0
 	var extraGroups []string
 	if exists {
-		user, err := model.GetUserCache(userId.(int))
+		userID = userId.(int)
+		user, err := model.GetUserCache(userID)
 		if err == nil {
 			group = user.Group
 			extraGroups = user.GetExtraGroups()
@@ -71,10 +73,11 @@ func GetPricing(c *gin.Context) {
 		"data":               pricing,
 		"vendors":            model.GetVendors(),
 		"group_ratio":        groupRatio,
+		"group_model_ratio":  ratio_setting.GetGroupModelRatioForUser(userID),
 		"usable_group":       usableGroup,
 		"supported_endpoint": model.GetSupportedEndpointMap(),
 		"auto_groups":        service.GetUserAutoGroupWithExtras(group, extraGroups),
-		"pricing_version":    "a42d372ccf0b5dd13ecf71203521f9d2",
+		"pricing_version":    "group-model-ratio-v1",
 	})
 }
 

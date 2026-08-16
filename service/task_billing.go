@@ -44,6 +44,7 @@ func LogTaskConsumption(c *gin.Context, info *relaycommon.RelayInfo) {
 		other["model_ratio"] = info.PriceData.ModelRatio
 	}
 	other["group_ratio"] = info.PriceData.GroupRatioInfo.GroupRatio
+	appendGroupModelRatioInfo(other, info.PriceData.GroupRatioInfo)
 	if len(info.PriceData.FixedQuotas) > 0 {
 		for k, v := range info.PriceData.FixedQuotas {
 			other[k+"_fixed_quota"] = v
@@ -330,14 +331,19 @@ func RecalculateTaskQuotaByTokens(ctx context.Context, task *model.Task, totalTo
 		return
 	}
 
-	groupRatio := ratio_setting.GetGroupRatio(group)
-	userGroupRatio, hasUserGroupRatio := ratio_setting.GetGroupGroupRatio(group, group)
-
-	var finalGroupRatio float64
-	if hasUserGroupRatio {
-		finalGroupRatio = userGroupRatio
-	} else {
-		finalGroupRatio = groupRatio
+	finalGroupRatio := 0.0
+	hasGroupRatioSnapshot := false
+	if bc := task.PrivateData.BillingContext; bc != nil {
+		finalGroupRatio = bc.GroupRatio
+		hasGroupRatioSnapshot = true
+	}
+	if !hasGroupRatioSnapshot {
+		groupRatio := ratio_setting.GetGroupRatio(group)
+		if userGroupRatio, ok := ratio_setting.GetGroupGroupRatio(group, group); ok {
+			groupRatio = userGroupRatio
+		}
+		groupModelRatio, _, _ := ratio_setting.ResolveGroupModelRatio(group, modelName, task.UserId)
+		finalGroupRatio = groupRatio * groupModelRatio
 	}
 
 	// 计算 OtherRatios 乘积（视频折扣、时长等）
