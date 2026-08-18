@@ -28,6 +28,14 @@ func IsValidJSON(data []byte) bool {
 	return json.Valid(data)
 }
 
+func IndentJson(data []byte) ([]byte, error) {
+	var buffer bytes.Buffer
+	if err := json.Indent(&buffer, data, "", "  "); err != nil {
+		return nil, err
+	}
+	return buffer.Bytes(), nil
+}
+
 func GetJsonType(data json.RawMessage) string {
 	trimmed := bytes.TrimSpace(data)
 	if len(trimmed) == 0 {
