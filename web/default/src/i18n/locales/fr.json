@@ -2854,6 +2854,8 @@
     "No deployments available. Create one to get started.": "Aucun déploiement disponible. Créez-en un pour commencer.",
     "No Deployments Found": "Aucun déploiement trouvé",
     "No description available.": "Aucune description disponible.",
+    "Time conditions": "Conditions horaires",
+    "All other conditions": "Toutes les autres conditions",
     "No discount tiers configured. Click \"Add discount tier\" to get started.": "Aucun niveau de réduction configuré. Cliquez sur « Ajouter un niveau de réduction » pour commencer.",
     "No duplicate keys found": "Aucune clé dupliquée trouvée",
     "No enabled tokens available": "Aucun token activé disponible",

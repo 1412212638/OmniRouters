@@ -149,9 +149,37 @@ function describeGroup(
   group: RequestRuleGroup,
   t: (key: string) => string
 ): string {
-  return (group.conditions || [])
-    .map((c) => describeCondition(c, t))
-    .join(' && ')
+  const conditions = group.conditions || []
+  const timeConditions = conditions.filter(
+    (condition): condition is Extract<RequestCondition, { source: 'time' }> =>
+      condition.source === SOURCE_TIME
+  )
+  const otherConditions = conditions.filter(
+    (condition) => condition.source !== SOURCE_TIME
+  )
+  const parts: string[] = []
+
+  if (timeConditions.length > 0) {
+    const timeLabels = timeConditions.map((condition) =>
+      describeCondition(condition, t).replace(/ \([^)]*\)$/, '')
+    )
+    const timezones = Array.from(
+      new Set(timeConditions.map((condition) => condition.timezone || 'UTC'))
+    ).join(', ')
+    parts.push(
+      `${t('Time conditions')}: ${timeLabels.join(' && ')} (${timezones})`
+    )
+  }
+
+  if (otherConditions.length > 0) {
+    parts.push(
+      `${t('All other conditions')}: ${otherConditions
+        .map((condition) => describeCondition(condition, t))
+        .join(' && ')}`
+    )
+  }
+
+  return parts.join(' · ')
 }
 
 export function DynamicPricingBreakdown({
