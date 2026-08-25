@@ -1,5 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, Search, Send, X } from 'lucide-react'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -19,12 +17,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useMemo, useState } from 'react'
+import * as z from 'zod'
 import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Loader2, Search, Send, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import * as z from 'zod'
-
-import { TagInput } from '@/components/tag-input'
+import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -49,8 +48,7 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
-import { cn } from '@/lib/utils'
-
+import { TagInput } from '@/components/tag-input'
 import { searchMarketingEmailUsers, sendMarketingEmail } from '../api'
 import { SettingsSection } from '../components/settings-section'
 import { useResetForm } from '../hooks/use-reset-form'
@@ -76,8 +74,6 @@ const templateOptionKeys = [
   'TopUpSuccessContentTemplate',
   'MarketingEmailSubjectTemplate',
   'MarketingEmailContentTemplate',
-  'RefundEmailSubjectTemplate',
-  'RefundEmailContentTemplate',
 ] as const
 
 type TemplateOptionKey = (typeof templateOptionKeys)[number]
@@ -114,9 +110,6 @@ export const emailTemplatePresets = {
     MarketingEmailSubjectTemplate: '{{system_name}} Update',
     MarketingEmailContentTemplate:
       '<div style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.6; max-width: 560px; margin: 0 auto; padding: 32px 24px;"><div style="display: flex; align-items: center; gap: 12px; margin-bottom: 32px;"><img src="https://cos.frostai.cn/omnirouters/logo/logo.png" alt="{{system_name}}" style="width: 44px; height: 44px;"><h1 style="margin: 0; font-size: 26px; color: #111827;">{{system_name}}</h1></div><p style="font-size: 18px;">Hello {{display_name}},</p><p>Here is the latest update from {{system_name}}.</p><p>If you have any questions or concerns, please contact us at <a href="mailto:support@omnirouters.com.com">support@omnirouters.com.com</a>.</p><p style="margin-top: 28px;">Thank you,<br>The {{system_name}} Team</p></div>',
-    RefundEmailSubjectTemplate: '{{system_name}} Refund Completed',
-    RefundEmailContentTemplate:
-      '<div style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.6; max-width: 560px; margin: 0 auto; padding: 32px 24px;"><div style="display: flex; align-items: center; gap: 12px; margin-bottom: 32px;"><img src="https://cos.frostai.cn/omnirouters/logo/logo.png" alt="{{system_name}}" style="width: 44px; height: 44px;"><h1 style="margin: 0; font-size: 26px; color: #111827;">{{system_name}}</h1></div><p style="font-size: 18px;">Hello {{display_name}},</p><p>Your refund has been completed.</p><p>Refund amount: <strong>{{amount}}</strong></p><p>Quota returned: <strong>{{quota}}</strong></p><p>Reason: {{reason}}</p><p>Processed at: {{processed_at}}</p><p>If you have any questions or concerns, please contact us at <a href="mailto:support@omnirouters.com.com">support@omnirouters.com.com</a>.</p><p style="margin-top: 28px;">Thank you,<br>The {{system_name}} Team</p></div>',
   },
   en: {
     EmailVerificationSubjectTemplate: '{{system_name}} Email Verification',
@@ -138,9 +131,6 @@ export const emailTemplatePresets = {
     MarketingEmailSubjectTemplate: '{{system_name}} Update',
     MarketingEmailContentTemplate:
       '<div style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.6; max-width: 560px; margin: 0 auto; padding: 32px 24px;"><div style="display: flex; align-items: center; gap: 12px; margin-bottom: 32px;"><img src="https://cos.frostai.cn/omnirouters/logo/logo.png" alt="{{system_name}}" style="width: 44px; height: 44px;"><h1 style="margin: 0; font-size: 26px; color: #111827;">{{system_name}}</h1></div><p style="font-size: 18px;">Hello {{display_name}},</p><p>Here is the latest update from {{system_name}}.</p><p>If you have any questions or concerns, please contact us at <a href="mailto:support@omnirouters.com.com">support@omnirouters.com.com</a>.</p><p style="margin-top: 28px;">Thank you,<br>The {{system_name}} Team</p></div>',
-    RefundEmailSubjectTemplate: '{{system_name}} Refund Completed',
-    RefundEmailContentTemplate:
-      '<div style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.6; max-width: 560px; margin: 0 auto; padding: 32px 24px;"><div style="display: flex; align-items: center; gap: 12px; margin-bottom: 32px;"><img src="https://cos.frostai.cn/omnirouters/logo/logo.png" alt="{{system_name}}" style="width: 44px; height: 44px;"><h1 style="margin: 0; font-size: 26px; color: #111827;">{{system_name}}</h1></div><p style="font-size: 18px;">Hello {{display_name}},</p><p>Your refund has been completed.</p><p>Refund amount: <strong>{{amount}}</strong></p><p>Quota returned: <strong>{{quota}}</strong></p><p>Reason: {{reason}}</p><p>Processed at: {{processed_at}}</p><p>If you have any questions or concerns, please contact us at <a href="mailto:support@omnirouters.com.com">support@omnirouters.com.com</a>.</p><p style="margin-top: 28px;">Thank you,<br>The {{system_name}} Team</p></div>',
   },
 } as const
 
@@ -182,8 +172,6 @@ const createEmailSchema = (t: (key: string) => string) =>
     TopUpSuccessContentTemplate: z.string(),
     MarketingEmailSubjectTemplate: z.string(),
     MarketingEmailContentTemplate: z.string(),
-    RefundEmailSubjectTemplate: z.string(),
-    RefundEmailContentTemplate: z.string(),
   })
 
 export type EmailFormValues = z.infer<ReturnType<typeof createEmailSchema>>
@@ -286,26 +274,6 @@ const templateGroups: TemplateGroup[] = [
     variables: ['system_name', 'username', 'display_name', 'email', 'user_id'],
     marketing: true,
   },
-  {
-    id: 'refund',
-    tab: 'Refund',
-    title: 'Refund Email',
-    description: 'Used for manually notifying selected users about a refund.',
-    subjectKey: 'RefundEmailSubjectTemplate',
-    contentKey: 'RefundEmailContentTemplate',
-    variables: [
-      'system_name',
-      'username',
-      'display_name',
-      'email',
-      'user_id',
-      'amount',
-      'quota',
-      'reason',
-      'processed_at',
-    ],
-    marketing: true,
-  },
 ]
 
 const booleanKeys = new Set<keyof EmailFormValues>([
@@ -356,8 +324,6 @@ function getPreviewValues(language: EmailLanguage) {
     payment_method: 'Stripe',
     payment_provider: 'stripe',
     paid_at: '2026-04-27 20:30:00',
-    reason: 'Request refund',
-    processed_at: '2026-04-27 20:30:00',
   }
 }
 
@@ -589,28 +555,21 @@ export function EmailSettingsSection({
 
   const handleSendMarketingEmail = async () => {
     const values = form.getValues()
-    const isRefund = activeTemplate === 'refund'
-    const subjectKey = isRefund
-      ? 'RefundEmailSubjectTemplate'
-      : 'MarketingEmailSubjectTemplate'
-    const contentKey = isRefund
-      ? 'RefundEmailContentTemplate'
-      : 'MarketingEmailContentTemplate'
-    const subjectTemplate = getEffectiveTemplate(values, subjectKey)
-    const contentTemplate = getEffectiveTemplate(values, contentKey)
+    const subjectTemplate = getEffectiveTemplate(
+      values,
+      'MarketingEmailSubjectTemplate'
+    )
+    const contentTemplate = getEffectiveTemplate(
+      values,
+      'MarketingEmailContentTemplate'
+    )
 
     if (selectedUsers.length === 0) {
       toast.error(t('Select at least one recipient'))
       return
     }
     if (!subjectTemplate.trim() || !contentTemplate.trim()) {
-      toast.error(
-        t(
-          isRefund
-            ? 'Refund email subject and content are required'
-            : 'Marketing email subject and content are required'
-        )
-      )
+      toast.error(t('Marketing email subject and content are required'))
       return
     }
 
@@ -622,14 +581,7 @@ export function EmailSettingsSection({
         content_template: contentTemplate,
       })
       if (!result.success) {
-        toast.error(
-          result.message ||
-            t(
-              isRefund
-                ? 'Failed to send refund email'
-                : 'Failed to send marketing email'
-            )
-        )
+        toast.error(result.message || t('Failed to send marketing email'))
         return
       }
       toast.success(
@@ -641,12 +593,7 @@ export function EmailSettingsSection({
       )
     } catch (error) {
       toast.error(
-        (error as Error)?.message ||
-          t(
-            isRefund
-              ? 'Failed to send refund email'
-              : 'Failed to send marketing email'
-          )
+        (error as Error)?.message || t('Failed to send marketing email')
       )
     } finally {
       setSendingMarketing(false)
@@ -858,7 +805,7 @@ export function EmailSettingsSection({
               ) : (
                 <Send className='size-4' />
               )}
-              {t(isRefund ? 'Send Refund Email' : 'Send Marketing Email')}
+              {t('Send Marketing Email')}
             </Button>
           </div>
         )}

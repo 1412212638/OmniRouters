@@ -140,8 +140,6 @@ var TopUpSuccessSubjectTemplate = ""
 var TopUpSuccessContentTemplate = ""
 var MarketingEmailSubjectTemplate = ""
 var MarketingEmailContentTemplate = ""
-var RefundEmailSubjectTemplate = ""
-var RefundEmailContentTemplate = ""
 
 var GitHubClientId = ""
 var GitHubClientSecret = ""

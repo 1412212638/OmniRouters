@@ -34,8 +34,6 @@ var adminEmailSettingOptionKeys = []string{
 	"TopUpSuccessContentTemplate",
 	"MarketingEmailSubjectTemplate",
 	"MarketingEmailContentTemplate",
-	"RefundEmailSubjectTemplate",
-	"RefundEmailContentTemplate",
 }
 
 var adminEmailSettingOptionKeySet = buildOptionKeySet(adminEmailSettingOptionKeys)
