@@ -80,6 +80,8 @@ func InitOptionMap() {
 	common.OptionMap["TopUpSuccessContentTemplate"] = common.TopUpSuccessContentTemplate
 	common.OptionMap["MarketingEmailSubjectTemplate"] = common.MarketingEmailSubjectTemplate
 	common.OptionMap["MarketingEmailContentTemplate"] = common.MarketingEmailContentTemplate
+	common.OptionMap["RefundEmailSubjectTemplate"] = common.RefundEmailSubjectTemplate
+	common.OptionMap["RefundEmailContentTemplate"] = common.RefundEmailContentTemplate
 	common.OptionMap["Notice"] = ""
 	common.OptionMap["About"] = ""
 	common.OptionMap["HomePageContent"] = ""
@@ -448,6 +450,10 @@ func updateOptionMap(key string, value string) (err error) {
 		common.MarketingEmailSubjectTemplate = value
 	case "MarketingEmailContentTemplate":
 		common.MarketingEmailContentTemplate = value
+	case "RefundEmailSubjectTemplate":
+		common.RefundEmailSubjectTemplate = value
+	case "RefundEmailContentTemplate":
+		common.RefundEmailContentTemplate = value
 	case "ServerAddress":
 		system_setting.ServerAddress = value
 	case "WorkerUrl":
