@@ -363,8 +363,7 @@ function getPreviewValues(language: EmailLanguage) {
 
 function getEffectiveTemplate(values: EmailFormValues, key: TemplateOptionKey) {
   const language = values.EmailLanguage
-  const presets = emailTemplatePresets[language] ?? emailTemplatePresets.en
-  return values[key] || presets[key] || ''
+  return values[key] || emailTemplatePresets[language][key] || ''
 }
 
 function formatUserOption(user: MarketingEmailUser, emptyEmailLabel: string) {
@@ -549,9 +548,7 @@ export function EmailSettingsSection({
   }
 
   const restoreTemplate = (group: TemplateGroup) => {
-    const presets =
-      emailTemplatePresets[watchedValues.EmailLanguage] ??
-      emailTemplatePresets.en
+    const presets = emailTemplatePresets[watchedValues.EmailLanguage]
     form.setValue(group.subjectKey, presets[group.subjectKey], {
       shouldDirty: true,
     })
