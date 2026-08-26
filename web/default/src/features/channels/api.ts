@@ -567,7 +567,11 @@ export async function getTagModels(
 export async function fetchModels(data: {
   base_url: string
   type: number
-  key: string
+  key?: string
+  channel_id?: number
+  advanced_custom?: string
+  header_override?: string
+  proxy?: string
 }): Promise<FetchModelsResponse> {
   const res = await api.post(
     '/api/channel/fetch_models',
