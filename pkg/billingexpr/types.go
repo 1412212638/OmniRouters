@@ -28,6 +28,14 @@ type TokenParams struct {
 	AO   float64 // audio output tokens
 }
 
+// RequestRuleTrace records a request-dependent multiplier observed during
+// tiered billing evaluation.
+type RequestRuleTrace struct {
+	Cond       string  `json:"cond"`
+	Multiplier float64 `json:"multiplier"`
+	Matched    bool    `json:"matched"`
+}
+
 // TraceResult holds side-channel info captured by the tier() function
 // during Expr execution. This replaces the old Breakdown mechanism —
 // the Expr itself is the single source of truth for billing logic.
