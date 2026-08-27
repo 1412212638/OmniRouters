@@ -24,7 +24,6 @@ import type {
   AdvancedCustomRouteAuth,
 } from '../types'
 
-export const CHANNEL_TYPE_ADVANCED_CUSTOM = 58
 export const ADVANCED_CUSTOM_MODEL_LIST_PATH = '/v1/models'
 export const ADVANCED_CUSTOM_MODEL_LIST_LABEL = 'OpenAI Models'
 export const ADVANCED_CUSTOM_BALANCE_PATH =
