@@ -5409,6 +5409,11 @@
     "Test a model with a starter prompt, or write your own request below.": "Проверьте модель с начальным промптом или напишите собственный запрос ниже.",
     "Thinking...": "Размышление...",
     "Thought for {{duration}} seconds": "Размышлял {{duration}} сек.",
-    "Tip": "Совет"
+    "Tip": "Совет",
+    "Expiration time": "Срок действия",
+    "Permanent": "Бессрочно",
+    "Model pricing rule expirations": "Сроки действия правил ценообразования моделей",
+    "Nested JSON: billing group → model → Unix timestamp.": "Вложенный JSON: группа тарификации → модель → временная метка Unix.",
+    "Leave empty for permanent validity. After expiration, this rule and all customer overrides stop applying.": "Оставьте пустым для бессрочного действия. После истечения срока правило и все клиентские переопределения перестают применяться."
   }
 }

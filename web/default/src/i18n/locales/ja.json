@@ -5409,6 +5409,11 @@
     "Test a model with a starter prompt, or write your own request below.": "スタータープロンプトでモデルをテストするか、下に独自のリクエストを入力してください。",
     "Thinking...": "思考中...",
     "Thought for {{duration}} seconds": "{{duration}} 秒間思考しました",
-    "Tip": "ヒント"
+    "Tip": "ヒント",
+    "Expiration time": "有効期限",
+    "Permanent": "無期限",
+    "Model pricing rule expirations": "モデル料金ルールの有効期限",
+    "Nested JSON: billing group → model → Unix timestamp.": "ネスト JSON：請求グループ → モデル → Unix タイムスタンプ。",
+    "Leave empty for permanent validity. After expiration, this rule and all customer overrides stop applying.": "空欄の場合は無期限です。期限後は、このルールとすべての顧客別倍率が適用されなくなります。"
   }
 }

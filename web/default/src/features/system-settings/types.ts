@@ -263,6 +263,7 @@ export type ModelSettings = {
   'group_ratio_setting.group_special_usable_group': string
   'group_ratio_setting.group_model_ratio': string
   'group_ratio_setting.group_model_user_ratio': string
+  'group_ratio_setting.group_model_ratio_expiry': string
   RetryTimes: number
   ChannelDisableThreshold: string
   AutomaticDisableChannelEnabled: boolean
@@ -324,6 +325,9 @@ export type BillingSettings = {
   MaxTokenAutoGroups: number
   DefaultUseAutoGroup: boolean
   'group_ratio_setting.group_special_usable_group': string
+  'group_ratio_setting.group_model_ratio': string
+  'group_ratio_setting.group_model_user_ratio': string
+  'group_ratio_setting.group_model_ratio_expiry': string
   PayAddress: string
   EpayId: string
   EpayKey: string

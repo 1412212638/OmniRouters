@@ -137,6 +137,7 @@ const createGroupSchema = (t: Translate) =>
     GroupSpecialUsableGroup: createJsonStringField(t),
     GroupModelRatio: createJsonStringField(t),
     GroupModelUserRatio: createJsonStringField(t),
+    GroupModelRatioExpiry: createJsonStringField(t),
   })
 
 type ModelFormValues = z.infer<ReturnType<typeof createModelSchema>>
@@ -219,6 +220,7 @@ export function RatioSettingsCard({
     ),
     GroupModelRatio: normalizeJsonString(groupDefaults.GroupModelRatio),
     GroupModelUserRatio: normalizeJsonString(groupDefaults.GroupModelUserRatio),
+    GroupModelRatioExpiry: normalizeJsonString(groupDefaults.GroupModelRatioExpiry),
   })
   const modelSchema = useMemo(() => createModelSchema(t), [t])
   const groupSchema = useMemo(() => createGroupSchema(t), [t])
@@ -262,6 +264,9 @@ export function RatioSettingsCard({
       GroupModelRatio: formatJsonForTextarea(groupDefaults.GroupModelRatio),
       GroupModelUserRatio: formatJsonForTextarea(
         groupDefaults.GroupModelUserRatio
+      ),
+      GroupModelRatioExpiry: formatJsonForTextarea(
+        groupDefaults.GroupModelRatioExpiry
       ),
     },
   })
@@ -323,6 +328,9 @@ export function RatioSettingsCard({
       GroupModelUserRatio: normalizeJsonString(
         groupDefaults.GroupModelUserRatio
       ),
+      GroupModelRatioExpiry: normalizeJsonString(
+        groupDefaults.GroupModelRatioExpiry
+      ),
     }
 
     groupForm.reset({
@@ -338,6 +346,9 @@ export function RatioSettingsCard({
       GroupModelRatio: formatJsonForTextarea(groupDefaults.GroupModelRatio),
       GroupModelUserRatio: formatJsonForTextarea(
         groupDefaults.GroupModelUserRatio
+      ),
+      GroupModelRatioExpiry: formatJsonForTextarea(
+        groupDefaults.GroupModelRatioExpiry
       ),
     })
   }, [groupDefaults, groupForm])
@@ -404,6 +415,7 @@ export function RatioSettingsCard({
         ),
         GroupModelRatio: normalizeJsonString(values.GroupModelRatio),
         GroupModelUserRatio: normalizeJsonString(values.GroupModelUserRatio),
+        GroupModelRatioExpiry: normalizeJsonString(values.GroupModelRatioExpiry),
       }
 
       // Map form field names to API keys (most are 1:1, except GroupSpecialUsableGroup)
@@ -412,6 +424,7 @@ export function RatioSettingsCard({
           'group_ratio_setting.group_special_usable_group',
         GroupModelRatio: 'group_ratio_setting.group_model_ratio',
         GroupModelUserRatio: 'group_ratio_setting.group_model_user_ratio',
+        GroupModelRatioExpiry: 'group_ratio_setting.group_model_ratio_expiry',
       }
 
       const updates = (

@@ -5410,6 +5410,11 @@
     "Test a model with a starter prompt, or write your own request below.": "Kiểm thử mô hình bằng prompt gợi ý, hoặc viết yêu cầu của riêng bạn bên dưới.",
     "Thinking...": "Đang suy nghĩ...",
     "Thought for {{duration}} seconds": "Đã suy nghĩ trong {{duration}} giây",
-    "Tip": "Mẹo"
+    "Tip": "Mẹo",
+    "Expiration time": "Thời gian hết hạn",
+    "Permanent": "Vĩnh viễn",
+    "Model pricing rule expirations": "Thời hạn quy tắc định giá mô hình",
+    "Nested JSON: billing group → model → Unix timestamp.": "JSON lồng nhau: nhóm thanh toán → mô hình → dấu thời gian Unix.",
+    "Leave empty for permanent validity. After expiration, this rule and all customer overrides stop applying.": "Để trống để có hiệu lực vĩnh viễn. Sau khi hết hạn, quy tắc này và mọi ghi đè dành cho khách hàng sẽ ngừng áp dụng."
   }
 }

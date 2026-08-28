@@ -55,6 +55,8 @@ const getGroupDefaults = (settings: BillingSettings) => ({
   GroupModelRatio: settings['group_ratio_setting.group_model_ratio'] ?? '{}',
   GroupModelUserRatio:
     settings['group_ratio_setting.group_model_user_ratio'] ?? '{}',
+  GroupModelRatioExpiry:
+    settings['group_ratio_setting.group_model_ratio_expiry'] ?? '{}',
 })
 
 const BILLING_SECTIONS = [

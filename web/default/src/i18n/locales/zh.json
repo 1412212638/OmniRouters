@@ -5446,6 +5446,11 @@
     "Group model ratios": "分组模型倍率",
     "Customer model ratios": "客户模型倍率",
     "Nested JSON: billing group → model → multiplier.": "嵌套 JSON：计费分组 → 模型 → 倍率。",
-    "Nested JSON: billing group → model → user ID → multiplier.": "嵌套 JSON：计费分组 → 模型 → 用户 ID → 倍率。"
+    "Nested JSON: billing group → model → user ID → multiplier.": "嵌套 JSON：计费分组 → 模型 → 用户 ID → 倍率。",
+    "Expiration time": "到期时间",
+    "Permanent": "永久有效",
+    "Model pricing rule expirations": "模型定价规则到期时间",
+    "Nested JSON: billing group → model → Unix timestamp.": "嵌套 JSON：计费分组 → 模型 → Unix 时间戳。",
+    "Leave empty for permanent validity. After expiration, this rule and all customer overrides stop applying.": "留空表示永久有效。到期后，该规则及其全部客户专属倍率将停止生效。"
   }
 }

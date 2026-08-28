@@ -5409,6 +5409,11 @@
     "Test a model with a starter prompt, or write your own request below.": "Testez un modèle avec un prompt de départ, ou rédigez votre propre demande ci-dessous.",
     "Thinking...": "Réflexion...",
     "Thought for {{duration}} seconds": "Réflexion pendant {{duration}} secondes",
-    "Tip": "Astuce"
+    "Tip": "Astuce",
+    "Expiration time": "Date d'expiration",
+    "Permanent": "Permanent",
+    "Model pricing rule expirations": "Expirations des règles de tarification des modèles",
+    "Nested JSON: billing group → model → Unix timestamp.": "JSON imbriqué : groupe de facturation → modèle → horodatage Unix.",
+    "Leave empty for permanent validity. After expiration, this rule and all customer overrides stop applying.": "Laissez vide pour une validité permanente. Après expiration, cette règle et toutes les dérogations client cessent de s'appliquer."
   }
 }

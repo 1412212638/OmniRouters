@@ -5188,6 +5188,11 @@
     "Zero retention": "零數據保留",
     "Zhipu": "智譜",
     "Zhipu V4": "智譜 V4",
-    "Zoom": "縮放"
+    "Zoom": "縮放",
+    "Expiration time": "到期時間",
+    "Permanent": "永久有效",
+    "Model pricing rule expirations": "模型定價規則到期時間",
+    "Nested JSON: billing group → model → Unix timestamp.": "巢狀 JSON：計費分組 → 模型 → Unix 時間戳。",
+    "Leave empty for permanent validity. After expiration, this rule and all customer overrides stop applying.": "留空表示永久有效。到期後，該規則及其所有客戶專屬倍率將停止生效。"
   }
 }

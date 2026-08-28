@@ -63,6 +63,7 @@ const defaultBillingSettings: BillingSettings = {
   'group_ratio_setting.group_special_usable_group': '{}',
   'group_ratio_setting.group_model_ratio': '{}',
   'group_ratio_setting.group_model_user_ratio': '{}',
+  'group_ratio_setting.group_model_ratio_expiry': '{}',
   PayAddress: '',
   EpayId: '',
   EpayKey: '',

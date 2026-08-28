@@ -75,6 +75,7 @@ type GroupFormValues = {
   GroupSpecialUsableGroup: string
   GroupModelRatio: string
   GroupModelUserRatio: string
+  GroupModelRatioExpiry: string
 }
 
 type GroupRatioFormProps = {
@@ -205,6 +206,7 @@ export const GroupRatioForm = memo(function GroupRatioForm({
               groupSpecialUsableGroup={form.watch('GroupSpecialUsableGroup')}
               groupModelRatio={form.watch('GroupModelRatio')}
               groupModelUserRatio={form.watch('GroupModelUserRatio')}
+              groupModelRatioExpiry={form.watch('GroupModelRatioExpiry')}
               onChange={(field, value) =>
                 handleFieldChange(field as keyof GroupFormValues, value)
               }
@@ -257,6 +259,27 @@ export const GroupRatioForm = memo(function GroupRatioForm({
                     {t(
                       'Nested JSON: billing group → model → user ID → multiplier.'
                     )}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='GroupModelRatioExpiry'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('Model pricing rule expirations')}</FormLabel>
+                  <FormControl>
+                    <JsonCodeEditor
+                      {...field}
+                      value={field.value}
+                      onChange={field.onChange}
+                      textareaRef={field.ref}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {t('Nested JSON: billing group → model → Unix timestamp.')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

@@ -5432,6 +5432,11 @@
     "Group model ratios": "Group model ratios",
     "Customer model ratios": "Customer model ratios",
     "Nested JSON: billing group → model → multiplier.": "Nested JSON: billing group → model → multiplier.",
-    "Nested JSON: billing group → model → user ID → multiplier.": "Nested JSON: billing group → model → user ID → multiplier."
+    "Nested JSON: billing group → model → user ID → multiplier.": "Nested JSON: billing group → model → user ID → multiplier.",
+    "Expiration time": "Expiration time",
+    "Permanent": "Permanent",
+    "Model pricing rule expirations": "Model pricing rule expirations",
+    "Nested JSON: billing group → model → Unix timestamp.": "Nested JSON: billing group → model → Unix timestamp.",
+    "Leave empty for permanent validity. After expiration, this rule and all customer overrides stop applying.": "Leave empty for permanent validity. After expiration, this rule and all customer overrides stop applying."
   }
 }

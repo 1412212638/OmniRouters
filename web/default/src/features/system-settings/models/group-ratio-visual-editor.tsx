@@ -90,6 +90,7 @@ type GroupRatioVisualEditorProps = {
   groupSpecialUsableGroup: string
   groupModelRatio: string
   groupModelUserRatio: string
+  groupModelRatioExpiry: string
   onChange: (field: string, value: string) => void
 }
 
@@ -274,6 +275,7 @@ export const GroupRatioVisualEditor = memo(function GroupRatioVisualEditor({
   groupSpecialUsableGroup,
   groupModelRatio,
   groupModelUserRatio,
+  groupModelRatioExpiry,
   onChange,
 }: GroupRatioVisualEditorProps) {
   const { t } = useTranslation()
@@ -359,6 +361,7 @@ export const GroupRatioVisualEditor = memo(function GroupRatioVisualEditor({
         registry={registry}
         groupModelRatio={groupModelRatio}
         groupModelUserRatio={groupModelUserRatio}
+        groupModelRatioExpiry={groupModelRatioExpiry}
         onChange={onChange}
       />
 
@@ -703,17 +706,26 @@ type GroupModelRule = {
   model: string
   ratio?: number
   users: Record<number, number>
+  expiresAt?: number
+}
+
+function formatDateTimeLocal(timestamp: number): string {
+  const date = new Date(timestamp * 1000)
+  const offset = date.getTimezoneOffset() * 60_000
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16)
 }
 
 function GroupModelPricingRules({
   registry,
   groupModelRatio,
   groupModelUserRatio,
+  groupModelRatioExpiry,
   onChange,
 }: {
   registry: RegistryEntry[]
   groupModelRatio: string
   groupModelUserRatio: string
+  groupModelRatioExpiry: string
   onChange: (field: string, value: string) => void
 }) {
   const { t } = useTranslation()
@@ -724,11 +736,18 @@ function GroupModelPricingRules({
   const userSpecific = safeJsonParse<
     Record<string, Record<string, Record<string, number>>>
   >(groupModelUserRatio, { fallback: {}, silent: true })
+  const expiries = safeJsonParse<Record<string, Record<string, number>>>(
+    groupModelRatioExpiry,
+    { fallback: {}, silent: true }
+  )
   const keys = new Set<string>()
   for (const [group, models] of Object.entries(general)) {
     for (const model of Object.keys(models)) keys.add(`${group}\u0000${model}`)
   }
   for (const [group, models] of Object.entries(userSpecific)) {
+    for (const model of Object.keys(models)) keys.add(`${group}\u0000${model}`)
+  }
+  for (const [group, models] of Object.entries(expiries)) {
     for (const model of Object.keys(models)) keys.add(`${group}\u0000${model}`)
   }
   const rules: GroupModelRule[] = [...keys].map((key) => {
@@ -742,12 +761,14 @@ function GroupModelPricingRules({
           ([id, ratio]) => [Number(id), ratio]
         )
       ),
+      expiresAt: expiries[group]?.[model] || undefined,
     }
   })
 
   const emit = (next: GroupModelRule[]) => {
     const nextGeneral: Record<string, Record<string, number>> = {}
     const nextUsers: Record<string, Record<string, Record<number, number>>> = {}
+    const nextExpiries: Record<string, Record<string, number>> = {}
     for (const rule of next) {
       if (!rule.group || !rule.model) continue
       if (rule.ratio !== undefined) {
@@ -756,9 +777,13 @@ function GroupModelPricingRules({
       if (Object.keys(rule.users).length > 0) {
         ;(nextUsers[rule.group] ??= {})[rule.model] = rule.users
       }
+      if (rule.expiresAt !== undefined) {
+        ;(nextExpiries[rule.group] ??= {})[rule.model] = rule.expiresAt
+      }
     }
     onChange('GroupModelRatio', JSON.stringify(nextGeneral, null, 2))
     onChange('GroupModelUserRatio', JSON.stringify(nextUsers, null, 2))
+    onChange('GroupModelRatioExpiry', JSON.stringify(nextExpiries, null, 2))
   }
 
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -811,6 +836,24 @@ function GroupModelPricingRules({
                 t('{{count}} customer(s)', {
                   count: Object.keys(row.users).length,
                 }),
+            },
+            {
+              id: 'expiresAt',
+              header: t('Expiration time'),
+              cell: (row) => {
+                if (!row.expiresAt) return t('Permanent')
+                const expired = row.expiresAt * 1000 <= Date.now()
+                return (
+                  <div className='flex flex-wrap items-center gap-2'>
+                    <span>{new Date(row.expiresAt * 1000).toLocaleString()}</span>
+                    {expired && (
+                      <StatusBadge variant='danger' copyable={false}>
+                        {t('Expired')}
+                      </StatusBadge>
+                    )}
+                  </div>
+                )
+              },
             },
             {
               id: 'actions',
@@ -880,6 +923,7 @@ function GroupModelRuleDialog({
   const [group, setGroup] = useState<string | null>(null)
   const [model, setModel] = useState('')
   const [ratio, setRatio] = useState('')
+  const [expiresAt, setExpiresAt] = useState('')
   const [users, setUsers] = useState<Record<number, number>>({})
   const [keyword, setKeyword] = useState('')
   const [results, setResults] = useState<User[]>([])
@@ -892,6 +936,11 @@ function GroupModelRuleDialog({
     setGroup(editData?.group ?? null)
     setModel(editData?.model ?? '')
     setRatio(editData?.ratio === undefined ? '' : String(editData.ratio))
+    setExpiresAt(
+      editData?.expiresAt
+        ? formatDateTimeLocal(editData.expiresAt)
+        : ''
+    )
     setUsers(editData?.users ?? {})
     setKeyword('')
     setResults([])
@@ -921,6 +970,9 @@ function GroupModelRuleDialog({
   }
 
   const parsedRatio = ratio.trim() === '' ? undefined : Number(ratio)
+  const parsedExpiresAt = expiresAt
+    ? Math.floor(new Date(expiresAt).getTime() / 1000)
+    : undefined
   const parsedUserRatio = Number(userRatio)
   const canAddUserRatio =
     userRatio.trim() !== '' &&
@@ -952,7 +1004,13 @@ function GroupModelRuleDialog({
             disabled={!canSave}
             onClick={() =>
               group &&
-              onSave({ group, model: model.trim(), ratio: parsedRatio, users })
+              onSave({
+                group,
+                model: model.trim(),
+                ratio: parsedRatio,
+                users,
+                expiresAt: parsedExpiresAt,
+              })
             }
           >
             {t('Save')}
@@ -991,6 +1049,19 @@ function GroupModelRuleDialog({
               placeholder='1.0'
             />
           </div>
+        </div>
+        <div className='space-y-2'>
+          <Label>{t('Expiration time')}</Label>
+          <Input
+            type='datetime-local'
+            value={expiresAt}
+            onChange={(event) => setExpiresAt(event.target.value)}
+          />
+          <p className='text-muted-foreground text-sm'>
+            {t(
+              'Leave empty for permanent validity. After expiration, this rule and all customer overrides stop applying.'
+            )}
+          </p>
         </div>
         <div className='space-y-3 border-t pt-4'>
           <Label>{t('Customer overrides')}</Label>
