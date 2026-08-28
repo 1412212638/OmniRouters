@@ -48,7 +48,6 @@ import { CopyButton } from '@/components/copy-button'
 import { StaticDataTable } from '@/components/data-table'
 import { sideDrawerContentClassName } from '@/components/drawer-layout'
 import { GroupBadge } from '@/components/group-badge'
-import { StatusBadge } from '@/components/status-badge'
 import { PublicLayout } from '@/components/layout'
 import { getPerfMetrics } from '@/features/performance-metrics/api'
 import {
@@ -963,6 +962,14 @@ function GroupPricingSection(props: {
   const { t } = useTranslation()
   const showRechargePrice = props.showRechargePrice ?? false
   const effectiveGroupRatio = props.model.group_ratio ?? props.groupRatio
+  const getRuleInfo = (group: string) => {
+    const base = props.groupRatio[group] || 1
+    const effective = effectiveGroupRatio[group] || 1
+    const multiplier = effective / base
+    const expiry = props.groupModelRatioExpiry?.[group]?.[props.model.model_name]
+    const active = !expiry || expiry <= 0 || expiry > Date.now() / 1000
+    return { multiplier, expiry: active && expiry && expiry > 0 ? expiry : undefined }
+  }
 
   const availableGroups = useMemo(
     () => getAvailableGroups(props.model, props.usableGroup || {}),
@@ -1068,6 +1075,7 @@ function GroupPricingSection(props: {
         <div className='space-y-3'>
           {availableGroups.map((group) => {
             const ratio = effectiveGroupRatio[group] || 1
+            const ruleInfo = getRuleInfo(group)
             const formattedPricesByTier =
               formattedPricesByGroup.get(group) ??
               new Map<DynamicPricingTier, Map<string, string>>()
@@ -1076,8 +1084,13 @@ function GroupPricingSection(props: {
               <div key={group} className='overflow-hidden rounded-lg border'>
                 <div className='bg-muted/20 flex items-center justify-between gap-3 border-b px-3 py-2'>
                   <GroupBadge group={group} size='sm' />
-                  <span className='text-muted-foreground font-mono text-xs'>
-                    {ratio}x
+                  <span className='text-muted-foreground flex items-center gap-3 font-mono text-xs'>
+                    {ruleInfo.multiplier}x
+                    {ruleInfo.expiry && (
+                      <span className='font-sans'>
+                        {t('Expires at')} {new Date(ruleInfo.expiry * 1000).toLocaleString()}
+                      </span>
+                    )}
                   </span>
                 </div>
                 <StaticDataTable
@@ -1164,29 +1177,19 @@ function GroupPricingSection(props: {
             className: thClass,
             cellClassName: 'text-muted-foreground py-2.5 font-mono',
             cell: (group) => {
-              const base = props.groupRatio[group] || 1
-              const effective = effectiveGroupRatio[group] || 1
-              const multiplier = effective / base
-              const expiry =
-                props.groupModelRatioExpiry?.[group]?.[
-                  props.model.model_name
-                ]
-              const hasActiveRule = !expiry || expiry <= 0 || expiry > Date.now() / 1000
-              return (
-                <div className='flex flex-wrap items-center gap-2'>
-                  <span>{multiplier}x</span>
-                  {hasActiveRule && multiplier < 1 && (
-                    <StatusBadge variant='success' copyable={false}>
-                      {Math.round(multiplier * 100)}% {t('Discount')}
-                    </StatusBadge>
-                  )}
-                  {hasActiveRule && expiry && expiry > 0 && (
-                    <span className='text-muted-foreground text-xs'>
-                      {t('Expires at')} {new Date(expiry * 1000).toLocaleString()}
-                    </span>
-                  )}
-                </div>
-              )
+              return `${getRuleInfo(group).multiplier}x`
+            },
+          },
+          {
+            id: 'expiresAt',
+            header: t('Expiration time'),
+            className: thClass,
+            cellClassName: 'text-muted-foreground py-2.5 text-xs',
+            cell: (group) => {
+              const expiry = getRuleInfo(group).expiry
+              return expiry
+                ? new Date(expiry * 1000).toLocaleString()
+                : '-'
             },
           },
           ...(isTokenBased
@@ -1196,21 +1199,33 @@ function GroupPricingSection(props: {
                   header: t('Input'),
                   className: `${thClass} text-right`,
                   cellClassName: 'py-2.5 text-right font-mono',
-                  cell: (group: string) => renderGroupPrice(group, 'input'),
+                  cell: (group: string) => (
+                    <span className={getRuleInfo(group).multiplier < 1 ? 'text-success' : undefined}>
+                      {renderGroupPrice(group, 'input')}
+                    </span>
+                  ),
                 },
                 {
                   id: 'output',
                   header: t('Output'),
                   className: `${thClass} text-right`,
                   cellClassName: 'py-2.5 text-right font-mono',
-                  cell: (group: string) => renderGroupPrice(group, 'output'),
+                  cell: (group: string) => (
+                    <span className={getRuleInfo(group).multiplier < 1 ? 'text-success' : undefined}>
+                      {renderGroupPrice(group, 'output')}
+                    </span>
+                  ),
                 },
                 ...extraPriceTypes.map((ep) => ({
                   id: ep.type,
                   header: ep.label,
                   className: `${thClass} text-right`,
                   cellClassName: 'py-2.5 text-right font-mono',
-                  cell: (group: string) => renderGroupPrice(group, ep.type),
+                  cell: (group: string) => (
+                    <span className={getRuleInfo(group).multiplier < 1 ? 'text-success' : undefined}>
+                      {renderGroupPrice(group, ep.type)}
+                    </span>
+                  ),
                 })),
               ]
             : [
@@ -1222,14 +1237,14 @@ function GroupPricingSection(props: {
                   className: `${thClass} text-right`,
                   cellClassName: 'py-2.5 text-right font-mono',
                   cell: (group: string) => (
-                    <>
+                    <span className={getRuleInfo(group).multiplier < 1 ? 'text-success' : undefined}>
                       {renderFixedGroupPrice(group)}
                       {isSoraPricing && (
                         <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
                           /s
                         </span>
                       )}
-                    </>
+                    </span>
                   ),
                 },
               ]),
