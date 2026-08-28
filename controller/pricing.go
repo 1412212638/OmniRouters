@@ -74,6 +74,7 @@ func GetPricing(c *gin.Context) {
 		"vendors":            model.GetVendors(),
 		"group_ratio":        groupRatio,
 		"group_model_ratio":  ratio_setting.GetGroupModelRatioForUser(userID),
+		"group_model_ratio_expiry": ratio_setting.GetGroupModelRatioExpiry(),
 		"usable_group":       usableGroup,
 		"supported_endpoint": model.GetSupportedEndpointMap(),
 		"auto_groups":        service.GetUserAutoGroupWithExtras(group, extraGroups),

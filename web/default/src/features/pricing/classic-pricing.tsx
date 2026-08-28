@@ -50,6 +50,7 @@ export function ClassicPricing() {
     isLoading,
     priceRate,
     usdExchangeRate,
+    groupModelRatioExpiry,
   } = usePricingData()
 
   const {
@@ -276,6 +277,7 @@ export function ClassicPricing() {
               usdExchangeRate={usdExchangeRate ?? 1}
               tokenUnit={tokenUnit}
               showRechargePrice={showRechargePrice}
+              groupModelRatioExpiry={groupModelRatioExpiry}
             />
           )}
         </PageTransition>

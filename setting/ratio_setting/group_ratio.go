@@ -168,6 +168,11 @@ func GetGroupModelRatioForUser(userID int) map[string]map[string]float64 {
 	return result
 }
 
+// GetGroupModelRatioExpiry returns configured expiry timestamps for model rules.
+func GetGroupModelRatioExpiry() map[string]map[string]int64 {
+	return groupModelRatioExpiryMap.ReadAll()
+}
+
 func isGroupModelRatioExpired(group, model string, now int64) bool {
 	models, ok := groupModelRatioExpiryMap.Get(group)
 	if !ok {

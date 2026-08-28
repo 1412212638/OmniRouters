@@ -1109,6 +1109,7 @@ function CatalogPricing() {
     isLoading,
     priceRate,
     usdExchangeRate,
+    groupModelRatioExpiry,
   } = usePricingData()
 
   const perfQuery = useQuery({
@@ -1572,6 +1573,7 @@ function CatalogPricing() {
             usdExchangeRate={usdExchangeRate ?? 1}
             tokenUnit={TOKEN_UNIT}
             showRechargePrice={false}
+            groupModelRatioExpiry={groupModelRatioExpiry}
           />
         )}
       </PageTransition>

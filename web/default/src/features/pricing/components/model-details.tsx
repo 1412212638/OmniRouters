@@ -48,6 +48,7 @@ import { CopyButton } from '@/components/copy-button'
 import { StaticDataTable } from '@/components/data-table'
 import { sideDrawerContentClassName } from '@/components/drawer-layout'
 import { GroupBadge } from '@/components/group-badge'
+import { StatusBadge } from '@/components/status-badge'
 import { PublicLayout } from '@/components/layout'
 import { getPerfMetrics } from '@/features/performance-metrics/api'
 import {
@@ -957,9 +958,11 @@ function GroupPricingSection(props: {
   usdExchangeRate: number
   tokenUnit: TokenUnit
   showRechargePrice?: boolean
+  groupModelRatioExpiry?: Record<string, Record<string, number>>
 }) {
   const { t } = useTranslation()
   const showRechargePrice = props.showRechargePrice ?? false
+  const effectiveGroupRatio = props.model.group_ratio ?? props.groupRatio
 
   const availableGroups = useMemo(
     () => getAvailableGroups(props.model, props.usableGroup || {}),
@@ -1044,7 +1047,7 @@ function GroupPricingSection(props: {
     })
     const formattedPricesByGroup = new Map(
       availableGroups.map((group) => {
-        const ratio = props.groupRatio[group] || 1
+        const ratio = effectiveGroupRatio[group] || 1
         return [
           group,
           getDynamicFormattedPricesByTier(dynamicTiers, {
@@ -1064,7 +1067,7 @@ function GroupPricingSection(props: {
         <AutoGroupChain model={props.model} autoGroups={props.autoGroups} />
         <div className='space-y-3'>
           {availableGroups.map((group) => {
-            const ratio = props.groupRatio[group] || 1
+            const ratio = effectiveGroupRatio[group] || 1
             const formattedPricesByTier =
               formattedPricesByGroup.get(group) ??
               new Map<DynamicPricingTier, Map<string, string>>()
@@ -1125,7 +1128,7 @@ function GroupPricingSection(props: {
       showRechargePrice,
       props.priceRate,
       props.usdExchangeRate,
-      props.groupRatio
+      effectiveGroupRatio
     )
   const renderFixedGroupPrice = (group: string) =>
     formatFixedPrice(
@@ -1134,7 +1137,7 @@ function GroupPricingSection(props: {
       showRechargePrice,
       props.priceRate,
       props.usdExchangeRate,
-      props.groupRatio
+      effectiveGroupRatio
     )
 
   return (
@@ -1160,7 +1163,31 @@ function GroupPricingSection(props: {
             header: t('Ratio'),
             className: thClass,
             cellClassName: 'text-muted-foreground py-2.5 font-mono',
-            cell: (group) => `${props.groupRatio[group] || 1}x`,
+            cell: (group) => {
+              const base = props.groupRatio[group] || 1
+              const effective = effectiveGroupRatio[group] || 1
+              const multiplier = effective / base
+              const expiry =
+                props.groupModelRatioExpiry?.[group]?.[
+                  props.model.model_name
+                ]
+              const hasActiveRule = !expiry || expiry <= 0 || expiry > Date.now() / 1000
+              return (
+                <div className='flex flex-wrap items-center gap-2'>
+                  <span>{multiplier}x</span>
+                  {hasActiveRule && multiplier < 1 && (
+                    <StatusBadge variant='success' copyable={false}>
+                      {Math.round(multiplier * 100)}% {t('Discount')}
+                    </StatusBadge>
+                  )}
+                  {hasActiveRule && expiry && expiry > 0 && (
+                    <span className='text-muted-foreground text-xs'>
+                      {t('Expires at')} {new Date(expiry * 1000).toLocaleString()}
+                    </span>
+                  )}
+                </div>
+              )
+            },
           },
           ...(isTokenBased
             ? [
@@ -1241,6 +1268,7 @@ export interface ModelDetailsContentProps {
   usdExchangeRate: number
   tokenUnit: TokenUnit
   showRechargePrice?: boolean
+  groupModelRatioExpiry?: Record<string, Record<string, number>>
 }
 
 export function ModelDetailsContent(props: ModelDetailsContentProps) {
@@ -1283,6 +1311,7 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
               usdExchangeRate={props.usdExchangeRate}
               tokenUnit={props.tokenUnit}
               showRechargePrice={showRechargePrice}
+              groupModelRatioExpiry={props.groupModelRatioExpiry}
             />
             {isDynamic && (
               <DynamicPricingBreakdown billingExpr={props.model.billing_expr} />
@@ -1295,7 +1324,8 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
               priceRate={props.priceRate}
               usdExchangeRate={props.usdExchangeRate}
               tokenUnit={props.tokenUnit}
-              showRechargePrice={showRechargePrice}
+            showRechargePrice={showRechargePrice}
+            groupModelRatioExpiry={props.groupModelRatioExpiry}
             />
           </section>
 
