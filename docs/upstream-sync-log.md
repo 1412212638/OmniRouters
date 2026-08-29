@@ -2,6 +2,32 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-08-29
+
+- Upstream repository: `https://github.com/QuantumNous/new-api.git`
+- Previous local sync point: `85db3cf85`
+- Reviewed upstream `main` through: `918427d8a`
+- Integrated selectively:
+  - Invalid relay request parameters now return HTTP 400 and skip retry (`0f2a2075a`).
+  - Time-based billing rules distinguish same-day ranges from overnight ranges and reject invalid time bounds (`ac381acf4`), preserving local Sora and `audio_generation` pricing.
+  - Setup status is rechecked after a page refresh instead of trusting a persistent browser cache (`98d50d538`).
+  - Usage-log sensitive filters disable credential autofill while retaining the local visibility toggle (`2d8e50bf3`).
+  - Ollama can pass through native Claude and OpenAI Responses requests (`ba2e9287b`).
+  - Zhipu supports the OpenAI Responses endpoint (`cae3676ec`).
+  - Built-in OAuth binding keys use stable provider keys without changing the local custom OAuth layout (`692e8d6ee`).
+- Already present in local adaptations:
+  - Recharge quota pre-validation and atomic wallet-ceiling enforcement (`2a0ce3475`, `47ba9d2c6`).
+  - Ali `top_p` omission and explicit-boundary clamping (`2399de97d`).
+  - Native Claude/Gemini channel testing and Gemini streaming URL handling (`b941253ae`, `4add708eb`).
+  - vLLM `thinking_token_budget` passthrough (`8f6961c67`).
+- Deferred:
+  - Password transport/encryption changes (`b80d633cf`, `918427d8a`) require a separate authentication compatibility review.
+  - Sandboxed JavaScript task plugins (`eb48396d5`) require a dedicated migration because they affect Sora, Wan, async image tasks, and settlement/refund logic.
+  - Upstream CI/workflow, Bun, test-infrastructure, and development-image-only changes were not copied over the local GitHub/GHCR workflow.
+- Validation notes:
+  - `git diff --check` passed. Go and Bun are unavailable locally, so compilation, tests, and image publishing remain delegated to GitHub Actions.
+  - Existing untracked `bin/sync-upstream.ps1` and i18n report files remain excluded.
+
 ## 2026-08-15
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
