@@ -43,6 +43,7 @@ import (
 	taskopenaiimage "github.com/QuantumNous/new-api/relay/channel/task/openai_image"
 	tasksora "github.com/QuantumNous/new-api/relay/channel/task/sora"
 	"github.com/QuantumNous/new-api/relay/channel/task/suno"
+	taskjsplugin "github.com/QuantumNous/new-api/relay/channel/task/jsplugin"
 	taskvertex "github.com/QuantumNous/new-api/relay/channel/task/vertex"
 	taskVidu "github.com/QuantumNous/new-api/relay/channel/task/vidu"
 	"github.com/QuantumNous/new-api/relay/channel/tencent"
@@ -185,7 +186,17 @@ func GetTaskAdaptor(platform constant.TaskPlatform) channel.TaskAdaptor {
 	taskPluginAdaptorFactoryMu.RLock()
 	factory := taskPluginAdaptorFactory
 	taskPluginAdaptorFactoryMu.RUnlock()
+	if factory == nil {
+		factory = defaultTaskPluginAdaptorFactory
+	}
 	return getTaskAdaptor(platform, constant.TaskPluginEnabled, pluginruntime.DefaultRegistry, factory)
+}
+
+func defaultTaskPluginAdaptorFactory(plugin *pluginruntime.LoadedPlugin) channel.TaskAdaptor {
+	if plugin == nil || plugin.Meta.Key != "sora" {
+		return nil
+	}
+	return taskjsplugin.New(plugin)
 }
 
 func getTaskAdaptor(platform constant.TaskPlatform, pluginEnabled bool, registry *pluginruntime.Registry, factory TaskPluginAdaptorFactory) channel.TaskAdaptor {
