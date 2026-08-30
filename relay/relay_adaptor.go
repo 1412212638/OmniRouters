@@ -2,8 +2,10 @@ package relay
 
 import (
 	"strconv"
+	"sync"
 
 	"github.com/QuantumNous/new-api/constant"
+	pluginruntime "github.com/QuantumNous/new-api/pkg/jsplugin"
 	"github.com/QuantumNous/new-api/relay/channel"
 	"github.com/QuantumNous/new-api/relay/channel/ali"
 	"github.com/QuantumNous/new-api/relay/channel/aws"
@@ -139,7 +141,65 @@ func GetTaskPlatform(c *gin.Context) constant.TaskPlatform {
 	return constant.TaskPlatform(c.GetString("platform"))
 }
 
+var taskPluginKeys = map[constant.TaskPlatform]string{
+	constant.TaskPlatformSuno:                                            "sunoapi",
+	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeAli)):         "alibaba",
+	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeKling)):       "kling",
+	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeJimeng)):      "jimeng",
+	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeVidu)):        "vidu",
+	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeDoubaoVideo)): "doubao",
+	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeVolcEngine)):  "doubao",
+	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeGemini)):      "google",
+	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeMiniMax)):     "hailuo",
+	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeSora)):        "sora",
+	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeOpenAI)):      "sora",
+	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeVertexAi)):    "vertex-ai",
+}
+
+type TaskPluginAdaptorFactory func(plugin *pluginruntime.LoadedPlugin) channel.TaskAdaptor
+
+var taskPluginAdaptorFactory TaskPluginAdaptorFactory
+var taskPluginAdaptorFactoryMu sync.RWMutex
+
+// SetTaskPluginAdaptorFactory installs the host bridge after the plugin
+// adaptor has been initialized. A nil factory keeps every task on its legacy
+// Go adaptor even when plugins are registered.
+func SetTaskPluginAdaptorFactory(factory TaskPluginAdaptorFactory) {
+	taskPluginAdaptorFactoryMu.Lock()
+	defer taskPluginAdaptorFactoryMu.Unlock()
+	taskPluginAdaptorFactory = factory
+}
+
+func resolveTaskPlugin(registry *pluginruntime.Registry, enabled bool, platform constant.TaskPlatform) (*pluginruntime.LoadedPlugin, bool) {
+	if !enabled || registry == nil || !registry.Enabled() {
+		return nil, false
+	}
+	key := string(platform)
+	if mapped, ok := taskPluginKeys[platform]; ok {
+		key = mapped
+	}
+	return registry.Generation().Get(key)
+}
+
 func GetTaskAdaptor(platform constant.TaskPlatform) channel.TaskAdaptor {
+	taskPluginAdaptorFactoryMu.RLock()
+	factory := taskPluginAdaptorFactory
+	taskPluginAdaptorFactoryMu.RUnlock()
+	return getTaskAdaptor(platform, constant.TaskPluginEnabled, pluginruntime.DefaultRegistry, factory)
+}
+
+func getTaskAdaptor(platform constant.TaskPlatform, pluginEnabled bool, registry *pluginruntime.Registry, factory TaskPluginAdaptorFactory) channel.TaskAdaptor {
+	if factory != nil {
+		if plugin, ok := resolveTaskPlugin(registry, pluginEnabled, platform); ok {
+			if adaptor := factory(plugin); adaptor != nil {
+				return adaptor
+			}
+		}
+	}
+	return getLegacyTaskAdaptor(platform)
+}
+
+func getLegacyTaskAdaptor(platform constant.TaskPlatform) channel.TaskAdaptor {
 	switch platform {
 	//case constant.APITypeAIProxyLibrary:
 	//	return &aiproxy.Adaptor{}
