@@ -19,6 +19,15 @@ var ErrorLogEnabled bool
 var TaskQueryLimit int
 var TaskTimeoutMinutes int
 
+// TaskPluginEnabled prepares the sandboxed task-plugin runtime. It is kept
+// disabled by default until the legacy task adapters have been validated
+// against the host-owned billing and refund lifecycle.
+var TaskPluginEnabled bool
+var TaskPluginProtocolTimeoutSeconds int
+var TaskPluginProtocolTickMilliseconds int
+var TaskPluginProtocolTickJitterMilliseconds int
+var TaskPluginProtocolHeartbeatSeconds int
+
 // temporary variable for sora patch, will be removed in future
 var TaskPricePatches []string
 

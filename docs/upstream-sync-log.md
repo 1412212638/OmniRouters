@@ -2,6 +2,18 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-08-30 (task plugin migration, phase 1)
+
+- Upstream source: `eb48396d5` (`feat(task): replace built-in task adaptors with a sandboxed JS plugin system`)
+- Integrated only the dormant foundation:
+  - Added the sandbox engine, plugin metadata/registry, routing primitives, request helpers, and plugin DTOs.
+  - Added the task-plugin channel type and protocol timeout configuration.
+  - Added `TASK_PLUGIN_ENABLED`, defaulting to `false`.
+- Deliberately retained the existing Go task adapters and production task routing. No Sora, Suno, Wan, async-image, billing, settlement, or refund path is switched to plugins in this phase.
+- The upstream plugin UI, plugin routers, task-plugin adaptor, built-in JS task plugins, and task lifecycle replacement remain deferred until the host bridge is implemented and tested.
+- Local protections remain authoritative: Sora per-request pricing, fixed `audio_generation` surcharge, checked quota accounting, async OpenAI image handling, and task refund reconciliation.
+- Validation: `git diff --check` passed. Go/Bun are unavailable locally; GitHub Actions must perform dependency resolution, compilation, and tests.
+
 ## 2026-08-29
 
 - Upstream repository: `https://github.com/QuantumNous/new-api.git`
