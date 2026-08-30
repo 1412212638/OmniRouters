@@ -23,6 +23,7 @@ var TaskTimeoutMinutes int
 // disabled by default until the legacy task adapters have been validated
 // against the host-owned billing and refund lifecycle.
 var TaskPluginEnabled bool
+var TaskPluginOverrideEnabled bool
 var TaskPluginProtocolTimeoutSeconds int
 var TaskPluginProtocolTickMilliseconds int
 var TaskPluginProtocolTickJitterMilliseconds int
