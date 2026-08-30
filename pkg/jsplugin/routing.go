@@ -224,6 +224,7 @@ type PinnedEndpoint struct {
 	Protocol   string
 	Operation  HostProtocolOperation
 	Model      string
+	MappedModel string
 	Candidates []ProtocolBinding
 }
 
@@ -296,6 +297,7 @@ type ProtocolRequestContext struct {
 	Protocol  string `json:"protocol"`
 	Operation string `json:"operation"`
 	Model     string `json:"model"`
+	UpstreamModel string `json:"upstreamModel,omitempty"`
 	Stream    bool   `json:"stream"`
 }
 
@@ -304,6 +306,7 @@ func (p ProtocolRequestContext) JSValue() map[string]any {
 	value["protocol"] = p.Protocol
 	value["operation"] = p.Operation
 	value["model"] = p.Model
+	if p.UpstreamModel != "" { value["upstreamModel"] = p.UpstreamModel }
 	value["stream"] = p.Stream
 	return value
 }
@@ -320,6 +323,7 @@ type RoutingGeneration struct {
 
 	byKey         map[string]*LoadedPlugin
 	byModel       map[string]*LoadedPlugin
+	canonicalModelByFold map[string]string
 	byChannelType map[int]*LoadedPlugin
 	routeIndex    map[string]RouteBinding
 	protocolIndex map[string][]ProtocolBinding
@@ -407,6 +411,23 @@ func (g *RoutingGeneration) GetByModel(model string) (*LoadedPlugin, bool) {
 	}
 	plugin, ok := g.byModel[model]
 	return plugin, ok
+}
+
+func (g *RoutingGeneration) CanonicalModel(model string) (string, bool) {
+	if g == nil || model == "" { return "", false }
+	if _, ok := g.byModel[model]; ok { return model, true }
+	declared, ok := g.canonicalModelByFold[ASCIIFold(model)]
+	return declared, ok
+}
+
+func ASCIIFold(value string) string {
+	var b strings.Builder
+	b.Grow(len(value))
+	for _, r := range value {
+		if r >= 'A' && r <= 'Z' { r += 'a' - 'A' }
+		b.WriteRune(r)
+	}
+	return b.String()
 }
 
 // LookupDeclaredRoute resolves a manifest path declaration. It does not match
@@ -840,6 +861,7 @@ func buildRoutingGenerationFromPlugins(effective map[string]*LoadedPlugin, numbe
 		PublishedAt:   time.Now(),
 		byKey:         make(map[string]*LoadedPlugin, len(effective)),
 		byModel:       make(map[string]*LoadedPlugin),
+		canonicalModelByFold: make(map[string]string),
 		byChannelType: make(map[int]*LoadedPlugin),
 		routeIndex:    make(map[string]RouteBinding),
 		protocolIndex: make(map[string][]ProtocolBinding),
@@ -853,6 +875,8 @@ func buildRoutingGenerationFromPlugins(effective map[string]*LoadedPlugin, numbe
 			if _, exists := generation.byModel[model]; !exists {
 				generation.byModel[model] = plugin
 			}
+			folded := ASCIIFold(model)
+			if _, exists := generation.canonicalModelByFold[folded]; !exists { generation.canonicalModelByFold[folded] = model }
 		}
 
 		for _, channelType := range plugin.Meta.ChannelTypes {
@@ -929,4 +953,3 @@ func PreflightRoutingConflict(current *RoutingGeneration, candidate *LoadedPlugi
 	_, err := buildRoutingGenerationFromPlugins(effective, number)
 	return err
 }
-

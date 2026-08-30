@@ -5,10 +5,33 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
+	"github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/logger"
 	"github.com/QuantumNous/new-api/model"
+	pluginruntime "github.com/QuantumNous/new-api/pkg/jsplugin"
 	"github.com/gin-gonic/gin"
 )
+
+func GetChannelConstraints(c *gin.Context) *dto.ChannelConstraints {
+	if c == nil { return &dto.ChannelConstraints{} }
+	if existing, ok := common.GetContextKeyType[*dto.ChannelConstraints](c, constant.ContextKeyChannelConstraints); ok && existing != nil { return existing }
+	constraints := &dto.ChannelConstraints{}
+	common.SetContextKey(c, constant.ContextKeyChannelConstraints, constraints)
+	return constraints
+}
+
+func AppendTaskPluginIdentityFilter(c *gin.Context, pluginKey string) {
+	if c == nil { return }
+	GetChannelConstraints(c).AddFilter(dto.ChannelFilter{Kind: dto.FilterTaskPluginIdentity, TaskPluginKey: pluginKey, TaskPluginChannelTypes: pinnedTaskPluginChannelTypes(c, pluginKey)})
+}
+
+func pinnedTaskPluginChannelTypes(c *gin.Context, pluginKey string) []int {
+	generation := pluginruntime.DefaultRegistry.Generation()
+	if generation == nil { return nil }
+	plugin, ok := generation.Get(pluginKey)
+	if !ok || plugin == nil { return nil }
+	return append([]int(nil), plugin.Meta.ChannelTypes...)
+}
 
 type RetryParam struct {
 	Ctx          *gin.Context
