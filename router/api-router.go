@@ -228,11 +228,21 @@ func SetApiRouter(router *gin.Engine) {
 			emailSettingsRoute.POST("/marketing_email/send", middleware.CriticalRateLimit(), controller.SendMarketingEmail)
 		}
 
-		taskPluginRoute := apiRouter.Group("/task-plugins")
+		taskPluginRoute := apiRouter.Group("/plugin/task")
 		taskPluginRoute.Use(middleware.AdminAuth())
 		{
-			taskPluginRoute.GET("", controller.GetTaskPlugins)
-			taskPluginRoute.PATCH("/:key", controller.UpdateTaskPlugin)
+			taskPluginRoute.GET("", controller.ListTaskPlugins)
+			taskPluginRoute.POST("", controller.UploadTaskPlugin)
+			taskPluginRoute.PUT("", controller.UploadTaskPlugin)
+		taskPluginRoute.GET("/runtime/status", controller.GetTaskPluginRuntime)
+			taskPluginRoute.GET("/marketplace/sources", controller.GetTaskPluginMarketplaceSources)
+			taskPluginRoute.PUT("/marketplace/sources", controller.UpdateTaskPluginMarketplaceSources)
+			taskPluginRoute.GET("/:key", controller.GetTaskPlugin)
+			taskPluginRoute.GET("/:key/versions", controller.GetTaskPluginVersions)
+			taskPluginRoute.POST("/:key/activate", controller.ActivateTaskPlugin)
+			taskPluginRoute.POST("/:key/status", controller.SetTaskPluginStatus)
+			taskPluginRoute.POST("/:key/dryrun", controller.DryRunTaskPlugin)
+			taskPluginRoute.DELETE("/:key/versions/:version", controller.DeleteTaskPluginVersion)
 		}
 
 		optionRoute := apiRouter.Group("/option")

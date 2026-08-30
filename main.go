@@ -70,6 +70,7 @@ func main() {
 	}
 	pluginruntime.DefaultRegistry.SetEnabled(constant.TaskPluginEnabled)
 	pluginruntime.DefaultRegistry.SetDisabledFactoryKeys(setting.GetTaskPluginDisabledFactoryKeys())
+	go controller.SyncTaskPlugins()
 
 	common.SysLog("New API " + common.Version + " started")
 	if os.Getenv("GIN_MODE") != "debug" {
