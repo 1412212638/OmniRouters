@@ -228,6 +228,13 @@ func SetApiRouter(router *gin.Engine) {
 			emailSettingsRoute.POST("/marketing_email/send", middleware.CriticalRateLimit(), controller.SendMarketingEmail)
 		}
 
+		taskPluginRoute := apiRouter.Group("/task-plugins")
+		taskPluginRoute.Use(middleware.AdminAuth())
+		{
+			taskPluginRoute.GET("", controller.GetTaskPlugins)
+			taskPluginRoute.PATCH("/:key", controller.UpdateTaskPlugin)
+		}
+
 		optionRoute := apiRouter.Group("/option")
 		optionRoute.Use(middleware.RootAuth())
 		{

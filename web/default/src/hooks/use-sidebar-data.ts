@@ -28,6 +28,7 @@ import {
   ListTodo,
   Mail,
   MessageSquare,
+  Puzzle,
   Radio,
   ServerCog,
   Settings,
@@ -164,6 +165,11 @@ export function useSidebarData(): SidebarData {
             title: t('Email Settings'),
             url: '/email-settings',
             icon: Mail,
+          },
+          {
+            title: t('Task Plugins'),
+            url: '/task-plugins',
+            icon: Puzzle,
           },
           {
             title: t('System Info'),

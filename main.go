@@ -31,6 +31,7 @@ import (
 	"github.com/QuantumNous/new-api/router"
 	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/service/authz"
+	"github.com/QuantumNous/new-api/setting"
 	_ "github.com/QuantumNous/new-api/setting/performance_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 
@@ -68,6 +69,7 @@ func main() {
 		return
 	}
 	pluginruntime.DefaultRegistry.SetEnabled(constant.TaskPluginEnabled)
+	pluginruntime.DefaultRegistry.SetDisabledFactoryKeys(setting.GetTaskPluginDisabledFactoryKeys())
 
 	common.SysLog("New API " + common.Version + " started")
 	if os.Getenv("GIN_MODE") != "debug" {
