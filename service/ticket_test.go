@@ -173,6 +173,7 @@ func TestCloseIdleAnsweredTickets(t *testing.T) {
 		Where("id = ?", created.Ticket.ID).
 		Updates(map[string]interface{}{
 			"last_reply_at":       oldReplyAt,
+			"last_user_reply_at":  oldReplyAt - 1,
 			"last_admin_reply_at": oldReplyAt,
 		}).Error)
 
