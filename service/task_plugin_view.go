@@ -1,28 +1,10 @@
 package service
 
 import (
-	"errors"
-	"fmt"
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/setting/system_setting"
-	"net/url"
-	"strings"
 )
-
-func BuildTaskArtifactContentURL(taskID, artifactKey string) (string, error) {
-	taskID = strings.TrimSpace(taskID)
-	artifactKey = strings.TrimSpace(artifactKey)
-	if taskID == "" || artifactKey == "" || common.CryptoSecret == "" {
-		return "", errors.New("task artifact access is invalid")
-	}
-	base := strings.TrimRight(strings.TrimSpace(system_setting.ServerAddress), "/")
-	if base == "" {
-		return "", errors.New("task artifact base URL is empty")
-	}
-	return fmt.Sprintf("%s/v1/tasks/%s/artifacts/%s/content", base, url.PathEscape(taskID), url.PathEscape(artifactKey)), nil
-}
 
 // BuildTaskPluginView converts a persisted task into the deliberately narrow
 // public shape permitted at JavaScript plugin boundaries.

@@ -31,6 +31,8 @@ type TaskSubmitResult struct {
 	TaskData       []byte
 	Platform       constant.TaskPlatform
 	Quota          int
+	ClientResponse any
+	Immediate      *relaycommon.TaskInfo
 	//PerCallPrice   types.PriceData
 }
 
@@ -284,9 +286,28 @@ func RelayTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo) (*TaskSubmitRe
 	c.Header("X-New-Api-Other-Ratios", string(ratiosJSON))
 
 	// 11. 解析响应
-	upstreamTaskID, taskData, taskErr := adaptor.DoResponse(c, resp, info)
-	if taskErr != nil {
-		return nil, taskErr
+	var upstreamTaskID string
+	var taskData []byte
+	var clientResponse any
+	var immediate *relaycommon.TaskInfo
+	if parser, ok := adaptor.(channel.TaskResponseParser); ok {
+		parsed, taskErr := parser.ParseResponse(c, resp, info)
+		if taskErr != nil {
+			return nil, taskErr
+		}
+		if parsed == nil {
+			return nil, service.TaskErrorWrapperLocal(errors.New("task response parser returned no result"), "plugin_submit_response_invalid", http.StatusBadGateway)
+		}
+		upstreamTaskID = parsed.UpstreamTaskID
+		taskData = parsed.TaskData
+		clientResponse = parsed.ClientResponse
+		immediate = parsed.Immediate
+	} else {
+		var taskErr *dto.TaskError
+		upstreamTaskID, taskData, taskErr = adaptor.DoResponse(c, resp, info)
+		if taskErr != nil {
+			return nil, taskErr
+		}
 	}
 
 	// 11. 提交后计费调整：让适配器根据上游实际返回调整 OtherRatios
@@ -305,6 +326,8 @@ func RelayTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo) (*TaskSubmitRe
 		TaskData:       taskData,
 		Platform:       platform,
 		Quota:          finalQuota,
+		ClientResponse: clientResponse,
+		Immediate:      immediate,
 	}, nil
 }
 

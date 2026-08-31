@@ -539,6 +539,19 @@ func RelayTask(c *gin.Context) {
 		respondTaskError(c, taskErr)
 		return
 	}
+	if _, pinned := c.Get(pluginruntime.ContextKeyPinnedPlugin); pinned {
+		if taskErr := relay.ApplyOriginTaskAffinity(c, relayInfo); taskErr != nil {
+			respondTaskError(c, taskErr)
+			return
+		}
+		outcome, taskErr := executeTaskSubmission(c, relayInfo)
+		if taskErr != nil {
+			respondTaskError(c, taskErr)
+			return
+		}
+		presentTaskSubmission(c, outcome)
+		return
+	}
 
 	var result *relay.TaskSubmitResult
 	var taskErr *taskdto.TaskError
@@ -731,6 +744,19 @@ func executeTaskSubmission(c *gin.Context, relayInfo *relaycommon.RelayInfo) (*t
 		PerCallBilling:  common.StringsContains(constant.TaskPricePatches, relayInfo.OriginModelName) || relayInfo.PriceData.UsePrice || len(relayInfo.PriceData.FixedQuotas) > 0,
 	}
 	task.Quota, task.Data, task.Action = result.Quota, result.TaskData, relayInfo.Action
+	if result.Immediate != nil {
+		task.Status = model.TaskStatus(result.Immediate.Status)
+		task.Progress = result.Immediate.Progress
+		if task.Status == model.TaskStatusSuccess || task.Status == model.TaskStatusFailure {
+			task.FinishTime = time.Now().Unix()
+		}
+		if task.Status == model.TaskStatusFailure {
+			task.FailReason = result.Immediate.Reason
+		}
+		if result.Immediate.Url != "" {
+			task.PrivateData.ResultURL = result.Immediate.Url
+		}
+	}
 	if err := task.Insert(); err != nil {
 		common.SysError("insert task error: " + err.Error())
 		return nil, service.TaskErrorWrapperLocal(errors.New("failed to persist task"), "task_insert_failed", http.StatusInternalServerError)
@@ -740,6 +766,30 @@ func executeTaskSubmission(c *gin.Context, relayInfo *relaycommon.RelayInfo) (*t
 	}
 	service.LogTaskConsumption(c, relayInfo)
 	return &taskSubmissionOutcome{Result: result, Task: task, RelayInfo: relayInfo}, nil
+}
+
+func presentTaskSubmission(c *gin.Context, outcome *taskSubmissionOutcome) {
+	if outcome == nil || outcome.Task == nil || outcome.RelayInfo == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "Task submission failed", "type": "new_api_error"}})
+		return
+	}
+	if pinnedValue, exists := c.Get(pluginruntime.ContextKeyPinnedEndpoint); exists {
+		if pinned, ok := pinnedValue.(pluginruntime.PinnedEndpoint); ok && pinned.Protocol == "openai_video" && pinned.Operation.Name == "create" {
+			c.JSON(http.StatusOK, outcome.Task.ToOpenAIVideo())
+			return
+		}
+	}
+	createdAt := outcome.Task.CreatedAt
+	if createdAt == 0 {
+		createdAt = outcome.Task.SubmitTime
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"id":         outcome.Task.TaskID,
+		"task_id":    outcome.Task.TaskID,
+		"status":     "queued",
+		"model":      outcome.RelayInfo.OriginModelName,
+		"created_at": createdAt,
+	})
 }
 
 // respondTaskError 统一输出 Task 错误响应（含 429 限流提示改写）

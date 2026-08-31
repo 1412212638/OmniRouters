@@ -34,6 +34,22 @@ type TaskPollingAdaptor interface {
 	AdjustBillingOnComplete(task *model.Task, taskResult *relaycommon.TaskInfo) int
 }
 
+type BatchTaskPollingAdaptor interface {
+	TaskPollingAdaptor
+	FetchMode() string
+	FetchBatchTasks(baseURL, key string, taskIDs []string, proxy string) (*http.Response, error)
+	ParseBatchResult(body []byte) (map[string]*BatchTaskResult, error)
+}
+
+type BatchTaskResult struct {
+	TaskInfo   relaycommon.TaskInfo
+	Action     string
+	SubmitTime int64
+	StartTime  int64
+	FinishTime int64
+	Data       any
+}
+
 // GetTaskAdaptorFunc 由 main 包注入，用于获取指定平台的任务适配器。
 // 打破 service -> relay -> relay/channel -> service 的循环依赖。
 var GetTaskAdaptorFunc func(platform constant.TaskPlatform) TaskPollingAdaptor

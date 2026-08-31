@@ -9,6 +9,7 @@ import (
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/relaykit/types"
+	hosttypes "github.com/QuantumNous/new-api/types"
 
 	"github.com/gin-gonic/gin"
 )
@@ -81,6 +82,52 @@ type TaskAdaptor interface {
 	ParseTaskResult(respBody []byte) (*relaycommon.TaskInfo, error)
 }
 
+type TaskSubmitResponse struct {
+	UpstreamTaskID string
+	TaskData       []byte
+	ClientResponse any
+	Immediate      *relaycommon.TaskInfo
+}
+
+type TaskResponseParser interface {
+	ParseResponse(c *gin.Context, resp *http.Response, info *relaycommon.RelayInfo) (*TaskSubmitResponse, *taskdto.TaskError)
+}
+
 type OpenAIVideoConverter interface {
 	ConvertToOpenAIVideo(originTask *model.Task) ([]byte, error)
+}
+
+type TaskArtifact = hosttypes.TaskArtifact
+
+type TaskArtifactClientRequest struct {
+	Method  string            `json:"method"`
+	Headers map[string]string `json:"headers,omitempty"`
+}
+
+type TaskArtifactProvider interface {
+	ListArtifacts(task *model.Task) ([]TaskArtifact, error)
+}
+
+type TaskContentRequest struct {
+	URL            string
+	Method         string
+	Headers        map[string]string
+	Body           []byte
+	Credentialless bool
+}
+
+type TaskContentRequestProvider interface {
+	BuildContentRequest(task *model.Task, artifactKey string, clientRequest TaskArtifactClientRequest) (*TaskContentRequest, error)
+}
+
+type TaskUsageFactsProvider interface {
+	ExtractUsageFacts(c *gin.Context, info *relaycommon.RelayInfo) map[string]any
+}
+
+type TaskValidatedBillingProvider interface {
+	EstimateBillingValidated(c *gin.Context, info *relaycommon.RelayInfo) (map[string]float64, error)
+}
+
+type TaskValidatedUsageFactsProvider interface {
+	ExtractUsageFactsValidated(c *gin.Context, info *relaycommon.RelayInfo) (map[string]any, error)
 }
