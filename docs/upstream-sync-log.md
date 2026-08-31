@@ -2,6 +2,18 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-08-31 (PostgreSQL compatibility and initialization dependencies)
+
+- Upstream sources: `6eb6f35ed` (PostgreSQL JSON compatibility) and `74158715c` (database initialization dependencies); `98d50d538` was rechecked and was already integrated.
+- Integrated:
+  - JSON model values now write as strings so PostgreSQL does not interpret JSON bytes as `bytea`.
+  - JSON scanners accept both `[]byte` and `string`, covering SQLite/MySQL/PostgreSQL driver return types.
+  - Updated `ChannelInfo`, `JSONValue`, task `Properties`, and `TaskPrivateData` while retaining the project `common` JSON wrappers.
+  - Updated the GORM MySQL/PostgreSQL driver versions required by the initialization fix.
+- Preserved local billing, Sora/audio-generation pricing, plugin, mail, branding, and frontend customizations.
+- Validation: production Go build passed; model tests remain blocked by pre-existing missing test helpers and fields. No live PostgreSQL DSN was available, so a real PostgreSQL migration test is still pending.
+- Local commit: `7d6909995` (`fix PostgreSQL JSON field compatibility`), pushed to `origin/main`.
+
 ## 2026-08-30 (task plugin migration, phase 1)
 
 - Upstream source: `eb48396d5` (`feat(task): replace built-in task adaptors with a sandboxed JS plugin system`)
