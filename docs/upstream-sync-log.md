@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-01 (Sora pricing detail display)
+
+- Local reason: simplify Sora per-second pricing in the model detail view.
+- Changed `web/default/src/features/pricing/components/model-details.tsx`: removed the base per-second price and resolution multiplier labels, leaving only final resolution prices; renamed the group price column to `Price`.
+- Preserved: all billing calculation and stored pricing configuration behavior.
+- Validation: `git diff --check`; Go/Bun tests not run because the local toolchains are unavailable.
+- Local commit and push status: pending.
+
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
 ## 2026-08-31 (PostgreSQL compatibility and initialization dependencies)
