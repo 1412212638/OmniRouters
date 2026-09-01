@@ -10,6 +10,15 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-09-01 (usage-log request audit tabs)
+
+- Local feature: expanded the existing usage-log detail dialog with `Basic Information`, administrator-only `Request Audit`, and administrator-only `Raw Data` tabs.
+- The request audit summarizes existing request identifiers, caller identity, routing/model mapping, retry chain, timing, token usage, billing path, parameter overrides, and diagnostics. Raw data shows only the log object already returned by the backend.
+- No request prompt, response body, or complete API key collection was added. Existing backend removal of `other.admin_info` for non-admin users remains authoritative, and non-admin users continue to see only the original detail view.
+- Added translations for the new tabs in English, Simplified/Traditional Chinese, French, Japanese, Russian, and Vietnamese.
+- Validation: locale JSON parsing, protected-header format check, and `git diff --check` passed. Full frontend build remains delegated to GitHub Actions because local frontend dependencies are not installed.
+- Code commit: `b3467bb80b` (`feat: add request audit to usage log details`).
+
 ## 2026-09-01 (task quota error retry and logging)
 
 - Local fix: task submission converted local billing errors into `TaskError` without retaining their local/skip-retry semantics. A wallet quota 403 was consequently treated as an upstream channel failure, recorded once per attempt, and retried through the same channel (`2 -> 2 -> 2 -> 2`).
