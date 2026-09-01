@@ -10,6 +10,13 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-09-01 (task usage-log route)
+
+- Local fix: the default frontend requested admin task logs at `/api/task`, while Gin registers the admin collection route as `/api/task/`, producing a 404 for administrators.
+- Updated the shared usage-log API path builder to add the collection trailing slash for admin requests; user requests continue using `/self`.
+- Preserved task-log filters, model visibility rules, and all local billing/plugin behavior.
+- Validation: source diff reviewed; frontend build was not run because the local frontend dependency setup is incomplete.
+
 ## 2026-08-31 (PostgreSQL compatibility and initialization dependencies)
 
 - Upstream sources: `6eb6f35ed` (PostgreSQL JSON compatibility) and `74158715c` (database initialization dependencies); `98d50d538` was rechecked and was already integrated.

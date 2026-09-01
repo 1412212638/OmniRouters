@@ -33,7 +33,9 @@ import type {
 // ============================================================================
 
 function buildApiPath(endpoint: string, isAdmin: boolean): string {
-  return isAdmin ? endpoint : `${endpoint}/self`
+	// Gin registers collection endpoints with a trailing slash. Keep the
+	// user endpoint unchanged because `/self` is a distinct route.
+	return isAdmin ? `${endpoint.replace(/\/$/, '')}/` : `${endpoint}/self`
 }
 
 async function fetchLogs<T>(
@@ -60,8 +62,8 @@ async function fetchLogStats<T>(
   const queryParams = buildQueryParams(
     params as unknown as Record<string, unknown>
   )
-  const path = buildApiPath(endpoint, isAdmin)
-  const res = await api.get(`${path}/stat?${queryParams}`)
+	const path = buildApiPath(endpoint, isAdmin)
+	const res = await api.get(`${path.replace(/\/$/, '')}/stat?${queryParams}`)
   return res.data
 }
 
