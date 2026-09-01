@@ -5596,6 +5596,8 @@
     "Unit": "Unit",
     "Enum values": "Enum values",
     "Installed": "Installed",
-    "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} channels, {{tasks}} in-flight tasks"
+    "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} channels, {{tasks}} in-flight tasks",
+    "Request Audit": "Request Audit",
+    "Raw Data": "Raw Data"
   }
 }

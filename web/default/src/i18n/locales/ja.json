@@ -5573,6 +5573,8 @@
     "Unit": "単位",
     "Enum values": "列挙値",
     "Installed": "インストール済み",
-    "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} チャンネル、処理中 {{tasks}} 件"
+    "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} チャンネル、処理中 {{tasks}} 件",
+    "Request Audit": "リクエスト監査",
+    "Raw Data": "生データ"
   }
 }

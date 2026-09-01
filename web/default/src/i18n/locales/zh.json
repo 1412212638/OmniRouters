@@ -5610,6 +5610,8 @@
     "Unit": "单位",
     "Enum values": "枚举值",
     "Installed": "已安装",
-    "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} 个渠道，{{tasks}} 个在途任务"
+    "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} 个渠道，{{tasks}} 个在途任务",
+    "Request Audit": "请求审计",
+    "Raw Data": "原始数据"
   }
 }

@@ -5573,6 +5573,8 @@
     "Unit": "Unité",
     "Enum values": "Valeurs de l'énumération",
     "Installed": "Installés",
-    "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} canaux, {{tasks}} tâches en cours"
+    "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} canaux, {{tasks}} tâches en cours",
+    "Request Audit": "Audit de la requête",
+    "Raw Data": "Données brutes"
   }
 }

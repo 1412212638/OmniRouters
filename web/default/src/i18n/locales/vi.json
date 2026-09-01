@@ -5574,6 +5574,8 @@
     "Unit": "Đơn vị",
     "Enum values": "Các giá trị liệt kê",
     "Installed": "Đã cài đặt",
-    "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} kênh, {{tasks}} tác vụ đang chạy"
+    "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} kênh, {{tasks}} tác vụ đang chạy",
+    "Request Audit": "Kiểm tra yêu cầu",
+    "Raw Data": "Dữ liệu thô"
   }
 }

@@ -5573,6 +5573,8 @@
     "Unit": "Единица",
     "Enum values": "Значения перечисления",
     "Installed": "Установленные",
-    "{{channels}} channels, {{tasks}} in-flight tasks": "Каналов: {{channels}}, активных задач: {{tasks}}"
+    "{{channels}} channels, {{tasks}} in-flight tasks": "Каналов: {{channels}}, активных задач: {{tasks}}",
+    "Request Audit": "Аудит запроса",
+    "Raw Data": "Исходные данные"
   }
 }

@@ -5339,6 +5339,8 @@
     "Marketplace": "外掛市集",
     "Disable task plugins?": "停用任務外掛？",
     "Factory and custom plugins all stop serving immediately. In-flight tasks will be handled by timeout cleanup.": "出廠外掛與自訂外掛將立即停止服務。進行中的任務將由逾時清理處理。",
-    "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} 個渠道，{{tasks}} 個進行中任務"
+    "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} 個渠道，{{tasks}} 個進行中任務",
+    "Request Audit": "請求稽核",
+    "Raw Data": "原始資料"
   }
 }

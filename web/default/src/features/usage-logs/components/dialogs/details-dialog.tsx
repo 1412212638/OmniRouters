@@ -38,6 +38,11 @@ import { Dialog } from '@/components/dialog'
 import { StatusBadge, type StatusBadgeProps } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  CodeBlock,
+  CodeBlockCopyButton,
+} from '@/components/ai-elements/code-block'
 import { DynamicPricingBreakdown } from '@/features/pricing/components/dynamic-pricing-breakdown'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { formatBillingCurrencyFromUSD } from '@/lib/currency'
@@ -579,6 +584,81 @@ export function DetailsDialog(props: DetailsDialogProps) {
   const useChannel = other?.admin_info?.use_channel
   const channelChain =
     useChannel && useChannel.length > 0 ? useChannel.join(' → ') : undefined
+  const auditData = props.isAdmin
+    ? {
+        request: {
+          request_id: props.log.request_id || undefined,
+          upstream_request_id: props.log.upstream_request_id || undefined,
+          created_at: props.log.created_at,
+          request_path: other?.request_path,
+          request_conversion: conversionChain,
+          stream: props.log.is_stream,
+        },
+        identity: {
+          user_id: props.log.user_id,
+          username: props.log.username || undefined,
+          token_id: props.log.token_id || undefined,
+          token_name: props.log.token_name || undefined,
+          group: props.log.group || other?.group || undefined,
+          ip: props.log.ip || undefined,
+        },
+        routing: {
+          requested_model: props.log.model_name || undefined,
+          upstream_model: mappedModelName || undefined,
+          channel_id: props.log.channel || undefined,
+          channel_name: props.log.channel_name || undefined,
+          retry_chain: useChannel,
+          multi_key_index: adminInfo?.is_multi_key
+            ? adminInfo.multi_key_index
+            : undefined,
+        },
+        result: {
+          log_type: typeConfig.label,
+          response_time_seconds: props.log.use_time || undefined,
+          prompt_tokens: props.log.prompt_tokens || 0,
+          completion_tokens: props.log.completion_tokens || 0,
+          quota: props.log.quota || 0,
+          stream_status: other?.stream_status,
+          error: details || undefined,
+        },
+        billing: {
+          source: other?.billing_source,
+          path: adminInfo?.usage_billing_path,
+          model_ratio: other?.model_ratio,
+          group_ratio: other?.group_ratio,
+          user_group_ratio: other?.user_group_ratio,
+          model_price: other?.model_price,
+          quota_saturation: adminInfo?.quota_saturation,
+        },
+        diagnostics: {
+          param_override: other?.po,
+          channel_affinity: adminInfo?.channel_affinity,
+          node_name: adminInfo?.node_name,
+        },
+      }
+    : null
+  const compactAuditData = auditData
+    ? JSON.parse(
+        JSON.stringify(auditData, (_key, value) => {
+          if (value === undefined || value === '' || value === null) return undefined
+          if (Array.isArray(value) && value.length === 0) return undefined
+          return value
+        })
+      )
+    : null
+  const rawLogData = props.isAdmin
+    ? JSON.stringify(
+        {
+          ...props.log,
+          other: other ?? {},
+        },
+        null,
+        2
+      )
+    : ''
+  const auditJson = compactAuditData
+    ? JSON.stringify(compactAuditData, null, 2)
+    : ''
 
   return (
     <Dialog
@@ -599,7 +679,9 @@ export function DetailsDialog(props: DetailsDialogProps) {
       contentClassName={cn(
         'min-w-0 overflow-hidden',
         'max-sm:max-h-[calc(100dvh-1.5rem)] max-sm:w-[calc(100vw-1.5rem)] max-sm:max-w-[calc(100vw-1.5rem)] max-sm:p-4',
-        isTieredBilling ? 'sm:max-w-4xl lg:max-w-5xl' : 'sm:max-w-lg'
+        isTieredBilling || props.isAdmin
+          ? 'sm:max-w-4xl lg:max-w-5xl'
+          : 'sm:max-w-lg'
       )}
       headerClassName='max-sm:gap-1'
       titleClassName='flex items-center gap-2 text-base'
@@ -607,7 +689,18 @@ export function DetailsDialog(props: DetailsDialogProps) {
       contentHeight='min(72dvh, 720px)'
       bodyClassName='pr-2 sm:pr-4'
     >
-      <div className='w-full max-w-full min-w-0 space-y-2.5 overflow-x-hidden py-1 sm:space-y-3'>
+      <Tabs defaultValue='details' className='w-full min-w-0'>
+        <TabsList className='mb-3 w-full justify-start overflow-x-auto'>
+          <TabsTrigger value='details'>{t('Basic Information')}</TabsTrigger>
+          {props.isAdmin && (
+            <TabsTrigger value='audit'>{t('Request Audit')}</TabsTrigger>
+          )}
+          {props.isAdmin && (
+            <TabsTrigger value='raw'>{t('Raw Data')}</TabsTrigger>
+          )}
+        </TabsList>
+        <TabsContent value='details' className='mt-0'>
+          <div className='w-full max-w-full min-w-0 space-y-2.5 overflow-x-hidden py-1 sm:space-y-3'>
         {/* Overview section - key identifiers */}
         <div className='min-w-0 space-y-1'>
           {props.log.request_id && (
@@ -1217,7 +1310,37 @@ export function DetailsDialog(props: DetailsDialogProps) {
             </div>
           </div>
         )}
-      </div>
+          </div>
+        </TabsContent>
+        {props.isAdmin && (
+          <TabsContent value='audit' className='mt-0 min-w-0'>
+            <CodeBlock
+              code={auditJson}
+              language='json'
+              title={t('Request Audit')}
+              enableCollapse={false}
+              maxExpandedLines={32}
+              showLineNumbers
+            >
+              <CodeBlockCopyButton />
+            </CodeBlock>
+          </TabsContent>
+        )}
+        {props.isAdmin && (
+          <TabsContent value='raw' className='mt-0 min-w-0'>
+            <CodeBlock
+              code={rawLogData}
+              language='json'
+              title={t('Raw Data')}
+              enableCollapse={false}
+              maxExpandedLines={32}
+              showLineNumbers
+            >
+              <CodeBlockCopyButton />
+            </CodeBlock>
+          </TabsContent>
+        )}
+      </Tabs>
     </Dialog>
   )
 }
