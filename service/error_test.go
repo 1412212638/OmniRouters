@@ -64,6 +64,24 @@ func TestResetStatusCode(t *testing.T) {
 	}
 }
 
+func TestTaskErrorFromAPIErrorPreservesLocalFailure(t *testing.T) {
+	apiErr := types.NewErrorWithStatusCode(
+		fmt.Errorf("user quota insufficient"),
+		types.ErrorCodeInsufficientUserQuota,
+		http.StatusForbidden,
+		types.ErrOptionWithSkipRetry(),
+		types.ErrOptionWithNoRecordErrorLog(),
+	)
+
+	taskErr := TaskErrorFromAPIError(apiErr)
+
+	require.NotNil(t, taskErr)
+	require.Equal(t, string(types.ErrorCodeInsufficientUserQuota), taskErr.Code)
+	require.Equal(t, http.StatusForbidden, taskErr.StatusCode)
+	require.Equal(t, "user quota insufficient", taskErr.Message)
+	require.True(t, taskErr.LocalError)
+}
+
 func TestRelayErrorHandlerTruncatesInvalidJSONBodyInLog(t *testing.T) {
 	withDebugEnabled(t, false)
 

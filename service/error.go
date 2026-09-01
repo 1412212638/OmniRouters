@@ -223,6 +223,10 @@ func TaskErrorFromAPIError(apiErr *types.NewAPIError) *taskdto.TaskError {
 		Code:       string(apiErr.GetErrorCode()),
 		Message:    apiErr.Err.Error(),
 		StatusCode: apiErr.StatusCode,
+		// API errors converted here are produced locally before an upstream
+		// task request succeeds (for example, quota pre-consumption). They must
+		// not be attributed to the selected channel or retried as upstream errors.
+		LocalError: true,
 		Error:      apiErr.Err,
 	}
 }
