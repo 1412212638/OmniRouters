@@ -10,6 +10,15 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-09-01 (task quota error retry and logging)
+
+- Local fix: task submission converted local billing errors into `TaskError` without retaining their local/skip-retry semantics. A wallet quota 403 was consequently treated as an upstream channel failure, recorded once per attempt, and retried through the same channel (`2 -> 2 -> 2 -> 2`).
+- `TaskErrorFromAPIError` now marks pre-upstream API failures as local errors. Insufficient quota still returns HTTP 403 with code `insufficient_user_quota`, but task submission no longer retries it or records it as a channel error.
+- Added a regression test covering status, message, error code, and local-error preservation.
+- Preserved real upstream task retry behavior for 429, 307, and eligible 5xx responses, along with all billing/refund logic.
+- Validation: targeted service regression test and `git diff --check` passed.
+- Code commit: `81ea90fa4a` (`fix task quota errors retrying as channel failures`).
+
 ## 2026-09-01 (task usage-log route)
 
 - Local fix: the default frontend requested admin task logs at `/api/task`, while Gin registers the admin collection route as `/api/task/`, producing a 404 for administrators.
