@@ -53,6 +53,14 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-09-02 (usage log quota statistic preservation)
+
+- Local reason: usage-log header showed `$0` even though individual consume logs had non-zero charges.
+- Changed `model/log.go`: scan RPM/TPM into a separate result structure so the second aggregate query cannot overwrite the quota returned by the first query.
+- Preserved: all-type and consume-only filtering, recent RPM/TPM window, billing writes, and quota units.
+- Validation: `git diff --check`; production build and package tests pending.
+- Local commit and push status: pending validation.
+
 ## 2026-09-02 (usage log statistics type sentinel)
 
 - Local reason: usage log header statistics were always zero when the frontend selected all log types.
