@@ -350,3 +350,26 @@ func TestSystemTaskUpdatesRequireUnexpiredLock(t *testing.T) {
 	assert.Equal(t, SystemTaskStatusRunning, reloaded.Status)
 	assert.Empty(t, reloaded.State)
 }
+
+func TestUpdateSystemTaskStateIdenticalPayloadDoesNotLoseLock(t *testing.T) {
+	// SQLite reports matched rows for unchanged UPDATEs; this protects the
+	// fallback lock check used by MySQL and other changed-row drivers.
+	truncateTables(t)
+	task, err := CreateSystemTask(SystemTaskTypeLogCleanup, nil, nil)
+	require.NoError(t, err)
+
+	runnerID := "runner-a"
+	_, claimed, err := ClaimSystemTask(task.ID, SystemTaskTypeLogCleanup, runnerID, common.GetTimestamp()+60)
+	require.NoError(t, err)
+	require.True(t, claimed)
+
+	state := testSystemTaskState{Total: 10, Processed: 10, Progress: 100, Remaining: 0}
+	require.NoError(t, UpdateSystemTaskState(task.TaskID, runnerID, state))
+	require.NoError(t, UpdateSystemTaskState(task.TaskID, runnerID, state))
+
+	require.NoError(t, FinishSystemTask(task.TaskID, runnerID, SystemTaskStatusSucceeded, map[string]int64{"deleted_count": 10}, ""))
+	finished, err := GetSystemTaskByTaskID(task.TaskID)
+	require.NoError(t, err)
+	require.NotNil(t, finished)
+	assert.Equal(t, SystemTaskStatusSucceeded, finished.Status)
+}
