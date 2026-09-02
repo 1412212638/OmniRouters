@@ -10,6 +10,15 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-09-02 (usage normalization, phase A)
+
+- Upstream source: `0ed497f06`, selectively integrated from the usage/billing portion only.
+- Integrated provider-native usage canonicalization for OpenAI Chat/Responses, Claude Messages, and Gemini Chat in `relaykit/dto`; Gemini estimated usage now retains reasoning, cache, and modality details.
+- Consolidated the service usage interpretation path onto `BillingUsage.CanonicalUsage()` and removed the duplicate conversion implementation.
+- Deliberately did not integrate stream-wide usage merging, hosted-tool conversion, reasoning protocol rewrites, or any new pre-consume/settlement behavior. Existing Sora per-call pricing, fixed `audio_generation` surcharge, dynamic pricing, plugin billing, refunds, and quota protections remain authoritative.
+- Validation: `go test ./dto` in the standalone `relaykit` module, targeted `service` tests, production Go build, and `git diff --check` passed.
+- Local changes are prepared as phase A only; the remaining upstream commit stays split for later review.
+
 ## 2026-09-02 (system task no-op state update)
 
 - Upstream source: `b7017c251` (`fix(model): do not treat no-op system task state writes as lock loss`).

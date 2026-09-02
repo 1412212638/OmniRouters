@@ -1,5 +1,7 @@
 package dto
 
+import "strings"
+
 const (
 	BillingUsageSourceClaudeMessages = "claude_messages"
 	BillingUsageSourceGeminiChat     = "gemini_chat"
@@ -100,7 +102,15 @@ func HasOpenAIUsageTokens(usage *Usage) bool {
 		usage.CompletionTokenDetails.AudioTokens != 0 {
 		return true
 	}
-	return usage.InputTokensDetails != nil
+	if usage.InputTokensDetails == nil {
+		return false
+	}
+	return usage.InputTokensDetails.CachedTokens != 0 ||
+		usage.InputTokensDetails.CachedCreationTokens != 0 ||
+		usage.InputTokensDetails.CacheWriteTokens != 0 ||
+		usage.InputTokensDetails.TextTokens != 0 ||
+		usage.InputTokensDetails.ImageTokens != 0 ||
+		usage.InputTokensDetails.AudioTokens != 0
 }
 
 func NewGeminiChatBillingUsage(metadata *GeminiUsageMetadata) *BillingUsage {
@@ -111,15 +121,150 @@ func NewEstimatedGeminiChatBillingUsage(usage *Usage) *BillingUsage {
 	if usage == nil {
 		return nil
 	}
+	reasoningTokens := usage.CompletionTokenDetails.ReasoningTokens
+	candidateTokens := usage.CompletionTokens - reasoningTokens
+	if candidateTokens < 0 {
+		candidateTokens = 0
+	}
 	totalTokens := usage.TotalTokens
 	if totalTokens == 0 {
 		totalTokens = usage.PromptTokens + usage.CompletionTokens
 	}
-	return newGeminiChatBillingUsage(&GeminiUsageMetadata{
-		PromptTokenCount:     usage.PromptTokens,
-		CandidatesTokenCount: usage.CompletionTokens,
-		TotalTokenCount:      totalTokens,
-	}, true)
+	metadata := &GeminiUsageMetadata{
+		PromptTokenCount:        usage.PromptTokens,
+		CandidatesTokenCount:    candidateTokens,
+		TotalTokenCount:         totalTokens,
+		ThoughtsTokenCount:      reasoningTokens,
+		CachedContentTokenCount: usage.PromptTokensDetails.CachedTokens,
+	}
+	for _, detail := range []GeminiPromptTokensDetails{
+		{Modality: "TEXT", TokenCount: usage.PromptTokensDetails.TextTokens},
+		{Modality: "IMAGE", TokenCount: usage.PromptTokensDetails.ImageTokens},
+		{Modality: "AUDIO", TokenCount: usage.PromptTokensDetails.AudioTokens},
+	} {
+		if detail.TokenCount != 0 {
+			metadata.PromptTokensDetails = append(metadata.PromptTokensDetails, detail)
+		}
+	}
+	for _, detail := range []GeminiPromptTokensDetails{
+		{Modality: "TEXT", TokenCount: usage.CompletionTokenDetails.TextTokens},
+		{Modality: "IMAGE", TokenCount: usage.CompletionTokenDetails.ImageTokens},
+		{Modality: "AUDIO", TokenCount: usage.CompletionTokenDetails.AudioTokens},
+	} {
+		if detail.TokenCount != 0 {
+			metadata.CandidatesTokensDetails = append(metadata.CandidatesTokensDetails, detail)
+		}
+	}
+	return newGeminiChatBillingUsage(metadata, true)
+}
+
+// CanonicalUsage converts a provider-native usage snapshot back to the shared
+// usage shape while retaining the native snapshot for later presentation.
+func (usage *BillingUsage) CanonicalUsage() (*Usage, bool) {
+	if usage == nil {
+		return nil, false
+	}
+	source := strings.TrimSpace(usage.Source)
+	semantic := strings.TrimSpace(usage.Semantic)
+	if HasOpenAIUsageTokens(usage.OpenAIUsage) &&
+		(strings.EqualFold(source, BillingUsageSourceOAIChat) || strings.EqualFold(source, BillingUsageSourceOAIResponses) || strings.EqualFold(semantic, BillingUsageSemanticOpenAI)) {
+		return canonicalOpenAIUsage(usage), true
+	}
+	if HasClaudeUsageTokens(usage.ClaudeUsage) &&
+		(strings.EqualFold(source, BillingUsageSourceClaudeMessages) || strings.EqualFold(semantic, BillingUsageSemanticAnthropic)) {
+		return canonicalClaudeUsage(usage), true
+	}
+	if HasGeminiUsageMetadataTokens(usage.GeminiUsageMetadata) &&
+		(strings.EqualFold(source, BillingUsageSourceGeminiChat) || strings.EqualFold(semantic, BillingUsageSemanticGemini)) {
+		return canonicalGeminiUsage(usage), true
+	}
+	return nil, false
+}
+
+func canonicalOpenAIUsage(billing *BillingUsage) *Usage {
+	canonical := cloneOpenAIUsage(billing.OpenAIUsage)
+	if canonical.PromptTokens == 0 {
+		canonical.PromptTokens = canonical.InputTokens
+	}
+	if canonical.CompletionTokens == 0 {
+		canonical.CompletionTokens = canonical.OutputTokens
+	}
+	if canonical.InputTokens == 0 {
+		canonical.InputTokens = canonical.PromptTokens
+	}
+	if canonical.OutputTokens == 0 {
+		canonical.OutputTokens = canonical.CompletionTokens
+	}
+	if canonical.TotalTokens == 0 {
+		canonical.TotalTokens = canonical.PromptTokens + canonical.CompletionTokens
+	}
+	if d := canonical.InputTokensDetails; d != nil {
+		if canonical.PromptTokensDetails.CachedTokens == 0 {
+			canonical.PromptTokensDetails.CachedTokens = d.CachedTokens
+		}
+		if canonical.PromptTokensDetails.CachedCreationTokens == 0 {
+			canonical.PromptTokensDetails.CachedCreationTokens = d.CachedCreationTokens
+		}
+		if canonical.PromptTokensDetails.CacheWriteTokens == 0 {
+			canonical.PromptTokensDetails.CacheWriteTokens = d.CacheWriteTokens
+		}
+		if canonical.PromptTokensDetails.TextTokens == 0 {
+			canonical.PromptTokensDetails.TextTokens = d.TextTokens
+		}
+		if canonical.PromptTokensDetails.ImageTokens == 0 {
+			canonical.PromptTokensDetails.ImageTokens = d.ImageTokens
+		}
+		if canonical.PromptTokensDetails.AudioTokens == 0 {
+			canonical.PromptTokensDetails.AudioTokens = d.AudioTokens
+		}
+	}
+	if canonical.PromptTokensDetails.CachedTokens == 0 {
+		canonical.PromptTokensDetails.CachedTokens = canonical.PromptCacheHitTokens
+	}
+	canonical.UsageSemantic = BillingUsageSemanticOpenAI
+	canonical.UsageSource = billing.Source
+	canonical.BillingUsage = CloneBillingUsage(billing)
+	return canonical
+}
+
+func canonicalClaudeUsage(billing *BillingUsage) *Usage {
+	u := billing.ClaudeUsage
+	return &Usage{PromptTokens: u.InputTokens, CompletionTokens: u.OutputTokens, TotalTokens: u.InputTokens + u.OutputTokens, InputTokens: u.InputTokens + u.CacheReadInputTokens + u.CacheCreationInputTokens, OutputTokens: u.OutputTokens, UsageSemantic: BillingUsageSemanticAnthropic, UsageSource: BillingUsageSourceClaudeMessages, BillingUsage: CloneBillingUsage(billing), ClaudeCacheCreation5mTokens: u.GetCacheCreation5mTokens(), ClaudeCacheCreation1hTokens: u.GetCacheCreation1hTokens(), PromptTokensDetails: InputTokenDetails{CachedTokens: u.CacheReadInputTokens, CachedCreationTokens: u.CacheCreationInputTokens}}
+}
+
+func canonicalGeminiUsage(billing *BillingUsage) *Usage {
+	m := billing.GeminiUsageMetadata
+	u := &Usage{PromptTokens: m.PromptTokenCount + m.ToolUsePromptTokenCount, CompletionTokens: m.CandidatesTokenCount + m.ThoughtsTokenCount, TotalTokens: m.TotalTokenCount, UsageSemantic: BillingUsageSemanticGemini, UsageSource: BillingUsageSourceGeminiChat, BillingUsage: CloneBillingUsage(billing)}
+	u.CompletionTokenDetails.ReasoningTokens = m.ThoughtsTokenCount
+	u.PromptTokensDetails.CachedTokens = m.CachedContentTokenCount
+	for _, d := range append(append([]GeminiPromptTokensDetails{}, m.PromptTokensDetails...), m.ToolUsePromptTokensDetails...) {
+		addGeminiInputTokenDetail(&u.PromptTokensDetails, d)
+	}
+	for _, d := range m.CandidatesTokensDetails {
+		switch d.Modality {
+		case "TEXT":
+			u.CompletionTokenDetails.TextTokens += d.TokenCount
+		case "IMAGE":
+			u.CompletionTokenDetails.ImageTokens += d.TokenCount
+		case "AUDIO":
+			u.CompletionTokenDetails.AudioTokens += d.TokenCount
+		}
+	}
+	if u.TotalTokens == 0 {
+		u.TotalTokens = u.PromptTokens + u.CompletionTokens
+	}
+	return u
+}
+
+func addGeminiInputTokenDetail(details *InputTokenDetails, d GeminiPromptTokensDetails) {
+	switch d.Modality {
+	case "TEXT":
+		details.TextTokens += d.TokenCount
+	case "IMAGE":
+		details.ImageTokens += d.TokenCount
+	case "AUDIO":
+		details.AudioTokens += d.TokenCount
+	}
 }
 
 func newGeminiChatBillingUsage(metadata *GeminiUsageMetadata, estimated bool) *BillingUsage {
