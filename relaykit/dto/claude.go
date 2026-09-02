@@ -28,11 +28,13 @@ type ClaudeMediaMessage struct {
 	Delta        string               `json:"delta,omitempty"`
 	CacheControl json.RawMessage      `json:"cache_control,omitempty"`
 	// tool_calls
-	Id        string `json:"id,omitempty"`
-	Name      string `json:"name,omitempty"`
-	Input     any    `json:"input,omitempty"`
-	Content   any    `json:"content,omitempty"`
-	ToolUseId string `json:"tool_use_id,omitempty"`
+	Id        string          `json:"id,omitempty"`
+	Name      string          `json:"name,omitempty"`
+	Input     any             `json:"input,omitempty"`
+	Content   any             `json:"content,omitempty"`
+	Citations json.RawMessage `json:"citations,omitempty"`
+	Citation  json.RawMessage `json:"citation,omitempty"`
+	ToolUseId string          `json:"tool_use_id,omitempty"`
 }
 
 func (c *ClaudeMediaMessage) SetText(s string) {

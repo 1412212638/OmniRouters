@@ -472,7 +472,7 @@ func TestConvertRequestResponsesToClaudeUsesDirectConverter(t *testing.T) {
 	}
 	stream := true
 	parallelToolCalls := false
-	maxOutputTokens := uint(512)
+	maxOutputTokens := uint(2048)
 	req := &dto.OpenAIResponsesRequest{
 		Model:             "claude-test",
 		Instructions:      mustRawMessage(t, "system rules"),
@@ -542,7 +542,7 @@ func TestConvertRequestResponsesToClaudeUsesDirectConverter(t *testing.T) {
 	assert.Equal(t, maxOutputTokens, *claudeReq.MaxTokens)
 	require.NotNil(t, claudeReq.Thinking)
 	assert.Equal(t, "enabled", claudeReq.Thinking.Type)
-	assert.Equal(t, 2048, claudeReq.Thinking.GetBudgetTokens())
+	assert.Equal(t, 1024, claudeReq.Thinking.GetBudgetTokens())
 
 	tools, err := kitutil.Any2Type[[]*dto.Tool](claudeReq.Tools)
 	require.NoError(t, err)

@@ -110,6 +110,7 @@ type RelayInfo struct {
 	IsFirstRequest         bool
 	AudioUsage             bool
 	ReasoningEffort        string
+	ReasoningConversion    *dto.ReasoningConversionState
 	UserSetting            dto.UserSetting
 	UserEmail              string
 	UserQuota              int
@@ -721,6 +722,13 @@ func (info *RelayInfo) SetReasoningEffort(effort string) {
 	info.ReasoningEffort = effort
 }
 
+func (info *RelayInfo) ReasoningState() *dto.ReasoningConversionState {
+	if info == nil {
+		return nil
+	}
+	return info.ReasoningConversion
+}
+
 func (info *RelayInfo) EnsureClaudeConvertInfo() *convmeta.ClaudeConvertInfo {
 	if info == nil {
 		return &convmeta.ClaudeConvertInfo{
@@ -773,6 +781,8 @@ func (info *RelayInfo) ConvOptions() *convmeta.Options {
 		},
 		OpenRouterDialect:      info != nil && info.GetChannelType() == constant.ChannelTypeOpenRouter,
 		PreserveThinkingSuffix: model_setting.ShouldPreserveThinkingSuffix,
+		// PreserveEffortTail remains nil until the host-level model blacklist
+		// setting is introduced; the reasoning core treats nil as no override.
 	}
 	if info != nil {
 		info.convOptions = options

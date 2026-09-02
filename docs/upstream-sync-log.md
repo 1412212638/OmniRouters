@@ -33,6 +33,15 @@
 - Validation: `relaykit/relayconvert/internal/oai_responses` tests, OpenAI Responses/channel tests, production Go build, and `git diff --check` passed.
 - Local commit: `bafa5f80e` (`sync upstream Responses to Chat conversion`); remote verification confirms it is present on `origin/main` despite a transient `unexpected eof` reported after upload.
 
+## 2026-09-02 (Responses to Claude conversion, phase F)
+
+- Upstream source: `0ed497f06`, OpenAI Responses to Claude Messages conversion.
+- Integrated direct Claude request conversion with portable reasoning state, Claude usage mapping, ordinary response conversion, streaming response state handling, citations, and the required host conversion metadata/DTO fields.
+- Updated compatibility tests and the response golden fixture for preserved reasoning content. Hosted Tools/toolconv and Responses-to-Gemini remain separate follow-up work.
+- Preserved local Sora per-call pricing, fixed `audio_generation` surcharge, dynamic pricing, plugin billing, refunds, and usage-log behavior.
+- Validation: `relaykit` conversion tests, relay metadata tests, targeted channel tests, production Go build, and `git diff --check` passed.
+- Local commit and push status: pending.
+
 ## 2026-09-02 (reasoning core, phase D)
 
 - Upstream source: `0ed497f06`, reasoning normalization and model suffix support.
