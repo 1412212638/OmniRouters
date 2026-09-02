@@ -31,7 +31,7 @@
 - Integrated reasoning-aware Responses request mapping, response reasoning/citation preservation, sparse stream event handling, annotation propagation, and the required Responses/Chat DTO fields.
 - Deliberately deferred Responses-to-Claude/Gemini target conversion and Hosted Tools/toolconv. No billing, task plugin, Sora, or `audio_generation` behavior was changed.
 - Validation: `relaykit/relayconvert/internal/oai_responses` tests, OpenAI Responses/channel tests, production Go build, and `git diff --check` passed.
-- Local commit and push status: pending.
+- Local commit: `bafa5f80e` (`sync upstream Responses to Chat conversion`); remote verification confirms it is present on `origin/main` despite a transient `unexpected eof` reported after upload.
 
 ## 2026-09-02 (reasoning core, phase D)
 
