@@ -49,7 +49,7 @@
 - Integrated reasoning-aware thinking configuration, explicit zero-value preservation for `top_p` and `max_output_tokens`, function-call response IDs, and the required Gemini DTO compatibility field.
 - Deliberately deferred Gemini grounding/hosted-tool response conversion and toolconv. No billing, task plugin, Sora, or `audio_generation` behavior was changed.
 - Validation: Responses converter tests, Gemini/OpenAI targeted channel tests, production Go build, and `git diff --check` passed.
-- Local commit and push status: pending.
+- Local commit: `9283bd5fa` (`sync upstream Responses to Gemini request conversion`); remote verification confirms it is present on `origin/main` despite transient TLS/ref-lock messages.
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
