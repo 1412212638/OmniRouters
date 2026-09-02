@@ -23,7 +23,7 @@
 - Deliberately did not integrate the host helper that depends on upstream-only `RelayInfo.ReasoningConversion` and `ConvOptions.PreserveEffortTail`; it requires the broader conversion-host refactor. Responses stream conversion, Claude/Gemini host conversion, and hosted tools remain separate follow-up stages.
 - Preserved local Sora per-call pricing, fixed `audio_generation` surcharge, dynamic pricing, plugin billing, refunds, and usage-log behavior.
 - Validation: reasoning package tests, OpenAI Responses/OAI chat converter tests, targeted channel tests, production Go build, and `git diff --check` passed after excluding the host helper.
-- Local commit and push status: pending.
+- Local commit: `771434efe` (`sync upstream reasoning core phase D`); remote `origin/main` now points to this commit. The push command reported a transient ref-lock race, but remote verification confirmed the commit is present.
 
 ## 2026-09-02 (reasoning core, phase D)
 
