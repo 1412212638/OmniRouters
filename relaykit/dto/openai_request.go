@@ -86,6 +86,8 @@ type GeneralOpenAIRequest struct {
 	// OpenRouter Params
 	Usage     json.RawMessage `json:"usage,omitempty"`
 	Reasoning json.RawMessage `json:"reasoning,omitempty"`
+	// ReasoningConversion carries in-process conversion state only.
+	ReasoningConversion *ReasoningConversionState `json:"-"`
 	// Ali Qwen Params
 	VlHighResolutionImages json.RawMessage `json:"vl_high_resolution_images,omitempty"`
 	EnableThinking         json.RawMessage `json:"enable_thinking,omitempty"`
@@ -877,6 +879,8 @@ type OpenAIResponsesRequest struct {
 	PresencePenalty    json.RawMessage `json:"presence_penalty,omitempty"`
 	PreviousResponseID string          `json:"previous_response_id,omitempty"`
 	Reasoning          *Reasoning      `json:"reasoning,omitempty"`
+	// ReasoningConversion carries in-process conversion state only.
+	ReasoningConversion *ReasoningConversionState `json:"-"`
 	// ServiceTier specifies upstream service level and may affect billing.
 	// This field is filtered by default and can be enabled via channel setting allow_service_tier.
 	ServiceTier string `json:"service_tier,omitempty"`

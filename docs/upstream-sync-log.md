@@ -16,6 +16,24 @@
 - Validation: existing targeted billing, tiered settlement, task refund, and quota safety tests were reviewed; no source changes were made in this review-only phase.
 - Local commit and push status: no new code commit; the review record is included in `9c1badd67`, which is pushed to `origin/main`.
 
+## 2026-09-02 (reasoning core, phase D review)
+
+- Upstream source reviewed: `0ed497f06`, reasoning normalization and model-suffix handling.
+- Integrated the protocol-independent reasoning intent/rendering core, suffix parsing, conversion-state DTO, and focused upstream reasoning tests. Existing legacy `TrimEffortSuffix` behavior remains available for current converters.
+- Deliberately did not integrate the host helper that depends on upstream-only `RelayInfo.ReasoningConversion` and `ConvOptions.PreserveEffortTail`; it requires the broader conversion-host refactor. Responses stream conversion, Claude/Gemini host conversion, and hosted tools remain separate follow-up stages.
+- Preserved local Sora per-call pricing, fixed `audio_generation` surcharge, dynamic pricing, plugin billing, refunds, and usage-log behavior.
+- Validation: reasoning package tests, OpenAI Responses/OAI chat converter tests, targeted channel tests, production Go build, and `git diff --check` passed after excluding the host helper.
+- Local commit and push status: pending.
+
+## 2026-09-02 (reasoning core, phase D)
+
+- Upstream source: `0ed497f06`, reasoning normalization and model suffix support.
+- Integrated the protocol-independent reasoning intent/rendering core for Claude and Gemini, model suffix parsing, in-process reasoning state on OpenAI request DTOs, and compatibility for existing OpenAI suffix callers.
+- Deliberately deferred the host-level `ApplyReasoningModelSuffix` helper because it depends on upstream-only `RelayInfo` and conversion-option fields. Full Responses streaming, Claude/Gemini host conversion, and Hosted Tools/toolconv remain separate stages.
+- Preserved local Sora per-call pricing, fixed `audio_generation` surcharge, dynamic pricing, plugin billing, refunds, and usage-log behavior.
+- Validation: all `relaykit` tests, targeted OpenAI/Gemini/DeepSeek/Claude channel tests, production Go build, and `git diff --check` passed.
+- Local commit and push status: pending.
+
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
 ## 2026-09-02 (usage stream merging, phase B)
