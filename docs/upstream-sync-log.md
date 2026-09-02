@@ -43,6 +43,14 @@
 - Validation: `relaykit` conversion tests, relay metadata tests, targeted channel tests, production Go build, and `git diff --check` passed.
 - Local commits: `0f884cfa9` (`sync upstream Responses to Claude conversion`) and `30a12c89f` (`fix include Claude conversion dependencies`); remote verification confirms both are present on `origin/main` despite transient TLS/ref-lock messages.
 
+## 2026-09-02 (Responses to Gemini request conversion, phase G)
+
+- Upstream source: `0ed497f06`, OpenAI Responses to Gemini request conversion.
+- Integrated reasoning-aware thinking configuration, explicit zero-value preservation for `top_p` and `max_output_tokens`, function-call response IDs, and the required Gemini DTO compatibility field.
+- Deliberately deferred Gemini grounding/hosted-tool response conversion and toolconv. No billing, task plugin, Sora, or `audio_generation` behavior was changed.
+- Validation: Responses converter tests, Gemini/OpenAI targeted channel tests, production Go build, and `git diff --check` passed.
+- Local commit and push status: pending.
+
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
 ## 2026-09-02 (usage stream merging, phase B)
