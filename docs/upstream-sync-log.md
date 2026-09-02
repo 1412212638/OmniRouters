@@ -6,7 +6,8 @@
 - Changed `web/default/src/features/pricing/components/model-details.tsx`: removed the base per-second price and resolution multiplier labels, leaving only final resolution prices; renamed the group price column to `Price`.
 - Preserved: all billing calculation and stored pricing configuration behavior.
 - Validation: `git diff --check`; Go/Bun tests not run because the local toolchains are unavailable.
-- Local commit: `9e05339da` (`sync upstream stream usage merging phase B`), included in `9c1badd67`; pushed successfully to `origin/main` after switching the Git connection to OpenSSL.
+- Validation: `git diff --check`; Go/Bun tests not run because the local toolchains were unavailable.
+- Local commit and push status: this local change predates the current upstream-sync tracking entries.
 
 ## 2026-09-02 (billing settlement, phase C review)
 
@@ -40,16 +41,7 @@
 - Updated compatibility tests and the response golden fixture for preserved reasoning content. Hosted Tools/toolconv and Responses-to-Gemini remain separate follow-up work.
 - Preserved local Sora per-call pricing, fixed `audio_generation` surcharge, dynamic pricing, plugin billing, refunds, and usage-log behavior.
 - Validation: `relaykit` conversion tests, relay metadata tests, targeted channel tests, production Go build, and `git diff --check` passed.
-- Local commit and push status: pending.
-
-## 2026-09-02 (reasoning core, phase D)
-
-- Upstream source: `0ed497f06`, reasoning normalization and model suffix support.
-- Integrated the protocol-independent reasoning intent/rendering core for Claude and Gemini, model suffix parsing, in-process reasoning state on OpenAI request DTOs, and compatibility for existing OpenAI suffix callers.
-- Deliberately deferred the host-level `ApplyReasoningModelSuffix` helper because it depends on upstream-only `RelayInfo` and conversion-option fields. Full Responses streaming, Claude/Gemini host conversion, and Hosted Tools/toolconv remain separate stages.
-- Preserved local Sora per-call pricing, fixed `audio_generation` surcharge, dynamic pricing, plugin billing, refunds, and usage-log behavior.
-- Validation: all `relaykit` tests, targeted OpenAI/Gemini/DeepSeek/Claude channel tests, production Go build, and `git diff --check` passed.
-- Local commit and push status: pending.
+- Local commits: `0f884cfa9` (`sync upstream Responses to Claude conversion`) and `30a12c89f` (`fix include Claude conversion dependencies`); remote verification confirms both are present on `origin/main` despite transient TLS/ref-lock messages.
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
@@ -60,7 +52,16 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Updated OpenAI Chat final-frame handling, OpenAI Responses completion-event handling, and Gemini streaming metadata accumulation to merge cumulative usage instead of allowing a later sparse frame to erase token/cache/modality data.
 - Deliberately deferred the same commit's hosted-tool conversion, reasoning/Responses protocol rewrites, broader Claude/Gemini conversion changes, and billing pre-consume/settlement changes. Existing Sora per-call pricing, fixed `audio_generation` surcharge, dynamic pricing, plugin billing, refunds, and quota protections remain unchanged.
 - Validation: `go test ./dto` in `relaykit`, targeted usage tests for Gemini/OpenAI/Claude, production Go build, and `git diff --check` passed.
-- Local commit and push status: pending.
+- Local commit: `9e05339da` (`sync upstream stream usage merging phase B`), included in `9c1badd67`; pushed successfully to `origin/main` after switching the Git connection to OpenSSL.
+
+## 2026-09-02 (reasoning core, phase D)
+
+- Upstream source: `0ed497f06`, reasoning normalization and model suffix support.
+- Integrated the protocol-independent reasoning intent/rendering core for Claude and Gemini, model suffix parsing, in-process reasoning state on OpenAI request DTOs, and compatibility for existing OpenAI suffix callers.
+- Deliberately deferred the host helper until the surrounding host conversion state was available; it is now represented by the compatible `RelayInfo`/`convmeta` state additions in the Claude conversion phase. Full Hosted Tools/toolconv remains separate.
+- Preserved local Sora per-call pricing, fixed `audio_generation` surcharge, dynamic pricing, plugin billing, refunds, and usage-log behavior.
+- Validation: all `relaykit` tests, targeted channel tests, production Go build, and `git diff --check` passed.
+- Local commit: `771434efe` (`sync upstream reasoning core phase D`), pushed to `origin/main`.
 
 ## 2026-09-02 (usage normalization, phase A)
 
