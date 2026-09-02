@@ -6,7 +6,15 @@
 - Changed `web/default/src/features/pricing/components/model-details.tsx`: removed the base per-second price and resolution multiplier labels, leaving only final resolution prices; renamed the group price column to `Price`.
 - Preserved: all billing calculation and stored pricing configuration behavior.
 - Validation: `git diff --check`; Go/Bun tests not run because the local toolchains are unavailable.
-- Local commit and push status: pending.
+- Local commit: `9e05339da` (`sync upstream stream usage merging phase B`). Push status: pending because the GitHub HTTPS TLS handshake failed; remote `main` still points to `b250536ca`.
+
+## 2026-09-02 (billing settlement, phase C review)
+
+- Upstream source reviewed: `0ed497f06`, billing and settlement-related portions.
+- Result: no additional code was integrated in this phase. The current code already has `BillingSession` pre-consume/settle/refund orchestration, tiered-expression actual-usage settlement, quota saturation protection, and local Sora per-call plus fixed `audio_generation` surcharge handling.
+- Deliberately skipped upstream changes that would alter local semantics: removing group-model ratios, changing quota-notification links/templates, changing subscription-to-wallet fallback rules, and the broad task/plugin billing rewrite. These require a separate compatibility design and must not overwrite OmniRouters billing behavior.
+- Validation: existing targeted billing, tiered settlement, task refund, and quota safety tests were reviewed; no source changes were made in this review-only phase.
+- Local commit and push status: no new code commit; phase B commit `9e05339da` remains pending push due to the GitHub TLS connection failure.
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
