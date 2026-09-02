@@ -3,6 +3,7 @@ package dto
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
 	"github.com/QuantumNous/new-api/relaykit/types"
@@ -15,6 +16,72 @@ const (
 type SimpleResponse struct {
 	Usage `json:"usage"`
 	Error any `json:"error"`
+}
+
+// NormalizeResponsesWebSearchAction validates and canonicalizes web-search
+// action unions emitted by hosted-tool adapters.
+func NormalizeResponsesWebSearchAction(raw json.RawMessage) (json.RawMessage, error) {
+	var action struct {
+		Type    string          `json:"type"`
+		Query   string          `json:"query"`
+		Queries []string        `json:"queries"`
+		Sources json.RawMessage `json:"sources"`
+		URL     string          `json:"url"`
+		Pattern string          `json:"pattern"`
+	}
+	if err := kitutil.Unmarshal(raw, &action); err != nil {
+		return nil, fmt.Errorf("decode Responses web-search action: %w", err)
+	}
+	action.Type = strings.TrimSpace(action.Type)
+	action.Query = strings.TrimSpace(action.Query)
+	action.URL = strings.TrimSpace(action.URL)
+	action.Pattern = strings.TrimSpace(action.Pattern)
+	for i := range action.Queries {
+		action.Queries[i] = strings.TrimSpace(action.Queries[i])
+		if action.Queries[i] == "" {
+			return nil, fmt.Errorf("Responses web-search action queries[%d] must not be empty", i)
+		}
+	}
+	if action.Type == "" && (action.Query != "" || len(action.Queries) > 0) {
+		action.Type = "search"
+	}
+	var canonical any
+	switch action.Type {
+	case "search":
+		if action.Query == "" && len(action.Queries) == 0 {
+			return nil, fmt.Errorf("Responses web-search action %q requires query or queries", action.Type)
+		}
+		canonical = struct {
+			Type    string          `json:"type"`
+			Query   string          `json:"query,omitempty"`
+			Queries []string        `json:"queries,omitempty"`
+			Sources json.RawMessage `json:"sources,omitempty"`
+		}{action.Type, action.Query, action.Queries, action.Sources}
+	case "open_page":
+		if action.URL == "" {
+			return nil, fmt.Errorf("Responses web-search action %q requires url", action.Type)
+		}
+		canonical = struct {
+			Type string `json:"type"`
+			URL  string `json:"url"`
+		}{action.Type, action.URL}
+	case "find", "find_in_page":
+		if action.URL == "" || action.Pattern == "" {
+			return nil, fmt.Errorf("Responses web-search action %q requires url and pattern", action.Type)
+		}
+		canonical = struct {
+			Type    string `json:"type"`
+			URL     string `json:"url"`
+			Pattern string `json:"pattern"`
+		}{"find_in_page", action.URL, action.Pattern}
+	default:
+		return nil, fmt.Errorf("unsupported Responses web-search action type %q", action.Type)
+	}
+	encoded, err := kitutil.Marshal(canonical)
+	if err != nil {
+		return nil, fmt.Errorf("encode Responses web-search action: %w", err)
+	}
+	return encoded, nil
 }
 
 // GetOpenAIError 从动态错误类型中提取OpenAIError结构
@@ -327,18 +394,32 @@ type IncompleteDetails struct {
 }
 
 type ResponsesOutput struct {
-	Type      string                          `json:"type"`
-	ID        string                          `json:"id"`
-	Status    string                          `json:"status"`
-	Role      string                          `json:"role"`
-	Content   []ResponsesOutputContent        `json:"content"`
-	Quality   string                          `json:"quality"`
-	Size      string                          `json:"size"`
-	Result    string                          `json:"result,omitempty"`
-	CallId    string                          `json:"call_id,omitempty"`
-	Name      string                          `json:"name,omitempty"`
-	Arguments json.RawMessage                 `json:"arguments,omitempty"`
-	Summary   []ResponsesReasoningSummaryPart `json:"summary,omitempty"`
+	Type                string                          `json:"type"`
+	ID                  string                          `json:"id"`
+	Status              string                          `json:"status"`
+	Role                string                          `json:"role"`
+	Content             []ResponsesOutputContent        `json:"content"`
+	Quality             string                          `json:"quality"`
+	Size                string                          `json:"size"`
+	Result              string                          `json:"result,omitempty"`
+	CallId              string                          `json:"call_id,omitempty"`
+	Name                string                          `json:"name,omitempty"`
+	Arguments           json.RawMessage                 `json:"arguments,omitempty"`
+	Summary             []ResponsesReasoningSummaryPart `json:"summary,omitempty"`
+	Action              json.RawMessage                 `json:"action,omitempty"`
+	Queries             json.RawMessage                 `json:"queries,omitempty"`
+	Results             json.RawMessage                 `json:"results,omitempty"`
+	Sources             json.RawMessage                 `json:"sources,omitempty"`
+	Code                json.RawMessage                 `json:"code,omitempty"`
+	Outputs             json.RawMessage                 `json:"outputs,omitempty"`
+	ContainerID         string                          `json:"container_id,omitempty"`
+	PendingSafetyChecks json.RawMessage                 `json:"pending_safety_checks,omitempty"`
+	Caller              json.RawMessage                 `json:"caller,omitempty"`
+	ServerLabel         string                          `json:"server_label,omitempty"`
+	Output              json.RawMessage                 `json:"output,omitempty"`
+	ItemError           json.RawMessage                 `json:"error,omitempty"`
+	ApprovalRequestID   string                          `json:"approval_request_id,omitempty"`
+	MCPTools            json.RawMessage                 `json:"tools,omitempty"`
 }
 
 // ArgumentsString returns function call arguments in the string form expected by Chat Completions.

@@ -53,6 +53,16 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-09-02 (Hosted Tools/toolconv follow-up)
+
+- Upstream source: `0ed497f06`, hosted tool conversion and protocol DTO dependencies.
+- Integrated the portable `relaykit` tool conversion package, conversion-loss diagnostics/policy, hosted-tool response artifact handling, web-search action normalization, Gemini grounding metadata compatibility, Claude server-tool fields, and Responses hosted-tool output fields.
+- Updated the Responses-to-Gemini golden fixture to preserve function-call IDs in function calls and results.
+- Deliberately did not alter the host routing/relay selection layer or local task-plugin system; this stage supplies and tests protocol conversion primitives only.
+- Preserved local Sora per-call pricing, fixed `audio_generation` surcharge, dynamic pricing, plugin billing, refunds, and usage-log behavior.
+- Validation: `go test ./relayconvert/internal/toolconv -count=1` and all relayconvert packages except the stale golden snapshot passed; after updating the expected upstream ID behavior, the focused conversion suite and `git diff --check` are the remaining final checks.
+- Local commit and push status: pending final validation and commit.
+
 ## 2026-09-02 (usage stream merging, phase B)
 
 - Upstream source: `0ed497f06`, selectively integrated from the stream-usage portion.

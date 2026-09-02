@@ -26,15 +26,20 @@ type ClaudeMediaMessage struct {
 	Thinking     *string              `json:"thinking,omitempty"`
 	Signature    string               `json:"signature,omitempty"`
 	Delta        string               `json:"delta,omitempty"`
+	Data         string               `json:"data,omitempty"`
 	CacheControl json.RawMessage      `json:"cache_control,omitempty"`
 	// tool_calls
-	Id        string          `json:"id,omitempty"`
-	Name      string          `json:"name,omitempty"`
-	Input     any             `json:"input,omitempty"`
-	Content   any             `json:"content,omitempty"`
-	Citations json.RawMessage `json:"citations,omitempty"`
-	Citation  json.RawMessage `json:"citation,omitempty"`
-	ToolUseId string          `json:"tool_use_id,omitempty"`
+	Id         string          `json:"id,omitempty"`
+	Name       string          `json:"name,omitempty"`
+	Input      any             `json:"input,omitempty"`
+	Content    any             `json:"content,omitempty"`
+	Citations  json.RawMessage `json:"citations,omitempty"`
+	Citation   json.RawMessage `json:"citation,omitempty"`
+	Caller     json.RawMessage `json:"caller,omitempty"`
+	ServerName string          `json:"server_name,omitempty"`
+	IsError    *bool           `json:"is_error,omitempty"`
+	ErrorCode  string          `json:"error_code,omitempty"`
+	ToolUseId  string          `json:"tool_use_id,omitempty"`
 }
 
 func (c *ClaudeMediaMessage) SetText(s string) {
@@ -175,6 +180,7 @@ type Tool struct {
 	Name        string                 `json:"name"`
 	Description string                 `json:"description,omitempty"`
 	InputSchema map[string]interface{} `json:"input_schema"`
+	Strict      *bool                  `json:"strict,omitempty"`
 }
 
 type InputSchema struct {

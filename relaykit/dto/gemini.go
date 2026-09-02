@@ -448,7 +448,14 @@ type GeminiChatCandidate struct {
 }
 
 type GeminiGroundingMetadata struct {
-	WebSearchQueries []string `json:"webSearchQueries,omitempty"`
+	WebSearchQueries             []string        `json:"webSearchQueries,omitempty"`
+	GroundingChunks              json.RawMessage `json:"groundingChunks,omitempty"`
+	GroundingSupports            json.RawMessage `json:"groundingSupports,omitempty"`
+	RetrievalQueries             []string        `json:"retrievalQueries,omitempty"`
+	SearchEntryPoint             json.RawMessage `json:"searchEntryPoint,omitempty"`
+	RetrievalMetadata            json.RawMessage `json:"retrievalMetadata,omitempty"`
+	SourceFlaggingUris           json.RawMessage `json:"sourceFlaggingUris,omitempty"`
+	GoogleMapsWidgetContextToken string          `json:"googleMapsWidgetContextToken,omitempty"`
 }
 
 type GeminiChatSafetyRating struct {
