@@ -10,6 +10,15 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-09-02 (system task no-op state update)
+
+- Upstream source: `b7017c251` (`fix(model): do not treat no-op system task state writes as lock loss`).
+- Integrated the lock confirmation fallback in `UpdateSystemTaskState`: when a database reports zero changed rows for an identical state payload, the task and unexpired lease are checked before returning `ErrSystemTaskLockLost`.
+- Added a regression test for repeated identical state persistence and successful task completion.
+- Preserved all local relay, billing, plugin, mail, branding, and usage-log audit behavior; no frontend or request path was changed.
+- Validation: `gofmt`, `git diff --check`, and production Go build passed. The broader model test suite remains blocked by pre-existing missing test helpers/fields.
+- Local commit: `26106919d` (`fix system task no-op state updates`).
+
 ## 2026-09-01 (usage-log request audit tabs)
 
 - Local feature: expanded the existing usage-log detail dialog with `Basic Information`, administrator-only `Request Audit`, and administrator-only `Raw Data` tabs.
