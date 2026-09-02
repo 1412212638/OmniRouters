@@ -10,6 +10,15 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-09-02 (usage stream merging, phase B)
+
+- Upstream source: `0ed497f06`, selectively integrated from the stream-usage portion.
+- Integrated `relaykit/dto/usage_merge.go` and focused tests so partial OpenAI, Claude, and Gemini usage snapshots retain earlier non-zero fields; provider-native billing dialects are preserved when snapshots are merged.
+- Updated OpenAI Chat final-frame handling, OpenAI Responses completion-event handling, and Gemini streaming metadata accumulation to merge cumulative usage instead of allowing a later sparse frame to erase token/cache/modality data.
+- Deliberately deferred the same commit's hosted-tool conversion, reasoning/Responses protocol rewrites, broader Claude/Gemini conversion changes, and billing pre-consume/settlement changes. Existing Sora per-call pricing, fixed `audio_generation` surcharge, dynamic pricing, plugin billing, refunds, and quota protections remain unchanged.
+- Validation: `go test ./dto` in `relaykit`, targeted usage tests for Gemini/OpenAI/Claude, production Go build, and `git diff --check` passed.
+- Local commit and push status: pending.
+
 ## 2026-09-02 (usage normalization, phase A)
 
 - Upstream source: `0ed497f06`, selectively integrated from the usage/billing portion only.
