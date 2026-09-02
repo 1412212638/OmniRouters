@@ -53,6 +53,14 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-09-02 (usage log statistics type sentinel)
+
+- Local reason: usage log header statistics were always zero when the frontend selected all log types.
+- Changed `model/log.go`: `SumUsedQuota` now treats `type=0` as the all-types sentinel, matching the usage-log list API; consume-only filtering remains applied when `type=2` is explicitly requested.
+- Preserved: quota, RPM, and TPM aggregation filters and all billing/log write behavior.
+- Validation: `git diff --check` passed; model package tests could not compile because the existing test suite references unrelated missing helpers/fields (`useUserCacheMiniRedis`, `AuthVersion`, and `UpdateUserAccessToken`).
+- Local commit and push status: pending validation.
+
 ## 2026-09-02 (Hosted Tools/toolconv follow-up)
 
 - Upstream source: `0ed497f06`, hosted tool conversion and protocol DTO dependencies.

@@ -655,8 +655,12 @@ func SumUsedQuota(logType int, startTimestamp int64, endTimestamp int64, modelNa
 		rpmTpmQuery = rpmTpmQuery.Where(logGroupCol+" = ?", group)
 	}
 
-	tx = tx.Where("type = ?", LogTypeConsume)
-	rpmTpmQuery = rpmTpmQuery.Where("type = ?", LogTypeConsume)
+	// type=0 is the frontend's "all types" sentinel. Only restrict the
+	// statistic to consume logs when the caller explicitly requests it.
+	if logType == LogTypeConsume {
+		tx = tx.Where("type = ?", LogTypeConsume)
+		rpmTpmQuery = rpmTpmQuery.Where("type = ?", LogTypeConsume)
+	}
 
 	// 只统计最近60秒的rpm和tpm
 	rpmTpmQuery = rpmTpmQuery.Where("created_at >= ?", time.Now().Add(-60*time.Second).Unix())
