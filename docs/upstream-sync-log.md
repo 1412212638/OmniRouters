@@ -25,6 +25,14 @@
 - Validation: reasoning package tests, OpenAI Responses/OAI chat converter tests, targeted channel tests, production Go build, and `git diff --check` passed after excluding the host helper.
 - Local commit: `771434efe` (`sync upstream reasoning core phase D`); remote `origin/main` now points to this commit. The push command reported a transient ref-lock race, but remote verification confirmed the commit is present.
 
+## 2026-09-02 (OpenAI Responses to Chat conversion, phase E)
+
+- Upstream source: `0ed497f06`, Responses-to-Chat request/response and streaming conversion improvements.
+- Integrated reasoning-aware Responses request mapping, response reasoning/citation preservation, sparse stream event handling, annotation propagation, and the required Responses/Chat DTO fields.
+- Deliberately deferred Responses-to-Claude/Gemini target conversion and Hosted Tools/toolconv. No billing, task plugin, Sora, or `audio_generation` behavior was changed.
+- Validation: `relaykit/relayconvert/internal/oai_responses` tests, OpenAI Responses/channel tests, production Go build, and `git diff --check` passed.
+- Local commit and push status: pending.
+
 ## 2026-09-02 (reasoning core, phase D)
 
 - Upstream source: `0ed497f06`, reasoning normalization and model suffix support.
