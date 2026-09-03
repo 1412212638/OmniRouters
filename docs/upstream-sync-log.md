@@ -10,7 +10,7 @@
 - Intentionally skipped: upstream-only broad refactors and unrelated authentication, ticket, frontend, and CI changes from the upstream branch are outside this sync boundary.
 - Preserved: local Sora per-call billing, fixed `audio_generation` surcharge, dynamic/group pricing, plugin billing, pre-consume/settlement/refunds, quota-saturation auditing, Suno batch polling, and all native task adaptors.
 - Validation: `git diff --check` passes; all embedded task plugin files pass `node --check`; canonical action and batch omission regression coverage was added. Go, `gofmt`, and Bun are unavailable in this local environment, so Go tests and the production build must be verified by GitHub Actions. Existing local test history includes the SQLite fixture limitation (`tickets` table is not created) in `go test ./service`.
-- Local commit and push status: pending after final diff review.
+- Local commit and push status: integrated in `f5735642d` and pushed to `origin/main`; the log-only status correction follows in the next commit.
 
 ## 2026-09-03 (database compatibility follow-up)
 
