@@ -57,6 +57,7 @@ type submitResponse struct {
 	TaskID    string      `json:"taskId"`
 	TaskData  any         `json:"taskData"`
 	Immediate *taskResult `json:"immediate"`
+	State     any         `json:"state"`
 }
 type taskResult struct {
 	Code             int     `json:"code"`
@@ -68,11 +69,14 @@ type taskResult struct {
 	RemoteURL        string  `json:"remoteUrl"`
 	CompletionTokens float64 `json:"completionTokens"`
 	TotalTokens      float64 `json:"totalTokens"`
+	State            any     `json:"state"`
 }
 
 var taskArtifactKeyPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._~-]{0,127}$`)
 
 const maxTaskArtifacts = 64
+
+const maxTaskPluginPersistedJSONBytes = 1 << 20
 
 type TaskAdaptor struct {
 	plugin         *pluginruntime.LoadedPlugin
@@ -510,6 +514,21 @@ func (a *TaskAdaptor) ParseResponse(c *gin.Context, resp *http.Response, info *r
 	var immediate *relaycommon.TaskInfo
 	if parsed.Immediate != nil {
 		immediate = &relaycommon.TaskInfo{Code: parsed.Immediate.Code, TaskID: parsed.Immediate.TaskID, Status: parsed.Immediate.Status, Progress: parsed.Immediate.Progress, Reason: parsed.Immediate.Reason, Url: parsed.Immediate.URL, RemoteUrl: parsed.Immediate.RemoteURL}
+		if immediateState, present := encodePluginStateValue(parsed.Immediate.State); present {
+			if len(immediateState) <= maxTaskPluginPersistedJSONBytes {
+				immediate.PluginState = immediateState
+			} else {
+				logger.LogWarn(c, fmt.Sprintf("task plugin %s rejected oversized immediate state (%d bytes)", a.plugin.Meta.Key, len(immediateState)))
+			}
+		}
+	}
+	var pluginState []byte
+	if parsed.State != nil {
+		pluginState, err = common.Marshal(parsed.State)
+		if err != nil || len(pluginState) > maxTaskPluginPersistedJSONBytes {
+			logger.LogWarn(c, fmt.Sprintf("task plugin %s rejected invalid or oversized submit state", a.plugin.Meta.Key))
+			pluginState = nil
+		}
 	}
 	logger.LogDebug(
 		c,
@@ -523,6 +542,7 @@ func (a *TaskAdaptor) ParseResponse(c *gin.Context, resp *http.Response, info *r
 	return &channel.TaskSubmitResponse{
 		UpstreamTaskID: parsed.TaskID,
 		TaskData:       taskData,
+		PluginState:    pluginState,
 		Immediate:      immediate,
 	}, nil
 }
@@ -539,18 +559,20 @@ func (a *TaskAdaptor) GetModelList() []string { return append([]string(nil), a.p
 func (a *TaskAdaptor) GetChannelName() string { return a.plugin.Meta.Name }
 func (a *TaskAdaptor) FetchMode() string      { return a.plugin.Meta.FetchMode }
 
-func (a *TaskAdaptor) FetchBatchTasks(baseURL, key string, taskIDs []string, proxy string) (*http.Response, error) {
-	ctx := map[string]any{"baseUrl": baseURL}
-	auth, err := resolveAuth(a.plugin.Meta.Auth, key, proxy)
+func (a *TaskAdaptor) FetchBatchTasks(baseURL, key string, tasks []*model.Task, proxy string) (*http.Response, error) {
+	taskContexts := make([]map[string]any, 0, len(tasks))
+	for _, task := range tasks {
+		taskCtx, err := a.queryContext(task, key, baseURL, proxy)
+		if err != nil {
+			return nil, err
+		}
+		taskContexts = append(taskContexts, taskCtx)
+	}
+	ctx, err := a.batchQueryContext(key, baseURL, proxy, taskContexts)
 	if err != nil {
 		return nil, err
 	}
-	ctx["auth"] = auth
-	ctx["authHeader"] = auth["authHeader"]
-	if a.plugin.Meta.Auth.Type == "" || a.plugin.Meta.Auth.Type == "none" || a.plugin.Meta.Auth.Type == "api_key" {
-		ctx["apiKey"] = key
-	}
-	value, err := a.plugin.Engine.Call(context.Background(), "buildBatchQueryRequest", ctx, taskIDs)
+	value, err := a.plugin.Engine.Call(context.Background(), "buildBatchQueryRequest", ctx, taskContexts)
 	if err != nil {
 		return nil, err
 	}
@@ -558,25 +580,39 @@ func (a *TaskAdaptor) FetchBatchTasks(baseURL, key string, taskIDs []string, pro
 }
 
 func (a *TaskAdaptor) FetchTask(baseURL, key string, body map[string]any, proxy string) (*http.Response, error) {
-	ctx := map[string]any{"taskId": body["task_id"], "action": body["action"], "requestBody": body, "baseUrl": baseURL}
-	auth, err := resolveAuth(a.plugin.Meta.Auth, key, proxy)
+	action, _ := body["action"].(string)
+	taskID, _ := body["task_id"].(string)
+	task := &model.Task{Action: action}
+	if taskID != "" {
+		task.PrivateData.UpstreamTaskID = taskID
+	}
+	return a.FetchTaskWithContext(context.Background(), baseURL, key, task, proxy)
+}
+
+func (a *TaskAdaptor) FetchTaskWithContext(requestContext context.Context, baseURL, key string, task *model.Task, proxy string) (*http.Response, error) {
+	if requestContext == nil {
+		requestContext = context.Background()
+	}
+	ctx, err := a.queryContext(task, key, baseURL, proxy)
 	if err != nil {
 		return nil, err
 	}
-	ctx["auth"] = auth
-	ctx["authHeader"] = auth["authHeader"]
-	if a.plugin.Meta.Auth.Type == "" || a.plugin.Meta.Auth.Type == "none" || a.plugin.Meta.Auth.Type == "api_key" {
-		ctx["apiKey"] = key
-	}
-	hook := "buildQueryRequest"
-	if a.plugin.Meta.FetchMode == "batch" && a.hasHook(context.Background(), "buildBatchQueryRequest") {
-		hook = "buildBatchQueryRequest"
-	}
-	value, err := a.plugin.Engine.Call(context.Background(), hook, ctx)
+	value, err := a.plugin.Engine.Call(requestContext, "buildQueryRequest", ctx)
 	if err != nil {
 		return nil, err
 	}
 	return a.doFetchDescriptor(baseURL, proxy, value)
+}
+
+func (a *TaskAdaptor) ParseTaskResult(body []byte) (*relaycommon.TaskInfo, error) {
+	return a.ParseTaskResultWithContext(context.Background(), nil, nil, body)
+}
+
+func (a *TaskAdaptor) ParseTaskResultWithContext(requestContext context.Context, task *model.Task, resp *http.Response, body []byte) (*relaycommon.TaskInfo, error) {
+	if requestContext == nil {
+		requestContext = context.Background()
+	}
+	return a.parseTaskResultWithContext(requestContext, task, resp, body)
 }
 
 func (a *TaskAdaptor) doFetchDescriptor(baseURL, proxy string, value any) (*http.Response, error) {
@@ -637,14 +673,27 @@ func (a *TaskAdaptor) doFetchDescriptor(baseURL, proxy string, value any) (*http
 	return resp, nil
 }
 
-func (a *TaskAdaptor) ParseBatchResult(body []byte) (map[string]*service.BatchTaskResult, error) {
+func (a *TaskAdaptor) ParseBatchResult(tasks []*model.Task, resp *http.Response, body []byte) (map[string]*service.BatchTaskResult, error) {
 	started := time.Now()
 	input := any(string(body))
 	var decoded any
 	if common.Unmarshal(body, &decoded) == nil {
 		input = decoded
 	}
-	value, err := a.plugin.Engine.Call(context.Background(), "parseBatchResult", map[string]any{}, input)
+	key, baseURL, proxy := a.queryCredentials()
+	taskContexts := make([]map[string]any, 0, len(tasks))
+	for _, task := range tasks {
+		taskCtx, err := a.queryContext(task, key, baseURL, proxy)
+		if err != nil {
+			return nil, err
+		}
+		taskContexts = append(taskContexts, taskCtx)
+	}
+	ctx, err := a.batchQueryContext(key, baseURL, proxy, taskContexts)
+	if err != nil {
+		return nil, err
+	}
+	value, err := a.plugin.Engine.Call(context.Background(), "parseBatchResult", ctx, input, hookHTTPResponse(resp))
 	if err != nil {
 		logger.LogDebug(context.Background(), "task_plugin subsystem=adaptor event=parse_batch_failed plugin=%q reason=hook_failed body_bytes=%d elapsed_ms=%d", a.plugin.Meta.Key, len(body), time.Since(started).Milliseconds())
 		return nil, err
@@ -660,6 +709,7 @@ func (a *TaskAdaptor) ParseBatchResult(body []byte) (map[string]*service.BatchTa
 		StartTime  int64  `json:"startTime"`
 		FinishTime int64  `json:"finishTime"`
 		Data       any    `json:"data"`
+		State      any    `json:"state"`
 	}
 	if err = convert(value, &parsed); err != nil {
 		logger.LogDebug(context.Background(), "task_plugin subsystem=adaptor event=parse_batch_failed plugin=%q reason=invalid_result body_bytes=%d elapsed_ms=%d", a.plugin.Meta.Key, len(body), time.Since(started).Milliseconds())
@@ -672,12 +722,26 @@ func (a *TaskAdaptor) ParseBatchResult(body []byte) (map[string]*service.BatchTa
 			continue
 		}
 		info := relaycommon.TaskInfo{TaskID: item.TaskID, Status: item.Status, Progress: item.Progress, Reason: item.Reason, Url: item.URL}
+		if state, present := encodePluginStateValue(item.State); present {
+			if len(state) > maxTaskPluginPersistedJSONBytes {
+				logger.LogWarn(context.Background(), fmt.Sprintf("task plugin %s rejected oversized batch poll state (%d bytes)", a.plugin.Meta.Key, len(state)))
+			} else {
+				info.PluginState = state
+			}
+		}
 		if hasCompletionUsage {
 			usageBody := item.Data
 			if usageBody == nil {
 				usageBody = jsonValue(item)
 			}
-			facts, hookErr := a.plugin.Engine.Call(context.Background(), "extractUsageOnComplete", nil, jsonValue(&info), usageBody)
+			itemCtx := ctx
+			for _, taskCtx := range taskContexts {
+				if fmt.Sprint(taskCtx["taskId"]) == item.TaskID {
+					itemCtx = taskCtx
+					break
+				}
+			}
+			facts, hookErr := a.plugin.Engine.Call(context.Background(), "extractUsageOnComplete", itemCtx, jsonValue(&info), usageBody)
 			if hookErr == nil {
 				a.applyCompletionUsageFacts(&info, facts)
 			}
@@ -696,14 +760,19 @@ func (a *TaskAdaptor) ParseBatchResult(body []byte) (map[string]*service.BatchTa
 	return results, nil
 }
 
-func (a *TaskAdaptor) ParseTaskResult(body []byte) (*relaycommon.TaskInfo, error) {
+func (a *TaskAdaptor) parseTaskResultWithContext(requestContext context.Context, task *model.Task, resp *http.Response, body []byte) (*relaycommon.TaskInfo, error) {
 	started := time.Now()
 	input := any(string(body))
 	var decoded any
 	if common.Unmarshal(body, &decoded) == nil {
 		input = decoded
 	}
-	value, err := a.plugin.Engine.Call(context.Background(), "parseTaskResult", map[string]any{}, input)
+	key, baseURL, proxy := a.queryCredentials()
+	queryCtx, err := a.queryContext(task, key, baseURL, proxy)
+	if err != nil {
+		return nil, err
+	}
+	value, err := a.plugin.Engine.Call(requestContext, "parseTaskResult", queryCtx, input, hookHTTPResponse(resp))
 	if err != nil {
 		logger.LogDebug(context.Background(), "task_plugin subsystem=adaptor event=parse_task_failed plugin=%q reason=hook_failed body_bytes=%d elapsed_ms=%d", a.plugin.Meta.Key, len(body), time.Since(started).Milliseconds())
 		return nil, err
@@ -724,10 +793,17 @@ func (a *TaskAdaptor) ParseTaskResult(body []byte) (*relaycommon.TaskInfo, error
 		CompletionTokens: positiveInt(parsed.CompletionTokens),
 		TotalTokens:      positiveInt(parsed.TotalTokens),
 	}
+	if pluginState, present := encodeReturnedPluginState(value); present {
+		if len(pluginState) > maxTaskPluginPersistedJSONBytes {
+			logger.LogWarn(requestContext, fmt.Sprintf("task plugin %s rejected oversized poll state (%d bytes)", a.plugin.Meta.Key, len(pluginState)))
+		} else {
+			result.PluginState = pluginState
+		}
+	}
 	// The raw polling response only exists at this boundary. Capture upstream
 	// units here so the host settlement path can consume them from TaskInfo.
-	if a.hasHook(context.Background(), "extractUsageOnComplete") {
-		facts, hookErr := a.plugin.Engine.Call(context.Background(), "extractUsageOnComplete", nil, jsonValue(result), input)
+	if a.hasHook(requestContext, "extractUsageOnComplete") {
+		facts, hookErr := a.plugin.Engine.Call(requestContext, "extractUsageOnComplete", queryCtx, jsonValue(result), input)
 		if hookErr == nil {
 			a.applyCompletionUsageFacts(result, facts)
 		}
@@ -929,6 +1005,130 @@ func taskArtifactContext(task *model.Task) (map[string]any, error) {
 		"data":            data,
 		"producerVersion": producerVersion,
 	}, nil
+}
+
+func (a *TaskAdaptor) queryContext(task *model.Task, key, baseURL, proxy string) (map[string]any, error) {
+	ctx := map[string]any{
+		"taskId":        "",
+		"publicTaskId":  "",
+		"action":        "",
+		"model":         "",
+		"upstreamModel": "",
+		"baseUrl":       baseURL,
+		"data":          nil,
+		"state":         nil,
+	}
+	if task != nil {
+		originModel := task.Properties.OriginModelName
+		upstreamModel := task.Properties.UpstreamModelName
+		if upstreamModel == "" {
+			upstreamModel = originModel
+		}
+		ctx["taskId"] = task.GetUpstreamTaskID()
+		ctx["publicTaskId"] = task.TaskID
+		ctx["action"] = constant.NormalizeTaskAction(task.Action)
+		ctx["model"] = originModel
+		ctx["upstreamModel"] = upstreamModel
+		if len(task.Data) > 0 {
+			var data any
+			if err := common.Unmarshal(task.Data, &data); err != nil {
+				return nil, fmt.Errorf("task data is invalid")
+			}
+			ctx["data"] = data
+		}
+		if len(task.PrivateData.PluginState) > 0 {
+			var state any
+			if err := common.Unmarshal(task.PrivateData.PluginState, &state); err != nil {
+				return nil, fmt.Errorf("plugin state is invalid")
+			}
+			ctx["state"] = state
+		}
+		if task.PrivateData.Key != "" {
+			key = task.PrivateData.Key
+		}
+	}
+	auth, err := resolveAuth(a.plugin.Meta.Auth, key, proxy)
+	if err != nil {
+		return nil, err
+	}
+	ctx["auth"] = auth
+	ctx["authHeader"] = auth["authHeader"]
+	if a.plugin.Meta.Auth.Type == "" || a.plugin.Meta.Auth.Type == "none" || a.plugin.Meta.Auth.Type == "api_key" {
+		ctx["apiKey"] = key
+	}
+	return ctx, nil
+}
+
+func (a *TaskAdaptor) batchQueryContext(key, baseURL, proxy string, tasks []map[string]any) (map[string]any, error) {
+	ctx := map[string]any{"baseUrl": baseURL, "tasks": tasks}
+	auth, err := resolveAuth(a.plugin.Meta.Auth, key, proxy)
+	if err != nil {
+		return nil, err
+	}
+	ctx["auth"] = auth
+	ctx["authHeader"] = auth["authHeader"]
+	if a.plugin.Meta.Auth.Type == "" || a.plugin.Meta.Auth.Type == "none" || a.plugin.Meta.Auth.Type == "api_key" {
+		ctx["apiKey"] = key
+	}
+	return ctx, nil
+}
+
+func (a *TaskAdaptor) queryCredentials() (key, baseURL, proxy string) {
+	if a.info == nil {
+		return "", "", ""
+	}
+	key = a.info.ApiKey
+	baseURL = a.info.ChannelBaseUrl
+	proxy = a.info.ChannelSetting.Proxy
+	if a.info.ChannelMeta != nil {
+		if key == "" {
+			key = a.info.ChannelMeta.ApiKey
+		}
+		if baseURL == "" {
+			baseURL = a.info.ChannelMeta.ChannelBaseUrl
+		}
+		if proxy == "" {
+			proxy = a.info.ChannelMeta.ChannelSetting.Proxy
+		}
+	}
+	return key, baseURL, proxy
+}
+
+func hookHTTPResponse(resp *http.Response) map[string]any {
+	headers := map[string]string{}
+	status := 0
+	if resp != nil {
+		status = resp.StatusCode
+		for name, values := range resp.Header {
+			if len(values) > 0 {
+				headers[name] = values[0]
+			}
+		}
+	}
+	return map[string]any{"status": status, "headers": headers}
+}
+
+func encodeReturnedPluginState(value any) ([]byte, bool) {
+	object, ok := value.(map[string]any)
+	if !ok {
+		return nil, false
+	}
+	state, exists := object["state"]
+	if !exists {
+		return nil, false
+	}
+	return encodePluginStateValue(state)
+}
+
+func encodePluginStateValue(state any) ([]byte, bool) {
+	if state == nil {
+		return nil, false
+	}
+	data, err := common.Marshal(state)
+	if err != nil {
+		return nil, false
+	}
+	return data, true
 }
 
 func validateTaskArtifacts(value any) ([]channel.TaskArtifact, error) {

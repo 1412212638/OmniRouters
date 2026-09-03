@@ -33,6 +33,7 @@ func RunCLI(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintf(stderr, "plugin lint failed: %v\n", compileErr)
 			return 1
 		}
+		warnParseTaskResultInProgressFallback(string(source), stderr)
 		fmt.Fprintf(stdout, "plugin %s@%s is valid\n", plugin.Meta.Key, plugin.Meta.Version)
 		return 0
 	case "test":
@@ -58,3 +59,34 @@ func RunCLI(args []string, stdout, stderr io.Writer) int {
 	}
 }
 
+func warnParseTaskResultInProgressFallback(source string, stderr io.Writer) {
+	body := parseTaskResultFunctionBody(source)
+	if strings.Contains(body, `|| "IN_PROGRESS"`) || strings.Contains(body, `|| 'IN_PROGRESS'`) {
+		fmt.Fprintln(stderr, `warning: parseTaskResult uses || "IN_PROGRESS" fallback; return UNKNOWN for unrecognized statuses`)
+	}
+}
+
+func parseTaskResultFunctionBody(source string) string {
+	marker := strings.Index(source, "function parseTaskResult")
+	if marker < 0 {
+		return ""
+	}
+	brace := strings.Index(source[marker:], "{")
+	if brace < 0 {
+		return ""
+	}
+	start := marker + brace
+	depth := 0
+	for i := start; i < len(source); i++ {
+		switch source[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return source[start : i+1]
+			}
+		}
+	}
+	return ""
+}

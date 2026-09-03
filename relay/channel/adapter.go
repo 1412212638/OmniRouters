@@ -85,6 +85,7 @@ type TaskAdaptor interface {
 type TaskSubmitResponse struct {
 	UpstreamTaskID string
 	TaskData       []byte
+	PluginState    []byte
 	ClientResponse any
 	Immediate      *relaycommon.TaskInfo
 }

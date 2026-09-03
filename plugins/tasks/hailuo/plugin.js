@@ -7,7 +7,7 @@ export const meta = {
     en: "MiniMax Hailuo video generation (text-to-video and image-to-video)",
     zh: "MiniMax 海螺视频生成（文生视频、图生视频）",
   },
-  version: "1.0.0",
+  version: "1.0.1",
   author: { name: "QuantumNous" },
   channelTypes: [35],
   models: [
@@ -216,7 +216,8 @@ export function buildQueryRequest(ctx) {
 export function parseTaskResult(ctx, body) {
   const base = body.base_resp || {};
   const statuses = { Preparing: "IN_PROGRESS", Queueing: "IN_PROGRESS", Processing: "IN_PROGRESS", Success: "SUCCESS", Fail: "FAILURE" };
-  const status = statuses[body.status] || "IN_PROGRESS";
+  const status = statuses[body.status];
+  if (!status) return { status: "UNKNOWN", reason: "unrecognized status: " + String(body.status || "") };
   const progress = status === "SUCCESS" || status === "FAILURE" ? "100%" : body.status === "Processing" ? "50%" : "30%";
   const reason = base.status_code !== 0 ? base.status_msg || "" : status === "FAILURE" ? "task failed" : "";
   return { code: base.status_code || 0, status: status, progress: progress, reason: reason };
@@ -401,4 +402,3 @@ protocols.openai_video = {
     return legacyRenderers.openai_video(task);
   },
 };
-

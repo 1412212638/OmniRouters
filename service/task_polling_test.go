@@ -20,6 +20,60 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestClassifyPollHTTP(t *testing.T) {
+	tests := []struct {
+		status int
+		class  string
+	}{
+		{http.StatusOK, pollClassOK},
+		{http.StatusNoContent, pollClassOK},
+		{http.StatusBadRequest, pollClassOtherClient},
+		{http.StatusUnauthorized, pollClassAuth},
+		{http.StatusForbidden, pollClassAuth},
+		{http.StatusNotFound, pollClassNotFound},
+		{http.StatusGone, pollClassNotFound},
+		{http.StatusTooManyRequests, pollClassTransient},
+		{http.StatusInternalServerError, pollClassTransient},
+	}
+	for _, test := range tests {
+		assert.Equal(t, test.class, classifyPollHTTP(test.status), "status %d", test.status)
+	}
+}
+
+func TestPollFailureReasonIncludesHTTPStatusAndDetail(t *testing.T) {
+	assert.Equal(t, "poll failed: transient (HTTP 429): rate limited", pollFailureReason(pollClassTransient, http.StatusTooManyRequests, "rate limited"))
+	assert.Equal(t, "poll failed: transport_error", pollFailureReason(pollClassTransport, 0, ""))
+}
+
+func TestBatchPollingTreatsMissingAndNilResultsAsUnresolved(t *testing.T) {
+	first := &model.Task{TaskID: "public-1", PrivateData: model.TaskPrivateData{UpstreamTaskID: "upstream-1"}}
+	second := &model.Task{TaskID: "public-2", PrivateData: model.TaskPrivateData{UpstreamTaskID: "upstream-2"}}
+	results := map[string]*BatchTaskResult{
+		"upstream-1": {TaskInfo: relaycommon.TaskInfo{Status: model.TaskStatusInProgress}},
+		"upstream-2": nil,
+	}
+
+	assert.NotNil(t, results[first.GetUpstreamTaskID()])
+	assert.Nil(t, results[second.GetUpstreamTaskID()])
+}
+
+func TestNormalizeTaskActionForPlugins(t *testing.T) {
+	tests := []struct {
+		legacy string
+		want   string
+	}{
+		{constant.TaskActionGenerate, constant.TaskActionImageToVideo},
+		{constant.TaskActionTextGenerate, constant.TaskActionTextToVideo},
+		{constant.TaskActionFirstTailGenerate, constant.TaskActionFirstTailToVideo},
+		{constant.TaskActionReferenceGenerate, constant.TaskActionReferenceToVideo},
+		{constant.TaskActionRemix, constant.TaskActionRemixCanonical},
+		{"MUSIC", "MUSIC"},
+	}
+	for _, test := range tests {
+		assert.Equal(t, test.want, constant.NormalizeTaskAction(test.legacy))
+	}
+}
+
 type taskPollingFetchAdaptor struct {
 	mu           sync.Mutex
 	taskIDs      []string

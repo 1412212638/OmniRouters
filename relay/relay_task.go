@@ -29,6 +29,7 @@ import (
 type TaskSubmitResult struct {
 	UpstreamTaskID string
 	TaskData       []byte
+	PluginState    []byte
 	Platform       constant.TaskPlatform
 	Quota          int
 	ClientResponse any
@@ -288,6 +289,7 @@ func RelayTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo) (*TaskSubmitRe
 	// 11. 解析响应
 	var upstreamTaskID string
 	var taskData []byte
+	var pluginState []byte
 	var clientResponse any
 	var immediate *relaycommon.TaskInfo
 	if parser, ok := adaptor.(channel.TaskResponseParser); ok {
@@ -300,6 +302,10 @@ func RelayTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo) (*TaskSubmitRe
 		}
 		upstreamTaskID = parsed.UpstreamTaskID
 		taskData = parsed.TaskData
+		pluginState = parsed.PluginState
+		if len(pluginState) == 0 && parsed.Immediate != nil {
+			pluginState = parsed.Immediate.PluginState
+		}
 		clientResponse = parsed.ClientResponse
 		immediate = parsed.Immediate
 	} else {
@@ -324,6 +330,7 @@ func RelayTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo) (*TaskSubmitRe
 	return &TaskSubmitResult{
 		UpstreamTaskID: upstreamTaskID,
 		TaskData:       taskData,
+		PluginState:    pluginState,
 		Platform:       platform,
 		Quota:          finalQuota,
 		ClientResponse: clientResponse,

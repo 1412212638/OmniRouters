@@ -18,6 +18,7 @@ var GenerateDefaultToken bool
 var ErrorLogEnabled bool
 var TaskQueryLimit int
 var TaskTimeoutMinutes int
+var TaskPollMaxFailures = 20
 
 // TaskPluginEnabled prepares the sandboxed task-plugin runtime. It is kept
 // disabled by default until the legacy task adapters have been validated

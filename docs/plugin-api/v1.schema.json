@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Task Plugin API v1 metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "key", "name", "version", "author", "models", "fetchMode"],
+  "properties": {
+    "apiVersion": { "const": 1 },
+    "key": { "type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9._-]+$" },
+    "name": { "type": "string", "minLength": 1 },
+    "icon": { "type": "string" }, "description": {},
+    "version": { "type": "string", "minLength": 1 },
+    "author": { "type": "object", "additionalProperties": false, "required": ["name"], "properties": { "name": { "type": "string", "minLength": 1 }, "url": { "type": "string", "format": "uri" } } },
+    "channelTypes": { "type": "array", "uniqueItems": true, "items": { "type": "integer", "minimum": 1 } },
+    "models": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "fetchMode": { "enum": ["per_task", "batch"] },
+    "allowedHosts": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "routes": { "type": "array", "items": { "$ref": "#/$defs/route" } },
+    "protocols": { "type": "array", "uniqueItems": true, "items": { "oneOf": [{ "const": "openai_video" }, { "type": "object", "additionalProperties": false, "required": ["name", "supports"], "properties": { "name": { "const": "openai_responses" }, "supports": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["stream", "sync", "background"] } }, "models": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } } } }, { "type": "object", "additionalProperties": false, "required": ["name"], "properties": { "name": { "const": "openai_video" }, "models": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } } } }] } },
+    "usageSchema": { "type": "object", "additionalProperties": { "$ref": "#/$defs/usageField" } },
+    "usageExamples": { "type": "array", "items": { "type": "object", "required": ["label", "facts"], "properties": { "label": { "type": "string" }, "facts": { "type": "object" } } } }
+  },
+  "$defs": {
+    "route": { "type": "object", "additionalProperties": false, "required": ["method", "path", "type", "render"], "properties": { "method": { "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] }, "path": { "type": "string", "pattern": "^/" }, "type": { "enum": ["submit", "query", "dynamic"] }, "action": { "type": "string" }, "taskIdParam": { "type": "string" }, "decode": { "type": "string" }, "render": { "type": "string" }, "models": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } } } },
+    "localizedText": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "object", "required": ["en"], "maxProperties": 16, "propertyNames": { "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$" }, "additionalProperties": { "type": "string", "minLength": 1 } }] },
+    "usageField": { "type": "object", "additionalProperties": false, "properties": { "type": { "enum": ["number", "boolean"] }, "unit": { "enum": ["second", "count", "token", "credit"] }, "enum": { "type": "array", "items": { "type": "string" } }, "description": { "$ref": "#/$defs/localizedText" } } }
+  }
+}

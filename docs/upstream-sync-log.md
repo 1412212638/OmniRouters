@@ -1,5 +1,17 @@
 # Upstream Sync Log
 
+## 2026-09-03 (plugin polling compatibility complete)
+
+- Upstream source reviewed: `9df450fe54e1a874a5339b7c38a61014217f02c3`.
+- Integrated: `9df450fe54e1a874a5339b7c38a61014217f02c3` plugin polling contract, including persisted state, real query contexts, batch task contexts, HTTP response metadata, `UNKNOWN` status handling, bounded consecutive poll failures, CAS-protected terminal transitions, and refund reconciliation.
+- Follow-up hardening: restored the upstream canonical task-action vocabulary through `constant.NormalizeTaskAction` while retaining legacy native action values, counted successful batch responses that omit a requested task as one unresolved poll failure, and kept the legacy adapter bridge from emitting a literal `<nil>` task ID.
+- Integrated: the ten built-in task plugins were updated for the new context and explicit unknown-state behavior; Jimeng persists `req_key`, Suno batch polling receives task contexts, and Google/Vertex preserve missing-`done` in-progress semantics.
+- Already present and retained: PostgreSQL JSON string writes, string/byte JSON scanning compatibility, refund-pending markers, atomic refund claims, and local task billing protections were kept as the surrounding implementation rather than overwritten by upstream variants.
+- Intentionally skipped: upstream-only broad refactors and unrelated authentication, ticket, frontend, and CI changes from the upstream branch are outside this sync boundary.
+- Preserved: local Sora per-call billing, fixed `audio_generation` surcharge, dynamic/group pricing, plugin billing, pre-consume/settlement/refunds, quota-saturation auditing, Suno batch polling, and all native task adaptors.
+- Validation: `git diff --check` passes; all embedded task plugin files pass `node --check`; canonical action and batch omission regression coverage was added. Go, `gofmt`, and Bun are unavailable in this local environment, so Go tests and the production build must be verified by GitHub Actions. Existing local test history includes the SQLite fixture limitation (`tickets` table is not created) in `go test ./service`.
+- Local commit and push status: pending after final diff review.
+
 ## 2026-09-03 (database compatibility follow-up)
 
 - Upstream source reviewed: `1751f43ee`, `66031a09d`, `6eb6f35ed`, with current upstream `main` at `9df450fe54e1a874a5339b7c38a61014217f02c3`.
