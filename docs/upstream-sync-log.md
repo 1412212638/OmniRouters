@@ -1,5 +1,14 @@
 # Upstream Sync Log
 
+## 2026-09-04 (remaining upstream audit closeout)
+
+- Audit scope: upstream history through `32c261923a9786c64d2af087327ef057e7bde7e3`, with emphasis on `0ed497f06`, `bbd97446c`, `057f71c23`, `9f506dd7f`, `219c9e063`, `aece11d2f`, and `73afad588`.
+- Integrated or already present: hosted-tool conversion and billing integrity are covered by the local conversion/usage commits (`b250536ca`, `0f884cfa9`, `eb85ad878` and existing relaykit changes); log privacy and projection are covered by `eb85ad878`; task lock and quota-stat fixes are already present; MiniMax-H3 and H3 media usage were integrated in `e2d2cf65f`; public-content ETag behavior and plugin no-channel diagnostics were integrated in `5b9c39048`.
+- Intentionally skipped: upstream anonymous session-hint cookies and route-session revalidation do not map to this branch's local auth architecture, which uses the existing localStorage-based frontend auth flow and does not expose the upstream refresh-session helpers. Importing the hint alone would be inert and misleading.
+- Preserved: all OmniRouters Sora/audio pricing, dynamic/group pricing, task plugin polling and billing, mail/wallet/payment features, model marketplace, and log visibility rules.
+- Validation: `node --check plugins/tasks/hailuo/plugin.js`, `git diff --check`, static symbol checks, and staged-file review pass. Go/gofmt/Bun are unavailable locally; GitHub Actions must provide backend/frontend build and test verification.
+- Local commit and push status: pending.
+
 ## 2026-09-04 (MiniMax-H3 task plugin follow-up)
 
 - Upstream source reviewed: `aece11d2f` and `73afad588`.
