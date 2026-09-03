@@ -64,11 +64,23 @@ func readIncomingBillingExprBody(c *gin.Context) ([]byte, error) {
 func cloneRequestInput(src billingexpr.RequestInput) billingexpr.RequestInput {
 	input := billingexpr.RequestInput{
 		Headers: cloneStringMap(src.Headers),
+		Usage:   cloneAnyMap(src.Usage),
 	}
 	if len(src.Body) > 0 {
 		input.Body = append([]byte(nil), src.Body...)
 	}
 	return input
+}
+
+func cloneAnyMap(src map[string]any) map[string]any {
+	if len(src) == 0 {
+		return nil
+	}
+	dst := make(map[string]any, len(src))
+	for key, value := range src {
+		dst[key] = value
+	}
+	return dst
 }
 
 func isJSONContentType(contentType string) bool {

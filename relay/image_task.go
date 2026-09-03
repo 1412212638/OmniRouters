@@ -1,6 +1,7 @@
 package relay
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,8 +12,8 @@ import (
 	"github.com/QuantumNous/new-api/model"
 	taskopenaiimage "github.com/QuantumNous/new-api/relay/channel/task/openai_image"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/QuantumNous/new-api/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -54,8 +55,6 @@ func ImageTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo, requestBody io
 	if settleErr := service.SettleBilling(c, info, actualQuota); settleErr != nil {
 		common.SysError("settle image task billing error: " + settleErr.Error())
 	}
-	service.LogTaskConsumption(c, info)
-
 	task := model.InitTask(constant.TaskPlatformOpenAIImage, info)
 	task.PrivateData.UpstreamTaskID = upstreamTaskID
 	task.PrivateData.BillingSource = info.BillingSource
@@ -76,6 +75,7 @@ func ImageTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo, requestBody io
 	if insertErr := task.Insert(); insertErr != nil {
 		common.SysError("insert image task error: " + insertErr.Error())
 	}
+	service.LogTaskConsumption(c, info, task)
 	return nil
 }
 
@@ -86,5 +86,5 @@ func newAPIErrorFromTaskError(taskErr *dto.TaskError) *types.NewAPIError {
 	if taskErr.Error != nil {
 		return types.NewOpenAIError(taskErr.Error, types.ErrorCodeBadResponseStatusCode, taskErr.StatusCode)
 	}
-	return types.NewOpenAIError(fmt.Errorf(taskErr.Message), types.ErrorCodeBadResponseStatusCode, taskErr.StatusCode)
+	return types.NewOpenAIError(errors.New(taskErr.Message), types.ErrorCodeBadResponseStatusCode, taskErr.StatusCode)
 }

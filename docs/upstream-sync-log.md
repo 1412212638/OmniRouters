@@ -53,6 +53,16 @@
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
 
+## 2026-09-03 (upstream log privacy and billing follow-up)
+
+- Upstream sources reviewed: `057f71c23` and `bbd97446c`, plus dependencies from the already integrated `0ed497f06`.
+- Integrated scoped log metadata with user/admin/root visibility, conversion diagnostics, hosted-tool task metadata, and related usage-log UI/test updates. Preserved local fixed-quota/Sora/audio_generation billing fields while adapting writers to `LogOther`.
+- Integrated follow-up task billing settlement behavior, including tiered task usage facts and per-call billing semantics; added the required compatible snapshot/relay metadata fields.
+- Deliberately did not restore the upstream deletion of the legacy log cleanup handler and did not modify local billing formulas or refund ownership. The Hailuo/MiniMax-H3 plugin batch and database/stability batch remain separate planned stages.
+- Preserved: local Sora per-call pricing, fixed `audio_generation` surcharge, dynamic pricing, task plugins, refunds, quota saturation auditing, and usage-log quota statistics. Reapplied the local `type=0` all-types sentinel and separate RPM/TPM scan after upstream merge.
+- Validation: production Go build, `go test ./service ./relay -run '^$' -count=1`, focused task-settlement tests, `go test ./pkg/billingexpr ./relay/helper -count=1`, and `git diff --check` passed. The full `service` suite also exercises unrelated existing failures: missing `tickets` table in the test database and pre-existing task test fixture expectations; these are not part of this sync.
+- Local commit and push status: pending commit and push.
+
 ## 2026-09-02 (usage log quota statistic preservation)
 
 - Local reason: usage-log header showed `$0` even though individual consume logs had non-zero charges.

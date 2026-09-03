@@ -98,6 +98,7 @@ type RelayInfo struct {
 	UsePrice               bool
 	RelayMode              int
 	OriginModelName        string
+	BillingModelName       string
 	RequestURLPath         string
 	RequestHeaders         map[string]string
 	ShouldIncludeUsage     bool
@@ -176,7 +177,10 @@ type RelayInfo struct {
 	StreamStatus *StreamStatus
 
 	// convOptions caches the converter settings snapshot (see ConvOptions).
-	convOptions *convmeta.Options
+	convOptions                    *convmeta.Options
+	conversionDiagnostics          []types.ConversionDiagnostic
+	conversionDiagnosticKeys       map[conversionDiagnosticKey]struct{}
+	conversionDiagnosticsTruncated bool
 
 	ThinkingContentInfo
 	TokenCountMeta
@@ -677,6 +681,16 @@ var _ convmeta.Meta = (*RelayInfo)(nil)
 func (info *RelayInfo) GetOriginModelName() string {
 	if info == nil {
 		return ""
+	}
+	return info.OriginModelName
+}
+
+func (info *RelayInfo) GetBillingModelName() string {
+	if info == nil {
+		return ""
+	}
+	if info.BillingModelName != "" {
+		return info.BillingModelName
 	}
 	return info.OriginModelName
 }
