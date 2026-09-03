@@ -17,7 +17,7 @@ var digestSeed = func() (s [sha256.Size]byte) {
 	return sha256.Sum256([]byte(modulePath()))
 }()
 
-// ETagFor returns a weak ETag derived from a stable namespace and content.
+// ETagFor returns a weak ETag derived from the namespace and content.
 func ETagFor(namespace, content string) string {
 	buf := make([]byte, 0, sha256.Size+1+len(namespace)+1+len(content))
 	buf = append(buf, digestSeed[:]...)
@@ -29,7 +29,9 @@ func ETagFor(namespace, content string) string {
 	return `W/"` + hex.EncodeToString(digest[:]) + `"`
 }
 
-// ETagMatches performs RFC 9110 weak comparison for If-None-Match.
+// ETagMatches reports whether an If-None-Match header matches etag under weak
+// comparison (RFC 9110 §13.1.2): the W/ prefix is ignored on both sides, and
+// "*" matches everything.
 func ETagMatches(ifNoneMatch, etag string) bool {
 	ifNoneMatch = strings.TrimSpace(ifNoneMatch)
 	if ifNoneMatch == "" || etag == "" {
@@ -39,7 +41,7 @@ func ETagMatches(ifNoneMatch, etag string) bool {
 		return true
 	}
 	etag = strings.TrimPrefix(etag, "W/")
-	for _, candidate := range strings.Split(ifNoneMatch, ",") {
+	for candidate := range strings.SplitSeq(ifNoneMatch, ",") {
 		if strings.TrimPrefix(strings.TrimSpace(candidate), "W/") == etag {
 			return true
 		}
