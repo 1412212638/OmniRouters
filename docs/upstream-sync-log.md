@@ -1,5 +1,14 @@
 # Upstream Sync Log
 
+## 2026-09-04 (MiniMax-H3 task plugin follow-up)
+
+- Upstream source reviewed: `aece11d2f` and `73afad588`.
+- Integrated: the Hailuo task plugin now supports `MiniMax-H3`, including multimodal content validation, frame/reference media limits, 768P/2K resolution, 4-15 second duration, ratio handling, `/v2/video_generation` submission and polling, H3 result/error envelopes, public CDN artifacts, and resolution-based usage metadata. Input media accounting from `73afad588` was included.
+- Preserved: the local task-plugin polling context, normalized actions, bounded failure handling, task identity mapping, and OmniRouters Sora/Suno/plugin billing paths were retained; upstream host/adaptor hunks were not allowed to replace those newer local implementations.
+- Intentionally skipped: the upstream anonymous session-hint optimization because this branch uses the existing local authentication architecture without the upstream refresh-session flow; importing only that cookie would not be meaningful. Broad protocol-conversion and unrelated upstream changes remain separate audit items.
+- Validation: `node --check plugins/tasks/hailuo/plugin.js` and `git diff --check` pass. Go/gofmt/Bun are unavailable locally; production build and backend tests remain for GitHub Actions.
+- Local commit and push status: pending.
+
 ## 2026-09-04 (upstream plugin error, ETag, and release version fixes)
 
 - Upstream source reviewed: `32c261923a9786c64d2af087327ef057e7bde7e3`, `8f5ab8e4048a90d88b20ae1e6d5228b04233d3b8`, and `36dbbf0f77e710455e745048f4a32e8120ad3fd2`.
