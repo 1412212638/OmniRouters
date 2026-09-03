@@ -1,5 +1,16 @@
 # Upstream Sync Log
 
+## 2026-09-04 (upstream plugin error, ETag, and release version fixes)
+
+- Upstream source reviewed: `32c261923a9786c64d2af087327ef057e7bde7e3`, `8f5ab8e4048a90d88b20ae1e6d5228b04233d3b8`, and `36dbbf0f77e710455e745048f4a32e8120ad3fd2`.
+- Integrated: plugin-claimed models now return a localized 503 message naming the claiming plugin when no enabled channel is available; public Notice/About/legal/home content endpoints now use stable weak ETags with RFC weak matching while preserving the existing `{success,message,data}` response envelope; Release workflow version resolution now prefers the triggering tag and only falls back to version tags for manual runs.
+- Deliberately adapted: the upstream ETag implementation was made compatible with the current local JSON wrapper and Go toolchain; only the version-resolution portion of the CI commit was copied, preserving OmniRouters' existing default and classic frontend release builds and action pins.
+- Already present: plugin routing, plugin channel binding, local billing/plugin behavior, and the existing public content endpoints were retained rather than replaced.
+- Deferred/skipped: unrelated upstream CI action upgrades, frontend build restructuring, compliance-message changes, and broad upstream refactors were not included.
+- Preserved: local Sora/audio billing, dynamic/group pricing, mail settings/templates, wallet/payment behavior, model marketplace, task plugins, and all other OmniRouters customizations.
+- Validation: `git diff --check` passes; Go/gofmt are unavailable locally, so Go tests and the production build remain for GitHub Actions; workflow structure and changed references were inspected manually. Untracked local helper/report files were excluded.
+- Local commit and push status: pending.
+
 ## 2026-09-03 (plugin polling compatibility complete)
 
 - Upstream source reviewed: `9df450fe54e1a874a5339b7c38a61014217f02c3`.

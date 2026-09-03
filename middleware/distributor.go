@@ -15,6 +15,7 @@ import (
 	taskdto "github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/i18n"
 	"github.com/QuantumNous/new-api/model"
+	pluginruntime "github.com/QuantumNous/new-api/pkg/jsplugin"
 	relayconstant "github.com/QuantumNous/new-api/relay/constant"
 	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/relaykit/types"
@@ -153,7 +154,7 @@ func Distribute() func(c *gin.Context) {
 						return
 					}
 					if channel == nil {
-						abortWithOpenAiMessage(c, http.StatusServiceUnavailable, i18n.T(c, i18n.MsgDistributorNoAvailableChannel, map[string]any{"Group": usingGroup, "Model": modelRequest.Model}), types.ErrorCodeModelNotFound)
+						abortWithOpenAiMessage(c, http.StatusServiceUnavailable, noAvailableChannelMessage(c, usingGroup, modelRequest.Model), types.ErrorCodeModelNotFound)
 						return
 					}
 				}
@@ -166,6 +167,17 @@ func Distribute() func(c *gin.Context) {
 			service.RecordChannelAffinity(c, channel.Id)
 		}
 	}
+}
+
+func noAvailableChannelMessage(c *gin.Context, group, modelName string) string {
+	value, exists := c.Get(pluginruntime.ContextKeyPinnedPlugin)
+	pinned, ok := value.(pluginruntime.PinnedPlugin)
+	if exists && ok && pinned.Plugin != nil {
+		return i18n.T(c, i18n.MsgDistributorNoAvailableChannelTaskPlugin, map[string]any{
+			"Group": group, "Model": modelName, "Plugin": pinned.Plugin.Meta.Key,
+		})
+	}
+	return i18n.T(c, i18n.MsgDistributorNoAvailableChannel, map[string]any{"Group": group, "Model": modelName})
 }
 
 // getModelFromRequest 从请求中读取模型信息
