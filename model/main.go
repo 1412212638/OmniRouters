@@ -153,7 +153,7 @@ func chooseDB(envName string, isLog bool) (*gorm.DB, common.DatabaseType, error)
 			db, err := gorm.Open(postgres.New(postgres.Config{
 				DSN:                  dsn,
 				PreferSimpleProtocol: true, // disables implicit prepared statement usage
-			}), newGormConfig(true))
+			}), newGormConfig(false))
 			return db, common.DatabaseTypePostgreSQL, err
 		}
 		if strings.HasPrefix(dsn, "local") {

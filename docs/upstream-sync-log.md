@@ -1,5 +1,15 @@
 # Upstream Sync Log
 
+## 2026-09-03 (database compatibility follow-up)
+
+- Upstream source reviewed: `1751f43ee`, `66031a09d`, `6eb6f35ed`, with current upstream `main` at `9df450fe54e1a874a5339b7c38a61014217f02c3`.
+- Integrated: SQLite WAL/busy-timeout/`_txlock=immediate` behavior was already present; PostgreSQL GORM prepared statements are disabled for transaction-pooling proxies; JSON column Valuers return strings for PostgreSQL simple protocol; JSON Scanners accept both `[]byte` and `string` while preserving NULL/empty semantics; PostgreSQL prepared-statement SQLSTATE errors now include an actionable diagnostic.
+- Already present: shared JSON marshal/unmarshal wrappers, `StringList`, `SubscriptionGroupList`, and existing task JSON fields already use the required cross-database patterns.
+- Deferred: `9df450fe5` task/plugin polling contract changes, legacy Token Key migration, and `prefill_groups` uniqueness migration remain separate batches because they touch polling behavior, authentication data, or schema migration semantics.
+- Preserved: local Sora per-call billing, fixed `audio_generation` surcharge, dynamic/group pricing, plugin billing, refunds, quota-saturation auditing, usage logs, mail settings, and other OmniRouters customizations.
+- Validation: `gofmt` and `git diff --check` are required for this batch. Targeted model tests remain blocked by pre-existing test compilation errors (`useUserCacheMiniRedis`, `AuthVersion`, and `UpdateUserAccessToken` symbols); production build result is recorded with the commit.
+- Local commit and push status: pending.
+
 ## 2026-09-01 (Sora pricing detail display)
 
 - Local reason: simplify Sora per-second pricing in the model detail view.
