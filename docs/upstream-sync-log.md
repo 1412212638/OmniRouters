@@ -1,5 +1,12 @@
 # Upstream Sync Log
 
+## 2026-09-05 (notification timeline display)
+
+- Local reason: align the notification popover with the dashboard announcement timeline presentation requested by the user.
+- Changed: `web/default/src/components/notification-popover.tsx` now uses date labels, timeline nodes, dashed connectors, title/body previews, and expand/collapse controls for notices and announcements. Existing notification tabs, read-state inputs, rich-content rendering, and data contracts are preserved.
+- Validation: pending; frontend build/type validation may be unavailable locally if Bun is not installed.
+- Local commit and push status: pending.
+
 ## 2026-09-05 (announcement timeline display)
 
 - Local reason: update the dashboard announcement presentation to a compact product-update timeline based on the requested reference layout.

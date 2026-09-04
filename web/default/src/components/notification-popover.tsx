@@ -16,12 +16,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import { useState } from 'react'
 import type { TFunction } from 'i18next'
-import { Bell, Megaphone } from 'lucide-react'
+import { Bell, ExternalLink, Megaphone } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { RichContent } from '@/components/rich-content'
 import { getAnnouncementColorClass } from '@/lib/colors'
-import { formatDateTimeObject } from '@/lib/time'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -40,7 +40,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface AnnouncementItem {
@@ -61,65 +60,6 @@ interface NotificationPopoverProps {
   announcements: AnnouncementItem[]
   loading: boolean
   className?: string
-}
-
-/**
- * Get relative time string from a date
- */
-function getRelativeTime(publishDate: string | Date, t: TFunction): string {
-  if (!publishDate) return ''
-
-  const now = new Date()
-  const pubDate = new Date(publishDate)
-
-  // If invalid date, return original string
-  if (Number.isNaN(pubDate.getTime())) {
-    return typeof publishDate === 'string' ? publishDate : ''
-  }
-
-  const diffMs = now.getTime() - pubDate.getTime()
-  const diffSeconds = Math.floor(diffMs / 1000)
-  const diffMinutes = Math.floor(diffSeconds / 60)
-  const diffHours = Math.floor(diffMinutes / 60)
-  const diffDays = Math.floor(diffHours / 24)
-  const diffWeeks = Math.floor(diffDays / 7)
-  const diffMonths = Math.floor(diffDays / 30)
-  const diffYears = Math.floor(diffDays / 365)
-
-  // If future time, show specific date
-  if (diffMs < 0) return formatDateTimeObject(pubDate)
-
-  // Return relative time based on difference
-  if (diffSeconds < 60) return t('Just now')
-  if (diffMinutes < 60) {
-    return diffMinutes === 1
-      ? t('1 minute ago')
-      : t('{{count}} minutes ago', { count: diffMinutes })
-  }
-  if (diffHours < 24) {
-    return diffHours === 1
-      ? t('1 hour ago')
-      : t('{{count}} hours ago', { count: diffHours })
-  }
-  if (diffDays < 7) {
-    return diffDays === 1
-      ? t('1 day ago')
-      : t('{{count}} days ago', { count: diffDays })
-  }
-  if (diffWeeks < 4) {
-    return diffWeeks === 1
-      ? t('1 week ago')
-      : t('{{count}} weeks ago', { count: diffWeeks })
-  }
-  if (diffMonths < 12) {
-    return diffMonths === 1
-      ? t('1 month ago')
-      : t('{{count}} months ago', { count: diffMonths })
-  }
-  if (diffYears < 2) return t('1 year ago')
-
-  // Over 2 years, show specific date
-  return formatDateTimeObject(pubDate)
 }
 
 /**
@@ -147,6 +87,76 @@ function getAnnouncementRenderKey(announcement: AnnouncementItem): string {
     publishDate: announcement.publishDate ?? '',
     type: announcement.type ?? '',
   })
+}
+
+function getContentParts(content: string) {
+  const lines = content
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+
+  return {
+    title: lines[0] || content,
+    body: lines.length > 1 ? lines.slice(1).join('\n') : '',
+  }
+}
+
+function TimelineEntry({
+  date,
+  type,
+  content,
+  extra,
+  expanded,
+  onToggle,
+  t,
+}: {
+  date?: string
+  type?: string
+  content: string
+  extra?: string
+  expanded: boolean
+  onToggle: () => void
+  t: TFunction
+}) {
+  const { title, body } = getContentParts(content)
+  const hasMore = Boolean(body || extra)
+
+  return (
+    <div className='flex gap-3'>
+      <div className='w-12 shrink-0 pt-0.5'>
+        {date ? (
+          <time className='text-muted-foreground rounded-full border px-1.5 py-0.5 text-[10px] font-medium'>
+            {date}
+          </time>
+        ) : null}
+      </div>
+      <div className='relative min-w-0 flex-1 border-l border-dashed border-border/70 pb-5 pl-4'>
+        <span className='bg-background absolute -left-[5px] top-1.5 size-2.5 rounded-full border-2 border-primary' />
+        <div className='mb-1 flex items-start gap-2'>
+          <AnnouncementDot type={type} />
+          <p className='min-w-0 flex-1 text-sm font-semibold leading-5'>
+            <RichContent breaks content={title} />
+          </p>
+        </div>
+        {expanded ? (
+          <div className='text-muted-foreground text-xs leading-5'>
+            <RichContent breaks content={body || content} />
+            {extra ? <RichContent breaks content={extra} /> : null}
+          </div>
+        ) : null}
+        {hasMore ? (
+          <button
+            type='button'
+            onClick={onToggle}
+            className='text-muted-foreground mt-1 inline-flex items-center gap-1 text-xs underline-offset-2 hover:underline'
+          >
+            {expanded ? t('Collapse') : t('Expand')}
+            <ExternalLink className='size-3' />
+          </button>
+        ) : null}
+      </div>
+    </div>
+  )
 }
 
 /**
@@ -202,9 +212,21 @@ function NoticeContent({
     )
   }
 
+  return <NoticeTimeline notice={notice} t={t} />
+}
+
+function NoticeTimeline({ notice, t }: { notice: string; t: TFunction }) {
+  const [expanded, setExpanded] = useState(false)
   return (
     <ScrollArea className='h-[min(52vh,28rem)] pr-3'>
-      <RichContent breaks content={notice} />
+      <div className='py-3'>
+        <TimelineEntry
+          content={notice}
+          expanded={expanded}
+          onToggle={() => setExpanded((value) => !value)}
+          t={t}
+        />
+      </div>
     </ScrollArea>
   )
 }
@@ -221,6 +243,7 @@ function AnnouncementsContent({
   loading: boolean
   t: TFunction
 }) {
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set())
   if (loading) {
     return (
       <EmptyState
@@ -239,46 +262,38 @@ function AnnouncementsContent({
 
   return (
     <ScrollArea className='h-[min(52vh,28rem)] pr-3'>
-      <div className='flex flex-col'>
-        {announcements.map((item, idx) => {
+      <div className='flex flex-col py-3'>
+        {announcements.map((item) => {
           const announcementKey = getAnnouncementRenderKey(item)
           const publishDate = item.publishDate
             ? new Date(item.publishDate)
             : null
-          const relativeTime = publishDate
-            ? getRelativeTime(publishDate, t)
-            : ''
-          const absoluteTime = publishDate
-            ? formatDateTimeObject(publishDate)
-            : ''
+          const dateLabel = publishDate
+            ? publishDate.toLocaleDateString(undefined, {
+                month: '2-digit',
+                day: '2-digit',
+              })
+            : undefined
+          const expanded = expandedKeys.has(announcementKey)
 
           return (
-            <div key={announcementKey}>
-              <div className='py-3'>
-                <div className='flex items-start gap-3'>
-                  <AnnouncementDot type={item.type} />
-                  <div className='flex min-w-0 flex-1 flex-col gap-2'>
-                    <div className='text-sm'>
-                      <RichContent breaks content={item.content || ''} />
-                    </div>
-
-                    {item.extra ? (
-                      <div className='text-muted-foreground text-xs'>
-                        <RichContent breaks content={item.extra} />
-                      </div>
-                    ) : null}
-
-                    {absoluteTime ? (
-                      <div className='text-muted-foreground text-xs'>
-                        {relativeTime ? `${relativeTime} • ` : null}
-                        {absoluteTime}
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-              {idx < announcements.length - 1 ? <Separator /> : null}
-            </div>
+            <TimelineEntry
+              key={announcementKey}
+              date={dateLabel}
+              type={item.type}
+              content={item.content || ''}
+              extra={item.extra}
+              expanded={expanded}
+              onToggle={() =>
+                setExpandedKeys((current) => {
+                  const next = new Set(current)
+                  if (next.has(announcementKey)) next.delete(announcementKey)
+                  else next.add(announcementKey)
+                  return next
+                })
+              }
+              t={t}
+            />
           )
         })}
       </div>
