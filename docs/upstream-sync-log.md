@@ -1,5 +1,12 @@
 # Upstream Sync Log
 
+## 2026-09-05 (announcement timeline display)
+
+- Local reason: update the dashboard announcement presentation to a compact product-update timeline based on the requested reference layout.
+- Changed: `web/default/src/features/dashboard/components/overview/announcements-panel.tsx` now displays date labels, dashed timeline nodes, announcement titles/body previews, and a detail affordance; the existing announcement data shape, detail dialog, settings editor, and click behavior are preserved.
+- Validation: `git diff --check`; frontend build/type validation was not run because the local Bun toolchain is unavailable.
+- Local commit and push status: pending.
+
 ## 2026-09-04 (remaining upstream audit closeout)
 
 - Audit scope: upstream history through `32c261923a9786c64d2af087327ef057e7bde7e3`, with emphasis on `0ed497f06`, `bbd97446c`, `057f71c23`, `9f506dd7f`, `219c9e063`, `aece11d2f`, and `73afad588`.
