@@ -1,5 +1,12 @@
 # Upstream Sync Log
 
+## 2026-09-05 (notification timeline default state)
+
+- Local reason: correct the notification timeline interaction after visual review.
+- Changed: notifications and announcements now start expanded; the unrelated external-link icon was removed from the expand/collapse control. Existing content, read state, and data contracts remain unchanged.
+- Validation: pending; frontend build/type validation may be unavailable locally if Bun is not installed.
+- Local commit and push status: pending.
+
 ## 2026-09-05 (notification timeline display)
 
 - Local reason: align the notification popover with the dashboard announcement timeline presentation requested by the user.

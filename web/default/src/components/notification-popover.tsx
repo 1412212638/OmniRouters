@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useState } from 'react'
 import type { TFunction } from 'i18next'
-import { Bell, ExternalLink, Megaphone } from 'lucide-react'
+import { Bell, Megaphone } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { RichContent } from '@/components/rich-content'
 import { getAnnouncementColorClass } from '@/lib/colors'
@@ -151,7 +151,6 @@ function TimelineEntry({
             className='text-muted-foreground mt-1 inline-flex items-center gap-1 text-xs underline-offset-2 hover:underline'
           >
             {expanded ? t('Collapse') : t('Expand')}
-            <ExternalLink className='size-3' />
           </button>
         ) : null}
       </div>
@@ -216,7 +215,7 @@ function NoticeContent({
 }
 
 function NoticeTimeline({ notice, t }: { notice: string; t: TFunction }) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
   return (
     <ScrollArea className='h-[min(52vh,28rem)] pr-3'>
       <div className='py-3'>
@@ -243,7 +242,9 @@ function AnnouncementsContent({
   loading: boolean
   t: TFunction
 }) {
-  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set())
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(
+    () => new Set(announcements.map(getAnnouncementRenderKey))
+  )
   if (loading) {
     return (
       <EmptyState
