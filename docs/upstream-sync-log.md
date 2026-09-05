@@ -1,9 +1,17 @@
 # Upstream Sync Log
 
+## 2026-09-05 (announcement backend length correction)
+
+- Local reason: saving announcements still failed because the earlier inspection missed the backend 500-character check.
+- Changed: `setting/console_setting/validation.go` now accepts up to 5000 UTF-16 code units, matching the default frontend, and reports the correct limit. Added boundary regression tests in `announcement_validation_test.go` for ASCII, Chinese, and supplementary Unicode characters.
+- Preserved: announcement count, date/type validation, extra-field limits, storage format, and all billing behavior.
+- Validation: `git diff --check` passed; Go and gofmt are unavailable locally, so the regression tests could not be executed here.
+- Local commit and push status: pending.
+
 ## 2026-09-05 (announcement content length)
 
 - Local reason: the previous 500-character announcement limit was too restrictive for Markdown content, image URLs, and detailed notices.
-- Changed: raised the default frontend announcement content limit to 5000 characters and updated the form guidance in all maintained frontend locales. Backend storage and validation contracts remain unchanged because they impose no per-announcement content-length limit.
+- Changed: raised the default frontend announcement content limit to 5000 characters and updated the form guidance in all maintained frontend locales. The backend 500-character limit was mistakenly overlooked in this change; corrected in the follow-up entry above.
 - Validation: all maintained locale files pass `JSON.parse`, and `git diff --check` passes; frontend build/type validation was not run because Bun is unavailable locally.
 - Local commit and push status: pending.
 
