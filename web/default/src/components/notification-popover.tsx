@@ -69,7 +69,7 @@ function AnnouncementDot({ type }: { type?: string }) {
   return (
     <span
       className={cn(
-        'mt-1.5 inline-block size-2 shrink-0 rounded-full',
+        'relative mt-1.5 inline-block size-1.5 shrink-0 rounded-full',
         getAnnouncementColorClass(type)
       )}
     />
@@ -123,20 +123,19 @@ function TimelineEntry({
 
   return (
     <div className='flex gap-3'>
-      <div className='w-12 shrink-0 pt-0.5'>
+      <div className='relative flex w-12 shrink-0 justify-center pt-0.5'>
+        <span aria-hidden='true' className='border-border/70 absolute inset-y-0 left-1/2 border-l border-dashed' />
         {date ? (
-          <time className='text-muted-foreground rounded-full border px-1.5 py-0.5 text-[10px] font-medium'>
+          <time className='bg-popover text-muted-foreground relative h-fit rounded-full border px-1.5 py-0.5 text-[10px] font-medium'>
             {date}
           </time>
-        ) : null}
+        ) : <AnnouncementDot type={type} />}
       </div>
-      <div className='relative min-w-0 flex-1 border-l border-dashed border-border/70 pb-5 pl-4'>
-        <span className='bg-background absolute -left-[5px] top-1.5 size-2.5 rounded-full border-2 border-primary' />
+      <div className='min-w-0 flex-1 pb-5'>
         <div className='mb-1 flex items-start gap-2'>
-          <AnnouncementDot type={type} />
-          <p className='min-w-0 flex-1 text-sm font-semibold leading-5'>
+          <div className='min-w-0 flex-1 text-sm font-semibold leading-5'>
             <RichContent breaks content={title} />
-          </p>
+          </div>
         </div>
         {expanded ? (
           <div className='text-muted-foreground text-xs leading-5'>

@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-05 (notification timeline alignment)
+
+- Local reason: align the timeline with the date column in the supplied reference.
+- Changed: `web/default/src/components/notification-popover.tsx` places the dashed connector behind centered date badges; undated entries use a dot on the same axis. Removed duplicate title-side dots and the content border, and corrected the rich-content title wrapper to a div.
+- Preserved: announcement content, expansion controls, read state, and backend contracts.
+- Validation: `git diff --check`; no browser visual verification or frontend build performed locally.
+- Local commit and push status: pending.
+
 ## 2026-09-05 (announcement backend length correction)
 
 - Local reason: saving announcements still failed because the earlier inspection missed the backend 500-character check.
