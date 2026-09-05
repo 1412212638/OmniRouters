@@ -2598,7 +2598,7 @@
     "Max Successful Requests": "最大成功请求数",
     "Maximum 1000 characters. Supports Markdown and HTML.": "最多 1000 个字符。支持 Markdown 和 HTML。",
     "Maximum 200 characters": "最多 200 个字符",
-    "Maximum 500 characters. Supports Markdown and HTML.": "最多 500 个字符。支持 Markdown 和 HTML。",
+    "Maximum 5000 characters. Supports Markdown and HTML.": "最多 5000 个字符。支持 Markdown 和 HTML。",
     "Maximum check-in quota": "签到最大额度",
     "Maximum input window": "最大输入窗口",
     "Maximum number of channels tested at the same time (1-32)": "同时测试的最大渠道数（1-32）",

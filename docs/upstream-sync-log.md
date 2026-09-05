@@ -1,5 +1,12 @@
 # Upstream Sync Log
 
+## 2026-09-05 (announcement content length)
+
+- Local reason: the previous 500-character announcement limit was too restrictive for Markdown content, image URLs, and detailed notices.
+- Changed: raised the default frontend announcement content limit to 5000 characters and updated the form guidance in all maintained frontend locales. Backend storage and validation contracts remain unchanged because they impose no per-announcement content-length limit.
+- Validation: all maintained locale files pass `JSON.parse`, and `git diff --check` passes; frontend build/type validation was not run because Bun is unavailable locally.
+- Local commit and push status: pending.
+
 ## 2026-09-05 (notification timeline default state)
 
 - Local reason: correct the notification timeline interaction after visual review.

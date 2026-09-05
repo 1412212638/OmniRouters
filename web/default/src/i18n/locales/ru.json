@@ -2578,7 +2578,7 @@
     "Max Successful Requests": "Макс. успешных запросов",
     "Maximum 1000 characters. Supports Markdown and HTML.": "Максимум 1000 символов. Поддерживает Markdown и HTML.",
     "Maximum 200 characters": "Максимум 200 символов",
-    "Maximum 500 characters. Supports Markdown and HTML.": "Максимум 500 символов. Поддерживает Markdown и HTML.",
+    "Maximum 5000 characters. Supports Markdown and HTML.": "Максимум 5000 символов. Поддерживает Markdown и HTML.",
     "Maximum check-in quota": "Максимальная квота регистрации",
     "Maximum input window": "Максимальное окно ввода",
     "Maximum number of channels tested at the same time (1-32)": "Максимальное число одновременно проверяемых каналов (1–32)",

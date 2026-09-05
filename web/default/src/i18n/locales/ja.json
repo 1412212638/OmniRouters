@@ -2578,7 +2578,7 @@
     "Max Successful Requests": "最大成功リクエスト数",
     "Maximum 1000 characters. Supports Markdown and HTML.": "最大1000文字。MarkdownとHTMLをサポートしています。",
     "Maximum 200 characters": "最大200文字",
-    "Maximum 500 characters. Supports Markdown and HTML.": "最大500文字。MarkdownとHTMLをサポートしています。",
+    "Maximum 5000 characters. Supports Markdown and HTML.": "最大5000文字。MarkdownとHTMLをサポートしています。",
     "Maximum check-in quota": "最大チェックインクォータ",
     "Maximum input window": "最大入力ウィンドウ",
     "Maximum number of channels tested at the same time (1-32)": "同時にテストするチャンネルの最大数（1～32）",
