@@ -6,7 +6,7 @@
 - Added provider-aware quote formatting for wallet quoted amounts and confirmation amounts/discounts/display fees. Pancake uses its checkout currency USD directly with two decimals; other providers retain existing formatting. Preset estimates retain their existing base-currency formatting.
 - Preserved: quote APIs, order creation, payment totals, credits, callbacks and all backend billing. Combined with pending display-only fee changes, no fee is added to the quoted total.
 - Validation: targeted Node formatter regression checks and git diff --check; full frontend build/browser verification unavailable locally (dependencies absent).
-- Commit/push: pending.
+- Commit/push: integrated in `d6dc48aaa`, pushed to `origin/main` on 2026-09-06. This status update follows in a documentation-only commit.
 
 ## 2026-09-06 (per-payment-method display fees)
 
@@ -15,7 +15,7 @@
 - Wallet payment buttons and confirmation resolve the method rate before the legacy global fallback. Explicit zero disables the display; omitted values retain the global fallback. Invalid rates are suppressed on display. Payment totals now show the backend quote without adding the informational fee.
 - Preserved: all backend payment handlers, callbacks, discounts, order amounts, credited quota, and corporate transfer behavior. No database migration.
 - Validation: diff whitespace check, JSON parsing and targeted Node checks of rate normalization; full frontend typecheck and browser checks unavailable because local frontend dependencies are absent.
-- Commit/push: pending; not pushed in this turn.
+- Commit/push: integrated in `d6dc48aaa`, pushed to `origin/main` on 2026-09-06. This status update follows in a documentation-only commit.
 
 ## 2026-09-05 (notification timeline alignment)
 
