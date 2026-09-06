@@ -1131,6 +1131,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: pre-consume, settlement, refund, and insufficient-quota response behavior were not modified.
 - Validation: source diff review and `git diff --check`; full Go/frontend test suites were not run because the local Go/Bun toolchains are unavailable.
 - Local commit/push: pending.
+- Final current-upstream review: `upstream/main` remains `0c76e4dae`. No new independent third-round patch is available beyond the already reviewed structural migrations. The model/vendor/pricing rewrite and Telegram unified OAuth remain deferred pending a dedicated compatibility branch or staged port.
+- Second-round status: token lifecycle and existing account-security success events are integrated; upstream's full session-bound verification and audit schema/UI suite is not claimed as fully equivalent.
+- Validation: `git diff --check`; Go/Bun toolchains unavailable locally.
+- Local commit/push: pending.
 - Round 2 progress: successful email binding now emits a sanitized security audit event; email address and verification code are excluded.
 - Validation: `git diff --check`; Go toolchain unavailable locally.
 - Local commit/push: pending.
