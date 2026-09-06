@@ -265,6 +265,7 @@ func Disable2FA(c *gin.Context) {
 
 	// 记录操作日志
 	model.RecordLog(userId, model.LogTypeSystem, "禁用两步验证")
+	_ = model.RecordAuditLog(&model.AuditLog{UserId: userId, Category: model.AuditCategorySecurity, Action: "2fa.disable", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey)})
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,

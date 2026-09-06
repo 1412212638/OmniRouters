@@ -1039,6 +1039,7 @@ func DeleteSelf(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
+	_ = model.RecordAuditLog(&model.AuditLog{UserId: id, Category: model.AuditCategorySecurity, Action: "account.delete", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey)})
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
