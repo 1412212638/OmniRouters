@@ -1173,6 +1173,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 
 ## 2026-09-07
 
+- Third-round migration branch: `codex/migrate-upstream-structural-v3`.
+- Telegram migration dependency map: `external_identity_claim`, authorization-code/PKCE flow, session-bound verification, OAuth registry/provider, system Telegram settings, and route/frontend callback changes. Legacy `telegram_id` bindings must remain readable during migration.
+
 - Upstream review: `d8cb17744`, `3f8a50cf8`, `6f2333990`, `0973dc2b8`, `a8729b5c3`, `45c3fbe8` and related commits through `upstream/main` `0c76e4dae`.
 - Planned three-round sync:
   - Round 1: database compatibility, request stability, provider/model capability fixes, and billing safety.
