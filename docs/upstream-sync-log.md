@@ -1130,7 +1130,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed `common.QuotaRemindThreshold` from `1000` to `500000`, matching the default frontend user setting; the existing notification type and per-user overrides remain unchanged.
 - Preserved: pre-consume, settlement, refund, and insufficient-quota response behavior were not modified.
 - Validation: source diff review and `git diff --check`; full Go/frontend test suites were not run because the local Go/Bun toolchains are unavailable.
-- Local commit/push: pending.
+- Local commit/push: implemented in commits `9da5fc10d`, `b030d2065`, `49a7960d6`, `989cf467a`, `c7252725d`, `442c80721`, `bb508aed0`, `3b67f3e83`; current `origin/main` is `156fc65b2`.
 - Final current-upstream review: `upstream/main` remains `0c76e4dae`. No new independent third-round patch is available beyond the already reviewed structural migrations. The model/vendor/pricing rewrite and Telegram unified OAuth remain deferred pending a dedicated compatibility branch or staged port.
 - Second-round status: token lifecycle and existing account-security success events are integrated; upstream's full session-bound verification and audit schema/UI suite is not claimed as fully equivalent.
 - Validation: `git diff --check`; Go/Bun toolchains unavailable locally.
