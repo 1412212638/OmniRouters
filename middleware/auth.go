@@ -165,6 +165,16 @@ func authHelper(c *gin.Context, minRole int) {
 	c.Next()
 
 	finishAdminAudit(c, auditWriter)
+	if useAccessToken {
+		// Keep a non-sensitive trail for bearer-token requests. The token itself
+		// is never persisted; only its fingerprint is retained.
+		_ = model.RecordAuditLog(&model.AuditLog{
+			UserId: id.(int), Username: username.(string), Category: model.AuditCategoryAccessToken,
+			Action: "request", TokenRef: model.AccessTokenFingerprint(c.Request.Header.Get("Authorization")),
+			Ip: c.ClientIP(), Success: c.Writer.Status() < http.StatusBadRequest,
+			RequestId: c.GetString(common.RequestIdKey), Other: c.FullPath(),
+		})
+	}
 }
 
 func TryUserAuth() func(c *gin.Context) {
