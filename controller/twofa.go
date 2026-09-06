@@ -193,6 +193,7 @@ func Enable2FA(c *gin.Context) {
 
 	// 记录操作日志
 	model.RecordLog(userId, model.LogTypeSystem, "成功启用两步验证")
+	_ = model.RecordAuditLog(&model.AuditLog{UserId: userId, Category: model.AuditCategorySecurity, Action: "2fa.enable", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey)})
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -385,6 +386,7 @@ func RegenerateBackupCodes(c *gin.Context) {
 
 	// 记录操作日志
 	model.RecordLog(userId, model.LogTypeSystem, "重新生成两步验证备用码")
+	_ = model.RecordAuditLog(&model.AuditLog{UserId: userId, Category: model.AuditCategorySecurity, Action: "2fa.backup_codes.regenerate", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey)})
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
