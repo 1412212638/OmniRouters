@@ -1131,3 +1131,15 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: pre-consume, settlement, refund, and insufficient-quota response behavior were not modified.
 - Validation: source diff review and `git diff --check`; full Go/frontend test suites were not run because the local Go/Bun toolchains are unavailable.
 - Local commit/push: pending.
+
+## 2026-09-07
+
+- Upstream review: `d8cb17744`, `3f8a50cf8`, `6f2333990`, `0973dc2b8`, `a8729b5c3`, `45c3fbe8` and related commits through `upstream/main` `0c76e4dae`.
+- Planned three-round sync:
+  - Round 1: database compatibility, request stability, provider/model capability fixes, and billing safety.
+  - Round 2: access-token lifecycle, security verification, and independent audit records.
+  - Round 3: model/provider/pricing structural refactors and Telegram OAuth updates.
+- Current status: audit completed; existing administrator operation audit and privacy projection are retained. The upstream independent audit model and access-token lifecycle are not yet integrated because they depend on newer upstream type/signature changes and must be ported incrementally.
+- Preserved: OmniRouters plugin system, wallet/payment display, Sora/audio billing, expression/group pricing, mail settings, and default frontend customizations.
+- Validation: upstream diff/stat review only; implementation and tests pending.
+- Local commit/push: pending.

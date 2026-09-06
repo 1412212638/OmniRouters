@@ -395,6 +395,8 @@ func GenerateAccessToken(c *gin.Context) {
 		return
 	}
 	user.SetAccessToken(key)
+	createdAt := common.GetTimestamp()
+	user.AccessTokenCreatedAt = &createdAt
 
 	if model.DB.Where("access_token = ?", user.AccessToken).First(user).RowsAffected != 0 {
 		common.ApiErrorI18n(c, i18n.MsgUuidDuplicate)
