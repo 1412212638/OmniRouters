@@ -416,6 +416,14 @@ func GenerateAccessToken(c *gin.Context) {
 	return
 }
 
+func RevokeAccessToken(c *gin.Context) {
+	if err := model.RevokeUserAccessToken(c.GetInt("id")); err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	common.ApiSuccess(c, nil)
+}
+
 type TransferAffQuotaRequest struct {
 	Quota int `json:"quota" binding:"required"`
 }
