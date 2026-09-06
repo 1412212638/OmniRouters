@@ -1061,3 +1061,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Notes:
   - Integrated the relevant upstream changes after `02aacb38` through `e36d191c2e31d31d0a7b8da51da1dcb93f63f681`.
   - The upstream commits were adapted into this repository as a local integration commit, not merged as upstream commit objects.
+## 2026-09-06
+
+- Local change: enable the default quota warning threshold consistently.
+- Changed `common.QuotaRemindThreshold` from `1000` to `500000`, matching the default frontend user setting; the existing notification type and per-user overrides remain unchanged.
+- Preserved: pre-consume, settlement, refund, and insufficient-quota response behavior were not modified.
+- Validation: source diff review and `git diff --check`; full Go/frontend test suites were not run because the local Go/Bun toolchains are unavailable.
+- Local commit/push: pending.

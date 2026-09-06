@@ -163,7 +163,10 @@ var QuotaForInvitee = 0
 var ChannelDisableThreshold = 5.0
 var AutomaticDisableChannelEnabled = false
 var AutomaticEnableChannelEnabled = false
-var QuotaRemindThreshold = 1000
+// QuotaRemindThreshold is the default remaining quota threshold for user notifications.
+// Keep this aligned with the frontend default so notifications are enabled consistently
+// for users who have not saved a personal threshold yet.
+var QuotaRemindThreshold = 500000
 var PreConsumedQuota = 500
 
 var RetryTimes = 0
