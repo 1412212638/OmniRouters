@@ -1344,6 +1344,7 @@ func EmailBind(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
+	_ = model.RecordAuditLog(&model.AuditLog{UserId: user.Id, Category: model.AuditCategorySecurity, Action: "email.bind", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey)})
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
