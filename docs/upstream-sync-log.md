@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-07 (OpenAI model generation compatibility)
+
+- Integrated the safe portion of upstream `49ec46966`: OpenAI GPT generation detection now recognizes `gpt-5` and later major generations, including `gpt-6-astra`, for the existing max-completion-token, sampling-parameter and developer-role compatibility path.
+- Preserved: reasoning suffix parsing, channel-specific conversion, Sora/audio pricing, plugin flows and billing.
+- Deferred: upstream's larger capability matrix and extensive tests require model-by-model validation against our custom conversion behavior.
+- Validation: `git diff --check`; Go tests unavailable because the local Go toolchain is not installed.
+- Commit/push: pending.
+
 ## 2026-09-07 (Ali image response format)
 
 - Integrated upstream `0bee5d441`: Ali image responses now read `response_format` from the validated image request stored in `RelayInfo`, so `url` and `b64_json` are honored consistently.

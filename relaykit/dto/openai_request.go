@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
@@ -232,7 +233,12 @@ func IsOpenAIReasoningOModel(modelName string) bool {
 }
 
 func IsOpenAIGPT5Model(modelName string) bool {
-	return strings.HasPrefix(modelName, "gpt-5")
+	parts := strings.SplitN(strings.TrimPrefix(strings.ToLower(strings.TrimSpace(modelName)), "gpt-"), ".", 2)
+	if len(parts) == 0 || parts[0] == "" {
+		return false
+	}
+	major, err := strconv.Atoi(strings.SplitN(parts[0], "-", 2)[0])
+	return err == nil && major >= 5
 }
 
 func IsQwenThinkingBudgetModel(modelName string) bool {
