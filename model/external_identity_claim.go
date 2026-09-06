@@ -34,3 +34,16 @@ func ClaimExternalIdentityWithTx(tx *gorm.DB, provider, subject string, userId i
 	if owner.UserId != userId { return ErrExternalIdentityAlreadyClaimed }
 	return nil
 }
+
+// InitializeExternalIdentityClaims backfills legacy Telegram bindings before
+// any future OAuth flow starts using the claim table.
+func InitializeExternalIdentityClaims() error {
+	var users []User
+	if err := DB.Select("id", "telegram_id").Where("telegram_id <> ?", "").Find(&users).Error; err != nil { return err }
+	return DB.Transaction(func(tx *gorm.DB) error {
+		for _, user := range users {
+			if err := ClaimExternalIdentityWithTx(tx, ExternalIdentityProviderTelegram, user.TelegramId, user.Id); err != nil { return err }
+		}
+		return nil
+	})
+}

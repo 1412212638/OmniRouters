@@ -371,6 +371,9 @@ func migrateDB() error {
 	if err := ensureModelMetadataColumns(); err != nil {
 		return err
 	}
+	if err := InitializeExternalIdentityClaims(); err != nil {
+		return err
+	}
 	if common.UsingMainDatabase(common.DatabaseTypeSQLite) {
 		if err := ensureSubscriptionPlanTableSQLite(); err != nil {
 			return err
