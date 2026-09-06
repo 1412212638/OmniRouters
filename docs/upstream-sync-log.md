@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-07 (Ali image response format)
+
+- Integrated upstream `0bee5d441`: Ali image responses now read `response_format` from the validated image request stored in `RelayInfo`, so `url` and `b64_json` are honored consistently.
+- Preserved: image quantity, Sora/audio pricing, plugin task flows, payment behavior, and all quota settlement paths.
+- Already present: upstream response-header timeout, transport safeguards, and the broader plugin task lifecycle changes were compared and retained in their local implementations.
+- Validation: `git diff --check`; Go tests unavailable because the local Go toolchain is not installed.
+- Commit/push: pending.
+
 ## 2026-09-07 (wallet fee display adjustment)
 
 - Local request: remove the inline fee preview beside the custom amount and show the fee-inclusive amount in the confirmation dialog.
