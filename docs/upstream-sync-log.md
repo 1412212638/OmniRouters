@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-07 (first-round polling audit)
+
+- Reviewed upstream `9df450fe5` against the plugin task subsystem.
+- Already present locally: persisted task query contexts, response status classification, bounded consecutive poll failures, CAS-safe failure updates, plugin state persistence limits, and task refund/settlement integration. No upstream polling code was copied.
+- Preserved: local Sora/audio billing, plugin registry, task artifacts, and provider-specific polling adapters.
+- Validation: source comparison and `git diff --check`; full Go tests unavailable because Go is not installed locally.
+- Commit/push: pending.
+
 ## 2026-09-07 (first-round database audit)
 
 - Reviewed upstream `1751f43ee`, `6eb6f35ed`, `69a41eead`, `2b6f1dfef`, and `27ff6a876` against the current database layer.
