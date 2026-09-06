@@ -41,6 +41,25 @@ func GenerateOAuthCode(c *gin.Context) {
 	})
 }
 
+// GenerateTelegramOAuthCode starts the staged Telegram OAuth flow. The PKCE
+// verifier stays in the session; the legacy Telegram widget is unaffected.
+func GenerateTelegramOAuthCode(c *gin.Context) {
+	flow, err := oauth.NewTelegramOAuthFlow()
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	state := common.GetRandomString(32)
+	session := sessions.Default(c)
+	session.Set("telegram_oauth_state", state)
+	session.Set("telegram_oauth_flow", flow)
+	if err := session.Save(); err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	common.ApiSuccess(c, gin.H{"flow_token": state, "authorization_url": flow.AuthorizationURL(state)})
+}
+
 // HandleOAuth handles OAuth callback for all standard OAuth providers
 func HandleOAuth(c *gin.Context) {
 	providerName := c.Param("provider")
