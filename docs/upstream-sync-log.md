@@ -1131,6 +1131,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: pre-consume, settlement, refund, and insufficient-quota response behavior were not modified.
 - Validation: source diff review and `git diff --check`; full Go/frontend test suites were not run because the local Go/Bun toolchains are unavailable.
 - Local commit/push: pending.
+- Round 2 progress: successful personal access-token generation/rotation now records a sanitized security event alongside revoke and request events.
+- Validation: `git diff --check`; full Go tests unavailable locally.
+- Local commit/push: pending.
 - Round 2 progress: authenticated bearer-token requests now create sanitized audit entries containing only token fingerprint, route, status, IP, and request ID.
 - Validation: `git diff --check`; full Go tests unavailable locally.
 - Local commit/push: pending.

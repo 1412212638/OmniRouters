@@ -407,6 +407,11 @@ func GenerateAccessToken(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
+	_ = model.RecordAuditLog(&model.AuditLog{
+		UserId: id, Username: user.Username, Category: model.AuditCategoryAccessToken,
+		Action: "generate", TokenRef: model.AccessTokenFingerprint(key), Ip: c.ClientIP(), Success: true,
+		RequestId: c.GetString(common.RequestIdKey), Other: "personal access token",
+	})
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
