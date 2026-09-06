@@ -1131,6 +1131,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: pre-consume, settlement, refund, and insufficient-quota response behavior were not modified.
 - Validation: source diff review and `git diff --check`; full Go/frontend test suites were not run because the local Go/Bun toolchains are unavailable.
 - Local commit/push: pending.
+- Round 3 assessment: `0c76e4dae` is a broad model/vendor/pricing and frontend structure rewrite; it is not safe to cherry-pick over OmniRouters' custom pricing, plugin, wallet, and default-frontend code. Telegram OAuth and account-security changes remain separately scoped for later compatibility review.
 - Round 2 progress: successful personal access-token generation/rotation now records a sanitized security event alongside revoke and request events.
 - Validation: `git diff --check`; full Go tests unavailable locally.
 - Local commit/push: pending.
