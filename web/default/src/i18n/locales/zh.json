@@ -1,5 +1,6 @@
 {
   "translation": {
+    "Handling fee must be between 0 and 100 percent": "手续费必须在 0% 到 100% 之间",
     "360": "360",
     "1000": "1000",
     "10000": "10000",

@@ -360,6 +360,11 @@ export function PaymentMethodsVisualEditor({
                   ),
               },
               {
+                id: 'fee-rate',
+                header: t('Handling fee'),
+                cell: (method) => method.fee_rate == null ? '-' : `${(Number(method.fee_rate) * 100).toFixed(2)}%`,
+              },
+              {
                 id: 'actions',
                 header: t('Actions'),
                 className: 'text-right',

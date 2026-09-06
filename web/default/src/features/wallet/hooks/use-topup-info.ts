@@ -69,6 +69,7 @@ function parsePaymentMethods(
       return {
         name: typeof item.name === 'string' ? item.name : '',
         type,
+        fee_rate: item.fee_rate == null || item.fee_rate === '' ? undefined : Number(item.fee_rate),
         color: typeof item.color === 'string' ? item.color : undefined,
         icon: typeof item.icon === 'string' ? item.icon : undefined,
         min_topup:

@@ -86,7 +86,15 @@ export function formatTopupPaymentAmount(
 
 export function normalizeTopupFeeRate(feeRate: unknown): number {
   const numeric = Number(feeRate || 0)
-  return Number.isFinite(numeric) && numeric > 0 ? numeric : 0
+  return Number.isFinite(numeric) && numeric > 0 && numeric <= 1 ? numeric : 0
+}
+
+// Pancake quotes are already USD, matching its checkout session currency.
+export function formatPaymentQuote(amount: number, paymentType?: string): string {
+  if (paymentType === 'waffo_pancake') {
+    return Number.isFinite(amount) ? `$${amount.toFixed(2)}` : '-'
+  }
+  return formatTopupPaymentAmount(amount)
 }
 
 /**

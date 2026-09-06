@@ -282,6 +282,8 @@ export function Wallet(props: WalletProps) {
                   topupInfo={topupInfo}
                   presetAmounts={presetAmounts}
                   selectedPreset={selectedPreset}
+                  paymentType={getCurrentPaymentType()}
+                  selectedFeeRate={topupInfo?.pay_methods?.find((method) => method.type === getCurrentPaymentType())?.fee_rate}
                   onSelectPreset={handleSelectPreset}
                   topupAmount={topupAmount}
                   onTopupAmountChange={handleTopupAmountChange}
@@ -346,7 +348,7 @@ export function Wallet(props: WalletProps) {
         calculating={calculating}
         processing={processing || pancakeProcessing}
         discountRate={getDiscountRate()}
-        feeRate={topupInfo?.fee_rate}
+        feeRate={selectedPaymentMethod?.fee_rate ?? topupInfo?.fee_rate}
         usdExchangeRate={effectiveUsdExchangeRate}
       />
 

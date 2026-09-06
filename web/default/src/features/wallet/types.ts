@@ -90,6 +90,7 @@ export interface CreemPaymentRequest {
  * Payment method configuration
  */
 export interface PaymentMethod {
+  fee_rate?: number
   /** Display name of payment method */
   name: string
   /** Payment method type identifier */

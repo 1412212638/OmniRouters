@@ -42,6 +42,7 @@ import {
   getMinTopupAmount,
   calculatePresetPricing,
   formatTopupPaymentAmount,
+  formatPaymentQuote,
   normalizeTopupFeeRate,
 } from '../lib'
 import type {
@@ -54,6 +55,8 @@ import type {
 import { CreemProductsSection } from './creem-products-section'
 
 interface RechargeFormCardProps {
+  paymentType?: string
+  selectedFeeRate?: number
   topupInfo: TopupInfo | null
   presetAmounts: PresetAmount[]
   selectedPreset: number | null
@@ -84,6 +87,8 @@ interface RechargeFormCardProps {
 }
 
 export function RechargeFormCard({
+  paymentType,
+  selectedFeeRate,
   topupInfo,
   presetAmounts,
   selectedPreset,
@@ -142,11 +147,11 @@ export function RechargeFormCard({
   const hasWaffoPaymentMethods =
     Array.isArray(waffoPayMethods) && waffoPayMethods.length > 0
   const minTopup = getMinTopupAmount(topupInfo)
-  const feeRate = normalizeTopupFeeRate(topupInfo?.fee_rate)
+  const feeRate = normalizeTopupFeeRate(selectedFeeRate ?? topupInfo?.fee_rate)
   const hasFeeRate = feeRate > 0
   const feeRatePercent = (feeRate * 100).toFixed(2)
   const paymentFeeAmount = paymentAmount * feeRate
-  const totalPaymentAmount = paymentAmount + paymentFeeAmount
+  const totalPaymentAmount = paymentAmount
 
   if (loading) {
     return (
@@ -310,7 +315,7 @@ export function RechargeFormCard({
                         <Skeleton className='h-5 w-16' />
                       ) : (
                         <span className='text-sm font-semibold'>
-                          {formatTopupPaymentAmount(totalPaymentAmount)}
+                          {formatPaymentQuote(totalPaymentAmount, paymentType)}
                         </span>
                       )}
                     </div>
@@ -320,7 +325,7 @@ export function RechargeFormCard({
                           {t('Handling fee')} {feeRatePercent}%
                         </span>
                         <span>
-                          + {formatTopupPaymentAmount(paymentFeeAmount)}
+                          {formatPaymentQuote(paymentFeeAmount, paymentType)}
                         </span>
                       </div>
                     )}
@@ -377,6 +382,11 @@ export function RechargeFormCard({
                             <span className='max-w-full truncate'>
                               {method.name}
                             </span>
+                            {normalizeTopupFeeRate(method.fee_rate ?? topupInfo?.fee_rate) > 0 && (
+                              <span className='text-muted-foreground text-[11px] font-normal'>
+                                {t('Handling fee')} {(normalizeTopupFeeRate(method.fee_rate ?? topupInfo?.fee_rate) * 100).toFixed(2)}%
+                              </span>
+                            )}
                             {disabledLabel && (
                               <span className='text-muted-foreground max-w-full truncate text-[11px] leading-4 font-normal'>
                                 {disabledLabel}

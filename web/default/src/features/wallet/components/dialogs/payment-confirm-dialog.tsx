@@ -32,7 +32,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { DEFAULT_DISCOUNT_RATE } from '../../constants'
 import {
-  formatTopupPaymentAmount,
+  formatPaymentQuote,
   getPaymentIcon,
   normalizeTopupFeeRate,
 } from '../../lib'
@@ -66,12 +66,14 @@ export function PaymentConfirmDialog({
   usdExchangeRate = 1,
 }: PaymentConfirmDialogProps) {
   const { t } = useTranslation()
+  const formatTopupPaymentAmount = (amount: number) =>
+    formatPaymentQuote(amount, paymentMethod?.type)
   const hasDiscount = discountRate > 0 && discountRate < 1 && paymentAmount > 0
   const originalAmount = hasDiscount ? paymentAmount / discountRate : 0
   const discountAmount = hasDiscount ? originalAmount - paymentAmount : 0
   const normalizedFeeRate = normalizeTopupFeeRate(feeRate)
   const feeAmount = paymentAmount * normalizedFeeRate
-  const totalPaymentAmount = paymentAmount + feeAmount
+  const totalPaymentAmount = paymentAmount
   const hasFeeRate = normalizedFeeRate > 0 && paymentAmount > 0
   const feeRatePercent = (normalizedFeeRate * 100).toFixed(2)
 
@@ -150,7 +152,7 @@ export function PaymentConfirmDialog({
                   {t('Handling fee')} ({feeRatePercent}%)
                 </span>
                 <span className='font-semibold text-amber-600'>
-                  + {formatTopupPaymentAmount(feeAmount)}
+                  {formatTopupPaymentAmount(feeAmount)}
                 </span>
               </div>
             </div>

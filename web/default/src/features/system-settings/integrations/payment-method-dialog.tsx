@@ -42,6 +42,12 @@ const createPaymentMethodDialogSchema = (t: (key: string) => string) =>
     type: z.string().min(1, t('Payment type key is required')),
     icon: z.string().optional(),
     min_topup: z.string().optional(),
+    fee_percent: z.string().refine(
+      (value) => value.trim() === '' || (
+        Number.isFinite(Number(value)) && Number(value) >= 0 && Number(value) <= 100
+      ),
+      t('Handling fee must be between 0 and 100 percent')
+    ),
   })
 
 type PaymentMethodDialogFormValues = z.infer<
@@ -56,6 +62,7 @@ export type PaymentMethodData = {
   icon?: string
   min_topup?: string
   color?: string
+  fee_rate?: string
 }
 
 type PaymentMethodDialogProps = {
@@ -119,6 +126,7 @@ export function PaymentMethodDialog({
       type: '',
       icon: '',
       min_topup: '',
+      fee_percent: '',
     },
   })
 
@@ -131,6 +139,7 @@ export function PaymentMethodDialog({
         type: editData.type,
         icon: editData.icon ?? getDefaultIconName(editData.type),
         min_topup: editData.min_topup ?? '',
+        fee_percent: editData.fee_rate == null ? '' : String(Number(editData.fee_rate) * 100),
       })
     } else {
       form.reset({
@@ -138,20 +147,31 @@ export function PaymentMethodDialog({
         type: '',
         icon: '',
         min_topup: '',
+        fee_percent: '',
       })
     }
   }, [editData, form, open])
 
   const handleSubmit = (values: PaymentMethodDialogFormValues) => {
     const data: PaymentMethodData = {
+      ...editData,
       name: values.name,
       type: values.type,
     }
     if (values.icon && values.icon.trim() !== '') {
       data.icon = values.icon.trim()
+    } else {
+      delete data.icon
     }
     if (values.min_topup && values.min_topup.trim() !== '') {
       data.min_topup = values.min_topup
+    } else {
+      delete data.min_topup
+    }
+    if (values.fee_percent.trim() !== '') {
+      data.fee_rate = String(Number(values.fee_percent) / 100)
+    } else {
+      delete data.fee_rate
     }
     onSave(data)
     form.reset()
@@ -288,6 +308,19 @@ export function PaymentMethodDialog({
             )}
           />
 
+          <FormField
+            control={form.control}
+            name='fee_percent'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('Handling fee')} (%)</FormLabel>
+                <FormControl>
+                  <Input type='number' min={0} max={100} step='0.01' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name='min_topup'
