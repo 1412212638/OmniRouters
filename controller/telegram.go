@@ -77,6 +77,7 @@ func TelegramBind(c *gin.Context) {
 		})
 		return
 	}
+	_ = model.RecordAuditLog(&model.AuditLog{UserId: user.Id, Category: model.AuditCategorySecurity, Action: "telegram.bind", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey)})
 
 	c.Redirect(302, common.ThemeAwarePath("/console/personal"))
 }
