@@ -137,18 +137,6 @@ func (user *User) SetAccessToken(token string) {
 	user.AccessToken = &token
 }
 
-// RevokeUserAccessToken invalidates the current personal access token without
-// writing a stale user snapshot over concurrently changed account fields.
-func RevokeUserAccessToken(userId int) error {
-	if userId == 0 {
-		return errors.New("id 为空！")
-	}
-	return DB.Model(&User{}).Where("id = ?", userId).Updates(map[string]interface{}{
-		"access_token":            nil,
-		"access_token_created_at": nil,
-	}).Error
-}
-
 func (user *User) GetSetting() dto.UserSetting {
 	setting := dto.UserSetting{}
 	if user.Setting != "" {

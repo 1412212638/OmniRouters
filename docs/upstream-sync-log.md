@@ -1135,6 +1135,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Round 2 progress: added access-token creation timestamp tracking and a user-scoped token revoke endpoint.
 - Validation: `git diff --check`; full Go tests unavailable in the local environment.
 - Local commits/push: `c25d3b484` and `d3637953c`, both pushed to `origin/main`.
+- Round 2 progress: added isolated `AuditLog` storage with token fingerprints only, automatic migration registration, and revoke-event recording. Existing usage-log audit fields remain unchanged.
+- Validation: `git diff --check`; Go tests unavailable locally.
+- Local commit/push: pending.
 
 ## 2026-09-07
 
