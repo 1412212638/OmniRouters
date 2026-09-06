@@ -1,10 +1,16 @@
 package oauth
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
+	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/setting/system_setting"
 	"golang.org/x/oauth2"
 )
@@ -37,4 +43,25 @@ func (flow *TelegramOAuthFlow) AuthorizationURL(state string) string {
 		"code_challenge_method": {"S256"},
 	}
 	return TelegramOAuthIssuer + "/auth?" + values.Encode()
+}
+
+func ExchangeTelegramCode(ctx context.Context, client *http.Client, flow *TelegramOAuthFlow, code string) (*OAuthToken, error) {
+	settings := system_setting.GetTelegramSettings()
+	if flow == nil || !settings.IsConfigured() || strings.TrimSpace(code) == "" ||
+		flow.ClientID != strings.TrimSpace(settings.ClientID) || flow.CodeVerifier == "" {
+		return nil, ErrTelegramOAuthNotReady
+	}
+	if client == nil { client = &http.Client{Timeout: 20 * time.Second} }
+	values := url.Values{"grant_type": {"authorization_code"}, "code": {code}, "client_id": {flow.ClientID}, "redirect_uri": {flow.RedirectURI}, "code_verifier": {flow.CodeVerifier}}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, TelegramOAuthIssuer+"/token", strings.NewReader(values.Encode()))
+	if err != nil { return nil, fmt.Errorf("telegram token request: %w", err) }
+	req.SetBasicAuth(flow.ClientID, strings.TrimSpace(settings.ClientSecret)); req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := client.Do(req); if err != nil { return nil, fmt.Errorf("telegram token request: %w", err) }
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK { return nil, fmt.Errorf("telegram token endpoint returned %d", resp.StatusCode) }
+	var token OAuthToken
+	if err := common.DecodeJson(io.LimitReader(resp.Body, 1<<20), &token); err != nil { return nil, fmt.Errorf("telegram token response: %w", err) }
+	if token.IDToken == "" { return nil, errors.New("telegram token response has no id token") }
+	token.ClientID = flow.ClientID
+	return &token, nil
 }
