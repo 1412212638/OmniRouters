@@ -1135,6 +1135,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Second-round status: token lifecycle and existing account-security success events are integrated; upstream's full session-bound verification and audit schema/UI suite is not claimed as fully equivalent.
 - Validation: `git diff --check`; Go/Bun toolchains unavailable locally.
 - Local commit/push: pending.
+- Round 3 progress: completed the OAuth registry interface scaffold for Telegram while keeping the provider disabled until callback/session integration is complete.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
 - Round 3 progress: registered a disabled-by-default `telegram_oauth` provider adapter behind the existing registry; it cannot authenticate or replace the legacy Telegram route until session/callback integration is complete.
 - Validation: `git diff --check`; Go toolchain unavailable locally.
 - Local commit/push: pending.

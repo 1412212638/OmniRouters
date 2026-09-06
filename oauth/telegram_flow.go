@@ -13,6 +13,7 @@ import (
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/gin-gonic/gin"
 	"github.com/QuantumNous/new-api/setting/system_setting"
 	"golang.org/x/oauth2"
 )
@@ -88,7 +89,15 @@ func VerifyTelegramIDToken(ctx context.Context, token *OAuthToken, keys oidc.Key
 type TelegramOAuthProvider struct{}
 
 func (TelegramOAuthProvider) GetName() string { return "Telegram" }
-func (TelegramOAuthProvider) IsEnabled() bool { return system_setting.GetTelegramSettings().IsConfigured() }
+// IsEnabled remains false until the unified callback/session integration is
+// complete; this prevents the scaffold from competing with the legacy route.
+func (TelegramOAuthProvider) IsEnabled() bool { return false }
+func (TelegramOAuthProvider) ExchangeToken(context.Context, string, *gin.Context) (*OAuthToken, error) {
+	return nil, errors.New("telegram oauth callback integration is not enabled")
+}
+func (TelegramOAuthProvider) GetUserInfo(context.Context, *OAuthToken) (*OAuthUser, error) {
+	return nil, errors.New("telegram oauth callback integration is not enabled")
+}
 func (TelegramOAuthProvider) IsUserIDTaken(id string) bool { return false }
 func (TelegramOAuthProvider) FillUserByProviderID(user *model.User, id string) error { return errors.New("telegram oauth provider not connected") }
 func (TelegramOAuthProvider) SetProviderUserID(user *model.User, id string) { user.TelegramId = id }
