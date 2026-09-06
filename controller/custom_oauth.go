@@ -577,6 +577,7 @@ func UnbindCustomOAuthByAdmin(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
+	_ = model.RecordAuditLog(&model.AuditLog{UserId: userId, Category: model.AuditCategorySecurity, Action: "oauth.unbind.admin", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey), Other: providerIdStr})
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
