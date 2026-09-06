@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-07 (first-round database audit)
+
+- Reviewed upstream `1751f43ee`, `6eb6f35ed`, `69a41eead`, `2b6f1dfef`, and `27ff6a876` against the current database layer.
+- Already present locally: SQLite WAL, pragma busy timeout, immediate transaction locking, JSON `[]byte`/`string` scanning, `prefill_groups` constraint migration, and Token Key uniqueness migration. These were retained because the local implementations include existing cross-database and project-specific safeguards.
+- No upstream database code was copied in this audit. PostgreSQL pooler handling and migration behavior remain under targeted verification before the next batch.
+- Validation: source comparison and `git diff --check`; real PostgreSQL/MySQL runtime tests remain unavailable in this environment.
+- Commit/push: pending.
+
 ## 2026-09-07 (OpenAI model generation compatibility)
 
 - Integrated the safe portion of upstream `49ec46966`: OpenAI GPT generation detection now recognizes `gpt-5` and later major generations, including `gpt-6-astra`, for the existing max-completion-token, sampling-parameter and developer-role compatibility path.
