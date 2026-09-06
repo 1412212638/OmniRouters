@@ -44,6 +44,7 @@ export type WaffoPancakeSettingsValues = {
   WaffoPancakeMerchantID: string
   WaffoPancakePrivateKey: string
   WaffoPancakeReturnURL: string
+  WaffoPancakeUnitPrice: number
 }
 
 export interface WaffoPancakeBinding {
@@ -419,6 +420,11 @@ export function WaffoPancakeSettingsSection({
 
         <div className='grid gap-1.5'>
           <Label>{t('Merchant ID')}</Label>
+          <div className='mt-4'>
+            <Label>{t('Unit price (USD per recharge USD)')}</Label>
+            <Input type='number' min={0} step='0.01' value={values.WaffoPancakeUnitPrice} onChange={(event) => onValueChange('WaffoPancakeUnitPrice', Number(event.target.value) || 0)} />
+            <p className='text-muted-foreground mt-1 text-xs'>{t('For example, 1.05 means a $10 recharge is quoted as $10.50.')}</p>
+          </div>
           <Input
             placeholder='MER_xxx'
             autoComplete='off'

@@ -1,5 +1,12 @@
 # Upstream Sync Log
 
+## 2026-09-07 (Waffo Pancake unit price setting)
+
+- Added the existing `WaffoPancakeUnitPrice` option to the Waffo Pancake admin section; `1.05` makes a `$10` recharge quote `$10.50`.
+- Preserved store/product binding, checkout callbacks, settlement and quota credit behavior.
+- Validation: `git diff --check`; frontend build unavailable locally.
+- Commit/push: pending.
+
 ## 2026-09-06 (Pancake USD quote display)
 
 - Local bug: Pancake returns USD quotes but the shared wallet formatter divided them by the configured exchange rate again, displaying a USD 10 quote as approximately USD 1.39.
