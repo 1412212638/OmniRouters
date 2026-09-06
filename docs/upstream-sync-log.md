@@ -1131,6 +1131,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: pre-consume, settlement, refund, and insufficient-quota response behavior were not modified.
 - Validation: source diff review and `git diff --check`; full Go/frontend test suites were not run because the local Go/Bun toolchains are unavailable.
 - Local commit/push: pending.
+- Round 2 progress: successful self-service password changes now emit a security audit event; password values are never included.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
 - Round 2 progress: successful account deletion and 2FA disable operations now emit sanitized security audit events.
 - Validation: `git diff --check`; full Go tests unavailable locally.
 - Local commit/push: pending.

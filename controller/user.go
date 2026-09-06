@@ -962,6 +962,9 @@ func UpdateSelf(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
+	if updatePassword {
+		_ = model.RecordAuditLog(&model.AuditLog{UserId: cleanUser.Id, Username: cleanUser.Username, Category: model.AuditCategorySecurity, Action: "password.change", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey)})
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
