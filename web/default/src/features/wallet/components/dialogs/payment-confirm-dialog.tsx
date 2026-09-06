@@ -73,7 +73,7 @@ export function PaymentConfirmDialog({
   const discountAmount = hasDiscount ? originalAmount - paymentAmount : 0
   const normalizedFeeRate = normalizeTopupFeeRate(feeRate)
   const feeAmount = paymentAmount * normalizedFeeRate
-  const totalPaymentAmount = paymentAmount
+  const totalPaymentAmount = paymentAmount + feeAmount
   const hasFeeRate = normalizedFeeRate > 0 && paymentAmount > 0
   const feeRatePercent = (normalizedFeeRate * 100).toFixed(2)
 

@@ -151,7 +151,6 @@ export function RechargeFormCard({
   const hasFeeRate = feeRate > 0
   const feeRatePercent = (feeRate * 100).toFixed(2)
   const paymentFeeAmount = paymentAmount * feeRate
-  const totalPaymentAmount = paymentAmount
 
   if (loading) {
     return (
@@ -315,20 +314,10 @@ export function RechargeFormCard({
                         <Skeleton className='h-5 w-16' />
                       ) : (
                         <span className='text-sm font-semibold'>
-                          {formatPaymentQuote(totalPaymentAmount, paymentType)}
+                          {formatPaymentQuote(paymentAmount, paymentType)}
                         </span>
                       )}
                     </div>
-                    {hasFeeRate && !calculating && paymentAmount > 0 && (
-                      <div className='text-muted-foreground mt-1 flex items-center justify-between gap-2 text-[11px]'>
-                        <span>
-                          {t('Handling fee')} {feeRatePercent}%
-                        </span>
-                        <span>
-                          {formatPaymentQuote(paymentFeeAmount, paymentType)}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>

@@ -1,5 +1,12 @@
 # Upstream Sync Log
 
+## 2026-09-07 (wallet fee display adjustment)
+
+- Local request: remove the inline fee preview beside the custom amount and show the fee-inclusive amount in the confirmation dialog.
+- Changed frontend display only: confirmation `You Pay` now shows base amount plus the displayed fee; no backend order, credit, or billing behavior changed.
+- Validation: `git diff --check`; frontend build unavailable locally.
+- Commit/push: pending.
+
 ## 2026-09-07 (Waffo Pancake unit price setting)
 
 - Added the existing `WaffoPancakeUnitPrice` option to the Waffo Pancake admin section; `1.05` makes a `$10` recharge quote `$10.50`.
