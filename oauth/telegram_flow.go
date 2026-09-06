@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/model"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/QuantumNous/new-api/setting/system_setting"
 	"golang.org/x/oauth2"
@@ -81,3 +82,16 @@ func VerifyTelegramIDToken(ctx context.Context, token *OAuthToken, keys oidc.Key
 	if err := verified.Claims(&claims); err != nil || strings.TrimSpace(claims.ID) == "" || verified.Subject == "" { return nil, errors.New("invalid telegram identity claims") }
 	return &OAuthUser{ProviderUserID: strings.TrimSpace(claims.ID), Username: claims.Username, DisplayName: claims.Name}, nil
 }
+
+// TelegramOAuthProvider is kept behind the existing feature switch until the
+// callback/session integration is complete.
+type TelegramOAuthProvider struct{}
+
+func (TelegramOAuthProvider) GetName() string { return "Telegram" }
+func (TelegramOAuthProvider) IsEnabled() bool { return system_setting.GetTelegramSettings().IsConfigured() }
+func (TelegramOAuthProvider) IsUserIDTaken(id string) bool { return false }
+func (TelegramOAuthProvider) FillUserByProviderID(user *model.User, id string) error { return errors.New("telegram oauth provider not connected") }
+func (TelegramOAuthProvider) SetProviderUserID(user *model.User, id string) { user.TelegramId = id }
+func (TelegramOAuthProvider) GetProviderPrefix() string { return "telegram_" }
+
+func init() { Register("telegram_oauth", TelegramOAuthProvider{}) }
