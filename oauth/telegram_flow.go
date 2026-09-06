@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/QuantumNous/new-api/setting/system_setting"
 	"golang.org/x/oauth2"
 )
@@ -64,4 +65,19 @@ func ExchangeTelegramCode(ctx context.Context, client *http.Client, flow *Telegr
 	if token.IDToken == "" { return nil, errors.New("telegram token response has no id token") }
 	token.ClientID = flow.ClientID
 	return &token, nil
+}
+
+// VerifyTelegramIDToken validates the provider-issued JWT before any identity
+// claim is used. The verifier fetches and caches Telegram's JWKS keys.
+func VerifyTelegramIDToken(ctx context.Context, token *OAuthToken, keys oidc.KeySet) (*OAuthUser, error) {
+	settings := system_setting.GetTelegramSettings()
+	if token == nil || token.IDToken == "" || token.ClientID != strings.TrimSpace(settings.ClientID) || keys == nil {
+		return nil, ErrTelegramOAuthNotReady
+	}
+	verifier := oidc.NewVerifier(TelegramOAuthIssuer, keys, &oidc.Config{ClientID: token.ClientID, SupportedSigningAlgs: []string{oidc.RS256, oidc.ES256}})
+	verified, err := verifier.Verify(ctx, token.IDToken)
+	if err != nil { return nil, fmt.Errorf("telegram id token verification: %w", err) }
+	var claims struct { ID string `json:"id"`; Username string `json:"preferred_username"`; Name string `json:"name"` }
+	if err := verified.Claims(&claims); err != nil || strings.TrimSpace(claims.ID) == "" || verified.Subject == "" { return nil, errors.New("invalid telegram identity claims") }
+	return &OAuthUser{ProviderUserID: strings.TrimSpace(claims.ID), Username: claims.Username, DisplayName: claims.Name}, nil
 }
