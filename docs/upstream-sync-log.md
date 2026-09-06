@@ -1132,6 +1132,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source diff review and `git diff --check`; full Go/frontend test suites were not run because the local Go/Bun toolchains are unavailable.
 - Local commit/push: pending.
 
+- Round 2 progress: added access-token creation timestamp tracking and a user-scoped token revoke endpoint.
+- Validation: `git diff --check`; full Go tests unavailable in the local environment.
+- Local commits/push: `c25d3b484` and `d3637953c`, both pushed to `origin/main`.
+
 ## 2026-09-07
 
 - Upstream review: `d8cb17744`, `3f8a50cf8`, `6f2333990`, `0973dc2b8`, `a8729b5c3`, `45c3fbe8` and related commits through `upstream/main` `0c76e4dae`.
