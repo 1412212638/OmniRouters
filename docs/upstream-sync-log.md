@@ -1267,3 +1267,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Auth-version/cache prerequisite source commit is being prepared: `model/user_auth_cache.go` adds monotonic Redis pending/committed fences and transactional version bump helpers; `UserBase` now carries the private auth version, and normal/fast migrations initialize missing versions to 1. This is required before issuing sessions from existing login paths.
 - Source commit `333ea234f3033a897e1d559aa172944ea5374e6c` pushed to origin/codex/migrate-upstream-structural-v3. [Actions run 34132002060](https://github.com/1412212638/OmniRouters/actions/runs/34132002060) completed successfully; targeted Telegram/session checks and the new service token source checks passed. No local compilation/build/tests were run.
 - Completion boundary: token validation is integrated as an isolated service layer only. Existing cookie/PAT middleware and login routes remain unchanged; access-token issuance, refresh endpoint, security-proof consumption, auth-version mutation hooks and Telegram callback activation remain the next integration work. main remains unchanged.
+-
+### 2026-09-07 Structural-v3: login session issuance
+
+- Added the upstream session issuance service: active/issuance limits, server-side refresh-secret hashes, UUID session IDs, Access JWT bundles and HttpOnly refresh cookies.
+- Integrated the existing shared `setupLogin` so successful password, 2FA, OAuth, Telegram legacy and Passkey logins issue the new bundle while retaining the legacy Gin session and response user data.
+- Preserved PAT/API-key authentication, existing logout behavior and all OmniRouters billing/payment/mail/plugin/frontend behavior. Unified Telegram provider remains disabled.
+- Deliberately deferred refresh rotation endpoint, JWT middleware switch, logout revocation, session management routes, auth-version mutation hooks and Telegram callback integration.
+- Validation: source review and `git diff --check` only; no local build or tests. GitHub Actions is required to catch remaining package/signature issues.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
