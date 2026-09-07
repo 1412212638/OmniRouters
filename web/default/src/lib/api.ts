@@ -38,6 +38,24 @@ export type ApiRequestConfig = AxiosRequestConfig
 // Base URL: empty string for same-origin API requests
 const baseURL = ''
 
+const accessTokenKey = 'dashboard_access_token'
+
+export function setDashboardAccessToken(token?: string) {
+  if (typeof window === 'undefined') return
+  if (token) window.localStorage.setItem(accessTokenKey, token)
+  else window.localStorage.removeItem(accessTokenKey)
+}
+
+function getDashboardAccessToken() {
+  try {
+    return typeof window !== 'undefined'
+      ? window.localStorage.getItem(accessTokenKey)
+      : null
+  } catch {
+    return null
+  }
+}
+
 // Create axios instance with default config
 export const api = axios.create({
   baseURL,
@@ -46,6 +64,28 @@ export const api = axios.create({
     'Cache-Control': 'no-store', // Prevent caching
   },
 })
+
+let refreshPromise: Promise<string | null> | null = null
+
+function refreshDashboardToken(): Promise<string | null> {
+  if (refreshPromise) return refreshPromise
+  refreshPromise = axios
+    .post('/api/user/auth/refresh', undefined, {
+      withCredentials: true,
+      headers: { 'Cache-Control': 'no-store' },
+    })
+    .then((response) => {
+      const token = response.data?.data?.access_token
+      if (typeof token !== 'string' || token.length === 0) return null
+      setDashboardAccessToken(token)
+      return token
+    })
+    .catch(() => null)
+    .finally(() => {
+      refreshPromise = null
+    })
+  return refreshPromise
+}
 
 // ============================================================================
 // Request Deduplication
@@ -99,6 +139,31 @@ api.interceptors.response.use(
   (error) => {
     const skip = error?.config?.skipErrorHandler
     const status = error?.response?.status
+
+    const request = error?.config as (ApiRequestConfig & {
+      _dashboardRefreshRetried?: boolean
+    }) | undefined
+    const requestURL = request?.url ?? ''
+    const canRefresh =
+      status === 401 &&
+      request &&
+      !request._dashboardRefreshRetried &&
+      !requestURL.includes('/api/user/auth/refresh') &&
+      !requestURL.includes('/api/user/auth/logout') &&
+      Boolean(getDashboardAccessToken())
+    if (canRefresh) {
+      request._dashboardRefreshRetried = true
+      return refreshDashboardToken().then((token) => {
+        if (!token) {
+          setDashboardAccessToken()
+          useAuthStore.getState().auth.reset()
+          return Promise.reject(error)
+        }
+        request.headers = request.headers ?? {}
+        ;(request.headers as Record<string, string>).Authorization = `Bearer ${token}`
+        return api.request(request)
+      })
+    }
 
     if (status === 401) {
       try {
@@ -164,6 +229,11 @@ api.interceptors.request.use((config) => {
   if (uid) {
     // Custom header for user identification
     ;(config.headers as Record<string, string>)['New-Api-User'] = uid
+  }
+  const accessToken = getDashboardAccessToken()
+  if (accessToken) {
+    ;(config.headers as Record<string, string>)['Authorization'] =
+      `Bearer ${accessToken}`
   }
   return config
 })

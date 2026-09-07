@@ -20,6 +20,8 @@ import { Send } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Dialog } from '@/components/dialog'
+import { startTelegramOAuth } from '@/features/auth/api'
+import { Button } from '@/components/ui/button'
 
 // ============================================================================
 // Telegram Bind Dialog Component
@@ -36,6 +38,7 @@ export function TelegramBindDialog({
   open,
   onOpenChange,
   botName,
+  onSuccess: _onSuccess,
 }: TelegramBindDialogProps) {
   const { t } = useTranslation()
   return (
@@ -75,13 +78,17 @@ export function TelegramBindDialog({
             </p>
           </div>
 
-          {/* Telegram Login Widget will be injected here by react-telegram-login */}
-          <div id='telegram-login-widget' className='flex justify-center'>
-            {/* This would require the react-telegram-login library */}
-            <div className='text-muted-foreground rounded-lg border border-dashed px-6 py-3 text-sm'>
-              {t('Telegram Login Widget')}
-            </div>
-          </div>
+          <Button
+            type='button'
+            onClick={async () => {
+              const result = await startTelegramOAuth('bind')
+              const url = result.data?.authorization_url
+              if (result.success && url) window.location.assign(url)
+            }}
+          >
+            <Send className='mr-2 h-4 w-4' />
+            {t('Continue with Telegram')}
+          </Button>
         </div>
 
         <p className='text-muted-foreground text-center text-xs'>

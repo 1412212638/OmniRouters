@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { api } from '@/lib/api'
+import { api, setDashboardAccessToken } from '@/lib/api'
 import type {
   LoginPayload,
   LoginResponse,
@@ -44,18 +44,32 @@ export async function login(payload: LoginPayload) {
       password: payload.password,
     }
   )
+  if (res.data?.data?.access_token) setDashboardAccessToken(res.data.data.access_token)
   return res.data
 }
 
 // Two-factor authentication login
 export async function login2fa(payload: TwoFAPayload) {
   const res = await api.post<Login2FAResponse>('/api/user/login/2fa', payload)
+  if (res.data?.data?.access_token) setDashboardAccessToken(res.data.data.access_token)
   return res.data
 }
 
 // User logout
 export async function logout(): Promise<ApiResponse> {
-  const res = await api.get('/api/user/logout')
+  const res = await api.post('/api/user/auth/logout', undefined, {
+    skipErrorHandler: true,
+  })
+  setDashboardAccessToken()
+  return res.data
+}
+
+export async function refreshDashboardSession(): Promise<ApiResponse> {
+  const res = await api.post('/api/user/auth/refresh', undefined, {
+    skipErrorHandler: true,
+  })
+  const token = res.data?.data?.access_token
+  if (token) setDashboardAccessToken(token)
   return res.data
 }
 
@@ -91,6 +105,11 @@ export async function getOAuthState(): Promise<string> {
   const res = await api.get('/api/oauth/state', { params: { aff } })
   if (res.data?.success) return res.data.data
   return ''
+}
+
+export async function startTelegramOAuth(intent: 'login' | 'bind' = 'login') {
+  const res = await api.get('/api/oauth/telegram/start', { params: { intent } })
+  return res.data as { success: boolean; data?: { authorization_url?: string } }
 }
 
 // WeChat login by authorization code

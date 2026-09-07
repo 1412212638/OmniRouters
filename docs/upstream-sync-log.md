@@ -1135,6 +1135,33 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Second-round status: token lifecycle and existing account-security success events are integrated; upstream's full session-bound verification and audit schema/UI suite is not claimed as fully equivalent.
 - Validation: `git diff --check`; Go/Bun toolchains unavailable locally.
 - Local commit/push: pending.
+- Round 3 progress: added a separate Telegram OAuth start endpoint that stores PKCE flow data in the session and returns an authorization URL; legacy Telegram routes and generic OAuth state remain unchanged.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: completed the OAuth registry interface scaffold for Telegram while keeping the provider disabled until callback/session integration is complete.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: registered a disabled-by-default `telegram_oauth` provider adapter behind the existing registry; it cannot authenticate or replace the legacy Telegram route until session/callback integration is complete.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: added Telegram ID Token verification through OIDC JWKS with issuer/client/signature/expiry validation delegated to the verifier; only validated identity claims are returned.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: added bounded Telegram authorization-code exchange with PKCE verifier/config matching and ID-token presence checks; signature verification and route integration remain pending.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: added isolated Telegram OAuth PKCE flow generation and authorization URL construction; provider registration, token exchange, ID-token verification, and route switching remain intentionally deferred.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: added isolated Telegram OAuth client configuration with explicit readiness checks; legacy bot configuration and login flow remain unchanged.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: added idempotent legacy Telegram binding backfill into external identity claims after schema migration; duplicate ownership fails rather than being silently reassigned.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: added the isolated external-identity ownership table and atomic claim helper as the first Telegram OAuth migration layer; legacy `telegram_id` login remains unchanged and no OAuth flow was replaced.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
 - Round 2 progress: successful email binding now emits a sanitized security audit event; email address and verification code are excluded.
 - Validation: `git diff --check`; Go toolchain unavailable locally.
 - Local commit/push: pending.
@@ -1173,6 +1200,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 
 ## 2026-09-07
 
+- Third-round migration branch: `codex/migrate-upstream-structural-v3`.
+- Telegram migration dependency map: `external_identity_claim`, authorization-code/PKCE flow, session-bound verification, OAuth registry/provider, system Telegram settings, and route/frontend callback changes. Legacy `telegram_id` bindings must remain readable during migration.
+
 - Upstream review: `d8cb17744`, `3f8a50cf8`, `6f2333990`, `0973dc2b8`, `a8729b5c3`, `45c3fbe8` and related commits through `upstream/main` `0c76e4dae`.
 - Planned three-round sync:
   - Round 1: database compatibility, request stability, provider/model capability fixes, and billing safety.
@@ -1182,3 +1212,230 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: OmniRouters plugin system, wallet/payment display, Sora/audio billing, expression/group pricing, mail settings, and default frontend customizations.
 - Validation: upstream diff/stat review only; implementation and tests pending.
 - Local commit/push: pending.
+
+### 2026-09-07 Telegram provider repair (structural-v3)
+
+- Scope: audited actual branch HEAD `2db85323e` against upstream `3e84ec0ab` (not the earlier assumed `86426f7a6`). Earlier Telegram progress entries describe scaffolding, not a completed OAuth migration.
+- Integrated at source level: actual ExchangeToken/GetUserInfo implementations, cached JWKS client, issuer/audience/signature/expiry verification, positive uint64 Telegram IDs without float conversion, current redirect/client matching, HTTP(S)-only callback validation, bounded token responses, and server-only OAuthToken.ClientID.
+- Dependencies: copied upstream versions and exact go.sum checksums for go-oidc v3.21.0, oauth2 v0.36.0 and indirect go-jose v4.1.4. No local dependency resolution/build was run; module graph remains subject to CI verification.
+- Identity lookup: replaced placeholders with existing Telegram occupancy lookup and a GORM lookup that propagates database errors. Did not reuse FillUserByTelegramId because it discards non-record-not-found errors.
+- Safety: removed automatic telegram_oauth registration and the incomplete /oauth/telegram/start route/handler. Provider remains disabled and unregistered until single-use flows, session-bound login/binding callbacks and registry conflict handling are ported. Legacy widget routes and telegram_id data remain unchanged.
+- Deferred (NOT integrated by this repair): full callback/session lifecycle, external-identity-claim lifecycle and migration audit, model/vendor/pricing restructuring. This is not completion of round 3 or upstream parity.
+- Preserved: Sora/audio_generation charges, customer/group/expression pricing, payment/mail/plugin behavior, main branch and unrelated untracked files.
+- Validation: added Telegram regression test source for numeric IDs, invalid callback URLs, configuration changes, token endpoint PKCE/Basic auth, private ClientID, disabled registration and real RSA/JWKS issuer/audience/expiry/signature failures. Local checks are source review and git diff --check only; no local compilation or tests.
+- CI: added migration-branch-only Structural migration source checks (go test ./oauth -run Telegram); no image publication and no latest tag changes. Existing main GHCR workflow unchanged.
+- Local commit/push: repair `4d9d566594248702137ab0c20d4d956afd658229` pushed successfully to origin/codex/migrate-upstream-structural-v3; main unchanged.
+- Remote validation: GitHub Actions run [34127883521](https://github.com/1412212638/OmniRouters/actions/runs/34127883521) completed successfully for that exact commit, including `go test -mod=readonly ./oauth -run Telegram -count=1`. This validates the OAuth package/dependency compilation and targeted regressions, NOT the full application image, live Telegram login, or real multi-database migrations.
+- Status-record commit: documentation-only follow-up, to be pushed to the same migration branch with CI skipped; no source changes after the passing run.
+
+### 2026-09-07 Structural-v3: one-time authorization storage
+
+- Upstream source: `3e84ec0ab:model/auth_flow.go`. Integrated the independent AuthFlow storage/creation/lookup/transactional consumption/external assertion replay protection/cleanup APIs. Normal and fast schema migration both include AuthFlow.
+- Preserved upstream implementation: 32-byte random tokens with HMAC-only storage, purpose/provider/intent/user/session match predicates, expiry checks, first-write atomic consumption and action rollback. Optional match fields retain upstream semantics: future callbacks MUST supply and validate authoritative identity fields; this table alone does not validate a session.
+- Explicitly deferred: AuthSessionIdentity/Authorization and ValidateAuthSessionWithTx, which require User.AuthVersion, UserSession and versioned session lifecycle absent locally. No placeholder session validator was added. Cleanup API is present but scheduling is deferred until flows are activated.
+- Security boundary: provider remains unregistered/disabled; no OAuth start/callback routes enabled. Legacy Telegram, other login mechanisms, identity-claim tables, billing/payment/mail/plugin code unchanged. This is the storage prerequisite, NOT complete session binding or completion of round 3.
+- Regression source: SQLite/MySQL/PostgreSQL schema idempotence, identity-field mismatch, replay/expiry, action rollback (including data rollback), concurrent single winner and signed assertion deduplication. Tests use dedicated CI databases; SQLite concurrency uses a single connection, so multi-connection SQLite lock contention remains outside this test.
+- Validation: local source review and git diff --check only, no local compilation/tests/builds. Added isolated MySQL 8/PostgreSQL 16 services to migration-branch Actions for these tests; older supported DB versions still require separate verification.
+- Local commit/push: pending on codex/migrate-upstream-structural-v3; main not changed. Remote result to be recorded after push.
+- First push: `be82fa8a3`, run `34128852251`. Telegram checks passed; model tests failed at compilation due to pre-existing missing AuthVersion, UpdateUserAccessToken and useUserCacheMiniRedis referenced by unrelated tests. No database contract executed in that run.
+- Follow-up: moved new tests to model/authflowtest, importing the actual production model package so the three-database contracts can run independently. No old test deleted/disabled and no placeholder production APIs introduced. Full model test-suite compilation remains a known migration gap, NOT fixed by this isolation.
+- Source-review correction after `64640fa2b`: corrected three overqualified GORM references introduced while moving the test package. Production behavior unchanged; validation remains remote CI plus local diff review.
+- Final source push: `ab8179816ee27196f39058fa33b7e0a84f0a309f` on origin/codex/migrate-upstream-structural-v3. [Actions run 34129267334](https://github.com/1412212638/OmniRouters/actions/runs/34129267334) completed successfully: Telegram regression checks and independent AuthFlow contracts with SQLite, MySQL 8 and PostgreSQL 16. Supersedes the failed intermediate runs above. No local compilation was performed.
+- Completion boundary: one-time storage prerequisite completed; full model suite, authoritative session/version lifecycle, Telegram callback/binding and frontend activation remain outstanding. Documentation-only status follow-up will use [skip ci]; main remains unchanged.
+
+### 2026-09-07 Structural-v3: authoritative session backend
+
+- Upstream reference: `3e84ec0ab:model/user_session.go` and session identity/validation portion of `model/auth_flow.go`. Ported the complete session model with DB lookup, active-session listing/counts, revoke/refresh CAS, Redis deny fences and bounded cache lifetime, auth-version advancement and cleanup APIs. Added upstream retention defaults and TTL helper dependency.
+- Added User.AuthVersion (default 1, private JSON field), UserSession to normal/fast migration, AuthSessionIdentity/Authorization and real ValidateAuthSessionWithTx. Validation rereads and locks the user/session inside the caller transaction rather than trusting cookie state.
+- Deliberate local protection: AuthVersion is create-only in GORM User writes so existing stale Save/Updates cannot decrease it. Future auth-version mutation must use an explicit dedicated column update and integrate cache fencing; upstream credential-mutation/cache-version logic is NOT ported in this step.
+- Regression source in model/authflowtest: DB schema repeatability; owner mismatch, revoke and cached denial; binding-flow rollback when session revoked; refresh invalid token/grace/reuse; user/session version mismatch, expiry and stale User.Save protection. Three-database harness now sets the main DB dialect so MySQL/PostgreSQL exercise FOR UPDATE. Redis 7 service exercises both cached and uncached paths.
+- Preserved/not activated: existing cookie login/logout, password/2FA changes, API keys, Telegram widget, frontend, custom pricing/mail/payments/plugins. No new session issuance/refresh/revoke HTTP routes or scheduled cleanup; Telegram provider remains unregistered/disabled. These backend APIs do not make existing cookie sessions revocable automatically.
+- Still required before activation: issuance limits/configuration, auth-version increments and cache fences across credential mutations, JWT/refresh lifecycle and cookie compatibility, middleware enforcement, session-bound Telegram callbacks and identity claim lifecycle. Existing full-model-test missing helpers remain separate work.
+- Validation: source comparison and git diff --check only locally; no local compilation/build/tests. Migration-branch Actions expanded to test session contracts with SQLite/MySQL 8/PostgreSQL 16 and Redis 7. Full image build and old database version upgrades are not covered.
+- Local commit/push: pending on codex/migrate-upstream-structural-v3; main unchanged. Remote CI outcome will be appended after push.
+- Source commit `61c5d39a8ae7beb16fb64a5dc031f7e4149a093f` pushed to origin/codex/migrate-upstream-structural-v3. [Actions run 34130741264](https://github.com/1412212638/OmniRouters/actions/runs/34130741264) passed both Telegram and auth-flow jobs, including the three-database session tests with Redis enabled/disabled. This is targeted backend validation, not activation or a full image acceptance test.
+- Status-only log follow-up uses [skip ci]. Next implementation boundary: authoritative login/session issuance, logout/revocation, credential-change auth-version/cache fencing, then middleware/callback integration. No claim that these paths were completed here.
+
+### 2026-09-07 Structural-v3: isolated authentication token layer
+
+- Upstream references: `3e84ec0ab:service/auth_token.go` and the normalized verification binding portion of `service/security_verification.go`. Added short-lived HS256 dashboard access tokens, strict issuer/audience/algorithm/expiry/issued-at/use validation, server-derived operation context hashes, and security-proof identity/scope/context binding. The token layer is not wired into existing middleware or login routes.
+- Preserved: existing opaque access-token/PAT authentication, cookie login/logout, Telegram legacy routes, session model, Sora/audio billing, pricing, mail, plugin and frontend behavior. No production route behavior changes.
+- Regression source: access-token round trip, security-proof purpose isolation, tamper rejection, internal JWT classification and expiry rejection. Database-backed proof issuance requires the existing application DB and remains covered by the remote target suite only after auth-session service integration.
+- Deferred: service auth-session issuance/refresh adapter, JWT middleware enforcement, login/logout controller swap, auth-version mutation hooks for password/2FA/passkey changes, full security verification service, and Telegram callback activation. These are deliberately separate because the current application still uses the legacy cookie session contract.
+- Validation: source review and `git diff --check` only locally; no local compilation/build/tests. This source-only step is not a deployable authentication migration by itself.
+- Local commit/push: pending on codex/migrate-upstream-structural-v3; main unchanged. Remote result to be recorded after push.
+- Auth-version/cache prerequisite source commit is being prepared: `model/user_auth_cache.go` adds monotonic Redis pending/committed fences and transactional version bump helpers; `UserBase` now carries the private auth version, and normal/fast migrations initialize missing versions to 1. This is required before issuing sessions from existing login paths.
+- Source commit `333ea234f3033a897e1d559aa172944ea5374e6c` pushed to origin/codex/migrate-upstream-structural-v3. [Actions run 34132002060](https://github.com/1412212638/OmniRouters/actions/runs/34132002060) completed successfully; targeted Telegram/session checks and the new service token source checks passed. No local compilation/build/tests were run.
+- Completion boundary: token validation is integrated as an isolated service layer only. Existing cookie/PAT middleware and login routes remain unchanged; access-token issuance, refresh endpoint, security-proof consumption, auth-version mutation hooks and Telegram callback activation remain the next integration work. main remains unchanged.
+-
+### 2026-09-07 Structural-v3: login session issuance
+
+- Added the upstream session issuance service: active/issuance limits, server-side refresh-secret hashes, UUID session IDs, Access JWT bundles and HttpOnly refresh cookies.
+- Integrated the existing shared `setupLogin` so successful password, 2FA, OAuth, Telegram legacy and Passkey logins issue the new bundle while retaining the legacy Gin session and response user data.
+- Preserved PAT/API-key authentication, existing logout behavior and all OmniRouters billing/payment/mail/plugin/frontend behavior. Unified Telegram provider remains disabled.
+- Deliberately deferred refresh rotation endpoint, JWT middleware switch, logout revocation, session management routes, auth-version mutation hooks and Telegram callback integration.
+- Validation: source review and `git diff --check` only; no local build or tests. GitHub Actions is required to catch remaining package/signature issues.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+### 2026-09-08 Structural-v3: Telegram OAuth activation review
+
+- Review result: the Telegram OAuth provider implementation, AuthFlow storage, external identity claim storage, and authoritative session primitives are present, but the unified callback/start/bind controller contract is not complete in this branch.
+- Decision: keep `TelegramOAuthProvider.IsEnabled()` false and do not register the provider or expose a new callback route. This prevents an incomplete provider from becoming selectable or creating sessions without the complete identity/session binding flow.
+- Preserved: legacy Telegram Widget login/bind behavior, legacy `telegram_id` compatibility, all OmniRouters custom billing/payment/mail/plugin/frontend behavior, and `main`.
+- Validation: source comparison and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+- Remaining: unified Telegram callback/bind/login controller integration and frontend activation require a dedicated implementation with end-to-end tests.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+### 2026-09-08 Structural-v3: final round review boundary
+
+- Planned rounds 1-4 have been processed in sequence: dashboard JWT middleware, credential auth-version fencing, security verification audit coverage, and Telegram OAuth activation review.
+- Round 5 is a source-only acceptance review: verify changed-file scope, migration registration, protected OmniRouters behavior, documentation traceability, branch/remote state, and GitHub Actions outcome. No local compilation or image build will be performed.
+
+### 2026-09-08 Structural-v3: security proof contract review
+
+- Review result: dashboard JWT identity is now exposed to middleware through the server-validated `auth_identity` context value. The existing security-proof signer currently stores an internal AuthFlow ID in JWT `jti`, while AuthFlow consumption requires the original opaque token; therefore proof consumption was not enabled prematurely.
+- Safety decision: removed the incomplete consumer path rather than introducing a proof that cannot be atomically consumed. A follow-up must return/bind the opaque flow token and internal proof ID explicitly before wiring `/api/verify` or channel-key access.
+- Preserved: existing Cookie/PAT behavior, legacy secure verification, billing/payment/mail/plugin/frontend behavior, and `main`.
+- Validation: source review and `git diff --check` only; no local compilation/build/tests or image publication.
+
+### 2026-09-08 Structural-v3: security proof token contract repair
+
+- Integrated the missing one-time Proof consumption primitive without enabling an incomplete route: the signed proof now carries the opaque AuthFlow token separately from the internal Flow ID in `jti`, and `ConsumeSecurityProof` validates the session/binding before atomically consuming that opaque token.
+- Safety: the previous mismatch between internal Flow ID and opaque-token consumption is corrected. The legacy `/api/verify` response and sensitive-operation consumers are deliberately deferred until their request/response contract can carry the proof explicitly.
+- Preserved: existing Cookie/PAT verification behavior and all OmniRouters business functionality.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+
+### 2026-09-08 Structural-v3: Telegram OAuth commit path
+
+- Added transaction-owned Telegram login commit helpers for new-user and existing-user paths, plus the bind path. Existing Telegram identities are consumed through the same one-time AuthFlow before `setupLogin`; new users are created and claimed atomically.
+- Controller wiring remains intentionally pending until the callback has dedicated route-level tests for state intent, provider error callbacks, concurrent replay, registration-disabled behavior, and session-bound bind requests.
+- Preserved legacy Telegram Widget routes and all OmniRouters custom behavior.
+
+### 2026-09-08 Structural-v3: Telegram unified OAuth routes
+
+- Registered explicit `/oauth/telegram/start` and `/oauth/telegram` routes before the generic OAuth wildcard. The legacy `/api/oauth/telegram/login` and `/bind` Widget routes remain unchanged.
+- The unified flow uses server-side AuthFlow state, PKCE, ID-token verification, session-bound bind intent, one-time consumption, and atomic external identity ownership. It does not depend on the generic provider registry.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+
+### 2026-09-08 Structural-v3: default frontend dashboard session client
+
+- Added default frontend storage and request injection for the short-lived dashboard Access JWT. Login and 2FA responses persist the returned token; refresh and logout use the new session endpoints, while HttpOnly refresh cookies remain server-managed.
+- Compatibility: the change is limited to `web/default` dashboard API requests. Relay/API-key examples and the classic frontend are unchanged; the existing user ID header and cookie credentials remain present for compatibility.
+- Added an explicit `refreshDashboardSession` API helper for the authenticated bootstrap/expiry flow. Automatic retry is intentionally not added yet to avoid request replay and refresh races until the route lifecycle is wired and tested.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation, per source-only workflow.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+### 2026-09-08 Structural-v3: four-batch migration acceptance review
+
+- Batch 1 complete: JWT-bound security proofs, operation-context binding, and one-time channel-key proof consumption.
+- Batch 2 complete: Telegram AuthFlow state, PKCE, ID-token validation, atomic login/bind commits, external identity claims, and dedicated callback routes. Legacy Telegram Widget routes remain intact; the generic Provider registry remains protected from incomplete registration.
+- Batch 3 complete: default frontend stores and sends dashboard Access JWTs, persists login/2FA tokens, and uses refresh/logout session endpoints. Classic frontend, PAT/API-key relay requests, and Cookie compatibility remain unchanged.
+- Batch 4 source review: protected OmniRouters Sora/audio billing, expression/group/customer pricing, plugin system, wallet/payment display, mail settings/templates, and classic frontend were not modified by this migration series. Only migration-branch source and documentation changes are included.
+- Validation: `git diff --check` and source-scope review only. No local Go compilation, frontend build, Docker build, or image publication, as required by the source-only workflow. GitHub Actions remains the authoritative build/test gate.
+- Branch: changes are on `codex/migrate-upstream-structural-v3`; `main` was not changed. Pre-existing unrelated untracked files remain untouched.
+
+### 2026-09-08 Default frontend access-token refresh
+
+- Added automatic Dashboard Access JWT refresh on HTTP 401 in `web/default/src/lib/api.ts`. Concurrent expired requests share one refresh promise; each original request is retried at most once.
+- Refresh and logout endpoints are excluded from retry to prevent loops. A failed refresh clears the stored dashboard token and auth-store user state. Cookie credentials remain HttpOnly and server-managed.
+- Preserved: PAT/Relay requests, classic frontend, legacy cookie behavior, billing/payment/mail/plugin behavior, and `main`.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
+
+### 2026-09-08 Telegram default frontend callback routing
+
+- Unified Telegram OAuth bind callbacks now redirect to the default frontend `/profile` route. Legacy Telegram Widget binding keeps its existing `/console/personal` redirect for classic frontend compatibility.
+- The default profile page already reloads current user data on route entry; no legacy binding route or classic frontend behavior was changed.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
+
+### 2026-09-08 Telegram OAuth browser callback completion
+
+- Added a redirect-based login finalizer for browser OAuth callbacks. Telegram login now creates the same server-side Session, Access JWT, refresh cookie, last-login update, and audit record as normal login, then redirects to the dashboard instead of rendering raw JSON.
+- Telegram bind already redirects to the profile page; both browser paths now return to usable frontend screens.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
+
+### 2026-09-08 Default frontend Telegram binding start
+
+- Replaced the default frontend Telegram binding placeholder/widget text with a real server-side OAuth bind start action. The button requests a bind AuthFlow and redirects to its PKCE authorization URL.
+- The existing profile binding refresh callback remains the next UI follow-up after the backend redirect response is finalized; legacy Widget binding remains unchanged.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+### 2026-09-08 Default frontend Telegram login start
+
+- Replaced the default frontend Telegram placeholder with the server-side Telegram OAuth start request. The browser is redirected only to the authorization URL returned by the backend; PKCE and flow state remain server-managed.
+- Telegram bind UI and callback success-screen handling remain separate follow-up work; legacy Widget behavior is unchanged.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
+
+### 2026-09-08 Structural-v3: Telegram atomic OAuth commit services
+
+- Added transaction-aware `CommitTelegramLogin` and `CommitTelegramBind` services. The AuthFlow consumer owns the only transaction; login performs Flow consumption, user creation, and external identity Claim atomically, while bind performs Flow consumption and Claim atomically.
+- Post-commit effects remain outside the transaction by design. No public Telegram unified route is enabled yet; callback wiring still needs provider token validation, authenticated bind-session matching, error handling, and targeted concurrency tests.
+- Preserved legacy Telegram Widget behavior and all OmniRouters custom billing/payment/mail/plugin/frontend behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+
+### 2026-09-08 Structural-v3: Telegram callback transaction review
+
+- Review result: the existing AuthFlow consumer owns its transaction, while OAuth user creation currently has separate post-lookup and post-creation behavior. No callback route was enabled in this step because combining Flow consumption, user creation, external identity claim, and post-commit session issuance still requires a dedicated transaction-aware consumer API.
+- Safety: no partial Telegram callback/controller was committed; legacy Widget login and bind remain unchanged and the unified provider remains disabled.
+- Preserved: all OmniRouters billing/payment/mail/plugin/frontend behavior and `main`.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+
+### 2026-09-08 Structural-v3: Telegram AuthFlow state service
+
+- Added server-side Telegram OAuth flow state creation/lookup for login and bind intents. PKCE verifier, client ID, and redirect URI are stored in the expiring AuthFlow payload; only the opaque flow token is intended for the browser.
+- The helper validates provider/intent, expiry, payload shape, and rejects unsupported intents. Callback consumption and provider registration remain deferred until the controller can perform atomic identity/session updates.
+- Preserved legacy Telegram Widget routes and all OmniRouters custom business behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+
+### 2026-09-08 Structural-v3: Telegram identity binding primitive
+
+- Added `BindExternalIdentityWithTx`: checks legacy `telegram_id` ownership, atomically claims the provider subject in `external_identity_claims`, and updates the legacy column in the same transaction.
+- This is a service/model prerequisite for the unified Telegram callback. The public provider remains disabled until AuthFlow intent consumption and session-bound login/bind controllers are added.
+- Preserved legacy Telegram routes and all OmniRouters billing/payment/mail/plugin/frontend behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+### 2026-09-08 Structural-v3: security proof request integration
+
+- Integrated JWT-bound security verification into `/api/verify`: callers may provide a supported operation/context and receive a short-lived one-time security proof. The proof is bound to the authoritative user session, auth version, method, scope, and normalized operation context.
+- Integrated the channel-key read path: JWT requests must present `X-Security-Proof` bound to that exact channel ID; the proof is atomically consumed before the key is returned. Legacy Cookie-session requests retain the existing five-minute verification behavior.
+- Preserved: PAT/relay authentication, legacy frontend behavior, billing/payment/mail/plugin behavior, and `main`.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+### 2026-09-08 Structural-v3: secure verification audit coverage
+
+- Scope: universal 2FA/Passkey verification now records structured security audit events for successful and failed verification attempts, including only the verification method and request context; secrets and codes are never logged.
+- Boundary: existing Gin-session verification remains compatible. The new JWT-bound security proof issuance/consumption path is intentionally not activated by this small audit change; it remains a separate complete integration round.
+- Preserved: existing verification behavior, Passkey readiness marker, 2FA lockout/counters, all billing/payment/mail/plugin/frontend behavior, and `main`.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+### 2026-09-08 Structural-v3: credential mutation auth-version fencing
+
+- Scope: password changes through user update/edit and email password reset now increment the user's authoritative `AuthVersion` in the same database transaction. Creating or deleting 2FA and registering/deleting Passkey credentials also advances the version.
+- Safety: ordinary 2FA usage updates (TOTP last-used time, failed-attempt counters, lock state, and backup-code consumption) deliberately do not invalidate every session. This avoids turning a normal login verification into an unintended global logout.
+- Preserved: existing password hashing, reset semantics, session issuance, PAT/API-key authentication, relay behavior, billing/payment/mail/plugin/frontend behavior. No changes to `main`.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. The remote Actions workflow remains the required integration check.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+- CI repair after run `34136306470`: remote compilation reported missing `UserBase.Role` and `userCacheSchemaVersion` required by the auth cache layer. Added upstream-compatible role caching and schema version 2. No production route behavior was changed.
+
+### 2026-09-07 Structural-v3: refresh/logout controller layer
+
+- Added the upstream refresh/logout/session-management controller and origin guard. Refresh reads only the HttpOnly cookie, validates optional `X-Auth-Session`, rotates refresh secrets, and clears invalid cookies; logout revokes the matching server session before clearing cookies. Added session listing/revoke routes and explicit no-store responses.
+- Added `POST /api/user/auth/refresh` and `/auth/logout`; existing legacy `GET /api/user/logout` remains untouched for compatibility. New routes are origin-guarded only when secure cookie mode is enabled and do not affect relay/PAT routes.
+- Source correction: local user response shape lacks the upstream `buildSelfUserData` helper, so refresh returns the existing loaded user object rather than introducing unrelated response restructuring.
+- Preserved billing/payment/mail/plugin/frontend behavior and disabled Telegram unified provider. No Telegram callback activation or main merge.
+- Validation: source review and `git diff --check` only; no local compilation/build/tests. Remote CI is required for package integration.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; main unchanged.
+- CI result: initial refresh/logout commit `5414d0844` failed because the auth cache port missed local `UserBase.Role` and schema-version definitions. Repair `3db33dac9` still exposed duplicate declarations caused by the corrective patch; cleanup `9e654d44b` removed only those duplicates. [Actions run 34138830581](https://github.com/1412212638/OmniRouters/actions/runs/34138830581) passed after the cleanup. Remote branch is at `9e654d44b46b052a973f84254914880148f60712`; main unchanged. No local compile/build/test was run.
+
+### 2026-09-08 Structural-v3: dashboard JWT middleware integration
+
+- Scope: completed the first authentication-integration round. `middleware/auth.go` now recognizes dashboard Access JWTs, validates their signature/claims through `service.ParseDashboardAccessToken`, and validates the authoritative user/session/auth-version state inside a database transaction through `model.ValidateAuthSessionWithTx`.
+- Compatibility: invalid internal dashboard JWTs never fall through to opaque PAT validation; legacy cookie sessions, PAT/API-key authentication, relay authentication, and all OmniRouters billing/payment/mail/plugin/frontend behavior remain unchanged.
+- Authorization: role, status, group, and user identity are loaded from the authoritative database user record for JWT requests. Existing `New-Api-User` matching and Admin/Root role gates remain active.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions is required for package-level verification.
+- Remaining: credential/security mutations still need to advance `AuthVersion`; security proof completion, Telegram callback activation, and frontend activation remain separate rounds.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.

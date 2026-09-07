@@ -7,6 +7,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/service"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
@@ -26,8 +27,9 @@ const (
 )
 
 type UniversalVerifyRequest struct {
-	Method string `json:"method"` // "2fa" 或 "passkey"
-	Code   string `json:"code,omitempty"`
+	Method    string                         `json:"method"` // "2fa" 或 "passkey"
+	Code      string                         `json:"code,omitempty"`
+	Operation *service.VerificationOperation `json:"operation,omitempty"`
 }
 
 type VerificationStatusResponse struct {
@@ -118,6 +120,7 @@ func UniversalVerify(c *gin.Context) {
 	}
 
 	if !verified {
+		model.RecordOperationAuditLog(userId, auditContentEN("security.verify.failed", map[string]interface{}{"method": req.Method}), c.ClientIP(), "security.verify.failed", map[string]interface{}{"method": req.Method}, nil, nil)
 		common.ApiError(c, fmt.Errorf("验证失败，请检查验证码"))
 		return
 	}
@@ -131,14 +134,29 @@ func UniversalVerify(c *gin.Context) {
 
 	// 记录日志
 	model.RecordLog(userId, model.LogTypeSystem, fmt.Sprintf("通用安全验证成功 (验证方式: %s)", verifyMethod))
+	model.RecordOperationAuditLog(userId, auditContentEN("security.verify.success", map[string]interface{}{"method": req.Method}), c.ClientIP(), "security.verify.success", map[string]interface{}{"method": req.Method}, nil, nil)
+	data := gin.H{"verified": true, "expires_at": now + SecureVerificationTimeout}
+	if identity, ok := c.Get("auth_identity"); ok {
+		if authIdentity, valid := identity.(service.AuthIdentity); valid && req.Operation != nil {
+			binding, bindErr := service.BindVerificationOperation(*req.Operation)
+			if bindErr != nil {
+				common.ApiError(c, bindErr)
+				return
+			}
+			proof, proofExpiresAt, proofErr := service.IssueSecurityProof(authIdentity, req.Method, binding)
+			if proofErr != nil {
+				common.ApiError(c, proofErr)
+				return
+			}
+			data["security_proof"] = proof
+			data["security_proof_expires_at"] = proofExpiresAt
+		}
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "验证成功",
-		"data": gin.H{
-			"verified":   true,
-			"expires_at": now + SecureVerificationTimeout,
-		},
+		"data":    data,
 	})
 }
 

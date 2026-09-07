@@ -332,6 +332,9 @@ func migrateDB() error {
 		&Channel{},
 		&Token{},
 		&User{},
+		&ExternalIdentityClaim{},
+		&AuthFlow{},
+		&UserSession{},
 		&AuditLog{},
 		&PasskeyCredential{},
 		&Option{},
@@ -367,7 +370,13 @@ func migrateDB() error {
 	if err != nil {
 		return err
 	}
+	if err := InitializeUserAuthVersions(); err != nil {
+		return err
+	}
 	if err := ensureModelMetadataColumns(); err != nil {
+		return err
+	}
+	if err := InitializeExternalIdentityClaims(); err != nil {
 		return err
 	}
 	if common.UsingMainDatabase(common.DatabaseTypeSQLite) {
@@ -396,6 +405,9 @@ func migrateDBFast() error {
 		{&Channel{}, "Channel"},
 		{&Token{}, "Token"},
 		{&User{}, "User"},
+		{&ExternalIdentityClaim{}, "ExternalIdentityClaim"},
+		{&AuthFlow{}, "AuthFlow"},
+		{&UserSession{}, "UserSession"},
 		{&AuditLog{}, "AuditLog"},
 		{&PasskeyCredential{}, "PasskeyCredential"},
 		{&Option{}, "Option"},
@@ -447,6 +459,9 @@ func migrateDBFast() error {
 		if err != nil {
 			return err
 		}
+	}
+	if err := InitializeUserAuthVersions(); err != nil {
+		return err
 	}
 	if err := ensureModelMetadataColumns(); err != nil {
 		return err

@@ -1,0 +1,65 @@
+name: Structural migration source checks
+
+on:
+  push:
+    branches: [codex/migrate-upstream-structural-v3]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  telegram:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.1'
+          cache: true
+      - name: Telegram regression tests
+        env:
+          GOWORK: 'off'
+        run: go test -mod=readonly ./oauth -run Telegram -count=1
+
+  auth-flow:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: authflow_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U test -d authflow_test"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test
+          MYSQL_DATABASE: authflow_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost -ptest"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.1'
+          cache: true
+      - name: One-time flow database contracts
+        env:
+          GOWORK: 'off'
+          TEST_POSTGRES_DSN: postgres://test:test@localhost:5432/authflow_test?sslmode=disable
+          TEST_REDIS_ADDR: localhost:6379
+          TEST_MYSQL_DSN: root:test@tcp(127.0.0.1:3306)/authflow_test?charset=utf8mb4&parseTime=True&loc=Local
+        run: go test -mod=readonly ./model/authflowtest -run '^TestAuthFlowDatabaseContracts$' -count=1

@@ -2,8 +2,10 @@ package middleware
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
+	"github.com/QuantumNous/new-api/service"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
@@ -29,6 +31,28 @@ func SecureVerificationRequired() gin.HandlerFunc {
 				"message": "未登录",
 			})
 			c.Abort()
+			return
+		}
+		if rawIdentity, ok := c.Get("auth_identity"); ok {
+			identity, valid := rawIdentity.(service.AuthIdentity)
+			if !valid {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"success": false, "message": "认证状态无效"})
+				return
+			}
+			channelID, err := strconv.Atoi(c.Param("id"))
+			if err != nil || channelID <= 0 {
+				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"success": false, "message": "渠道ID格式错误"})
+				return
+			}
+			binding, err := service.BindVerificationOperation(service.VerificationOperation{
+				Scope:   service.VerificationScopeChannelKeyRead,
+				Context: []byte(`{"channel_id":` + strconv.Itoa(channelID) + `}`),
+			})
+			if err != nil || service.ConsumeSecurityProof(c.GetHeader("X-Security-Proof"), identity, binding) != nil {
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"success": false, "message": "需要一次性安全验证", "code": "VERIFICATION_REQUIRED"})
+				return
+			}
+			c.Next()
 			return
 		}
 

@@ -66,13 +66,17 @@ export interface LoginResponse {
   data?: {
     require_2fa?: boolean
     id?: number
+    access_token?: string
+    token_type?: string
+    access_expires_at?: number
+    user?: User
   }
 }
 
 export interface Login2FAResponse {
   success: boolean
   message: string
-  data?: User
+  data?: User & { access_token?: string; token_type?: string; access_expires_at?: number }
 }
 
 export interface ApiResponse {
