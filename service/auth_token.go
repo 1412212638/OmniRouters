@@ -47,6 +47,7 @@ type authClaims struct {
 	Method          string   `json:"method,omitempty"`
 	Scopes          []string `json:"scopes,omitempty"`
 	ContextHash     string   `json:"context_hash,omitempty"`
+	FlowToken       string   `json:"flow_token,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -135,7 +136,7 @@ func IssueSecurityProof(identity AuthIdentity, method string, binding Verificati
 	}
 	now := time.Now()
 	expiresAt := now.Add(SecurityProofTTL).Truncate(time.Second)
-	proofID, _, err := model.CreateAuthFlow(model.AuthFlowCreate{
+	flowToken, flow, err := model.CreateAuthFlow(model.AuthFlowCreate{
 		Purpose: model.AuthFlowPurposeSecurityProof, UserId: identity.UserID,
 		SessionId: identity.SessionID, ExpiresAt: expiresAt,
 	})
@@ -150,6 +151,7 @@ func IssueSecurityProof(identity AuthIdentity, method string, binding Verificati
 		Method:          method,
 		Scopes:          []string{binding.Scope},
 		ContextHash:     binding.ContextHash,
+		FlowToken:       flowToken,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    authTokenIssuer,
 			Subject:   strconv.Itoa(identity.UserID),
@@ -157,11 +159,28 @@ func IssueSecurityProof(identity AuthIdentity, method string, binding Verificati
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			NotBefore: jwt.NewNumericDate(now.Add(-5 * time.Second)),
 			IssuedAt:  jwt.NewNumericDate(now),
-			ID:        proofID,
+			ID:        strconv.FormatInt(flow.Id, 10),
 		},
 	}
 	signed, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(authSigningKey(securityProofTokenUse))
 	return signed, expiresAt.Unix(), err
+}
+
+// ConsumeSecurityProof validates and atomically consumes a proof for the
+// authoritative session and operation binding. Replays are rejected by the
+// AuthFlow compare-and-set update.
+func ConsumeSecurityProof(raw string, identity AuthIdentity, binding VerificationBinding) error {
+	claims, err := verifySecurityProof(raw, identity, binding)
+	if err != nil {
+		return err
+	}
+	if claims.FlowToken == "" {
+		return ErrProofConsumed
+	}
+	_, err = model.ConsumeAuthFlow(claims.FlowToken, model.AuthFlowMatch{
+		Purpose: model.AuthFlowPurposeSecurityProof, UserId: identity.UserID, SessionId: identity.SessionID,
+	})
+	return err
 }
 
 func verifySecurityProof(raw string, identity AuthIdentity, binding VerificationBinding) (*authClaims, error) {

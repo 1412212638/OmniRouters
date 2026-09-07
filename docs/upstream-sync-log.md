@@ -1298,6 +1298,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: existing Cookie/PAT behavior, legacy secure verification, billing/payment/mail/plugin/frontend behavior, and `main`.
 - Validation: source review and `git diff --check` only; no local compilation/build/tests or image publication.
 
+### 2026-09-08 Structural-v3: security proof token contract repair
+
+- Integrated the missing one-time Proof consumption primitive without enabling an incomplete route: the signed proof now carries the opaque AuthFlow token separately from the internal Flow ID in `jti`, and `ConsumeSecurityProof` validates the session/binding before atomically consuming that opaque token.
+- Safety: the previous mismatch between internal Flow ID and opaque-token consumption is corrected. The legacy `/api/verify` response and sensitive-operation consumers are deliberately deferred until their request/response contract can carry the proof explicitly.
+- Preserved: existing Cookie/PAT verification behavior and all OmniRouters business functionality.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
 ### 2026-09-08 Structural-v3: secure verification audit coverage
 
 - Scope: universal 2FA/Passkey verification now records structured security audit events for successful and failed verification attempts, including only the verification method and request context; secrets and codes are never logged.
