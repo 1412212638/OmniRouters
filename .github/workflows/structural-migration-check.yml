@@ -25,6 +25,12 @@ jobs:
   auth-flow:
     runs-on: ubuntu-latest
     services:
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s --health-timeout 5s --health-retries 10
       postgres:
         image: postgres:16
         env:
@@ -54,5 +60,6 @@ jobs:
         env:
           GOWORK: 'off'
           TEST_POSTGRES_DSN: postgres://test:test@localhost:5432/authflow_test?sslmode=disable
+          TEST_REDIS_ADDR: localhost:6379
           TEST_MYSQL_DSN: root:test@tcp(127.0.0.1:3306)/authflow_test?charset=utf8mb4&parseTime=True&loc=Local
         run: go test -mod=readonly ./model/authflowtest -run '^TestAuthFlowDatabaseContracts$' -count=1

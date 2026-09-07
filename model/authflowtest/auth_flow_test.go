@@ -39,11 +39,16 @@ func TestAuthFlowDatabaseContracts(t *testing.T) {
 			require.NoError(t, err)
 			if engine == "sqlite" { sqlDB.SetMaxOpenConns(1) }
 			previous := model.DB
+			previousType := common.MainDatabaseType()
+			databaseType := common.DatabaseType(engine)
+			if engine == "postgres" { databaseType = common.DatabaseTypePostgreSQL }
+			common.SetMainDatabaseType(databaseType)
 			model.DB = db
-			t.Cleanup(func() { model.DB = previous; _ = sqlDB.Close() })
+			t.Cleanup(func() { model.DB = previous; common.SetMainDatabaseType(previousType); _ = sqlDB.Close() })
 			require.NoError(t, db.AutoMigrate(&model.AuthFlow{}))
 			require.NoError(t, db.AutoMigrate(&model.AuthFlow{}))
 			testAuthFlowContracts(t)
+			testUserSessionContracts(t)
 		})
 	}
 }
