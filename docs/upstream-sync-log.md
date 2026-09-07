@@ -1305,6 +1305,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: existing Cookie/PAT verification behavior and all OmniRouters business functionality.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
 
+### 2026-09-08 Structural-v3: Telegram AuthFlow state service
+
+- Added server-side Telegram OAuth flow state creation/lookup for login and bind intents. PKCE verifier, client ID, and redirect URI are stored in the expiring AuthFlow payload; only the opaque flow token is intended for the browser.
+- The helper validates provider/intent, expiry, payload shape, and rejects unsupported intents. Callback consumption and provider registration remain deferred until the controller can perform atomic identity/session updates.
+- Preserved legacy Telegram Widget routes and all OmniRouters custom business behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+
 ### 2026-09-08 Structural-v3: Telegram identity binding primitive
 
 - Added `BindExternalIdentityWithTx`: checks legacy `telegram_id` ownership, atomically claims the provider subject in `external_identity_claims`, and updates the legacy column in the same transaction.
