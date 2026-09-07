@@ -1340,6 +1340,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Refresh and logout endpoints are excluded from retry to prevent loops. A failed refresh clears the stored dashboard token and auth-store user state. Cookie credentials remain HttpOnly and server-managed.
 - Preserved: PAT/Relay requests, classic frontend, legacy cookie behavior, billing/payment/mail/plugin behavior, and `main`.
 - Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
+
+### 2026-09-08 Default frontend Telegram binding start
+
+- Replaced the default frontend Telegram binding placeholder/widget text with a real server-side OAuth bind start action. The button requests a bind AuthFlow and redirects to its PKCE authorization URL.
+- The existing profile binding refresh callback remains the next UI follow-up after the backend redirect response is finalized; legacy Widget binding remains unchanged.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
 - Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
 
 ### 2026-09-08 Default frontend Telegram login start
