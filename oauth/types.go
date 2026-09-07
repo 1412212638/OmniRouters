@@ -2,6 +2,7 @@ package oauth
 
 // OAuthToken represents the token received from OAuth provider
 type OAuthToken struct {
+	ClientID     string `json:"-"` // Server-side audience binding, never accepted from token JSON.
 	AccessToken  string `json:"access_token"`
 	TokenType    string `json:"token_type"`
 	RefreshToken string `json:"refresh_token,omitempty"`

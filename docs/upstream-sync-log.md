@@ -1212,3 +1212,16 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: OmniRouters plugin system, wallet/payment display, Sora/audio billing, expression/group pricing, mail settings, and default frontend customizations.
 - Validation: upstream diff/stat review only; implementation and tests pending.
 - Local commit/push: pending.
+
+### 2026-09-07 Telegram provider repair (structural-v3)
+
+- Scope: audited actual branch HEAD `2db85323e` against upstream `3e84ec0ab` (not the earlier assumed `86426f7a6`). Earlier Telegram progress entries describe scaffolding, not a completed OAuth migration.
+- Integrated at source level: actual ExchangeToken/GetUserInfo implementations, cached JWKS client, issuer/audience/signature/expiry verification, positive uint64 Telegram IDs without float conversion, current redirect/client matching, HTTP(S)-only callback validation, bounded token responses, and server-only OAuthToken.ClientID.
+- Dependencies: copied upstream versions and exact go.sum checksums for go-oidc v3.21.0, oauth2 v0.36.0 and indirect go-jose v4.1.4. No local dependency resolution/build was run; module graph remains subject to CI verification.
+- Identity lookup: replaced placeholders with existing Telegram occupancy lookup and a GORM lookup that propagates database errors. Did not reuse FillUserByTelegramId because it discards non-record-not-found errors.
+- Safety: removed automatic telegram_oauth registration and the incomplete /oauth/telegram/start route/handler. Provider remains disabled and unregistered until single-use flows, session-bound login/binding callbacks and registry conflict handling are ported. Legacy widget routes and telegram_id data remain unchanged.
+- Deferred (NOT integrated by this repair): full callback/session lifecycle, external-identity-claim lifecycle and migration audit, model/vendor/pricing restructuring. This is not completion of round 3 or upstream parity.
+- Preserved: Sora/audio_generation charges, customer/group/expression pricing, payment/mail/plugin behavior, main branch and unrelated untracked files.
+- Validation: added Telegram regression test source for numeric IDs, invalid callback URLs, configuration changes, token endpoint PKCE/Basic auth, private ClientID, disabled registration and real RSA/JWKS issuer/audience/expiry/signature failures. Local checks are source review and git diff --check only; no local compilation or tests.
+- CI: added migration-branch-only Structural migration source checks (go test ./oauth -run Telegram); no image publication and no latest tag changes. Existing main GHCR workflow unchanged.
+- Local commit/push: pending; this repair and log will be committed together on codex/migrate-upstream-structural-v3. Remote result will be recorded in a follow-up entry.

@@ -84,6 +84,9 @@ require (
 )
 
 require (
+	github.com/coreos/go-oidc/v3 v3.21.0
+	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
+	golang.org/x/oauth2 v0.36.0
 	github.com/Azure/go-ntlmssp v0.1.1
 	github.com/dlclark/regexp2/v2 v2.2.2 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect

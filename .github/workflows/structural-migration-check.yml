@@ -1,0 +1,23 @@
+name: Structural migration source checks
+
+on:
+  push:
+    branches: [codex/migrate-upstream-structural-v3]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  telegram:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.1'
+          cache: true
+      - name: Telegram regression tests
+        env:
+          GOWORK: 'off'
+        run: go test -mod=readonly ./oauth -run Telegram -count=1
