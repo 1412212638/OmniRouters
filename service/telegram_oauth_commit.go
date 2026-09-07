@@ -43,3 +43,16 @@ func CommitTelegramBind(flowToken, subject string, userID int) error {
 	})
 	return err
 }
+
+func CommitTelegramExistingLogin(flowToken, subject string, userID int) error {
+	if strings.TrimSpace(flowToken) == "" || strings.TrimSpace(subject) == "" || userID <= 0 {
+		return ErrTelegramOAuthCommitInvalid
+	}
+	_, err := model.ConsumeAuthFlowWithAction(flowToken, model.AuthFlowMatch{
+		Purpose: model.AuthFlowPurposeOAuth, Provider: model.ExternalIdentityProviderTelegram,
+		Intent: model.AuthFlowIntentLogin,
+	}, func(tx *gorm.DB, _ *model.AuthFlow) error {
+		return model.BindExternalIdentityWithTx(tx, model.ExternalIdentityProviderTelegram, subject, userID)
+	})
+	return err
+}

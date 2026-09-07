@@ -1305,6 +1305,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: existing Cookie/PAT verification behavior and all OmniRouters business functionality.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
 
+### 2026-09-08 Structural-v3: Telegram OAuth commit path
+
+- Added transaction-owned Telegram login commit helpers for new-user and existing-user paths, plus the bind path. Existing Telegram identities are consumed through the same one-time AuthFlow before `setupLogin`; new users are created and claimed atomically.
+- Controller wiring remains intentionally pending until the callback has dedicated route-level tests for state intent, provider error callbacks, concurrent replay, registration-disabled behavior, and session-bound bind requests.
+- Preserved legacy Telegram Widget routes and all OmniRouters custom behavior.
+
 ### 2026-09-08 Structural-v3: Telegram atomic OAuth commit services
 
 - Added transaction-aware `CommitTelegramLogin` and `CommitTelegramBind` services. The AuthFlow consumer owns the only transaction; login performs Flow consumption, user creation, and external identity Claim atomically, while bind performs Flow consumption and Claim atomically.
