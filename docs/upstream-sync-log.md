@@ -1277,6 +1277,20 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; no local build or tests. GitHub Actions is required to catch remaining package/signature issues.
 - Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
 
+### 2026-09-08 Structural-v3: Telegram OAuth activation review
+
+- Review result: the Telegram OAuth provider implementation, AuthFlow storage, external identity claim storage, and authoritative session primitives are present, but the unified callback/start/bind controller contract is not complete in this branch.
+- Decision: keep `TelegramOAuthProvider.IsEnabled()` false and do not register the provider or expose a new callback route. This prevents an incomplete provider from becoming selectable or creating sessions without the complete identity/session binding flow.
+- Preserved: legacy Telegram Widget login/bind behavior, legacy `telegram_id` compatibility, all OmniRouters custom billing/payment/mail/plugin/frontend behavior, and `main`.
+- Validation: source comparison and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+- Remaining: unified Telegram callback/bind/login controller integration and frontend activation require a dedicated implementation with end-to-end tests.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+### 2026-09-08 Structural-v3: final round review boundary
+
+- Planned rounds 1-4 have been processed in sequence: dashboard JWT middleware, credential auth-version fencing, security verification audit coverage, and Telegram OAuth activation review.
+- Round 5 is a source-only acceptance review: verify changed-file scope, migration registration, protected OmniRouters behavior, documentation traceability, branch/remote state, and GitHub Actions outcome. No local compilation or image build will be performed.
+
 ### 2026-09-08 Structural-v3: secure verification audit coverage
 
 - Scope: universal 2FA/Passkey verification now records structured security audit events for successful and failed verification attempts, including only the verification method and request context; secrets and codes are never logged.
