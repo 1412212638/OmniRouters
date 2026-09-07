@@ -28,6 +28,7 @@ import {
   ArrowDown01Icon,
 } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
+import { usePortalContainer } from '@/components/ui/portal-container'
 import { cn } from '@/lib/utils'
 
 const Select = SelectPrimitive.Root
@@ -99,6 +100,7 @@ function SelectContent({
     'align' | 'alignOffset' | 'side' | 'sideOffset' | 'alignItemWithTrigger'
   >) {
   const isMobile = useMediaQuery('(max-width: 640px)')
+  const container = usePortalContainer()
 
   const content = (
     <SelectPrimitive.Positioner
@@ -129,7 +131,11 @@ function SelectContent({
     return content
   }
 
-  return <SelectPrimitive.Portal>{content}</SelectPrimitive.Portal>
+  return (
+    <SelectPrimitive.Portal container={container}>
+      {content}
+    </SelectPrimitive.Portal>
+  )
 }
 
 function SelectLabel({
