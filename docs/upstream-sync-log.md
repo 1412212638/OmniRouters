@@ -1291,6 +1291,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Planned rounds 1-4 have been processed in sequence: dashboard JWT middleware, credential auth-version fencing, security verification audit coverage, and Telegram OAuth activation review.
 - Round 5 is a source-only acceptance review: verify changed-file scope, migration registration, protected OmniRouters behavior, documentation traceability, branch/remote state, and GitHub Actions outcome. No local compilation or image build will be performed.
 
+### 2026-09-08 Structural-v3: security proof contract review
+
+- Review result: dashboard JWT identity is now exposed to middleware through the server-validated `auth_identity` context value. The existing security-proof signer currently stores an internal AuthFlow ID in JWT `jti`, while AuthFlow consumption requires the original opaque token; therefore proof consumption was not enabled prematurely.
+- Safety decision: removed the incomplete consumer path rather than introducing a proof that cannot be atomically consumed. A follow-up must return/bind the opaque flow token and internal proof ID explicitly before wiring `/api/verify` or channel-key access.
+- Preserved: existing Cookie/PAT behavior, legacy secure verification, billing/payment/mail/plugin/frontend behavior, and `main`.
+- Validation: source review and `git diff --check` only; no local compilation/build/tests or image publication.
+
 ### 2026-09-08 Structural-v3: secure verification audit coverage
 
 - Scope: universal 2FA/Passkey verification now records structured security audit events for successful and failed verification attempts, including only the verification method and request context; secrets and codes are never logged.

@@ -79,6 +79,7 @@ func authHelper(c *gin.Context, minRole int) {
 			}
 			username, role, id, status = user.Username, user.Role, user.Id, user.Status
 			userGroup = user.Group
+			c.Set("auth_identity", identity)
 			useAccessToken = true
 		} else {
 			user, authErr := model.ValidateAccessToken(accessToken)
