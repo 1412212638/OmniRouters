@@ -142,9 +142,15 @@ func recordLoginAudit(user *model.User, c *gin.Context) {
 // setup session & cookies and then return user info
 func setupLogin(user *model.User, c *gin.Context) {
 	currentUser, err := model.GetUserById(user.Id, false)
-	if err != nil { common.ApiError(c, err); return }
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
 	bundle, err := service.CreateLoginSession(user.Id, loginMethodFromContext(c), c.ClientIP(), c.Request.UserAgent())
-	if err != nil { writeAuthSessionError(c, err); return }
+	if err != nil {
+		writeAuthSessionError(c, err)
+		return
+	}
 	model.UpdateUserLastLoginAt(user.Id)
 	service.WriteRefreshCookie(c, bundle.RefreshToken)
 	c.Header("Cache-Control", "no-store")
@@ -153,13 +159,32 @@ func setupLogin(user *model.User, c *gin.Context) {
 		"message": "",
 		"success": true,
 		"data": map[string]any{
-			"access_token": bundle.AccessToken,
-			"token_type": bundle.TokenType,
+			"access_token":      bundle.AccessToken,
+			"token_type":        bundle.TokenType,
 			"access_expires_at": bundle.AccessExpiresAt,
-			"session": bundle.Session,
-			"user": buildSelfUserData(currentUser),
+			"session":           bundle.Session,
+			"user":              buildSelfUserData(currentUser),
 		},
 	})
+}
+
+// setupLoginRedirect is used by browser OAuth callbacks whose response must
+// return to the frontend instead of rendering an API JSON document.
+func setupLoginRedirect(user *model.User, c *gin.Context, target string) {
+	if _, err := model.GetUserById(user.Id, false); err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	bundle, err := service.CreateLoginSession(user.Id, loginMethodFromContext(c), c.ClientIP(), c.Request.UserAgent())
+	if err != nil {
+		writeAuthSessionError(c, err)
+		return
+	}
+	model.UpdateUserLastLoginAt(user.Id)
+	service.WriteRefreshCookie(c, bundle.RefreshToken)
+	c.Header("Cache-Control", "no-store")
+	recordLoginAudit(user, c)
+	c.Redirect(http.StatusFound, common.ThemeAwarePath(target))
 }
 
 func Logout(c *gin.Context) {

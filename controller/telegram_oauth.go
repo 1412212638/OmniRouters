@@ -113,5 +113,5 @@ func HandleTelegramOAuth(c *gin.Context) {
 		return
 	}
 	user.FinalizeOAuthUserCreation(inviterID)
-	setupLogin(user, c)
+	setupLoginRedirect(user, c, "/dashboard")
 }
