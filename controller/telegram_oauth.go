@@ -68,7 +68,7 @@ func HandleTelegramOAuth(c *gin.Context) {
 			common.ApiError(c, err)
 			return
 		}
-		c.Redirect(http.StatusFound, common.ThemeAwarePath("/console/personal"))
+		c.Redirect(http.StatusFound, common.ThemeAwarePath("/profile"))
 		return
 	}
 	if !common.RegisterEnabled {

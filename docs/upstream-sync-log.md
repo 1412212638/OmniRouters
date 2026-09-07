@@ -1341,6 +1341,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: PAT/Relay requests, classic frontend, legacy cookie behavior, billing/payment/mail/plugin behavior, and `main`.
 - Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
 
+### 2026-09-08 Telegram default frontend callback routing
+
+- Unified Telegram OAuth bind callbacks now redirect to the default frontend `/profile` route. Legacy Telegram Widget binding keeps its existing `/console/personal` redirect for classic frontend compatibility.
+- The default profile page already reloads current user data on route entry; no legacy binding route or classic frontend behavior was changed.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
+
 ### 2026-09-08 Telegram OAuth browser callback completion
 
 - Added a redirect-based login finalizer for browser OAuth callbacks. Telegram login now creates the same server-side Session, Access JWT, refresh cookie, last-login update, and audit record as normal login, then redirects to the dashboard instead of rendering raw JSON.

@@ -38,6 +38,7 @@ export function TelegramBindDialog({
   open,
   onOpenChange,
   botName,
+  onSuccess: _onSuccess,
 }: TelegramBindDialogProps) {
   const { t } = useTranslation()
   return (
