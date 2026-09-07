@@ -82,7 +82,13 @@ func (t *TwoFA) Create() error {
 		return err
 	}
 
-	return DB.Create(t).Error
+	return DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(t).Error; err != nil {
+			return err
+		}
+		_, err := IncrementUserAuthVersionWithTx(tx, t.UserId)
+		return err
+	})
 }
 
 // Update 更新2FA设置
@@ -107,7 +113,11 @@ func (t *TwoFA) Delete() error {
 		}
 
 		// 硬删除2FA记录
-		return tx.Unscoped().Delete(t).Error
+		if err := tx.Unscoped().Delete(t).Error; err != nil {
+			return err
+		}
+		_, err := IncrementUserAuthVersionWithTx(tx, t.UserId)
+		return err
 	})
 }
 

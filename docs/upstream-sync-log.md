@@ -1277,6 +1277,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; no local build or tests. GitHub Actions is required to catch remaining package/signature issues.
 - Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
 
+### 2026-09-08 Structural-v3: credential mutation auth-version fencing
+
+- Scope: password changes through user update/edit and email password reset now increment the user's authoritative `AuthVersion` in the same database transaction. Creating or deleting 2FA and registering/deleting Passkey credentials also advances the version.
+- Safety: ordinary 2FA usage updates (TOTP last-used time, failed-attempt counters, lock state, and backup-code consumption) deliberately do not invalidate every session. This avoids turning a normal login verification into an unintended global logout.
+- Preserved: existing password hashing, reset semantics, session issuance, PAT/API-key authentication, relay behavior, billing/payment/mail/plugin/frontend behavior. No changes to `main`.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. The remote Actions workflow remains the required integration check.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
 - CI repair after run `34136306470`: remote compilation reported missing `UserBase.Role` and `userCacheSchemaVersion` required by the auth cache layer. Added upstream-compatible role caching and schema version 2. No production route behavior was changed.
 
 ### 2026-09-07 Structural-v3: refresh/logout controller layer

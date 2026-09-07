@@ -192,6 +192,9 @@ func UpsertPasskeyCredential(credential *PasskeyCredential) error {
 			common.SysLog(fmt.Sprintf("UpsertPasskeyCredential: failed to create credential for user %d: %v", credential.UserID, err))
 			return fmt.Errorf("Passkey 保存失败，请重试")
 		}
+		if _, err := IncrementUserAuthVersionWithTx(tx, credential.UserID); err != nil {
+			return err
+		}
 		return nil
 	})
 }
@@ -202,9 +205,12 @@ func DeletePasskeyByUserID(userID int) error {
 		return fmt.Errorf("删除失败，请重试")
 	}
 	// 使用Unscoped()进行硬删除，避免唯一索引冲突
-	if err := DB.Unscoped().Where("user_id = ?", userID).Delete(&PasskeyCredential{}).Error; err != nil {
-		common.SysLog(fmt.Sprintf("DeletePasskeyByUserID: failed to delete passkey for user %d: %v", userID, err))
-		return fmt.Errorf("删除失败，请重试")
-	}
-	return nil
+	return DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Unscoped().Where("user_id = ?", userID).Delete(&PasskeyCredential{}).Error; err != nil {
+			common.SysLog(fmt.Sprintf("DeletePasskeyByUserID: failed to delete passkey for user %d: %v", userID, err))
+			return fmt.Errorf("删除失败，请重试")
+		}
+		_, err := IncrementUserAuthVersionWithTx(tx, userID)
+		return err
+	})
 }
