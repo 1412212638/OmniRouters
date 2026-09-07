@@ -15,8 +15,6 @@ import (
 
 const userCacheSchemaVersion = 2
 
-const userCacheSchemaVersion = 2
-
 // UserBase struct remains the same as it represents the cached data structure
 type UserBase struct {
 	Id          int    `json:"id"`
@@ -25,7 +23,6 @@ type UserBase struct {
 	Email       string `json:"email"`
 	Quota       int    `json:"quota"`
 	Status      int    `json:"status"`
-	Role        int    `json:"role"`
 	Role        int    `json:"role"`
 	Username    string `json:"username"`
 	Setting     string `json:"setting"`
@@ -158,7 +155,6 @@ func GetUserCache(userId int) (userCache *UserBase, err error) {
 		Username:    user.Username,
 		Setting:     user.Setting,
 		Email:       user.Email,
-		Role:        user.Role,
 		Role:        user.Role,
 		AuthVersion: user.AuthVersion,
 	}
