@@ -1439,3 +1439,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions is required for package-level verification.
 - Remaining: credential/security mutations still need to advance `AuthVersion`; security proof completion, Telegram callback activation, and frontend activation remain separate rounds.
 - Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+### 2026-09-08 Main CI repair: missing NormalizeOrigin helper
+
+- Fixed the GitHub Actions Go compilation failure after merging structural-v3: `middleware/auth_origin.go` referenced `common.NormalizeOrigin`, but the helper had not been brought into the local `common/session_cookie.go` implementation.
+- Added the upstream-compatible origin validation and canonicalization helper, including scheme/host validation, wildcard rejection, default-port normalization, and IPv6 formatting. Preserved the local session-cookie initialization behavior and all OmniRouters custom billing, payment, mail, plugin, and frontend logic.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
+- Local commit/push: pending on `main`.
