@@ -1311,6 +1311,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Controller wiring remains intentionally pending until the callback has dedicated route-level tests for state intent, provider error callbacks, concurrent replay, registration-disabled behavior, and session-bound bind requests.
 - Preserved legacy Telegram Widget routes and all OmniRouters custom behavior.
 
+### 2026-09-08 Structural-v3: Telegram unified OAuth routes
+
+- Registered explicit `/oauth/telegram/start` and `/oauth/telegram` routes before the generic OAuth wildcard. The legacy `/api/oauth/telegram/login` and `/bind` Widget routes remain unchanged.
+- The unified flow uses server-side AuthFlow state, PKCE, ID-token verification, session-bound bind intent, one-time consumption, and atomic external identity ownership. It does not depend on the generic provider registry.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+
 ### 2026-09-08 Structural-v3: Telegram atomic OAuth commit services
 
 - Added transaction-aware `CommitTelegramLogin` and `CommitTelegramBind` services. The AuthFlow consumer owns the only transaction; login performs Flow consumption, user creation, and external identity Claim atomically, while bind performs Flow consumption and Claim atomically.
