@@ -1288,3 +1288,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; no local compilation/build/tests. Remote CI is required for package integration.
 - Local commit/push: pending on `codex/migrate-upstream-structural-v3`; main unchanged.
 - CI result: initial refresh/logout commit `5414d0844` failed because the auth cache port missed local `UserBase.Role` and schema-version definitions. Repair `3db33dac9` still exposed duplicate declarations caused by the corrective patch; cleanup `9e654d44b` removed only those duplicates. [Actions run 34138830581](https://github.com/1412212638/OmniRouters/actions/runs/34138830581) passed after the cleanup. Remote branch is at `9e654d44b46b052a973f84254914880148f60712`; main unchanged. No local compile/build/test was run.
+
+### 2026-09-08 Structural-v3: dashboard JWT middleware integration
+
+- Scope: completed the first authentication-integration round. `middleware/auth.go` now recognizes dashboard Access JWTs, validates their signature/claims through `service.ParseDashboardAccessToken`, and validates the authoritative user/session/auth-version state inside a database transaction through `model.ValidateAuthSessionWithTx`.
+- Compatibility: invalid internal dashboard JWTs never fall through to opaque PAT validation; legacy cookie sessions, PAT/API-key authentication, relay authentication, and all OmniRouters billing/payment/mail/plugin/frontend behavior remain unchanged.
+- Authorization: role, status, group, and user identity are loaded from the authoritative database user record for JWT requests. Existing `New-Api-User` matching and Admin/Root role gates remain active.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions is required for package-level verification.
+- Remaining: credential/security mutations still need to advance `AuthVersion`; security proof completion, Telegram callback activation, and frontend activation remain separate rounds.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.

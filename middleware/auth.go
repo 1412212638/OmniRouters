@@ -40,6 +40,7 @@ func authHelper(c *gin.Context, minRole int) {
 	role := session.Get("role")
 	id := session.Get("id")
 	status := session.Get("status")
+	userGroup := session.Get("group")
 	useAccessToken := false
 	if username == nil {
 		// Check access token
@@ -52,45 +53,74 @@ func authHelper(c *gin.Context, minRole int) {
 			c.Abort()
 			return
 		}
-		user, authErr := model.ValidateAccessToken(accessToken)
-		if authErr != nil {
-			if errors.Is(authErr, model.ErrDatabase) {
-				common.SysLog("ValidateAccessToken database error: " + authErr.Error())
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"success": false,
-					"message": common.TranslateMessage(c, i18n.MsgDatabaseError),
-				})
+		rawBearer := strings.TrimSpace(accessToken)
+		if strings.HasPrefix(rawBearer, "Bearer ") || strings.HasPrefix(rawBearer, "bearer ") {
+			rawBearer = strings.TrimSpace(rawBearer[7:])
+		}
+		if identity, internal, tokenErr := service.ParseDashboardAccessToken(rawBearer); internal {
+			if tokenErr != nil {
+				writeDashboardAuthFailure(c, tokenErr)
+				return
+			}
+			var user model.User
+			authErr := model.DB.Transaction(func(tx *gorm.DB) error {
+				if err := model.ValidateAuthSessionWithTx(tx, identity); err != nil {
+					return err
+				}
+				return tx.First(&user, identity.UserID).Error
+			})
+			if authErr != nil {
+				writeDashboardAuthFailure(c, authErr)
+				return
+			}
+			if !validUserInfo(user.Username, user.Role) {
+				writeDashboardAuthFailure(c, service.ErrAuthTokenInvalid)
+				return
+			}
+			username, role, id, status = user.Username, user.Role, user.Id, user.Status
+			userGroup = user.Group
+			useAccessToken = true
+		} else {
+			user, authErr := model.ValidateAccessToken(accessToken)
+			if authErr != nil {
+				if errors.Is(authErr, model.ErrDatabase) {
+					common.SysLog("ValidateAccessToken database error: " + authErr.Error())
+					c.JSON(http.StatusInternalServerError, gin.H{
+						"success": false,
+						"message": common.TranslateMessage(c, i18n.MsgDatabaseError),
+					})
+				} else {
+					c.JSON(http.StatusOK, gin.H{
+						"success": false,
+						"message": common.TranslateMessage(c, i18n.MsgAuthAccessTokenInvalid),
+					})
+				}
+				c.Abort()
+				return
+			}
+			if user != nil && user.Username != "" {
+				if !validUserInfo(user.Username, user.Role) {
+					c.JSON(http.StatusOK, gin.H{
+						"success": false,
+						"message": common.TranslateMessage(c, i18n.MsgAuthUserInfoInvalid),
+					})
+					c.Abort()
+					return
+				}
+				// Token is valid
+				username = user.Username
+				role = user.Role
+				id = user.Id
+				status = user.Status
+				useAccessToken = true
 			} else {
 				c.JSON(http.StatusOK, gin.H{
 					"success": false,
 					"message": common.TranslateMessage(c, i18n.MsgAuthAccessTokenInvalid),
 				})
-			}
-			c.Abort()
-			return
-		}
-		if user != nil && user.Username != "" {
-			if !validUserInfo(user.Username, user.Role) {
-				c.JSON(http.StatusOK, gin.H{
-					"success": false,
-					"message": common.TranslateMessage(c, i18n.MsgAuthUserInfoInvalid),
-				})
 				c.Abort()
 				return
 			}
-			// Token is valid
-			username = user.Username
-			role = user.Role
-			id = user.Id
-			status = user.Status
-			useAccessToken = true
-		} else {
-			c.JSON(http.StatusOK, gin.H{
-				"success": false,
-				"message": common.TranslateMessage(c, i18n.MsgAuthAccessTokenInvalid),
-			})
-			c.Abort()
-			return
 		}
 	}
 	// get header New-Api-User
@@ -150,8 +180,8 @@ func authHelper(c *gin.Context, minRole int) {
 	c.Set("username", username)
 	c.Set("role", role)
 	c.Set("id", id)
-	c.Set("group", session.Get("group"))
-	c.Set("user_group", session.Get("group"))
+	c.Set("group", userGroup)
+	c.Set("user_group", userGroup)
 	c.Set("use_access_token", useAccessToken)
 
 	// 管理/root 写操作审计兜底：内聚在鉴权链路里，保证任何经过 AdminAuth/RootAuth
@@ -175,6 +205,16 @@ func authHelper(c *gin.Context, minRole int) {
 			RequestId: c.GetString(common.RequestIdKey), Other: c.FullPath(),
 		})
 	}
+}
+
+func writeDashboardAuthFailure(c *gin.Context, err error) {
+	if errors.Is(err, model.ErrDatabase) || errors.Is(err, gorm.ErrInvalidDB) {
+		common.SysLog("dashboard session validation database error: " + err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": common.TranslateMessage(c, i18n.MsgDatabaseError)})
+	} else {
+		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": common.TranslateMessage(c, i18n.MsgAuthAccessTokenInvalid)})
+	}
+	c.Abort()
 }
 
 func TryUserAuth() func(c *gin.Context) {
