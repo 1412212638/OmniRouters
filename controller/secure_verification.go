@@ -118,6 +118,7 @@ func UniversalVerify(c *gin.Context) {
 	}
 
 	if !verified {
+		model.RecordOperationAuditLog(userId, auditContentEN("security.verify.failed", map[string]interface{}{"method": req.Method}), c.ClientIP(), "security.verify.failed", map[string]interface{}{"method": req.Method}, nil, nil)
 		common.ApiError(c, fmt.Errorf("验证失败，请检查验证码"))
 		return
 	}
@@ -131,6 +132,7 @@ func UniversalVerify(c *gin.Context) {
 
 	// 记录日志
 	model.RecordLog(userId, model.LogTypeSystem, fmt.Sprintf("通用安全验证成功 (验证方式: %s)", verifyMethod))
+	model.RecordOperationAuditLog(userId, auditContentEN("security.verify.success", map[string]interface{}{"method": req.Method}), c.ClientIP(), "security.verify.success", map[string]interface{}{"method": req.Method}, nil, nil)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
