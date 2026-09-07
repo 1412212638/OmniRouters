@@ -1334,6 +1334,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check` and source-scope review only. No local Go compilation, frontend build, Docker build, or image publication, as required by the source-only workflow. GitHub Actions remains the authoritative build/test gate.
 - Branch: changes are on `codex/migrate-upstream-structural-v3`; `main` was not changed. Pre-existing unrelated untracked files remain untouched.
 
+### 2026-09-08 Default frontend access-token refresh
+
+- Added automatic Dashboard Access JWT refresh on HTTP 401 in `web/default/src/lib/api.ts`. Concurrent expired requests share one refresh promise; each original request is retried at most once.
+- Refresh and logout endpoints are excluded from retry to prevent loops. A failed refresh clears the stored dashboard token and auth-store user state. Cookie credentials remain HttpOnly and server-managed.
+- Preserved: PAT/Relay requests, classic frontend, legacy cookie behavior, billing/payment/mail/plugin behavior, and `main`.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
 ### 2026-09-08 Structural-v3: Telegram atomic OAuth commit services
 
 - Added transaction-aware `CommitTelegramLogin` and `CommitTelegramBind` services. The AuthFlow consumer owns the only transaction; login performs Flow consumption, user creation, and external identity Claim atomically, while bind performs Flow consumption and Claim atomically.

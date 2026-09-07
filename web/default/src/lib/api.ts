@@ -65,6 +65,28 @@ export const api = axios.create({
   },
 })
 
+let refreshPromise: Promise<string | null> | null = null
+
+function refreshDashboardToken(): Promise<string | null> {
+  if (refreshPromise) return refreshPromise
+  refreshPromise = axios
+    .post('/api/user/auth/refresh', undefined, {
+      withCredentials: true,
+      headers: { 'Cache-Control': 'no-store' },
+    })
+    .then((response) => {
+      const token = response.data?.data?.access_token
+      if (typeof token !== 'string' || token.length === 0) return null
+      setDashboardAccessToken(token)
+      return token
+    })
+    .catch(() => null)
+    .finally(() => {
+      refreshPromise = null
+    })
+  return refreshPromise
+}
+
 // ============================================================================
 // Request Deduplication
 // ============================================================================
@@ -117,6 +139,31 @@ api.interceptors.response.use(
   (error) => {
     const skip = error?.config?.skipErrorHandler
     const status = error?.response?.status
+
+    const request = error?.config as (ApiRequestConfig & {
+      _dashboardRefreshRetried?: boolean
+    }) | undefined
+    const requestURL = request?.url ?? ''
+    const canRefresh =
+      status === 401 &&
+      request &&
+      !request._dashboardRefreshRetried &&
+      !requestURL.includes('/api/user/auth/refresh') &&
+      !requestURL.includes('/api/user/auth/logout') &&
+      Boolean(getDashboardAccessToken())
+    if (canRefresh) {
+      request._dashboardRefreshRetried = true
+      return refreshDashboardToken().then((token) => {
+        if (!token) {
+          setDashboardAccessToken()
+          useAuthStore.getState().auth.reset()
+          return Promise.reject(error)
+        }
+        request.headers = request.headers ?? {}
+        ;(request.headers as Record<string, string>).Authorization = `Bearer ${token}`
+        return api.request(request)
+      })
+    }
 
     if (status === 401) {
       try {
