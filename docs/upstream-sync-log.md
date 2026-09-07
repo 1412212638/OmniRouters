@@ -1445,3 +1445,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Added the upstream-compatible origin validation and canonicalization helper, including scheme/host validation, wildcard rejection, default-port normalization, and IPv6 formatting. Preserved the local session-cookie initialization behavior and all OmniRouters custom billing, payment, mail, plugin, and frontend logic.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
 - Local commit/push: pending on `main`.
+
+### 2026-09-08 Main CI repair: structural-v3 missing compatibility symbols
+
+- Fixed the next Go compilation failures reported by GitHub Actions after the Origin helper repair: restored `GetSessionAuthIdentity`, corrected Telegram OAuth startup to return the persisted flow record and the in-memory OAuth flow separately, and added the safe `buildSelfUserData` response DTO using the local `User` shape.
+- Preserved PAT authentication behavior, legacy Telegram behavior, local user fields, and all OmniRouters billing, payment, mail, plugin, and frontend behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
+- Local commit/push: pending on `main`.

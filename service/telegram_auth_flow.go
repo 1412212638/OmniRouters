@@ -20,13 +20,13 @@ type TelegramAuthFlowState struct {
 	RedirectURI  string `json:"redirect_uri"`
 }
 
-func CreateTelegramAuthFlow(userID int, intent string) (string, *model.AuthFlow, error) {
+func CreateTelegramAuthFlow(userID int, intent string) (string, *model.AuthFlow, *oauth.TelegramOAuthFlow, error) {
 	if intent != model.AuthFlowIntentLogin && intent != model.AuthFlowIntentBind {
-		return "", nil, ErrTelegramAuthFlowInvalid
+		return "", nil, nil, ErrTelegramAuthFlowInvalid
 	}
 	flow, err := oauth.NewTelegramOAuthFlow()
 	if err != nil {
-		return "", nil, err
+		return "", nil, nil, err
 	}
 	payload, err := common.Marshal(TelegramAuthFlowState{
 		CodeVerifier: flow.CodeVerifier,
@@ -34,9 +34,9 @@ func CreateTelegramAuthFlow(userID int, intent string) (string, *model.AuthFlow,
 		RedirectURI:  flow.RedirectURI,
 	})
 	if err != nil {
-		return "", nil, err
+		return "", nil, nil, err
 	}
-	return model.CreateAuthFlow(model.AuthFlowCreate{
+	state, record, err := model.CreateAuthFlow(model.AuthFlowCreate{
 		Purpose:   model.AuthFlowPurposeOAuth,
 		Provider:  "telegram",
 		Intent:    intent,
@@ -44,6 +44,7 @@ func CreateTelegramAuthFlow(userID int, intent string) (string, *model.AuthFlow,
 		Payload:   string(payload),
 		ExpiresAt: time.Now().Add(5 * time.Minute),
 	})
+	return state, record, flow, err
 }
 
 func ReadTelegramAuthFlow(token, intent string) (*model.AuthFlow, *oauth.TelegramOAuthFlow, error) {

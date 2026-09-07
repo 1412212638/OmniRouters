@@ -24,7 +24,7 @@ func StartTelegramOAuth(c *gin.Context) {
 			return
 		}
 	}
-	state, flow, err := service.CreateTelegramAuthFlow(userID, intent)
+	state, _, flow, err := service.CreateTelegramAuthFlow(userID, intent)
 	if err != nil {
 		common.ApiError(c, err)
 		return

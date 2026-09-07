@@ -218,6 +218,24 @@ func writeDashboardAuthFailure(c *gin.Context, err error) {
 	c.Abort()
 }
 
+// GetSessionAuthIdentity returns only identities backed by a live dashboard
+// session. PAT-authenticated requests intentionally fail this check.
+func GetSessionAuthIdentity(c *gin.Context) (service.AuthIdentity, bool) {
+	identity, ok := GetAuthIdentity(c)
+	if !ok {
+		identity = service.AuthIdentity{
+			UserID:          c.GetInt("id"),
+			SessionID:       c.GetString("session_id"),
+			UserAuthVersion: c.GetInt64("auth_version"),
+			SessionVersion:  c.GetInt64("session_version"),
+		}
+	}
+	if identity.UserID <= 0 || identity.SessionID == "" || identity.UserAuthVersion <= 0 || identity.SessionVersion <= 0 {
+		return service.AuthIdentity{}, false
+	}
+	return identity, true
+}
+
 func TryUserAuth() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
