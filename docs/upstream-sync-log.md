@@ -1317,6 +1317,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - The unified flow uses server-side AuthFlow state, PKCE, ID-token verification, session-bound bind intent, one-time consumption, and atomic external identity ownership. It does not depend on the generic provider registry.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
 
+### 2026-09-08 Structural-v3: default frontend dashboard session client
+
+- Added default frontend storage and request injection for the short-lived dashboard Access JWT. Login and 2FA responses persist the returned token; refresh and logout use the new session endpoints, while HttpOnly refresh cookies remain server-managed.
+- Compatibility: the change is limited to `web/default` dashboard API requests. Relay/API-key examples and the classic frontend are unchanged; the existing user ID header and cookie credentials remain present for compatibility.
+- Added an explicit `refreshDashboardSession` API helper for the authenticated bootstrap/expiry flow. Automatic retry is intentionally not added yet to avoid request replay and refresh races until the route lifecycle is wired and tested.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation, per source-only workflow.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
 ### 2026-09-08 Structural-v3: Telegram atomic OAuth commit services
 
 - Added transaction-aware `CommitTelegramLogin` and `CommitTelegramBind` services. The AuthFlow consumer owns the only transaction; login performs Flow consumption, user creation, and external identity Claim atomically, while bind performs Flow consumption and Claim atomically.

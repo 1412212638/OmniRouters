@@ -38,6 +38,24 @@ export type ApiRequestConfig = AxiosRequestConfig
 // Base URL: empty string for same-origin API requests
 const baseURL = ''
 
+const accessTokenKey = 'dashboard_access_token'
+
+export function setDashboardAccessToken(token?: string) {
+  if (typeof window === 'undefined') return
+  if (token) window.localStorage.setItem(accessTokenKey, token)
+  else window.localStorage.removeItem(accessTokenKey)
+}
+
+function getDashboardAccessToken() {
+  try {
+    return typeof window !== 'undefined'
+      ? window.localStorage.getItem(accessTokenKey)
+      : null
+  } catch {
+    return null
+  }
+}
+
 // Create axios instance with default config
 export const api = axios.create({
   baseURL,
@@ -164,6 +182,11 @@ api.interceptors.request.use((config) => {
   if (uid) {
     // Custom header for user identification
     ;(config.headers as Record<string, string>)['New-Api-User'] = uid
+  }
+  const accessToken = getDashboardAccessToken()
+  if (accessToken) {
+    ;(config.headers as Record<string, string>)['Authorization'] =
+      `Bearer ${accessToken}`
   }
   return config
 })
