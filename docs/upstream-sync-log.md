@@ -1325,6 +1325,15 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; no local frontend build or dependency installation, per source-only workflow.
 - Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
 
+### 2026-09-08 Structural-v3: four-batch migration acceptance review
+
+- Batch 1 complete: JWT-bound security proofs, operation-context binding, and one-time channel-key proof consumption.
+- Batch 2 complete: Telegram AuthFlow state, PKCE, ID-token validation, atomic login/bind commits, external identity claims, and dedicated callback routes. Legacy Telegram Widget routes remain intact; the generic Provider registry remains protected from incomplete registration.
+- Batch 3 complete: default frontend stores and sends dashboard Access JWTs, persists login/2FA tokens, and uses refresh/logout session endpoints. Classic frontend, PAT/API-key relay requests, and Cookie compatibility remain unchanged.
+- Batch 4 source review: protected OmniRouters Sora/audio billing, expression/group/customer pricing, plugin system, wallet/payment display, mail settings/templates, and classic frontend were not modified by this migration series. Only migration-branch source and documentation changes are included.
+- Validation: `git diff --check` and source-scope review only. No local Go compilation, frontend build, Docker build, or image publication, as required by the source-only workflow. GitHub Actions remains the authoritative build/test gate.
+- Branch: changes are on `codex/migrate-upstream-structural-v3`; `main` was not changed. Pre-existing unrelated untracked files remain untouched.
+
 ### 2026-09-08 Structural-v3: Telegram atomic OAuth commit services
 
 - Added transaction-aware `CommitTelegramLogin` and `CommitTelegramBind` services. The AuthFlow consumer owns the only transaction; login performs Flow consumption, user creation, and external identity Claim atomically, while bind performs Flow consumption and Claim atomically.
