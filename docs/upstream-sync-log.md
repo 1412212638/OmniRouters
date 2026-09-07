@@ -1306,6 +1306,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
 - Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
 
+### 2026-09-08 Structural-v3: security proof request integration
+
+- Integrated JWT-bound security verification into `/api/verify`: callers may provide a supported operation/context and receive a short-lived one-time security proof. The proof is bound to the authoritative user session, auth version, method, scope, and normalized operation context.
+- Integrated the channel-key read path: JWT requests must present `X-Security-Proof` bound to that exact channel ID; the proof is atomically consumed before the key is returned. Legacy Cookie-session requests retain the existing five-minute verification behavior.
+- Preserved: PAT/relay authentication, legacy frontend behavior, billing/payment/mail/plugin behavior, and `main`.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
 ### 2026-09-08 Structural-v3: secure verification audit coverage
 
 - Scope: universal 2FA/Passkey verification now records structured security audit events for successful and failed verification attempts, including only the verification method and request context; secrets and codes are never logged.
