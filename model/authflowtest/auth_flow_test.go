@@ -35,7 +35,7 @@ func TestAuthFlowDatabaseContracts(t *testing.T) {
 			}
 			db, err := gorm.Open(dialector, &gorm.Config{})
 			require.NoError(t, err)
-			sqlDB, err := db.model.DB()
+			sqlDB, err := db.DB()
 			require.NoError(t, err)
 			if engine == "sqlite" { sqlDB.SetMaxOpenConns(1) }
 			previous := model.DB
@@ -80,7 +80,7 @@ func testAuthFlowContracts(t *testing.T) {
 	require.NoError(t, err)
 
 	rollback := errors.New("binding failed")
-	_, err = model.ConsumeAuthFlowWithAction(token, match, func(tx *gorm.model.DB, flow *model.AuthFlow) error {
+	_, err = model.ConsumeAuthFlowWithAction(token, match, func(tx *gorm.DB, flow *model.AuthFlow) error {
 		require.NoError(t, tx.Model(flow).Update("payload", "changed").Error)
 		return rollback
 	})
@@ -108,7 +108,7 @@ func testAuthFlowContracts(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			<-start
-			_, err := model.ConsumeAuthFlowWithAction(concurrentToken, match, func(*gorm.model.DB, *model.AuthFlow) error {
+			_, err := model.ConsumeAuthFlowWithAction(concurrentToken, match, func(*gorm.DB, *model.AuthFlow) error {
 				callbacks.Add(1)
 				return nil
 			})
