@@ -1276,3 +1276,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deliberately deferred refresh rotation endpoint, JWT middleware switch, logout revocation, session management routes, auth-version mutation hooks and Telegram callback integration.
 - Validation: source review and `git diff --check` only; no local build or tests. GitHub Actions is required to catch remaining package/signature issues.
 - Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+### 2026-09-07 Structural-v3: refresh/logout controller layer
+
+- Added the upstream refresh/logout/session-management controller and origin guard. Refresh reads only the HttpOnly cookie, validates optional `X-Auth-Session`, rotates refresh secrets, and clears invalid cookies; logout revokes the matching server session before clearing cookies. Added session listing/revoke routes and explicit no-store responses.
+- Added `POST /api/user/auth/refresh` and `/auth/logout`; existing legacy `GET /api/user/logout` remains untouched for compatibility. New routes are origin-guarded only when secure cookie mode is enabled and do not affect relay/PAT routes.
+- Source correction: local user response shape lacks the upstream `buildSelfUserData` helper, so refresh returns the existing loaded user object rather than introducing unrelated response restructuring.
+- Preserved billing/payment/mail/plugin/frontend behavior and disabled Telegram unified provider. No Telegram callback activation or main merge.
+- Validation: source review and `git diff --check` only; no local compilation/build/tests. Remote CI is required for package integration.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; main unchanged.
