@@ -1304,6 +1304,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Safety: the previous mismatch between internal Flow ID and opaque-token consumption is corrected. The legacy `/api/verify` response and sensitive-operation consumers are deliberately deferred until their request/response contract can carry the proof explicitly.
 - Preserved: existing Cookie/PAT verification behavior and all OmniRouters business functionality.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+
+### 2026-09-08 Structural-v3: Telegram identity binding primitive
+
+- Added `BindExternalIdentityWithTx`: checks legacy `telegram_id` ownership, atomically claims the provider subject in `external_identity_claims`, and updates the legacy column in the same transaction.
+- This is a service/model prerequisite for the unified Telegram callback. The public provider remains disabled until AuthFlow intent consumption and session-bound login/bind controllers are added.
+- Preserved legacy Telegram routes and all OmniRouters billing/payment/mail/plugin/frontend behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
 - Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
 
 ### 2026-09-08 Structural-v3: security proof request integration
