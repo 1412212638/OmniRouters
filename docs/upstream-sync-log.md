@@ -1342,6 +1342,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
 - Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
 
+### 2026-09-08 Default frontend Telegram login start
+
+- Replaced the default frontend Telegram placeholder with the server-side Telegram OAuth start request. The browser is redirected only to the authorization URL returned by the backend; PKCE and flow state remain server-managed.
+- Telegram bind UI and callback success-screen handling remain separate follow-up work; legacy Widget behavior is unchanged.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
+
 ### 2026-09-08 Structural-v3: Telegram atomic OAuth commit services
 
 - Added transaction-aware `CommitTelegramLogin` and `CommitTelegramBind` services. The AuthFlow consumer owns the only transaction; login performs Flow consumption, user creation, and external identity Claim atomically, while bind performs Flow consumption and Claim atomically.

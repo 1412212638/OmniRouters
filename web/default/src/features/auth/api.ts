@@ -107,6 +107,11 @@ export async function getOAuthState(): Promise<string> {
   return ''
 }
 
+export async function startTelegramOAuth(intent: 'login' | 'bind' = 'login') {
+  const res = await api.get('/api/oauth/telegram/start', { params: { intent } })
+  return res.data as { success: boolean; data?: { authorization_url?: string } }
+}
+
 // WeChat login by authorization code
 export async function wechatLoginByCode(code: string): Promise<ApiResponse> {
   const res = await api.get('/api/oauth/wechat', { params: { code } })

@@ -22,7 +22,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { api } from '@/lib/api'
-import { getOAuthState } from '../api'
+import { getOAuthState, startTelegramOAuth } from '../api'
 import {
   buildGitHubOAuthUrl,
   buildDiscordOAuthUrl,
@@ -185,8 +185,19 @@ export function useOAuthLogin(status: SystemStatus | null) {
     }
   }
 
-  const handleTelegramLogin = () => {
-    toast.info(t('Telegram login requires widget integration; coming soon'))
+  const handleTelegramLogin = async () => {
+    setIsLoading(true)
+    try {
+      await resetSession()
+      const res = await startTelegramOAuth('login')
+      const url = res.data?.authorization_url
+      if (!res.success || !url) throw new Error('Telegram OAuth unavailable')
+      window.open(url, '_self')
+    } catch {
+      toast.error(t('Failed to start Telegram login'))
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleCustomOAuthLogin = async (provider: CustomOAuthProviderInfo) => {
