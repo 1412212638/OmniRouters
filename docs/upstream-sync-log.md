@@ -1277,6 +1277,8 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; no local build or tests. GitHub Actions is required to catch remaining package/signature issues.
 - Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
 
+- CI repair after run `34136306470`: remote compilation reported missing `UserBase.Role` and `userCacheSchemaVersion` required by the auth cache layer. Added upstream-compatible role caching and schema version 2. No production route behavior was changed.
+
 ### 2026-09-07 Structural-v3: refresh/logout controller layer
 
 - Added the upstream refresh/logout/session-management controller and origin guard. Refresh reads only the HttpOnly cookie, validates optional `X-Auth-Session`, rotates refresh secrets, and clears invalid cookies; logout revokes the matching server session before clearing cookies. Added session listing/revoke routes and explicit no-store responses.

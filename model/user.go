@@ -121,6 +121,8 @@ func (user *User) ToBaseUser() *UserBase {
 		ExtraGroups: serializeStringList(user.ExtraGroups),
 		Quota:       user.Quota,
 		Status:      user.Status,
+		Role:        user.Role,
+		Role:        user.Role,
 		Username:    user.Username,
 		Setting:     user.Setting,
 		Email:       user.Email,
