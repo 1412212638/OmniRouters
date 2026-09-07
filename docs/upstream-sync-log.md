@@ -1305,6 +1305,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: existing Cookie/PAT verification behavior and all OmniRouters business functionality.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
 
+### 2026-09-08 Structural-v3: Telegram callback transaction review
+
+- Review result: the existing AuthFlow consumer owns its transaction, while OAuth user creation currently has separate post-lookup and post-creation behavior. No callback route was enabled in this step because combining Flow consumption, user creation, external identity claim, and post-commit session issuance still requires a dedicated transaction-aware consumer API.
+- Safety: no partial Telegram callback/controller was committed; legacy Widget login and bind remain unchanged and the unified provider remains disabled.
+- Preserved: all OmniRouters billing/payment/mail/plugin/frontend behavior and `main`.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+
 ### 2026-09-08 Structural-v3: Telegram AuthFlow state service
 
 - Added server-side Telegram OAuth flow state creation/lookup for login and bind intents. PKCE verifier, client ID, and redirect URI are stored in the expiring AuthFlow payload; only the opaque flow token is intended for the browser.
