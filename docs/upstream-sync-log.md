@@ -14,6 +14,15 @@
 - Validation: source review and `git diff --check` only; no local compilation or tests, per the source-only workflow. GitHub Actions is the verification gate.
 - Local commit/push: pending on `main`.
 
+### 2026-09-08 (final review of upstream batch `ea7cb0ba4`)
+
+- Final review completed for the upstream range `bee45b58a..ea7cb0ba4`.
+- Integrated: the safe backend redemption batch deletion endpoint from `524455fac`. Already present locally: usage-log group filtering/mobile layout, API-key and quota display behavior, plugin metadata/icon support, plugin marketplace/channel management, site-currency display, model/pricing editors, Sora/audio pricing, group-model ratios, and customer-specific discounts.
+- Deliberately deferred: legacy `web`-only UI rewrites that do not map directly to `web/default`; model/vendor pricing rewrite portions that would conflict with local pricing; Go convention/document-only commits; and any change that would remove the administrator plugin switch or alter local billing behavior.
+- No remaining safe source change was identified in this range. Local billing, payment, mail, plugin, Sora/audio, customer discount, and frontend customizations remain preserved.
+- Validation: source/history review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. GitHub Actions is the verification gate.
+- Local commit/push: pending on `main`.
+
 ### 2026-09-08 (redemption batch deletion)
 
 - Integrated the safe backend portion of upstream `524455fac`: administrators can delete up to 1000 selected redemption codes through `POST /api/redemption/batch`, with input validation and management-audit recording.
