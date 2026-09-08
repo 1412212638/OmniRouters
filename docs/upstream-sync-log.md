@@ -20,6 +20,11 @@
 - Existing backend audit records and usage-log audit details remain unchanged.
 - Validation: source review and `git diff --check` only; not pushed yet.
 
+### 2026-09-09 Save Waffo Pancake unit price independently
+
+- Fixed unit-price changes to use the normal option update path instead of requiring a Store/Product binding save. Changing only `1` to `1.05` no longer fails because the catalog binding is incomplete.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
 ### 2026-09-09 Fix audit log response unwrapping
 
 - Fixed the standalone audit page API client to unwrap the common `{ success, data }` response envelope before reading paginated items.

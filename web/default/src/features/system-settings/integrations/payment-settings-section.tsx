@@ -701,9 +701,15 @@ export function PaymentSettingsSection({
       sanitized.WaffoPancakeMerchantID !== initial.WaffoPancakeMerchantID ||
       sanitized.WaffoPancakePrivateKey.length > 0 ||
       sanitized.WaffoPancakeReturnURL !== initial.WaffoPancakeReturnURL ||
-      sanitized.WaffoPancakeUnitPrice !== initial.WaffoPancakeUnitPrice ||
       waffoPancakeSelection.storeID !== waffoPancakeSavedBinding.storeID ||
       waffoPancakeSelection.productID !== waffoPancakeSavedBinding.productID
+
+    if (sanitized.WaffoPancakeUnitPrice !== initial.WaffoPancakeUnitPrice) {
+      updates.push({
+        key: 'WaffoPancakeUnitPrice',
+        value: sanitized.WaffoPancakeUnitPrice,
+      })
+    }
 
     if (updates.length === 0 && !hasWaffoPancakeChanges) {
       toast.info(t('No changes to save'))
