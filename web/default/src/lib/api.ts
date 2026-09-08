@@ -78,6 +78,10 @@ function refreshDashboardToken(): Promise<string | null> {
       const token = response.data?.data?.access_token
       if (typeof token !== 'string' || token.length === 0) return null
       setDashboardAccessToken(token)
+      const userId = response.data?.data?.user?.id
+      if (userId != null && typeof window !== 'undefined') {
+        window.localStorage.setItem('uid', String(userId))
+      }
       return token
     })
     .catch(() => null)

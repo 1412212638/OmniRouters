@@ -14,6 +14,18 @@
 - Validation: source review and `git diff --check` only; no local compilation or tests, per the source-only workflow. GitHub Actions is the verification gate.
 - Local commit/push: pending on `main`.
 
+### 2026-09-09 Add standalone audit log page
+
+- Added the administrator-only `/audit-logs` page, typed `/api/audit/` query, and sidebar entry.
+- Existing backend audit records and usage-log audit details remain unchanged.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
+### 2026-09-09 Fix dashboard login identity header
+
+- Fixed login and refresh success handling so the returned user ID is persisted as `uid`, allowing subsequent requests to send the required `New-Api-User` header.
+- This addresses the observed `login 200` followed by `self 401` error without changing authentication or billing logic.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
 ### 2026-09-09 Sync upstream `9bf328d97`: preserve Sora provider fields
 
 - Integrated the safe portion of the upstream Sora rendering fix: persisted provider response fields are returned when available, and the host preserves extensions while overriding public identity and lifecycle fields.

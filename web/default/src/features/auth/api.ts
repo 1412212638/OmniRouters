@@ -17,6 +17,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { api, setDashboardAccessToken } from '@/lib/api'
+
+function persistAuthUser(data: any) {
+  if (data?.user?.id != null && typeof window !== 'undefined') {
+    window.localStorage.setItem('uid', String(data.user.id))
+  }
+}
 import type {
   LoginPayload,
   LoginResponse,
@@ -45,6 +51,7 @@ export async function login(payload: LoginPayload) {
     }
   )
   if (res.data?.data?.access_token) setDashboardAccessToken(res.data.data.access_token)
+  persistAuthUser(res.data?.data)
   return res.data
 }
 
@@ -52,6 +59,7 @@ export async function login(payload: LoginPayload) {
 export async function login2fa(payload: TwoFAPayload) {
   const res = await api.post<Login2FAResponse>('/api/user/login/2fa', payload)
   if (res.data?.data?.access_token) setDashboardAccessToken(res.data.data.access_token)
+  persistAuthUser(res.data?.data)
   return res.data
 }
 
@@ -70,6 +78,7 @@ export async function refreshDashboardSession(): Promise<ApiResponse> {
   })
   const token = res.data?.data?.access_token
   if (token) setDashboardAccessToken(token)
+  persistAuthUser(res.data?.data)
   return res.data
 }
 

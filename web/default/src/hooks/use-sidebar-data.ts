@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import {
   Activity,
+  ClipboardList,
   BadgeCheck,
   Box,
   CreditCard,
@@ -91,6 +92,12 @@ export function useSidebarData(): SidebarData {
             title: t('Usage Logs'),
             url: '/usage-logs/common',
             icon: FileText,
+          },
+          {
+            title: t('Audit Logs'),
+            url: '/audit-logs',
+            icon: ClipboardList,
+            requiredRole: ROLE.ADMIN,
           },
           {
             title: t('Task Logs'),
