@@ -14,6 +14,15 @@
 - Validation: source review and `git diff --check` only; no local compilation or tests, per the source-only workflow. GitHub Actions is the verification gate.
 - Local commit/push: pending on `main`.
 
+### 2026-09-08 Model/vendor/pricing compatibility round 4 final review
+
+- Reviewed the database and serialization boundary for the upstream model/vendor/pricing rewrite.
+- Local model, vendor, and pricing data use GORM-compatible fields and migrations. No PostgreSQL-only JSONB, database-specific function, or destructive schema change is required for this compatibility round.
+- The upstream rewrite remains intentionally not cherry-picked because it would replace local Sora/audio billing, dynamic pricing, customer discounts, plugin-center behavior, and wallet/payment presentation.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+- Result: the compatible model/vendor/pricing functionality is already present locally; remaining differences are architectural upstream refactors, not required missing behavior.
+- Local commit/push: pending on `main`.
+
 ### 2026-09-08 Model management compatibility round 3
 
 - Rechecked upstream model-management changes against the local model metadata, vendor management, model synchronization, and pricing refresh paths.
