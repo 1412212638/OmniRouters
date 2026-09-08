@@ -1444,7 +1444,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Fixed the GitHub Actions Go compilation failure after merging structural-v3: `middleware/auth_origin.go` referenced `common.NormalizeOrigin`, but the helper had not been brought into the local `common/session_cookie.go` implementation.
 - Added the upstream-compatible origin validation and canonicalization helper, including scheme/host validation, wildcard rejection, default-port normalization, and IPv6 formatting. Preserved the local session-cookie initialization behavior and all OmniRouters custom billing, payment, mail, plugin, and frontend logic.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
-- Local commit/push: pending on `main`.
+- Local commit/push: commit `1fb7b9ece`, pushed to `origin/main`.
 
 ### 2026-09-08 Upstream performance and popup compatibility
 
@@ -1532,4 +1532,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - The authentication/security commits remain deferred for a dedicated compatibility round because they overlap local session identity, Telegram/OAuth, password, access-token, and security-verification customizations. The full task polling refactor and model/vendor/pricing refactor remain separately deferred because they overlap Sora/audio billing, plugin-center controls, and customer-specific pricing.
 - Local functionality deliberately preserved: Sora per-request billing, `audio_generation` surcharge, group pricing and customer discounts, wallet/payment display, mail templates, task plugin center, and default/classic frontend customizations.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
-- Local commit/push: pending on `main`.
+- Local commit/push: commit `1fb7b9ece`, pushed to `origin/main`.
