@@ -14,6 +14,14 @@
 - Validation: source review and `git diff --check` only; no local compilation or tests, per the source-only workflow. GitHub Actions is the verification gate.
 - Local commit/push: pending on `main`.
 
+### 2026-09-08 (final upstream backlog reconciliation)
+
+- Reconciled the remaining low-scope upstream items: OpenAI generation/capability handling, Responses cached-token billing, expression-pricing support, database migration compatibility, and task-plugin diagnostics are already represented in the local branch.
+- Deliberately kept `/messages/count_tokens` enabled because the upstream temporary disable would regress existing Claude-compatible clients. The custom plugin switch and large model/pricing rewrite remain intentional local divergences documented in earlier entries.
+- No source change was required. Local Sora/audio billing, customer discounts, wallet/payment display, mail templates, plugin center, and frontend customizations remain preserved.
+- Validation: source/history review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. GitHub Actions remains the verification gate.
+- Local commit/push: pending on `main`.
+
 ### 2026-09-08 (model and pricing batch assessment)
 
 - Assessed upstream `0c76e4dae` model/vendor/pricing rewrite and its dependent pricing API/frontend changes. The rewrite requires new model-pricing snapshots, vendor metadata, storage contracts, and editor UI that are not present as an isolated compatible layer locally.
