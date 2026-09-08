@@ -1446,6 +1446,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
 - Local commit/push: pending on `main`.
 
+### 2026-09-08 Upstream database migration compatibility
+
+- Integrated the backend portion of upstream commit `9a8674425`: MySQL decimal defaults and PostgreSQL `CHAR` metadata are normalized during GORM schema comparison, preventing redundant migrations on restart while retaining real schema changes.
+- Deliberately did not import dependency churn or test-only database fixtures. Existing SQLite/MySQL/PostgreSQL support and all OmniRouters billing, payment, mail, plugin, and frontend behavior remain preserved.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
+- Local commit/push: pending on `main`.
+
 ### 2026-09-08 Main CI repair: missing dashboard identity accessor
 
 - Fixed the next GitHub Actions compile error by adding the `authIdentityContextKey` constant and `GetAuthIdentity` accessor required by the already-integrated session identity guard.
