@@ -1474,3 +1474,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved local `annotations`, reasoning conversion state, and the existing JSON wrapper usage. No task billing, Sora/audio pricing, payment, mail, plugin-center, or frontend behavior was changed.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
 - Local commit/push: commit `ad7838963`, push pending on `main`.
+
+### 2026-09-08 Upstream Alibaba plugin: Wan 3.0 all-in-one video
+
+- Integrated upstream commit `3b4652269`. Added `wan3.0-video` and `wan3.0-video-prime` support in the Alibaba task plugin, including resolution tiers, adaptive ratio, smart duration sentinel handling, image/media input, and completion usage facts.
+- Preserved existing Wan 2.x behavior, Sora/audio per-request billing, plugin-center controls, and all local payment, mail, pricing, and frontend customizations. The plugin keeps bounded duration facts before billing ratios are produced.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
+- Local commit/push: commit `4f19d34c7`, push pending on `main`.
