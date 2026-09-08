@@ -1481,6 +1481,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
 - Local commit/push: pending on `main`.
 
+### 2026-09-08 GHCR build compatibility repair
+
+- Fixed the GitHub Actions Go build failure where the Responses stream converter referenced missing `chatAnnotationsToResponses` and `responsesEventOutputTextAnnotationAdded` symbols.
+- Ported the upstream annotation conversion helper into the local non-stream Responses converter, including URL-citation flattening and the annotation event constant. Existing reasoning conversion, JSON codec usage, billing, plugin, payment, mail, and frontend behavior were preserved.
+- Validation: source review and `git diff --check` only; local compilation/build was intentionally not run under the source-only workflow. GitHub Actions is the verification gate.
+- Local commit/push: pending on `main`.
+
 ### 2026-09-08 Main CI repair: missing dashboard identity accessor
 
 - Fixed the next GitHub Actions compile error by adding the `authIdentityContextKey` constant and `GetAuthIdentity` accessor required by the already-integrated session identity guard.

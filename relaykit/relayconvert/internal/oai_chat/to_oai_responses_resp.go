@@ -11,6 +11,8 @@ import (
 )
 
 const (
+	responsesEventOutputTextAnnotationAdded = "response.output_text.annotation.added"
+
 	chatFinishReasonLength        = "length"
 	chatFinishReasonContentFilter = "content_filter"
 
@@ -58,6 +60,10 @@ func ChatCompletionsResponseToResponsesResponse(resp *dto.OpenAITextResponse, id
 	}
 
 	if text := choice.Message.StringContent(); text != "" {
+		annotations, err := chatAnnotationsToResponses(choice.Message.Annotations)
+		if err != nil {
+			return nil, nil, err
+		}
 		out.Output = append(out.Output, dto.ResponsesOutput{
 			Type:   responsesOutputTypeMessage,
 			ID:     fmt.Sprintf("%s_msg_0", id),
@@ -67,7 +73,7 @@ func ChatCompletionsResponseToResponsesResponse(resp *dto.OpenAITextResponse, id
 				{
 					Type:        "output_text",
 					Text:        text,
-					Annotations: []interface{}{},
+					Annotations: annotations,
 				},
 			},
 		})
@@ -95,6 +101,35 @@ func ChatCompletionsResponseToResponsesResponse(resp *dto.OpenAITextResponse, id
 	}
 
 	return out, usage, nil
+}
+
+func chatAnnotationsToResponses(raw []byte) ([]interface{}, error) {
+	if len(raw) == 0 {
+		return []interface{}{}, nil
+	}
+	var annotations []map[string]any
+	if err := kitutil.Unmarshal(raw, &annotations); err != nil {
+		return nil, fmt.Errorf("invalid Chat annotations: %w", err)
+	}
+	converted := make([]interface{}, 0, len(annotations))
+	for _, annotation := range annotations {
+		if strings.TrimSpace(kitutil.Interface2String(annotation["type"])) != "url_citation" {
+			converted = append(converted, annotation)
+			continue
+		}
+		citation, ok := annotation["url_citation"].(map[string]any)
+		if !ok {
+			converted = append(converted, annotation)
+			continue
+		}
+		flattened := make(map[string]any, len(citation)+1)
+		flattened["type"] = "url_citation"
+		for key, value := range citation {
+			flattened[key] = value
+		}
+		converted = append(converted, flattened)
+	}
+	return converted, nil
 }
 
 func ResponsesStatusFromChatFinishReason(finishReason string) (string, *dto.IncompleteDetails) {
