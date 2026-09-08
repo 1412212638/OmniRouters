@@ -1523,3 +1523,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - The full polling/adaptor contract migration remains deferred because the local task interfaces and Sora/audio settlement path use a compatibility contract that must be migrated as one complete round to protect pre-consume, settlement, and refund behavior.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
 - Local commit/push: pending on `main`.
+
+### 2026-09-08 Upstream security and audit follow-up review
+
+- Reviewed the next upstream security/audit batch through `bee45b58a`, including `3f8a50cf8`, `6f2333990`, `0973dc2b8`, `a8729b5c3`, `3e84ec0ab`, `45c3fbe8a`, `d8cb17744`, `8c8c4153d`, and `521cebf58`.
+- `3f8a50cf8` audit records and the `8c8c4153d` usage-statistics scan fix are already present in the current branch. The statistics query already scans RPM/TPM into a separate value and assigns only those fields, so no duplicate source change was made.
+- `521cebf58` targets the upstream legacy `web` frontend layout; this repository's active frontend is `web/default`, and the equivalent setup-guide behavior is already present there. It was therefore not cherry-picked.
+- The authentication/security commits remain deferred for a dedicated compatibility round because they overlap local session identity, Telegram/OAuth, password, access-token, and security-verification customizations. The full task polling refactor and model/vendor/pricing refactor remain separately deferred because they overlap Sora/audio billing, plugin-center controls, and customer-specific pricing.
+- Local functionality deliberately preserved: Sora per-request billing, `audio_generation` surcharge, group pricing and customer discounts, wallet/payment display, mail templates, task plugin center, and default/classic frontend customizations.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
+- Local commit/push: pending on `main`.
