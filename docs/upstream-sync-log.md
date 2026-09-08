@@ -20,6 +20,22 @@
 - Existing backend audit records and usage-log audit details remain unchanged.
 - Validation: source review and `git diff --check` only; not pushed yet.
 
+### 2026-09-09 Fix audit log response unwrapping
+
+- Fixed the standalone audit page API client to unwrap the common `{ success, data }` response envelope before reading paginated items.
+- Added an empty-page fallback and null-safe rendering to prevent a successful API response from causing a frontend runtime 500.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
+### 2026-09-09 Fix Waffo Pancake unit-price change detection
+
+- Fixed the payment settings sanitizer to include `WaffoPancakeUnitPrice`; changing `1` to `1.05` now enters the save path instead of incorrectly reporting no changes.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
+### 2026-09-09 Fix Waffo Pancake unit price label translation
+
+- Added the exact translation key used by the Waffo Pancake unit-price field. The displayed `1.05` indicates the saved value matches the current form, so the no-changes message is expected.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
 ### 2026-09-09 Fix Passkey status with dashboard sessions
 
 - Updated Passkey user resolution to accept the validated user ID from the dashboard authentication middleware, while retaining legacy cookie-session compatibility.

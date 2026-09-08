@@ -29,7 +29,7 @@ export function AuditLogs() {
             <tbody>
               {isLoading ? (
                 <tr><td className='p-4' colSpan={6}>{t('Loading...')}</td></tr>
-              ) : data?.items.length ? data.items.map((item) => (
+              ) : data?.items?.length ? data.items.map((item) => (
                 <tr key={item.id} className='border-t'>
                   <td className='p-3'>{new Date(item.created_at * 1000).toLocaleString()}</td>
                   <td className='p-3'>{item.username || item.user_id}</td>

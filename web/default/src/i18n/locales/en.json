@@ -4724,6 +4724,7 @@
     "Unique identifier for this group.": "Unique identifier for this group.",
     "Unit price (local currency / USD)": "Unit price (local currency / USD)",
     "Unit price (USD)": "Unit price (USD)",
+    "Unit price (USD per recharge USD)": "Unit price (USD per recharge USD)",
     "Unit price must be greater than 0": "Unit price must be greater than 0",
     "Units per USD": "Units per USD",
     "Unknown": "Unknown",

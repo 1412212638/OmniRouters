@@ -4724,6 +4724,7 @@
     "Unique identifier for this group.": "此组的唯一标识符。",
     "Unit price (local currency / USD)": "单价（本地货币 / USD）",
     "Unit price (USD)": "单价 (USD)",
+    "Unit price (USD per recharge USD)": "单价（每 1 USD 充值对应的 USD 金额）",
     "Unit price must be greater than 0": "单价必须大于 0",
     "Units per USD": "每 USD 单位数",
     "Unknown": "未知",

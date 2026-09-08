@@ -22,9 +22,15 @@ export type AuditLogResponse = {
   page_size: number
 }
 
+type AuditLogApiResponse = {
+  success: boolean
+  message?: string
+  data?: AuditLogResponse
+}
+
 export async function getAuditLogs(page = 1, pageSize = 20) {
-  const response = await api.get<AuditLogResponse>('/api/audit', {
+  const response = await api.get<AuditLogApiResponse>('/api/audit', {
     params: { p: page, page_size: pageSize },
   })
-  return response.data
+  return response.data.data ?? { items: [], total: 0, page: page, page_size: pageSize }
 }

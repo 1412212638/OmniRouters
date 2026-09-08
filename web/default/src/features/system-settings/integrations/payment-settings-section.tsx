@@ -427,6 +427,7 @@ export function PaymentSettingsSection({
       WaffoPancakeReturnURL: removeTrailingSlash(
         initialRef.current.WaffoPancakeReturnURL.trim()
       ),
+      WaffoPancakeUnitPrice: initialRef.current.WaffoPancakeUnitPrice,
     }
 
     const updates: Array<{ key: string; value: string | number | boolean }> = []
