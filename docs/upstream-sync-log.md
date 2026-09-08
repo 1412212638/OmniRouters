@@ -14,6 +14,14 @@
 - Validation: source review and `git diff --check` only; no local compilation or tests, per the source-only workflow. GitHub Actions is the verification gate.
 - Local commit/push: pending on `main`.
 
+### 2026-09-08 Model management compatibility round 3
+
+- Rechecked upstream model-management changes against the local model metadata, vendor management, model synchronization, and pricing refresh paths.
+- The local implementation already supports vendor IDs/metadata, endpoint and modality metadata, model visibility, matching rules, channel-derived models, pricing refresh, and audit-aware model deletion. The upstream rewrite is therefore not applied wholesale.
+- No safe missing behavior was found that can be added without changing local billing or plugin behavior.
+- Validation: source review and `git diff --check` only; no local build or tests.
+- Local commit/push: pending on `main`.
+
 ### 2026-09-08 Model/vendor/pricing compatibility round 2
 
 - Compared the upstream pricing controller and model metadata API with the local implementation.
