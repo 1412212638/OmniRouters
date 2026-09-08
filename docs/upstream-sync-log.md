@@ -1446,6 +1446,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
 - Local commit/push: pending on `main`.
 
+### 2026-09-08 Upstream performance and popup compatibility
+
+- Integrated upstream commits `5c7cca015` and `387a40914` with path-aware conflict resolution. Model health data now exposes hourly success-rate points; nested Combobox/Select popups inside the default frontend Drawer portal into the Drawer content so focus and pointer interaction remain functional.
+- The performance UI changes under the removed legacy `web/src` pricing path were deliberately not restored; the popup fix was ported to `web/default`. Existing model pricing, Sora/audio billing, payment, mail, plugin, and frontend custom behavior remain preserved.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
+- Local commits: `679a63cec` and `c136754d5`; push pending on `main`.
+
 ### 2026-09-08 Upstream database migration compatibility
 
 - Integrated the backend portion of upstream commit `9a8674425`: MySQL decimal defaults and PostgreSQL `CHAR` metadata are normalized during GORM schema comparison, preventing redundant migrations on restart while retaining real schema changes.
