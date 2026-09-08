@@ -1460,6 +1460,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
 - Local commit/push: commit `b7fffae47`, push pending on `main`.
 
+### 2026-09-08 Upstream performance, cache, and CI maintenance
+
+- Integrated upstream commits `2cf177ac4`, `36dbbf0f7`, and `8f5ab8e40` with conflict resolution. RawMessage request cloning now avoids unnecessary copies, ETag matching remains valid across JSON implementations, and release version resolution uses the triggering tag when available.
+- Preserved local empty-ETag protection, current release workflow structure, and all OmniRouters billing, payment, mail, plugin, Sora/audio pricing, and frontend behavior. No local dependency upgrade was imported.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
+- Local commits: `d630f4912`, `4eded8c17`, `712f488a9`; push pending on `main`.
+
 ### 2026-09-08 Upstream database migration compatibility
 
 - Integrated the backend portion of upstream commit `9a8674425`: MySQL decimal defaults and PostgreSQL `CHAR` metadata are normalized during GORM schema comparison, preventing redundant migrations on restart while retaining real schema changes.
