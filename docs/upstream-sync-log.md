@@ -1459,3 +1459,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved PAT authentication behavior, legacy Telegram behavior, local user fields, and all OmniRouters billing, payment, mail, plugin, and frontend behavior.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
 - Local commit/push: pending on `main`.
+
+### 2026-09-08 Upstream plugin fixes: Suno aliases and factory suppression
+
+- Integrated upstream commits `92bc7ff73` and `6298b0f32`.
+- Updated the built-in Suno plugin to preserve channel-mapped aliases, select music/lyrics behavior from the mapped upstream model, and avoid sending empty optional headers. Updated task-plugin status handling so disabling an overridden plugin also suppresses its built-in factory layer.
+- Deliberately kept local deletions of upstream-only plugin test files because those tests belong to the removed legacy plugin test layout; no OmniRouters billing, payment, mail, Sora/audio pricing, or frontend behavior was changed.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. Remaining plugin polling and task-core changes are deferred for a separate review.
+- Local commit/push: commits `52928fc25` and `a2530cc8b`, push pending on `main`.
