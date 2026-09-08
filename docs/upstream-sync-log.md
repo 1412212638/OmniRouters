@@ -6,6 +6,13 @@
 - Already present locally: persisted task query contexts, response status classification, bounded consecutive poll failures, CAS-safe failure updates, plugin state persistence limits, and task refund/settlement integration. No upstream polling code was copied.
 - Preserved: local Sora/audio billing, plugin registry, task artifacts, and provider-specific polling adapters.
 - Validation: source comparison and `git diff --check`; full Go tests unavailable because Go is not installed locally.
+
+## 2026-09-08 (authentication batch: duplicate OAuth route safety)
+
+- Removed duplicate Telegram OAuth route registrations in `router/api-router.go`, which could cause Gin to panic during startup even when the Go build succeeded.
+- Added a router regression test covering the Telegram-specific and provider wildcard GET routes. Existing authentication, OAuth, billing, payment, mail, plugin, and frontend behavior remains unchanged.
+- Validation: source review and `git diff --check` only; no local compilation or tests, per the source-only workflow. GitHub Actions is the verification gate.
+- Local commit/push: pending on `main`.
 - Commit/push: pending.
 
 ## 2026-09-07 (first-round database audit)

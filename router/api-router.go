@@ -54,8 +54,6 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/oauth/telegram/bind", middleware.CriticalRateLimit(), controller.TelegramBind)
 		apiRouter.GET("/oauth/telegram/start", middleware.CriticalRateLimit(), controller.StartTelegramOAuth)
 		apiRouter.GET("/oauth/telegram", middleware.CriticalRateLimit(), controller.HandleTelegramOAuth)
-		apiRouter.GET("/oauth/telegram/start", middleware.CriticalRateLimit(), controller.StartTelegramOAuth)
-		apiRouter.GET("/oauth/telegram", middleware.CriticalRateLimit(), controller.HandleTelegramOAuth)
 		// Standard OAuth providers (GitHub, Discord, OIDC, LinuxDO) - unified route
 		apiRouter.GET("/oauth/:provider", middleware.CriticalRateLimit(), controller.HandleOAuth)
 		apiRouter.GET("/ratio_config", middleware.CriticalRateLimit(), controller.GetRatioConfig)
