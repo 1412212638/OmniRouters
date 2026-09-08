@@ -1488,6 +1488,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; local compilation/build was intentionally not run. GitHub Actions is the verification gate.
 - Local commit/push: pending on `main`.
 
+### 2026-09-08 Authentication security batch: cache and abuse controls
+
+- Integrated the independent routing hardening from the upstream authentication batch: universal security verification and Passkey/login verification endpoints now disable caching, and authenticated security verification is additionally protected by the user-level `security-verification` rate limit.
+- Preserved existing login, Telegram/OAuth, Passkey, session, Token, billing, payment, mail, plugin, and frontend behavior; no authentication contract or credential format was changed.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the verification gate.
+- Local commit/push: pending on `main`.
+
 ### 2026-09-08 GHCR build compatibility repair
 
 - Fixed the GitHub Actions Go build failure where the Responses stream converter referenced missing `chatAnnotationsToResponses` and `responsesEventOutputTextAnnotationAdded` symbols.
