@@ -27,7 +27,7 @@ import {
 import i18next from 'i18next'
 import { toast } from 'sonner'
 import { useAuthStore, type AuthUser } from '@/stores/auth-store'
-import { api, getSelf } from '@/lib/api'
+import { api, getSelf, setDashboardAccessToken } from '@/lib/api'
 import { OAuthCallbackScreen } from '@/features/auth/components/oauth-callback-screen'
 import { OAUTH_BIND_STORAGE_KEY } from '@/features/auth/constants'
 import {
@@ -184,6 +184,9 @@ function OAuthCallback() {
           }
           // Otherwise it's a login, use payload user if available
           if (loginUser) {
+            if (loginUser.access_token) {
+              setDashboardAccessToken(loginUser.access_token)
+            }
             useAuthStore.getState().auth.setUser(loginUser)
             try {
               if (typeof window !== 'undefined' && loginUser.id != null) {

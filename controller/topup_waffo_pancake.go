@@ -69,8 +69,23 @@ func getWaffoPancakePayMoney(amount int64, group string) float64 {
 		discount = ds
 	}
 
+	unitPrice := setting.WaffoPancakeUnitPrice
+	// Keep the calculation usable immediately after an option update, even
+	// when the typed setting value has not been refreshed yet.
+	common.OptionMapRWMutex.RLock()
+	raw, ok := common.OptionMap["WaffoPancakeUnitPrice"]
+	common.OptionMapRWMutex.RUnlock()
+	if ok {
+		if parsed, err := decimal.NewFromString(raw); err == nil && parsed.GreaterThan(decimal.Zero) {
+			unitPrice = parsed.InexactFloat64()
+		}
+	}
+	if unitPrice <= 0 {
+		unitPrice = 1
+	}
+
 	payMoney := dAmount.
-		Mul(decimal.NewFromFloat(setting.WaffoPancakeUnitPrice)).
+		Mul(decimal.NewFromFloat(unitPrice)).
 		Mul(decimal.NewFromFloat(topupGroupRatio)).
 		Mul(decimal.NewFromFloat(discount))
 

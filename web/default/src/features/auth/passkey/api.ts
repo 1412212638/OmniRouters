@@ -52,7 +52,9 @@ export async function beginPasskeyLogin(): Promise<
   ApiResponse<PasskeyOptionsPayload>
 > {
   const res = await api.post<ApiResponse<PasskeyOptionsPayload>>(
-    '/api/user/passkey/login/begin'
+    '/api/user/passkey/login/begin',
+    undefined,
+    { skipErrorHandler: true }
   )
   return res.data
 }

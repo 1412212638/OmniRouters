@@ -1717,3 +1717,22 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - No source change was required in this reconciliation batch. Local functionality deliberately preserved: Sora per-request billing, `audio_generation` surcharge, group/customer pricing, wallet/payment display, mail templates, plugin-center administration, and default/classic frontend customizations.
 - Validation: source/history review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
 - Local commit/push: pending on `main`.
+
+### 2026-09-09 Waffo Pancake 单价读取修复
+
+- 修复 Waffo Pancake 金额计算在配置刚保存后仍读取旧 typed setting，导致充值金额被误判过低的问题；优先读取已持久化的 OptionMap 单价，并保留有效值兜底。
+- 保留本地 Waffo Pancake、钱包展示及现有充值入账逻辑；未改变计费或订单结算规则。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+### 2026-09-09 OAuth 登录会话修复
+
+- 修复 OAuth 登录成功后未保存返回的 dashboard access token，导致后续 `/api/user/self` 请求被判定为未登录的问题。
+- 保留现有 Cookie、Bearer 刷新、uid 缓存和本地身份验证逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+### 2026-09-09 Passkey 限流不阻塞其他登录方式
+
+- Passkey 登录初始化请求改为自行处理 HTTP 错误，避免该接口 429 被全局 Axios 错误处理器显示为账号密码或 OAuth 登录失败。
+- 保留 Passkey、密码登录和 OAuth 登录各自独立的认证流程。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
