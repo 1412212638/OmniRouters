@@ -14,6 +14,14 @@
 - Validation: source review and `git diff --check` only; no local compilation or tests, per the source-only workflow. GitHub Actions is the verification gate.
 - Local commit/push: pending on `main`.
 
+### 2026-09-09 Sync upstream `9bf328d97`: preserve Sora provider fields
+
+- Integrated the safe portion of the upstream Sora rendering fix: persisted provider response fields are returned when available, and the host preserves extensions while overriding public identity and lifecycle fields.
+- Deliberately did not import the unrelated task-adaptor API refactor because it overlaps local Sora/audio billing, polling, plugin state, and channel compatibility behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+- Local functionality deliberately preserved: Sora per-request billing, audio surcharge, task polling, plugin center, and provider compatibility.
+- Local commit/push: pending on `main`.
+
 ### 2026-09-08 Model/vendor/pricing compatibility round 4 final review
 
 - Reviewed the database and serialization boundary for the upstream model/vendor/pricing rewrite.

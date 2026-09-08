@@ -301,6 +301,7 @@ protocols.openai_video = {
     };
   },
   render: function (ctx, task) {
+    if (task.data && typeof task.data === "object" && !Array.isArray(task.data)) return task.data;
     return legacyRenderers.openai_video(task);
   },
 };
