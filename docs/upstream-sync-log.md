@@ -14,6 +14,20 @@
 - Validation: source review and `git diff --check` only; no local compilation or tests, per the source-only workflow. GitHub Actions is the verification gate.
 - Local commit/push: pending on `main`.
 
+### 2026-09-08 (model and pricing batch assessment)
+
+- Assessed upstream `0c76e4dae` model/vendor/pricing rewrite and its dependent pricing API/frontend changes. The rewrite requires new model-pricing snapshots, vendor metadata, storage contracts, and editor UI that are not present as an isolated compatible layer locally.
+- Deliberately deferred this batch rather than introducing an unusable endpoint or bypassing OmniRouters pricing behavior. Existing group ratios, customer-specific discounts, Sora per-request pricing, `audio_generation` surcharge, wallet/payment display, and billing-expression safeguards remain authoritative.
+- Validation: source/dependency review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. GitHub Actions remains the verification gate.
+- Local commit/push: pending on `main`.
+
+### 2026-09-08 (model and pricing batch assessment)
+
+- Assessed upstream `0c76e4dae` model/vendor/pricing rewrite and its dependent pricing API/frontend changes. The rewrite requires a new model-pricing snapshot, vendor metadata, storage contracts, and editor UI that are not present as an isolated compatible layer locally.
+- Deliberately deferred this batch rather than introducing an unusable endpoint or bypassing OmniRouters pricing behavior. Existing group ratios, customer-specific discounts, Sora per-request pricing, `audio_generation` surcharge, wallet/payment display, and billing-expression safeguards remain authoritative.
+- Validation: source/dependency review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. GitHub Actions remains the verification gate.
+- Local commit/push: pending on `main`.
+
 ### 2026-09-08 (task plugin and polling batch reconciliation)
 
 - Rechecked the task-plugin and polling changes through `bee45b58a`. The local branch already contains the upstream polling contract hardening, bounded failures, status classification, CAS terminal handling, plugin state persistence, Hailuo/MiniMax usage accounting, and settlement/refund integration.
