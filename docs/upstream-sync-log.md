@@ -1453,6 +1453,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
 - Local commits: `679a63cec` and `c136754d5`; push pending on `main`.
 
+### 2026-09-08 Upstream JSON codec injection
+
+- Integrated upstream commit `7bbe85bcb` after reviewing conflicts. JSON helpers now use a host-injectable codec shared by `common` and `relaykit`, while preserving the project-wide `common.*` JSON wrapper contract and Kimi message compatibility.
+- No business JSON semantics, billing, payment, mail, plugin, or frontend behavior was intentionally changed. Upstream-only test additions were retained only where they fit the current relaykit layout.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
+- Local commit/push: commit `b7fffae47`, push pending on `main`.
+
 ### 2026-09-08 Upstream database migration compatibility
 
 - Integrated the backend portion of upstream commit `9a8674425`: MySQL decimal defaults and PostgreSQL `CHAR` metadata are normalized during GORM schema comparison, preventing redundant migrations on restart while retaining real schema changes.
