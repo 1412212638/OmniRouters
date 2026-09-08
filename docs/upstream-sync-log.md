@@ -1760,3 +1760,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - 钱包计算、支付入账和单价保存接口保持不变；修复设置页刷新后的真实回显链路。
 - 验证：源码检查、`git diff --check`；未本地编译或构建容器。
 - Local commit/push: pending。
+### 2026-09-09 Waffo Pancake 单价数据库优先回读
+
+- 设置接口对 `WaffoPancakeUnitPrice` 增加数据库优先回读，避免内存配置初始化为默认值 `1` 时覆盖已保存单价。
+- 修改严格限定于设置接口的该字段，不改变其他支付方式、订单、计费或入账逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
