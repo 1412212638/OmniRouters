@@ -1481,6 +1481,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
 - Local commit/push: pending on `main`.
 
+### 2026-09-08 GHCR build compatibility repair: JSON helper aliases
+
+- Fixed the next GitHub Actions compile failure in `relay/channel/openai/relay_image.go` by exposing `common.JSONRawMessage` and `common.IsValidJSON` through the existing host-injectable JSON codec.
+- No direct business-code JSON implementation was introduced; billing, plugins, payments, mail, and frontend customizations remain unchanged.
+- Validation: source review and `git diff --check` only; local compilation/build was intentionally not run. GitHub Actions is the verification gate.
+- Local commit/push: pending on `main`.
+
 ### 2026-09-08 GHCR build compatibility repair
 
 - Fixed the GitHub Actions Go build failure where the Responses stream converter referenced missing `chatAnnotationsToResponses` and `responsesEventOutputTextAnnotationAdded` symbols.

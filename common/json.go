@@ -9,6 +9,9 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
+// JSONRawMessage is kept as a common-package alias for relay payload fields.
+type JSONRawMessage = json.RawMessage
+
 // hostJSONCodec is the single place where the host chooses its JSON engine.
 // Swap the implementation here (for example to sonic.ConfigStd) and every
 // common.* and kitutil.* JSON helper, including relaykit DTO (un)marshalling,
@@ -75,6 +78,10 @@ func IndentJson(data []byte) ([]byte, error) {
 
 func GetJsonType(data json.RawMessage) string {
 	return kitutil.GetJsonType(data)
+}
+
+func IsValidJSON(data []byte) bool {
+	return kitutil.Valid(data)
 }
 
 // JsonRawMessageToString returns JSON strings as their decoded value and other JSON values as raw text.
