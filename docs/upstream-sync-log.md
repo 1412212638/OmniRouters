@@ -1766,3 +1766,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - 修改严格限定于设置接口的该字段，不改变其他支付方式、订单、计费或入账逻辑。
 - 验证：源码检查、`git diff --check`；未本地编译或构建容器。
 - Local commit/push: pending。
+### 2026-09-09 修复 GHCR 构建错误
+
+- 补充 `controller/option.go` 使用的 `strconv` 导入，修复 Waffo Pancake 单价回读改动导致的 Go 编译失败。
+- 未改变任何支付、计费、订单或入账逻辑。
+- 验证：源码检查、`git diff --check`；由 GitHub Actions 负责构建验证。
+- Local commit/push: pending。
