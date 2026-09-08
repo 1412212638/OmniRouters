@@ -1736,3 +1736,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - 保留 Passkey、密码登录和 OAuth 登录各自独立的认证流程。
 - 验证：源码检查、`git diff --check`；未本地编译或构建容器。
 - Local commit/push: pending。
+### 2026-09-09 GitHub Actions Release 工作流修复
+
+- 修复 `release.yml` 中 setup-bun 步骤缩进错误，避免 Tag 发布工作流在解析/执行阶段失败；保持日常 `main` 推送仅由 GHCR 镜像工作流处理。
+- 保留多平台 Release 工作流，仅用于 Tag 或手动发布；未修改应用代码和本地支付、登录逻辑。
+- 验证：源码检查、`git diff --check`；未本地构建容器。
+- Local commit/push: pending。
