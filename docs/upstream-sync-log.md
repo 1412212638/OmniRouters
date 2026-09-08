@@ -1754,3 +1754,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - 数据库写入失败时现在会直接返回错误，不再更新内存配置并误报保存成功；保留批量保存和现有支付/计费逻辑。
 - 验证：源码检查、`git diff --check`；未本地编译或构建容器。
 - Local commit/push: pending。
+### 2026-09-09 Waffo Pancake 设置页单价回显根因修复
+
+- 补齐 `BillingSettings` 与 `defaultBillingSettings` 中遗漏的 `WaffoPancakeUnitPrice` 字段，使 `getOptionValue()` 能保留并解析后端返回的单价，而不是被 `?? 1` 默认值覆盖。
+- 钱包计算、支付入账和单价保存接口保持不变；修复设置页刷新后的真实回显链路。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
