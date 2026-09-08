@@ -1742,3 +1742,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - 保留多平台 Release 工作流，仅用于 Tag 或手动发布；未修改应用代码和本地支付、登录逻辑。
 - 验证：源码检查、`git diff --check`；未本地构建容器。
 - Local commit/push: pending。
+### 2026-09-09 Waffo Pancake 单价保存后回显修复
+
+- 修复仅修改 `WaffoPancakeUnitPrice` 时保存流程提前返回，未刷新系统设置查询，导致页面重新进入仍显示旧单价的问题。
+- 保存普通选项后强制重新获取 `/api/option/`，保持钱包实际支付和设置页回显使用同一持久化值；不改变充值计费与入账逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。

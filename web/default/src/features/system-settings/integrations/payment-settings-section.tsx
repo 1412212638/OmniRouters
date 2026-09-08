@@ -721,6 +721,8 @@ export function PaymentSettingsSection({
     }
 
     if (!hasWaffoPancakeChanges) {
+      await queryClient.refetchQueries({ queryKey: ['system-options'] })
+      toast.success(t('Settings saved'))
       return
     }
 
