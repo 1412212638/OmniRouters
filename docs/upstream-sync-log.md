@@ -1472,7 +1472,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Reviewed upstream commit `32c261923`. Its task-plugin-specific no-available-channel message, distributor branch, and en/zh translations are already present in the local plugin-center implementation, so the cherry-pick resolved to an empty change and was skipped.
 - No source change was required; existing plugin routing, Sora/audio billing, payment, mail, and frontend behavior remain unchanged.
 - Validation: source comparison and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
-- Local commit/push: pending on `main`.
+- Local commit/push: commit `b96c76b8c`, pushed to `origin/main`.
 
 ### 2026-09-08 Upstream database migration compatibility
 
