@@ -1446,6 +1446,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
 - Local commit/push: pending on `main`.
 
+### 2026-09-08 Main CI repair: missing dashboard identity accessor
+
+- Fixed the next GitHub Actions compile error by adding the `authIdentityContextKey` constant and `GetAuthIdentity` accessor required by the already-integrated session identity guard.
+- Preserved PAT behavior, legacy session behavior, and all OmniRouters custom billing, payment, mail, plugin, and frontend behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
+- Local commit/push: pending on `main`.
+
 ### 2026-09-08 Main CI repair: structural-v3 missing compatibility symbols
 
 - Fixed the next Go compilation failures reported by GitHub Actions after the Origin helper repair: restored `GetSessionAuthIdentity`, corrected Telegram OAuth startup to return the persisted flow record and the in-memory OAuth flow separately, and added the safe `buildSelfUserData` response DTO using the local `User` shape.

@@ -23,6 +23,19 @@ import (
 	"gorm.io/gorm"
 )
 
+const authIdentityContextKey = "auth_identity"
+
+// GetAuthIdentity returns a dashboard session identity. PAT-authenticated
+// requests intentionally have no SessionID and cannot manage browser sessions.
+func GetAuthIdentity(c *gin.Context) (service.AuthIdentity, bool) {
+	value, ok := c.Get(authIdentityContextKey)
+	if !ok {
+		return service.AuthIdentity{}, false
+	}
+	identity, ok := value.(service.AuthIdentity)
+	return identity, ok
+}
+
 func validUserInfo(username string, role int) bool {
 	// check username is empty
 	if strings.TrimSpace(username) == "" {
