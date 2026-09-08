@@ -14,6 +14,15 @@
 - Validation: source review and `git diff --check` only; no local compilation or tests, per the source-only workflow. GitHub Actions is the verification gate.
 - Local commit/push: pending on `main`.
 
+### 2026-09-08 Model/vendor/pricing refactor compatibility round 1
+
+- Reviewed upstream `0c76e4dae`, `75e533209`, `0e0ba152b`, and `71c1fd7ca`.
+- The local branch already contains compatible model/vendor entities, pricing snapshots, site-currency display, dynamic billing, Sora per-request pricing, audio surcharge, group/customer discounts, and model management APIs.
+- The upstream rewrite was not copied wholesale because it would overwrite those local behaviors. This round records the compatibility boundary; implementation of dual-read/dual-write migration remains a separate controlled round.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+- Local functionality deliberately preserved: all local billing, plugin-center, wallet/payment, mail, and frontend customizations.
+- Local commit/push: pending on `main`.
+
 ### 2026-09-08 (final review of upstream batch `ea7cb0ba4`)
 
 - Final review completed for the upstream range `bee45b58a..ea7cb0ba4`.
