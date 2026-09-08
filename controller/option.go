@@ -138,14 +138,18 @@ func GetOptions(c *gin.Context) {
 	// This value is used by the payment settings form and must reflect the
 	// persisted option even if the in-memory option map was reinitialized.
 	var pancakeUnitPrice model.Option
-	if err := model.DB.Where("key = ?", "WaffoPancakeUnitPrice").First(&pancakeUnitPrice).Error; err == nil {
-		for _, option := range options {
-			if option.Key == "WaffoPancakeUnitPrice" {
-				option.Value = pancakeUnitPrice.Value
-				break
-			}
-		}
+	pancakeValue := strconv.FormatFloat(setting.WaffoPancakeUnitPrice, 'f', -1, 64)
+	if err := model.DB.Where("key = ?", "WaffoPancakeUnitPrice").First(&pancakeUnitPrice).Error; err == nil && pancakeUnitPrice.Value != "" {
+		pancakeValue = pancakeUnitPrice.Value
 	}
+	filtered := options[:0]
+	for _, option := range options {
+		if option.Key == "WaffoPancakeUnitPrice" {
+			continue
+		}
+		filtered = append(filtered, option)
+	}
+	options = append(filtered, &model.Option{Key: "WaffoPancakeUnitPrice", Value: pancakeValue})
 	options = append(options, &model.Option{
 		Key:   "CompletionRatioMeta",
 		Value: buildCompletionRatioMetaValue(optionValues),
