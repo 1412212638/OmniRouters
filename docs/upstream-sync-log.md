@@ -1467,3 +1467,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deliberately kept local deletions of upstream-only plugin test files because those tests belong to the removed legacy plugin test layout; no OmniRouters billing, payment, mail, Sora/audio pricing, or frontend behavior was changed.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. Remaining plugin polling and task-core changes are deferred for a separate review.
 - Local commit/push: commits `52928fc25` and `a2530cc8b`, push pending on `main`.
+
+### 2026-09-08 Upstream relay compatibility: Kimi dynamic tool loading
+
+- Integrated upstream commit `6e10f9bc9` with a manual conflict resolution. Message-level Kimi K3 tool declarations are preserved when converting and serializing OpenAI-compatible requests, included in token metadata, and excluded from invalid `content: null` output for tool-loading system messages.
+- Preserved local `annotations`, reasoning conversion state, and the existing JSON wrapper usage. No task billing, Sora/audio pricing, payment, mail, plugin-center, or frontend behavior was changed.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
+- Local commit/push: commit `ad7838963`, push pending on `main`.
