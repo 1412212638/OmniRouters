@@ -14,6 +14,13 @@
 - Validation: source review and `git diff --check` only; no local compilation or tests, per the source-only workflow. GitHub Actions is the verification gate.
 - Local commit/push: pending on `main`.
 
+### 2026-09-08 (redemption batch deletion)
+
+- Integrated the safe backend portion of upstream `524455fac`: administrators can delete up to 1000 selected redemption codes through `POST /api/redemption/batch`, with input validation and management-audit recording.
+- File export and legacy frontend changes remain deferred for a separate `web/default` adaptation. Existing redemption crediting, wallet, payment, billing, mail, plugin, and frontend custom behavior remains unchanged.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. GitHub Actions remains the verification gate.
+- Local commit/push: pending on `main`.
+
 ### 2026-09-08 (final upstream backlog reconciliation)
 
 - Reconciled the remaining low-scope upstream items: OpenAI generation/capability handling, Responses cached-token billing, expression-pricing support, database migration compatibility, and task-plugin diagnostics are already represented in the local branch.

@@ -142,6 +142,23 @@ func DeleteRedemption(c *gin.Context) {
 	return
 }
 
+func DeleteRedemptionBatch(c *gin.Context) {
+	var request struct {
+		Ids []int `json:"ids" binding:"required,min=1,max=1000,dive,gt=0"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		common.ApiErrorI18n(c, i18n.MsgInvalidParams)
+		return
+	}
+	rows, err := model.DeleteRedemptionsByIds(request.Ids)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	recordManageAudit(c, "redemption.delete_batch", map[string]interface{}{"ids": request.Ids, "count": rows})
+	common.ApiSuccess(c, gin.H{"deleted": rows})
+}
+
 func UpdateRedemption(c *gin.Context) {
 	statusOnly := c.Query("status_only")
 	redemption := model.Redemption{}

@@ -234,6 +234,19 @@ func DeleteRedemptionById(id int) (err error) {
 	return redemption.Delete()
 }
 
+func DeleteRedemptionsByIds(ids []int) (int64, error) {
+	if len(ids) == 0 || len(ids) > 1000 {
+		return 0, errors.New("invalid redemption id count")
+	}
+	for _, id := range ids {
+		if id <= 0 {
+			return 0, errors.New("invalid redemption id")
+		}
+	}
+	result := DB.Where("id IN ?", ids).Delete(&Redemption{})
+	return result.RowsAffected, result.Error
+}
+
 func DeleteInvalidRedemptions() (int64, error) {
 	now := common.GetTimestamp()
 	result := DB.Where("status IN ? OR (status = ? AND expired_time != 0 AND expired_time < ?)", []int{common.RedemptionCodeStatusUsed, common.RedemptionCodeStatusDisabled}, common.RedemptionCodeStatusEnabled, now).Delete(&Redemption{})
