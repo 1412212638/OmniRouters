@@ -14,6 +14,15 @@
 - Validation: source review and `git diff --check` only; no local compilation or tests, per the source-only workflow. GitHub Actions is the verification gate.
 - Local commit/push: pending on `main`.
 
+### 2026-09-08 Model/vendor/pricing compatibility round 2
+
+- Compared the upstream pricing controller and model metadata API with the local implementation.
+- The local `/api/pricing` already exposes model metadata, vendor data, endpoint capabilities, pricing version, billing mode/expression, group ratios, and usable groups. No missing non-breaking API field was identified.
+- No source overwrite was performed because the upstream controller would replace local Sora/audio pricing and customer/group discount behavior.
+- Validation: source review and `git diff --check` only; no local build or tests.
+- Local functionality deliberately preserved: model/vendor management, pricing snapshots, Sora/audio billing, dynamic billing, group/customer discounts, and plugin-center behavior.
+- Local commit/push: pending on `main`.
+
 ### 2026-09-08 Model/vendor/pricing refactor compatibility round 1
 
 - Reviewed upstream `0c76e4dae`, `75e533209`, `0e0ba152b`, and `71c1fd7ca`.
