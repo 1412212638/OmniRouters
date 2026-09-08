@@ -117,6 +117,7 @@ type saveWaffoPancakeRequest struct {
 	ReturnURL  string `json:"return_url"`
 	StoreID    string `json:"store_id"`
 	ProductID  string `json:"product_id"`
+	UnitPrice  float64 `json:"unit_price"`
 }
 
 type createWaffoPancakePairRequest struct {
@@ -140,6 +141,7 @@ func SaveWaffoPancake(c *gin.Context) {
 		req.ReturnURL,
 		req.StoreID,
 		req.ProductID,
+		req.UnitPrice,
 	); err != nil {
 		logger.LogError(c.Request.Context(), fmt.Sprintf(
 			"Waffo Pancake 保存配置失败 store_id=%q product_id=%q error=%q",

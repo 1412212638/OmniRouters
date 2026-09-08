@@ -20,6 +20,18 @@
 - Existing backend audit records and usage-log audit details remain unchanged.
 - Validation: source review and `git diff --check` only; not pushed yet.
 
+### 2026-09-09 Fix Waffo Pancake unit price persistence
+
+- Fixed the configuration save payload and backend persistence path to include `WaffoPancakeUnitPrice`; values such as `1.05` are now saved instead of reverting to the default `1`.
+- Preserved the existing checkout pricing behavior and added the change to the source-level synchronization log.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
+### 2026-09-09 Fix audit log page endpoint and translations
+
+- Corrected the audit page request from `/api/audit/` to the registered `/api/audit` route.
+- Added missing English and Chinese translation entries for the standalone audit page.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
 ### 2026-09-09 Fix dashboard login identity header
 
 - Fixed login and refresh success handling so the returned user ID is persisted as `uid`, allowing subsequent requests to send the required `New-Api-User` header.

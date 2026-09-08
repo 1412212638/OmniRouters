@@ -734,6 +734,7 @@ export function PaymentSettingsSection({
         returnURL: sanitized.WaffoPancakeReturnURL,
         storeID: waffoPancakeSelection.storeID,
         productID: waffoPancakeSelection.productID,
+        unitPrice: sanitized.WaffoPancakeUnitPrice,
       })
 
       if (

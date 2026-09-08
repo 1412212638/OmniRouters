@@ -90,6 +90,7 @@ export async function saveWaffoPancakeConfig(params: {
   returnURL: string
   storeID: string
   productID: string
+  unitPrice: number
 }): Promise<SaveResponse> {
   const res = await api.post<SaveResponse>('/api/option/waffo-pancake/save', {
     merchant_id: params.merchantID,
@@ -97,6 +98,7 @@ export async function saveWaffoPancakeConfig(params: {
     return_url: params.returnURL,
     store_id: params.storeID,
     product_id: params.productID,
+    unit_price: params.unitPrice,
   })
   return res.data
 }
