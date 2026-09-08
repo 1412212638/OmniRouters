@@ -1481,3 +1481,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved existing Wan 2.x behavior, Sora/audio per-request billing, plugin-center controls, and all local payment, mail, pricing, and frontend customizations. The plugin keeps bounded duration facts before billing ratios are produced.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
 - Local commit/push: commit `4f19d34c7`, push pending on `main`.
+
+### 2026-09-08 Upstream task polling audit: Sora status diagnostics
+
+- Reviewed upstream commit `9df450fe5`. The independent Sora unknown-status diagnostic is already present locally in `plugins/tasks/sora/plugin.js`; no duplicate source change was needed.
+- The full polling/adaptor contract migration remains deferred because the local task interfaces and Sora/audio settlement path use a compatibility contract that must be migrated as one complete round to protect pre-consume, settlement, and refund behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
+- Local commit/push: pending on `main`.
