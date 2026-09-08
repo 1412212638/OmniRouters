@@ -1533,3 +1533,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Local functionality deliberately preserved: Sora per-request billing, `audio_generation` surcharge, group pricing and customer discounts, wallet/payment display, mail templates, task plugin center, and default/classic frontend customizations.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
 - Local commit/push: commit `1fb7b9ece`, pushed to `origin/main`.
+
+### 2026-09-08 Upstream backlog reconciliation through `bee45b58a`
+
+- Reconciled the remaining upstream commits after the previous security review. The local history already contains the compatible portions of `057f71c23` (privileged log metadata isolation), `219c9e063` (revalidated public/auth-session responses), `73afad588` (Hailuo media usage), `b7017c251` (system-task no-op writes), `27ff6a876` (legacy token-key migration), and `6eb6f35ed` (PostgreSQL JSON values/scanning).
+- These items are therefore recorded as integrated/already present rather than cherry-picked again. Existing local implementations also retain the required billing saturation checks, request-audit visibility rules, plugin-center controls, and Sora/audio pricing behavior.
+- The remaining upstream items are explicitly deferred: full authentication/security migration (`6f2333990`, `0973dc2b8`, `a8729b5c3`, `3e84ec0ab`, `45c3fbe8a`, `d8cb17744`), full task polling/adaptor migration (`9df450fe5`), removal of the custom plugin switch (`210734bb7`), model/vendor/pricing rewrite (`0c76e4dae`), temporary count-token disable (`3a9f41ee8`), and OpenAI capability rewrite (`49ec46966`). Each overlaps active local behavior and requires a dedicated compatibility round.
+- No source change was required in this reconciliation batch. Local functionality deliberately preserved: Sora per-request billing, `audio_generation` surcharge, group/customer pricing, wallet/payment display, mail templates, plugin-center administration, and default/classic frontend customizations.
+- Validation: source/history review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
+- Local commit/push: pending on `main`.
