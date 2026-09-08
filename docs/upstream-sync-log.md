@@ -13,6 +13,14 @@
 - Added a router regression test covering the Telegram-specific and provider wildcard GET routes. Existing authentication, OAuth, billing, payment, mail, plugin, and frontend behavior remains unchanged.
 - Validation: source review and `git diff --check` only; no local compilation or tests, per the source-only workflow. GitHub Actions is the verification gate.
 - Local commit/push: pending on `main`.
+
+### 2026-09-08 (task plugin and polling batch reconciliation)
+
+- Rechecked the task-plugin and polling changes through `bee45b58a`. The local branch already contains the upstream polling contract hardening, bounded failures, status classification, CAS terminal handling, plugin state persistence, Hailuo/MiniMax usage accounting, and settlement/refund integration.
+- The upstream custom-plugin switch removal (`210734bb7`) remains intentionally skipped because OmniRouters exposes that switch in its administrator plugin center. Removing it would change a local operational control rather than provide a compatible fix.
+- No task source change was required in this reconciliation. Sora per-request billing, `audio_generation` surcharge, plugin billing, pre-consume, settlement, refunds, payment, mail, and frontend customizations remain preserved.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. GitHub Actions remains the verification gate.
+- Local commit/push: pending on `main`.
 - Commit/push: pending.
 
 ## 2026-09-07 (first-round database audit)
