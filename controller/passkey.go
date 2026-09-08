@@ -511,6 +511,13 @@ func PasskeyVerifyFinish(c *gin.Context) {
 func getSessionUser(c *gin.Context) (*model.User, error) {
 	session := sessions.Default(c)
 	idRaw := session.Get("id")
+	// The default frontend authenticates through the dashboard bearer session;
+	// UserAuth has already validated it and exposes the authoritative user ID.
+	if idRaw == nil {
+		if id := c.GetInt("id"); id > 0 {
+			idRaw = id
+		}
+	}
 	if idRaw == nil {
 		return nil, errors.New("未登录")
 	}

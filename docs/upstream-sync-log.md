@@ -20,6 +20,12 @@
 - Existing backend audit records and usage-log audit details remain unchanged.
 - Validation: source review and `git diff --check` only; not pushed yet.
 
+### 2026-09-09 Fix Passkey status with dashboard sessions
+
+- Updated Passkey user resolution to accept the validated user ID from the dashboard authentication middleware, while retaining legacy cookie-session compatibility.
+- This prevents the profile page from reporting Passkey status failure or session expiry after normal password login; Passkey remains optional.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
 ### 2026-09-09 Fix Waffo Pancake unit price persistence
 
 - Fixed the configuration save payload and backend persistence path to include `WaffoPancakeUnitPrice`; values such as `1.05` are now saved instead of reverting to the default `1`.
