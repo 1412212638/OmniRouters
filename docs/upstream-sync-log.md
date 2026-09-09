@@ -1844,3 +1844,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - 保留：不改变计费表达式、支付流程及既有固定计费逻辑。
 - 验证：git diff --check；未执行本地编译。
 
+
+## 2026-09-10 - 修复 options 迁移构建失败
+- 原因：model/main.go 引用了未提交的 options 主键迁移实现，干净构建环境报 undefined。
+- 改动：加入 model/option_primary_key_migration.go，提供跨 SQLite/MySQL/PostgreSQL 的迁移实现。
+- 验证：检查源码依赖与 git diff --check；未本地编译。
+
