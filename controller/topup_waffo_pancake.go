@@ -162,7 +162,7 @@ func SaveWaffoPancake(c *gin.Context) {
 			"Waffo Pancake 保存配置失败 store_id=%q product_id=%q error=%q",
 			req.StoreID, req.ProductID, err.Error(),
 		))
-		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "保存配置失败"})
+		c.JSON(http.StatusOK, gin.H{"message": "error", "data": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{

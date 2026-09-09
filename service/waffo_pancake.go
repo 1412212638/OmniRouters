@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/QuantumNous/new-api/model"
@@ -392,8 +393,11 @@ func SaveWaffoPancakeConfig(ctx context.Context, merchantID, privateKey, returnU
 	merchantID = strings.TrimSpace(merchantID)
 	storeID = strings.TrimSpace(storeID)
 	productID = strings.TrimSpace(productID)
-	if merchantID == "" || storeID == "" || productID == "" || unitPrice <= 0 {
+	if merchantID == "" || storeID == "" || productID == "" {
 		return fmt.Errorf("merchant id, store id, and product id are required to save")
+	}
+	if unitPrice <= 0 || math.IsNaN(unitPrice) || math.IsInf(unitPrice, 0) {
+		return fmt.Errorf("Waffo Pancake unit price must be greater than zero")
 	}
 	values := map[string]string{
 		"WaffoPancakeMerchantID": merchantID,

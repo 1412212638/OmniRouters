@@ -1796,3 +1796,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - 仅影响 Waffo Pancake 设置，不改变其他支付方式、订单、计费或入账逻辑。
 - 验证：源码检查、`git diff --check`；未本地编译或构建容器。
 - Local commit/push: pending。
+### 2026-09-09 Waffo Pancake 保存错误诊断
+
+- 专用保存接口现在返回实际失败原因，避免数据库/配置错误被统一隐藏为“保存配置失败”；同时补充单价 NaN/Infinity 校验。
+- 仅影响管理员配置错误反馈，不改变其他支付渠道、订单、计费或入账逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
