@@ -644,6 +644,43 @@ function VisualTierCard({
         </Button>
       </div>
 
+      <div className='flex flex-wrap items-end gap-4'>
+        <div className='w-44 space-y-1'>
+          <Label className='text-xs'>{t('Billing Mode')}</Label>
+          <Select
+            items={[
+              { value: 'token', label: t('Per token') },
+              { value: 'request', label: t('Per-call') },
+            ]}
+            value={tier.billing_unit}
+            onValueChange={(value) =>
+              onChange({
+                ...tier,
+                billing_unit: value === 'request' ? 'request' : 'token',
+              })
+            }
+          >
+            <SelectTrigger size='sm' aria-label={t('Billing Mode')}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent alignItemWithTrigger={false}>
+              <SelectGroup>
+                <SelectItem value='token'>{t('Per token')}</SelectItem>
+                <SelectItem value='request'>{t('Per-call')}</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+        {tier.billing_unit === 'request' && (
+          <PriceField
+            label={t('Per request')}
+            hint='$ / request'
+            value={tier.fixed_price}
+            onChange={(value) => onChange({ ...tier, fixed_price: value })}
+          />
+        )}
+      </div>
+
       {/* Conditions */}
       <div className='space-y-1.5'>
         <div className='flex h-7 items-center justify-between'>
@@ -675,7 +712,7 @@ function VisualTierCard({
         )}
       </div>
 
-      <div className='space-y-2'>
+      {tier.billing_unit === 'token' && <div className='space-y-2'>
         <div className='flex items-center justify-between gap-3'>
           <Label className='text-sm font-semibold'>{t('Token prices')}</Label>
           <span className='bg-muted text-muted-foreground rounded-md px-2 py-1 text-xs'>
@@ -735,7 +772,7 @@ function VisualTierCard({
             </div>
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* Media prices */}
       <div className='space-y-1.5'>
@@ -892,7 +929,7 @@ function RawExprEditor({ exprString, onChange }: RawExprEditorProps) {
             <code>ao</code>
           </div>
           <div>
-            {t('Functions')}: <code>tier(name, value)</code>, <code>max</code>,{' '}
+            {t('Functions')}: <code>tier(name, value)</code>, <code>fixed(amount)</code>, <code>max</code>,{' '}
             <code>min</code>, <code>ceil</code>, <code>floor</code>,{' '}
             <code>abs</code>, <code>header(name)</code>,{' '}
             <code>param(path)</code>, <code>has(source, text)</code>

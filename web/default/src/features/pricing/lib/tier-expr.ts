@@ -31,6 +31,8 @@ export type TierConditionInput = {
 export type VisualTier = {
   label: string
   conditions: TierConditionInput[]
+  billing_unit: 'token' | 'request'
+  fixed_price: number
   input_unit_cost: number
   output_unit_cost: number
   cache_mode: CacheMode
@@ -63,6 +65,8 @@ export function normalizeVisualTier(
 ): VisualTier {
   return {
     label: tier.label ?? '',
+    billing_unit: tier.billing_unit === 'request' ? 'request' : 'token',
+    fixed_price: Number(tier.fixed_price) || 0,
     input_unit_cost: Number(tier.input_unit_cost) || 0,
     output_unit_cost: Number(tier.output_unit_cost) || 0,
     cache_mode: getTierCacheMode(tier),
@@ -113,6 +117,9 @@ function buildConditionStr(conditions: TierConditionInput[]): string {
 }
 
 function buildTierBodyExpr(tier: VisualTier): string {
+  if (tier.billing_unit === 'request') {
+    return `fixed(${Number(tier.fixed_price) || 0})`
+  }
   const parts: string[] = []
   const ic = Number(tier.input_unit_cost) || 0
   const oc = Number(tier.output_unit_cost) || 0
@@ -173,8 +180,24 @@ export function tryParseVisualConfig(
       .map((v) => `(?:\\s*\\+\\s*${v}\\s*\\*\\s*([\\d.eE+-]+))?`)
       .join('')
 
+    const numberPat = `[\\d.eE+-]+`
+    const fixedRe = new RegExp(
+      `^tier\\("([^"]*)",\\s*fixed\\(\\s*(${numberPat})\\s*\\)\\)$`
+    )
+    const fixed = body.match(fixedRe)
+    if (fixed) {
+      return normalizeVisualConfig({
+        tiers: [
+          normalizeVisualTier({
+            conditions: [],
+            billing_unit: 'request',
+            fixed_price: Number(fixed[2]),
+            label: fixed[1],
+          }),
+        ],
+      })
+    }
     const bodyPat = `p\\s*\\*\\s*([\\d.eE+-]+)\\s*\\+\\s*c\\s*\\*\\s*([\\d.eE+-]+)${optCacheStr}`
-
     const singleRe = new RegExp(`^tier\\("([^"]*)",\\s*${bodyPat}\\)$`)
     const simple = body.match(singleRe)
     if (simple) {
@@ -197,7 +220,7 @@ export function tryParseVisualConfig(
       `((?:(?:p|c|len)\\s*(?:<|<=|>|>=)\\s*[\\d.eE+]+)` +
       `(?:\\s*&&\\s*(?:p|c|len)\\s*(?:<|<=|>|>=)\\s*[\\d.eE+]+)*)`
     const tierRe = new RegExp(
-      `(?:${condGroup}\\s*\\?\\s*)?tier\\("([^"]*)",\\s*${bodyPat}\\)`,
+      `(?:${condGroup}\\s*\\?\\s*)?tier\\("([^"]*)",\\s*((?:fixed\\(\\s*${numberPat}\\s*\\)|${bodyPat}))\\)`,
       'g'
     )
     const tiers: VisualTier[] = []
@@ -217,15 +240,20 @@ export function tryParseVisualConfig(
           }
         }
       }
+      const fixedMatch = match[3].match(
+        /^fixed\(\s*([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)\s*\)$/
+      )
       const tier: Record<string, unknown> = {
         conditions,
-        input_unit_cost: Number(match[3]),
-        output_unit_cost: Number(match[4]),
+        billing_unit: fixedMatch ? 'request' : 'token',
+        fixed_price: fixedMatch ? Number(fixedMatch[1]) : 0,
+        input_unit_cost: fixedMatch ? 0 : Number(match[4]),
+        output_unit_cost: fixedMatch ? 0 : Number(match[5]),
         label: match[2],
       }
       const m = match
       BILLING_CACHE_VAR_MAP.forEach((cv, i) => {
-        const val = m[5 + i]
+        const val = m[6 + i]
         if (val != null) tier[cv.field] = Number(val)
       })
       tiers.push(normalizeVisualTier(tier as Partial<VisualTier>))
@@ -294,6 +322,7 @@ export function evalExprLocally(
       c: completionTokens,
       len,
       tier: tierFn,
+      fixed: (amount: number) => amount * 1_000_000,
       max: Math.max,
       min: Math.min,
       abs: Math.abs,

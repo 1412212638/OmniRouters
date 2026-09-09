@@ -119,7 +119,7 @@ export function ApiKeyGroupCombobox({
           <AutoGroupFlowBorder shouldReduceMotion={shouldReduceMotion} />
         )}
         <span className='flex min-w-0 flex-1 items-center justify-between gap-2 sm:gap-3'>
-          <span className='min-w-0'>
+          <span className='min-w-0 flex-1'>
             <span className='block truncate font-medium'>
               {selectedOption?.label || placeholder || t('Select a group')}
             </span>
@@ -129,7 +129,7 @@ export function ApiKeyGroupCombobox({
               </span>
             )}
           </span>
-          <span className='hidden sm:block'>
+          <span className='hidden shrink-0 sm:block'>
             <GroupRatioBadge
               ratio={selectedOption?.ratio}
               isAuto={isAutoSelected}
@@ -197,11 +197,13 @@ export function ApiKeyGroupCombobox({
                         </span>
                       )}
                     </span>
-                    <GroupRatioBadge
-                      ratio={option.ratio}
-                      isAuto={isAutoOption}
-                      shouldReduceMotion={shouldReduceMotion}
-                    />
+                    <span className='shrink-0'>
+                      <GroupRatioBadge
+                        ratio={option.ratio}
+                        isAuto={isAutoOption}
+                        shouldReduceMotion={shouldReduceMotion}
+                      />
+                    </span>
                   </CommandItem>
                 )
               })}

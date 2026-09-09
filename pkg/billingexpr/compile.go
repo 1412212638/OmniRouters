@@ -8,6 +8,7 @@ import (
 
 	"github.com/expr-lang/expr"
 	"github.com/expr-lang/expr/ast"
+	"github.com/expr-lang/expr/parser"
 	"github.com/expr-lang/expr/vm"
 )
 
@@ -26,10 +27,83 @@ func ParseExprVersion(exprStr string) (version int, body string) {
 	return DefaultExprVersion, exprStr
 }
 
+const (
+	requestRuleTraceFunction    = "_trace"
+	requestRuleTraceIntFunction = "_trace_int"
+)
+
+type requestRulePatcher struct {
+	requestRules         []RequestRuleTrace
+	restrictedIdentifier string
+}
+
+func (p *requestRulePatcher) Visit(node *ast.Node) {
+	if identifier, ok := (*node).(*ast.IdentifierNode); ok {
+		if identifier.Value == requestRuleTraceFunction || identifier.Value == requestRuleTraceIntFunction {
+			p.restrictedIdentifier = identifier.Value
+		}
+		return
+	}
+	conditional, ok := (*node).(*ast.ConditionalNode)
+	if !ok || !conditional.Ternary || !usesRequestProbe(conditional.Cond) {
+		return
+	}
+	multiplier, ok := requestRuleNumber(conditional.Exp1)
+	fallback, fallbackOK := requestRuleNumber(conditional.Exp2)
+	if !ok || !fallbackOK || fallback != 1 {
+		return
+	}
+	ruleIndex := len(p.requestRules)
+	p.requestRules = append(p.requestRules, RequestRuleTrace{Cond: conditional.Cond.String(), Multiplier: multiplier})
+	traceFunction := requestRuleTraceFunction
+	var multiplierNode ast.Node = &ast.FloatNode{Value: multiplier}
+	if _, isInt := conditional.Exp1.(*ast.IntegerNode); isInt {
+		if _, fallbackIsInt := conditional.Exp2.(*ast.IntegerNode); fallbackIsInt {
+			traceFunction = requestRuleTraceIntFunction
+			multiplierNode = conditional.Exp1
+		}
+	}
+	ast.Patch(node, &ast.CallNode{
+		Callee: &ast.IdentifierNode{Value: traceFunction},
+		Arguments: []ast.Node{
+			&ast.IntegerNode{Value: ruleIndex}, conditional.Cond, multiplierNode,
+		},
+	})
+}
+
+func requestRuleNumber(node ast.Node) (float64, bool) {
+	switch value := node.(type) {
+	case *ast.IntegerNode:
+		return float64(value.Value), true
+	case *ast.FloatNode:
+		return value.Value, true
+	default:
+		return 0, false
+	}
+}
+
+func usesRequestProbe(node ast.Node) bool {
+	return ast.Find(node, func(part ast.Node) bool {
+		identifier, ok := part.(*ast.IdentifierNode)
+		if !ok {
+			return false
+		}
+		switch identifier.Value {
+		case "param", "header", "hour", "minute", "weekday", "month", "day":
+			return true
+		default:
+			return false
+		}
+	}) != nil
+}
+
 type cachedEntry struct {
-	prog     *vm.Program
-	usedVars map[string]bool
-	version  int
+	prog          *vm.Program
+	usedVars      map[string]bool
+	usedUsageKeys map[string]bool
+	requestRules  []RequestRuleTrace
+	version       int
+	fixedPricing  bool
 }
 
 var (
@@ -38,35 +112,38 @@ var (
 )
 
 // compileEnvPrototypeV1 is the v1 type-checking prototype used at compile time.
-var compileEnvPrototypeV1 = map[string]interface{}{
-	"p":       float64(0),
-	"c":       float64(0),
-	"len":     float64(0),
-	"cr":      float64(0),
-	"cc":      float64(0),
-	"cc1h":    float64(0),
-	"img":     float64(0),
-	"img_o":   float64(0),
-	"ai":      float64(0),
-	"ao":      float64(0),
-	"tier":    func(string, float64) float64 { return 0 },
-	"header":  func(string) string { return "" },
-	"param":   func(string) interface{} { return nil },
-	"u":       func(string) interface{} { return nil },
-	"has":     func(interface{}, string) bool { return false },
-	"hour":    func(string) int { return 0 },
-	"minute":  func(string) int { return 0 },
-	"weekday": func(string) int { return 0 },
-	"month":   func(string) int { return 0 },
-	"day":     func(string) int { return 0 },
-	"max":     math.Max,
-	"min":     math.Min,
-	"abs":     math.Abs,
-	"ceil":    math.Ceil,
-	"floor":   math.Floor,
+var compileEnvPrototypeV1 = map[string]any{
+	"p":          float64(0),
+	"c":          float64(0),
+	"len":        float64(0),
+	"cr":         float64(0),
+	"cc":         float64(0),
+	"cc1h":       float64(0),
+	"img":        float64(0),
+	"img_o":      float64(0),
+	"ai":         float64(0),
+	"ao":         float64(0),
+	"tier":       func(string, float64) float64 { return 0 },
+	"fixed":      func(float64) float64 { return 0 },
+	"_trace":     func(int, bool, float64) float64 { return 1 },
+	"_trace_int": func(int, bool, int) int { return 1 },
+	"header":     func(string) string { return "" },
+	"param":      func(string) any { return nil },
+	"u":          func(string) any { return nil },
+	"has":        func(any, string) bool { return false },
+	"hour":       func(string) int { return 0 },
+	"minute":     func(string) int { return 0 },
+	"weekday":    func(string) int { return 0 },
+	"month":      func(string) int { return 0 },
+	"day":        func(string) int { return 0 },
+	"max":        math.Max,
+	"min":        math.Min,
+	"abs":        math.Abs,
+	"ceil":       math.Ceil,
+	"floor":      math.Floor,
 }
 
-func getCompileEnv(version int) map[string]interface{} {
+func getCompileEnv(version int) map[string]any {
 	switch version {
 	default:
 		return compileEnvPrototypeV1
@@ -94,18 +171,43 @@ func compileFromCacheByHash(exprStr, hash string) (*vm.Program, error) {
 	cacheMu.RUnlock()
 
 	version, body := ParseExprVersion(exprStr)
-	prog, err := expr.Compile(body, expr.Env(getCompileEnv(version)), expr.AsFloat64())
+	// Validate before optimization so unreachable fixed-price branches cannot
+	// bypass validation or a host's unsupported-protocol checks.
+	tree, err := parser.Parse(body)
+	if err != nil {
+		return nil, fmt.Errorf("expr compile error: %w", err)
+	}
+	fixedPricing := ast.Find(tree.Node, func(node ast.Node) bool {
+		identifier, ok := node.(*ast.IdentifierNode)
+		return ok && identifier.Value == "fixed"
+	}) != nil
+	if fixedPricing {
+		if err := validateFixedPricingTree(tree.Node); err != nil {
+			return nil, fmt.Errorf("expr compile error: %w", err)
+		}
+	}
+	patcher := &requestRulePatcher{}
+	prog, err := expr.Compile(body, expr.Env(getCompileEnv(version)), expr.Patch(patcher), expr.AsFloat64())
+	if patcher.restrictedIdentifier != "" {
+		return nil, fmt.Errorf("expr compile error: identifier %q is reserved for internal use", patcher.restrictedIdentifier)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("expr compile error: %w", err)
 	}
 
-	vars := extractUsedVars(prog)
-
+	entry := &cachedEntry{
+		prog:          prog,
+		usedVars:      extractUsedVars(prog),
+		usedUsageKeys: extractUsedUsageKeys(prog),
+		requestRules:  patcher.requestRules,
+		version:       version,
+		fixedPricing:  fixedPricing,
+	}
 	cacheMu.Lock()
 	if len(cache) >= maxCacheSize {
 		cache = make(map[string]*cachedEntry, 64)
 	}
-	cache[hash] = &cachedEntry{prog: prog, usedVars: vars, version: version}
+	cache[hash] = entry
 	cacheMu.Unlock()
 
 	return prog, nil
@@ -133,11 +235,34 @@ func extractUsedVars(prog *vm.Program) map[string]bool {
 	node := prog.Node()
 	ast.Find(node, func(n ast.Node) bool {
 		if id, ok := n.(*ast.IdentifierNode); ok {
+			if id.Value == requestRuleTraceFunction || id.Value == requestRuleTraceIntFunction {
+				return false
+			}
 			vars[id.Value] = true
 		}
 		return false
 	})
 	return vars
+}
+
+func extractUsedUsageKeys(prog *vm.Program) map[string]bool {
+	keys := make(map[string]bool)
+	ast.Find(prog.Node(), func(node ast.Node) bool {
+		call, ok := node.(*ast.CallNode)
+		if !ok || len(call.Arguments) != 1 {
+			return false
+		}
+		callee, ok := call.Callee.(*ast.IdentifierNode)
+		if !ok || callee.Value != "u" {
+			return false
+		}
+		literal, ok := call.Arguments[0].(*ast.StringNode)
+		if ok {
+			keys[strings.TrimSpace(literal.Value)] = true
+		}
+		return false
+	})
+	return keys
 }
 
 // UsedVars returns the set of identifier names referenced by an expression.

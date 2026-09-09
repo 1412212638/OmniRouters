@@ -1,5 +1,15 @@
 # Upstream Sync Log
 
+### 2026-09-09 Sync upstream options, Volcengine, and Alibaba Wan fixes
+
+- Integrated `4fc9d1f1f`: added a cross-database `options` table primary-key repair migration that deduplicates legacy rows, preserves the old table as a backup, and runs before normal option auto-migration. This protects persisted settings such as Waffo Pancake unit price from duplicate-key/readback corruption.
+- Integrated `876903a8e`: corrected Volcengine upstream model discovery from `/v1/models` to `/api/v3/models`, while retaining configured special-base handling.
+- Integrated `a20574136`: updated the Alibaba Wan task plugin with model capability profiles, image-to-video routing, Wan 2.7/Wan 3.0 media validation, supported duration/resolution handling, completion usage facts, nested video artifact URLs, and the corresponding protocol regression tests.
+- Already present and deliberately preserved: the local `Option.Key` primary-key model declaration, Waffo Pancake save validation and payment flow, Sora per-request billing, `audio_generation` surcharge billing, plugin registry/runtime, and task polling/settlement behavior.
+- Deliberately not copied from `4fc9d1f1f`: upstream's new model-pricing configuration file and its associated architecture-specific pricing mutation changes, because the local pricing implementation has separate group/customer discount and Sora/audio boundaries. The compatible database repair portion is integrated instead.
+- Deferred for separate evaluation: `c79b74b68` (upstream frontend status-query changes), `12be9975c` (large frontend error-notification rewrite), and `7cf9b473f` (upstream `web/src` pricing scroll layout). `d52bdc0b4` and `064ed943e` are recorded below as audited/integrated for this round.
+- Validation: source review and `git diff --check`; no local Go/frontend compilation, Docker build, or image publication per the source-only workflow. Local commit and push are pending.
+
 ## 2026-09-07 (first-round polling audit)
 
 - Reviewed upstream `9df450fe5` against the plugin task subsystem.
@@ -1814,3 +1824,16 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Pancake 单价仍不依赖 Waffo 店铺/产品专用接口；其他支付和充值入账逻辑保持不变。
 - 验证：源码检查、`git diff --check`；未本地编译或构建容器。
 - Local commit/push: pending。
+## 2026-09-09
+
+- Upstream `064ed943e` integrated selectively: added validated `fixed(amount)` request pricing to the shared billing expression engine, including billing-unit metadata, request-price settlement for zero or missing token usage, group/request multipliers, admin log details, Realtime/task-usage rejection, and saturation-safe quota conversion. The `web/default` visual tier editor now supports per-token/per-call tiers and fixed USD per-request values. Existing Sora/audio pricing, task plugins, tool surcharges, and group/customer discount paths were preserved.
+- Upstream `d52bdc0b4` audited: the time-based pricing rule editor and request simulation capabilities are already present in `web/default`; no wholesale `web/src` replacement was made. Fixed tiers were adapted to the existing default editor and remain compatible with its time/request rules.
+- Validation: `git diff --check`, merge-marker scan, and source-level inspection only. `gofmt/go` is unavailable in this environment, so Go formatting and compilation were not run. Per source-only workflow, no local frontend build or Docker image build was performed. Database matrix and upstream frontend test suites remain for GitHub Actions.
+- Status: integrated locally; not pushed yet. Existing prior local Alibaba/plugin and migration changes remain in the same worktree and are intentionally kept for the next combined commit.
+
+## 2026-09-10 - API Key 分组描述溢出修复
+- 原因：修复创建 API 密钥弹窗中分组描述过长导致布局被顶穿。
+- 改动：为选中项内容和比例徽章增加收缩边界，避免长文本挤压弹窗布局。
+- 保留：未改变分组选择、API Key 创建或计费逻辑。
+- 验证：git diff --check；未执行本地构建。
+- 状态：待提交并推送。

@@ -237,6 +237,7 @@ export type TierCondition = {
 export type ParsedTier = {
   label: string
   conditions: TierCondition[]
+  billingUnit?: 'token' | 'request'
   fixedPrice?: number
   [field: string]: unknown
 }
@@ -265,8 +266,8 @@ function parseTierBody(bodyStr: string): Record<string, number> {
   }
   const fixedPriceMatch = String(bodyStr || '')
     .trim()
-    .match(/^([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)$/)
-  tier.fixedPrice = fixedPriceMatch ? Number(fixedPriceMatch[1]) / 1000000 : 0
+    .match(/^fixed\(\s*([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)\s*\)$/)
+  tier.fixedPrice = fixedPriceMatch ? Number(fixedPriceMatch[1]) : 0
   return tier
 }
 
@@ -278,7 +279,7 @@ export function parseTiersFromExpr(exprStr: string): ParsedTier[] {
       `((?:(?:p|c|len)\\s*(?:<|<=|>|>=)\\s*[\\d.eE+]+)` +
       `(?:\\s*&&\\s*(?:p|c|len)\\s*(?:<|<=|>|>=)\\s*[\\d.eE+]+)*)`
     const tierRe = new RegExp(
-      `(?:${condGroup}\\s*\\?\\s*)?tier\\("([^"]*)",\\s*([^)]+)\\)`,
+      `(?:${condGroup}\\s*\\?\\s*)?tier\\("([^"]*)",\\s*((?:fixed\\(\\s*[+-]?(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][+-]?\\d+)?\\s*\\)|[^)]*))\\)`,
       'g'
     )
     const tiers: ParsedTier[] = []
@@ -301,6 +302,7 @@ export function parseTiersFromExpr(exprStr: string): ParsedTier[] {
       const tier = parseTierBody(m[3]) as ParsedTier
       tier.label = m[2]
       tier.conditions = conditions
+      if (/^fixed\(/.test(m[3].trim())) tier.billingUnit = 'request'
       tiers.push(tier)
     }
     return tiers
