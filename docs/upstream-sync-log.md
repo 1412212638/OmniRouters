@@ -1784,3 +1784,15 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - 避免旧表单状态以 `0` 重复提交并触发校验错误；不改变其他支付方式、订单、计费或入账逻辑。
 - 验证：源码检查、`git diff --check`；未本地编译或构建容器。
 - Local commit/push: pending。
+### 2026-09-09 Waffo Pancake 单价请求字段修复
+
+- 修复支付设置表单的 `sanitized` 对象遗漏 `WaffoPancakeUnitPrice`，导致专用保存接口收到 `0` 并返回“单价必须大于零”的问题。
+- 保留单价与 Waffo 配置的单一保存链路，不改变其他支付渠道、订单、计费或入账逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+### 2026-09-09 Waffo Pancake 单价保存闭环加固
+
+- 完整核对并加固单价保存链路：提交前校验有限正数，专用保存成功后等待 `/api/option/` 重新拉取，避免旧查询缓存覆盖页面回显。
+- 仅影响 Waffo Pancake 设置，不改变其他支付方式、订单、计费或入账逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。

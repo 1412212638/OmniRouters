@@ -366,6 +366,7 @@ export function PaymentSettingsSection({
       WaffoPancakeReturnURL: removeTrailingSlash(
         values.WaffoPancakeReturnURL.trim()
       ),
+      WaffoPancakeUnitPrice: values.WaffoPancakeUnitPrice,
     }
 
     const initial = {
@@ -720,6 +721,14 @@ export function PaymentSettingsSection({
       return
     }
 
+    if (
+      !Number.isFinite(sanitized.WaffoPancakeUnitPrice) ||
+      sanitized.WaffoPancakeUnitPrice <= 0
+    ) {
+      toast.error(t('Waffo Pancake unit price must be greater than zero'))
+      return
+    }
+
     if (!sanitized.WaffoPancakeMerchantID) {
       toast.error(t('Merchant ID is required'))
       return
@@ -752,7 +761,7 @@ export function PaymentSettingsSection({
         }
         setWaffoPancakeSavedBinding(savedBinding)
         setWaffoPancakeSelection(savedBinding)
-        queryClient.invalidateQueries({ queryKey: ['system-options'] })
+        await queryClient.refetchQueries({ queryKey: ['system-options'] })
         toast.success(t('Waffo Pancake settings saved'))
         return
       }
