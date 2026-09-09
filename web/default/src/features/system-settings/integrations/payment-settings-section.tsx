@@ -698,15 +698,33 @@ export function PaymentSettingsSection({
       updates.push({ key: 'WaffoPayMethods', value: sanitized.WaffoPayMethods })
     }
 
-    const hasWaffoPancakeChanges =
+    const hasWaffoPancakeConfigChanges =
       sanitized.WaffoPancakeMerchantID !== initial.WaffoPancakeMerchantID ||
       sanitized.WaffoPancakePrivateKey.length > 0 ||
       sanitized.WaffoPancakeReturnURL !== initial.WaffoPancakeReturnURL ||
-      sanitized.WaffoPancakeUnitPrice !== initial.WaffoPancakeUnitPrice ||
       waffoPancakeSelection.storeID !== waffoPancakeSavedBinding.storeID ||
       waffoPancakeSelection.productID !== waffoPancakeSavedBinding.productID
+    const hasWaffoPancakeUnitPriceChange =
+      sanitized.WaffoPancakeUnitPrice !== initial.WaffoPancakeUnitPrice
 
-    if (updates.length === 0 && !hasWaffoPancakeChanges) {
+    if (hasWaffoPancakeUnitPriceChange && !hasWaffoPancakeConfigChanges) {
+      if (
+        !Number.isFinite(sanitized.WaffoPancakeUnitPrice) ||
+        sanitized.WaffoPancakeUnitPrice <= 0
+      ) {
+        toast.error(t('Waffo Pancake unit price must be greater than zero'))
+        return
+      }
+      await updateOption.mutateAsync({
+        key: 'WaffoPancakeUnitPrice',
+        value: sanitized.WaffoPancakeUnitPrice,
+      })
+      await queryClient.refetchQueries({ queryKey: ['system-options'] })
+      toast.success(t('Settings saved'))
+      return
+    }
+
+    if (updates.length === 0 && !hasWaffoPancakeConfigChanges) {
       toast.info(t('No changes to save'))
       return
     }
@@ -715,7 +733,7 @@ export function PaymentSettingsSection({
       await updateOption.mutateAsync(update)
     }
 
-    if (!hasWaffoPancakeChanges) {
+    if (!hasWaffoPancakeConfigChanges) {
       await queryClient.refetchQueries({ queryKey: ['system-options'] })
       toast.success(t('Settings saved'))
       return

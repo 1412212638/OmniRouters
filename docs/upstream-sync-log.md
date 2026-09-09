@@ -1802,3 +1802,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - 仅影响管理员配置错误反馈，不改变其他支付渠道、订单、计费或入账逻辑。
 - 验证：源码检查、`git diff --check`；未本地编译或构建容器。
 - Local commit/push: pending。
+### 2026-09-09 Waffo Pancake 单价与配置保存解耦
+
+- 将 `WaffoPancakeUnitPrice` 与商户、密钥、回调地址、店铺和产品绑定拆分判断；只修改单价时直接保存系统选项，不再依赖 Waffo 配置接口或店铺绑定事务。
+- 同时修改完整 Waffo 配置时仍使用原子专用保存接口；未改变充值、计费、订单回调或入账逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
