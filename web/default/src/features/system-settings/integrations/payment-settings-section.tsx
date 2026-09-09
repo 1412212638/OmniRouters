@@ -707,24 +707,11 @@ export function PaymentSettingsSection({
     const hasWaffoPancakeUnitPriceChange =
       sanitized.WaffoPancakeUnitPrice !== initial.WaffoPancakeUnitPrice
 
-    if (hasWaffoPancakeUnitPriceChange && !hasWaffoPancakeConfigChanges) {
-      if (
-        !Number.isFinite(sanitized.WaffoPancakeUnitPrice) ||
-        sanitized.WaffoPancakeUnitPrice <= 0
-      ) {
-        toast.error(t('Waffo Pancake unit price must be greater than zero'))
-        return
-      }
-      await updateOption.mutateAsync({
-        key: 'WaffoPancakeUnitPrice',
-        value: sanitized.WaffoPancakeUnitPrice,
-      })
-      await queryClient.refetchQueries({ queryKey: ['system-options'] })
-      toast.success(t('Settings saved'))
-      return
-    }
-
-    if (updates.length === 0 && !hasWaffoPancakeConfigChanges) {
+    if (
+      updates.length === 0 &&
+      !hasWaffoPancakeConfigChanges &&
+      !hasWaffoPancakeUnitPriceChange
+    ) {
       toast.info(t('No changes to save'))
       return
     }
@@ -734,6 +721,19 @@ export function PaymentSettingsSection({
     }
 
     if (!hasWaffoPancakeConfigChanges) {
+      if (hasWaffoPancakeUnitPriceChange) {
+        if (
+          !Number.isFinite(sanitized.WaffoPancakeUnitPrice) ||
+          sanitized.WaffoPancakeUnitPrice <= 0
+        ) {
+          toast.error(t('Waffo Pancake unit price must be greater than zero'))
+          return
+        }
+        await updateOption.mutateAsync({
+          key: 'WaffoPancakeUnitPrice',
+          value: sanitized.WaffoPancakeUnitPrice,
+        })
+      }
       await queryClient.refetchQueries({ queryKey: ['system-options'] })
       toast.success(t('Settings saved'))
       return

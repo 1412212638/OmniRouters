@@ -1808,3 +1808,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - 同时修改完整 Waffo 配置时仍使用原子专用保存接口；未改变充值、计费、订单回调或入账逻辑。
 - 验证：源码检查、`git diff --check`；未本地编译或构建容器。
 - Local commit/push: pending。
+### 2026-09-09 修复 Pancake 单价与普通支付设置同时保存
+
+- 调整保存顺序：先提交普通支付设置，再独立提交 Pancake 单价；避免同时修改其他支付配置时被单价分支提前返回而丢失普通设置。
+- Pancake 单价仍不依赖 Waffo 店铺/产品专用接口；其他支付和充值入账逻辑保持不变。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
