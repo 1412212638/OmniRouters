@@ -1850,3 +1850,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - 改动：加入 model/option_primary_key_migration.go，提供跨 SQLite/MySQL/PostgreSQL 的迁移实现。
 - 验证：检查源码依赖与 git diff --check；未本地编译。
 
+
+## 2026-09-10 - 修复内置阿里插件导致容器启动失败
+- 原因：usageSchema 使用了当前注册器不支持的 enumLabels 字段，内置插件注册失败触发 panic。
+- 改动：移除不参与请求和计费的 enumLabels，保留 resolution 枚举及本地化描述。
+- 保留：阿里 Wan 视频路由、任务插件和现有计费逻辑不变。
+- 验证：静态核对注册器允许字段与插件元数据；未本地编译。
+

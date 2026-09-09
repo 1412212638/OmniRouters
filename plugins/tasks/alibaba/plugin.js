@@ -71,7 +71,6 @@ export const meta = {
     // Requested output video resolution.
     resolution: {
       enum: ["480P", "720P", "1080P"],
-      enumLabels: { "480P": { en: "480P", zh: "480P" }, "720P": { en: "720P", zh: "720P" }, "1080P": { en: "1080P", zh: "1080P" } },
       description: { en: "Output video resolution", zh: "输出视频分辨率" },
     },
   },
