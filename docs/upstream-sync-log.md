@@ -1837,3 +1837,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - 保留：未改变分组选择、API Key 创建或计费逻辑。
 - 验证：git diff --check；未执行本地构建。
 - 状态：待提交并推送。
+
+## 2026-09-10 - 修复 billingexpr 构建失败
+- 原因：固定计费代码引用了缺失的缓存条目读取函数，GitHub Actions 在 Go 编译阶段失败。
+- 改动：补充 compileEntryFromCacheByHash，复用现有表达式编译缓存并返回完整元数据。
+- 保留：不改变计费表达式、支付流程及既有固定计费逻辑。
+- 验证：git diff --check；未执行本地编译。
+

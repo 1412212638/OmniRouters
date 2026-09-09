@@ -162,6 +162,27 @@ func CompileFromCacheByHash(exprStr, hash string) (*vm.Program, error) {
 	return compileFromCacheByHash(exprStr, hash)
 }
 
+// compileEntryFromCacheByHash returns the complete cached entry, including
+// metadata needed by request tracing and fixed-price billing.
+func compileEntryFromCacheByHash(exprStr, hash string) (*cachedEntry, error) {
+	cacheMu.RLock()
+	entry, ok := cache[hash]
+	cacheMu.RUnlock()
+	if ok {
+		return entry, nil
+	}
+	if _, err := compileFromCacheByHash(exprStr, hash); err != nil {
+		return nil, err
+	}
+	cacheMu.RLock()
+	entry, ok = cache[hash]
+	cacheMu.RUnlock()
+	if !ok {
+		return nil, fmt.Errorf("expr compile cache entry missing")
+	}
+	return entry, nil
+}
+
 func compileFromCacheByHash(exprStr, hash string) (*vm.Program, error) {
 	cacheMu.RLock()
 	if entry, ok := cache[hash]; ok {
