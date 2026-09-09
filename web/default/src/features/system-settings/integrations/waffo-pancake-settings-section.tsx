@@ -422,7 +422,7 @@ export function WaffoPancakeSettingsSection({
           <Label>{t('Merchant ID')}</Label>
           <div className='mt-4'>
             <Label>{t('Unit price (USD per recharge USD)')}</Label>
-            <Input type='number' min={0} step='0.01' value={values.WaffoPancakeUnitPrice} onChange={(event) => onValueChange('WaffoPancakeUnitPrice', Number(event.target.value) || 0)} />
+            <Input type='number' min={0.01} step='0.01' value={values.WaffoPancakeUnitPrice} onChange={(event) => { const value = Number(event.target.value); if (Number.isFinite(value) && value > 0) onValueChange('WaffoPancakeUnitPrice', value) }} />
             <p className='text-muted-foreground mt-1 text-xs'>{t('For example, 1.05 means a $10 recharge is quoted as $10.50.')}</p>
           </div>
           <Input

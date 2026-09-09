@@ -1772,3 +1772,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - 未改变任何支付、计费、订单或入账逻辑。
 - 验证：源码检查、`git diff --check`；由 GitHub Actions 负责构建验证。
 - Local commit/push: pending。
+### 2026-09-09 Waffo Pancake 单价非法值保护
+
+- 修复单价被保存为 `0` 的问题：后端拒绝零值、负数、NaN 和无穷值，前端也不再把空输入转换为 `0`。
+- 仅影响 Waffo Pancake 单价配置校验，不改变其他支付渠道、订单、计费和入账逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。

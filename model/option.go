@@ -1,6 +1,8 @@
 package model
 
 import (
+	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -226,6 +228,12 @@ func SyncOptions(frequency int) {
 }
 
 func validateOptionValue(key string, value string) error {
+	if key == "WaffoPancakeUnitPrice" {
+		price, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
+		if err != nil || price <= 0 || math.IsNaN(price) || math.IsInf(price, 0) {
+			return fmt.Errorf("Waffo Pancake unit price must be greater than zero")
+		}
+	}
 	if key == operation_setting.ToolPriceOptionKey {
 		return operation_setting.ValidateToolPricesJSON(value)
 	}
