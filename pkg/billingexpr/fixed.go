@@ -9,7 +9,12 @@ import (
 
 // UsesFixedPricing reports fixed() even when it is in an unselected branch.
 func UsesFixedPricing(expression string) bool {
-	entry, err := compileEntryFromCacheByHash(expression, ExprHashString(expression))
+	return UsesFixedPricingByHash(expression, ExprHashString(expression))
+}
+
+// UsesFixedPricingByHash avoids hashing an expression already in a snapshot.
+func UsesFixedPricingByHash(expression, hash string) bool {
+	entry, err := compileEntryFromCacheByHash(expression, hash)
 	return err == nil && entry.fixedPricing
 }
 
@@ -21,6 +26,9 @@ func containsPricingMarker(node ast.Node) bool {
 }
 
 func isRequestPriceMultiplier(node ast.Node) bool {
+	if identifier, ok := node.(*ast.IdentifierNode); ok && identifier.Value == "image_count" {
+		return true
+	}
 	conditional, ok := node.(*ast.ConditionalNode)
 	if !ok || !usesRequestProbe(conditional.Cond) || containsPricingMarker(conditional.Cond) {
 		return false
