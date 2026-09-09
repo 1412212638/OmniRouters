@@ -1857,3 +1857,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - 保留：阿里 Wan 视频路由、任务插件和现有计费逻辑不变。
 - 验证：静态核对注册器允许字段与插件元数据；未本地编译。
 
+
+## 2026-09-10 - 修复 API Key 分组描述横向溢出
+- 原因：已选分组的描述位于按钮内部，外层 flex 项未设置可收缩边界，长文本撑破更新 API 密钥弹窗。
+- 改动：为分组触发按钮及内容链路增加 min-w-0/overflow-hidden，并对描述使用最大宽度单行截断。
+- 保留：不改变分组选择、API Key 更新和权限逻辑。
+- 验证：git diff --check；未本地构建。
+
