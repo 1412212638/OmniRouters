@@ -1019,7 +1019,7 @@ function GroupPricingSection(props: {
     })
     const formattedPricesByGroup = new Map(
       availableGroups.map((group) => {
-        const ratio = getRuleInfo(group).multiplier
+        const ratio = effectiveGroupRatio[group] || 1
         return [
           group,
           getDynamicFormattedPricesByTier(dynamicTiers, {
@@ -1040,7 +1040,7 @@ function GroupPricingSection(props: {
         <div className='space-y-3'>
           {availableGroups.map((group) => {
             const ruleInfo = getRuleInfo(group)
-            const ratio = ruleInfo.multiplier
+            const ratio = effectiveGroupRatio[group] || 1
             const formattedPricesByTier =
               formattedPricesByGroup.get(group) ??
               new Map<DynamicPricingTier, Map<string, string>>()
