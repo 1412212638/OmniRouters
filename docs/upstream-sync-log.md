@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-11 (model performance TPOT and cache rate)
+
+- Local reason: add TPOT to the model details performance view.
+- Changed: exposed real TPOT values from the existing output-token and generation-duration aggregates, and added input/cache-token counters to calculate cache hit rate by model and group. The performance page now shows six cards.
+- Preserved: billing, request routing, existing TTFT/latency/success/TPS calculations, and database compatibility.
+- Validation: `git diff --check`; Go/Bun and browser verification were unavailable locally.
+- Local commit and push status: pending.
+
 ## 2026-09-11 (overview announcement rich content)
 
 - Local reason: overview announcements displayed raw Markdown image syntax and HTML instead of rendered content.

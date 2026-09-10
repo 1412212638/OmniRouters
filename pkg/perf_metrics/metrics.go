@@ -24,7 +24,7 @@ func Init() {
 	go flushLoop()
 }
 
-func RecordRelaySample(info *relaycommon.RelayInfo, success bool, outputTokens int64) {
+func RecordRelaySample(info *relaycommon.RelayInfo, success bool, outputTokens, inputTokens, cachedTokens int64) {
 	if info == nil {
 		return
 	}
@@ -51,6 +51,7 @@ func RecordRelaySample(info *relaycommon.RelayInfo, success bool, outputTokens i
 		Success:      success,
 		OutputTokens: outputTokens,
 		GenerationMs: generationMs,
+		InputTokens: inputTokens, CachedTokens: cachedTokens,
 	})
 }
 
@@ -58,7 +59,7 @@ func RecordRelayFailureSample(info *relaycommon.RelayInfo, statusCode int) {
 	if perf_metrics_setting.ShouldExcludeStatusCode(statusCode) {
 		return
 	}
-	RecordRelaySample(info, false, 0)
+	RecordRelaySample(info, false, 0, 0, 0)
 }
 
 func Record(sample Sample) {
@@ -111,6 +112,7 @@ func Query(params QueryParams) (QueryResult, error) {
 			ttftCount:      row.TtftCount,
 			outputTokens:   row.OutputTokens,
 			generationMs:   row.GenerationMs,
+			inputTokens: row.InputTokens, cachedTokens: row.CachedTokens,
 		})
 	}
 
@@ -154,6 +156,7 @@ func QuerySummaryAll(hours int, groups []string) (SummaryAllResult, error) {
 			totalLatencyMs: row.TotalLatencyMs,
 			outputTokens:   row.OutputTokens,
 			generationMs:   row.GenerationMs,
+			inputTokens: row.InputTokens, cachedTokens: row.CachedTokens,
 		}
 		mergeModelTotals(totals, row.ModelName, value)
 		mergeModelBucket(modelBuckets, row.ModelName, row.BucketTs, value)
@@ -217,6 +220,8 @@ func mergeModelTotals(totals map[string]counters, modelName string, value counte
 	current.ttftCount += value.ttftCount
 	current.outputTokens += value.outputTokens
 	current.generationMs += value.generationMs
+	current.inputTokens += value.inputTokens
+	current.cachedTokens += value.cachedTokens
 	totals[modelName] = current
 }
 
@@ -235,6 +240,8 @@ func mergeModelBucket(modelBuckets map[string]map[int64]counters, modelName stri
 	current.ttftCount += value.ttftCount
 	current.outputTokens += value.outputTokens
 	current.generationMs += value.generationMs
+	current.inputTokens += value.inputTokens
+	current.cachedTokens += value.cachedTokens
 	modelBuckets[modelName][bucketTs] = current
 }
 
@@ -304,6 +311,8 @@ func mergeCounters(merged map[bucketKey]counters, key bucketKey, value counters)
 	current.ttftCount += value.ttftCount
 	current.outputTokens += value.outputTokens
 	current.generationMs += value.generationMs
+	current.inputTokens += value.inputTokens
+	current.cachedTokens += value.cachedTokens
 	merged[key] = current
 }
 
@@ -356,6 +365,8 @@ func buildQueryResult(modelName string, merged map[bucketKey]counters) QueryResu
 			AvgLatencyMs: avg(total.totalLatencyMs, total.requestCount),
 			SuccessRate:  successRate(total),
 			AvgTps:       avgTps(total),
+			AvgTpotMs:    avgTpot(total),
+			CacheRate:    cacheRate(total),
 			Series:       series,
 		})
 	}
@@ -374,6 +385,8 @@ func bucketPoint(ts int64, value counters) BucketPoint {
 		AvgLatencyMs: avg(value.totalLatencyMs, value.requestCount),
 		SuccessRate:  successRate(value),
 		AvgTps:       avgTps(value),
+		AvgTpotMs:    avgTpot(value),
+		CacheRate:    cacheRate(value),
 	}
 }
 
@@ -382,6 +395,19 @@ func avg(sum int64, count int64) int64 {
 		return 0
 	}
 	return sum / count
+}
+
+func avgTpot(value counters) int64 {
+	if value.outputTokens <= 0 || value.generationMs <= 0 {
+		return 0
+	}
+	return value.generationMs * 1000 / value.outputTokens
+}
+
+func cacheRate(value counters) *float64 {
+	if value.inputTokens <= 0 { return nil }
+	rate := float64(value.cachedTokens) / float64(value.inputTokens) * 100
+	return &rate
 }
 
 func successRate(value counters) float64 {
@@ -421,6 +447,10 @@ func recordRedis(key bucketKey, sample Sample) {
 	if sample.OutputTokens > 0 && sample.GenerationMs > 0 {
 		pipe.HIncrBy(ctx, redisKey, "out", sample.OutputTokens)
 		pipe.HIncrBy(ctx, redisKey, "gen_ms", sample.GenerationMs)
+	}
+	if sample.InputTokens > 0 {
+		pipe.HIncrBy(ctx, redisKey, "in", sample.InputTokens)
+		if sample.CachedTokens > 0 { pipe.HIncrBy(ctx, redisKey, "cache", sample.CachedTokens) }
 	}
 	pipe.Expire(ctx, redisKey, time.Hour)
 	_, _ = pipe.Exec(ctx)

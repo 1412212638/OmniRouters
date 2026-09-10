@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { AlertTriangle, HeartPulse, Timer } from 'lucide-react'
+import { AlertTriangle, Database, HeartPulse, Timer } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import {
@@ -76,6 +76,8 @@ type PerformanceRow = {
   avg_latency_ms: number
   success_rate: number
   avg_tps: number
+  avg_tpot_ms: number
+  cache_rate?: number
 }
 
 function toUptimePct(value: number): number {
@@ -178,6 +180,8 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
         avg_latency_ms: group.avg_latency_ms,
         success_rate: group.success_rate,
         avg_tps: group.avg_tps,
+        avg_tpot_ms: group.avg_tpot_ms,
+        cache_rate: group.cache_rate,
       })),
     [groups]
   )
@@ -207,6 +211,12 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
       ? tpsValues.reduce((sum, value) => sum + value, 0) / tpsValues.length
       : 0
   const avgLatency = average(performances, 'avg_latency_ms')
+  const tpotValues = performances
+    .map((p) => p.avg_tpot_ms)
+    .filter((value) => value > 0)
+  const avgTpot = tpotValues.length
+    ? tpotValues.reduce((sum, value) => sum + value, 0) / tpotValues.length
+    : 0
   const successRates = performances
     .map((perf) => perf.success_rate)
     .filter((value) => Number.isFinite(value))
@@ -237,12 +247,31 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
           value={formatUptimePct(successRate)}
           hint={
             incidentCount > 0
-              ? t('{{count}} incidents in the last 24 hours', {
-                  count: incidentCount,
-                })
+              ? t('{{count}} incidents in the last 24 hours', { count: incidentCount })
               : t('No incidents in the last 24 hours')
           }
           valueClassName={getSuccessRateTextClass(successRate)}
+        />
+        <StatCard
+          icon={Timer}
+          label='TTFT'
+          value={formatLatency(average(performances, 'avg_ttft_ms'))}
+          hint={t('Time to first token')}
+        />
+        <StatCard
+          icon={Timer}
+          label='TPOT'
+          value={formatLatency(avgTpot)}
+          hint={t('Time per output token')}
+        />
+        <StatCard
+          icon={Database}
+          label={t('Cache hit rate')}
+          value={(() => {
+            const rates = performances.map((p) => p.cache_rate).filter((v): v is number => v !== undefined)
+            return rates.length ? `${(rates.reduce((sum, value) => sum + value, 0) / rates.length).toFixed(2)}%` : '—'
+          })()}
+          hint={t('Cached input tokens divided by input tokens')}
         />
       </div>
 
