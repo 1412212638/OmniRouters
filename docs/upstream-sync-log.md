@@ -1,5 +1,12 @@
 # Upstream Sync Log
 
+## 2026-09-11 (dynamic tier price display)
+
+- Local reason: expressions using `tier("label", 68000)` were billed correctly but displayed no model-square price because the frontend parser only recognized `fixed(68000)`.
+- Changed: frontend tier parsing now recognizes numeric tier prices as request prices and displays their range; billing evaluation and accounting are unchanged.
+- Validation: JSON locale parsing and `git diff --check`; browser verification and Go compilation unavailable locally.
+- Local commit and push status: pending.
+
 ## 2026-09-11 (bounded TTFT/TPOT percentile sampling)
 
 - Local reason: add scalable P95/P99 performance indicators for high request volume.

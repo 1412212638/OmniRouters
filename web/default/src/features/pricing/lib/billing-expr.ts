@@ -266,7 +266,7 @@ function parseTierBody(bodyStr: string): Record<string, number> {
   }
   const fixedPriceMatch = String(bodyStr || '')
     .trim()
-    .match(/^fixed\(\s*([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)\s*\)$/)
+    .match(/^(?:fixed\(\s*)?([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)\s*\)?$/)
   tier.fixedPrice = fixedPriceMatch ? Number(fixedPriceMatch[1]) : 0
   return tier
 }
@@ -302,7 +302,9 @@ export function parseTiersFromExpr(exprStr: string): ParsedTier[] {
       const tier = parseTierBody(m[3]) as ParsedTier
       tier.label = m[2]
       tier.conditions = conditions
-      if (/^fixed\(/.test(m[3].trim())) tier.billingUnit = 'request'
+      if (/^(?:fixed\(|[+-]?(?:\d+\.?\d*|\.\d+))/.test(m[3].trim())) {
+        tier.billingUnit = 'request'
+      }
       tiers.push(tier)
     }
     return tiers
