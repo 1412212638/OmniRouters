@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import axios, { type AxiosRequestConfig } from 'axios'
 import { t } from 'i18next'
 import { toast } from 'sonner'
+
 import { useAuthStore } from '@/stores/auth-store'
 
 declare module 'axios' {
@@ -41,6 +42,8 @@ const baseURL = ''
 const accessTokenKey = 'dashboard_access_token'
 
 export function setDashboardAccessToken(token?: string) {
+  refreshRetryAt = 0
+  refreshFailure = undefined
   if (typeof window === 'undefined') return
   if (token) window.localStorage.setItem(accessTokenKey, token)
   else window.localStorage.removeItem(accessTokenKey)
@@ -65,10 +68,13 @@ export const api = axios.create({
   },
 })
 
-let refreshPromise: Promise<string | null> | null = null
+let refreshPromise: Promise<string> | null = null
+let refreshRetryAt = 0
+let refreshFailure: unknown
 
-function refreshDashboardToken(): Promise<string | null> {
+function refreshDashboardToken(): Promise<string> {
   if (refreshPromise) return refreshPromise
+  if (Date.now() < refreshRetryAt) return Promise.reject(refreshFailure)
   refreshPromise = axios
     .post('/api/user/auth/refresh', undefined, {
       withCredentials: true,
@@ -76,7 +82,9 @@ function refreshDashboardToken(): Promise<string | null> {
     })
     .then((response) => {
       const token = response.data?.data?.access_token
-      if (typeof token !== 'string' || token.length === 0) return null
+      if (typeof token !== 'string' || token.length === 0) {
+        throw new Error(t('Request failed'))
+      }
       setDashboardAccessToken(token)
       const userId = response.data?.data?.user?.id
       if (userId != null && typeof window !== 'undefined') {
@@ -84,7 +92,25 @@ function refreshDashboardToken(): Promise<string | null> {
       }
       return token
     })
-    .catch(() => null)
+    .catch((error: unknown) => {
+      // Throttling, refresh races and outages do not invalidate the session.
+      // Share a cooldown across requests instead of repeatedly refreshing.
+      if (!axios.isAxiosError(error) || error.response?.status !== 401) {
+        const status = axios.isAxiosError(error)
+          ? error.response?.status
+          : undefined
+        const retryAfter = axios.isAxiosError(error)
+          ? Number(error.response?.headers?.['retry-after'])
+          : Number.NaN
+        let delay = status === 429 ? 60 : 5
+        if (Number.isFinite(retryAfter) && retryAfter > 0) {
+          delay = Math.min(retryAfter, 1200)
+        }
+        refreshFailure = error
+        refreshRetryAt = Date.now() + delay * 1000
+      }
+      throw error
+    })
     .finally(() => {
       refreshPromise = null
     })
@@ -144,9 +170,11 @@ api.interceptors.response.use(
     const skip = error?.config?.skipErrorHandler
     const status = error?.response?.status
 
-    const request = error?.config as (ApiRequestConfig & {
-      _dashboardRefreshRetried?: boolean
-    }) | undefined
+    const request = error?.config as
+      | (ApiRequestConfig & {
+          _dashboardRefreshRetried?: boolean
+        })
+      | undefined
     const requestURL = request?.url ?? ''
     const canRefresh =
       status === 401 &&
@@ -157,16 +185,36 @@ api.interceptors.response.use(
       Boolean(getDashboardAccessToken())
     if (canRefresh) {
       request._dashboardRefreshRetried = true
-      return refreshDashboardToken().then((token) => {
-        if (!token) {
-          setDashboardAccessToken()
-          useAuthStore.getState().auth.reset()
-          return Promise.reject(error)
+      return refreshDashboardToken().then(
+        (token) => {
+          request.headers = request.headers ?? {}
+          ;(request.headers as Record<string, string>).Authorization =
+            `Bearer ${token}`
+          return api.request(request)
+        },
+        (refreshError: unknown) => {
+          if (
+            axios.isAxiosError(refreshError) &&
+            refreshError.response?.status === 401
+          ) {
+            setDashboardAccessToken()
+            useAuthStore.getState().auth.reset()
+          } else if (!skip) {
+            const limited =
+              axios.isAxiosError(refreshError) &&
+              refreshError.response?.status === 429
+            toast.error(
+              limited ? t('Too many requests') : t('Please try again later.'),
+              {
+                id: 'dashboard-session-refresh',
+              }
+            )
+          }
+          // Propagate the refresh status, not the original access-token 401:
+          // route guards and QueryCache must not log users out on a 429/5xx.
+          throw refreshError
         }
-        request.headers = request.headers ?? {}
-        ;(request.headers as Record<string, string>).Authorization = `Bearer ${token}`
-        return api.request(request)
-      })
+      )
     }
 
     if (status === 401) {
@@ -179,6 +227,8 @@ api.interceptors.response.use(
       if (!skip) {
         toast.error(t('Session expired!'))
       }
+    } else if (status === 429 && !skip) {
+      toast.error(t('Too many requests'))
     } else if (!skip) {
       // Other errors: show error message from response or default
       const msg =

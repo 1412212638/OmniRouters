@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,6 +18,22 @@ var inMemoryRateLimiter common.InMemoryRateLimiter
 
 var defNext = func(c *gin.Context) {
 	c.Next()
+}
+
+func abortIPRateLimit(c *gin.Context, mark string, retryAfter int64) {
+	if retryAfter < 1 {
+		retryAfter = 1
+	}
+	c.Header("Retry-After", strconv.FormatInt(retryAfter, 10))
+	c.Header("X-RateLimit-Scope", mark)
+	logger.LogWarn(c.Request.Context(), fmt.Sprintf("IP rate limit exceeded: scope=%s client_ip=%s peer=%s method=%s path=%s retry_after=%d", mark, c.ClientIP(), c.Request.RemoteAddr, c.Request.Method, c.Request.URL.Path, retryAfter))
+	c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
+		"success":     false,
+		"code":        "RATE_LIMITED",
+		"message":     "Too many requests. Please try again later.",
+		"scope":       mark,
+		"retry_after": retryAfter,
+	})
 }
 
 func redisRateLimiter(c *gin.Context, maxRequestNum int, duration int64, mark string) {
@@ -53,8 +71,7 @@ func redisRateLimiter(c *gin.Context, maxRequestNum int, duration int64, mark st
 		// See: https://stackoverflow.com/questions/50970900/why-is-time-since-returning-negative-durations-on-windows
 		if int64(nowTime.Sub(oldTime).Seconds()) < duration {
 			rdb.Expire(ctx, key, common.RateLimitKeyExpirationDuration)
-			c.Status(http.StatusTooManyRequests)
-			c.Abort()
+			abortIPRateLimit(c, mark, duration-int64(nowTime.Sub(oldTime).Seconds()))
 			return
 		} else {
 			rdb.LPush(ctx, key, time.Now().Format(timeFormat))
@@ -67,8 +84,9 @@ func redisRateLimiter(c *gin.Context, maxRequestNum int, duration int64, mark st
 func memoryRateLimiter(c *gin.Context, maxRequestNum int, duration int64, mark string) {
 	key := mark + c.ClientIP()
 	if !inMemoryRateLimiter.Request(key, maxRequestNum, duration) {
-		c.Status(http.StatusTooManyRequests)
-		c.Abort()
+		// The memory limiter does not expose its oldest timestamp; use the
+		// configured window as a conservative retry delay.
+		abortIPRateLimit(c, mark, duration)
 		return
 	}
 }
@@ -106,6 +124,32 @@ func CriticalRateLimit() func(c *gin.Context) {
 		return rateLimitFactory(common.CriticalRateLimitNum, common.CriticalRateLimitDuration, "CT")
 	}
 	return defNext
+}
+
+// ScopedCriticalRateLimit prevents background session maintenance and other
+// sensitive operations from spending the login attempt budget.
+func ScopedCriticalRateLimit(scope string) gin.HandlerFunc {
+	if !common.CriticalRateLimitEnable {
+		return defNext
+	}
+	return rateLimitFactory(common.CriticalRateLimitNum, common.CriticalRateLimitDuration, "CT:"+scope+":")
+}
+
+func SessionRefreshRateLimit() gin.HandlerFunc {
+	if !common.CriticalRateLimitEnable {
+		return defNext
+	}
+	// Refresh is automatic and may be shared by multiple tabs/users behind NAT.
+	// It remains IP-limited, and the outer global API limiter still applies.
+	count := common.GetEnvOrDefault("SESSION_REFRESH_RATE_LIMIT", 120)
+	duration := common.GetEnvOrDefault("SESSION_REFRESH_RATE_LIMIT_DURATION", 60)
+	if count < 1 {
+		count = 120
+	}
+	if duration < 1 || duration > int(common.RateLimitKeyExpirationDuration.Seconds()) {
+		duration = 60
+	}
+	return rateLimitFactory(count, int64(duration), "SESSION_REFRESH:")
 }
 
 func UserCriticalRateLimit(scope string) func(c *gin.Context) {
