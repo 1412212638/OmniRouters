@@ -928,12 +928,10 @@ function GroupPricingSection(props: {
   const showRechargePrice = props.showRechargePrice ?? false
   const effectiveGroupRatio = props.model.group_ratio ?? props.groupRatio
   const getRuleInfo = (group: string) => {
-    const base = props.groupRatio[group] || 1
     const effective = effectiveGroupRatio[group] || 1
-    const multiplier = effective / base
     const expiry = props.groupModelRatioExpiry?.[group]?.[props.model.model_name]
     const active = !expiry || expiry <= 0 || expiry > Date.now() / 1000
-    return { multiplier, expiry: active && expiry && expiry > 0 ? expiry : undefined }
+    return { multiplier: effective, expiry: active && expiry && expiry > 0 ? expiry : undefined }
   }
 
   const availableGroups = useMemo(
