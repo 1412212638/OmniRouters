@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-11 (cache rate hit-only sampling)
+
+- Local reason: cache-rate statistics should exclude requests with no cache hit from the cache-rate denominator.
+- Changed: performance aggregation now records input/cache tokens only when cached read tokens are positive; other performance counters still include every request. Cache rate remains the cache-read-token total divided by the input-token total for hit samples.
+- Preserved: billing calculations and all non-cache performance metrics.
+- Validation: `git diff --check`; Go/Bun and browser verification were unavailable locally.
+- Local commit and push status: pending.
+
 ## 2026-09-11 (overview panel height alignment)
 
 - Local reason: API information and announcement cards rendered with different heights in the overview grid.

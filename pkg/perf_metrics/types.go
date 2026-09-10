@@ -117,13 +117,11 @@ func (b *atomicBucket) add(sample Sample) {
 		b.outputTokens.Add(sample.OutputTokens)
 		b.generationMs.Add(sample.GenerationMs)
 	}
-	if sample.InputTokens > 0 {
+	if sample.InputTokens > 0 && sample.CachedTokens > 0 {
 		b.inputTokens.Add(sample.InputTokens)
-		if sample.CachedTokens > 0 {
-			cached := sample.CachedTokens
-			if cached > sample.InputTokens { cached = sample.InputTokens }
-			b.cachedTokens.Add(cached)
-		}
+		cached := sample.CachedTokens
+		if cached > sample.InputTokens { cached = sample.InputTokens }
+		b.cachedTokens.Add(cached)
 	}
 }
 
