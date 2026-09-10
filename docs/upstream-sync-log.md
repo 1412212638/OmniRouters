@@ -1,5 +1,20 @@
 # Upstream Sync Log
 
+## 2026-09-11 (overview panel height alignment)
+
+- Local reason: API information and announcement cards rendered with different heights in the overview grid.
+- Changed: aligned the API information content area with the announcement area at `h-96` and made both grid items fill the shared row height.
+- Preserved: API checks, announcement rendering, data contracts, and interactions.
+- Validation: `git diff --check`; browser and frontend build verification were unavailable locally.
+- Local commit and push status: pending.
+
+## 2026-09-11 (performance metric translations)
+
+- Local reason: the TTFT, TPOT, and cache-rate cards contained untranslated labels and descriptions.
+- Changed: connected TTFT and TPOT labels to i18n; the cache-rate label and all three descriptions already use translation lookup keys and will use locale fallback until translated entries are synchronized.
+- Validation: `git diff --check`; frontend build was unavailable locally.
+- Local commit and push status: pending.
+
 ## 2026-09-11 (performance metrics build fix)
 
 - Local reason: GitHub Actions reported missing input/cache fields on `PerfMetricSummaryBucket` after adding cache-rate aggregation.

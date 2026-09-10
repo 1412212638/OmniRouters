@@ -254,13 +254,13 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
         />
         <StatCard
           icon={Timer}
-          label='TTFT'
+          label={t('TTFT')}
           value={formatLatency(average(performances, 'avg_ttft_ms'))}
           hint={t('Time to first token')}
         />
         <StatCard
           icon={Timer}
-          label='TPOT'
+          label={t('TPOT')}
           value={formatLatency(avgTpot)}
           hint={t('Time per output token')}
         />

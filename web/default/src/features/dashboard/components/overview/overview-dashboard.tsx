@@ -766,12 +766,12 @@ export function OverviewDashboard() {
                 </CardStaggerItem>
               )}
               {showApiInfoPanel && (
-                <CardStaggerItem>
+                <CardStaggerItem className='h-full'>
                   <ApiInfoPanel />
                 </CardStaggerItem>
               )}
               {showAnnouncementsPanel && (
-                <CardStaggerItem>
+                <CardStaggerItem className='h-full'>
                   <AnnouncementsPanel />
                 </CardStaggerItem>
               )}
