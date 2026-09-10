@@ -179,6 +179,20 @@ func UpdateOption(c *gin.Context) {
 		return
 	}
 	option.Value = normalizeOptionUpdateValue(option.Value)
+	c.Set("audit_action", "option.update")
+	c.Set("audit_category", "operation")
+	c.Set("audit_target", option.Key)
+	// Values are opt-in: arbitrary options can contain credentials or templates.
+	var auditBefore string
+	auditSafe := false
+	switch option.Key {
+	case "ModelRatio", "CompletionRatio", "ModelPrice", "GroupRatio", "ModelRequestRateLimitEnabled", "PasswordLoginEnabled", "RegisterEnabled":
+		var prior model.Option
+		if readErr := model.DB.Where(&model.Option{Key: option.Key}).First(&prior).Error; readErr == nil {
+			auditSafe = true
+			auditBefore = prior.Value
+		}
+	}
 	switch option.Key {
 	case "GitHubOAuthEnabled":
 		if option.Value == "true" && common.GitHubClientId == "" {
@@ -451,6 +465,11 @@ func UpdateOption(c *gin.Context) {
 		model.RefreshPricing()
 	}
 	// Only record the updated option name; values may contain secrets.
+	if auditSafe && len(auditBefore) <= 8192 && len(option.Value.(string)) <= 8192 {
+		c.Set("audit_changes", map[string]model.AuditChange{option.Key: {Before: auditBefore, After: option.Value}})
+	} else {
+		c.Set("audit_changes", map[string]model.AuditChange{option.Key: {Before: "[REDACTED]", After: "[REDACTED]"}})
+	}
 	recordManageAudit(c, "option.update", map[string]interface{}{
 		"key": option.Key,
 	})

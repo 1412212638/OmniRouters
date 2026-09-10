@@ -82,6 +82,17 @@ func auditAuthMethod(c *gin.Context) string {
 	return "session"
 }
 
+// Defer the independent audit entry until the actual response is known. Keep
+// the authenticated operator distinct from the account affected by an action.
+func recordSecurityEvent(c *gin.Context, entry *model.AuditLog) error {
+	c.Set("audit_action", entry.Action)
+	c.Set("audit_category", entry.Category)
+	c.Set("audit_target", fmt.Sprintf("user #%d", entry.UserId))
+	if c.GetInt("id") == 0 { c.Set("id", entry.UserId); c.Set("username", entry.Username) }
+	if entry.TokenRef != "" { c.Set("audit_token_ref", entry.TokenRef) }
+	return nil
+}
+
 // markAuditLogged 标记当前请求已在 handler 内手动记录审计日志，
 // 使鉴权链路中的审计兜底（finishAdminAudit）跳过兜底记录，避免重复。
 func markAuditLogged(c *gin.Context) {
@@ -97,6 +108,29 @@ func recordManageAudit(c *gin.Context, action string, params map[string]interfac
 // recordManageAuditFor 记录一条管理审计日志，日志归属于操作者；targetUserId
 // 只表示被操作用户，用于在结构化参数中保留目标上下文。
 func recordManageAuditFor(c *gin.Context, targetUserId int, action string, params map[string]interface{}) {
+	c.Set("audit_action", action)
+	c.Set("audit_category", "operation")
+	// Only known non-secret scalar parameters used by localized action labels.
+	labelParams := map[string]interface{}{}
+	for _, key := range []string{"id", "name", "username", "role", "count", "type", "quota", "from", "to", "plan_id", "target_user_id", "bindingType", "sourceId", "action"} {
+		if value, ok := params[key]; ok {
+			switch v := value.(type) {
+			case string: if len(v) <= 256 { labelParams[key] = v }
+			case int, int64, float64, bool: labelParams[key] = v
+			}
+		}
+	}
+	if action == "option.update" { labelParams["key"] = params["key"] }
+	c.Set("audit_label_params", labelParams)
+	if action == "user.quota_override" {
+		c.Set("audit_changes", map[string]model.AuditChange{"quota": {Before: labelParams["from"], After: labelParams["to"]}})
+	}
+	if params != nil {
+		for _, key := range []string{"target_user_id", "id", "plan_id", "key", "name"} {
+			if value, ok := params[key]; ok { c.Set("audit_target", fmt.Sprintf("%s: %v", key, value)); break }
+		}
+	}
+	if targetUserId > 0 && targetUserId != c.GetInt("id") { c.Set("audit_target", fmt.Sprintf("user #%d", targetUserId)) }
 	if params == nil {
 		params = map[string]interface{}{}
 	}
@@ -111,5 +145,8 @@ func recordManageAuditFor(c *gin.Context, targetUserId int, action string, param
 // recordUserSecurityAudit 记录普通用户自己的安全敏感操作（如 passkey 绑定/解绑）。
 // 这类日志没有管理员操作者，不写 admin_info；同时不依赖 AdminAuth/RootAuth 的兜底。
 func recordUserSecurityAudit(c *gin.Context, userId int, action string, params map[string]interface{}) {
+	c.Set("audit_action", action)
+	c.Set("audit_category", "security")
+	c.Set("audit_target", fmt.Sprintf("user #%d", userId))
 	model.RecordOperationAuditLog(userId, auditContentEN(action, params), c.ClientIP(), action, params, nil, nil)
 }

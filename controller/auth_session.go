@@ -31,6 +31,8 @@ func RefreshAuth(c *gin.Context) {
 		return
 	}
 	service.WriteRefreshCookie(c, bundle.RefreshToken)
+	c.Set("id", user.Id)
+	c.Set("username", user.Username)
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
@@ -56,6 +58,7 @@ func AuthLogout(c *gin.Context) {
 
 	if rawAccessToken, ok := dashboardBearer(c.GetHeader("Authorization")); ok {
 		if identity, err := service.ParseAccessToken(rawAccessToken); err == nil {
+			c.Set("id", identity.UserID)
 			if expectedSID != "" && expectedSID != identity.SessionID {
 				writeAuthSessionError(c, service.ErrLoginSessionMismatch)
 				return
@@ -108,6 +111,8 @@ func GetLoginSessions(c *gin.Context) {
 }
 
 func DeleteLoginSession(c *gin.Context) {
+	c.Set("audit_action", "session.revoke")
+	c.Set("audit_category", "security")
 	identity, ok := requireBrowserSession(c)
 	if !ok {
 		return
@@ -136,6 +141,8 @@ func DeleteLoginSession(c *gin.Context) {
 }
 
 func RevokeOtherLoginSessions(c *gin.Context) {
+	c.Set("audit_action", "session.revoke")
+	c.Set("audit_category", "security")
 	identity, ok := requireBrowserSession(c)
 	if !ok {
 		return

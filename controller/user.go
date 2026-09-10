@@ -127,6 +127,10 @@ func loginMethodFromContext(c *gin.Context) string {
 
 // recordLoginAudit 记录登录成功审计日志（对所有用户启用，仅记录成功，不记录失败）。
 func recordLoginAudit(user *model.User, c *gin.Context) {
+	c.Set("id", user.Id)
+	c.Set("username", user.Username)
+	c.Set("audit_action", "login.success")
+	c.Set("audit_category", "security")
 	method := loginMethodFromContext(c)
 	ip := c.ClientIP()
 	extra := map[string]interface{}{
@@ -426,7 +430,7 @@ func GenerateAccessToken(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
-	_ = model.RecordAuditLog(&model.AuditLog{
+	_ = recordSecurityEvent(c, &model.AuditLog{
 		UserId: id, Username: user.Username, Category: model.AuditCategoryAccessToken,
 		Action: "generate", TokenRef: model.AccessTokenFingerprint(key), Ip: c.ClientIP(), Success: true,
 		RequestId: c.GetString(common.RequestIdKey), Other: "personal access token",
@@ -445,6 +449,7 @@ func RevokeAccessToken(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
+	c.Set("audit_independent_recorded", true)
 	common.ApiSuccess(c, nil)
 }
 
@@ -1018,7 +1023,7 @@ func UpdateSelf(c *gin.Context) {
 		return
 	}
 	if updatePassword {
-		_ = model.RecordAuditLog(&model.AuditLog{UserId: cleanUser.Id, Username: cleanUser.Username, Category: model.AuditCategorySecurity, Action: "password.change", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey)})
+		_ = recordSecurityEvent(c, &model.AuditLog{UserId: cleanUser.Id, Username: cleanUser.Username, Category: model.AuditCategorySecurity, Action: "password.change", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey)})
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -1097,7 +1102,7 @@ func DeleteSelf(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
-	_ = model.RecordAuditLog(&model.AuditLog{UserId: id, Category: model.AuditCategorySecurity, Action: "account.delete", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey)})
+	_ = recordSecurityEvent(c, &model.AuditLog{UserId: id, Category: model.AuditCategorySecurity, Action: "account.delete", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey)})
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
@@ -1399,7 +1404,7 @@ func EmailBind(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
-	_ = model.RecordAuditLog(&model.AuditLog{UserId: user.Id, Category: model.AuditCategorySecurity, Action: "email.bind", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey)})
+	_ = recordSecurityEvent(c, &model.AuditLog{UserId: user.Id, Category: model.AuditCategorySecurity, Action: "email.bind", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey)})
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",

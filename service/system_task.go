@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
@@ -77,6 +78,24 @@ func registeredSystemTaskHandlers() []SystemTaskHandler {
 // registered (non-scheduled) handler. It is created via StartLogCleanupTask.
 type logCleanupHandler struct{}
 
+type auditCleanupHandler struct{}
+
+func (auditCleanupHandler) Type() string { return model.SystemTaskTypeAuditCleanup }
+func (auditCleanupHandler) Run(ctx context.Context, task *model.SystemTask, runnerID string) { runAuditCleanupTask(ctx, task, runnerID) }
+func (auditCleanupHandler) Enabled() bool { return auditRetentionDays() > 0 }
+func (auditCleanupHandler) Interval() time.Duration { return 24 * time.Hour }
+func (auditCleanupHandler) NewPayload() any { return AuditCleanupPayload{TargetTimestamp: common.GetTimestamp() - int64(auditRetentionDays())*86400, BatchSize: logCleanupBatchSize} }
+
+func auditRetentionDays() int {
+	common.OptionMapRWMutex.RLock()
+	raw := common.OptionMap["AuditLogRetentionDays"]
+	common.OptionMapRWMutex.RUnlock()
+	days, err := strconv.Atoi(raw)
+	if err != nil || days < 0 { return model.DefaultAuditLogRetentionDays }
+	if days > model.MaxAuditLogRetentionDays { return model.MaxAuditLogRetentionDays }
+	return days
+}
+
 func (logCleanupHandler) Type() string { return model.SystemTaskTypeLogCleanup }
 
 func (logCleanupHandler) Run(ctx context.Context, task *model.SystemTask, runnerID string) {
@@ -85,6 +104,7 @@ func (logCleanupHandler) Run(ctx context.Context, task *model.SystemTask, runner
 
 func init() {
 	RegisterSystemTaskHandler(logCleanupHandler{})
+	RegisterSystemTaskHandler(auditCleanupHandler{})
 }
 
 type LogCleanupPayload struct {
@@ -193,6 +213,17 @@ func StartLogCleanupTask(targetTimestamp int64) (*model.SystemTask, error) {
 	}
 	notifySystemTaskRunner()
 	return task, nil
+}
+
+type AuditCleanupPayload struct { TargetTimestamp int64 `json:"target_timestamp"`; BatchSize int `json:"batch_size"` }
+type AuditCleanupState struct { Deleted int64 `json:"deleted"`; Remaining int64 `json:"remaining"` }
+
+func StartAuditCleanupTask(targetTimestamp int64) (*model.SystemTask, error) {
+	if targetTimestamp <= 0 { return nil, errors.New("target timestamp is required") }
+	if task, err := model.GetActiveSystemTask(model.SystemTaskTypeAuditCleanup); err != nil { return nil, err } else if task != nil { return task, nil }
+	task, err := model.CreateSystemTask(model.SystemTaskTypeAuditCleanup, AuditCleanupPayload{TargetTimestamp: targetTimestamp, BatchSize: logCleanupBatchSize}, AuditCleanupState{})
+	if err != nil { if active, e := model.GetActiveSystemTask(model.SystemTaskTypeAuditCleanup); e == nil && active != nil { return active, nil }; return nil, err }
+	notifySystemTaskRunner(); return task, nil
 }
 
 // EnqueueSystemTask creates an on-demand task of the given type. The returned
@@ -423,6 +454,26 @@ func runLogCleanupTask(ctx context.Context, task *model.SystemTask, runnerID str
 	if err := model.FinishSystemTask(task.TaskID, runnerID, model.SystemTaskStatusSucceeded, result, ""); err != nil {
 		logSystemTaskLockError(ctx, task, err)
 	}
+}
+
+func runAuditCleanupTask(ctx context.Context, task *model.SystemTask, runnerID string) {
+	payload := AuditCleanupPayload{}
+	if err := task.DecodePayload(&payload); err != nil { failSystemTask(task, runnerID, err); return }
+	if payload.TargetTimestamp <= 0 { failSystemTask(task, runnerID, errors.New("target timestamp is required")); return }
+	if payload.BatchSize <= 0 { payload.BatchSize = logCleanupBatchSize }
+	state := AuditCleanupState{}
+	_ = task.DecodeState(&state)
+	for {
+		remaining, err := model.CountOldAuditLogs(ctx, payload.TargetTimestamp); if err != nil { failSystemTask(task, runnerID, err); return }
+		state.Remaining = remaining
+		if err := model.UpdateSystemTaskState(task.TaskID, runnerID, state); err != nil { logSystemTaskLockError(ctx, task, err); return }
+		if remaining == 0 { break }
+		deleted, err := model.DeleteOldAuditLogBatch(ctx, payload.TargetTimestamp, payload.BatchSize); if err != nil { failSystemTask(task, runnerID, err); return }
+		if deleted == 0 { failSystemTask(task, runnerID, errors.New("no audit log rows were deleted")); return }
+		state.Deleted += deleted
+	}
+	state.Remaining = 0
+	if err := model.FinishSystemTask(task.TaskID, runnerID, model.SystemTaskStatusSucceeded, state, ""); err != nil { logSystemTaskLockError(ctx, task, err) }
 }
 
 func syncLogCleanupStateFromRemaining(state *LogCleanupState, remaining int64) {

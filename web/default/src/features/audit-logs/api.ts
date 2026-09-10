@@ -11,6 +11,7 @@ export type AuditLog = {
   token_ref?: string
   ip?: string
   success: boolean
+  outcome?: string
   request_id?: string
   other?: string
 }
@@ -28,9 +29,30 @@ type AuditLogApiResponse = {
   data?: AuditLogResponse
 }
 
-export async function getAuditLogs(page = 1, pageSize = 20) {
+export type AuditFilters = {
+  view: string
+  username?: string
+  user_id?: string
+  action?: string
+  ip?: string
+  request_id?: string
+  outcome?: string
+  start?: number
+  end?: number
+}
+
+export async function getAuditLogs(
+  page = 1,
+  pageSize = 20,
+  filters: AuditFilters = { view: 'all' }
+) {
   const response = await api.get<AuditLogApiResponse>('/api/audit', {
-    params: { p: page, page_size: pageSize },
+    params: { p: page, page_size: pageSize, ...filters },
+    skipBusinessError: true,
+    skipErrorHandler: true,
   })
-  return response.data.data ?? { items: [], total: 0, page: page, page_size: pageSize }
+  if (!response.data.success || !response.data.data) {
+    throw new Error('Audit request failed')
+  }
+  return response.data.data
 }

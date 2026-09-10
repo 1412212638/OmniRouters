@@ -1091,6 +1091,16 @@ func UpdateChannel(c *gin.Context) {
 		"name":           channel.Name,
 		"changed_fields": changedFields,
 	})
+	changes := map[string]model.AuditChange{}
+	for _, field := range changedFields {
+		switch field {
+		case "models": changes[field] = model.AuditChange{Before: originChannel.Models, After: channel.Models}
+		case "group": changes[field] = model.AuditChange{Before: originChannel.Group, After: channel.Group}
+		case "type": changes[field] = model.AuditChange{Before: originChannel.Type, After: channel.Type}
+		default: changes[field] = model.AuditChange{Before: "[REDACTED]", After: "[REDACTED]"}
+		}
+	}
+	c.Set("audit_changes", changes)
 	channel.Key = ""
 	clearChannelInfo(&channel.Channel)
 	c.JSON(http.StatusOK, gin.H{
