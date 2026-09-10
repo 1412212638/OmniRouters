@@ -712,30 +712,6 @@ function PriceSection(props: {
             {t('Dynamic Pricing')}
           </p>
         )}
-        {dynamicSummary.secondaryEntries.length > 0 && (
-          <div className='bg-muted/20 mt-3 rounded-lg border px-3 py-2.5'>
-            <div className='space-y-1.5'>
-              {dynamicSummary.secondaryEntries.map((entry) => (
-                <div
-                  key={entry.key}
-                  className='flex items-baseline justify-between gap-4'
-                >
-                  <span className='text-muted-foreground/70 text-sm'>
-                    {t(entry.shortLabel)}
-                  </span>
-                  <span className='text-muted-foreground font-mono text-sm tabular-nums'>
-                    {entry.formatted}
-                    {entry.displayUnit === 'token' && (
-                      <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
-                        / {tokenUnitLabel}
-                      </span>
-                    )}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </section>
     )
   }

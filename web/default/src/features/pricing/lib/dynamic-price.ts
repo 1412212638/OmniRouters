@@ -174,7 +174,7 @@ export function getDynamicPriceEntries(
     const priceRate = options.priceRate ?? 1
     const usdExchangeRate = options.usdExchangeRate ?? 1
     const fixedPriceUSD = applyRechargeRate(
-      fixedPrice * groupRatio,
+      (fixedPrice * groupRatio) / 1_000_000,
       options.showRechargePrice ?? false,
       priceRate,
       usdExchangeRate
@@ -184,7 +184,7 @@ export function getDynamicPriceEntries(
       field: 'fixedPrice',
       label: 'Fixed price',
       shortLabel: 'Fixed price',
-      value: fixedPrice,
+        value: fixedPrice,
       formatted: formatBillingCurrencyFromUSD(fixedPriceUSD, {
         digitsLarge: 4,
         digitsSmall: 6,

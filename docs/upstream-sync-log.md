@@ -7,6 +7,13 @@
 - Validation: JSON locale parsing and `git diff --check`; browser verification and Go compilation unavailable locally.
 - Local commit and push status: pending.
 
+## 2026-09-11 (dynamic request price formatting)
+
+- Local reason: numeric `tier` prices were incorrectly repeated as the base price and displayed in internal quota units.
+- Changed: request prices are converted to currency units and shown only in the tier breakdown/range; the base-price section remains labeled dynamic pricing. Billing evaluation is unchanged.
+- Validation: `git diff --check`; Go compilation and browser verification unavailable locally.
+- Local commit and push status: pending.
+
 ## 2026-09-11 (bounded TTFT/TPOT percentile sampling)
 
 - Local reason: add scalable P95/P99 performance indicators for high request volume.
