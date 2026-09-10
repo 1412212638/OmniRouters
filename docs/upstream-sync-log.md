@@ -1,5 +1,12 @@
 # Upstream Sync Log
 
+## 2026-09-11 (performance metrics build fix)
+
+- Local reason: GitHub Actions reported missing input/cache fields on `PerfMetricSummaryBucket` after adding cache-rate aggregation.
+- Changed: added the fields to the summary bucket DTO and included them in the bucket aggregation query so the performance package compiles and receives persisted cache counters.
+- Validation: `git diff --check`; GitHub Actions will provide the Go build verification.
+- Local commit and push status: pending.
+
 ## 2026-09-11 (model performance TPOT and cache rate)
 
 - Local reason: add TPOT to the model details performance view.
