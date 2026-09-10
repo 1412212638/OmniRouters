@@ -1,9 +1,25 @@
 # Upstream Sync Log
 
+## 2026-09-11 (bounded TTFT/TPOT percentile sampling)
+
+- Local reason: add scalable P95/P99 performance indicators for high request volume.
+- Changed: added bounded reservoir sampling for TTFT and TPOT and exposed group P95/P99 values in the performance response. Each bucket retains at most 256 samples per metric; samples are stored as bounded JSON snapshots on the existing performance bucket and no per-request database rows are created.
+- Preserved: numeric aggregates, billing, relay routing, cache accounting, and the existing retention cleanup. Database migration is additive through GORM and remains compatible with SQLite, MySQL, and PostgreSQL.
+- Validation: `git diff --check`; targeted Go test was added but Go is unavailable locally; Bun typecheck ran and reports pre-existing repository errors outside this change.
+- Local commit and push status: pending.
+
+## 2026-09-11 (TPOT unit display)
+
+- Local reason: TPOT was displayed with the generic latency formatter and could be read as seconds without the per-token unit.
+- Changed: added a dedicated TPOT formatter that treats the value as milliseconds and displays `ms/token` or `s/token`.
+- Preserved: TPOT calculation, TPS, TTFT, latency, billing, and routing behavior.
+- Validation: `git diff --check`; frontend build and browser verification were unavailable locally.
+- Local commit and push status: pending.
+
 ## 2026-09-11 (cache rate hit-only sampling)
 
 - Local reason: cache-rate statistics should exclude requests with no cache hit from the cache-rate denominator.
-- Changed: performance aggregation now records input/cache tokens only when cached read tokens are positive; other performance counters still include every request. Cache rate remains the cache-read-token total divided by the input-token total for hit samples.
+- Changed: performance aggregation records cached-token samples only when cached read tokens are positive; cache rate is cached tokens divided by total input tokens (cached plus uncached), so a request with 1,073 uncached and 229,376 cached tokens reports 99.53%.
 - Preserved: billing calculations and all non-cache performance metrics.
 - Validation: `git diff --check`; Go/Bun and browser verification were unavailable locally.
 - Local commit and push status: pending.

@@ -100,6 +100,9 @@ func Query(params QueryParams) (QueryResult, error) {
 		return QueryResult{}, err
 	}
 	for _, row := range rows {
+		var ttftSamples, tpotSamples []int64
+		_ = common.UnmarshalJsonStr(row.TTFTSamples, &ttftSamples)
+		_ = common.UnmarshalJsonStr(row.TPOTSamples, &tpotSamples)
 		mergeCounters(merged, bucketKey{
 			model:    row.ModelName,
 			group:    row.Group,
@@ -113,6 +116,8 @@ func Query(params QueryParams) (QueryResult, error) {
 			outputTokens:   row.OutputTokens,
 			generationMs:   row.GenerationMs,
 			inputTokens: row.InputTokens, cachedTokens: row.CachedTokens,
+			ttftQuantiles: quantileReservoir{values: ttftSamples},
+			tpotQuantiles: quantileReservoir{values: tpotSamples},
 		})
 	}
 
@@ -313,7 +318,15 @@ func mergeCounters(merged map[bucketKey]counters, key bucketKey, value counters)
 	current.generationMs += value.generationMs
 	current.inputTokens += value.inputTokens
 	current.cachedTokens += value.cachedTokens
+	mergeReservoir(&current.ttftQuantiles, value.ttftQuantiles)
+	mergeReservoir(&current.tpotQuantiles, value.tpotQuantiles)
 	merged[key] = current
+}
+
+func mergeReservoir(dst *quantileReservoir, src quantileReservoir) {
+	for _, value := range src.values {
+		dst.add(value, uint64(value)^dst.seen)
+	}
 }
 
 func buildQueryResult(modelName string, merged map[bucketKey]counters) QueryResult {
@@ -356,6 +369,8 @@ func buildQueryResult(modelName string, merged map[bucketKey]counters) QueryResu
 			total.ttftCount += value.ttftCount
 			total.outputTokens += value.outputTokens
 			total.generationMs += value.generationMs
+			mergeReservoir(&total.ttftQuantiles, value.ttftQuantiles)
+			mergeReservoir(&total.tpotQuantiles, value.tpotQuantiles)
 			series = append(series, bucketPoint(ts, value))
 		}
 
@@ -369,6 +384,10 @@ func buildQueryResult(modelName string, merged map[bucketKey]counters) QueryResu
 			CacheRate:    cacheRate(total),
 			Series:       series,
 		})
+		results[len(results)-1].TtftP95Ms = percentile(total, true, .95)
+		results[len(results)-1].TtftP99Ms = percentile(total, true, .99)
+		results[len(results)-1].TpotP95Ms = percentile(total, false, .95)
+		results[len(results)-1].TpotP99Ms = percentile(total, false, .99)
 	}
 
 	return QueryResult{
@@ -376,6 +395,11 @@ func buildQueryResult(modelName string, merged map[bucketKey]counters) QueryResu
 		SeriesSchema: seriesSchema,
 		Groups:       results,
 	}
+}
+
+func percentile(value counters, ttft bool, p float64) int64 {
+	if ttft { return value.ttftQuantiles.percentile(p) }
+	return value.tpotQuantiles.percentile(p)
 }
 
 func bucketPoint(ts int64, value counters) BucketPoint {
@@ -405,8 +429,9 @@ func avgTpot(value counters) int64 {
 }
 
 func cacheRate(value counters) *float64 {
-	if value.inputTokens <= 0 { return nil }
-	rate := float64(value.cachedTokens) / float64(value.inputTokens) * 100
+	denominator := value.inputTokens + value.cachedTokens
+	if denominator <= 0 { return nil }
+	rate := float64(value.cachedTokens) / float64(denominator) * 100
 	return &rate
 }
 
@@ -448,7 +473,7 @@ func recordRedis(key bucketKey, sample Sample) {
 		pipe.HIncrBy(ctx, redisKey, "out", sample.OutputTokens)
 		pipe.HIncrBy(ctx, redisKey, "gen_ms", sample.GenerationMs)
 	}
-	if sample.InputTokens > 0 && sample.CachedTokens > 0 {
+	if sample.CachedTokens > 0 {
 		pipe.HIncrBy(ctx, redisKey, "in", sample.InputTokens)
 		pipe.HIncrBy(ctx, redisKey, "cache", sample.CachedTokens)
 	}

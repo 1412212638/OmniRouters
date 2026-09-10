@@ -24,6 +24,10 @@ export type PerformanceSeriesPoint = {
   avg_tps: number
   avg_tpot_ms: number
   cache_rate?: number
+  ttft_p95_ms?: number
+  ttft_p99_ms?: number
+  tpot_p95_ms?: number
+  tpot_p99_ms?: number
 }
 
 export type PerformanceGroup = {
@@ -34,6 +38,10 @@ export type PerformanceGroup = {
   avg_tps: number
   avg_tpot_ms: number
   cache_rate?: number
+  ttft_p95_ms?: number
+  ttft_p99_ms?: number
+  tpot_p95_ms?: number
+  tpot_p99_ms?: number
   series: PerformanceSeriesPoint[]
 }
 

@@ -28,6 +28,12 @@ export function formatLatency(ms: number): string {
   return `${Math.round(ms)}ms`
 }
 
+export function formatTpot(ms: number): string {
+  if (!Number.isFinite(ms) || ms <= 0) return '—'
+  if (ms >= 1_000) return `${(ms / 1_000).toFixed(2)}s/token`
+  return `${Math.round(ms)}ms/token`
+}
+
 export function formatUptimePct(pct: number): string {
   if (!Number.isFinite(pct)) return '—'
   return `${pct.toFixed(2)}%`

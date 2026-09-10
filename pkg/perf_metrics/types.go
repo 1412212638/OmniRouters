@@ -1,6 +1,9 @@
 package perfmetrics
 
-import "sync/atomic"
+import (
+	"sync"
+	"sync/atomic"
+)
 
 type Store interface {
 	Record(sample Sample)
@@ -44,6 +47,10 @@ type GroupResult struct {
 	AvgTps       float64       `json:"avg_tps"`
 	AvgTpotMs    int64         `json:"avg_tpot_ms"`
 	CacheRate    *float64      `json:"cache_rate,omitempty"`
+	TtftP95Ms    int64         `json:"ttft_p95_ms,omitempty"`
+	TtftP99Ms    int64         `json:"ttft_p99_ms,omitempty"`
+	TpotP95Ms    int64         `json:"tpot_p95_ms,omitempty"`
+	TpotP99Ms    int64         `json:"tpot_p99_ms,omitempty"`
 	Series       []BucketPoint `json:"series"`
 }
 
@@ -87,9 +94,14 @@ type counters struct {
 	generationMs   int64
 	inputTokens    int64
 	cachedTokens   int64
+	ttftQuantiles  quantileReservoir
+	tpotQuantiles  quantileReservoir
 }
 
 type atomicBucket struct {
+	mu sync.Mutex
+	ttftQuantiles quantileReservoir
+	tpotQuantiles quantileReservoir
 	requestCount   atomic.Int64
 	successCount   atomic.Int64
 	totalLatencyMs atomic.Int64
@@ -112,20 +124,34 @@ func (b *atomicBucket) add(sample Sample) {
 	if sample.HasTtft && sample.TtftMs >= 0 {
 		b.ttftSumMs.Add(sample.TtftMs)
 		b.ttftCount.Add(1)
+		b.mu.Lock()
+		b.ttftQuantiles.add(sample.TtftMs, uint64(sample.TtftMs)^b.ttftQuantiles.seen)
+		b.mu.Unlock()
 	}
 	if sample.OutputTokens > 0 && sample.GenerationMs > 0 {
 		b.outputTokens.Add(sample.OutputTokens)
 		b.generationMs.Add(sample.GenerationMs)
+		b.mu.Lock()
+		b.tpotQuantiles.add(sample.GenerationMs*1000/sample.OutputTokens, uint64(sample.OutputTokens)^b.tpotQuantiles.seen)
+		b.mu.Unlock()
 	}
-	if sample.InputTokens > 0 && sample.CachedTokens > 0 {
+	if sample.CachedTokens > 0 {
 		b.inputTokens.Add(sample.InputTokens)
-		cached := sample.CachedTokens
-		if cached > sample.InputTokens { cached = sample.InputTokens }
-		b.cachedTokens.Add(cached)
+		b.cachedTokens.Add(sample.CachedTokens)
 	}
 }
 
+func (b *atomicBucket) quantiles() (int64, int64, int64, int64) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.ttftQuantiles.percentile(.95), b.ttftQuantiles.percentile(.99), b.tpotQuantiles.percentile(.95), b.tpotQuantiles.percentile(.99)
+}
+
 func (b *atomicBucket) snapshot() counters {
+	b.mu.Lock()
+	ttftQuantiles := quantileReservoir{values: append([]int64(nil), b.ttftQuantiles.values...), seen: b.ttftQuantiles.seen}
+	tpotQuantiles := quantileReservoir{values: append([]int64(nil), b.tpotQuantiles.values...), seen: b.tpotQuantiles.seen}
+	b.mu.Unlock()
 	return counters{
 		requestCount:   b.requestCount.Load(),
 		successCount:   b.successCount.Load(),
@@ -135,10 +161,16 @@ func (b *atomicBucket) snapshot() counters {
 		outputTokens:   b.outputTokens.Load(),
 		generationMs:   b.generationMs.Load(),
 		inputTokens: b.inputTokens.Load(), cachedTokens: b.cachedTokens.Load(),
+		ttftQuantiles: ttftQuantiles, tpotQuantiles: tpotQuantiles,
 	}
 }
 
 func (b *atomicBucket) drain() counters {
+	b.mu.Lock()
+	ttftQuantiles := quantileReservoir{values: append([]int64(nil), b.ttftQuantiles.values...), seen: b.ttftQuantiles.seen}
+	tpotQuantiles := quantileReservoir{values: append([]int64(nil), b.tpotQuantiles.values...), seen: b.tpotQuantiles.seen}
+	b.ttftQuantiles, b.tpotQuantiles = quantileReservoir{}, quantileReservoir{}
+	b.mu.Unlock()
 	return counters{
 		requestCount:   b.requestCount.Swap(0),
 		successCount:   b.successCount.Swap(0),
@@ -148,6 +180,7 @@ func (b *atomicBucket) drain() counters {
 		outputTokens:   b.outputTokens.Swap(0),
 		generationMs:   b.generationMs.Swap(0),
 		inputTokens: b.inputTokens.Swap(0), cachedTokens: b.cachedTokens.Swap(0),
+		ttftQuantiles: ttftQuantiles, tpotQuantiles: tpotQuantiles,
 	}
 }
 
@@ -175,4 +208,8 @@ func (b *atomicBucket) addCounters(c counters) {
 	}
 	if c.inputTokens != 0 { b.inputTokens.Add(c.inputTokens) }
 	if c.cachedTokens != 0 { b.cachedTokens.Add(c.cachedTokens) }
+	b.mu.Lock()
+	mergeReservoir(&b.ttftQuantiles, c.ttftQuantiles)
+	mergeReservoir(&b.tpotQuantiles, c.tpotQuantiles)
+	b.mu.Unlock()
 }

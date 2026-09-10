@@ -3,6 +3,7 @@ package model
 import (
 	"time"
 
+	"github.com/QuantumNous/new-api/common"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -22,6 +23,8 @@ type PerfMetric struct {
 	GenerationMs   int64  `json:"-" gorm:"default:0"`
 	InputTokens    int64  `json:"-" gorm:"default:0"`
 	CachedTokens   int64  `json:"-" gorm:"default:0"`
+	TTFTSamples    string `json:"-" gorm:"type:text"`
+	TPOTSamples    string `json:"-" gorm:"type:text"`
 }
 
 func (PerfMetric) TableName() string {
@@ -31,6 +34,11 @@ func (PerfMetric) TableName() string {
 func UpsertPerfMetric(metric *PerfMetric) error {
 	if metric == nil || metric.RequestCount == 0 {
 		return nil
+	}
+	var existing PerfMetric
+	if err := DB.Where("model_name = ? AND " + commonGroupCol + " = ? AND bucket_ts = ?", metric.ModelName, metric.Group, metric.BucketTs).First(&existing).Error; err == nil {
+		metric.TTFTSamples = mergeSampleJSON(existing.TTFTSamples, metric.TTFTSamples)
+		metric.TPOTSamples = mergeSampleJSON(existing.TPOTSamples, metric.TPOTSamples)
 	}
 	return DB.Clauses(clause.OnConflict{
 		Columns: []clause.Column{
@@ -48,8 +56,22 @@ func UpsertPerfMetric(metric *PerfMetric) error {
 			"generation_ms":    gorm.Expr("perf_metrics.generation_ms + ?", metric.GenerationMs),
 			"input_tokens":     gorm.Expr("perf_metrics.input_tokens + ?", metric.InputTokens),
 			"cached_tokens":    gorm.Expr("perf_metrics.cached_tokens + ?", metric.CachedTokens),
+			"ttft_samples":    metric.TTFTSamples,
+			"tpot_samples":    metric.TPOTSamples,
 		}),
 	}).Create(metric).Error
+}
+
+func mergeSampleJSON(left, right string) string {
+	var values, incoming []int64
+	_ = common.UnmarshalJsonStr(left, &values)
+	_ = common.UnmarshalJsonStr(right, &incoming)
+	values = append(values, incoming...)
+	if len(values) > 256 {
+		values = values[len(values)-256:]
+	}
+	data, _ := common.Marshal(values)
+	return string(data)
 }
 
 func GetPerfMetrics(modelName string, group string, startTs int64, endTs int64) ([]PerfMetric, error) {

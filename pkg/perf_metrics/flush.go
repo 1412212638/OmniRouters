@@ -51,6 +51,8 @@ func flushCompletedBuckets() {
 			GenerationMs:   drained.generationMs,
 			InputTokens:    drained.inputTokens,
 			CachedTokens:   drained.cachedTokens,
+			TTFTSamples:    marshalSamples(drained.ttftQuantiles.values),
+			TPOTSamples:    marshalSamples(drained.tpotQuantiles.values),
 		})
 		if err != nil {
 			bucket.addCounters(drained)
@@ -61,6 +63,14 @@ func flushCompletedBuckets() {
 		deleteOldEmptyBucket(k, key)
 		return true
 	})
+}
+
+func marshalSamples(values []int64) string {
+	data, err := common.Marshal(values)
+	if err != nil {
+		return ""
+	}
+	return string(data)
 }
 
 func deleteOldEmptyBucket(k bucketKey, rawKey any) {

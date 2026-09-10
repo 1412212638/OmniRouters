@@ -29,6 +29,7 @@ import { GroupBadge } from '@/components/group-badge'
 import { getPerfMetrics } from '@/features/performance-metrics/api'
 import {
   formatLatency,
+  formatTpot,
   formatThroughput,
   formatUptimePct,
   getSuccessRateTextClass,
@@ -78,6 +79,10 @@ type PerformanceRow = {
   avg_tps: number
   avg_tpot_ms: number
   cache_rate?: number
+  ttft_p95_ms?: number
+  ttft_p99_ms?: number
+  tpot_p95_ms?: number
+  tpot_p99_ms?: number
 }
 
 function toUptimePct(value: number): number {
@@ -182,6 +187,10 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
         avg_tps: group.avg_tps,
         avg_tpot_ms: group.avg_tpot_ms,
         cache_rate: group.cache_rate,
+        ttft_p95_ms: group.ttft_p95_ms,
+        ttft_p99_ms: group.ttft_p99_ms,
+        tpot_p95_ms: group.tpot_p95_ms,
+        tpot_p99_ms: group.tpot_p99_ms,
       })),
     [groups]
   )
@@ -226,6 +235,7 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
         successRates.length
       : 0
   const incidentCount = uptimeSeries.reduce((s, p) => s + p.incidents, 0)
+  const percentileText = (value?: number) => value && value > 0 ? formatLatency(value) : '—'
 
   return (
     <div className='flex flex-col gap-4'>
@@ -261,7 +271,7 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
         <StatCard
           icon={Timer}
           label={t('TPOT')}
-          value={formatLatency(avgTpot)}
+          value={formatTpot(avgTpot)}
           hint={t('Time per output token')}
         />
         <StatCard
@@ -272,6 +282,19 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
             return rates.length ? `${(rates.reduce((sum, value) => sum + value, 0) / rates.length).toFixed(2)}%` : '—'
           })()}
           hint={t('Cached input tokens divided by input tokens')}
+        />
+      </div>
+
+      <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
+        <StatCard
+          icon={Timer}
+          label={t('TTFT percentiles')}
+          value={`P95 ${percentileText(performances.map((p) => p.ttft_p95_ms).find((v) => v && v > 0))} · P99 ${percentileText(performances.map((p) => p.ttft_p99_ms).find((v) => v && v > 0))}`}
+        />
+        <StatCard
+          icon={Timer}
+          label={t('TPOT percentiles')}
+          value={`P95 ${percentileText(performances.map((p) => p.tpot_p95_ms).find((v) => v && v > 0))} · P99 ${percentileText(performances.map((p) => p.tpot_p99_ms).find((v) => v && v > 0))}`}
         />
       </div>
 
