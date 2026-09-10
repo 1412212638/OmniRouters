@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-11 (overview announcement rich content)
+
+- Local reason: overview announcements displayed raw Markdown image syntax and HTML instead of rendered content.
+- Changed: overview announcements use the existing sanitized RichContent renderer on the complete content, preserving Markdown blocks and HTML structure. A separate detail button avoids nesting content links inside a button.
+- Preserved: announcement storage, notification popover, timeline, and detail dialog.
+- Validation: `git diff --check` passed; browser rendering and frontend build not verified locally.
+- Local commit and push status: pending.
+
 ### 2026-09-09 Sync upstream options, Volcengine, and Alibaba Wan fixes
 
 - Integrated `4fc9d1f1f`: added a cross-database `options` table primary-key repair migration that deduplicates legacy rows, preserves the old table as a backup, and runs before normal option auto-migration. This protects persisted settings such as Waffo Pancake unit price from duplicate-key/readback corruption.

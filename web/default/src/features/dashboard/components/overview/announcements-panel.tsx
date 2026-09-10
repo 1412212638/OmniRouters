@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { memo, useState } from 'react'
 import { ExternalLink, Megaphone } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { RichContent } from '@/components/rich-content'
 import { getAnnouncementColorClass } from '@/lib/colors'
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -39,18 +40,6 @@ const AnnouncementStatusDot = memo(function AnnouncementStatusDot(props: {
     />
   )
 })
-
-function getAnnouncementParts(content: string) {
-  const lines = content
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-
-  return {
-    title: lines[0] || content,
-    body: lines.length > 1 ? lines.slice(1).join('\n') : '',
-  }
-}
 
 export function AnnouncementsPanel() {
   const { t } = useTranslation()
@@ -83,15 +72,12 @@ export function AnnouncementsPanel() {
         <div className='px-3 py-5 sm:px-5'>
           {list.map((item: AnnouncementItem, idx: number) => {
             const key = item.id ?? `announcement-${idx}`
-            const { title, body } = getAnnouncementParts(item.content)
             const date = item.publishDate
               ? new Date(item.publishDate)
               : undefined
             return (
-              <button
+              <article
                 key={key}
-                type='button'
-                onClick={() => handleAnnouncementClick(item)}
                 className={cn(
                   'group flex w-full text-left',
                   idx < list.length - 1 && 'pb-6'
@@ -112,22 +98,23 @@ export function AnnouncementsPanel() {
                   <div className='min-w-0 flex-1'>
                     <div className='mb-1 flex items-start gap-2'>
                       <AnnouncementStatusDot type={item.type} />
-                      <p className='line-clamp-2 text-sm font-semibold leading-5'>
-                        {title}
-                      </p>
+                      <RichContent
+                        breaks
+                        content={item.content}
+                        className='min-w-0 flex-1 text-sm [&_img]:h-auto [&_img]:max-w-full'
+                      />
                     </div>
-                    {body && (
-                      <p className='text-muted-foreground line-clamp-3 whitespace-pre-line text-xs leading-5'>
-                        {body}
-                      </p>
-                    )}
-                    <span className='text-muted-foreground/60 mt-2 inline-flex items-center gap-1 text-xs opacity-0 transition-opacity group-hover:opacity-100'>
+                    <button
+                      type='button'
+                      onClick={() => handleAnnouncementClick(item)}
+                      className='text-muted-foreground mt-2 inline-flex items-center gap-1 text-xs underline-offset-2 hover:underline'
+                    >
                       {t('Click for details')}
                       <ExternalLink className='size-3' />
-                    </span>
+                    </button>
                   </div>
                 </div>
-              </button>
+              </article>
             )
           })}
         </div>
