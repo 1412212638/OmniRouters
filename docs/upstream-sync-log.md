@@ -1,5 +1,12 @@
 # Upstream Sync Log
 
+## 2026-09-11 (dynamic tier detail formatting)
+
+- Local reason: dynamic expression tier prices were displayed as internal quota values and omitted the request unit.
+- Changed: numeric tier prices are displayed as currency per request in the dynamic pricing table; billing and group multiplier calculations are unchanged.
+- Validation: `git diff --check`; Go compilation and browser verification unavailable locally.
+- Local commit and push status: pending.
+
 ## 2026-09-11 (dynamic tier price display)
 
 - Local reason: expressions using `tier("label", 68000)` were billed correctly but displayed no model-square price because the frontend parser only recognized `fixed(68000)`.

@@ -354,11 +354,11 @@ export function DynamicPricingBreakdown({
                           >
                             {value > 0
                               ? v.kind === 'request'
-                                ? formatBillingCurrencyFromUSD(value, {
+                                ? `${formatBillingCurrencyFromUSD(value / 1_000_000, {
                                     digitsLarge: 4,
                                     digitsSmall: 6,
                                     abbreviate: false,
-                                  })
+                                  })}/${t('request')}`
                                 : `${symbol}${(value * rate).toFixed(4)}`
                               : '-'}
                           </div>
@@ -449,11 +449,11 @@ export function DynamicPricingBreakdown({
                   return value > 0 ? (
                     <span className={cn(!compact && 'font-semibold')}>
                       {v.kind === 'request'
-                        ? formatBillingCurrencyFromUSD(value, {
+                        ? `${formatBillingCurrencyFromUSD(value / 1_000_000, {
                             digitsLarge: 4,
                             digitsSmall: 6,
                             abbreviate: false,
-                          })
+                          })}/${t('request')}`
                         : `${symbol}${(value * rate).toFixed(4)}`}
                     </span>
                   ) : (
