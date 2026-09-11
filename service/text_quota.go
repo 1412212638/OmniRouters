@@ -550,6 +550,13 @@ func PostTextConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, us
 		Other:            other,
 	})
 	gopool.Go(func() {
-		perfmetrics.RecordRelaySample(relayInfo, true, int64(summary.CompletionTokens), int64(summary.PromptTokens+summary.CacheTokens), int64(summary.CacheTokens))
+		// PromptTokens is the total prompt count for ordinary usage responses.
+		// Performance metrics keep uncached input and cached input separately so
+		// cache rate uses cached / (cached + uncached) without double-counting.
+		uncachedPromptTokens := summary.PromptTokens - summary.CacheTokens
+		if uncachedPromptTokens < 0 {
+			uncachedPromptTokens = 0
+		}
+		perfmetrics.RecordRelaySample(relayInfo, true, int64(summary.CompletionTokens), int64(uncachedPromptTokens), int64(summary.CacheTokens))
 	})
 }

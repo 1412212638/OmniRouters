@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-12 - Normalize text performance cache input
+
+- Local reason: the text settlement performance path passed total prompt tokens plus cached tokens, double-counting cached input in the cache-rate denominator.
+- Changed: pass uncached prompt tokens separately, matching the ordinary settlement path; cache rate now uses cached / (cached + uncached).
+- Preserved: billing, quota settlement, usage logs, routing, and provider usage parsing.
+- Validation: `git diff --check`; Go compilation and browser verification unavailable locally.
+- Commit/push: pending.
+
 ## 2026-09-12 - Preserve cache counters in performance group results
 
 - Local reason: performance cards returned an absent cache rate even when time buckets contained cache observations. `buildQueryResult` omitted input/cache counters from group totals.
