@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-12 - Preserve cache counters in performance group results
+
+- Local reason: performance cards returned an absent cache rate even when time buckets contained cache observations. `buildQueryResult` omitted input/cache counters from group totals.
+- Changed: sum both counters across buckets before computing the group cache rate. Added regressions for persisted-shaped and live buckets, hit-only denominators, and missing observations.
+- Preserved: request recording, database schema, pricing and settlement, token normalization, percentile behavior, and no-cache display. This addresses missing aggregation, not historical denominator accuracy or all provider mappings.
+- Validation: source review and diff check; Go tests cannot be executed without a local Go toolchain. No production API or browser verification performed.
+- Commit/push: local changes only; not committed or pushed.
+
 ## 2026-09-12 (TPOT percentile unit display)
 
 - Local reason: TPOT percentile values were formatted as generic latency, causing millisecond-per-token values to display with the `s` suffix.

@@ -372,6 +372,8 @@ func buildQueryResult(modelName string, merged map[bucketKey]counters) QueryResu
 			total.ttftCount += value.ttftCount
 			total.outputTokens += value.outputTokens
 			total.generationMs += value.generationMs
+			total.inputTokens += value.inputTokens
+			total.cachedTokens += value.cachedTokens
 			mergeReservoir(&total.ttftQuantiles, value.ttftQuantiles)
 			mergeReservoir(&total.tpotQuantiles, value.tpotQuantiles)
 			series = append(series, bucketPoint(ts, value))
