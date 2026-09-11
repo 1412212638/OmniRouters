@@ -236,6 +236,7 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
       : 0
   const incidentCount = uptimeSeries.reduce((s, p) => s + p.incidents, 0)
   const percentileText = (value?: number) => value && value > 0 ? formatLatency(value) : '—'
+  const tpotPercentileText = (value?: number) => value && value > 0 ? formatTpot(value) : '—'
 
   return (
     <div className='flex flex-col gap-4'>
@@ -294,7 +295,7 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
         <StatCard
           icon={Timer}
           label={t('TPOT percentiles')}
-          value={`P95 ${percentileText(performances.map((p) => p.tpot_p95_ms).find((v) => v && v > 0))} · P99 ${percentileText(performances.map((p) => p.tpot_p99_ms).find((v) => v && v > 0))}`}
+          value={`P95 ${tpotPercentileText(performances.map((p) => p.tpot_p95_ms).find((v) => v && v > 0))} · P99 ${tpotPercentileText(performances.map((p) => p.tpot_p99_ms).find((v) => v && v > 0))}`}
         />
       </div>
 

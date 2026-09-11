@@ -1,5 +1,12 @@
 # Upstream Sync Log
 
+## 2026-09-12 (TPOT percentile unit display)
+
+- Local reason: TPOT percentile values were formatted as generic latency, causing millisecond-per-token values to display with the `s` suffix.
+- Changed: TPOT P95/P99 use the dedicated `ms/token` formatter; TTFT P95/P99 continue using latency formatting.
+- Validation: `git diff --check`; Go compilation and browser verification unavailable locally.
+- Local commit and push status: pending.
+
 ## 2026-09-12 (historical TPOT sample compatibility)
 
 - Local reason: previously persisted TPOT percentile samples used the old seconds-to-milliseconds conversion twice.
