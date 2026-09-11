@@ -1,5 +1,12 @@
 # Upstream Sync Log
 
+## 2026-09-11 (dynamic card request price)
+
+- Local reason: model cards displayed dynamic request prices in internal quota units while the detail table used currency units.
+- Changed: dynamic card request-price ranges now convert the internal millionth-unit value before formatting, producing values such as `$0.068-$0.080/request`; group discounts remain applied.
+- Validation: `git diff --check`; Go compilation and browser verification unavailable locally.
+- Local commit and push status: pending.
+
 ## 2026-09-11 (dynamic tier detail formatting)
 
 - Local reason: dynamic expression tier prices were displayed as internal quota values and omitted the request unit.
