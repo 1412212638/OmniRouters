@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-12 (performance cache input mapping)
+
+- Local reason: usage logs contained cache tokens, but the standard relay performance recording path passed only uncached prompt tokens to cache-rate aggregation.
+- Changed: the performance sample now passes total input tokens (uncached prompt plus cached input) while retaining cached tokens separately, so cache rate matches the usage log.
+- Preserved: billing, quota settlement, routing, and usage-log accounting.
+- Validation: `git diff --check`; Go compilation and browser verification unavailable locally.
+- Local commit and push status: pending.
+
 ## 2026-09-11 (dynamic card request price)
 
 - Local reason: model cards displayed dynamic request prices in internal quota units while the detail table used currency units.
