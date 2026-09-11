@@ -53,6 +53,7 @@ func flushCompletedBuckets() {
 			CachedTokens:   drained.cachedTokens,
 			TTFTSamples:    marshalSamples(drained.ttftQuantiles.values),
 			TPOTSamples:    marshalSamples(drained.tpotQuantiles.values),
+			SampleVersion:  2,
 		})
 		if err != nil {
 			bucket.addCounters(drained)

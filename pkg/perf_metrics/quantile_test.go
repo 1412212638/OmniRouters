@@ -14,3 +14,13 @@ func TestQuantileReservoirIsBoundedAndOrdered(t *testing.T) {
 		t.Fatal("expected percentile samples")
 	}
 }
+
+func TestQuantileReservoirHidesSmallSamples(t *testing.T) {
+	var reservoir quantileReservoir
+	for i := int64(1); i < quantileMinimumSamples; i++ {
+		reservoir.add(i, uint64(i))
+	}
+	if reservoir.percentile(.95) != 0 {
+		t.Fatal("expected percentile to be hidden for a small sample")
+	}
+}

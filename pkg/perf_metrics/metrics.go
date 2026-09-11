@@ -103,6 +103,9 @@ func Query(params QueryParams) (QueryResult, error) {
 		var ttftSamples, tpotSamples []int64
 		_ = common.UnmarshalJsonStr(row.TTFTSamples, &ttftSamples)
 		_ = common.UnmarshalJsonStr(row.TPOTSamples, &tpotSamples)
+		if row.SampleVersion < 2 {
+			for i := range tpotSamples { tpotSamples[i] /= 1000 }
+		}
 		mergeCounters(merged, bucketKey{
 			model:    row.ModelName,
 			group:    row.Group,
@@ -425,7 +428,7 @@ func avgTpot(value counters) int64 {
 	if value.outputTokens <= 0 || value.generationMs <= 0 {
 		return 0
 	}
-	return value.generationMs * 1000 / value.outputTokens
+	return value.generationMs / value.outputTokens
 }
 
 func cacheRate(value counters) *float64 {

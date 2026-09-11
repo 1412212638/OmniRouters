@@ -1,5 +1,21 @@
 # Upstream Sync Log
 
+## 2026-09-12 (historical TPOT sample compatibility)
+
+- Local reason: previously persisted TPOT percentile samples used the old seconds-to-milliseconds conversion twice.
+- Changed: performance buckets carry a sample-format version; legacy samples are converted on read while new samples use the corrected unit.
+- Preserved: numeric aggregates and all billing behavior.
+- Validation: `git diff --check`; Go compilation and browser verification unavailable locally.
+- Local commit and push status: pending.
+
+## 2026-09-12 (performance TPOT and percentile validity)
+
+- Local reason: TPOT was multiplied by 1000 although generation duration was already stored in milliseconds, and P95/P99 were shown for very small samples.
+- Changed: TPOT and its percentile samples now use milliseconds per output token; percentile values remain hidden until at least 10 valid samples exist.
+- Preserved: billing, cache accounting, routing, and raw latency/TTFT measurements.
+- Validation: `git diff --check`; Go compilation and browser verification unavailable locally.
+- Local commit and push status: pending.
+
 ## 2026-09-12 (performance cache input mapping)
 
 - Local reason: usage logs contained cache tokens, but the standard relay performance recording path passed only uncached prompt tokens to cache-rate aggregation.

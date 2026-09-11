@@ -25,6 +25,7 @@ type PerfMetric struct {
 	CachedTokens   int64  `json:"-" gorm:"default:0"`
 	TTFTSamples    string `json:"-" gorm:"type:text"`
 	TPOTSamples    string `json:"-" gorm:"type:text"`
+	SampleVersion  int    `json:"-" gorm:"default:2"`
 }
 
 func (PerfMetric) TableName() string {

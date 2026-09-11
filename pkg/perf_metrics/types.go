@@ -132,7 +132,7 @@ func (b *atomicBucket) add(sample Sample) {
 		b.outputTokens.Add(sample.OutputTokens)
 		b.generationMs.Add(sample.GenerationMs)
 		b.mu.Lock()
-		b.tpotQuantiles.add(sample.GenerationMs*1000/sample.OutputTokens, uint64(sample.OutputTokens)^b.tpotQuantiles.seen)
+		b.tpotQuantiles.add(sample.GenerationMs/sample.OutputTokens, uint64(sample.OutputTokens)^b.tpotQuantiles.seen)
 		b.mu.Unlock()
 	}
 	if sample.CachedTokens > 0 {

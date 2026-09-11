@@ -5,6 +5,7 @@ import "sort"
 // quantileReservoir keeps a bounded, uniformly sampled set of observations.
 // It prevents percentile memory from growing with request volume.
 const quantileReservoirSize = 256
+const quantileMinimumSamples = 10
 
 type quantileReservoir struct {
 	values []int64
@@ -26,7 +27,7 @@ func (r *quantileReservoir) add(value int64, random uint64) {
 }
 
 func (r *quantileReservoir) percentile(percent float64) int64 {
-	if len(r.values) == 0 {
+	if len(r.values) < quantileMinimumSamples {
 		return 0
 	}
 	values := append([]int64(nil), r.values...)
