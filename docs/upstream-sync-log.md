@@ -2098,5 +2098,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Fixed: added bounds-checked `constant.GetChannelBaseURL`; added filter-aware database selection with the same request-path and task-plugin identity predicates as the memory-cache path; applied those filters to exact and normalized model candidates; and updated the channel-selection APIs to carry `dto.ChannelFilter` constraints through both cache modes.
 - Preserved: channel priority/weight selection, plugin identity fail-closed behavior when a required plugin key cannot be resolved, Sora/audio pricing, group pricing, payment flows, audit logging, and existing provider routing.
 - Validation: `gofmt`/source inspection, `git diff --check`, conflict-marker scan, and call-site signature review. Local Go compilation and Docker/frontend builds were intentionally not run; GitHub Actions remains authoritative.
-- Commit/push: pending in the current source-level fix commit; this entry will be retained with the resulting commit and push status after publishing.
+- Commit/push: implemented in `f4024478f` and pushed to `origin/main`; GitHub Actions is the remaining build verification step.
 
