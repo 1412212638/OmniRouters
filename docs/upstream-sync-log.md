@@ -2100,3 +2100,19 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source-format review, `git diff --check`, conflict-marker scan, and call-site signature review. The local Go toolchain was unavailable, so `gofmt`, Go compilation, and Docker/frontend builds were intentionally not run; GitHub Actions remains authoritative.
 - Commit/push: implementation committed as `f4024478f`; the corrected log is included in `00530e07c`, which is present on `origin/main`. GitHub Actions is the remaining build verification step.
 
+## 2026-09-12 - CI build fix: model modifier matching dependencies
+
+- Cause: the image exposed missing symbols in the model pricing and token-limit matching path: model modifier parsing and canonical billing helpers were omitted, and middleware referenced `ratio_setting.RoutingMatchModelName`.
+- Fixed: completed the host reasoning wrapper for explicit `@` modifiers and legacy thinking/effort suffixes, added canonical billing candidates, and added routing-name normalization before wildcard matching.
+- Preserved: existing Sora/audio and group pricing, plugin routing, payment/accounting, audit logging, and model request behavior. This change only completes model-name normalization dependencies used by selection and billing lookup.
+- Validation: source inspection, `git diff --check`, conflict-marker scan, and symbol/call-site review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
+- Commit/push: pending in the current source-level fix commit.
+
+## 2026-09-12 - CI build fix: RelayKit modifier parser dependency
+
+- Cause: the CI image still reported `reasoning.ParseModelModifiers` as undefined because the pricing helper imports RelayKit's reasoning package, whose modifier parser had not been included in the selective sync.
+- Fixed: restored RelayKit's explicit trailing `@key:value` model modifier parser and its public model modifier types, while keeping opaque provider names and existing suffix parsers intact.
+- Preserved: model pricing lookup, Sora/audio and group pricing, plugin routing, payment/accounting, audit logging, and all existing relay conversion behavior.
+- Validation: source inspection, `git diff --check`, conflict-marker scan, and import/symbol review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
+- Commit/push: pending in the current source-level fix commit.
+

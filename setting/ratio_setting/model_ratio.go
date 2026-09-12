@@ -5,6 +5,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
+	hostreasoning "github.com/QuantumNous/new-api/setting/reasoning"
 	"github.com/QuantumNous/new-api/types"
 )
 
@@ -741,6 +742,11 @@ func FormatMatchingModelName(name string) string {
 		name = "gpt-4o-gizmo-*"
 	}
 	return name
+}
+
+// RoutingMatchModelName returns the name used for channel and token-limit matching.
+func RoutingMatchModelName(name string) string {
+	return FormatMatchingModelName(hostreasoning.BaseModelName(name))
 }
 
 // result: 倍率or价格， usePrice， exist
