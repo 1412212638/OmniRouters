@@ -33,12 +33,14 @@ type BillingSetting struct {
 	BillingMode       map[string]string `json:"billing_mode"`
 	BillingExpr       map[string]string `json:"billing_expr"`
 	PluginBillingExpr map[string]string `json:"plugin_billing_expr"`
+	SoraPerRequestPricing map[string]SoraPerRequestPricing `json:"sora_per_request_pricing"`
 }
 
 var billingSetting = BillingSetting{
 	BillingMode:       make(map[string]string),
 	BillingExpr:       make(map[string]string),
 	PluginBillingExpr: make(map[string]string),
+	SoraPerRequestPricing: make(map[string]SoraPerRequestPricing),
 }
 
 func init() {
@@ -172,12 +174,15 @@ func GetBillingExprCopy() map[string]string {
 }
 
 func GetPricingSyncData(base map[string]any) map[string]any {
-	extra := make(map[string]any, 2)
+	extra := make(map[string]any, 3)
 	if modes := GetBillingModeCopy(); len(modes) > 0 {
 		extra[BillingModeField] = modes
 	}
 	if exprs := GetBillingExprCopy(); len(exprs) > 0 {
 		extra[BillingExprField] = exprs
+	}
+	if len(billingSetting.SoraPerRequestPricing) > 0 {
+		extra["sora_per_request_pricing"] = lo.Assign(billingSetting.SoraPerRequestPricing)
 	}
 	return lo.Assign(base, extra)
 }

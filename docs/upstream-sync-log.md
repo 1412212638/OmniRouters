@@ -2060,3 +2060,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: upstream cherry-pick attempts were aborted where they would introduce the full upstream frontend tree; selected backend changes were applied and conflict markers were checked. `git diff --check` passed. No local Go compilation, database matrix, frontend build or Docker build was run under the source-only workflow.
 - Commit/push: batches 1 and 2 are committed locally; batch 3 review is recorded. Final push remains pending the combined source review.
 
+## 2026-09-12 - Local billing compatibility correction
+
+- Review finding: the plugin pricing merge removed the local `SoraPerRequestPricing` field from `BillingSetting`, which would have broken our Sora/audio per-request pricing configuration.
+- Corrected: restored the field, initialization and pricing sync export while retaining upstream plugin billing-expression support.
+- Preserved: Sora resolution pricing and fixed `audio_generation` surcharge behavior; no payment or quota calculation path was changed.
+- Validation: source diff review and `git diff --check`; Go/frontend builds remain delegated to CI under the source-only workflow.
+
