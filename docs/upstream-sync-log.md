@@ -1,5 +1,18 @@
 # Upstream Sync Log
 
+## 2026-09-12 - Fix pricing preview build dependencies
+
+- Local reason: GitHub Actions exposed missing symbols referenced by the first
+  pricing-expression batch: default pricing snapshots, completion-ratio
+  resolution, cache/image defaults, and legacy DALL-E conversion rules.
+- Changed: restored these source-level helpers and kept legacy DALL-E rules in
+  the model package; no pricing settlement, Sora/audio, group discount,
+  payment, wallet, or plugin permission behavior was changed.
+- Deliberately skipped: Passkey multi-domain support and standalone audit logs.
+- Validation: source review and `git diff --check`; local Go compilation and
+  Docker build were intentionally not run. GitHub Actions is authoritative.
+- Commit and push status: pending.
+
 ## 2026-09-12 - Normalize text performance cache input
 
 - Local reason: the text settlement performance path passed total prompt tokens plus cached tokens, double-counting cached input in the cache-rate denominator.

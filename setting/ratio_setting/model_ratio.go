@@ -1,6 +1,7 @@
 package ratio_setting
 
 import (
+	"maps"
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
@@ -426,6 +427,23 @@ func GetDefaultModelPriceMap() map[string]float64 {
 	return defaultModelPrice
 }
 
+// GetDefaultPricingMaps returns independent copies for model-level pricing
+// previews. The preview must not be able to mutate the live default maps.
+func GetDefaultPricingMaps() map[string]map[string]float64 {
+	defaults := map[string]map[string]float64{
+		"ModelPrice": defaultModelPrice, "ModelRatio": defaultModelRatio,
+		"CompletionRatio": defaultCompletionRatio, "CacheRatio": defaultCacheRatio,
+		"CreateCacheRatio": defaultCreateCacheRatio, "ImageRatio": defaultImageRatio,
+		"AudioRatio": defaultAudioRatio, "AudioCompletionRatio": defaultAudioCompletionRatio,
+	}
+	result := make(map[string]map[string]float64, len(defaults))
+	for key, values := range defaults {
+		result[key] = make(map[string]float64, len(values))
+		maps.Copy(result[key], values)
+	}
+	return result
+}
+
 func CompletionRatio2JSONString() string {
 	return completionRatioMap.MarshalJSONString()
 }
@@ -488,6 +506,23 @@ func GetCompletionRatioInfo(name string) CompletionRatioInfo {
 		Ratio:  hardCodedRatio,
 		Locked: false,
 	}
+}
+
+// ResolveCompletionRatio applies the same hard-coded and configured ratio
+// precedence as relay pricing, without reading mutable settings a second time.
+func ResolveCompletionRatio(name string, configured *float64) CompletionRatioInfo {
+	name = FormatMatchingModelName(name)
+	if strings.Contains(name, "/") && configured != nil {
+		return CompletionRatioInfo{Ratio: *configured}
+	}
+	hardCodedRatio, locked := getHardcodedCompletionModelRatio(name)
+	if locked {
+		return CompletionRatioInfo{Ratio: hardCodedRatio, Locked: true}
+	}
+	if configured != nil {
+		return CompletionRatioInfo{Ratio: *configured}
+	}
+	return CompletionRatioInfo{Ratio: hardCodedRatio}
 }
 
 func getHardcodedCompletionModelRatio(name string) (float64, bool) {
@@ -656,6 +691,7 @@ func ModelRatio2JSONString() string {
 var defaultImageRatio = map[string]float64{
 	"gpt-image-1": 2,
 }
+const DefaultImageRatio = 1.0
 var imageRatioMap = types.NewRWMap[string, float64]()
 var audioRatioMap = types.NewRWMap[string, float64]()
 var audioCompletionRatioMap = types.NewRWMap[string, float64]()

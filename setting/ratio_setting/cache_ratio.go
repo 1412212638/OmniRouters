@@ -80,6 +80,8 @@ var defaultCacheRatio = map[string]float64{
 	"claude-opus-4-8-low":                 0.1,
 }
 
+const DefaultCacheRatio = 1.0
+
 var defaultCreateCacheRatio = map[string]float64{
 	"gpt-5.6-sol":                         1.25,
 	"gpt-5.6-terra":                       1.25,
@@ -124,6 +126,8 @@ var defaultCreateCacheRatio = map[string]float64{
 	"claude-opus-4-8-medium":              1.25,
 	"claude-opus-4-8-low":                 1.25,
 }
+
+const DefaultCreateCacheRatio = 1.0
 
 //var defaultCreateCacheRatio = map[string]float64{}
 
