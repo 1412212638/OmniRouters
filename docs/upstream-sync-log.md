@@ -2381,3 +2381,8 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: existing payment amounts, billing calculations, pricing expressions, Sora/audio billing, and other payment providers.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
   - Commit/push: pending.
+- 2026-09-13 - Fix billing model pricing page initialization crash
+  - Local fix: include the plugin billing expression option in the billing settings defaults so the model pricing editor receives the complete pricing contract.
+  - Preserved: existing model pricing, task plugins, Sora/audio billing, group discounts, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
