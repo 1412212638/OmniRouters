@@ -2108,6 +2108,15 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source inspection, `git diff --check`, conflict-marker scan, and symbol/call-site review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
 - Commit/push: pending in the current source-level fix commit.
 
+## 2026-09-12 - CI build fix: initialize plugin task proxy adaptors
+
+- Fixed Gemini and Vertex video proxy lookups to initialize the plugin adaptor
+  with the task channel API key, base URL, and proxy settings before polling.
+- Removed the final legacy polling call shape; both callers now pass the task
+  and HTTP response required by the plugin contract.
+- Preserved generated media URL fallback extraction and all billing/payment
+  behavior.
+
 ## 2026-09-12 - CI follow-up correction
 
 - Removed an unused Passkey-domain audit helper from the selective sync because
@@ -2115,6 +2124,17 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved the local audit implementation and added persistence of uploaded
   plugin icons when updating an existing plugin version.
 - Validation: source review and `git diff --check`; CI remains authoritative.
+
+## 2026-09-12 - CI build fix: Gemini and Vertex task proxy callers
+
+- Fixed the remaining callers in `controller/video_proxy_gemini.go` that still
+  passed legacy map request data and the old one-argument task parser.
+- The proxy now passes the persisted task and HTTP response through the unified
+  task-plugin polling contract, matching the regular polling path.
+- Preserved: generated video URL extraction, API-key handling, task billing,
+  plugin routing, and all payment/accounting behavior.
+- Validation: source call-site review and `git diff --check`; local Go and
+  Docker builds were not run, so GitHub Actions remains authoritative.
 
 ## 2026-09-12 - CI build fix: restore plugin metadata and audit dependencies
 

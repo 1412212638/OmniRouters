@@ -3,7 +3,6 @@ package controller
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
