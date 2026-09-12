@@ -15,6 +15,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var ErrPasskeyDomainRemovalConfirmation = errors.New("Review the affected Passkeys and confirm the domain removal.")
+
 var (
 	ErrPasskeyNotFound         = errors.New("passkey credential not found")
 	ErrFriendlyPasskeyNotFound = errors.New("Passkey 验证失败，请重试或联系管理员")

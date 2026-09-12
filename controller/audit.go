@@ -77,11 +77,11 @@ func recordPasskeyDomainAudit(c *gin.Context, change *model.PasskeyDomainChange,
 	} else if confirmed && change != nil && len(change.RemovedRPIDs) > 0 {
 		action = "option.passkey_domains_confirmed"
 	}
-	auditInfo := &model.AuditRequestInfo{
-		Method: c.Request.Method, Route: c.FullPath(), Path: c.FullPath(),
-		Status: c.Writer.Status(), Success: err == nil,
+	auditInfo := map[string]interface{}{
+		"method": c.Request.Method, "route": c.FullPath(), "path": c.FullPath(),
+		"status": c.Writer.Status(), "success": err == nil,
 	}
-	model.RecordOperationAuditLog(c.GetInt("id"), c.GetInt("role"), auditContentEN(action, params), c.ClientIP(), action, params, auditOperatorInfo(c), auditInfo, c)
+	model.RecordOperationAuditLog(c.GetInt("id"), auditContentEN(action, params), c.ClientIP(), action, params, auditOperatorInfo(c), auditInfo)
 	markAuditLogged(c)
 }
 

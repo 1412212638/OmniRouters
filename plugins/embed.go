@@ -2,14 +2,15 @@ package plugins
 
 import (
 	"embed"
+	"encoding/base64"
 	"fmt"
 	"io/fs"
 
 	"github.com/QuantumNous/new-api/pkg/jsplugin"
 )
 
-//go:embed tasks/*/plugin.js
-var taskPlugins embed.FS
+	//go:embed tasks
+	var taskPlugins embed.FS
 
 func init() {
 	entries, err := fs.ReadDir(taskPlugins, "tasks")
@@ -28,7 +29,30 @@ func init() {
 		if _, registerErr := jsplugin.DefaultRegistry.RegisterFactory(source, jsplugin.Options{Key: key}); registerErr != nil {
 			panic(fmt.Sprintf("register embedded task plugin %s: %v", key, registerErr))
 		}
+		if mediaType, data, ok := Icon(key); ok {
+			if iconErr := jsplugin.ValidateIconImage(mediaType, data); iconErr != nil {
+				panic(fmt.Sprintf("embedded task plugin %s icon: %v", key, iconErr))
+			}
+		}
 	}
+}
+
+func Icon(key string) (mediaType string, data []byte, ok bool) {
+	if data, err := taskPlugins.ReadFile("tasks/" + key + "/icon.svg"); err == nil {
+		return "image/svg+xml", data, true
+	}
+	if data, err := taskPlugins.ReadFile("tasks/" + key + "/icon.png"); err == nil {
+		return "image/png", data, true
+	}
+	return "", nil, false
+}
+
+func IconDataURI(key string) string {
+	mediaType, data, ok := Icon(key)
+	if !ok {
+		return ""
+	}
+	return "data:" + mediaType + ";base64," + base64.StdEncoding.EncodeToString(data)
 }
 
 // Source returns the embedded factory source for a task plugin key.
@@ -39,4 +63,3 @@ func Source(key string) (string, error) {
 	}
 	return string(source), nil
 }
-

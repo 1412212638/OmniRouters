@@ -41,11 +41,14 @@ type TaskPlugin struct {
 	Version    string `json:"version" gorm:"size:64;not null;uniqueIndex:uk_task_plugin_key_version,priority:2"`
 	Source     string `json:"source" gorm:"type:text;not null"`
 	SourceHash string `json:"source_hash" gorm:"size:64;not null"`
+	Icon       string `json:"-" gorm:"size:524288"`
 	Enabled    bool   `json:"enabled" gorm:"not null"`
 	Active     bool   `json:"active" gorm:"not null;index"`
 	CreatedAt  int64  `json:"created_at" gorm:"not null"`
 	Remark     string `json:"remark" gorm:"type:text"`
 }
+
+func (plugin TaskPlugin) HasIcon() bool { return plugin.Icon != "" }
 
 func SaveTaskPlugin(plugin *TaskPlugin) error {
 	return DB.Transaction(func(tx *gorm.DB) error {
@@ -231,4 +234,3 @@ func DeleteTaskPluginVersion(key, version string) (TaskPluginDeleteResult, error
 	})
 	return result, err
 }
-

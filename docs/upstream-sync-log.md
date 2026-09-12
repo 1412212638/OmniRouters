@@ -2108,6 +2108,25 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source inspection, `git diff --check`, conflict-marker scan, and symbol/call-site review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
 - Commit/push: pending in the current source-level fix commit.
 
+## 2026-09-12 - CI build fix: restore plugin metadata and audit dependencies
+
+- Cause: the Docker Go build exposed a partial upstream sync: audit controller
+  code referenced the newer typed audit signature, while this branch still
+  uses the existing structured-log audit storage; task-plugin controllers
+  referenced missing icon decoding, embedded icon lookup, `TaskPlugin.Icon`,
+  `HasIcon`, Passkey domain confirmation, and the unknown-meta i18n key.
+- Fixed: adapted the Passkey audit call to the local audit map contract,
+  restored the Passkey confirmation sentinel, added bounded PNG/SVG data-URI
+  validation and embedded icon helpers, restored the plugin icon model field
+  and helper, and added English/Chinese unknown metadata messages.
+- Preserved: existing audit-log storage and redaction, plugin upload controls,
+  plugin routing, Sora/audio pricing, payment/accounting, group discounts, and
+  authentication/session behavior.
+- Validation: source reference review, conflict-marker scan, and `git diff
+  --check`. Local Go compilation, frontend builds, and Docker builds were not
+  run under the source-only workflow; GitHub Actions remains authoritative.
+- Commit/push: pending in the current source-level fix commit.
+
 ## 2026-09-12 - CI build fix: task plugin request interface compatibility
 
 - Cause: the task plugin adaptor had already adopted the upstream `ParseResponse`, task-aware polling, and batch interfaces, while the local legacy `channel.TaskAdaptor` assertion and `DoTaskApiRequest` parameter still required the old `DoResponse` contract.
