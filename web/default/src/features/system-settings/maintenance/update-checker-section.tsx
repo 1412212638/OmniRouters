@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ExternalLinkIcon, RefreshCcwIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -47,6 +47,24 @@ export function UpdateCheckerSection({
   const [checking, setChecking] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [release, setRelease] = useState<ReleaseInfo | null>(null)
+
+  useEffect(() => {
+    if (!currentVersion) return
+    let cancelled = false
+    const reminderKey = 'omnirouters.update-reminder'
+    fetch('https://api.github.com/repos/Calcium-Ion/new-api/releases/latest', {
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'new-api-dashboard' },
+    })
+      .then(async (response) => (response.ok ? ((await response.json()) as ReleaseInfo) : null))
+      .then((latest) => {
+        if (cancelled || !latest?.tag_name || latest.tag_name === currentVersion) return
+        if (window.localStorage.getItem(reminderKey) === latest.tag_name) return
+        window.localStorage.setItem(reminderKey, latest.tag_name)
+        toast.info(t('New version available: {{version}}', { version: latest.tag_name }))
+      })
+      .catch(() => undefined)
+    return () => { cancelled = true }
+  }, [currentVersion, t])
 
   const uptime = startTime ? formatTimestamp(startTime) : t('Unknown')
   const version = currentVersion || t('Unknown')

@@ -2067,3 +2067,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: Sora resolution pricing and fixed `audio_generation` surcharge behavior; no payment or quota calculation path was changed.
 - Validation: source diff review and `git diff --check`; Go/frontend builds remain delegated to CI under the source-only workflow.
 
+## 2026-09-12 - Upstream follow-up: administrator update reminder
+
+- Adapted upstream `251b76d86` to the existing `web/default` maintenance page: administrators now receive a one-time-per-release informational toast when a newer release is detected. The existing manual release inspection dialog remains unchanged.
+- Preserved: no automatic upgrade, no deployment mutation, no authentication or payment behavior, and no repeated reminder for the same release in the same browser.
+- Validation: source diff review and `git diff --check`; no local frontend build or Docker build under the source-only workflow.
+
