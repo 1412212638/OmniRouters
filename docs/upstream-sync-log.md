@@ -2233,3 +2233,19 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   GitHub Actions remains authoritative.
 - Commit/push: this log entry is pending in the current source-level commit.
 
+## 2026-09-12 - Upstream sync review: task plugin image capability
+
+- Upstream scope reviewed: `74629e29f` task streaming and plugin pricing, plus
+  the related image-plugin runtime changes.
+- Status: backend capability is already integrated. The current task plugin
+  runtime and Alibaba plugin cover image model discovery, text-to-image and
+  image-to-image requests, bounded `image_count` usage, synchronous/interleave
+  streaming, result/artifact parsing, and task settlement.
+- Preserved: Sora/audio billing, group discounts, wallet/payment behavior,
+  plugin permissions and upload controls, and the independent OpenAI image
+  task path.
+- Validation: source and call-site review only; local compilation, frontend
+  build, and Docker build were intentionally not run. GitHub Actions remains
+  authoritative.
+- Commit/push: this log entry is pending in the current source-level commit.
+
