@@ -134,6 +134,7 @@ import {
   getChannelKey,
   getGroups,
   getPrefillGroups,
+  getTaskPluginOptions,
   refreshCodexCredential,
 } from '../../api'
 import {
@@ -672,6 +673,11 @@ export function ChannelMutateDrawer({
     queryFn: () => getPrefillGroups('model'),
   })
 
+  const { data: taskPluginOptions = [] } = useQuery({
+    queryKey: ['task-plugin-options'],
+    queryFn: getTaskPluginOptions,
+  })
+
   const { copyToClipboard } = useCopyToClipboard()
 
   const {
@@ -895,6 +901,16 @@ export function ChannelMutateDrawer({
       CHANNEL_TYPE_OPTIONS.find((option) => option.value === currentType)
         ?.label || `#${currentType}`,
     [currentType]
+  )
+
+  const compatibleTaskPlugins = useMemo(
+    () =>
+      taskPluginOptions.filter(
+        (plugin) =>
+          plugin.models.length > 0 &&
+          (!plugin.channelTypes || plugin.channelTypes.includes(currentType))
+      ),
+    [currentType, taskPluginOptions]
   )
 
   const channelTypeOptions = useMemo(() => {
@@ -1979,6 +1995,31 @@ export function ChannelMutateDrawer({
                                       />
                                     </div>
                                   </FormControl>
+                                  {compatibleTaskPlugins.length > 0 && (
+                                    <div className='border-border/60 bg-muted/20 flex flex-wrap items-center gap-2 rounded-md border p-2'>
+                                      <span className='text-muted-foreground text-xs'>
+                                        {t('Task plugin models')}
+                                      </span>
+                                      {compatibleTaskPlugins.map((plugin) => (
+                                        <Button
+                                          key={plugin.key}
+                                          type='button'
+                                          variant='outline'
+                                          size='sm'
+                                          onClick={() =>
+                                            updateModels([
+                                              ...new Set([
+                                                ...currentModelsArray,
+                                                ...plugin.models,
+                                              ]),
+                                            ])
+                                          }
+                                        >
+                                          {plugin.name}
+                                        </Button>
+                                      ))}
+                                    </div>
+                                  )}
                                   {sensitiveLocked && (
                                     <FormDescription>
                                       {t(
