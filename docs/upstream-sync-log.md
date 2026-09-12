@@ -2052,3 +2052,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: cherry-pick conflicts were resolved by retaining local architecture and reviewing affected diffs; no local Go compilation, database matrix, frontend build or Docker build was run under the source-only workflow.
 - Commit/push: selected batch 1 changes are committed locally; push is pending completion of the remaining safe batches.
 
+## 2026-09-12 - Upstream follow-up after bdef117505: batch 2 and batch 3
+
+- Batch 2 integrated the backend portions of `74629e29f`: task plugin streaming response handling, model-aware usage profiles, bounded plugin state/response persistence, shared-model routing, plugin usage validation, and task pricing metadata. The upstream frontend editor files were not copied because they target the migrated `web/` tree; the current `web/default` remains the local frontend baseline.
+- Batch 3 was reviewed from `385d2dfd1` for multi-RP ID Passkey support. The independent configuration/documentation context already matches the local authentication structure; the deep authentication/session changes require the upstream account-security tree and were not force-applied over local session/rate-limit fixes. No Passkey behavior was changed in this batch without a compatible implementation path.
+- Preserved: audit logging and retention, existing login/session protections, Sora/audio pricing, Waffo/payment flows, group discounts, and local plugin admin/upload permissions.
+- Validation: upstream cherry-pick attempts were aborted where they would introduce the full upstream frontend tree; selected backend changes were applied and conflict markers were checked. `git diff --check` passed. No local Go compilation, database matrix, frontend build or Docker build was run under the source-only workflow.
+- Commit/push: batches 1 and 2 are committed locally; batch 3 review is recorded. Final push remains pending the combined source review.
+
