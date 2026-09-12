@@ -2350,3 +2350,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check`; Go tests were not run because Go is not
   installed in the local environment.
 - Commit/push: pending.
+## 2026-09-13 - Restore pricing catalog metadata and creation ordering
+
+- Local fix: pricing responses now include model creation time, input/output
+  modalities, and vendor display metadata; catalog output is sorted by creation
+  time descending with a stable name tie-breaker.
+- Preserved model filtering, group pricing, dynamic pricing, and performance
+  display behavior.
+- Validation: `git diff --check`; Go tests were not run because Go is not
+  installed locally.
+- Commit/push: pending.

@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -28,6 +29,7 @@ type PricingPluginVariant struct {
 type Pricing struct {
 	BillingPluginVariants  []PricingPluginVariant               `json:"billing_plugin_variants,omitempty"`
 	ModelName              string                               `json:"model_name"`
+	CreatedTime            int64                                `json:"created_time"`
 	Description            string                               `json:"description,omitempty"`
 	Icon                   string                               `json:"icon,omitempty"`
 	Tags                   string                               `json:"tags,omitempty"`
@@ -44,6 +46,10 @@ type Pricing struct {
 	AudioCompletionRatio   *float64                             `json:"audio_completion_ratio,omitempty"`
 	EnableGroup            []string                             `json:"enable_groups"`
 	SupportedEndpointTypes []constant.EndpointType              `json:"supported_endpoint_types"`
+	InputModalities        []string                             `json:"input_modalities,omitempty"`
+	OutputModalities       []string                             `json:"output_modalities,omitempty"`
+	VendorName             string                               `json:"vendor_name,omitempty"`
+	VendorIcon             string                               `json:"vendor_icon,omitempty"`
 	BillingMode            string                               `json:"billing_mode,omitempty"`
 	BillingExpr            string                               `json:"billing_expr,omitempty"`
 	BillingUsageSchema     map[string]jsplugin.UsageFieldSchema `json:"billing_usage_schema,omitempty"`
@@ -343,6 +349,13 @@ func updatePricing() {
 			pricing.Icon = meta.Icon
 			pricing.Tags = meta.Tags
 			pricing.VendorID = meta.VendorID
+			pricing.CreatedTime = meta.CreatedTime
+			pricing.InputModalities = []string(meta.InputModalities)
+			pricing.OutputModalities = []string(meta.OutputModalities)
+			if vendor, exists := vendorMap[meta.VendorID]; exists {
+				pricing.VendorName = vendor.Name
+				pricing.VendorIcon = vendor.Icon
+			}
 		}
 		modelPrice, findPrice := ratio_setting.GetModelPrice(model, false)
 		if findPrice {
@@ -428,6 +441,12 @@ func updatePricing() {
 		}
 		pricingMap = append(pricingMap, pricing)
 	}
+	sort.SliceStable(pricingMap, func(i, j int) bool {
+		if pricingMap[i].CreatedTime != pricingMap[j].CreatedTime {
+			return pricingMap[i].CreatedTime > pricingMap[j].CreatedTime
+		}
+		return pricingMap[i].ModelName < pricingMap[j].ModelName
+	})
 
 	// 防止大更新后数据不通用
 	if len(pricingMap) > 0 {
