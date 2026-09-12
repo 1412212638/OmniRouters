@@ -2299,5 +2299,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check` and source-level type/data-flow review. Local
   compilation, frontend build, and Docker build were intentionally not run;
   GitHub Actions remains authoritative.
-- Commit/push: pending in the current source-level commit.
+- Commit/push: `c10f8c4d4` pushed to `origin/main`.
 
