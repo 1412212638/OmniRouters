@@ -2108,6 +2108,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source inspection, `git diff --check`, conflict-marker scan, and symbol/call-site review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
 - Commit/push: pending in the current source-level fix commit.
 
+## 2026-09-12 - CI build fix: task plugin request interface compatibility
+
+- Cause: the task plugin adaptor had already adopted the upstream `ParseResponse`, task-aware polling, and batch interfaces, while the local legacy `channel.TaskAdaptor` assertion and `DoTaskApiRequest` parameter still required the old `DoResponse` contract.
+- Fixed: narrowed `DoTaskApiRequest` to the two request-building methods it actually uses and removed the invalid legacy interface assertion from the plugin adaptor. Existing task adaptors continue to satisfy the broader legacy interface, while the plugin keeps the upstream response and polling contracts.
+- Preserved: task plugin request validation, streaming/SSE handling, plugin state, usage extraction, task billing, Sora/audio pricing, payment/accounting, audit logging, and existing provider adaptors.
+- Validation: source inspection, `git diff --check`, conflict-marker scan, and interface/call-site review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
+- Commit/push: pending in the current source-level fix commit.
+
 ## 2026-09-12 - CI build fix: thinking modifier parser dependency
 
 - Cause: the image reported `setting/reasoning/model_name.go` calling `relaykit/relayconvert/reasoning.ParseThinkingModifier`, which was another omitted helper from the selective sync.
