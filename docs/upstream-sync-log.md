@@ -2219,3 +2219,17 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   the build authority.
 - Commit/push: pending in the current source-level fix commit.
 
+## 2026-09-12 - Upstream sync review: fixed per-request pricing
+
+- Upstream scope reviewed: `064ed943e` fixed per-request expression pricing.
+- Status: already integrated in `main` before this review. The local
+  `billingexpr` implementation includes `fixed()` validation, request-unit
+  evaluation, image-count multiplication, quota saturation, task/realtime
+  guards, settlement, and usage-log metadata.
+- Preserved: Sora/audio pricing, group discounts, payment and wallet logic,
+  and the existing default frontend pricing editor.
+- Validation: source comparison, symbol/call-site review, and working-tree
+  inspection. Local compilation and Docker builds were intentionally not run;
+  GitHub Actions remains authoritative.
+- Commit/push: this log entry is pending in the current source-level commit.
+
