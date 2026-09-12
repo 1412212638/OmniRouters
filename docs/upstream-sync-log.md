@@ -2360,3 +2360,8 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check`; Go tests were not run because Go is not
   installed locally.
 - Commit/push: pending.
+- 2026-09-13 - Fix model pricing page 500 on legacy empty options
+  - Local fix: treat empty/null pricing Option values as unconfigured empty maps and emit a diagnostic error log with the affected key.
+  - Preserved: all existing pricing expressions, Sora/audio billing, group discounts, plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.

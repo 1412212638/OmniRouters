@@ -103,6 +103,18 @@ func readModelPricingMaps(db *gorm.DB) (map[string]map[string]any, map[string]bo
 	counts := make(map[string]int)
 	for _, row := range rows {
 		var entries map[string]any
+		// Older installations may have an empty or null option before pricing was configured.
+		// Treat it as an empty map so one legacy option cannot make the whole pricing page fail.
+		if strings.TrimSpace(row.Value) == "" || strings.TrimSpace(row.Value) == "null" {
+			common.SysError(fmt.Sprintf("pricing option %q has empty value; treating it as unconfigured", row.Key))
+			entries = make(map[string]any)
+		}
+		if entries != nil {
+			values[row.Key] = entries
+			existing[row.Key] = true
+			counts[row.Key]++
+			continue
+		}
 		if err := common.UnmarshalJsonStr(row.Value, &entries); err != nil {
 			return nil, nil, nil, fmt.Errorf("%s: %w", row.Key, err)
 		}
