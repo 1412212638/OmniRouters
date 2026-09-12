@@ -288,6 +288,31 @@ func extractUsedUsageKeys(prog *vm.Program) map[string]bool {
 	return keys
 }
 
+// UsedUsageKeys returns literal keys referenced by u("...") calls. Dynamic
+// arguments cannot be validated statically and are intentionally omitted.
+func UsedUsageKeys(exprStr string) map[string]bool {
+	if exprStr == "" {
+		return nil
+	}
+	hash := ExprHashString(exprStr)
+	cacheMu.RLock()
+	if entry, ok := cache[hash]; ok {
+		cacheMu.RUnlock()
+		return entry.usedUsageKeys
+	}
+	cacheMu.RUnlock()
+	if _, err := compileFromCacheByHash(exprStr, hash); err != nil {
+		return nil
+	}
+	cacheMu.RLock()
+	entry, ok := cache[hash]
+	cacheMu.RUnlock()
+	if ok {
+		return entry.usedUsageKeys
+	}
+	return nil
+}
+
 // UsedVars returns the set of identifier names referenced by an expression.
 // The result is cached alongside the compiled program. Returns nil for empty input.
 func UsedVars(exprStr string) map[string]bool {
