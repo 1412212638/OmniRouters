@@ -2371,3 +2371,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: valid pricing data, billing expressions, Sora/audio billing, group discounts, plugins, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
   - Commit/push: pending.
+- 2026-09-13 - Prevent model pricing snapshot panic on malformed completion ratio
+  - Local fix: guard the display-only audio comparison against missing/non-finite completion ratios instead of using an unsafe type assertion.
+  - Preserved: actual billing, valid pricing, Sora/audio charging, group discounts, plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-13 - Fix MySQL reserved-key query causing options/model-pricing failures
+  - Local fix: use the dialect-safe quoted Option key column when reading the Waffo Pancake unit price from the options endpoint; this prevents MySQL 1064 errors from breaking pricing settings.
+  - Preserved: existing payment amounts, billing calculations, pricing expressions, Sora/audio billing, and other payment providers.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.

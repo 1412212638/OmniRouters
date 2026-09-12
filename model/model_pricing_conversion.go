@@ -93,7 +93,12 @@ func ResolveLegacyBillingDetails(name string, effective, configured PricingValue
 				output = 1
 			}
 			audioPrice := base.Mul(decimal.NewFromFloat(audio))
-			textOutput := base.Mul(decimal.NewFromFloat(effective["CompletionRatio"].(float64)))
+			completionRatio, ok := effective["CompletionRatio"].(float64)
+			if !ok || math.IsNaN(completionRatio) || math.IsInf(completionRatio, 0) {
+				common.SysError("model pricing display: invalid completion ratio for " + name)
+				return details
+			}
+			textOutput := base.Mul(decimal.NewFromFloat(completionRatio))
 			details.ConflictingAudioPrices = !audioPrice.Equal(decimal.NewFromFloat(price)) || !audioPrice.Mul(decimal.NewFromFloat(output)).Equal(textOutput)
 		}
 		return details

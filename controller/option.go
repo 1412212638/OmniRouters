@@ -140,7 +140,7 @@ func GetOptions(c *gin.Context) {
 	// persisted option even if the in-memory option map was reinitialized.
 	var pancakeUnitPrice model.Option
 	pancakeValue := strconv.FormatFloat(setting.WaffoPancakeUnitPrice, 'f', -1, 64)
-	if err := model.DB.Where("key = ?", "WaffoPancakeUnitPrice").First(&pancakeUnitPrice).Error; err == nil && pancakeUnitPrice.Value != "" {
+	if err := model.DB.Where(model.CommonKeyColumn()+" = ?", "WaffoPancakeUnitPrice").First(&pancakeUnitPrice).Error; err == nil && pancakeUnitPrice.Value != "" {
 		pancakeValue = pancakeUnitPrice.Value
 	}
 	filtered := options[:0]

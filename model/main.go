@@ -27,6 +27,9 @@ var commonFalseVal string
 var logKeyCol string
 var logGroupCol string
 
+// CommonKeyColumn returns the dialect-safe quoted Option key column.
+func CommonKeyColumn() string { return commonKeyCol }
+
 // jsonScanBytes normalizes JSON values returned by database drivers.
 func jsonScanBytes(value interface{}) []byte {
 	switch v := value.(type) {
