@@ -116,10 +116,12 @@ func readModelPricingMaps(db *gorm.DB) (map[string]map[string]any, map[string]bo
 			continue
 		}
 		if err := common.UnmarshalJsonStr(row.Value, &entries); err != nil {
-			return nil, nil, nil, fmt.Errorf("%s: %w", row.Key, err)
+			common.SysError(fmt.Sprintf("pricing option %q contains invalid JSON object (%v); treating it as unconfigured", row.Key, err))
+			entries = make(map[string]any)
 		}
 		if entries == nil {
-			return nil, nil, nil, fmt.Errorf("%s must be a JSON object", row.Key)
+			common.SysError(fmt.Sprintf("pricing option %q is not a JSON object; treating it as unconfigured", row.Key))
+			entries = make(map[string]any)
 		}
 		values[row.Key] = entries
 		existing[row.Key] = true
