@@ -127,6 +127,13 @@ var ChannelBaseURLs = []string{
 	"",                                          //60
 }
 
+func GetChannelBaseURL(channelType int) string {
+	if channelType < 0 || channelType >= len(ChannelBaseURLs) {
+		return ""
+	}
+	return ChannelBaseURLs[channelType]
+}
+
 var ChannelTypeNames = map[int]string{
 	ChannelTypeUnknown:        "Unknown",
 	ChannelTypeOpenAI:         "OpenAI",

@@ -2092,3 +2092,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Fixed: restored both helpers using the existing model-ratio normalization and compiled-expression cache. No billing formula, quota arithmetic, Sora/audio surcharge or payment path was changed.
 - Validation: source inspection and `git diff --check`; CI remains the build authority and local Go compilation was not run.
 
+## 2026-09-12 - CI build fix: plugin-aware channel selection and base URL helper
+
+- Cause: the selective plugin/channel sync had updated callers to the upstream four-argument channel-selection APIs, while the local `GetChannel` and `GetRandomSatisfiedChannel` implementations were still on the three-argument signatures. New task polling and relay code also referenced a missing safe channel base URL helper.
+- Fixed: added bounds-checked `constant.GetChannelBaseURL`; added filter-aware database selection with the same request-path and task-plugin identity predicates as the memory-cache path; applied those filters to exact and normalized model candidates; and updated the channel-selection APIs to carry `dto.ChannelFilter` constraints through both cache modes.
+- Preserved: channel priority/weight selection, plugin identity fail-closed behavior when a required plugin key cannot be resolved, Sora/audio pricing, group pricing, payment flows, audit logging, and existing provider routing.
+- Validation: `gofmt`/source inspection, `git diff --check`, conflict-marker scan, and call-site signature review. Local Go compilation and Docker/frontend builds were intentionally not run; GitHub Actions remains authoritative.
+- Commit/push: pending in the current source-level fix commit; this entry will be retained with the resulting commit and push status after publishing.
+
