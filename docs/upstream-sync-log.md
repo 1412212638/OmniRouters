@@ -2108,6 +2108,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source inspection, `git diff --check`, conflict-marker scan, and symbol/call-site review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
 - Commit/push: pending in the current source-level fix commit.
 
+## 2026-09-12 - CI build fix: thinking modifier parser dependency
+
+- Cause: the image reported `setting/reasoning/model_name.go` calling `relaykit/relayconvert/reasoning.ParseThinkingModifier`, which was another omitted helper from the selective sync.
+- Fixed: restored parsing for `@thinking:on`, `adaptive`, `off`, and bounded integer budgets, including the existing portable `Intent` source and budget metadata.
+- Preserved: model routing and billing lookup, Sora/audio and group pricing, plugin routing, payment/accounting, audit logging, and relay conversion behavior.
+- Validation: source inspection, `git diff --check`, conflict-marker scan, and symbol review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
+- Commit/push: pending in the current source-level fix commit.
+
 ## 2026-09-12 - CI build fix: RelayKit modifier parser dependency
 
 - Cause: the CI image still reported `reasoning.ParseModelModifiers` as undefined because the pricing helper imports RelayKit's reasoning package, whose modifier parser had not been included in the selective sync.

@@ -72,6 +72,31 @@ func parseModelModifierSegment(segment string) (string, string, bool) {
 	return strings.ToLower(key), segment[colon+1:], true
 }
 
+// ParseThinkingModifier maps an explicit @thinking value onto a portable
+// Intent. on/adaptive/off and integer budgets (including -1) are accepted;
+// values below -1 are rejected.
+func ParseThinkingModifier(raw string) (Intent, bool) {
+	value := strings.ToLower(strings.TrimSpace(raw))
+	switch value {
+	case "on":
+		return Intent{Mode: ModeEnabled, Source: SourceSuffix}, true
+	case "adaptive":
+		return Intent{Mode: ModeAdaptive, Source: SourceSuffix}, true
+	case "off":
+		return Intent{Mode: ModeDisabled, Effort: EffortNone, Source: SourceSuffix}, true
+	}
+	if budget, err := strconv.Atoi(value); err == nil {
+		if budget < -1 {
+			return Intent{}, false
+		}
+		if budget == 0 {
+			return Intent{Mode: ModeDisabled, Effort: EffortNone, Source: SourceSuffix}, true
+		}
+		return Intent{Mode: ModeEnabled, BudgetTokens: &budget, Source: SourceSuffix, BudgetSource: SourceSuffix}, true
+	}
+	return Intent{}, false
+}
+
 // TrimEffortSuffix preserves the legacy helper used by existing converters.
 func TrimEffortSuffix(modelName string) (string, string, bool) {
 	return TrimEffortSuffixWithSuffixes(modelName, EffortSuffixes)
