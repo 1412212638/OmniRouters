@@ -2231,7 +2231,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source comparison, symbol/call-site review, and working-tree
   inspection. Local compilation and Docker builds were intentionally not run;
   GitHub Actions remains authoritative.
-- Commit/push: this log entry is pending in the current source-level commit.
+- Commit/push: `6d7f93587` pushed to `origin/main`.
 
 ## 2026-09-12 - Upstream sync review: channel plugin extensions
 
@@ -2245,7 +2245,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   plugin permissions, and existing channel editor behavior.
 - Validation: source inspection and `git diff --check`; no local builds were
   run per the source-only workflow.
-- Commit/push: pending in the current source-level commit.
+- Commit/push: `98c4bd424` pushed to `origin/main`.
 
 ## 2026-09-12 - Channel editor plugin model selection completed
 
@@ -2269,7 +2269,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   Sora/audio pricing, group discounts, and payment behavior are unchanged.
 - Validation: `git diff --check` and source-level form/payload review. Local
   compilation, frontend build, and Docker build were not run.
-- Commit/push: pending in the current source-level commit.
+- Commit/push: `db73d6cf4` pushed to `origin/main`.
 
 ## 2026-09-12 - Upstream sync review: task plugin image capability
 
@@ -2285,5 +2285,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source and call-site review only; local compilation, frontend
   build, and Docker build were intentionally not run. GitHub Actions remains
   authoritative.
-- Commit/push: this log entry is pending in the current source-level commit.
+- Commit/push: `e61750eef` pushed to `origin/main`.
 
