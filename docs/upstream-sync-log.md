@@ -38,6 +38,16 @@
 - Validation: `git diff --check`; Go compilation and browser verification unavailable locally.
 - Commit/push: pending.
 
+## 2026-09-13 - Add per-group performance tabs
+
+- Local feature: model performance details now provide an `All groups` view and
+  per-group tabs when at least two groups have data; cards and trend charts
+  switch together, while single-group models keep the compact layout.
+- Preserved existing performance collection, billing, permissions, and table
+  views.
+- Validation: `git diff --check`; frontend build and Go tests were not run.
+- Commit/push: pending.
+
 ## 2026-09-12 - Preserve cache counters in performance group results
 
 - Local reason: performance cards returned an absent cache rate even when time buckets contained cache observations. `buildQueryResult` omitted input/cache counters from group totals.
@@ -2331,3 +2341,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   GitHub Actions remains authoritative.
 - Commit/push: `c10f8c4d4` pushed to `origin/main`.
 
+## 2026-09-13 - Restrict TTFT statistics to successful streaming samples
+
+- Local fix: TTFT averages and percentile samples now require a successful
+  streaming request with a recorded first response. Failure samples continue
+  contributing to latency and success-rate metrics only.
+- Preserved billing, TPOT, and existing percentile minimum-sample behavior.
+- Validation: `git diff --check`; Go tests were not run because Go is not
+  installed in the local environment.
+- Commit/push: pending.

@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, Database, HeartPulse, Timer } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -177,9 +177,14 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
     () => metricsQuery.data?.data.groups ?? [],
     [metricsQuery.data]
   )
+  const [selectedGroup, setSelectedGroup] = useState('all')
+  const visibleGroups = useMemo(
+    () => selectedGroup === 'all' ? groups : groups.filter((group) => group.group === selectedGroup),
+    [groups, selectedGroup]
+  )
   const performances = useMemo<PerformanceRow[]>(
     () =>
-      groups.map((group) => ({
+      visibleGroups.map((group) => ({
         group: group.group,
         avg_ttft_ms: group.avg_ttft_ms,
         avg_latency_ms: group.avg_latency_ms,
@@ -192,17 +197,17 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
         tpot_p95_ms: group.tpot_p95_ms,
         tpot_p99_ms: group.tpot_p99_ms,
       })),
-    [groups]
+    [visibleGroups]
   )
-  const latencySeries = useMemo(() => toLatencySeries(groups), [groups])
-  const uptimeSeries = useMemo(() => toUptimeSeries(groups), [groups])
+  const latencySeries = useMemo(() => toLatencySeries(visibleGroups), [visibleGroups])
+  const uptimeSeries = useMemo(() => toUptimeSeries(visibleGroups), [visibleGroups])
   const uptimeByGroup = useMemo<Record<string, UptimeDayPoint[]>>(() => {
     const map: Record<string, UptimeDayPoint[]> = {}
-    for (const group of groups) {
+    for (const group of visibleGroups) {
       map[group.group] = toGroupUptimeSeries(group)
     }
     return map
-  }, [groups])
+  }, [visibleGroups])
 
   if (metricsQuery.isLoading || performances.length === 0) {
     return (
@@ -240,6 +245,27 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
 
   return (
     <div className='flex flex-col gap-4'>
+      {groups.length >= 2 && (
+        <div className='flex gap-1 overflow-x-auto rounded-lg border bg-muted/30 p-1'>
+          <button
+            type='button'
+            onClick={() => setSelectedGroup('all')}
+            className={cn('shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors', selectedGroup === 'all' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+          >
+            {t('All groups')}
+          </button>
+          {groups.map((group) => (
+            <button
+              key={group.group}
+              type='button'
+              onClick={() => setSelectedGroup(group.group)}
+              className={cn('shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors', selectedGroup === group.group ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+            >
+              {group.group}
+            </button>
+          ))}
+        </div>
+      )}
       <div className='grid grid-cols-1 gap-2 sm:grid-cols-3'>
         <StatCard
           icon={Timer}

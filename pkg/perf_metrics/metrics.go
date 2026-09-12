@@ -29,7 +29,10 @@ func RecordRelaySample(info *relaycommon.RelayInfo, success bool, outputTokens, 
 		return
 	}
 	now := time.Now()
-	hasTtft := info.IsStream && info.HasSendResponse()
+	// TTFT is meaningful only for successful streaming requests that emitted a
+	// first response. Failure samples remain useful for latency/success metrics,
+	// but must not enter TTFT averages or percentiles.
+	hasTtft := success && info.IsStream && info.HasSendResponse()
 	ttftMs := int64(0)
 	if hasTtft {
 		ttftMs = info.FirstResponseTime.Sub(info.StartTime).Milliseconds()
