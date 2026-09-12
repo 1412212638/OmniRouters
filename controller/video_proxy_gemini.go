@@ -37,7 +37,7 @@ func getGeminiVideoURL(channel *model.Channel, task *model.Task, apiKey string) 
 	}
 
 	proxy := channel.GetSetting().Proxy
-	adaptor.Init(&relaycommon.RelayInfo{ApiKey: apiKey, ChannelMeta: &relaycommon.ChannelMeta{ChannelBaseUrl: baseURL, ChannelSetting: channel.GetSetting()}})
+	adaptor.Init(&relaycommon.RelayInfo{ChannelMeta: &relaycommon.ChannelMeta{ApiKey: apiKey, ChannelBaseUrl: baseURL, ChannelSetting: channel.GetSetting()}})
 	resp, err := adaptor.FetchTask(baseURL, apiKey, task, proxy)
 	if err != nil {
 		return "", fmt.Errorf("fetch task failed: %w", err)
@@ -169,7 +169,7 @@ func getVertexVideoURL(channel *model.Channel, task *model.Task) (string, error)
 	if key == "" {
 		return "", fmt.Errorf("vertex key not available for task")
 	}
-	adaptor.Init(&relaycommon.RelayInfo{ApiKey: key, ChannelMeta: &relaycommon.ChannelMeta{ChannelBaseUrl: baseURL, ChannelSetting: channel.GetSetting()}})
+	adaptor.Init(&relaycommon.RelayInfo{ChannelMeta: &relaycommon.ChannelMeta{ApiKey: key, ChannelBaseUrl: baseURL, ChannelSetting: channel.GetSetting()}})
 
 	resp, err := adaptor.FetchTask(baseURL, key, task, channel.GetSetting().Proxy)
 	if err != nil {

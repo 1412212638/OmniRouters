@@ -2117,6 +2117,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved generated media URL fallback extraction and all billing/payment
   behavior.
 
+## 2026-09-12 - CI build fix: correct RelayInfo API key placement
+
+- Fixed the Gemini/Vertex plugin adaptor initialization to place the channel
+  API key in `ChannelMeta.ApiKey`, matching the local `RelayInfo` structure.
+- Validation: source inspection and `git diff --check`; CI remains authoritative.
+
 ## 2026-09-12 - CI follow-up correction
 
 - Removed an unused Passkey-domain audit helper from the selective sync because
