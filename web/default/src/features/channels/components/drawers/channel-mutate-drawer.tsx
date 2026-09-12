@@ -141,6 +141,7 @@ import {
   ADD_MODE_OPTIONS,
   CHANNEL_STATUS_LABELS,
   CHANNEL_TYPE_ADVANCED_CUSTOM,
+  CHANNEL_TYPE_TASK_PLUGIN,
   CHANNEL_TYPE_OPTIONS,
   CHANNEL_TYPE_WARNINGS,
   ERROR_MESSAGES,
@@ -716,6 +717,7 @@ export function ChannelMutateDrawer({
   const keyMode = form.watch('key_mode')
   const currentGroups = form.watch('group')
   const currentType = form.watch('type')
+  const currentTaskPluginKey = form.watch('task_plugin_key')
   const currentStatus = form.watch('status')
   const currentBaseUrl = form.watch('base_url')
   const currentKey = form.watch('key')
@@ -905,12 +907,18 @@ export function ChannelMutateDrawer({
 
   const compatibleTaskPlugins = useMemo(
     () =>
-      taskPluginOptions.filter(
+      canEditSensitive
+        ? taskPluginOptions.filter(
         (plugin) =>
           plugin.models.length > 0 &&
           (!plugin.channelTypes || plugin.channelTypes.includes(currentType))
-      ),
-    [currentType, taskPluginOptions]
+          )
+        : [],
+    [canEditSensitive, currentType, taskPluginOptions]
+  )
+  const selectedTaskPlugin = useMemo(
+    () => taskPluginOptions.find((plugin) => plugin.key === currentTaskPluginKey),
+    [currentTaskPluginKey, taskPluginOptions]
   )
 
   const channelTypeOptions = useMemo(() => {
@@ -952,7 +960,7 @@ export function ChannelMutateDrawer({
   )
   const advancedHaveErrors =
     hasAdvancedSettingsErrors(formErrors) || Boolean(formErrors.advanced_custom)
-  const providerRequiresBaseUrl = [3, 8, 36, 45].includes(currentType)
+  const providerRequiresBaseUrl = [3, 8, 36, 45, CHANNEL_TYPE_TASK_PLUGIN].includes(currentType)
   const providerRequiresOther = [3, 18, 21, 39, 41, 49].includes(currentType)
   const identityComplete = Boolean(currentName?.trim() && currentType > 0)
   const credentialsComplete = Boolean(
@@ -3256,6 +3264,62 @@ export function ChannelMutateDrawer({
                     >
                       <ChannelModelsSection>
                         <div className='space-y-5'>
+                          {currentType === CHANNEL_TYPE_TASK_PLUGIN && (
+                            <FormField
+                              control={form.control}
+                              name='task_plugin_key'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t('Task plugin *')}</FormLabel>
+                                  <Select
+                                    value={field.value || ''}
+                                    onValueChange={(key) => {
+                                      const plugin = taskPluginOptions.find(
+                                        (item) => item.key === key
+                                      )
+                                      field.onChange(key)
+                                      if (plugin?.models.length) {
+                                        updateModels(plugin.models)
+                                      }
+                                      if (plugin?.baseUrl && !currentBaseUrl) {
+                                        form.setValue('base_url', plugin.baseUrl, {
+                                          shouldDirty: true,
+                                          shouldValidate: true,
+                                        })
+                                      }
+                                    }}
+                                    disabled={!canEditSensitive}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue
+                                          placeholder={t('Select task plugin')}
+                                        />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {taskPluginOptions.map((plugin) => (
+                                        <SelectItem
+                                          key={plugin.key}
+                                          value={plugin.key}
+                                        >
+                                          {plugin.name} ({plugin.key})
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  {selectedTaskPlugin?.description && (
+                                    <FormDescription>
+                                      {selectedTaskPlugin.description.en ||
+                                        selectedTaskPlugin.description.zh ||
+                                        ''}
+                                    </FormDescription>
+                                  )}
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
                           <div className='border-border/60 bg-muted/10 rounded-lg border p-4'>
                             <FormField
                               control={form.control}

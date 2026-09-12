@@ -2258,6 +2258,19 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   local compilation and Docker/frontend builds were not run.
 - Commit/push: `11f05e552` pushed to `origin/main`.
 
+## 2026-09-12 - Channel editor task-plugin binding completed
+
+- Completed the third-batch binding path: channel type `61` is available in the
+  default editor; `task_plugin_key` is validated, loaded from existing channel
+  settings, and serialized back to `setting`; selecting a plugin fills its
+  declared models and default Base URL.
+- Plugin model actions are restricted to users who can edit sensitive channel
+  configuration. Existing channels, model mappings, advanced custom routes,
+  Sora/audio pricing, group discounts, and payment behavior are unchanged.
+- Validation: `git diff --check` and source-level form/payload review. Local
+  compilation, frontend build, and Docker build were not run.
+- Commit/push: pending in the current source-level commit.
+
 ## 2026-09-12 - Upstream sync review: task plugin image capability
 
 - Upstream scope reviewed: `74629e29f` task streaming and plugin pricing, plus
