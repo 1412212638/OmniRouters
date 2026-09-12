@@ -59,6 +59,7 @@ type ModelFormValues = {
   ExposeRatioEnabled: boolean
   BillingMode: string
   BillingExpr: string
+  PluginBillingExpr: string
   SoraPerRequestPricing: string
 }
 
@@ -82,6 +83,7 @@ type ModelJsonFieldName =
   | 'AudioRatio'
   | 'AudioCompletionRatio'
   | 'SoraPerRequestPricing'
+  | 'PluginBillingExpr'
 
 const modelJsonFields: Array<{
   name: ModelJsonFieldName
@@ -136,6 +138,12 @@ const modelJsonFields: Array<{
     name: 'SoraPerRequestPricing',
     labelKey: 'Sora per-request pricing',
     descriptionKey: 'JSON map of model → Sora per-request pricing config.',
+  },
+  {
+    name: 'PluginBillingExpr',
+    labelKey: 'Task plugin billing expressions',
+    descriptionKey:
+      'JSON map of plugin key::model name → billing expression. Overrides the model expression for that task plugin.',
   },
 ]
 

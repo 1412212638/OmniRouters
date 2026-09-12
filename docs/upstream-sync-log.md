@@ -2287,3 +2287,17 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   authoritative.
 - Commit/push: `e61750eef` pushed to `origin/main`.
 
+## 2026-09-12 - Task plugin image pricing configuration completed
+
+- Added the default-frontend `billing_setting.plugin_billing_expr` option for
+  plugin/model-specific expressions. Administrators can edit the JSON mapping
+  using `plugin_key::model_name` keys; the backend already validates the
+  plugin declaration and usage schema before saving.
+- Preserved the existing model expression, legacy ratios, Sora/audio pricing,
+  group discounts, payment/wallet behavior, plugin permissions, and image task
+  runtime. No Passkey multi-domain or standalone audit-log work was added.
+- Validation: `git diff --check` and source-level type/data-flow review. Local
+  compilation, frontend build, and Docker build were intentionally not run;
+  GitHub Actions remains authoritative.
+- Commit/push: pending in the current source-level commit.
+

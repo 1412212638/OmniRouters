@@ -117,6 +117,7 @@ const createModelSchema = (t: Translate) =>
     ExposeRatioEnabled: z.boolean(),
     BillingMode: createJsonStringField(t),
     BillingExpr: createJsonStringField(t),
+    PluginBillingExpr: createJsonStringField(t),
     SoraPerRequestPricing: createJsonStringField(t),
   })
 
@@ -199,6 +200,7 @@ export function RatioSettingsCard({
     ExposeRatioEnabled: modelDefaults.ExposeRatioEnabled,
     BillingMode: normalizeJsonString(modelDefaults.BillingMode),
     BillingExpr: normalizeJsonString(modelDefaults.BillingExpr),
+    PluginBillingExpr: normalizeJsonString(modelDefaults.PluginBillingExpr),
     SoraPerRequestPricing: normalizeJsonString(
       modelDefaults.SoraPerRequestPricing
     ),
@@ -242,6 +244,7 @@ export function RatioSettingsCard({
       ),
       BillingMode: formatJsonForTextarea(modelDefaults.BillingMode),
       BillingExpr: formatJsonForTextarea(modelDefaults.BillingExpr),
+      PluginBillingExpr: formatJsonForTextarea(modelDefaults.PluginBillingExpr),
       SoraPerRequestPricing: formatJsonForTextarea(
         modelDefaults.SoraPerRequestPricing
       ),
@@ -286,6 +289,7 @@ export function RatioSettingsCard({
       ExposeRatioEnabled: modelDefaults.ExposeRatioEnabled,
       BillingMode: normalizeJsonString(modelDefaults.BillingMode),
       BillingExpr: normalizeJsonString(modelDefaults.BillingExpr),
+      PluginBillingExpr: normalizeJsonString(modelDefaults.PluginBillingExpr),
       SoraPerRequestPricing: normalizeJsonString(
         modelDefaults.SoraPerRequestPricing
       ),
@@ -306,6 +310,7 @@ export function RatioSettingsCard({
       ),
       BillingMode: formatJsonForTextarea(modelDefaults.BillingMode),
       BillingExpr: formatJsonForTextarea(modelDefaults.BillingExpr),
+      PluginBillingExpr: formatJsonForTextarea(modelDefaults.PluginBillingExpr),
       SoraPerRequestPricing: formatJsonForTextarea(
         modelDefaults.SoraPerRequestPricing
       ),
@@ -367,6 +372,7 @@ export function RatioSettingsCard({
         ExposeRatioEnabled: values.ExposeRatioEnabled,
         BillingMode: normalizeJsonString(values.BillingMode),
         BillingExpr: normalizeJsonString(values.BillingExpr),
+        PluginBillingExpr: normalizeJsonString(values.PluginBillingExpr),
         SoraPerRequestPricing: normalizeJsonString(
           values.SoraPerRequestPricing
         ),
@@ -375,6 +381,7 @@ export function RatioSettingsCard({
       const apiKeyMap: Record<string, string> = {
         BillingMode: 'billing_setting.billing_mode',
         BillingExpr: 'billing_setting.billing_expr',
+        PluginBillingExpr: 'billing_setting.plugin_billing_expr',
         SoraPerRequestPricing: 'billing_setting.sora_per_request_pricing',
       }
 
@@ -512,6 +519,7 @@ export function RatioSettingsCard({
           AudioCompletionRatio: modelDefaults.AudioCompletionRatio,
           'billing_setting.billing_mode': modelDefaults.BillingMode,
           'billing_setting.billing_expr': modelDefaults.BillingExpr,
+          'billing_setting.plugin_billing_expr': modelDefaults.PluginBillingExpr,
           'billing_setting.sora_per_request_pricing':
             modelDefaults.SoraPerRequestPricing,
         }}

@@ -5551,6 +5551,7 @@
     "Task Plugin": "任务插件",
     "Task plugin setting updated": "任务插件设置已更新",
     "Task plugin *": "任务插件 *",
+    "Task plugin billing expressions": "任务插件计费表达式",
     "Task Plugins": "任务插件",
     "The gateway rejected this plugin": "网关拒绝了该插件",
     "These values come from the source index and are shown for review only. The gateway admits the plugin based on the metadata compiled from its source.": "这些值来自源索引，仅供审查参考。网关的准入判定只依据从源码编译出的真实元数据。",
