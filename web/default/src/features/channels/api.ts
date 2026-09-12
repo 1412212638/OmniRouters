@@ -39,6 +39,27 @@ import type {
   TagOperationParams,
 } from './types'
 
+export type TaskPluginOption = {
+  sortPriority?: number
+  website?: string
+  key: string
+  name: string
+  description?: Record<string, string> | null
+  models: string[]
+  channelTypes?: number[] | null
+}
+
+export async function getTaskPluginOptions(): Promise<TaskPluginOption[]> {
+  const response = await api.get<{
+    success: boolean
+    data: TaskPluginOption[]
+  }>('/api/task_plugin_options')
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to load task plugins')
+  }
+  return response.data.data || []
+}
+
 const channelActionConfig = (
   config: ApiRequestConfig = {}
 ): ApiRequestConfig => ({

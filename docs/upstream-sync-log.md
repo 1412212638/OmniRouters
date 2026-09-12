@@ -2233,6 +2233,20 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   GitHub Actions remains authoritative.
 - Commit/push: this log entry is pending in the current source-level commit.
 
+## 2026-09-12 - Upstream sync review: channel plugin extensions
+
+- Upstream scope reviewed: `ab489ab88` and `505805a4c` channel provider/model
+  selection extensions.
+- Progress: added the typed default-frontend API contract for available task
+  plugin options (`GET /api/task_plugin_options`). Full UI wiring remains in
+  the current third-batch work and must preserve existing model mapping,
+  advanced custom routes, and channel submission fields.
+- Preserved: Sora/audio pricing, group discounts, payment/wallet behavior,
+  plugin permissions, and existing channel editor behavior.
+- Validation: source inspection and `git diff --check`; no local builds were
+  run per the source-only workflow.
+- Commit/push: pending in the current source-level commit.
+
 ## 2026-09-12 - Upstream sync review: task plugin image capability
 
 - Upstream scope reviewed: `74629e29f` task streaming and plugin pricing, plus
