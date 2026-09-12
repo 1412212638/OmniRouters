@@ -2043,3 +2043,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check` passed. No local Go compilation, database matrix test, frontend build, or Docker build was run under the source-only workflow; CI remains the authoritative build check.
 - Commit/push: batch 3 is implemented in the local main worktree and remains uncommitted/unpushed pending the final review of the combined audit batches.
 
+## 2026-09-12 - Upstream follow-up after bdef117505: batch 1 selected fixes
+
+- Upstream baseline: `bdef117505247769268b209665fb3ad7554c3da7`; inspected subsequent upstream commits through `385d2dfd1`.
+- Integrated: `3cea2bf79` preserves cached input-token breakdowns through relay billing snapshots; `f064bffa2` validates image quantities before quota reservation and hardens Ali image usage handling; `f362c7c51` adds image cache/quantity variables to billing expressions; `f256e40bc` adds built-in GPT image expression defaults.
+- Preserved: local quota saturation checks, Sora/audio and group pricing behavior, payment/Waffo flows, audit logging and the existing `web/default` frontend. Existing image model detection entries were retained while adding upstream model coverage.
+- Deferred: expression pricing editor commits `25ec832fa`, `39294418a`, `b3e279464`, plugin UI commits and Passkey UI changes require adaptation to our `web/default` layout; they were not force-merged. The large upstream web tree migration remains out of scope.
+- Validation: cherry-pick conflicts were resolved by retaining local architecture and reviewing affected diffs; no local Go compilation, database matrix, frontend build or Docker build was run under the source-only workflow.
+- Commit/push: selected batch 1 changes are committed locally; push is pending completion of the remaining safe batches.
+
