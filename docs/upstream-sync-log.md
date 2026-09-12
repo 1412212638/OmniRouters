@@ -2123,6 +2123,19 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   API key in `ChannelMeta.ApiKey`, matching the local `RelayInfo` structure.
 - Validation: source inspection and `git diff --check`; CI remains authoritative.
 
+## 2026-09-12 - Upstream sync batch 1: pricing configuration backend
+
+- Integrated the upstream model pricing snapshot, legacy-to-expression
+  conversion, effective-price preview, and optimistic versioned update APIs.
+- Added the corresponding protected option routes. The existing expression
+  evaluator, Sora/audio pricing fields, group discounts, payment/wallet paths,
+  and legacy pricing remain intact.
+- Deliberately skipped upstream legacy frontend tree and unrelated Passkey and
+  standalone audit-log changes; those are outside the agreed three batches.
+- Validation: source reference review and `git diff --check`; no local Go,
+  frontend, or Docker build under the source-only workflow.
+- Commit/push: pending in the current source-level batch commit.
+
 ## 2026-09-12 - CI follow-up correction
 
 - Removed an unused Passkey-domain audit helper from the selective sync because
