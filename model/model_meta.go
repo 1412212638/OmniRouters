@@ -21,6 +21,31 @@ type BoundChannel struct {
 	Type int    `json:"type"`
 }
 
+func (mi *Model) MatchesName(name string) bool {
+	switch mi.NameRule {
+	case NameRulePrefix:
+		return strings.HasPrefix(name, mi.ModelName)
+	case NameRuleSuffix:
+		return strings.HasSuffix(name, mi.ModelName)
+	case NameRuleContains:
+		return strings.Contains(name, mi.ModelName)
+	default:
+		return name == mi.ModelName
+	}
+}
+
+func resolveModelMetadata(records []Model, names []string) map[string]*Model {
+	resolved := make(map[string]*Model)
+	for i := range records { if records[i].NameRule == NameRuleExact { resolved[records[i].ModelName] = &records[i] } }
+	for _, rule := range []int{NameRulePrefix, NameRuleSuffix, NameRuleContains} {
+		for i := range records {
+			if records[i].NameRule != rule { continue }
+			for _, name := range names { if _, ok := resolved[name]; !ok && records[i].MatchesName(name) { resolved[name] = &records[i] } }
+		}
+	}
+	return resolved
+}
+
 type Model struct {
 	Id                        int            `json:"id"`
 	ModelName                 string         `json:"model_name" gorm:"size:128;not null;uniqueIndex:uk_model_name_delete_at,priority:1"`

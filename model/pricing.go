@@ -160,8 +160,8 @@ func loadPricingAdvancedCustomConfigs(enableAbilities []AbilityWithChannel) map[
 		channelSyncLock.RLock()
 		defer channelSyncLock.RUnlock()
 		for _, channelID := range channelIDs {
-			if config := channel2advancedCustomConfig[channelID]; config != nil {
-				configs[channelID] = config
+			if channel := channelsIDM[channelID]; channel != nil {
+				if config := channel.GetOtherSettings().AdvancedCustom; config != nil { configs[channelID] = config }
 			}
 		}
 		return configs

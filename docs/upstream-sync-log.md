@@ -2080,6 +2080,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: plugin routing, billing, Sora/audio, payment and authentication behavior; this is a missing-helper correction only.
 - Validation: source inspection and `git diff --check`; local Go compilation was not run under the source-only workflow.
 
+## 2026-09-12 - CI build fix: omitted plugin/pricing dependencies
+
+- Fixed missing selective-sync dependencies reported by CI: reused the existing registry `SetEnabled` API, restored explicit model-ratio detection, resolved advanced-custom channel settings through the existing channel cache, and added metadata rule matching/resolution used by pricing.
+- Preserved: local plugin override controls, Sora/audio pricing, payment flows, group discounts and audit behavior.
+- Validation: source review and `git diff --check`; local Go compilation remains intentionally unrun.
+
 ## 2026-09-12 - CI build fix: missing pricing-expression helpers
 
 - CI failure: `setting/billing_setting/tiered_billing.go` referenced `ratio_setting.HasConfiguredModelRatio` and `billingexpr.UsedUsageKeys`, but those helper files/functions were omitted from the earlier selective sync.

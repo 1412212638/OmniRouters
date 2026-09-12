@@ -390,7 +390,7 @@ func updateOptionMap(key string, value string) (err error) {
 			pluginruntime.DefaultRegistry.SetEnabled(boolValue)
 		case "TaskPluginOverrideEnabled":
 			constant.TaskPluginOverrideEnabled = boolValue
-			pluginruntime.DefaultRegistry.SetOverrideEnabled(boolValue)
+		pluginruntime.DefaultRegistry.SetEnabled(boolValue)
 		case "DataExportEnabled":
 			common.DataExportEnabled = boolValue
 		case "DefaultCollapseSidebar":
