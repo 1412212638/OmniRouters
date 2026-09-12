@@ -1714,6 +1714,7 @@ func positiveInt(value any) int {
 }
 
 var _ channel.OpenAIVideoConverter = (*TaskAdaptor)(nil)
+var _ channel.TaskAdaptor = (*TaskAdaptor)(nil)
 var _ channel.TaskArtifactProvider = (*TaskAdaptor)(nil)
 var _ channel.TaskContentRequestProvider = (*TaskAdaptor)(nil)
 var _ channel.TaskUsageFactsProvider = (*TaskAdaptor)(nil)

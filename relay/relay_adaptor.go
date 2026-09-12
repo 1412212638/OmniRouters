@@ -1,12 +1,14 @@
 package relay
 
 import (
+	"fmt"
 	"strconv"
-	"sync"
 
 	"github.com/QuantumNous/new-api/constant"
 	pluginruntime "github.com/QuantumNous/new-api/pkg/jsplugin"
+	_ "github.com/QuantumNous/new-api/plugins"
 	"github.com/QuantumNous/new-api/relay/channel"
+	"github.com/QuantumNous/new-api/relay/channel/advancedcustom"
 	"github.com/QuantumNous/new-api/relay/channel/ali"
 	"github.com/QuantumNous/new-api/relay/channel/aws"
 	"github.com/QuantumNous/new-api/relay/channel/baidu"
@@ -34,18 +36,7 @@ import (
 	"github.com/QuantumNous/new-api/relay/channel/siliconflow"
 	"github.com/QuantumNous/new-api/relay/channel/sub2api"
 	"github.com/QuantumNous/new-api/relay/channel/submodel"
-	taskali "github.com/QuantumNous/new-api/relay/channel/task/ali"
-	taskdoubao "github.com/QuantumNous/new-api/relay/channel/task/doubao"
-	taskGemini "github.com/QuantumNous/new-api/relay/channel/task/gemini"
-	"github.com/QuantumNous/new-api/relay/channel/task/hailuo"
-	taskjimeng "github.com/QuantumNous/new-api/relay/channel/task/jimeng"
-	taskjsplugin "github.com/QuantumNous/new-api/relay/channel/task/jsplugin"
-	"github.com/QuantumNous/new-api/relay/channel/task/kling"
-	taskopenaiimage "github.com/QuantumNous/new-api/relay/channel/task/openai_image"
-	tasksora "github.com/QuantumNous/new-api/relay/channel/task/sora"
-	"github.com/QuantumNous/new-api/relay/channel/task/suno"
-	taskvertex "github.com/QuantumNous/new-api/relay/channel/task/vertex"
-	taskVidu "github.com/QuantumNous/new-api/relay/channel/task/vidu"
+	jspluginadaptor "github.com/QuantumNous/new-api/relay/channel/task/jsplugin"
 	"github.com/QuantumNous/new-api/relay/channel/tencent"
 	"github.com/QuantumNous/new-api/relay/channel/vertex"
 	"github.com/QuantumNous/new-api/relay/channel/volcengine"
@@ -126,6 +117,8 @@ func GetAdaptor(apiType int) channel.Adaptor {
 		return &replicate.Adaptor{}
 	case constant.APITypeCodex:
 		return &codex.Adaptor{}
+	case constant.APITypeAdvancedCustom:
+		return &advancedcustom.Adaptor{}
 	case constant.APITypeSub2API:
 		return &sub2api.Adaptor{}
 	case constant.APITypeNewAPI:
@@ -135,6 +128,9 @@ func GetAdaptor(apiType int) channel.Adaptor {
 }
 
 func GetTaskPlatform(c *gin.Context) constant.TaskPlatform {
+	if pluginKey := c.GetString("task_plugin_key"); pluginKey != "" {
+		return constant.TaskPlatform(pluginKey)
+	}
 	channelType := c.GetInt("channel_type")
 	if channelType > 0 {
 		return constant.TaskPlatform(strconv.Itoa(channelType))
@@ -157,31 +153,6 @@ var taskPluginKeys = map[constant.TaskPlatform]string{
 	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeVertexAi)):    "vertex-ai",
 }
 
-type TaskPluginAdaptorFactory func(plugin *pluginruntime.LoadedPlugin) channel.TaskAdaptor
-
-var taskPluginAdaptorFactory TaskPluginAdaptorFactory
-var taskPluginAdaptorFactoryMu sync.RWMutex
-
-// SetTaskPluginAdaptorFactory installs the host bridge after the plugin
-// adaptor has been initialized. A nil factory keeps every task on its legacy
-// Go adaptor even when plugins are registered.
-func SetTaskPluginAdaptorFactory(factory TaskPluginAdaptorFactory) {
-	taskPluginAdaptorFactoryMu.Lock()
-	defer taskPluginAdaptorFactoryMu.Unlock()
-	taskPluginAdaptorFactory = factory
-}
-
-func resolveTaskPlugin(registry *pluginruntime.Registry, enabled bool, platform constant.TaskPlatform) (*pluginruntime.LoadedPlugin, bool) {
-	if !enabled || registry == nil || !registry.Enabled() {
-		return nil, false
-	}
-	key := string(platform)
-	if mapped, ok := taskPluginKeys[platform]; ok {
-		key = mapped
-	}
-	return registry.Generation().Get(key)
-}
-
 func ResolveTaskPluginForPlatform(generation *pluginruntime.RoutingGeneration, platform constant.TaskPlatform) (*pluginruntime.LoadedPlugin, bool) {
 	if generation == nil {
 		return nil, false
@@ -194,64 +165,71 @@ func ResolveTaskPluginForPlatform(generation *pluginruntime.RoutingGeneration, p
 	return generation.Get(string(platform))
 }
 
-func GetTaskAdaptor(platform constant.TaskPlatform) channel.TaskAdaptor {
-	taskPluginAdaptorFactoryMu.RLock()
-	factory := taskPluginAdaptorFactory
-	taskPluginAdaptorFactoryMu.RUnlock()
-	if factory == nil {
-		factory = defaultTaskPluginAdaptorFactory
+// TaskPlatformUnavailableError explains why no adaptor serves the platform:
+// the task-plugin system is switched off, the resolved plugin is disabled,
+// or the platform simply names nothing. The distinction is user-actionable,
+// so it must survive into the client-facing message.
+func TaskPlatformUnavailableError(platform constant.TaskPlatform) (string, string) {
+	if !pluginruntime.DefaultRegistry.Enabled() {
+		return "task_plugin_system_disabled", "the task plugin system is disabled on this gateway"
 	}
-	return getTaskAdaptor(platform, constant.TaskPluginEnabled, pluginruntime.DefaultRegistry, factory)
+	key := string(platform)
+	if mapped, ok := taskPluginKeys[platform]; ok {
+		key = mapped
+	}
+	for _, meta := range pluginruntime.DefaultRegistry.Snapshot().Factory {
+		if meta.Key == key {
+			return "task_plugin_disabled", fmt.Sprintf("task plugin %q is disabled on this gateway", key)
+		}
+	}
+	return "invalid_api_platform", fmt.Sprintf("invalid api platform: %s", platform)
 }
 
-func defaultTaskPluginAdaptorFactory(plugin *pluginruntime.LoadedPlugin) channel.TaskAdaptor {
-	if plugin == nil || plugin.Meta.Key != "sora" {
+func GetTaskAdaptor(platform constant.TaskPlatform) channel.TaskAdaptor {
+	plugin, ok := ResolveTaskPluginForPlatform(pluginruntime.DefaultRegistry.Generation(), platform)
+	if !ok {
 		return nil
 	}
-	return taskjsplugin.New(plugin)
+	return jspluginadaptor.New(plugin)
 }
 
-func getTaskAdaptor(platform constant.TaskPlatform, pluginEnabled bool, registry *pluginruntime.Registry, factory TaskPluginAdaptorFactory) channel.TaskAdaptor {
-	if factory != nil {
-		if plugin, ok := resolveTaskPlugin(registry, pluginEnabled, platform); ok {
-			if adaptor := factory(plugin); adaptor != nil {
-				return adaptor
+// getTaskAdaptorForRequest preserves the exact plugin object pinned by the
+// declarative or shared-endpoint router. Legacy task routes are pinned here
+// from one registry generation before the adaptor is returned.
+func getTaskAdaptorForRequest(c *gin.Context, platform constant.TaskPlatform) (constant.TaskPlatform, channel.TaskAdaptor) {
+	if c != nil {
+		if value, exists := c.Get(pluginruntime.ContextKeyPinnedPlugin); exists {
+			if pinned, ok := value.(pluginruntime.PinnedPlugin); ok && pinned.Plugin != nil {
+				platform = constant.TaskPlatform(pinned.Plugin.Meta.Key)
+				return platform, jspluginadaptor.New(pinned.Plugin)
 			}
+			return platform, nil
+		}
+		if value, exists := c.Get(pluginruntime.ContextKeyPinnedEndpoint); exists {
+			if pinned, ok := value.(pluginruntime.PinnedEndpoint); ok && pinned.Plugin != nil {
+				platform = constant.TaskPlatform(pinned.Plugin.Meta.Key)
+				return platform, jspluginadaptor.New(pinned.Plugin)
+			}
+			return platform, nil
+		}
+		if value, exists := c.Get(pluginruntime.ContextKeyPinnedRoute); exists {
+			if pinned, ok := value.(pluginruntime.PinnedRoute); ok && pinned.Plugin != nil {
+				platform = constant.TaskPlatform(pinned.Plugin.Meta.Key)
+				return platform, jspluginadaptor.New(pinned.Plugin)
+			}
+			return platform, nil
 		}
 	}
-	return getLegacyTaskAdaptor(platform)
-}
-
-func getLegacyTaskAdaptor(platform constant.TaskPlatform) channel.TaskAdaptor {
-	switch platform {
-	//case constant.APITypeAIProxyLibrary:
-	//	return &aiproxy.Adaptor{}
-	case constant.TaskPlatformSuno:
-		return &suno.TaskAdaptor{}
-	case constant.TaskPlatformOpenAIImage:
-		return &taskopenaiimage.TaskAdaptor{}
+	generation := pluginruntime.DefaultRegistry.Generation()
+	plugin, ok := ResolveTaskPluginForPlatform(generation, platform)
+	if !ok {
+		return platform, nil
 	}
-	if channelType, err := strconv.ParseInt(string(platform), 10, 64); err == nil {
-		switch channelType {
-		case constant.ChannelTypeAli:
-			return &taskali.TaskAdaptor{}
-		case constant.ChannelTypeKling:
-			return &kling.TaskAdaptor{}
-		case constant.ChannelTypeJimeng:
-			return &taskjimeng.TaskAdaptor{}
-		case constant.ChannelTypeVertexAi:
-			return &taskvertex.TaskAdaptor{}
-		case constant.ChannelTypeVidu:
-			return &taskVidu.TaskAdaptor{}
-		case constant.ChannelTypeDoubaoVideo, constant.ChannelTypeVolcEngine:
-			return &taskdoubao.TaskAdaptor{}
-		case constant.ChannelTypeSora, constant.ChannelTypeOpenAI:
-			return &tasksora.TaskAdaptor{}
-		case constant.ChannelTypeGemini:
-			return &taskGemini.TaskAdaptor{}
-		case constant.ChannelTypeMiniMax:
-			return &hailuo.TaskAdaptor{}
-		}
+	if c != nil {
+		c.Set(pluginruntime.ContextKeyPinnedPlugin, pluginruntime.PinnedPlugin{
+			Generation: generation,
+			Plugin:     plugin,
+		})
 	}
-	return nil
+	return platform, jspluginadaptor.New(plugin)
 }

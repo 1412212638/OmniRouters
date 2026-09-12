@@ -2132,3 +2132,24 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source inspection, `git diff --check`, conflict-marker scan, and import/symbol review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
 - Commit/push: pending in the current source-level fix commit.
 
+## 2026-09-12 - CI build fix: unify task plugin adaptor contract
+
+- Cause: task relay call sites and the JavaScript task adaptor were using the
+  upstream protocol (`ParseResponse`, task-aware polling, and batch polling),
+  while the old legacy task adaptor contract still expected `DoResponse` and
+  map-based polling. That mixed contract caused CI errors for plugin adaptor
+  assignment and task polling method signatures.
+- Fixed: kept `channel.TaskAdaptor` on the current plugin protocol, retained
+  the pinned-plugin request routing and platform-unavailable errors, and added
+  a compile-time assertion covering the JavaScript adaptor's complete task
+  contract. Built-in task plugins remain the source for the migrated task
+  platforms; the independent OpenAI image task path remains unchanged.
+- Preserved: Sora/audio pricing, task plugin state and usage extraction,
+  payment/accounting, group discounts, audit logging, advanced custom channel
+  routing, and the standalone OpenAI image task implementation.
+- Validation: source inspection, interface/call-site review, `git diff --check`,
+  and conflict-marker scan. Local Go compilation, frontend builds, and Docker
+  builds were not run under the source-only workflow; GitHub Actions remains
+  the build authority.
+- Commit/push: pending in the current source-level fix commit.
+
