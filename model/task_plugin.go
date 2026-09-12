@@ -58,7 +58,9 @@ func SaveTaskPlugin(plugin *TaskPlugin) error {
 			if existing.SourceHash != plugin.SourceHash {
 				return errors.New("plugin key and version already exist with different source")
 			}
-			if err = tx.Model(&existing).Updates(map[string]any{"enabled": plugin.Enabled, "remark": plugin.Remark}).Error; err != nil {
+			updates := map[string]any{"enabled": plugin.Enabled, "remark": plugin.Remark}
+			if plugin.Icon != "" { updates["icon"] = plugin.Icon; existing.Icon = plugin.Icon }
+			if err = tx.Model(&existing).Updates(updates).Error; err != nil {
 				return err
 			}
 			existing.Enabled = plugin.Enabled

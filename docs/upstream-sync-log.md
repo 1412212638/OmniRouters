@@ -2108,6 +2108,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: source inspection, `git diff --check`, conflict-marker scan, and symbol/call-site review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
 - Commit/push: pending in the current source-level fix commit.
 
+## 2026-09-12 - CI follow-up correction
+
+- Removed an unused Passkey-domain audit helper from the selective sync because
+  the corresponding upstream Passkey domain model is intentionally deferred.
+- Preserved the local audit implementation and added persistence of uploaded
+  plugin icons when updating an existing plugin version.
+- Validation: source review and `git diff --check`; CI remains authoritative.
+
 ## 2026-09-12 - CI build fix: restore plugin metadata and audit dependencies
 
 - Cause: the Docker Go build exposed a partial upstream sync: audit controller

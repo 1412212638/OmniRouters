@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -56,33 +55,6 @@ var auditContentTemplates = map[string]string{
 
 	"subscription.plan_reset":      "Reset active subscriptions for plan ${plan_id}",
 	"subscription.user_plan_reset": "Reset active plan ${plan_id} subscriptions for user ${target_user_id}",
-}
-
-func recordPasskeyDomainAudit(c *gin.Context, change *model.PasskeyDomainChange, confirmed bool, err error) {
-	confirmed = confirmed && err == nil && change != nil && len(change.RemovedRPIDs) > 0
-	params := map[string]any{"success": err == nil, "confirmed": confirmed}
-	if change != nil {
-		params["domains"] = strings.Join(change.RemovedRPIDs, ", ")
-		params["removed_rp_ids"] = change.RemovedRPIDs
-		params["known"] = change.AffectedCredentials
-		params["unknown"] = change.UnknownCredentials
-		params["previous_rp_id"] = change.PreviousRPID
-		params["effective_rp_id"] = change.EffectiveRPID
-	}
-	action := "option.passkey_domains"
-	if errors.Is(err, model.ErrPasskeyDomainRemovalConfirmation) {
-		action = "option.passkey_domains_blocked"
-	} else if err != nil {
-		action = "option.passkey_domains_failed"
-	} else if confirmed && change != nil && len(change.RemovedRPIDs) > 0 {
-		action = "option.passkey_domains_confirmed"
-	}
-	auditInfo := map[string]interface{}{
-		"method": c.Request.Method, "route": c.FullPath(), "path": c.FullPath(),
-		"status": c.Writer.Status(), "success": err == nil,
-	}
-	model.RecordOperationAuditLog(c.GetInt("id"), auditContentEN(action, params), c.ClientIP(), action, params, auditOperatorInfo(c), auditInfo)
-	markAuditLogged(c)
 }
 
 // auditContentEN 按 action 模板渲染英文兜底文本；未登记的 action 退回 action 本身。
