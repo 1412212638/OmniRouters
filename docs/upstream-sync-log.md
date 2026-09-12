@@ -11,6 +11,23 @@
 - Deliberately skipped: Passkey multi-domain support and standalone audit logs.
 - Validation: source review and `git diff --check`; local Go compilation and
   Docker build were intentionally not run. GitHub Actions is authoritative.
+- Commit and push status: pending; the follow-up route compatibility fix is
+  being recorded separately below.
+
+## 2026-09-13 - Restore route compatibility after pricing sync
+
+- Local reason: the pricing preview sync had also replaced the existing API
+  router with authentication, audit, and Passkey routes whose implementations
+  are not present in this branch, causing the Docker Go build to fail.
+- Changed: restored the known-good router baseline, retained the three-batch
+  model-pricing preview endpoints and task-plugin/channel routes, and restored
+  existing email, ticket, payment, and audit compatibility routes.
+- Preserved: Sora/audio billing, group discounts, wallet/payment behavior,
+  plugin permissions/upload controls, and the existing classic/default UI.
+  Passkey multi-domain and standalone upstream audit-log redesign remain
+  intentionally skipped.
+- Validation: source-level symbol audit and `git diff --check`; no local Go
+  compilation or Docker build was run. GitHub Actions remains authoritative.
 - Commit and push status: pending.
 
 ## 2026-09-12 - Normalize text performance cache input
