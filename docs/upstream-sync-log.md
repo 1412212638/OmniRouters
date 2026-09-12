@@ -2073,3 +2073,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: no automatic upgrade, no deployment mutation, no authentication or payment behavior, and no repeated reminder for the same release in the same browser.
 - Validation: source diff review and `git diff --check`; no local frontend build or Docker build under the source-only workflow.
 
+## 2026-09-12 - CI build fix: missing plugin model-fold helper
+
+- CI failure: Go compilation reported `undefined: asciiFold` in `pkg/jsplugin/registry.go` and `pkg/jsplugin/routing.go` after the plugin core sync.
+- Fixed: added `pkg/jsplugin/model_fold.go`, matching the upstream ASCII-only folding contract used for case-insensitive model/plugin lookup. Unicode characters remain unchanged.
+- Preserved: plugin routing, billing, Sora/audio, payment and authentication behavior; this is a missing-helper correction only.
+- Validation: source inspection and `git diff --check`; local Go compilation was not run under the source-only workflow.
+
