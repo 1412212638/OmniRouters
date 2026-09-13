@@ -5648,6 +5648,14 @@
     "Installed": "Installed",
     "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} channels, {{tasks}} in-flight tasks",
     "Request Audit": "Request Audit",
-    "Raw Data": "Raw Data"
+    "Raw Data": "Raw Data",
+    "Preview expression conversion": "Preview expression conversion",
+    "Previewing...": "Previewing...",
+    "Conversion preview unavailable": "Conversion preview unavailable",
+    "Conversion preview failed": "Conversion preview failed",
+    "Conversion preview applied to draft": "Conversion preview applied to draft",
+    "Billing expression": "Billing expression",
+    "Request rule expression": "Request rule expression",
+    "Apply to draft": "Apply to draft"
   }
 }

@@ -33,6 +33,35 @@ import type {
   UpstreamRatiosResponse,
 } from './types'
 
+export type ModelPricingSnapshotResponse = {
+  success: boolean
+  message: string
+  data: {
+    entries: unknown[]
+    options: Record<string, string>
+    empty_version: string
+  }
+}
+
+export async function getModelPricingSnapshot(models?: string[]) {
+  const res = await api.get<ModelPricingSnapshotResponse>(
+    '/api/option/model_pricing',
+    { params: models?.length ? { model: models } : undefined }
+  )
+  return res.data
+}
+
+export async function previewModelPricingConversion(
+  modelName: string,
+  pricing: Record<string, unknown>
+) {
+  const res = await api.post('/api/option/model_pricing/convert', {
+    model_name: modelName,
+    pricing,
+  })
+  return res.data
+}
+
 export async function getSystemOptions() {
   const res = await api.get<SystemOptionsResponse>('/api/option/')
   return res.data

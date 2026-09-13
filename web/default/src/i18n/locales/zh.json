@@ -5648,6 +5648,14 @@
     "Installed": "已安装",
     "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} 个渠道，{{tasks}} 个在途任务",
     "Request Audit": "请求审计",
-    "Raw Data": "原始数据"
+    "Raw Data": "原始数据",
+    "Preview expression conversion": "预览表达式转换",
+    "Previewing...": "正在预览...",
+    "Conversion preview unavailable": "暂无法转换预览",
+    "Conversion preview failed": "转换预览失败",
+    "Conversion preview applied to draft": "转换结果已应用到草稿",
+    "Billing expression": "计费表达式",
+    "Request rule expression": "请求规则表达式",
+    "Apply to draft": "应用到草稿"
   }
 }

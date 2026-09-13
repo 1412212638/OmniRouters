@@ -2386,3 +2386,43 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: existing model pricing, task plugins, Sora/audio billing, group discounts, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
   - Commit/push: pending.
+- 2026-09-13 - Begin frontend model pricing snapshot integration
+  - Local change: added typed snapshot/conversion API clients and initiated snapshot querying in the model pricing card; legacy option data remains the fallback during migration.
+  - Preserved: existing editor, save behavior, Sora/audio pricing, group discounts, plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-13 - Add model pricing snapshot adapter boundary
+  - Local change: added a typed adapter that maps snapshot options to the legacy editor fields with field-level fallback; no save or billing behavior changes yet.
+  - Preserved: existing model pricing editor, Sora/audio billing, plugins, group discounts, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-13 - Connect model pricing snapshot adapter to editor reads
+  - Local change: model pricing editor now prefers the snapshot option maps and falls back per field to legacy system options; existing save behavior is unchanged.
+  - Preserved: JSON editor, Sora/audio billing, task plugins, group discounts, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-13 - Add model pricing conversion preview UI
+  - Local change: model pricing editor now exposes a conversion preview action for legacy pricing and applies the returned expression to the draft without saving automatically.
+  - Preserved: existing save flow, Sora/audio pricing, task plugins, group discounts, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-13 - Preserve request rules in conversion preview
+  - Local change: conversion preview now splits combined expressions using the shared parser before populating billing and request-rule editor state.
+  - Preserved: existing save flow and all billing/payment customizations.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-13 - Re-fetch pricing snapshot after model pricing saves
+  - Local change: successful model pricing updates now invalidate and refetch the snapshot query so subsequent rendering uses server-persisted values.
+  - Preserved: existing option writes, Sora/audio billing, plugins, group discounts, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-14 - Make pricing conversion preview confirmation-based
+  - Local change: conversion results now appear in a review dialog and are applied to the draft only after confirmation; no automatic save occurs.
+  - Preserved: existing pricing, Sora/audio billing, task plugins, group discounts, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-14 - Add conversion preview translations
+  - Local change: added English and Chinese translations for the conversion preview action, review dialog, status messages, and expression labels.
+  - Preserved: all existing pricing, Sora/audio billing, plugins, group discounts, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.

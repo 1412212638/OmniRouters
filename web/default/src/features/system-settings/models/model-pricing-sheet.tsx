@@ -30,6 +30,15 @@ import { AlertTriangle, Plus, Save, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import {
   Field,
@@ -63,6 +72,8 @@ import {
 } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { previewModelPricingConversion } from '../api'
+import { splitBillingExprAndRequestRules } from '@/features/pricing/lib/billing-expr'
 import { sideDrawerContentClassName } from '@/components/drawer-layout'
 import {
   EMPTY_LANE_ENABLED,
@@ -170,6 +181,11 @@ export const ModelPricingEditorPanel = forwardRef<
   const [billingExpr, setBillingExpr] = useState('')
   const [requestRuleExpr, setRequestRuleExpr] = useState('')
   const [editorReloadToken, setEditorReloadToken] = useState(0)
+  const [isPreviewingConversion, setIsPreviewingConversion] = useState(false)
+  const [conversionPreview, setConversionPreview] = useState<{
+    billingExpr: string
+    requestRuleExpr: string
+  } | null>(null)
   const isEditMode = !!editData
 
   const form = useForm<ModelPricingFormValues>({
@@ -633,6 +649,48 @@ export const ModelPricingEditorPanel = forwardRef<
   )
 
   const showActions = Boolean(onSave)
+  const previewConversion = useCallback(async () => {
+    const name = form.getValues('name').trim()
+    if (!name) return
+    setIsPreviewingConversion(true)
+    try {
+      const values = form.getValues()
+      const pricing: Record<string, unknown> = {}
+      const fields: Array<[keyof ModelPricingFormValues, string]> = [
+        ['price', 'ModelPrice'],
+        ['ratio', 'ModelRatio'],
+        ['cacheRatio', 'CacheRatio'],
+        ['createCacheRatio', 'CreateCacheRatio'],
+        ['completionRatio', 'CompletionRatio'],
+        ['imageRatio', 'ImageRatio'],
+        ['audioRatio', 'AudioRatio'],
+        ['audioCompletionRatio', 'AudioCompletionRatio'],
+      ]
+      for (const [field, key] of fields) {
+        if (values[field]) pricing[key] = Number(values[field])
+      }
+      const response = await previewModelPricingConversion(name, pricing)
+      if (response.success && response.data?.expression) {
+        const split = splitBillingExprAndRequestRules(response.data.expression)
+        setConversionPreview(split)
+      } else {
+        toast.info(response.data?.unsupported_reason || response.message || t('Conversion preview unavailable'))
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t('Conversion preview failed'))
+    } finally {
+      setIsPreviewingConversion(false)
+    }
+  }, [form, t])
+
+  const applyConversionPreview = useCallback(() => {
+    if (!conversionPreview) return
+    setBillingExpr(conversionPreview.billingExpr)
+    setRequestRuleExpr(conversionPreview.requestRuleExpr)
+    setPricingMode('tiered_expr')
+    setConversionPreview(null)
+    toast.success(t('Conversion preview applied to draft'))
+  }, [conversionPreview, t])
 
   return (
     <div
@@ -641,13 +699,25 @@ export const ModelPricingEditorPanel = forwardRef<
         className
       )}
     >
-      <div className='border-b p-4'>
-        <div className='flex flex-wrap items-start justify-between gap-3'>
+          <div className='border-b p-4'>
+          <div className='flex flex-wrap items-start justify-between gap-3'>
           <div className='min-w-0'>
             <h3 className='truncate text-base font-medium'>
               {isEditMode ? t('Edit model pricing') : t('Add model pricing')}
             </h3>
           </div>
+        {isEditMode && pricingMode !== 'tiered_expr' && (
+          <Button
+            type='button'
+            variant='outline'
+            size='sm'
+            className='mt-3'
+            onClick={previewConversion}
+            disabled={isPreviewingConversion}
+          >
+            {isPreviewingConversion ? t('Previewing...') : t('Preview expression conversion')}
+          </Button>
+        )}
         </div>
       </div>
 
@@ -990,6 +1060,39 @@ export const ModelPricingEditorPanel = forwardRef<
           )}
         </form>
       </Form>
+      <AlertDialog
+        open={conversionPreview !== null}
+        onOpenChange={(open) => !open && setConversionPreview(null)}
+      >
+        <AlertDialogContent className='max-w-2xl'>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('Preview expression conversion')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('Review the generated expression before applying it to the draft. It will not be saved automatically.')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className='space-y-3 text-sm'>
+            <div>
+              <div className='mb-1 font-medium'>{t('Billing expression')}</div>
+              <pre className='max-h-40 overflow-auto rounded-md bg-muted p-3 whitespace-pre-wrap break-words'>
+                {conversionPreview?.billingExpr || t('None')}
+              </pre>
+            </div>
+            {conversionPreview?.requestRuleExpr && (
+              <div>
+                <div className='mb-1 font-medium'>{t('Request rule expression')}</div>
+                <pre className='max-h-32 overflow-auto rounded-md bg-muted p-3 whitespace-pre-wrap break-words'>
+                  {conversionPreview.requestRuleExpr}
+                </pre>
+              </div>
+            )}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+            <Button onClick={applyConversionPreview}>{t('Apply to draft')}</Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 })

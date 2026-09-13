@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -27,7 +27,7 @@ import * as z from 'zod'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-import { resetModelRatios } from '../api'
+import { getModelPricingSnapshot, resetModelRatios } from '../api'
 import { SettingsPageTitleStatusPortal } from '../components/settings-page-context'
 import { SettingsSection } from '../components/settings-section'
 import { useUpdateOption } from '../hooks/use-update-option'
@@ -36,6 +36,7 @@ import { GroupRatioForm } from './group-ratio-form'
 import { ModelRatioForm } from './model-ratio-form'
 import { ToolPriceSettings } from './tool-price-settings'
 import { UpstreamRatioSync } from './upstream-ratio-sync'
+import { adaptModelPricingSnapshot } from './model-pricing-adapter'
 import {
   formatJsonForTextarea,
   type JsonValidationError,
@@ -159,7 +160,7 @@ type RatioSettingsCardProps = {
 }
 
 export function RatioSettingsCard({
-  modelDefaults,
+  modelDefaults: initialModelDefaults,
   groupDefaults,
   toolPricesDefault,
   titleKey = 'Pricing Ratios',
@@ -169,6 +170,19 @@ export function RatioSettingsCard({
   const updateOption = useUpdateOption()
   const queryClient = useQueryClient()
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const pricingSnapshotQuery = useQuery({
+    queryKey: ['model-pricing-snapshot'],
+    queryFn: () => getModelPricingSnapshot(),
+    staleTime: 30_000,
+  })
+  const modelDefaults = useMemo(
+    () =>
+      adaptModelPricingSnapshot(
+        pricingSnapshotQuery.data,
+        initialModelDefaults
+      ),
+    [initialModelDefaults, pricingSnapshotQuery.data]
+  )
 
   const resetMutation = useMutation({
     mutationFn: resetModelRatios,
@@ -400,6 +414,11 @@ export function RatioSettingsCard({
         const apiKey = apiKeyMap[key as string] || (key as string)
         await updateOption.mutateAsync({ key: apiKey, value: normalized[key] })
       }
+
+      // Read back the server snapshot so the editor reflects persisted data,
+      // rather than assuming every successful response was durable.
+      await queryClient.invalidateQueries({ queryKey: ['model-pricing-snapshot'] })
+      await queryClient.refetchQueries({ queryKey: ['model-pricing-snapshot'] })
 
       modelNormalizedDefaults.current = normalized
       setSavedModelValues(normalized)
