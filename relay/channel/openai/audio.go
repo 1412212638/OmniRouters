@@ -29,6 +29,7 @@ func OpenaiTTSHandler(c *gin.Context, resp *http.Response, info *relaycommon.Rel
 	usage := &dto.Usage{}
 	usage.PromptTokens = info.GetEstimatePromptTokens()
 	usage.TotalTokens = info.GetEstimatePromptTokens()
+	hasUpstreamUsage := false
 	for k, v := range resp.Header {
 		if !service.ShouldCopyUpstreamHeader(c, k, v) {
 			continue
@@ -45,6 +46,7 @@ func OpenaiTTSHandler(c *gin.Context, resp *http.Response, info *relaycommon.Rel
 					logger.LogError(c, err.Error())
 					sr.Error(err)
 				} else if simpleResponse.Usage.TotalTokens != 0 {
+					hasUpstreamUsage = true
 					usage.PromptTokens = simpleResponse.Usage.InputTokens
 					usage.CompletionTokens = simpleResponse.OutputTokens
 					usage.TotalTokens = simpleResponse.TotalTokens
@@ -54,6 +56,9 @@ func OpenaiTTSHandler(c *gin.Context, resp *http.Response, info *relaycommon.Rel
 				sr.Error(err)
 			}
 		})
+		if !hasUpstreamUsage {
+			common.SetContextKey(c, constant.ContextKeyLocalCountTokens, true)
+		}
 	} else {
 		common.SetContextKey(c, constant.ContextKeyLocalCountTokens, true)
 		// 读取响应体到缓冲区

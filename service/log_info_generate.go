@@ -147,6 +147,9 @@ func appendStreamStatus(relayInfo *relaycommon.RelayInfo, other *model.LogOther)
 	streamInfo := map[string]interface{}{
 		"status":     status,
 		"end_reason": string(ss.EndReason),
+		"usage_present": ss.UsagePresent,
+		"usage_source": ss.UsageSource,
+		"billing_settled": ss.BillingSettled,
 	}
 	if ss.EndError != nil {
 		streamInfo["end_error"] = ss.EndError.Error()
@@ -160,6 +163,49 @@ func appendStreamStatus(relayInfo *relaycommon.RelayInfo, other *model.LogOther)
 		streamInfo["errors"] = messages
 	}
 	other.SetPublic("stream_status", streamInfo)
+}
+
+// markStreamUsageSource classifies the usage already produced by a relay.
+// A provider-reported BillingUsage takes precedence over the local token-count
+// marker because a handler may use local counting only to fill a missing field
+// while still retaining a real provider usage snapshot.
+func markStreamUsageSource(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, usage *dto.Usage) {
+	if relayInfo == nil || relayInfo.StreamStatus == nil {
+		return
+	}
+	if usage == nil {
+		relayInfo.StreamStatus.UsagePresent = false
+		relayInfo.StreamStatus.UsageSource = "missing"
+		return
+	}
+	relayInfo.StreamStatus.UsagePresent = true
+	if usage.BillingUsage != nil {
+		if usage.BillingUsage.Estimated {
+			relayInfo.StreamStatus.UsageSource = "local_estimated"
+		} else {
+			relayInfo.StreamStatus.UsageSource = "upstream_actual"
+		}
+		return
+	}
+	if common.GetContextKeyBool(ctx, constant.ContextKeyLocalCountTokens) {
+		relayInfo.StreamStatus.UsageSource = "local_estimated"
+		return
+	}
+	relayInfo.StreamStatus.UsageSource = "upstream_actual"
+}
+
+// shouldSkipEstimatedClientGoneUsage prevents a disconnected streaming client
+// from turning a locally estimated partial response into a real charge. When
+// the provider did send usage, the bounded scanner drain lets normal settlement
+// continue. Fixed-price settlements are intentionally handled by callers and
+// are not suppressed by this helper.
+func shouldSkipEstimatedClientGoneUsage(relayInfo *relaycommon.RelayInfo) bool {
+	if relayInfo == nil || relayInfo.StreamStatus == nil ||
+		relayInfo.StreamStatus.EndReason != relaycommon.StreamEndReasonClientGone {
+		return false
+	}
+	return relayInfo.StreamStatus.UsageSource == "missing" ||
+		relayInfo.StreamStatus.UsageSource == "local_estimated"
 }
 
 func appendBillingInfo(relayInfo *relaycommon.RelayInfo, other *model.LogOther) {

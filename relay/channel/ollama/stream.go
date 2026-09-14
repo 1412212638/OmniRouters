@@ -199,6 +199,10 @@ func ollamaStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http
 	if err := scanner.Err(); err != nil && err != io.EOF {
 		logger.LogError(c, "ollama stream scan error: "+err.Error())
 	}
+	helper.MarkClientGoneIfCanceled(c, info)
+	if usage.TotalTokens == 0 && info.StreamStatus != nil && info.StreamStatus.EndReason == relaycommon.StreamEndReasonClientGone {
+		common.SetContextKey(c, constant.ContextKeyLocalCountTokens, true)
+	}
 	return usage, nil
 }
 

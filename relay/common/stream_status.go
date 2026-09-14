@@ -31,6 +31,13 @@ type StreamErrorEntry struct {
 type StreamStatus struct {
 	EndReason StreamEndReason
 	EndError  error
+	// UsagePresent records whether the relay produced a usage object for settlement.
+	// It is diagnostic only and does not decide whether quota is charged.
+	UsagePresent bool
+	// UsageSource is one of missing, upstream_actual, or local_estimated.
+	// It is diagnostic only until disconnect-drain settlement is enabled.
+	UsageSource string
+	BillingSettled bool
 	endOnce   sync.Once
 
 	mu         sync.Mutex

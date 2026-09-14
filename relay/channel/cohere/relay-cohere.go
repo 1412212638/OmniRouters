@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
@@ -81,6 +82,7 @@ func stopReasonCohere2OpenAI(reason string) string {
 }
 
 func cohereStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Response) (*dto.Usage, *types.NewAPIError) {
+	defer service.CloseResponseBodyGracefully(resp)
 	responseId := helper.GetResponseID(c)
 	createdTime := common.GetTimestamp()
 	usage := &dto.Usage{}
@@ -98,12 +100,21 @@ func cohereStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http
 		}
 		return 0, nil, nil
 	})
-	dataChan := make(chan string)
-	stopChan := make(chan bool)
+	dataChan := make(chan string, 1)
+	stopChan := make(chan bool, 1)
+	stopScanner := make(chan struct{})
+	var stopScannerOnce sync.Once
+	scannerDone := make(chan struct{})
 	go func() {
+		defer close(dataChan)
+		defer close(scannerDone)
 		for scanner.Scan() {
 			data := scanner.Text()
-			dataChan <- data
+			select {
+			case dataChan <- data:
+			case <-stopScanner:
+				return
+			}
 		}
 		if err := scanner.Err(); err != nil {
 			common.SysLog("error reading stream: " + err.Error())
@@ -114,7 +125,10 @@ func cohereStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http
 	isFirst := true
 	c.Stream(func(w io.Writer) bool {
 		select {
-		case data := <-dataChan:
+		case data, ok := <-dataChan:
+			if !ok {
+				return false
+			}
 			if isFirst {
 				isFirst = false
 				info.FirstResponseTime = time.Now()
@@ -168,6 +182,32 @@ func cohereStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http
 			return false
 		}
 	})
+	helper.MarkClientGoneIfCanceled(c, info)
+	if info.StreamStatus != nil && info.StreamStatus.EndReason == relaycommon.StreamEndReasonClientGone {
+		drainTimer := time.NewTimer(helper.ClientGoneDrainTimeout)
+		defer drainTimer.Stop()
+		for {
+			select {
+			case data, ok := <-dataChan:
+				if !ok {
+					goto drainFinished
+				}
+				var cohereResp CohereResponse
+				if err := json.Unmarshal([]byte(strings.TrimSuffix(data, "\r")), &cohereResp); err == nil && cohereResp.IsFinished && cohereResp.Response != nil {
+					usage.PromptTokens = cohereResp.Response.Meta.BilledUnits.InputTokens
+					usage.CompletionTokens = cohereResp.Response.Meta.BilledUnits.OutputTokens
+				}
+			case <-drainTimer.C:
+				common.SysLog("cohere stream client disconnect drain timed out")
+				stopScannerOnce.Do(func() { close(stopScanner) })
+				service.CloseResponseBodyGracefully(resp)
+				goto drainFinished
+			}
+		}
+	drainFinished:
+	}
+	stopScannerOnce.Do(func() { close(stopScanner) })
+	<-scannerDone
 	if usage.PromptTokens == 0 {
 		usage = service.ResponseText2Usage(c, responseText, info.UpstreamModelName, info.GetEstimatePromptTokens())
 	}

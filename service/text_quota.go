@@ -397,6 +397,7 @@ func usageSemanticFromUsage(relayInfo *relaycommon.RelayInfo, usage *dto.Usage) 
 
 func PostTextConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, usage *dto.Usage, extraContent []string) {
 	originUsage := usage
+	markStreamUsageSource(ctx, relayInfo, usage)
 	billingUsage := effectiveBillingUsage(usage)
 	if usage == nil {
 		extraContent = append(extraContent, "上游无计费信息")
@@ -435,6 +436,11 @@ func PostTextConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, us
 			}
 		}
 	}
+	avoidEstimatedCharge := shouldSkipEstimatedClientGoneUsage(relayInfo) && !summary.FixedPriceBilling
+	if avoidEstimatedCharge {
+		summary.Quota = 0
+		extraContent = append(extraContent, "客户端已断开且上游未提供真实用量，不按本地估算扣费")
+	}
 
 	for _, item := range summary.ToolSurchargeItems {
 		q := decimal.NewFromFloat(item.Price).
@@ -464,6 +470,8 @@ func PostTextConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, us
 
 	if err := SettleBilling(ctx, relayInfo, summary.Quota); err != nil {
 		logger.LogError(ctx, "error settling billing: "+err.Error())
+	} else if relayInfo != nil && relayInfo.StreamStatus != nil {
+		relayInfo.StreamStatus.BillingSettled = true
 	}
 
 	logModel := summary.ModelName

@@ -125,6 +125,7 @@ func tencentStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *htt
 	if err := scanner.Err(); err != nil {
 		common.SysLog("error reading stream: " + err.Error())
 	}
+	helper.MarkClientGoneIfCanceled(c, info)
 
 	helper.Done(c)
 

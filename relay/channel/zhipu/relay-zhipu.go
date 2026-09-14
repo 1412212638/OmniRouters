@@ -156,13 +156,18 @@ func streamMetaResponseZhipu2OpenAI(zhipuResponse *ZhipuStreamMetaResponse) (*dt
 }
 
 func zhipuStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Response) (*dto.Usage, *types.NewAPIError) {
+	defer service.CloseResponseBodyGracefully(resp)
 	var usage *dto.Usage
 	scanner := helper.NewStreamScanner(resp.Body)
 	scanner.Split(bufio.ScanLines)
-	dataChan := make(chan string)
-	metaChan := make(chan string)
-	stopChan := make(chan bool)
+	dataChan := make(chan string, 1)
+	metaChan := make(chan string, 1)
+	stopChan := make(chan bool, 1)
+	stopScanner := make(chan struct{})
+	var stopScannerOnce sync.Once
+	scannerDone := make(chan struct{})
 	go func() {
+		defer close(scannerDone)
 		for scanner.Scan() {
 			data := scanner.Text()
 			lines := strings.Split(data, "\n")
@@ -171,12 +176,24 @@ func zhipuStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.
 					continue
 				}
 				if line[:5] == "data:" {
-					dataChan <- line[5:]
+					select {
+					case dataChan <- line[5:]:
+					case <-stopScanner:
+						return
+					}
 					if i != len(lines)-1 {
-						dataChan <- "\n"
+						select {
+						case dataChan <- "\n":
+						case <-stopScanner:
+							return
+						}
 					}
 				} else if line[:5] == "meta:" {
-					metaChan <- line[5:]
+					select {
+					case metaChan <- line[5:]:
+					case <-stopScanner:
+						return
+					}
 				}
 			}
 		}
@@ -218,7 +235,42 @@ func zhipuStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.
 			return false
 		}
 	})
-	service.CloseResponseBodyGracefully(resp)
+	helper.MarkClientGoneIfCanceled(c, info)
+	if info.StreamStatus != nil && info.StreamStatus.EndReason == relaycommon.StreamEndReasonClientGone {
+		drainTimer := time.NewTimer(helper.ClientGoneDrainTimeout)
+		defer drainTimer.Stop()
+		for {
+			select {
+			case data := <-metaChan:
+				var zhipuResponse ZhipuStreamMetaResponse
+				if err := json.Unmarshal([]byte(data), &zhipuResponse); err == nil {
+					usage = &zhipuResponse.Usage
+				}
+			case <-dataChan:
+			case <-scannerDone:
+				for {
+					select {
+					case data := <-metaChan:
+						var zhipuResponse ZhipuStreamMetaResponse
+						if err := json.Unmarshal([]byte(data), &zhipuResponse); err == nil {
+							usage = &zhipuResponse.Usage
+						}
+					case <-dataChan:
+					default:
+						goto drainFinished
+					}
+				}
+			case <-drainTimer.C:
+				common.SysLog("zhipu stream client disconnect drain timed out")
+				stopScannerOnce.Do(func() { close(stopScanner) })
+				service.CloseResponseBodyGracefully(resp)
+				goto drainFinished
+			}
+		}
+	drainFinished:
+	}
+	stopScannerOnce.Do(func() { close(stopScanner) })
+	<-scannerDone
 	return usage, nil
 }
 

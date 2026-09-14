@@ -2426,3 +2426,83 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: all existing pricing, Sora/audio billing, plugins, group discounts, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
   - Commit/push: pending.
+- 2026-09-14 - Add stream disconnect billing diagnostics
+  - Local fix: stream logs now record whether usage was present and whether billing settlement succeeded when a streamed request ends, including `client_gone` cases.
+  - Preserved: all quota calculations, pre-consume/settlement decisions, retry behavior, Sora/audio billing, task plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-14 - Classify stream usage source before disconnect settlement changes
+  - Local fix: stream logs now distinguish missing usage, provider-reported usage, and locally estimated usage using the existing BillingUsage metadata and local token-count marker.
+  - Billing impact: diagnostic only; no settlement, pre-consume, retry, or charge amount behavior changed.
+  - Preserved: Sora/audio billing, task plugins, payment flows, and non-stream requests.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-14 - Add regression coverage for stream usage source classification
+  - Local change: added tests covering missing, upstream-reported, estimated, and locally counted usage classifications before disconnect settlement work.
+  - Billing impact: tests only; no runtime settlement or stream lifecycle behavior changed.
+  - Preserved: all existing billing, retry, Sora/audio, task plugin, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-14 - Bounded upstream drain after streamed client disconnect
+  - Local fix: the shared stream scanner now keeps consuming the upstream body for up to 10 seconds after `client_gone`, allowing provider terminal usage events to reach existing relay handlers while standard downstream writes remain suppressed by the canceled request context; the body is still force-closed after the bounded window.
+  - Billing impact: no pricing, pre-consume, settlement, refund, retry, Sora/audio, or task-plugin formula changes. This only gives existing provider-usage parsers a bounded opportunity to produce actual usage; local-estimate behavior is unchanged and remains separately diagnosed.
+  - Preserved: all non-stream requests, normal stream completion, handler-stop behavior, and resource cleanup after timeout.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow. Added/updated stream scanner regression coverage for terminal data after client disconnect.
+  - Commit/push: pending.
+- 2026-09-14 - Protect client-gone settlement from local estimates
+  - Local fix: when a streamed request ends with `client_gone`, only provider-reported usage is allowed to drive variable settlement; missing/local-estimated usage settles to zero so pre-consume can be returned instead of charging a partial local estimate. Fixed-price expression settlements remain unchanged.
+  - Preserved: normal streams, provider usage settlement, Sora/audio fixed-price behavior, task plugins, retry behavior, group discounts, wallet/payment flows, and non-stream requests.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow. Added usage-source precedence coverage.
+  - Commit/push: pending.
+- 2026-09-14 - Mark manual streaming usage fallbacks as estimated
+  - Local fix: OpenAI Responses and streaming TTS paths now mark locally filled token counts explicitly, so client-gone protection cannot mistake fallback counts for provider-reported usage.
+  - Preserved: provider usage parsing, normal stream billing, fixed-price billing, Sora/audio behavior, task plugins, retries, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-14 - Add client-gone settlement guard coverage
+  - Local change: added focused regression cases for normal streams, missing usage, local estimates, and provider-reported usage at the client-gone settlement boundary.
+  - Billing impact: tests only; no additional runtime pricing behavior beyond the guarded settlement path.
+  - Preserved: all existing billing and provider flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-14 - Preserve Claude fallback usage classification
+  - Local fix: Claude stream finalization now marks the native BillingUsage snapshot as estimated when missing completion/input fields were filled by local text counting, preventing a partial fallback from being treated as fully provider-reported usage after `client_gone`.
+  - Preserved: complete Claude usage, normal settlement, cache fields, tool billing, Sora/audio, plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-14 - Mark disconnects in direct stream handlers
+  - Local fix: Cohere, Tencent, Zhipu, and Ollama direct scanner paths now record `client_gone` when the downstream request context is canceled; Ollama's empty disconnected usage is explicitly marked as local/missing rather than provider-reported.
+  - Billing impact: no normal usage, pricing, pre-consume, settlement, refund, retry, Sora/audio, plugin, or payment formula changes. The existing client-gone guard can now recognize these direct handlers and avoid charging their local fallback usage.
+  - Preserved: normal stream responses and each provider's existing parser/output behavior.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-14 - Add direct-handler disconnect regression coverage
+  - Local change: added a focused test proving a canceled downstream request initializes stream status and records `client_gone` for direct scanner implementations.
+  - Billing impact: tests only; no additional runtime pricing or settlement changes.
+  - Preserved: all existing provider, billing, task-plugin, and payment behavior.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-14 - Add bounded Cohere stream drain
+  - Local fix: the Cohere direct stream handler now keeps parsing provider lines for up to the shared 10-second disconnect window, suppresses drained output, and closes/joins the scanner on timeout so terminal provider usage can still be captured without a goroutine leak.
+  - Billing impact: no pricing or settlement formula changes; only terminal provider usage already parsed by the handler can affect billing.
+  - Preserved: normal Cohere output format, final usage parsing, fallback estimation, retry behavior, Sora/audio, task plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-14 - Make Cohere drain cancellation leak-safe
+  - Local fix: Cohere scanner delivery can now be canceled while blocked on its data channel; normal completion, client disconnect, and drain timeout all join the scanner before returning.
+  - Billing impact: no pricing or settlement formula changes; terminal provider usage remains the only usage recovered during drain.
+  - Preserved: normal Cohere streaming, fallback estimation, retries, Sora/audio, task plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-14 - Add bounded Zhipu metadata drain
+  - Local fix: the Zhipu direct stream handler now keeps consuming its separate `meta:` usage channel for the shared 10-second disconnect window, suppresses drained output, and joins the scanner on normal completion or timeout.
+  - Billing impact: no pricing or settlement formula changes; only provider metadata already parsed by the handler can affect billing.
+  - Preserved: normal Zhipu data/meta output, fallback behavior, retries, Sora/audio, task plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.
+- 2026-09-14 - Preserve buffered Zhipu terminal metadata
+  - Local fix: after the Zhipu scanner completion signal, the disconnect drain now non-blockingly consumes residual buffered `meta` frames before settlement.
+  - Billing impact: no pricing or settlement formula changes; this only prevents an already-read provider usage frame from being dropped at channel shutdown.
+  - Preserved: normal Zhipu output, fallback behavior, retries, Sora/audio, task plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: pending.

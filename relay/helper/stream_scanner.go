@@ -31,6 +31,11 @@ const (
 	// but connected client (full TCP buffer, no server WriteTimeout) could hang
 	// the handler forever.
 	streamWriteTimeout = 30 * time.Second
+	// clientGoneDrainTimeout gives providers a short window to emit terminal
+	// usage after the downstream client has disconnected. The response body is
+	// still force-closed when this window expires so a detached request cannot
+	// live indefinitely.
+	ClientGoneDrainTimeout = 10 * time.Second
 )
 
 func getScannerBufferSize() int {
@@ -50,6 +55,21 @@ func NewStreamScanner(reader io.Reader, maxBytes ...int) *bufio.Scanner {
 	scanner := bufio.NewScanner(reader)
 	scanner.Buffer(make([]byte, min(InitialScannerBufferSize, limit)), limit)
 	return scanner
+}
+
+// MarkClientGoneIfCanceled records a downstream disconnect for stream
+// implementations that use their own scanner loop instead of
+// StreamScannerHandler. It is intentionally side-effect free for normal
+// requests and does not close the upstream body; callers retain ownership of
+// their existing cleanup path.
+func MarkClientGoneIfCanceled(c *gin.Context, info *relaycommon.RelayInfo) {
+	if c == nil || c.Request == nil || info == nil || c.Request.Context().Err() == nil {
+		return
+	}
+	if info.StreamStatus == nil {
+		info.StreamStatus = relaycommon.NewStreamStatus()
+	}
+	info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonClientGone, c.Request.Context().Err())
 }
 
 func copyCodexSSEHeaders(c *gin.Context, resp *http.Response) {
@@ -302,9 +322,23 @@ func StreamScannerHandler(c *gin.Context, resp *http.Response, info *relaycommon
 	case <-stopChan:
 		// EndReason already set by the goroutine that triggered stopChan
 	case <-c.Request.Context().Done():
-		// 客户端断开：立即 cleanup 关闭上游 resp.Body，解除 scanner 阻塞并让上游停止生成，
-		// 避免为已放弃的请求继续消费上游 token。
+		// 客户端断开后不要立即关闭上游 body。很多 provider 只在终止事件
+		// 中发送 usage；让 scanner 在有限窗口内继续消费，才能保留真实用量。
+		// dataHandler 仍会运行，但所有标准写出函数都会看到已取消的请求
+		// 上下文并跳过向下游写入。
 		info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonClientGone, c.Request.Context().Err())
+		drainTimer := time.NewTimer(ClientGoneDrainTimeout)
+		select {
+		case <-stopChan:
+		case <-drainTimer.C:
+			logger.LogDebug(c, "client disconnected; upstream usage drain timed out")
+		}
+		if !drainTimer.Stop() {
+			select {
+			case <-drainTimer.C:
+			default:
+			}
+		}
 	}
 
 	cleanup()
