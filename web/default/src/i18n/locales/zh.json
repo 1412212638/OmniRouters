@@ -2756,6 +2756,8 @@
     "Model Pricing": "模型定价",
     "Model pull failed: {{msg}}": "模型拉取失败：{{msg}}",
     "Model ratio": "模型倍率",
+    "Group ratio": "分组倍率",
+    "Effective ratio": "最终生效倍率",
     "Model ratios": "模型比例",
     "Model ratios reset successfully": "模型比例重置成功",
     "Model Regex": "模型正则",

@@ -2756,6 +2756,8 @@
     "Model Pricing": "Model Pricing",
     "Model pull failed: {{msg}}": "Model pull failed: {{msg}}",
     "Model ratio": "Model ratio",
+    "Group ratio": "Group ratio",
+    "Effective ratio": "Effective ratio",
     "Model ratios": "Model ratios",
     "Model ratios reset successfully": "Model ratios reset successfully",
     "Model Regex": "Model Regex",

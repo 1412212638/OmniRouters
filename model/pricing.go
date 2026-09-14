@@ -55,6 +55,7 @@ type Pricing struct {
 	BillingUsageSchema     map[string]jsplugin.UsageFieldSchema `json:"billing_usage_schema,omitempty"`
 	BillingUsageExamples   []jsplugin.UsageExample              `json:"billing_usage_examples,omitempty"`
 	PricingVersion         string                               `json:"pricing_version,omitempty"`
+	ModelGroupRatio        map[string]float64                    `json:"model_group_ratio,omitempty"`
 }
 
 type PricingVendor struct {

@@ -2524,3 +2524,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: upstream response-header wait, streaming timeout, normal stream behavior, downstream cancellation, body cleanup, and all unrelated untracked workspace files.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow. Checked that all former `ClientGoneDrainTimeout` references use the shared runtime getter.
   - Commit/push: pending.
+- 2026-09-15 - Clarify model pricing rule multipliers in model details
+  - Local fix: the pricing catalog now includes the resolved model-specific multiplier per group; the model details panel separately shows group ratio, model ratio, effective ratio, and active expiration time.
+  - Billing impact: no pricing calculation, pre-consume, settlement, refund, or expression evaluation changes; this is display metadata only.
+  - Preserved: existing model pricing, discount rules, expression pricing, group filtering, classic frontend, and protected project identifiers.
+  - Validation: `git diff --check`; Go/frontend build not run because Go is unavailable and this source-only change does not require local image builds.
+  - Commit/push: pending.

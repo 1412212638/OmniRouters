@@ -928,10 +928,12 @@ function GroupPricingSection(props: {
   const showRechargePrice = props.showRechargePrice ?? false
   const effectiveGroupRatio = props.model.group_ratio ?? props.groupRatio
   const getRuleInfo = (group: string) => {
-    const effective = effectiveGroupRatio[group] || 1
+    const base = props.groupRatio[group] ?? 1
+    const effective = effectiveGroupRatio[group] ?? 1
+    const modelMultiplier = props.model.model_group_ratio?.[group]
     const expiry = props.groupModelRatioExpiry?.[group]?.[props.model.model_name]
     const active = !expiry || expiry <= 0 || expiry > Date.now() / 1000
-    return { multiplier: effective, expiry: active && expiry && expiry > 0 ? expiry : undefined }
+    return { multiplier: effective, baseMultiplier: base, modelMultiplier, expiry: active && expiry && expiry > 0 ? expiry : undefined }
   }
 
   const availableGroups = useMemo(
@@ -1048,7 +1050,9 @@ function GroupPricingSection(props: {
                 <div className='bg-muted/20 flex items-center justify-between gap-3 border-b px-3 py-2'>
                   <GroupBadge group={group} size='sm' />
                   <span className='text-muted-foreground flex items-center gap-3 font-mono text-xs'>
-                    {ruleInfo.multiplier}x
+                    {t('Group ratio')} {ruleInfo.baseMultiplier}x
+                    {ruleInfo.modelMultiplier != null && <> · {t('Model ratio')} {ruleInfo.modelMultiplier}x</>}
+                    {' · '}{t('Effective ratio')} {ruleInfo.multiplier}x
                     {ruleInfo.expiry && (
                       <span className='font-sans'>
                         {t('Expires at')} {new Date(ruleInfo.expiry * 1000).toLocaleString()}
@@ -1140,7 +1144,8 @@ function GroupPricingSection(props: {
             className: thClass,
             cellClassName: 'text-muted-foreground py-2.5 font-mono',
             cell: (group) => {
-              return `${getRuleInfo(group).multiplier}x`
+              const info = getRuleInfo(group)
+              return `${info.baseMultiplier}x${info.modelMultiplier != null ? ` · ${info.modelMultiplier}x` : ''} · ${info.multiplier}x`
             },
           },
           {
