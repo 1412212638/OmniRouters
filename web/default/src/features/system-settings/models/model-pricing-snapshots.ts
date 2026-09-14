@@ -37,6 +37,7 @@ export type ModelPricingSnapshotInput = {
   audioCompletionRatio: string
   billingMode: string
   billingExpr: string
+  pluginBillingExpr: string
   soraPerRequestPricing: string
 }
 
@@ -53,6 +54,7 @@ export type ModelPricingSnapshot = {
   billingMode?: string
   billingExpr?: string
   requestRuleExpr?: string
+  pluginBillingExpressions?: Record<string, string>
   soraPerRequestPricingEnabled?: boolean
   soraResolutionTiers?: SoraResolutionTierDraft[]
   soraAudioGenerationSurcharge?: string
@@ -220,6 +222,7 @@ export const buildModelSnapshots = ({
   audioCompletionRatio,
   billingMode,
   billingExpr,
+  pluginBillingExpr,
   soraPerRequestPricing,
 }: ModelPricingSnapshotInput): ModelPricingSnapshot[] => {
   const priceMap = safeJsonParse<Record<string, number>>(modelPrice, {
@@ -269,6 +272,10 @@ export const buildModelSnapshots = ({
       context: 'sora pricing',
     }
   )
+  const pluginBillingMap = safeJsonParse<Record<string, unknown>>(
+    pluginBillingExpr,
+    { fallback: {}, context: 'plugin billing expressions' }
+  )
 
   const modelNames = new Set([
     ...Object.keys(priceMap),
@@ -282,6 +289,10 @@ export const buildModelSnapshots = ({
     ...Object.keys(billingModeMap),
     ...Object.keys(billingExprMap),
     ...Object.keys(soraPricingMap),
+    ...Object.keys(pluginBillingMap).flatMap((key) => {
+      const separator = key.indexOf('::')
+      return separator >= 0 ? [key.slice(separator + 2)] : []
+    }),
   ])
 
   return Array.from(modelNames).map((name) => {
@@ -302,6 +313,16 @@ export const buildModelSnapshots = ({
       soraPricing?.audio_generation_surcharge != null
         ? String(soraPricing.audio_generation_surcharge)
         : ''
+    const pluginBillingExpressions = Object.fromEntries(
+      Object.entries(pluginBillingMap)
+        .filter(([key, value]) => {
+          return typeof value === 'string' && key.endsWith(`::${name}`)
+        })
+        .map(([key, value]) => [
+          key.slice(0, -(name.length + 2)),
+          value as string,
+        ])
+    )
 
     const modeForModel = billingModeMap[name]
     if (modeForModel === 'tiered_expr') {
@@ -313,6 +334,7 @@ export const buildModelSnapshots = ({
         billingMode: 'tiered_expr',
         billingExpr: pureExpr,
         requestRuleExpr,
+        pluginBillingExpressions,
         price,
         ratio,
         cacheRatio: cache,
@@ -338,6 +360,7 @@ export const buildModelSnapshots = ({
       imageRatio: image,
       audioRatio: audio,
       audioCompletionRatio: audioCompletion,
+      pluginBillingExpressions,
       billingMode:
         price !== '' || soraPerRequestPricingEnabled
           ? 'per-request'
@@ -372,6 +395,7 @@ export const getSnapshotSignature = (snapshot?: ModelPricingSnapshot) => {
     billingMode: snapshot.billingMode || 'per-token',
     billingExpr: snapshot.billingExpr || '',
     requestRuleExpr: snapshot.requestRuleExpr || '',
+    pluginBillingExpressions: snapshot.pluginBillingExpressions || {},
     soraPerRequestPricingEnabled: snapshot.soraPerRequestPricingEnabled ?? false,
     soraResolutionTiers: snapshot.soraResolutionTiers || [],
     soraAudioGenerationSurcharge: snapshot.soraAudioGenerationSurcharge || '',

@@ -5656,6 +5656,20 @@
     "Conversion preview applied to draft": "转换结果已应用到草稿",
     "Billing expression": "计费表达式",
     "Request rule expression": "请求规则表达式",
-    "Apply to draft": "应用到草稿"
+    "Apply to draft": "应用到草稿",
+    "Preview legacy conversion": "预览旧定价转换",
+    "Preview legacy pricing conversion": "预览旧定价转换",
+    "Select a model": "选择模型",
+    "Generate preview": "生成预览",
+    "Conversion applied to draft": "转换结果已应用到草稿",
+    "Task plugin pricing": "任务插件定价",
+    "Override the model expression for compatible task plugins. Leave empty to use the model expression.": "为兼容的任务插件覆盖模型表达式。留空则使用模型表达式。",
+    "Loading task plugins...": "正在加载任务插件...",
+    "No task plugins expose this model.": "没有任务插件提供此模型。",
+    "Available usage fields: {{fields}}": "可用用量字段：{{fields}}",
+    "Use the usage fields declared by this plugin. The expression is validated when saved.": "请使用此插件声明的用量字段。保存时会校验表达式。",
+    "Unavailable": "不可用",
+    "Nothing is saved until you apply the preview and save the pricing page.": "应用预览并保存模型定价页面后才会写入配置。",
+    "Select a legacy-priced model to generate a billing expression. Nothing is saved until you apply the preview and save the pricing page.": "选择一个旧定价模型生成计费表达式。应用预览并保存模型定价页面后才会写入配置。"
   }
 }

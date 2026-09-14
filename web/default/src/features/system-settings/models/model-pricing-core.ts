@@ -64,6 +64,7 @@ export type ModelRatioData = {
   billingMode?: PricingMode
   billingExpr?: string
   requestRuleExpr?: string
+  pluginBillingExpressions?: Record<string, string>
   soraPerRequestPricingEnabled?: boolean
   soraResolutionTiers?: SoraResolutionTierDraft[]
   soraAudioGenerationSurcharge?: string

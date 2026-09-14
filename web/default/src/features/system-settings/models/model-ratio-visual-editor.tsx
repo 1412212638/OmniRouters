@@ -35,10 +35,27 @@ import {
   type SortingState,
 } from '@tanstack/react-table'
 import { useMediaQuery } from '@/hooks'
-import { Copy, Plus } from 'lucide-react'
+import { Copy, Plus, WandSparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   DataTableBulkActions,
   DataTableToolbar,
@@ -47,7 +64,11 @@ import {
   DataTableView,
   useDataTable,
 } from '@/components/data-table'
-import { combineBillingExpr } from '@/features/pricing/lib/billing-expr'
+import {
+  combineBillingExpr,
+  splitBillingExprAndRequestRules,
+} from '@/features/pricing/lib/billing-expr'
+import { previewModelPricingConversion } from '../api'
 import type { SoraPerRequestPricing } from '@/features/pricing/types'
 import { safeJsonParse } from '../utils/json-parser'
 import type { PricingMode } from './model-pricing-core'
@@ -80,6 +101,7 @@ type ModelRatioVisualEditorProps = {
   savedAudioCompletionRatio: string
   savedBillingMode: string
   savedBillingExpr: string
+  savedPluginBillingExpr: string
   savedSoraPerRequestPricing: string
   modelPrice: string
   modelRatio: string
@@ -91,6 +113,7 @@ type ModelRatioVisualEditorProps = {
   audioCompletionRatio: string
   billingMode: string
   billingExpr: string
+  pluginBillingExpr: string
   soraPerRequestPricing: string
   candidateModelNames?: string[]
   candidateModelsLoading?: boolean
@@ -105,6 +128,50 @@ export type ModelRatioVisualEditorHandle = {
 }
 
 const STORAGE_KEY = 'model-ratio-column-visibility'
+
+function getPluginBillingExpressions(raw: string, modelName?: string) {
+  const values = safeJsonParse<Record<string, unknown>>(raw, {
+    fallback: {},
+    silent: true,
+  })
+  const suffix = modelName ? `::${modelName}` : ''
+  return Object.fromEntries(
+    Object.entries(values)
+      .filter(([key, value]) => {
+        if (typeof value !== 'string') return false
+        return !modelName || key.endsWith(suffix)
+      })
+      .map(([key, value]) => [
+        modelName ? key.slice(0, -suffix.length) : key,
+        value as string,
+      ])
+  )
+}
+
+function buildLegacyConversionPricing(model: ModelRow) {
+  const pricing: Record<string, number> = {}
+  const fields: Array<[keyof ModelRow, string]> = [
+    ['price', 'ModelPrice'],
+    ['ratio', 'ModelRatio'],
+    ['cacheRatio', 'CacheRatio'],
+    ['createCacheRatio', 'CreateCacheRatio'],
+    ['completionRatio', 'CompletionRatio'],
+    ['imageRatio', 'ImageRatio'],
+    ['audioRatio', 'AudioRatio'],
+    ['audioCompletionRatio', 'AudioCompletionRatio'],
+  ]
+  for (const [field, key] of fields) {
+    const value = Number(model[field])
+    if (
+      model[field] !== undefined &&
+      model[field] !== '' &&
+      Number.isFinite(value)
+    ) {
+      pricing[key] = value
+    }
+  }
+  return pricing
+}
 
 const ModelRatioVisualEditorComponent = forwardRef<
   ModelRatioVisualEditorHandle,
@@ -121,6 +188,7 @@ const ModelRatioVisualEditorComponent = forwardRef<
     savedAudioCompletionRatio,
     savedBillingMode,
     savedBillingExpr,
+    savedPluginBillingExpr,
     savedSoraPerRequestPricing,
     modelPrice,
     modelRatio,
@@ -132,6 +200,7 @@ const ModelRatioVisualEditorComponent = forwardRef<
     audioCompletionRatio,
     billingMode,
     billingExpr,
+    pluginBillingExpr,
     soraPerRequestPricing,
     candidateModelNames,
     candidateModelsLoading,
@@ -151,6 +220,14 @@ const ModelRatioVisualEditorComponent = forwardRef<
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState('')
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [conversionDialogOpen, setConversionDialogOpen] = useState(false)
+  const [conversionTargetName, setConversionTargetName] = useState('')
+  const [conversionPreview, setConversionPreview] = useState<{
+    modelName: string
+    billingExpr: string
+    requestRuleExpr: string
+  } | null>(null)
+  const [isPreviewingConversion, setIsPreviewingConversion] = useState(false)
   const editorPanelRef = useRef<ModelPricingEditorPanelHandle>(null)
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -207,6 +284,7 @@ const ModelRatioVisualEditorComponent = forwardRef<
       audioCompletionRatio: savedAudioCompletionRatio,
       billingMode: savedBillingMode,
       billingExpr: savedBillingExpr,
+      pluginBillingExpr: savedPluginBillingExpr,
       soraPerRequestPricing: savedSoraPerRequestPricing,
     })
     const draftRows = buildModelSnapshots({
@@ -220,6 +298,7 @@ const ModelRatioVisualEditorComponent = forwardRef<
       audioCompletionRatio,
       billingMode,
       billingExpr,
+      pluginBillingExpr,
       soraPerRequestPricing,
     })
 
@@ -264,6 +343,7 @@ const ModelRatioVisualEditorComponent = forwardRef<
     savedAudioCompletionRatio,
     savedBillingMode,
     savedBillingExpr,
+    savedPluginBillingExpr,
     savedSoraPerRequestPricing,
     modelPrice,
     modelRatio,
@@ -275,6 +355,7 @@ const ModelRatioVisualEditorComponent = forwardRef<
     audioCompletionRatio,
     billingMode,
     billingExpr,
+    pluginBillingExpr,
     soraPerRequestPricing,
   ])
 
@@ -324,6 +405,10 @@ const ModelRatioVisualEditorComponent = forwardRef<
         billingMode: editBillingMode,
         billingExpr: editableModel.billingExpr,
         requestRuleExpr: editableModel.requestRuleExpr,
+        pluginBillingExpressions: getPluginBillingExpressions(
+          pluginBillingExpr,
+          editableModel.name
+        ),
         soraPerRequestPricingEnabled:
           editableModel.soraPerRequestPricingEnabled ?? false,
         soraResolutionTiers: cloneSoraResolutionTiers(
@@ -335,7 +420,7 @@ const ModelRatioVisualEditorComponent = forwardRef<
       setEditorOpen(true)
       if (isMobile) setSheetOpen(true)
     },
-    [isMobile]
+    [isMobile, pluginBillingExpr]
   )
 
   const handleAdd = useCallback(() => {
@@ -404,6 +489,10 @@ const ModelRatioVisualEditorComponent = forwardRef<
       const soraPricingMap = safeJsonParse<
         Record<string, SoraPerRequestPricing>
       >(soraPerRequestPricing, { fallback: {}, silent: true })
+      const pluginBillingMap = safeJsonParse<Record<string, string>>(
+        pluginBillingExpr,
+        { fallback: {}, silent: true }
+      )
 
       delete priceMap[name]
       delete ratioMap[name]
@@ -416,6 +505,9 @@ const ModelRatioVisualEditorComponent = forwardRef<
       delete billingModeMap[name]
       delete billingExprMap[name]
       delete soraPricingMap[name]
+      for (const key of Object.keys(pluginBillingMap)) {
+        if (key.endsWith(`::${name}`)) delete pluginBillingMap[key]
+      }
 
       onChange('ModelPrice', JSON.stringify(priceMap, null, 2))
       onChange('ModelRatio', JSON.stringify(ratioMap, null, 2))
@@ -440,6 +532,10 @@ const ModelRatioVisualEditorComponent = forwardRef<
         'billing_setting.sora_per_request_pricing',
         JSON.stringify(soraPricingMap, null, 2)
       )
+      onChange(
+        'billing_setting.plugin_billing_expr',
+        JSON.stringify(pluginBillingMap, null, 2)
+      )
 
       if (editData?.name === name) {
         setEditData(null)
@@ -458,6 +554,7 @@ const ModelRatioVisualEditorComponent = forwardRef<
       audioCompletionRatio,
       billingMode,
       billingExpr,
+      pluginBillingExpr,
       soraPerRequestPricing,
       onChange,
       editData,
@@ -553,6 +650,10 @@ const ModelRatioVisualEditorComponent = forwardRef<
       const soraPricingMap = safeJsonParse<
         Record<string, SoraPerRequestPricing>
       >(soraPerRequestPricing, { fallback: {}, silent: true })
+      const pluginBillingMap = safeJsonParse<Record<string, string>>(
+        pluginBillingExpr,
+        { fallback: {}, silent: true }
+      )
 
       const setIfPresent = (
         target: Record<string, number>,
@@ -576,6 +677,18 @@ const ModelRatioVisualEditorComponent = forwardRef<
         delete billingModeMap[name]
         delete billingExprMap[name]
         delete soraPricingMap[name]
+        for (const key of Object.keys(pluginBillingMap)) {
+          if (key.endsWith(`::${name}`)) delete pluginBillingMap[key]
+        }
+
+        for (const [pluginKey, expression] of Object.entries(
+          data.pluginBillingExpressions || {}
+        )) {
+          const trimmed = expression.trim()
+          if (trimmed) {
+            pluginBillingMap[`${pluginKey}::${name}`] = trimmed
+          }
+        }
 
         if (data.billingMode === 'tiered_expr') {
           const combined = combineBillingExpr(
@@ -644,6 +757,10 @@ const ModelRatioVisualEditorComponent = forwardRef<
         'billing_setting.sora_per_request_pricing',
         JSON.stringify(soraPricingMap, null, 2)
       )
+      onChange(
+        'billing_setting.plugin_billing_expr',
+        JSON.stringify(pluginBillingMap, null, 2)
+      )
     },
     [
       modelPrice,
@@ -656,6 +773,7 @@ const ModelRatioVisualEditorComponent = forwardRef<
       audioCompletionRatio,
       billingMode,
       billingExpr,
+      pluginBillingExpr,
       soraPerRequestPricing,
       onChange,
     ]
@@ -713,6 +831,112 @@ const ModelRatioVisualEditorComponent = forwardRef<
     [editorOpen, persistPricingData]
   )
 
+  const conversionCandidates = useMemo(
+    () =>
+      models.filter((model) => {
+        const editable = model.draft ?? model.saved ?? model
+        return (
+          editable.billingMode !== 'tiered_expr' &&
+          !isBasePricingUnset(editable)
+        )
+      }),
+    [models]
+  )
+
+  const openConversionDialog = useCallback(() => {
+    const currentName = editData?.name
+    const target = conversionCandidates.some(
+      (model) => model.name === currentName
+    )
+      ? currentName
+      : conversionCandidates[0]?.name || ''
+    setConversionTargetName(target)
+    setConversionPreview(null)
+    setConversionDialogOpen(true)
+  }, [conversionCandidates, editData?.name])
+
+  const previewSelectedConversion = useCallback(async () => {
+    const target = conversionCandidates.find(
+      (model) => model.name === conversionTargetName
+    )
+    if (!target) return
+    setIsPreviewingConversion(true)
+    try {
+      const response = await previewModelPricingConversion(
+        target.name,
+        buildLegacyConversionPricing(target.draft ?? target.saved ?? target)
+      )
+      if (response.success && response.data?.expression) {
+        const split = splitBillingExprAndRequestRules(response.data.expression)
+        setConversionPreview({
+          modelName: target.name,
+          billingExpr: split.billingExpr,
+          requestRuleExpr: split.requestRuleExpr,
+        })
+      } else {
+        toast.info(
+          response.data?.unsupported_reason ||
+            response.message ||
+            t('Conversion preview unavailable')
+        )
+        setConversionPreview(null)
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : t('Conversion preview failed')
+      )
+      setConversionPreview(null)
+    } finally {
+      setIsPreviewingConversion(false)
+    }
+  }, [conversionCandidates, conversionTargetName, t])
+
+  const applySelectedConversion = useCallback(() => {
+    if (!conversionPreview) return
+    const target = conversionCandidates.find(
+      (model) => model.name === conversionPreview.modelName
+    )
+    if (!target) return
+    const editable = target.draft ?? target.saved ?? target
+    const converted: ModelRatioData = {
+      name: editable.name,
+      price: editable.price,
+      ratio: editable.ratio,
+      cacheRatio: editable.cacheRatio,
+      createCacheRatio: editable.createCacheRatio,
+      completionRatio: editable.completionRatio,
+      imageRatio: editable.imageRatio,
+      audioRatio: editable.audioRatio,
+      audioCompletionRatio: editable.audioCompletionRatio,
+      billingMode: 'tiered_expr',
+      billingExpr: conversionPreview.billingExpr,
+      requestRuleExpr: conversionPreview.requestRuleExpr,
+      pluginBillingExpressions: getPluginBillingExpressions(
+        pluginBillingExpr,
+        editable.name
+      ),
+      soraPerRequestPricingEnabled: editable.soraPerRequestPricingEnabled,
+      soraResolutionTiers: cloneSoraResolutionTiers(
+        editable.soraResolutionTiers
+      ),
+      soraAudioGenerationSurcharge: editable.soraAudioGenerationSurcharge,
+    }
+    persistPricingData(converted)
+    setEditData(converted)
+    setEditorOpen(true)
+    if (isMobile) setSheetOpen(true)
+    setConversionDialogOpen(false)
+    setConversionPreview(null)
+    toast.success(t('Conversion applied to draft'))
+  }, [
+    conversionCandidates,
+    conversionPreview,
+    isMobile,
+    persistPricingData,
+    pluginBillingExpr,
+    t,
+  ])
+
   const hasRows = table.getRowModel().rows.length > 0
 
   let emptyStateText = t('No models configured. Use Add model to get started.')
@@ -756,10 +980,20 @@ const ModelRatioVisualEditorComponent = forwardRef<
             ]}
             preActions={
               filterMode === 'unset' ? undefined : (
-                <Button onClick={handleAdd}>
-                  <Plus data-icon='inline-start' />
-                  {t('Add model')}
-                </Button>
+                <div className='flex flex-wrap gap-2'>
+                  <Button
+                    variant='outline'
+                    onClick={openConversionDialog}
+                    disabled={conversionCandidates.length === 0}
+                  >
+                    <WandSparkles data-icon='inline-start' />
+                    {t('Preview legacy conversion')}
+                  </Button>
+                  <Button onClick={handleAdd}>
+                    <Plus data-icon='inline-start' />
+                    {t('Add model')}
+                  </Button>
+                </div>
               )
             }
           />
@@ -870,6 +1104,92 @@ const ModelRatioVisualEditorComponent = forwardRef<
           isSaving={isSaving}
         />
       )}
+
+      <AlertDialog
+        open={conversionDialogOpen}
+        onOpenChange={(open) => {
+          setConversionDialogOpen(open)
+          if (!open) setConversionPreview(null)
+        }}
+      >
+        <AlertDialogContent className='max-w-2xl'>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('Preview legacy pricing conversion')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t(
+                'Select a legacy-priced model to generate a billing expression. Nothing is saved until you apply the preview and save the pricing page.'
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className='flex flex-col gap-3'>
+            <Select
+              value={conversionTargetName}
+              onValueChange={(value) => {
+                setConversionTargetName(value)
+                setConversionPreview(null)
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t('Select a model')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {conversionCandidates.map((model) => (
+                    <SelectItem key={model.name} value={model.name}>
+                      {model.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+
+            {conversionPreview && (
+              <div className='flex flex-col gap-3 rounded-md border p-3 text-sm'>
+                <div>
+                  <div className='mb-1 font-medium'>
+                    {t('Billing expression')}
+                  </div>
+                  <pre className='max-h-40 overflow-auto rounded-md bg-muted p-3 font-mono text-xs break-words whitespace-pre-wrap'>
+                    {conversionPreview.billingExpr}
+                  </pre>
+                </div>
+                {conversionPreview.requestRuleExpr && (
+                  <div>
+                    <div className='mb-1 font-medium'>
+                      {t('Request rule expression')}
+                    </div>
+                    <pre className='max-h-32 overflow-auto rounded-md bg-muted p-3 font-mono text-xs break-words whitespace-pre-wrap'>
+                      {conversionPreview.requestRuleExpr}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+            <Button
+              variant='outline'
+              onClick={previewSelectedConversion}
+              disabled={!conversionTargetName || isPreviewingConversion}
+            >
+              {isPreviewingConversion
+                ? t('Previewing...')
+                : t('Generate preview')}
+            </Button>
+            <Button
+              onClick={applySelectedConversion}
+              disabled={!conversionPreview}
+            >
+              {t('Apply to draft')}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 })
@@ -890,6 +1210,7 @@ export const ModelRatioVisualEditor = memo(
         nextProps.savedAudioCompletionRatio &&
       prevProps.savedBillingMode === nextProps.savedBillingMode &&
       prevProps.savedBillingExpr === nextProps.savedBillingExpr &&
+      prevProps.savedPluginBillingExpr === nextProps.savedPluginBillingExpr &&
       prevProps.savedSoraPerRequestPricing ===
         nextProps.savedSoraPerRequestPricing &&
       prevProps.modelPrice === nextProps.modelPrice &&
@@ -902,6 +1223,7 @@ export const ModelRatioVisualEditor = memo(
       prevProps.audioCompletionRatio === nextProps.audioCompletionRatio &&
       prevProps.billingMode === nextProps.billingMode &&
       prevProps.billingExpr === nextProps.billingExpr &&
+      prevProps.pluginBillingExpr === nextProps.pluginBillingExpr &&
       prevProps.soraPerRequestPricing === nextProps.soraPerRequestPricing &&
       prevProps.candidateModelNames === nextProps.candidateModelNames &&
       prevProps.candidateModelsLoading === nextProps.candidateModelsLoading &&

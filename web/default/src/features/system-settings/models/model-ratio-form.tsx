@@ -290,6 +290,7 @@ export const ModelRatioForm = memo(function ModelRatioForm({
               savedAudioCompletionRatio={savedValues.AudioCompletionRatio}
               savedBillingMode={savedValues.BillingMode}
               savedBillingExpr={savedValues.BillingExpr}
+              savedPluginBillingExpr={savedValues.PluginBillingExpr}
               savedSoraPerRequestPricing={savedValues.SoraPerRequestPricing}
               modelPrice={form.watch('ModelPrice')}
               modelRatio={form.watch('ModelRatio')}
@@ -301,6 +302,7 @@ export const ModelRatioForm = memo(function ModelRatioForm({
               audioCompletionRatio={form.watch('AudioCompletionRatio')}
               billingMode={form.watch('BillingMode')}
               billingExpr={form.watch('BillingExpr')}
+              pluginBillingExpr={form.watch('PluginBillingExpr')}
               soraPerRequestPricing={form.watch('SoraPerRequestPricing')}
               candidateModelNames={
                 isUnsetVariant ? enabledModelsQuery.data?.data : undefined
@@ -315,6 +317,7 @@ export const ModelRatioForm = memo(function ModelRatioForm({
                 const fieldMap: Record<string, keyof ModelFormValues> = {
                   'billing_setting.billing_mode': 'BillingMode',
                   'billing_setting.billing_expr': 'BillingExpr',
+                  'billing_setting.plugin_billing_expr': 'PluginBillingExpr',
                   'billing_setting.sora_per_request_pricing':
                     'SoraPerRequestPricing',
                 }

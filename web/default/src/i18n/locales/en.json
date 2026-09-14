@@ -5656,6 +5656,20 @@
     "Conversion preview applied to draft": "Conversion preview applied to draft",
     "Billing expression": "Billing expression",
     "Request rule expression": "Request rule expression",
-    "Apply to draft": "Apply to draft"
+    "Apply to draft": "Apply to draft",
+    "Preview legacy conversion": "Preview legacy conversion",
+    "Preview legacy pricing conversion": "Preview legacy pricing conversion",
+    "Select a model": "Select a model",
+    "Generate preview": "Generate preview",
+    "Conversion applied to draft": "Conversion applied to draft",
+    "Task plugin pricing": "Task plugin pricing",
+    "Override the model expression for compatible task plugins. Leave empty to use the model expression.": "Override the model expression for compatible task plugins. Leave empty to use the model expression.",
+    "Loading task plugins...": "Loading task plugins...",
+    "No task plugins expose this model.": "No task plugins expose this model.",
+    "Available usage fields: {{fields}}": "Available usage fields: {{fields}}",
+    "Use the usage fields declared by this plugin. The expression is validated when saved.": "Use the usage fields declared by this plugin. The expression is validated when saved.",
+    "Unavailable": "Unavailable",
+    "Nothing is saved until you apply the preview and save the pricing page.": "Nothing is saved until you apply the preview and save the pricing page.",
+    "Select a legacy-priced model to generate a billing expression. Nothing is saved until you apply the preview and save the pricing page.": "Select a legacy-priced model to generate a billing expression. Nothing is saved until you apply the preview and save the pricing page."
   }
 }

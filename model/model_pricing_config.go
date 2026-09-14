@@ -546,6 +546,57 @@ func UpdateModelPricingOptions(updates map[string]string) error {
 	})
 }
 
+// ValidateModelPricingOption validates a complete pricing option map without
+// writing it. The generic settings endpoint uses this guard for plugin
+// expressions so an invalid task override cannot be persisted just because it
+// arrived through the legacy option editor.
+func ValidateModelPricingOption(key, raw string) error {
+	if !IsModelPricingOption(key) {
+		return fmt.Errorf("unsupported pricing field: %s", key)
+	}
+	var entries map[string]any
+	if err := common.UnmarshalJsonStr(raw, &entries); err != nil {
+		return err
+	}
+	if entries == nil {
+		return fmt.Errorf("%s must be a JSON object", key)
+	}
+
+	values, _, _, err := readModelPricingMaps(DB)
+	if err != nil {
+		return err
+	}
+	previous := make(map[string]map[string]any, len(values))
+	for optionKey, optionValues := range values {
+		previous[optionKey] = maps.Clone(optionValues)
+	}
+	values[key] = entries
+
+	names := make(map[string]bool)
+	for _, optionValues := range []map[string]any{previous[key], entries} {
+		for name := range optionValues {
+			if key == billing_setting.PluginBillingExprOption {
+				_, modelName, ok := billing_setting.SplitPluginBillingExprKey(name)
+				if !ok {
+					return fmt.Errorf("invalid plugin billing expression key: %s", name)
+				}
+				name = modelName
+			}
+			names[name] = true
+		}
+	}
+	for name := range names {
+		if err := validateModelPricing(
+			name,
+			modelPricingValues(values, name),
+			modelPricingValues(previous, name),
+		); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func mutateModelPricingOptions(mutate func(*gorm.DB, map[string]map[string]any) error) error {
 	modelPricingMutationMu.Lock()
 	defer modelPricingMutationMu.Unlock()

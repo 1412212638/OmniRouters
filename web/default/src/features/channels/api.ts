@@ -38,6 +38,7 @@ import type {
   SearchChannelsResponse,
   TagOperationParams,
 } from './types'
+import type { BillingUsageSchema } from '@/features/pricing/types'
 
 export type TaskPluginOption = {
   sortPriority?: number
@@ -50,6 +51,7 @@ export type TaskPluginOption = {
   baseUrl?: string
   models: string[]
   channelTypes?: number[] | null
+  usageSchema?: BillingUsageSchema
 }
 
 export async function getTaskPluginOptions(): Promise<TaskPluginOption[]> {

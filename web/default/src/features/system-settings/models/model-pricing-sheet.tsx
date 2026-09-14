@@ -24,6 +24,7 @@ import {
   useMemo,
   useState,
 } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AlertTriangle, Plus, Save, Trash2 } from 'lucide-react'
@@ -58,6 +59,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   InputGroup,
   InputGroupAddon,
@@ -73,6 +75,8 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { previewModelPricingConversion } from '../api'
+import { getTaskPluginOptions } from '@/features/channels/api'
+import type { BillingUsageSchema } from '@/features/pricing/types'
 import { splitBillingExprAndRequestRules } from '@/features/pricing/lib/billing-expr'
 import { sideDrawerContentClassName } from '@/components/drawer-layout'
 import {
@@ -180,6 +184,9 @@ export const ModelPricingEditorPanel = forwardRef<
     useState('')
   const [billingExpr, setBillingExpr] = useState('')
   const [requestRuleExpr, setRequestRuleExpr] = useState('')
+  const [pluginBillingExpressions, setPluginBillingExpressions] = useState<
+    Record<string, string>
+  >({})
   const [editorReloadToken, setEditorReloadToken] = useState(0)
   const [isPreviewingConversion, setIsPreviewingConversion] = useState(false)
   const [conversionPreview, setConversionPreview] = useState<{
@@ -187,6 +194,12 @@ export const ModelPricingEditorPanel = forwardRef<
     requestRuleExpr: string
   } | null>(null)
   const isEditMode = !!editData
+
+  const taskPluginOptionsQuery = useQuery({
+    queryKey: ['task-plugin-options'],
+    queryFn: getTaskPluginOptions,
+    staleTime: 60_000,
+  })
 
   const form = useForm<ModelPricingFormValues>({
     resolver: zodResolver(createModelPricingSchema(t)),
@@ -236,6 +249,9 @@ export const ModelPricingEditorPanel = forwardRef<
       )
       setBillingExpr(editData.billingExpr || '')
       setRequestRuleExpr(editData.requestRuleExpr || '')
+      setPluginBillingExpressions({
+        ...(editData.pluginBillingExpressions || {}),
+      })
     } else {
       form.reset({
         name: '',
@@ -254,6 +270,7 @@ export const ModelPricingEditorPanel = forwardRef<
       setSoraAudioGenerationSurcharge('')
       setBillingExpr('')
       setRequestRuleExpr('')
+      setPluginBillingExpressions({})
     }
 
     setPromptPrice(nextLaneState.promptPrice)
@@ -261,6 +278,42 @@ export const ModelPricingEditorPanel = forwardRef<
     setLaneEnabled(nextLaneState.enabled)
     setEditorReloadToken((token) => token + 1)
   }, [editData, form])
+
+  const watchedModelName = form.watch('name').trim()
+  const pluginRows = useMemo(() => {
+    const rows = new Map<
+      string,
+      {
+        key: string
+        name: string
+        usageSchema?: BillingUsageSchema
+        stale?: boolean
+      }
+    >()
+
+    for (const plugin of taskPluginOptionsQuery.data || []) {
+      if (!plugin.models.includes(watchedModelName)) continue
+      rows.set(plugin.key, {
+        key: plugin.key,
+        name: plugin.name,
+        usageSchema: plugin.usageSchema,
+      })
+    }
+
+    for (const pluginKey of Object.keys(pluginBillingExpressions)) {
+      if (!rows.has(pluginKey)) {
+        rows.set(pluginKey, {
+          key: pluginKey,
+          name: pluginKey,
+          stale: true,
+        })
+      }
+    }
+
+    return [...rows.values()].sort((left, right) =>
+      left.name.localeCompare(right.name)
+    )
+  }, [pluginBillingExpressions, taskPluginOptionsQuery.data, watchedModelName])
 
   const setFormValue = (field: keyof ModelPricingFormValues, value: string) => {
     form.setValue(field, value, {
@@ -624,10 +677,17 @@ export const ModelPricingEditorPanel = forwardRef<
         data.requestRuleExpr = requestRuleExpr
       }
 
+      data.pluginBillingExpressions = Object.fromEntries(
+        Object.entries(pluginBillingExpressions)
+          .map(([key, expression]) => [key, expression.trim()] as const)
+          .filter(([, expression]) => expression !== '')
+      )
+
       return data
     },
     [
       billingExpr,
+      pluginBillingExpressions,
       pricingMode,
       requestRuleExpr,
       soraAudioGenerationSurcharge,
@@ -1013,6 +1073,79 @@ export const ModelPricingEditorPanel = forwardRef<
                     </FieldGroup>
                   </TabsContent>
                 </Tabs>
+
+                {(pluginRows.length > 0 || taskPluginOptionsQuery.isLoading) && (
+                    <Field className='rounded-lg border p-4'>
+                      <FieldContent>
+                        <FieldTitle>{t('Task plugin pricing')}</FieldTitle>
+                        <FieldDescription>
+                          {t(
+                            'Override the model expression for compatible task plugins. Leave empty to use the model expression.'
+                          )}
+                        </FieldDescription>
+                      </FieldContent>
+
+                      {taskPluginOptionsQuery.isLoading ? (
+                        <div className='text-muted-foreground text-sm'>
+                          {t('Loading task plugins...')}
+                        </div>
+                      ) : pluginRows.length === 0 ? (
+                        <div className='text-muted-foreground text-sm'>
+                          {t('No task plugins expose this model.')}
+                        </div>
+                      ) : (
+                        <div className='flex flex-col gap-3'>
+                          {pluginRows.map((plugin) => {
+                            const usageKeys = Object.keys(
+                              plugin.usageSchema || {}
+                            )
+                            return (
+                              <div
+                                key={plugin.key}
+                                className='flex min-w-0 flex-col gap-2 rounded-md border p-3'
+                              >
+                                <div className='flex min-w-0 items-center justify-between gap-3'>
+                                  <div className='min-w-0'>
+                                    <div className='truncate text-sm font-medium'>
+                                      {plugin.name}
+                                    </div>
+                                    <div className='text-muted-foreground truncate font-mono text-xs'>
+                                      {plugin.key}
+                                    </div>
+                                  </div>
+                                  {plugin.stale && (
+                                    <span className='text-destructive shrink-0 text-xs'>
+                                      {t('Unavailable')}
+                                    </span>
+                                  )}
+                                </div>
+                                <Textarea
+                                  value={pluginBillingExpressions[plugin.key] || ''}
+                                  placeholder='u("seconds") * 0.3'
+                                  className='min-h-20 font-mono text-xs'
+                                  onChange={(event) =>
+                                    setPluginBillingExpressions((current) => ({
+                                      ...current,
+                                      [plugin.key]: event.target.value,
+                                    }))
+                                  }
+                                />
+                                <FieldDescription className='text-xs leading-5'>
+                                  {usageKeys.length > 0
+                                    ? t('Available usage fields: {{fields}}', {
+                                        fields: usageKeys.join(', '),
+                                      })
+                                    : t(
+                                        'Use the usage fields declared by this plugin. The expression is validated when saved.'
+                                      )}
+                                </FieldDescription>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </Field>
+                  )}
               </FieldGroup>
 
               <aside className='bg-muted/20 sticky top-0 rounded-lg border'>

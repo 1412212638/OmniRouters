@@ -41,6 +41,7 @@ var pricingOptionKeys = map[string]struct{}{
 	"AudioCompletionRatio":         {},
 	"billing_setting.billing_mode": {},
 	"billing_setting.billing_expr": {},
+	billing_setting.PluginBillingExprOption: {},
 	"billing_setting.sora_per_request_pricing":   {},
 	"group_ratio_setting.group_model_ratio":        {},
 	"group_ratio_setting.group_model_user_ratio":   {},
@@ -448,6 +449,15 @@ func UpdateOption(c *gin.Context) {
 		}
 	case "billing_setting.sora_per_request_pricing":
 		err = billing_setting.ValidateSoraPerRequestPricingJSONString(option.Value.(string))
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": err.Error(),
+			})
+			return
+		}
+	case billing_setting.PluginBillingExprOption:
+		err = model.ValidateModelPricingOption(option.Key, option.Value.(string))
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,

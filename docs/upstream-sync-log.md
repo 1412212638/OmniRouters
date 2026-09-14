@@ -2511,3 +2511,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: normal Zhipu output, fallback behavior, retries, Sora/audio, task plugins, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
   - Commit/push: pending.
+- 2026-09-14 - Expose pricing conversion preview and task-plugin pricing in the model editor
+  - Local fix: added a page-level legacy pricing conversion dialog with model selection, backend preview, draft-only application, and the existing explicit save step. The model editor now shows compatible task plugins, their declared usage fields, and per-plugin expression overrides; plugin-only model names are included in the pricing table and marked with a plugin badge.
+  - Backend hardening: plugin billing option updates now participate in pricing refresh and are validated against the installed plugin model/schema before persistence.
+  - Billing impact: no change to expression evaluation, legacy ratio math, Sora/audio pricing, group discounts, pre-consume, settlement, refunds, or payment flows. Conversion remains opt-in and unsupported task/video routes remain rejected by the existing preview guard.
+  - Preserved: existing JSON editor, classic frontend, channel task-plugin selection, stale plugin override visibility, and all unrelated untracked workspace files.
+  - Validation: `git diff --check`; translation files inspected; local compilation/tests not run per source-only workflow.
+  - Resulting commit/push: pending.

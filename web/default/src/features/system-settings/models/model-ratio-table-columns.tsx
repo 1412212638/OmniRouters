@@ -99,6 +99,14 @@ export function buildModelRatioColumns({
               className='shrink-0'
             />
           )}
+          {Object.keys(row.original.pluginBillingExpressions || {}).length > 0 && (
+            <StatusBadge
+              label={t('Plugin')}
+              variant='info'
+              copyable={false}
+              className='shrink-0'
+            />
+          )}
         </div>
       ),
       enableHiding: false,
