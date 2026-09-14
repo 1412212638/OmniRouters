@@ -2364,7 +2364,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Local fix: treat empty/null pricing Option values as unconfigured empty maps and emit a diagnostic error log with the affected key.
   - Preserved: all existing pricing expressions, Sora/audio billing, group discounts, plugins, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Resulting source commit: `b249e2597`; push status: pushed to `origin/main`.
 
 - 2026-09-13 - Harden model pricing snapshot against legacy non-object options
   - Local fix: invalid/non-object legacy pricing option values are treated as unconfigured for reads, with key-specific diagnostic logging; stored values are not overwritten.
