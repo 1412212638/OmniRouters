@@ -2494,6 +2494,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: normal Cohere streaming, fallback estimation, retries, Sora/audio, task plugins, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
   - Commit/push: pending.
+- 2026-09-14 - Finalize streaming disconnect billing hardening batch
+  - Local batch: finalized the shared stream drain, usage-source classification, client-gone settlement guard, manual fallback markers, direct-handler disconnect status, Cohere drain, and Zhipu metadata drain work recorded above.
+  - Preserved: Sora/audio billing, task plugins, retries, group discounts, wallet/payment flows, and all unrelated untracked workspace files.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Resulting commit: `9b1872a61d91fe38cc5f9d2dfd14bd3fedeba8e5`; pushed to `origin/main` successfully. The initial push command reported a TLS close-notify warning, but remote ref verification matched this commit.
 - 2026-09-14 - Add bounded Zhipu metadata drain
   - Local fix: the Zhipu direct stream handler now keeps consuming its separate `meta:` usage channel for the shared 10-second disconnect window, suppresses drained output, and joins the scanner on normal completion or timeout.
   - Billing impact: no pricing or settlement formula changes; only provider metadata already parsed by the handler can affect billing.
