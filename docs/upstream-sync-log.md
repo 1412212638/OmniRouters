@@ -2518,3 +2518,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: existing JSON editor, classic frontend, channel task-plugin selection, stale plugin override visibility, and all unrelated untracked workspace files.
   - Validation: `git diff --check`; translation files inspected; local compilation/tests not run per source-only workflow.
   - Resulting source commit: `8c61bf470`; push status: pending.
+- 2026-09-14 - Make client-gone upstream drain timeout configurable
+  - Local change: added the persisted `ClientGoneDrainTimeout` system option with a 10-second default and a strict 1-300 second range. The shared stream scanner and direct Cohere/Zhipu stream handlers now read the same atomic runtime setting instead of a fixed 10-second constant. Added the administrator input under Operations > System Behavior with English and Chinese translations.
+  - Billing impact: no change to pricing, pre-consume, settlement, refund, retry, Sora/audio, task-plugin, or payment logic. The bounded drain only controls how long existing provider parsers may wait for terminal provider-reported usage after `client_gone`; local-estimate billing protection remains unchanged.
+  - Preserved: upstream response-header wait, streaming timeout, normal stream behavior, downstream cancellation, body cleanup, and all unrelated untracked workspace files.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow. Checked that all former `ClientGoneDrainTimeout` references use the shared runtime getter.
+  - Commit/push: pending.

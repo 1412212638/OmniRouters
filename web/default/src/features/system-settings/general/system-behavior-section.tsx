@@ -25,8 +25,11 @@ import {
   FormControl,
   FormDescription,
   FormField,
+  FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import {
   SettingsForm,
@@ -37,11 +40,13 @@ import { SettingsPageFormActions } from '../components/settings-page-context'
 import { SettingsSection } from '../components/settings-section'
 import { useResetForm } from '../hooks/use-reset-form'
 import { useUpdateOption } from '../hooks/use-update-option'
+import { safeNumberFieldProps } from '../utils/numeric-field'
 
 const behaviorSchema = z.object({
   DefaultCollapseSidebar: z.boolean(),
   DemoSiteEnabled: z.boolean(),
   SelfUseModeEnabled: z.boolean(),
+  ClientGoneDrainTimeout: z.number().int().min(1).max(300),
 })
 
 type BehaviorFormValues = z.infer<typeof behaviorSchema>
@@ -141,6 +146,33 @@ export function SystemBehaviorSection({
                   />
                 </FormControl>
               </SettingsSwitchItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name='ClientGoneDrainTimeout'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {t('Client disconnect drain timeout (seconds)')}
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type='number'
+                    min={1}
+                    max={300}
+                    step={1}
+                    {...safeNumberFieldProps(field)}
+                  />
+                </FormControl>
+                <FormDescription>
+                  {t(
+                    'How long to keep reading the upstream after a streaming client disconnects, so final usage can be received (1-300 seconds)'
+                  )}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
             )}
           />
         </SettingsForm>

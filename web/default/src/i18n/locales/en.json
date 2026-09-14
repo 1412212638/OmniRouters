@@ -956,6 +956,8 @@
     "Click to view image": "Click to view image",
     "Client header value": "Client header value",
     "Client ID": "Client ID",
+	"Client disconnect drain timeout (seconds)": "Client disconnect drain timeout (seconds)",
+	"How long to keep reading the upstream after a streaming client disconnects, so final usage can be received (1-300 seconds)": "How long to keep reading the upstream after a streaming client disconnects, so final usage can be received (1-300 seconds)",
     "Client model": "Client model",
     "Client model matching": "Client model matching",
     "Client model matching help": "Client model matching help",

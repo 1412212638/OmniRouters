@@ -956,6 +956,8 @@
     "Click to view image": "点击查看图片",
     "Client header value": "客户端请求头值",
     "Client ID": "Client ID",
+	"Client disconnect drain timeout (seconds)": "客户端断开后的上游排水等待时间（秒）",
+	"How long to keep reading the upstream after a streaming client disconnects, so final usage can be received (1-300 seconds)": "客户端断开后继续读取上游、等待最终用量的时间（1-300 秒）",
     "Client model": "客户端 model",
     "Client model matching": "客户端 model 匹配",
     "Client model matching help": "客户端 model 匹配帮助",

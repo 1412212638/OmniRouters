@@ -31,11 +31,6 @@ const (
 	// but connected client (full TCP buffer, no server WriteTimeout) could hang
 	// the handler forever.
 	streamWriteTimeout = 30 * time.Second
-	// clientGoneDrainTimeout gives providers a short window to emit terminal
-	// usage after the downstream client has disconnected. The response body is
-	// still force-closed when this window expires so a detached request cannot
-	// live indefinitely.
-	ClientGoneDrainTimeout = 10 * time.Second
 )
 
 func getScannerBufferSize() int {
@@ -327,7 +322,7 @@ func StreamScannerHandler(c *gin.Context, resp *http.Response, info *relaycommon
 		// dataHandler 仍会运行，但所有标准写出函数都会看到已取消的请求
 		// 上下文并跳过向下游写入。
 		info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonClientGone, c.Request.Context().Err())
-		drainTimer := time.NewTimer(ClientGoneDrainTimeout)
+		drainTimer := time.NewTimer(operation_setting.GetClientGoneDrainTimeout())
 		select {
 		case <-stopChan:
 		case <-drainTimer.C:

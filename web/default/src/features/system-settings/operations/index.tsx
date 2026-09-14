@@ -29,6 +29,7 @@ const defaultOperationsSettings: OperationsSettings = {
   DefaultCollapseSidebar: false,
   DemoSiteEnabled: false,
   SelfUseModeEnabled: false,
+  ClientGoneDrainTimeout: 10,
   QuotaRemindThreshold: '',
   WorkerUrl: '',
   WorkerValidKey: '',

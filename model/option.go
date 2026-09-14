@@ -190,6 +190,7 @@ func InitOptionMap() {
 	common.OptionMap["CheckSensitiveEnabled"] = strconv.FormatBool(setting.CheckSensitiveEnabled)
 	common.OptionMap["DemoSiteEnabled"] = strconv.FormatBool(operation_setting.DemoSiteEnabled)
 	common.OptionMap["SelfUseModeEnabled"] = strconv.FormatBool(operation_setting.SelfUseModeEnabled)
+	common.OptionMap["ClientGoneDrainTimeout"] = strconv.Itoa(operation_setting.GetClientGoneDrainTimeoutSeconds())
 	common.OptionMap["ModelRequestRateLimitEnabled"] = strconv.FormatBool(setting.ModelRequestRateLimitEnabled)
 	common.OptionMap["CheckSensitiveOnPromptEnabled"] = strconv.FormatBool(setting.CheckSensitiveOnPromptEnabled)
 	common.OptionMap["StopOnSensitiveEnabled"] = strconv.FormatBool(setting.StopOnSensitiveEnabled)
@@ -229,6 +230,12 @@ func SyncOptions(frequency int) {
 }
 
 func validateOptionValue(key string, value string) error {
+	if key == "ClientGoneDrainTimeout" {
+		seconds, err := strconv.Atoi(strings.TrimSpace(value))
+		if err != nil || seconds < operation_setting.MinClientGoneDrainTimeoutSeconds || seconds > operation_setting.MaxClientGoneDrainTimeoutSeconds {
+			return fmt.Errorf("client disconnect drain timeout must be between %d and %d seconds", operation_setting.MinClientGoneDrainTimeoutSeconds, operation_setting.MaxClientGoneDrainTimeoutSeconds)
+		}
+	}
 	if key == "WaffoPancakeUnitPrice" {
 		price, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
 		if err != nil || price <= 0 || math.IsNaN(price) || math.IsInf(price, 0) {
@@ -318,6 +325,13 @@ func updateOptionMap(key string, value string) (err error) {
 	common.OptionMapRWMutex.Lock()
 	defer common.OptionMapRWMutex.Unlock()
 	common.OptionMap[key] = value
+	if key == "ClientGoneDrainTimeout" {
+		seconds, parseErr := strconv.Atoi(strings.TrimSpace(value))
+		if parseErr != nil || !operation_setting.SetClientGoneDrainTimeoutSeconds(seconds) {
+			common.OptionMap[key] = strconv.Itoa(operation_setting.DefaultClientGoneDrainTimeoutSeconds)
+			return fmt.Errorf("invalid client disconnect drain timeout: %q", value)
+		}
+	}
 
 	// 检查是否是模型配置 - 使用更规范的方式处理
 	if handleConfigUpdate(key, value) {

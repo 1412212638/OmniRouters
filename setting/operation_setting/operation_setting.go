@@ -1,6 +1,40 @@
 package operation_setting
 
-import "strings"
+import (
+	"strings"
+	"sync/atomic"
+	"time"
+)
+
+const (
+	DefaultClientGoneDrainTimeoutSeconds = 10
+	MinClientGoneDrainTimeoutSeconds     = 1
+	MaxClientGoneDrainTimeoutSeconds     = 300
+)
+
+var clientGoneDrainTimeoutSeconds atomic.Int64
+
+func init() {
+	clientGoneDrainTimeoutSeconds.Store(DefaultClientGoneDrainTimeoutSeconds)
+}
+
+// GetClientGoneDrainTimeout returns the bounded wait for provider terminal
+// usage after a downstream streaming client disconnects.
+func GetClientGoneDrainTimeout() time.Duration {
+	return time.Duration(clientGoneDrainTimeoutSeconds.Load()) * time.Second
+}
+
+func GetClientGoneDrainTimeoutSeconds() int {
+	return int(clientGoneDrainTimeoutSeconds.Load())
+}
+
+func SetClientGoneDrainTimeoutSeconds(seconds int) bool {
+	if seconds < MinClientGoneDrainTimeoutSeconds || seconds > MaxClientGoneDrainTimeoutSeconds {
+		return false
+	}
+	clientGoneDrainTimeoutSeconds.Store(int64(seconds))
+	return true
+}
 
 var DemoSiteEnabled = false
 var SelfUseModeEnabled = false
