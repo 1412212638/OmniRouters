@@ -2553,4 +2553,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Billing impact: no change to model pricing conversion, expression evaluation, pre-consume, settlement, refund, or saved pricing data; this only fixes preview invocation and input transport.
   - Preserved: the global conversion dialog, conversion API contract, draft-only apply flow, Sora/audio pricing, task-plugin pricing, and protected project identifiers.
   - Validation: `git diff --check`; local frontend build/typecheck not run per source-only workflow.
-  - Commit/push: pending.
+  - Resulting source commit: `c9b27f95d`; push status: pushed to `origin/main`.
