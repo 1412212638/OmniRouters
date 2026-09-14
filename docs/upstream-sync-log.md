@@ -2554,3 +2554,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: the global conversion dialog, conversion API contract, draft-only apply flow, Sora/audio pricing, task-plugin pricing, and protected project identifiers.
   - Validation: `git diff --check`; local frontend build/typecheck not run per source-only workflow.
   - Resulting source commit: `c9b27f95d`; push status: pushed to `origin/main`.
+- 2026-09-15 - Convert system notice editor to announcement management
+  - Local change: the System Notice settings section now uses the announcement list editor, supporting independent notice records with add, edit, delete, publish date, type, and expandable content; legacy plain-text Notice values are loaded as one record.
+  - Preserved: the Notice option key and public Notice endpoint, existing console announcements, and protected project identifiers.
+  - Validation: `git diff --check`; frontend build not run.
+  - Commit/push: pending.
+- 2026-09-15 - Move system notice under content management
+  - Local change: moved the System Notice editor from Site Settings into the existing Content Management menu beside Announcements, while preserving the Notice option key and legacy migration behavior.
+  - Preserved: public Notice endpoint, existing platform announcements, system information/site settings, and protected project identifiers.
+  - Validation: `git diff --check`; frontend build not run.
+  - Commit/push: pending.

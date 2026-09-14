@@ -39,6 +39,13 @@ function validateDataExportDefaultTime(value: string): 'week' | 'hour' | 'day' {
 
 const CONTENT_SECTIONS = [
   {
+    id: 'notice',
+    titleKey: 'System Notice',
+    build: (settings: ContentSettings) => (
+      <AnnouncementsSection enabled data={settings.Notice} optionKey='Notice' titleKey='System Notice' showEnabled={false} />
+    ),
+  },
+  {
     id: 'dashboard',
     titleKey: 'Data Dashboard',
     build: (settings: ContentSettings) => (

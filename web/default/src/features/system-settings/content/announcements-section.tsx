@@ -75,6 +75,9 @@ type Announcement = {
 type AnnouncementsSectionProps = {
   enabled: boolean
   data: string
+  optionKey?: string
+  titleKey?: string
+  showEnabled?: boolean
 }
 
 const MAX_ANNOUNCEMENT_CONTENT_LENGTH = 5000
@@ -135,6 +138,9 @@ const typeOptions = [
 export function AnnouncementsSection({
   enabled,
   data,
+  optionKey = 'console_setting.announcements',
+  titleKey = 'Announcements',
+  showEnabled = true,
 }: AnnouncementsSectionProps) {
   const { t } = useTranslation()
   const updateOption = useUpdateOption()
@@ -170,7 +176,11 @@ export function AnnouncementsSection({
         )
       }
     } catch {
-      setAnnouncements([])
+      setAnnouncements(
+        data.trim()
+          ? [{ id: 1, content: data, publishDate: new Date().toISOString(), type: 'default' }]
+          : []
+      )
     }
   }, [data])
 
@@ -271,7 +281,7 @@ export function AnnouncementsSection({
   const handleSaveAll = async () => {
     try {
       await updateOption.mutateAsync({
-        key: 'console_setting.announcements',
+        key: optionKey,
         value: JSON.stringify(announcements),
       })
       setHasChanges(false)
@@ -313,7 +323,7 @@ export function AnnouncementsSection({
   }
 
   return (
-    <SettingsSection title={t('Announcements')}>
+    <SettingsSection title={t(titleKey)}>
       <div className='space-y-4'>
         <div className='flex flex-wrap items-center justify-between gap-2'>
           <div className='flex flex-wrap items-center gap-2'>
@@ -341,12 +351,14 @@ export function AnnouncementsSection({
               {updateOption.isPending ? t('Saving...') : t('Save Settings')}
             </Button>
           </div>
-          <SettingsSwitchField
-            checked={isEnabled}
-            onCheckedChange={handleToggleEnabled}
-            label={t('Enabled')}
-            className='py-0'
-          />
+          {showEnabled && (
+            <SettingsSwitchField
+              checked={isEnabled}
+              onCheckedChange={handleToggleEnabled}
+              label={t('Enabled')}
+              className='py-0'
+            />
+          )}
         </div>
 
         <StaticDataTable
