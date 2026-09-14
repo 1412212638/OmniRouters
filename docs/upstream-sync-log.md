@@ -2564,3 +2564,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: public Notice endpoint, existing platform announcements, system information/site settings, and protected project identifiers.
   - Validation: `git diff --check`; frontend build not run.
   - Commit/push: pending.
+- 2026-09-15 - Render structured system notices correctly
+  - Local fix: the notification popover now detects the structured Notice announcement array and renders separate timeline entries instead of exposing the serialized JSON; legacy plain-text Notice values remain supported.
+  - Preserved: Notice endpoint, announcement types, publish dates, expand/collapse behavior, and protected project identifiers.
+  - Validation: `git diff --check`; frontend build not run.
+  - Commit/push: pending.
+- 2026-09-15 - Use English dates in announcement timelines
+  - Local change: system notices and platform announcements now format timeline dates consistently as English abbreviated month plus day, such as `Sep 12`.
+  - Preserved: announcement content, types, publish ordering, expand/collapse behavior, legacy Notice compatibility, and protected project identifiers.
+  - Validation: `git diff --check`; frontend build not run.
+  - Commit/push: pending.

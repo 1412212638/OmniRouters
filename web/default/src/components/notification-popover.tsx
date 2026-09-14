@@ -210,6 +210,19 @@ function NoticeContent({
     )
   }
 
+  try {
+    const parsed = JSON.parse(notice)
+    if (Array.isArray(parsed)) {
+      const items: AnnouncementItem[] = parsed.map((item, index) => ({
+        ...item,
+        id: item?.id ?? index + 1,
+      }))
+      return <AnnouncementsContent announcements={items} loading={false} t={t} />
+    }
+  } catch {
+    // Legacy Notice values are plain text and remain supported below.
+  }
+
   return <NoticeTimeline notice={notice} t={t} />
 }
 
@@ -269,8 +282,8 @@ function AnnouncementsContent({
             ? new Date(item.publishDate)
             : null
           const dateLabel = publishDate
-            ? publishDate.toLocaleDateString(undefined, {
-                month: '2-digit',
+              ? publishDate.toLocaleDateString('en-US', {
+                month: 'short',
                 day: '2-digit',
               })
             : undefined

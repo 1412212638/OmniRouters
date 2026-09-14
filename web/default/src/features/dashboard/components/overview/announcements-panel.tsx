@@ -86,8 +86,8 @@ export function AnnouncementsPanel() {
                 <div className='w-16 shrink-0 pt-0.5 sm:w-20'>
                   {date && (
                     <time className='text-muted-foreground text-xs font-medium'>
-                      {date.toLocaleDateString(undefined, {
-                        month: '2-digit',
+                      {date.toLocaleDateString('en-US', {
+                        month: 'short',
                         day: '2-digit',
                       })}
                     </time>
