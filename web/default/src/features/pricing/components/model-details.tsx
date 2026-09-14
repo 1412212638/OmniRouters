@@ -1050,9 +1050,7 @@ function GroupPricingSection(props: {
                 <div className='bg-muted/20 flex items-center justify-between gap-3 border-b px-3 py-2'>
                   <GroupBadge group={group} size='sm' />
                   <span className='text-muted-foreground flex items-center gap-3 font-mono text-xs'>
-                    {t('Group ratio')} {ruleInfo.baseMultiplier}x
-                    {ruleInfo.modelMultiplier != null && <> · {t('Model ratio')} {ruleInfo.modelMultiplier}x</>}
-                    {' · '}{t('Effective ratio')} {ruleInfo.multiplier}x
+                    {ruleInfo.multiplier}x
                     {ruleInfo.expiry && (
                       <span className='font-sans'>
                         {t('Expires at')} {new Date(ruleInfo.expiry * 1000).toLocaleString()}
@@ -1145,7 +1143,7 @@ function GroupPricingSection(props: {
             cellClassName: 'text-muted-foreground py-2.5 font-mono',
             cell: (group) => {
               const info = getRuleInfo(group)
-              return `${info.baseMultiplier}x${info.modelMultiplier != null ? ` · ${info.modelMultiplier}x` : ''} · ${info.multiplier}x`
+              return `${info.multiplier}x`
             },
           },
           {

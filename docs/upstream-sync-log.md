@@ -2536,3 +2536,15 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: existing model details layout, group pricing display, expression pricing, classic frontend, and protected project identifiers.
   - Validation: `git diff --check`; Go/frontend build not run because Go is unavailable and this is a source-only metadata fix.
   - Commit/push: pending.
+- 2026-09-15 - Apply model pricing rule multiplier in normal billing paths
+  - Local fix: the shared group-ratio resolver now applies the active model-specific multiplier, including user-specific overrides, before pre-consume and settlement; logs retain base, model, and effective group ratios separately.
+  - Billing impact: intentional correction for configured model pricing rules that were previously displayed and resolved as the base group ratio in ordinary text billing. Rules without a model multiplier remain unchanged.
+  - Preserved: expression evaluation, expiration checks, group fallback behavior, Sora/task billing, refunds, and protected project identifiers.
+  - Validation: `git diff --check`; Go build/tests not run because Go is unavailable.
+  - Commit/push: pending.
+- 2026-09-15 - Simplify model catalog ratio display
+  - Local fix: model details now show only the final effective multiplier in the group pricing table, removing the redundant base/model/effective chain; diagnostic ratio fields remain available in usage-log details.
+  - Billing impact: no change to billing or settlement; display-only simplification.
+  - Preserved: model rule multiplier application, expiration handling, expression pricing, Sora/task billing, and protected project identifiers.
+  - Validation: `git diff --check`; Go/frontend build not run because Go is unavailable.
+  - Commit/push: pending.

@@ -99,6 +99,11 @@ func GenerateTextOtherInfo(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, m
 	other := model.NewLogOther()
 	other.SetPublic("model_ratio", modelRatio)
 	other.SetPublic("group_ratio", groupRatio)
+	if relayInfo != nil && relayInfo.PriceData.GroupRatioInfo.HasModelGroupRatio {
+		other.SetPublic("base_group_ratio", relayInfo.PriceData.GroupRatioInfo.BaseGroupRatio)
+		other.SetPublic("model_group_ratio", relayInfo.PriceData.GroupRatioInfo.ModelGroupRatio)
+		other.SetPublic("effective_group_ratio", groupRatio)
+	}
 	other.SetPublic("completion_ratio", completionRatio)
 	other.SetPublic("cache_tokens", cacheTokens)
 	other.SetPublic("cache_ratio", cacheRatio)

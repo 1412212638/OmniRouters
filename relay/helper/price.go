@@ -49,6 +49,7 @@ const defaultTieredPreConsumeMaxTokens = 8192
 func HandleGroupRatio(ctx *gin.Context, relayInfo *relaycommon.RelayInfo) hosttypes.GroupRatioInfo {
 	groupRatioInfo := hosttypes.GroupRatioInfo{
 		GroupRatio:        1.0, // default ratio
+		BaseGroupRatio:    1.0,
 		GroupSpecialRatio: -1,
 	}
 
@@ -69,6 +70,16 @@ func HandleGroupRatio(ctx *gin.Context, relayInfo *relaycommon.RelayInfo) hostty
 	} else {
 		// normal group ratio
 		groupRatioInfo.GroupRatio = ratio_setting.GetGroupRatio(relayInfo.UsingGroup)
+	}
+	groupRatioInfo.BaseGroupRatio = groupRatioInfo.GroupRatio
+	modelRatio, matched, userSpecific := ratio_setting.ResolveGroupModelRatio(
+		relayInfo.UsingGroup, relayInfo.GetBillingModelName(), relayInfo.UserId,
+	)
+	if matched {
+		groupRatioInfo.ModelGroupRatio = modelRatio
+		groupRatioInfo.HasModelGroupRatio = true
+		groupRatioInfo.HasUserModelRatio = userSpecific
+		groupRatioInfo.GroupRatio *= modelRatio
 	}
 
 	return groupRatioInfo

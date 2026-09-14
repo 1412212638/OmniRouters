@@ -259,9 +259,29 @@ function BillingBreakdown(props: {
   }
 
   const userGR = other.user_group_ratio
+  const baseGR = other.base_group_ratio
+  const modelGR = other.model_group_ratio
+  const effectiveModelGR = other.effective_group_ratio
   const isUserGR = userGR != null && Number.isFinite(userGR) && userGR !== -1
   const effectiveGR = isUserGR ? userGR : other.group_ratio
-  if (effectiveGR != null && Number.isFinite(effectiveGR)) {
+  if (baseGR != null && Number.isFinite(baseGR)) {
+    rows.push({
+      label: t('Group Ratio'),
+      value: `${formatRatio(baseGR)}x`,
+    })
+  }
+  if (modelGR != null && Number.isFinite(modelGR)) {
+    rows.push({
+      label: t('Model ratio'),
+      value: `${formatRatio(modelGR)}x`,
+    })
+  }
+  if (effectiveModelGR != null && Number.isFinite(effectiveModelGR)) {
+    rows.push({
+      label: t('Effective ratio'),
+      value: `${formatRatio(effectiveModelGR)}x`,
+    })
+  } else if (effectiveGR != null && Number.isFinite(effectiveGR)) {
     rows.push({
       label: isUserGR ? t('User Exclusive Ratio') : t('Group Ratio'),
       value: `${formatRatio(effectiveGR)}x`,
