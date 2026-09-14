@@ -2530,3 +2530,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: existing model pricing, discount rules, expression pricing, group filtering, classic frontend, and protected project identifiers.
   - Validation: `git diff --check`; Go/frontend build not run because Go is unavailable and this source-only change does not require local image builds.
   - Commit/push: pending.
+- 2026-09-15 - Restore Sora tier preview data in model details
+  - Local fix: include enabled Sora per-request resolution pricing in the model catalog response so the existing model-details preview can render each resolution tier again.
+  - Billing impact: no change to Sora request calculation, group multipliers, pre-consume, settlement, refund, or other pricing logic; this only restores display metadata.
+  - Preserved: existing model details layout, group pricing display, expression pricing, classic frontend, and protected project identifiers.
+  - Validation: `git diff --check`; Go/frontend build not run because Go is unavailable and this is a source-only metadata fix.
+  - Commit/push: pending.

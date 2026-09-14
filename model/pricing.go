@@ -56,6 +56,7 @@ type Pricing struct {
 	BillingUsageExamples   []jsplugin.UsageExample              `json:"billing_usage_examples,omitempty"`
 	PricingVersion         string                               `json:"pricing_version,omitempty"`
 	ModelGroupRatio        map[string]float64                    `json:"model_group_ratio,omitempty"`
+	SoraPerRequestPricing  *billing_setting.SoraPerRequestPricing `json:"sora_per_request_pricing,omitempty"`
 }
 
 type PricingVendor struct {
@@ -397,6 +398,9 @@ func updatePricing() {
 					pricing.BillingExpr = expr
 				}
 			}
+		}
+		if soraPricing, ok := billing_setting.GetSoraPerRequestPricing(model); ok && soraPricing.Enabled {
+			pricing.SoraPerRequestPricing = &soraPricing
 		}
 		usageModel := model
 		plugin, ok := pluginGeneration.GetByModel(model)
