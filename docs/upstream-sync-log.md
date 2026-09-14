@@ -2517,4 +2517,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Billing impact: no change to expression evaluation, legacy ratio math, Sora/audio pricing, group discounts, pre-consume, settlement, refunds, or payment flows. Conversion remains opt-in and unsupported task/video routes remain rejected by the existing preview guard.
   - Preserved: existing JSON editor, classic frontend, channel task-plugin selection, stale plugin override visibility, and all unrelated untracked workspace files.
   - Validation: `git diff --check`; translation files inspected; local compilation/tests not run per source-only workflow.
-  - Resulting commit/push: pending.
+  - Resulting source commit: `8c61bf470`; push status: pending.
