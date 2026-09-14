@@ -2548,3 +2548,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: model rule multiplier application, expiration handling, expression pricing, Sora/task billing, and protected project identifiers.
   - Validation: `git diff --check`; Go/frontend build not run because Go is unavailable.
   - Commit/push: pending.
+- 2026-09-15 - Fix model pricing expression conversion preview feedback
+  - Local fix: imported the frontend toast dependency used by the model pricing editor's conversion preview, report an empty model name instead of silently returning, and preserve explicitly entered zero-valued legacy prices when building the preview request.
+  - Billing impact: no change to model pricing conversion, expression evaluation, pre-consume, settlement, refund, or saved pricing data; this only fixes preview invocation and input transport.
+  - Preserved: the global conversion dialog, conversion API contract, draft-only apply flow, Sora/audio pricing, task-plugin pricing, and protected project identifiers.
+  - Validation: `git diff --check`; local frontend build/typecheck not run per source-only workflow.
+  - Commit/push: pending.

@@ -29,6 +29,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AlertTriangle, Plus, Save, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
@@ -711,7 +712,10 @@ export const ModelPricingEditorPanel = forwardRef<
   const showActions = Boolean(onSave)
   const previewConversion = useCallback(async () => {
     const name = form.getValues('name').trim()
-    if (!name) return
+    if (!name) {
+      toast.error(t('Model name is required'))
+      return
+    }
     setIsPreviewingConversion(true)
     try {
       const values = form.getValues()
@@ -727,7 +731,10 @@ export const ModelPricingEditorPanel = forwardRef<
         ['audioCompletionRatio', 'AudioCompletionRatio'],
       ]
       for (const [field, key] of fields) {
-        if (values[field]) pricing[key] = Number(values[field])
+        const rawValue = values[field]
+        if (rawValue === undefined || rawValue === '') continue
+        const value = Number(rawValue)
+        if (Number.isFinite(value)) pricing[key] = value
       }
       const response = await previewModelPricingConversion(name, pricing)
       if (response.success && response.data?.expression) {
