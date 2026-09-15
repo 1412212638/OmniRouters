@@ -2584,3 +2584,8 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: timeline ordering, announcement content, types, and expand/collapse behavior.
   - Validation: `git diff --check`; frontend build not run.
   - Commit/push: pending.
+- 2026-09-15 - Rename content announcement menu labels
+  - Local change: renamed the content submenus from System Notice to Notice and Announcements to Timeline.
+  - Preserved: announcement storage, editing behavior, frontend rendering, and protected project identifiers.
+  - Validation: `git diff --check`; frontend build not run.
+  - Commit/push: pending.

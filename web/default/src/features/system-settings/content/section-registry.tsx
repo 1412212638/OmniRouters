@@ -40,9 +40,9 @@ function validateDataExportDefaultTime(value: string): 'week' | 'hour' | 'day' {
 const CONTENT_SECTIONS = [
   {
     id: 'notice',
-    titleKey: 'System Notice',
+    titleKey: 'Notice',
     build: (settings: ContentSettings) => (
-      <AnnouncementsSection enabled data={settings.Notice} optionKey='Notice' titleKey='System Notice' showEnabled={false} />
+      <AnnouncementsSection enabled data={settings.Notice} optionKey='Notice' titleKey='Notice' showEnabled={false} />
     ),
   },
   {
@@ -62,7 +62,7 @@ const CONTENT_SECTIONS = [
   },
   {
     id: 'announcements',
-    titleKey: 'Announcements',
+    titleKey: 'Timeline',
     build: (settings: ContentSettings) => (
       <AnnouncementsSection
         enabled={settings['console_setting.announcements_enabled']}
