@@ -186,10 +186,16 @@ export const protocols = {
         if (trimmed(image) && !images.includes(trimmed(image))) images.push(trimmed(image));
       }
       const requestBody = { model: model, prompt: prompt };
-      if (images.length) requestBody.input_reference = images[0];
+      if (images.length) {
+        requestBody.input_reference = images[0];
+        requestBody.images = images;
+      }
       if (Object.prototype.hasOwnProperty.call(req, "seconds")) requestBody.seconds = req.seconds;
       else if (Object.prototype.hasOwnProperty.call(req, "duration")) requestBody.seconds = req.duration;
       if (Object.prototype.hasOwnProperty.call(req, "size")) requestBody.size = req.size;
+      for (const key of ["resolution", "aspect_ratio", "input_region", "audio_generation"]) {
+        if (Object.prototype.hasOwnProperty.call(req, key)) requestBody[key] = req[key];
+      }
       if (Object.prototype.hasOwnProperty.call(req, "metadata")) requestBody.metadata = req.metadata;
       return { kind: "submit", model: model, action: images.length ? "image_to_video" : "text_to_video", requestBody: requestBody };
     },

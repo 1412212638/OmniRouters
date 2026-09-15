@@ -2610,3 +2610,8 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: explicit `resolution` takes precedence, request payload forwarding, existing Sora/audio fixed-charge logic, and all non-Sora channels.
   - Validation: source inspection and targeted regression test added; no local compilation or image build per source-only workflow.
   - Commit/push: pending.
+- 2026-09-15 - Preserve shared Sora-channel video request fields in the task plugin
+  - Local fix: the Sora plugin now forwards `resolution`, `images`, `aspect_ratio`, `input_region`, and `audio_generation` for models sharing a Sora channel type.
+  - Preserved: model-specific routing, upstream request behavior for existing Sora models, and custom Sora per-request/audio billing.
+  - Validation: source inspection and diff check; no local compilation or image build per source-only workflow.
+  - Commit/push: pending.
