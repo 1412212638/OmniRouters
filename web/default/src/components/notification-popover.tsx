@@ -217,7 +217,17 @@ function NoticeContent({
         ...item,
         id: item?.id ?? index + 1,
       }))
-      return <AnnouncementsContent announcements={items} loading={false} t={t} />
+      return (
+        <AnnouncementsContent
+          announcements={[...items].sort(
+            (a, b) =>
+              new Date(b.publishDate).getTime() -
+              new Date(a.publishDate).getTime()
+          )}
+          loading={false}
+          t={t}
+        />
+      )
     }
   } catch {
     // Legacy Notice values are plain text and remain supported below.

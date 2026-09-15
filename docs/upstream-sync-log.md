@@ -2589,3 +2589,8 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: announcement storage, editing behavior, frontend rendering, and protected project identifiers.
   - Validation: `git diff --check`; frontend build not run.
   - Commit/push: pending.
+- 2026-09-15 - Sort notification announcements newest first
+  - Local change: parsed announcements in the notification tab now display newest published items first, while the timeline view remains unchanged.
+  - Preserved: announcement content, date formatting, and timeline ordering.
+  - Validation: `git diff --check`; frontend build not run.
+  - Commit/push: pending.
