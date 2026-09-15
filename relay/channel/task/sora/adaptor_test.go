@@ -11,6 +11,7 @@ import (
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
+	"github.com/QuantumNous/new-api/setting/billing_setting"
 	"github.com/QuantumNous/new-api/types"
 
 	"github.com/gin-gonic/gin"
@@ -41,6 +42,18 @@ func TestIsSoraAudioGenerationEnabled(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestResolveSoraPricingResolutionAcceptsSize(t *testing.T) {
+	rule := billing_setting.SoraPerRequestPricing{ResolutionTiers: []billing_setting.SoraResolutionTier{
+		{Value: "720p", Multiplier: 1},
+		{Value: "1080p", Multiplier: 2},
+	}}
+	assert.Equal(t, "720p", resolveSoraPricingResolution("", "1280x720", rule))
+	assert.Equal(t, "1080p", resolveSoraPricingResolution("", "1792x1024", rule))
+	assert.Equal(t, "720p", resolveSoraPricingResolution("", "", billing_setting.SoraPerRequestPricing{
+		ResolutionTiers: []billing_setting.SoraResolutionTier{{Value: "720p", Multiplier: 1}},
+	}))
 }
 
 func TestSoraBuildRequestBodyReturnsReplayablePassThroughBody(t *testing.T) {

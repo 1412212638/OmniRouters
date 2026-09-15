@@ -64,6 +64,7 @@ type TaskAdaptor struct {
 type soraParamPricingRequest struct {
 	Model           string      `json:"model,omitempty"`
 	Resolution      string      `json:"resolution,omitempty"`
+	Size            string      `json:"size,omitempty"`
 	Seconds         string      `json:"seconds,omitempty"`
 	Duration        int         `json:"duration,omitempty"`
 	AudioGeneration interface{} `json:"audio_generation,omitempty"`
@@ -173,7 +174,7 @@ func (a *TaskAdaptor) validateSoraParamPricing(c *gin.Context) *dto.TaskError {
 		return nil
 	}
 
-	resolution := strings.TrimSpace(req.Resolution)
+	resolution := resolveSoraPricingResolution(req.Resolution, req.Size, rule)
 	if resolution == "" {
 		return service.TaskErrorWrapperLocal(fmt.Errorf("field resolution is required"), "invalid_request", http.StatusBadRequest)
 	}
@@ -208,6 +209,32 @@ func (a *TaskAdaptor) validateSoraParamPricing(c *gin.Context) *dto.TaskError {
 		AudioGenerationSurcharge: audioGenerationSurcharge,
 	})
 	return nil
+}
+
+// Sora clients commonly send the OpenAI-compatible size field instead of resolution.
+// Keep the pricing setting's tier names stable while accepting both request shapes.
+func resolveSoraPricingResolution(resolution, size string, rule billing_setting.SoraPerRequestPricing) string {
+	if resolution = strings.TrimSpace(resolution); resolution != "" {
+		return resolution
+	}
+	switch strings.TrimSpace(size) {
+	case "720x1280", "1280x720":
+		for _, value := range []string{"720p", "720P"} {
+			if _, ok := rule.FindResolutionMultiplier(value); ok {
+				return value
+			}
+		}
+	case "1792x1024", "1024x1792":
+		for _, value := range []string{"1080p", "1080P"} {
+			if _, ok := rule.FindResolutionMultiplier(value); ok {
+				return value
+			}
+		}
+	}
+	if len(rule.ResolutionTiers) == 1 {
+		return strings.TrimSpace(rule.ResolutionTiers[0].Value)
+	}
+	return ""
 }
 
 func isSoraAudioGenerationEnabled(value interface{}) bool {

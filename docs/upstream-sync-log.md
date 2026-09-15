@@ -2605,3 +2605,8 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: role-based hiding of upstream/plugin fields, task submission, polling, billing, settlement, and existing error/video/audio actions.
   - Validation: `git diff --check`; frontend build not run per source-only workflow.
   - Commit/push: pending.
+- 2026-09-15 - Accept Sora size in custom per-request pricing validation
+  - Local fix: derive configured resolution tiers from the OpenAI-compatible `size` field (`720x1280`/`1280x720` and `1792x1024`/`1024x1792`); a single configured tier is used as the default when neither field is supplied.
+  - Preserved: explicit `resolution` takes precedence, request payload forwarding, existing Sora/audio fixed-charge logic, and all non-Sora channels.
+  - Validation: source inspection and targeted regression test added; no local compilation or image build per source-only workflow.
+  - Commit/push: pending.
