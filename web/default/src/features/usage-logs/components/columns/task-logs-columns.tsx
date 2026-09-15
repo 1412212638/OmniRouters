@@ -35,6 +35,7 @@ import {
   type AudioClip,
 } from '../dialogs/audio-preview-dialog'
 import { FailReasonDialog } from '../dialogs/fail-reason-dialog'
+import { TaskDetailsDialog } from '../dialogs/task-details-dialog'
 import { ModelBadge } from '../model-badge'
 import { useUsageLogsContext } from '../usage-logs-provider'
 import {
@@ -319,7 +320,10 @@ export function useTaskLogsColumns(isAdmin: boolean): ColumnDef<TaskLog>[] {
         }
 
         if (!failReason) {
-          return <span className='text-muted-foreground/60 text-xs'>-</span>
+          return <>
+            <button type='button' className='text-foreground text-xs hover:underline' onClick={() => setDialogOpen(true)}>{t('View details')}</button>
+            <TaskDetailsDialog log={log} isAdmin={isAdmin} open={dialogOpen} onOpenChange={setDialogOpen} />
+          </>
         }
 
         return (

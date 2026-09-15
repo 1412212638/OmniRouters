@@ -2600,3 +2600,8 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: plugin selection, upstream submission, billing calculations, Sora/audio pricing, settlement, refunds, task polling, and protected identifiers.
   - Validation: source-level control-flow inspection and `git diff --check`; tests added but not executed, no local compilation or image build. Production verification remains required.
   - Commit/push: fix committed as `746e791f1` and pushed to `origin/main`; GitHub Actions build result not yet verified.
+- 2026-09-15 - Expose task log details in the default frontend
+  - Local change: added a task detail dialog for task data, status, model, plugin/provider metadata, upstream task ID, and failure details; successful tasks now have a View details action.
+  - Preserved: role-based hiding of upstream/plugin fields, task submission, polling, billing, settlement, and existing error/video/audio actions.
+  - Validation: `git diff --check`; frontend build not run per source-only workflow.
+  - Commit/push: pending.
