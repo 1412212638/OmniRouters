@@ -653,6 +653,7 @@ func RelayTask(c *gin.Context) {
 			common.SysError("insert task error: " + insertErr.Error())
 		}
 		service.LogTaskConsumption(c, relayInfo, task)
+		presentTaskSubmission(c, &taskSubmissionOutcome{Result: result, Task: task, RelayInfo: relayInfo})
 	}
 
 	if taskErr != nil {
@@ -768,6 +769,10 @@ func executeTaskSubmission(c *gin.Context, relayInfo *relaycommon.RelayInfo) (*t
 }
 
 func presentTaskSubmission(c *gin.Context, outcome *taskSubmissionOutcome) {
+	// Legacy adaptors may already have written their provider-specific response.
+	if c.Writer.Written() {
+		return
+	}
 	if outcome == nil || outcome.Task == nil || outcome.RelayInfo == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "Task submission failed", "type": "new_api_error"}})
 		return

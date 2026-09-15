@@ -2594,3 +2594,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: announcement content, date formatting, and timeline ordering.
   - Validation: `git diff --check`; frontend build not run.
   - Commit/push: pending.
+- 2026-09-15 - Restore legacy video task submission JSON response
+  - Local regression: `/v1/video/generations` can select its task plugin during submission, after the controller's pinned-plugin branch check. The legacy success branch persisted the task and consumption log but never presented the response, yielding an empty HTTP 200.
+  - Changed: invoke the shared task presenter after logging in that branch; preserve responses already written by legacy adaptors. Added presenter regression tests for public task identity and avoiding duplicate responses.
+  - Preserved: plugin selection, upstream submission, billing calculations, Sora/audio pricing, settlement, refunds, task polling, and protected identifiers.
+  - Validation: source-level control-flow inspection and `git diff --check`; tests added but not executed, no local compilation or image build. Production verification remains required.
+  - Commit/push: pending; not pushed in this turn.
