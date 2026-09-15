@@ -185,18 +185,15 @@ export const protocols = {
       for (const image of [req.image, req.input_reference].concat(req.images || [], input.images)) {
         if (trimmed(image) && !images.includes(trimmed(image))) images.push(trimmed(image));
       }
-      const requestBody = { model: model, prompt: prompt };
+      // Preserve the complete client payload: Sora channel types are also used
+      // for other video providers with provider-specific parameters.
+      const requestBody = Object.assign({}, req);
+      requestBody.model = model;
+      if (requestBody.prompt === undefined && prompt) requestBody.prompt = prompt;
       if (images.length) {
         requestBody.input_reference = images[0];
-        requestBody.images = images;
+        if (requestBody.images === undefined) requestBody.images = images;
       }
-      if (Object.prototype.hasOwnProperty.call(req, "seconds")) requestBody.seconds = req.seconds;
-      else if (Object.prototype.hasOwnProperty.call(req, "duration")) requestBody.seconds = req.duration;
-      if (Object.prototype.hasOwnProperty.call(req, "size")) requestBody.size = req.size;
-      for (const key of ["resolution", "aspect_ratio", "input_region", "audio_generation"]) {
-        if (Object.prototype.hasOwnProperty.call(req, key)) requestBody[key] = req[key];
-      }
-      if (Object.prototype.hasOwnProperty.call(req, "metadata")) requestBody.metadata = req.metadata;
       return { kind: "submit", model: model, action: images.length ? "image_to_video" : "text_to_video", requestBody: requestBody };
     },
     renderEvents: function (ctx, task, previousState) {

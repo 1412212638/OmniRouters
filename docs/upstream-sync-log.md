@@ -2615,3 +2615,8 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: model-specific routing, upstream request behavior for existing Sora models, and custom Sora per-request/audio billing.
   - Validation: source inspection and diff check; no local compilation or image build per source-only workflow.
   - Commit/push: pending.
+- 2026-09-15 - Preserve arbitrary JSON fields for shared Sora-type channels
+  - Local fix: Sora plugin Responses decoding now starts from a copy of the complete client JSON instead of rebuilding a fixed allowlist. Provider-specific fields survive while the routed model and prompt/image compatibility behavior remain intact.
+  - Preserved: Sora per-request/audio billing, task actions, polling, and existing multipart handling.
+  - Validation: source-level inspection and `git diff --check`; no local compilation or image build per source-only workflow.
+  - Commit/push: pending.
