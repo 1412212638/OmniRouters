@@ -119,8 +119,14 @@ func (a *TaskAdaptor) ValidateRequestAndSetAction(c *gin.Context, info *relaycom
 		}
 	}
 	if _, exists := c.Get("task_request"); !exists {
-		if taskErr := relaycommon.ValidateBasicTaskRequest(c, info, "image_to_video"); taskErr != nil {
+		decoded, taskErr := a.decodeSoraFallbackRequest(c, info)
+		if taskErr != nil {
 			return taskErr
+		}
+		if !decoded {
+			if taskErr := relaycommon.ValidateBasicTaskRequest(c, info, "image_to_video"); taskErr != nil {
+				return taskErr
+			}
 		}
 	}
 	request, hasRequest := c.Get("task_request")
@@ -142,6 +148,90 @@ func (a *TaskAdaptor) ValidateRequestAndSetAction(c *gin.Context, info *relaycom
 		}
 	}
 	return nil
+}
+
+// decodeSoraFallbackRequest preserves provider-specific JSON fields when a
+// Sora-type channel is used for a model that is not declared by the shared
+// Sora endpoint. The shared endpoint decoder cannot pin such a model, so the
+// request otherwise falls through to ValidateBasicTaskRequest, whose legacy
+// DTO intentionally contains only the common task fields.
+func (a *TaskAdaptor) decodeSoraFallbackRequest(c *gin.Context, info *relaycommon.RelayInfo) (bool, *dto.TaskError) {
+	if a.plugin == nil || a.plugin.Meta.Key != "sora" || c == nil || c.Request == nil {
+		return false, nil
+	}
+	if _, pinned := c.Get(pluginruntime.ContextKeyPinnedEndpoint); pinned {
+		return false, nil
+	}
+	contentType := c.GetHeader("Content-Type")
+	mediaType, _, parseErr := mime.ParseMediaType(contentType)
+	if parseErr != nil || (mediaType != "application/json" && !strings.HasSuffix(mediaType, "+json")) {
+		return false, nil
+	}
+	storage, err := common.GetBodyStorage(c)
+	if err != nil {
+		return true, service.TaskErrorWrapperLocal(err, "invalid_request", http.StatusBadRequest)
+	}
+	raw, err := storage.Bytes()
+	if err != nil {
+		return true, service.TaskErrorWrapperLocal(err, "invalid_request", http.StatusBadRequest)
+	}
+	var requestBody map[string]any
+	if err = common.Unmarshal(raw, &requestBody); err != nil || requestBody == nil {
+		if err == nil {
+			err = fmt.Errorf("request body must be an object")
+		}
+		return true, service.TaskErrorWrapperLocal(err, "invalid_request", http.StatusBadRequest)
+	}
+	modelName, _ := requestBody["model"].(string)
+	modelName = strings.TrimSpace(modelName)
+	if modelName == "" {
+		return true, service.TaskErrorWrapperLocal(fmt.Errorf("model field is required"), "invalid_request", http.StatusBadRequest)
+	}
+
+	protocol := "openai_video"
+	if strings.HasSuffix(strings.TrimSuffix(c.Request.URL.Path, "/"), "/responses") {
+		protocol = "openai_responses"
+	}
+	routeRequest := pluginruntime.RouteRequestContext{
+		Path:        c.Request.URL.Path,
+		Method:      c.Request.Method,
+		Params:      map[string]string{},
+		Query:       map[string][]string{},
+		Body:        map[string]any{"kind": "json", "value": requestBody},
+		RequestBody: requestBody,
+	}
+	for _, param := range c.Params {
+		routeRequest.Params[param.Key] = param.Value
+	}
+	for key, values := range c.Request.URL.Query() {
+		routeRequest.Query[key] = append([]string(nil), values...)
+	}
+	protocolContext := pluginruntime.ProtocolRequestContext{
+		RouteRequestContext: routeRequest,
+		Protocol:            protocol,
+		Operation:           "create",
+		Model:               modelName,
+		UpstreamModel:       info.UpstreamModelName,
+		Stream:              info.IsStream,
+	}
+	resolvedValue, callErr := a.plugin.Engine.CallPath(context.WithoutCancel(c.Request.Context()), "protocols", []string{protocol, "decodeRequest"}, protocolContext.JSValue())
+	resolved, resolvedOK := resolvedValue.(map[string]any)
+	if callErr != nil || !resolvedOK {
+		if callErr == nil {
+			callErr = fmt.Errorf("decoder returned an invalid request")
+		}
+		return true, service.TaskErrorWrapperLocal(callErr, "plugin_request_invalid", http.StatusBadRequest)
+	}
+	requestBody, bodyOK := resolved["requestBody"].(map[string]any)
+	if !bodyOK {
+		return true, service.TaskErrorWrapperLocal(fmt.Errorf("decoder returned an invalid request body"), "plugin_request_invalid", http.StatusBadRequest)
+	}
+	c.Set("task_request", requestBody)
+	if action, ok := resolved["action"].(string); ok && strings.TrimSpace(action) != "" {
+		c.Set("task_action", action)
+		info.Action = action
+	}
+	return true, nil
 }
 
 func (a *TaskAdaptor) EstimateBilling(c *gin.Context, info *relaycommon.RelayInfo) map[string]float64 {

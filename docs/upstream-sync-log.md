@@ -2620,3 +2620,8 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: Sora per-request/audio billing, task actions, polling, and existing multipart handling.
   - Validation: source-level inspection and `git diff --check`; no local compilation or image build per source-only workflow.
   - Commit/push: pending.
+- 2026-09-15 - Preserve JSON fields on Sora plugin fallback submission
+  - Local fix: when a Sora-type channel uses the task plugin for a model that is not declared by the shared Sora endpoint, the fallback path now invokes the plugin's JSON protocol decoder instead of `ValidateBasicTaskRequest`. The complete request body, including provider-specific fields such as `resolution`, `images`, `aspect_ratio`, `input_region`, `audio_generation`, and unknown fields, reaches `buildSubmitRequest` unchanged apart from the routed model compatibility rewrite.
+  - Preserved: shared endpoint routing, non-Sora and multipart validation paths, task actions, polling, existing request body forwarding, and the existing Sora custom billing code; this change does not alter quota calculation or settlement.
+  - Validation: added `plugins/sora_fallback_test.go`; `git diff --check` completed. Go tests and compilation were not run because the local Go toolchain is unavailable; Docker/image build remains delegated to GitHub Actions.
+  - Commit/push: pending.
