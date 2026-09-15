@@ -304,7 +304,7 @@ export function AnnouncementsSection({
   const sortedAnnouncements = useMemo(() => {
     return [...announcements].sort((a, b) => {
       return (
-        new Date(a.publishDate).getTime() - new Date(b.publishDate).getTime()
+        new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
       )
     })
   }, [announcements])
