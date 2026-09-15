@@ -2370,7 +2370,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Local fix: invalid/non-object legacy pricing option values are treated as unconfigured for reads, with key-specific diagnostic logging; stored values are not overwritten.
   - Preserved: valid pricing data, billing expressions, Sora/audio billing, group discounts, plugins, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: implementation committed as `02d0e5069` and pushed to `origin/main`; GitHub Actions is the remaining build verification.
 - 2026-09-15 - Align announcement management ordering with timeline
   - Local change: system announcement management list now sorts publish dates from oldest to newest, matching the timeline view.
   - Preserved: timeline ordering, announcement content, types, and expand/collapse behavior.
@@ -2624,4 +2624,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Local fix: when a Sora-type channel uses the task plugin for a model that is not declared by the shared Sora endpoint, the fallback path now invokes the plugin's JSON protocol decoder instead of `ValidateBasicTaskRequest`. The complete request body, including provider-specific fields such as `resolution`, `images`, `aspect_ratio`, `input_region`, `audio_generation`, and unknown fields, reaches `buildSubmitRequest` unchanged apart from the routed model compatibility rewrite.
   - Preserved: shared endpoint routing, non-Sora and multipart validation paths, task actions, polling, existing request body forwarding, and the existing Sora custom billing code; this change does not alter quota calculation or settlement.
   - Validation: added `plugins/sora_fallback_test.go`; `git diff --check` completed. Go tests and compilation were not run because the local Go toolchain is unavailable; Docker/image build remains delegated to GitHub Actions.
-  - Commit/push: pending.
+  - Commit/push: implementation committed as `02d0e5069` and pushed to `origin/main`; GitHub Actions is the remaining build verification.
