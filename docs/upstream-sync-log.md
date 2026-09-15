@@ -2599,4 +2599,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Changed: invoke the shared task presenter after logging in that branch; preserve responses already written by legacy adaptors. Added presenter regression tests for public task identity and avoiding duplicate responses.
   - Preserved: plugin selection, upstream submission, billing calculations, Sora/audio pricing, settlement, refunds, task polling, and protected identifiers.
   - Validation: source-level control-flow inspection and `git diff --check`; tests added but not executed, no local compilation or image build. Production verification remains required.
-  - Commit/push: pending; not pushed in this turn.
+  - Commit/push: fix committed as `746e791f1` and pushed to `origin/main`; GitHub Actions build result not yet verified.
