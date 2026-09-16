@@ -2630,3 +2630,8 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: existing percentile definitions, units, group filtering, and performance cards.
   - Validation: `git diff --check`; Go/frontend builds not run.
   - Commit/push: pending.
+- 2026-09-16 - Refresh model plaza free and discount badges
+  - Local change: updated external model cards to use the orange-gold limited-free badge and light-gold limited-discount badge styling.
+  - Preserved: discount/free detection, price filtering, localization fallback, and model card layout.
+  - Validation: `git diff --check`; frontend typecheck not clean because of pre-existing repository errors.
+  - Commit/push: pending.

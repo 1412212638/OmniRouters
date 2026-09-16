@@ -1,7 +1,7 @@
 import { ArrowRight01Icon, SearchIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Ticket } from 'lucide-react'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -849,7 +849,7 @@ function CatalogModelCard(props: {
   )
   const hasDiscount = displayGroupRatio >= 0 && displayGroupRatio < 1
   const isFree = displayGroupRatio === 0
-  const discountPercent = Math.round((1 - displayGroupRatio) * 100)
+  const discountFold = Number((displayGroupRatio * 10).toFixed(1))
 
   return (
     <article className='group bg-background hover:bg-muted/20 flex min-h-[284px] flex-col border-b p-4 transition-colors lg:border-r 2xl:p-5 dark:border-white/10 dark:hover:bg-white/[0.03]'>
@@ -909,17 +909,30 @@ function CatalogModelCard(props: {
 
       <div className='mt-3 flex h-5 items-center justify-end'>
         {hasDiscount && (
-          <Badge
-            variant={isFree ? 'secondary' : 'warning'}
+          <span
             className={cn(
-              'h-5 rounded-[4px] px-2 py-0 text-[11px] leading-none',
-              isFree && 'border-success/30 bg-success/10 text-success'
+              'inline-flex h-[22px] shrink-0 flex-nowrap items-center gap-1 whitespace-nowrap rounded px-2 text-[11px] font-medium',
+              isFree
+                ? 'font-bold text-white'
+                : 'text-[#8b5e00]'
             )}
+            style={
+              isFree
+                ? {
+                    background:
+                      'linear-gradient(284deg, rgb(232, 210, 13) -9.23%, rgb(252, 184, 11) -4.09%, rgb(231, 110, 14) 12.83%, rgb(242, 119, 37) 52.07%, rgb(245, 113, 36) 99.75%)',
+                  }
+                : {
+                    background:
+                      'linear-gradient(135deg, rgb(255, 249, 227) 0%, rgb(251, 238, 205) 50%, rgb(248, 212, 128) 100%)',
+                  }
+            }
           >
+            {isFree && <Ticket className='size-[10px]' strokeWidth={2.5} />}
             {isFree
-              ? t('Free pricing')
-              : t('{{percent}}% discount', { percent: discountPercent })}
-          </Badge>
+              ? t('Limited free')
+              : t('Limited {{percent}} fold', { percent: discountFold })}
+          </span>
         )}
       </div>
 
