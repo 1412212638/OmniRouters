@@ -2625,3 +2625,8 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: shared endpoint routing, non-Sora and multipart validation paths, task actions, polling, existing request body forwarding, and the existing Sora custom billing code; this change does not alter quota calculation or settlement.
   - Validation: added `plugins/sora_fallback_test.go`; `git diff --check` completed. Go tests and compilation were not run because the local Go toolchain is unavailable; Docker/image build remains delegated to GitHub Actions.
   - Commit/push: implementation committed as `02d0e5069` and pushed to `origin/main`; GitHub Actions is the remaining build verification.
+- 2026-09-16 - Add P10 and P50 performance percentiles
+  - Local change: performance metrics now calculate and expose P10 and P50 for TTFT and TPOT, and display them alongside P95 and P99.
+  - Preserved: existing percentile definitions, units, group filtering, and performance cards.
+  - Validation: `git diff --check`; Go/frontend builds not run.
+  - Commit/push: pending.

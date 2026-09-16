@@ -221,8 +221,8 @@ function NoticeContent({
         <AnnouncementsContent
           announcements={[...items].sort(
             (a, b) =>
-              new Date(b.publishDate).getTime() -
-              new Date(a.publishDate).getTime()
+              new Date(b.publishDate ?? 0).getTime() -
+              new Date(a.publishDate ?? 0).getTime()
           )}
           loading={false}
           t={t}

@@ -392,8 +392,12 @@ func buildQueryResult(modelName string, merged map[bucketKey]counters) QueryResu
 			CacheRate:    cacheRate(total),
 			Series:       series,
 		})
+		results[len(results)-1].TtftP10Ms = percentile(total, true, .10)
+		results[len(results)-1].TtftP50Ms = percentile(total, true, .50)
 		results[len(results)-1].TtftP95Ms = percentile(total, true, .95)
 		results[len(results)-1].TtftP99Ms = percentile(total, true, .99)
+		results[len(results)-1].TpotP10Ms = percentile(total, false, .10)
+		results[len(results)-1].TpotP50Ms = percentile(total, false, .50)
 		results[len(results)-1].TpotP95Ms = percentile(total, false, .95)
 		results[len(results)-1].TpotP99Ms = percentile(total, false, .99)
 	}

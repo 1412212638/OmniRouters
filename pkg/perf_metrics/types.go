@@ -47,8 +47,12 @@ type GroupResult struct {
 	AvgTps       float64       `json:"avg_tps"`
 	AvgTpotMs    int64         `json:"avg_tpot_ms"`
 	CacheRate    *float64      `json:"cache_rate,omitempty"`
+	TtftP10Ms    int64         `json:"ttft_p10_ms,omitempty"`
+	TtftP50Ms    int64         `json:"ttft_p50_ms,omitempty"`
 	TtftP95Ms    int64         `json:"ttft_p95_ms,omitempty"`
 	TtftP99Ms    int64         `json:"ttft_p99_ms,omitempty"`
+	TpotP10Ms    int64         `json:"tpot_p10_ms,omitempty"`
+	TpotP50Ms    int64         `json:"tpot_p50_ms,omitempty"`
 	TpotP95Ms    int64         `json:"tpot_p95_ms,omitempty"`
 	TpotP99Ms    int64         `json:"tpot_p99_ms,omitempty"`
 	Series       []BucketPoint `json:"series"`
