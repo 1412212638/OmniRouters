@@ -2086,6 +2086,7 @@
     "Frames per second": "フレームレート",
     "Free": "空き",
     "Free pricing": "無料",
+    "Model discount badge": "{{percent}}% OFF",
     "{{percent}}% discount": "{{percent}}% 割引",
     "Free: {{free}} / Total: {{total}}": "空き容量: {{free}} / 合計: {{total}}",
     "Friendly name to identify this channel": "このチャネルを識別するための表示名",

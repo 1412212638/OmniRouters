@@ -2087,6 +2087,7 @@
     "Frames per second": "Khung hình / giây",
     "Free": "Trống",
     "Free pricing": "Miễn phí",
+    "Model discount badge": "Giảm {{percent}}%",
     "{{percent}}% discount": "Giảm {{percent}}%",
     "Free: {{free}} / Total: {{total}}": "Còn trống: {{free}} / Tổng: {{total}}",
     "Friendly name to identify this channel": "Tên thân thiện để nhận dạng kênh này",

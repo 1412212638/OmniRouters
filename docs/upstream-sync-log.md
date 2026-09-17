@@ -1,5 +1,25 @@
 # Upstream Sync Log
 
+## 2026-09-17 - Align performance percentile cards
+
+- Local reason: concatenated percentile text wrapped between labels and values.
+- Changed: shared percentile card uses label/value pairs in four columns,
+  falling back to two columns based on the card's available width.
+- Preserved: data selection, percentile calculation, units and localization.
+- Validation: diff check; no browser verification performed.
+- Commit/push: not committed or pushed.
+
+## 2026-09-17 - Correct model discount badge localization
+
+- Local reason: remove time-limited wording and correct discount localization.
+- Changed: model card labels use existing localized Free text, Chinese payment
+  folds and percentage savings in other languages; use the supplied gift SVG.
+- Preserved: pricing calculations, eligibility, filtering and badge gradients.
+- Validation: all seven locale JSON files parsed and badge keys verified;
+  `git diff --check` passed. Bun lint returned no verifiable output;
+  no frontend build or browser verification performed.
+- Commit/push: not committed or pushed.
+
 ## 2026-09-12 - Fix pricing preview build dependencies
 
 - Local reason: GitHub Actions exposed missing symbols referenced by the first

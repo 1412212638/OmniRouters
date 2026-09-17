@@ -1,7 +1,7 @@
 import { ArrowRight01Icon, SearchIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronDown, Ticket } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -850,6 +850,7 @@ function CatalogModelCard(props: {
   const hasDiscount = displayGroupRatio >= 0 && displayGroupRatio < 1
   const isFree = displayGroupRatio === 0
   const discountFold = Number((displayGroupRatio * 10).toFixed(1))
+  const discountPercent = Number(((1 - displayGroupRatio) * 100).toFixed(1))
 
   return (
     <article className='group bg-background hover:bg-muted/20 flex min-h-[284px] flex-col border-b p-4 transition-colors lg:border-r 2xl:p-5 dark:border-white/10 dark:hover:bg-white/[0.03]'>
@@ -928,10 +929,19 @@ function CatalogModelCard(props: {
                   }
             }
           >
-            {isFree && <Ticket className='size-[10px]' strokeWidth={2.5} />}
+            {isFree && (
+              <img
+                alt=''
+                className='size-[10px] shrink-0'
+                src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0ibm9uZSI+PHBhdGggZD0iTTQuNDQ0IDQuMjkySC43NFY4LjcxYzAgLjM0NS4yOC42MjMuNjI2LjYyM2gzLjA3N3YtNS4wNFptLjQ5NCAwSDguNjRWOC43MWEuNjI1LjYyNSAwIDAgMS0uNjI3LjYyM0g0LjkzOHYtNS4wNFptLS40OTQtMi4zNjlILjYyM0EuNjI2LjYyNiAwIDAgMCAwIDIuNTV2LjcyN2MwIC4zNDcuMjc5LjYyNi42MjMuNjI2aDMuODJ2LTEuOThabS40OTQgMGgzLjgyYy4zNDUgMCAuNjIzLjI4LjYyMy42Mjd2LjcyN2EuNjI2LjYyNiAwIDAgMS0uNjIzLjYyNmgtMy44MnYtMS45OFptLS40OTQtLjUzNEwzLjEzLjI2MmExLjEwMyAxLjEwMyAwIDAgMC0xLjMzOC0uMDNsLjIxMy0uMTY3Yy0uMjY5LjIxLS40OTEuNjYyLS40OTEgMS4wMDh2LjYxMWgyLjkyOVYxLjM5Wm0uNDk0LS4wMjRMNi4wNTguMjk2Yy4zNDQtLjMzLjk1My0uMzk0IDEuMzU5LS4xNDRMNy4zNjQuMTJjLjI5NC4xOC41MzMuNjA4LjUzMy45NTN2LjYxMWgtMi45NnYtLjMxOVoiIGZpbGw9IiNmZmYiLz48L3N2Zz4='
+              />
+            )}
             {isFree
-              ? t('Limited free')
-              : t('Limited {{percent}} fold', { percent: discountFold })}
+              ? t('Free pricing')
+              : t('Model discount badge', {
+                  percent: discountPercent,
+                  fold: discountFold,
+                })}
           </span>
         )}
       </div>

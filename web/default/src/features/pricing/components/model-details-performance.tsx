@@ -71,6 +71,32 @@ function StatCard(props: {
   )
 }
 
+function PercentileCard(props: {
+  label: string
+  values: string[]
+}) {
+  return (
+    <div className='bg-background @container min-w-0 rounded-lg border p-3'>
+      <div className='text-muted-foreground flex items-center gap-1.5 text-[10px] font-medium'>
+        <Timer className='size-3' />
+        {props.label}
+      </div>
+      <dl className='mt-3 grid grid-cols-2 gap-x-3 gap-y-4 @min-[400px]:grid-cols-4'>
+        {props.values.map((value, index) => (
+          <div key={index} className='min-w-0'>
+            <dt className='text-muted-foreground text-xs'>
+              {['P10', 'P50', 'P95', 'P99'][index]}
+            </dt>
+            <dd className='text-foreground mt-1 break-words font-mono text-sm font-semibold tabular-nums'>
+              {value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  )
+}
+
 type PerformanceRow = {
   group: string
   avg_ttft_ms: number
@@ -321,15 +347,17 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
       </div>
 
       <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
-        <StatCard
-          icon={Timer}
+        <PercentileCard
           label={t('TTFT percentiles')}
-          value={`P10 ${percentileText(performances.map((p) => p.ttft_p10_ms).find((v) => v && v > 0))} · P50 ${percentileText(performances.map((p) => p.ttft_p50_ms).find((v) => v && v > 0))} · P95 ${percentileText(performances.map((p) => p.ttft_p95_ms).find((v) => v && v > 0))} · P99 ${percentileText(performances.map((p) => p.ttft_p99_ms).find((v) => v && v > 0))}`}
+          values={(['ttft_p10_ms', 'ttft_p50_ms', 'ttft_p95_ms', 'ttft_p99_ms'] as const).map(
+            (key) => percentileText(performances.map((p) => p[key]).find((v) => v && v > 0))
+          )}
         />
-        <StatCard
-          icon={Timer}
+        <PercentileCard
           label={t('TPOT percentiles')}
-          value={`P10 ${tpotPercentileText(performances.map((p) => p.tpot_p10_ms).find((v) => v && v > 0))} · P50 ${tpotPercentileText(performances.map((p) => p.tpot_p50_ms).find((v) => v && v > 0))} · P95 ${tpotPercentileText(performances.map((p) => p.tpot_p95_ms).find((v) => v && v > 0))} · P99 ${tpotPercentileText(performances.map((p) => p.tpot_p99_ms).find((v) => v && v > 0))}`}
+          values={(['tpot_p10_ms', 'tpot_p50_ms', 'tpot_p95_ms', 'tpot_p99_ms'] as const).map(
+            (key) => tpotPercentileText(performances.map((p) => p[key]).find((v) => v && v > 0))
+          )}
         />
       </div>
 
