@@ -28,6 +28,7 @@ const defaultContentSettings: ContentSettings = {
   Notice: '',
   'console_setting.api_info': '[]',
   'console_setting.announcements': '[]',
+  'console_setting.model_square_carousel': '[]',
   'console_setting.faq': '[]',
   'console_setting.uptime_kuma_groups': '[]',
   'console_setting.api_info_enabled': true,

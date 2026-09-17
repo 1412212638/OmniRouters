@@ -25,6 +25,7 @@ import { DashboardSection } from './dashboard-section'
 import { DrawingSettingsSection } from './drawing-settings-section'
 import { FAQSection } from './faq-section'
 import { UptimeKumaSection } from './uptime-kuma-section'
+import { ModelSquareCarouselSection } from './model-square-carousel-section'
 
 /**
  * Validate and coerce DataExportDefaultTime to a safe value
@@ -68,6 +69,13 @@ const CONTENT_SECTIONS = [
         enabled={settings['console_setting.announcements_enabled']}
         data={settings['console_setting.announcements']}
       />
+    ),
+  },
+  {
+    id: 'model-square-carousel',
+    titleKey: 'Model Plaza Carousel',
+    build: (settings: ContentSettings) => (
+      <ModelSquareCarouselSection data={settings['console_setting.model_square_carousel']} />
     ),
   },
   {

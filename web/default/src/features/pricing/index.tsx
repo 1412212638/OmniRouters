@@ -43,7 +43,6 @@ import {
 } from '@/assets/custom/zenmux-modality-icons'
 import { PublicLayout } from '@/components/layout'
 import { PageTransition } from '@/components/page-transition'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Collapsible,
@@ -69,6 +68,7 @@ import { cn } from '@/lib/utils'
 
 import { ClassicPricing } from './classic-pricing'
 import { ModelDetailsDrawer } from './components'
+import { ModelSquareCarousel } from './components/model-square-carousel'
 import {
   DEFAULT_PRICING_PAGE_SIZE,
   DEFAULT_TOKEN_UNIT,
@@ -1099,6 +1099,7 @@ export function Pricing() {
 
 function CatalogPricing() {
   const { t } = useTranslation()
+  const { status } = useStatus()
   const [selectedModelName, setSelectedModelName] = useState<string | null>(
     null
   )
@@ -1545,6 +1546,13 @@ function CatalogPricing() {
             ) : (
               <>
                 <div className='grid min-w-0 xl:grid-cols-3'>
+                  <ModelSquareCarousel
+                    items={
+                      (status?.data?.model_square_carousel as
+                        | import('@/features/auth/types').ModelSquareCarouselItem[]
+                        | undefined) ?? []
+                    }
+                  />
                   {visibleModels.map((model) => (
                     <CatalogModelCard
                       key={model.model_name}

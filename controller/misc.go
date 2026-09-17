@@ -133,6 +133,12 @@ func GetStatus(c *gin.Context) {
 	if cs.AnnouncementsEnabled {
 		data["announcements"] = console_setting.GetAnnouncements()
 	}
+	if cs.ModelSquareCarousel != "" {
+		var carousel []map[string]interface{}
+		if err := common.UnmarshalJsonStr(cs.ModelSquareCarousel, &carousel); err == nil {
+			data["model_square_carousel"] = carousel
+		}
+	}
 	if cs.FAQEnabled {
 		data["faq"] = console_setting.GetFAQ()
 	}

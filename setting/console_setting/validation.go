@@ -75,6 +75,8 @@ func ValidateConsoleSettings(settingsStr string, settingType string) error {
 		return validateApiInfo(settingsStr)
 	case "Announcements":
 		return validateAnnouncements(settingsStr)
+	case "ModelSquareCarousel":
+		return validateModelSquareCarousel(settingsStr)
 	case "FAQ":
 		return validateFAQ(settingsStr)
 	case "UptimeKumaGroups":
@@ -82,6 +84,22 @@ func ValidateConsoleSettings(settingsStr string, settingType string) error {
 	default:
 		return fmt.Errorf("未知的设置类型：%s", settingType)
 	}
+}
+
+func validateModelSquareCarousel(value string) error {
+	items, err := parseJSONArray(value, "模型广场轮播")
+	if err != nil { return err }
+	if len(items) > 20 { return fmt.Errorf("模型广场轮播数量不能超过20个") }
+	for i, item := range items {
+		for _, field := range []string{"title", "description", "image"} {
+			v, ok := item[field].(string)
+			if !ok || strings.TrimSpace(v) == "" { return fmt.Errorf("第%d个轮播缺少%s字段", i+1, field) }
+			if exceedsMaxCharacters(v, 5000) { return fmt.Errorf("第%d个轮播的%s长度不能超过5000字符", i+1, field) }
+			if err := checkDangerousContent(v, i+1, "模型广场轮播"); err != nil { return err }
+		}
+		if enabled, ok := item["enabled"]; ok { if _, valid := enabled.(bool); !valid { return fmt.Errorf("第%d个轮播的启用状态不合法", i+1) } }
+	}
+	return nil
 }
 
 func validateApiInfo(apiInfoStr string) error {

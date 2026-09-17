@@ -429,6 +429,12 @@ func UpdateOption(c *gin.Context) {
 			})
 			return
 		}
+	case "console_setting.model_square_carousel":
+		err = console_setting.ValidateConsoleSettings(option.Value.(string), "ModelSquareCarousel")
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
+			return
+		}
 	case "console_setting.faq":
 		err = console_setting.ValidateConsoleSettings(option.Value.(string), "FAQ")
 		if err != nil {
