@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-17 - Publication record
+
+- Local changes below (badge localization/gift icon and percentile card layout)
+  committed as `fbcb3167d` and verified present on `origin/main` after fetch.
+- Validation: diff check and seven locale JSON/key checks passed; no browser
+  verification or frontend build. Existing unrelated files were not included.
+- This entry supersedes the pending commit/push statuses in those two entries.
+
 ## 2026-09-17 - Align performance percentile cards
 
 - Local reason: concatenated percentile text wrapped between labels and values.
