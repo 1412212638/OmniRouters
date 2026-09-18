@@ -48,6 +48,8 @@ export interface BoundChannel {
  * Model entity from API
  */
 export interface Model {
+  context_length_display?: string
+  max_output_tokens_display?: string
   context_length?: number
   max_output_tokens?: number
   id: number
@@ -256,6 +258,8 @@ export const modelFormSchema = z.object({
   input_modalities: z.array(z.enum(MODEL_MODALITIES)).default([]),
   output_modalities: z.array(z.enum(MODEL_MODALITIES)).default([]),
   context_length: z.number().int().min(0).max(2147483647).optional(),
+  context_length_display: z.string().optional(),
+  max_output_tokens_display: z.string().optional(),
   max_output_tokens: z.number().int().min(0).max(2147483647).optional(),
   name_rule: z.number().min(0).max(3).default(0),
   status: z.boolean().default(true),

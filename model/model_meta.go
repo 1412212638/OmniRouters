@@ -47,6 +47,8 @@ func resolveModelMetadata(records []Model, names []string) map[string]*Model {
 }
 
 type Model struct {
+	ContextLengthDisplay string `json:"context_length_display,omitempty" gorm:"type:text"`
+	MaxOutputTokensDisplay string `json:"max_output_tokens_display,omitempty" gorm:"type:text"`
 	ContextLength int64 `json:"context_length,omitempty" binding:"min=0,max=2147483647"`
 	MaxOutputTokens int64 `json:"max_output_tokens,omitempty" binding:"min=0,max=2147483647"`
 	Id                        int            `json:"id"`
@@ -116,6 +118,8 @@ func (mi *Model) Update() error {
 	return DB.Model(&Model{}).Where("id = ?", mi.Id).Updates(map[string]interface{}{
 		"model_name":                    mi.ModelName,
 		"context_length": mi.ContextLength,
+		"context_length_display": mi.ContextLengthDisplay,
+		"max_output_tokens_display": mi.MaxOutputTokensDisplay,
 		"max_output_tokens": mi.MaxOutputTokens,
 		"description":                   mi.Description,
 		"icon":                          mi.Icon,

@@ -300,22 +300,22 @@ function ModelBackendQuickStats(props: { model: PricingModel }) {
     hint?: string
   }[] = []
 
-  if (contextLength > 0) {
+  if (model.context_length_display || contextLength > 0) {
     stats.push({
       key: 'context',
       icon: Layers,
       label: t('Context'),
-      value: formatCatalogTokenCount(contextLength),
+      value: model.context_length_display || formatCatalogTokenCount(contextLength),
       hint: t('Maximum input window'),
     })
   }
 
-  if (maxOutput > 0) {
+  if (model.max_output_tokens_display || maxOutput > 0) {
     stats.push({
       key: 'max-output',
       icon: Maximize2,
       label: t('Max output'),
-      value: formatCatalogTokenCount(maxOutput),
+      value: model.max_output_tokens_display || formatCatalogTokenCount(maxOutput),
       hint: t('Maximum tokens per response'),
     })
   }

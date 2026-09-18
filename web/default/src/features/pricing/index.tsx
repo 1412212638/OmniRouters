@@ -916,7 +916,23 @@ function CatalogModelCard(props: {
         </div>
       </div>
 
-      <div className='mt-3 flex h-5 items-center justify-end'>
+      <div className='mt-3 flex flex-wrap items-center gap-x-3 gap-y-1'>
+        <div className='grid min-w-0 flex-1 grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)] gap-x-2 tabular-nums'>
+          <div className='flex min-w-0 flex-wrap items-baseline gap-x-1'>
+            <span className='text-foreground/85 text-lg leading-6 font-bold'>
+              {formatCardTokens(props.model.usage_tokens)}
+            </span>
+            <span className='text-muted-foreground text-xs'>{t('tokens')}</span>
+          </div>
+          <div className='flex min-w-0 flex-wrap items-baseline gap-x-1'>
+            <span className='text-foreground/85 text-lg leading-6 font-bold'>
+              {props.perf?.cache_rate !== undefined && Number.isFinite(props.perf.cache_rate)
+                ? `${props.perf.cache_rate.toFixed(2)}%`
+                : '-'}
+            </span>
+            <span className='text-muted-foreground text-xs'>{t('Cache hit rate')}</span>
+          </div>
+        </div>
         {hasDiscount && (
           <span
             className={cn(
@@ -954,12 +970,7 @@ function CatalogModelCard(props: {
         )}
       </div>
 
-      <div className='text-muted-foreground mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs tabular-nums'>
-        <span>{t('All-time usage')}: {formatCardTokens(props.model.usage_tokens)} {t('tokens')}</span>
-        <span>{t('Cache hit rate')}: {props.perf?.cache_rate !== undefined && Number.isFinite(props.perf.cache_rate) ? `${props.perf.cache_rate.toFixed(2)}%` : '-'}</span>
-      </div>
-
-      <p className='text-foreground/90 mt-2 line-clamp-2 min-h-[2.5rem] text-sm leading-5'>
+      <p className='text-foreground/90 mt-1 line-clamp-2 min-h-[2.5rem] text-sm leading-5'>
         {props.model.description || t('No description available.')}
       </p>
 
@@ -1026,8 +1037,8 @@ function CatalogModelCard(props: {
       </div>
 
       <div className='mt-2.5 grid gap-x-3 gap-y-2.5 sm:grid-cols-2'>
-        <InfoLine label={`${t('Context')}:`}>{formatCardTokens(props.model.context_length)}</InfoLine>
-        <InfoLine label={`${t('Max output')}:`}>{formatCardTokens(props.model.max_output_tokens)}</InfoLine>
+        <InfoLine label={`${t('Context')}:`}>{props.model.context_length_display || formatCardTokens(props.model.context_length)}</InfoLine>
+        <InfoLine label={`${t('Max output')}:`}>{props.model.max_output_tokens_display || formatCardTokens(props.model.max_output_tokens)}</InfoLine>
       </div>
 
       <div className='mt-auto grid gap-4 pt-5 sm:grid-cols-[minmax(0,1fr)_minmax(158px,50%)]'>

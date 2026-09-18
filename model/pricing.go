@@ -27,6 +27,8 @@ type PricingPluginVariant struct {
 }
 
 type Pricing struct {
+	ContextLengthDisplay string `json:"context_length_display,omitempty"`
+	MaxOutputTokensDisplay string `json:"max_output_tokens_display,omitempty"`
 	ContextLength int64 `json:"context_length,omitempty"`
 	MaxOutputTokens int64 `json:"max_output_tokens,omitempty"`
 	UsageTokens *int64 `json:"usage_tokens,omitempty"`
@@ -373,6 +375,8 @@ func updatePricing() {
 			pricing.CreatedTime = meta.CreatedTime
 			pricing.InputModalities = []string(meta.InputModalities)
 			pricing.ContextLength = meta.ContextLength
+			pricing.ContextLengthDisplay = meta.ContextLengthDisplay
+			pricing.MaxOutputTokensDisplay = meta.MaxOutputTokensDisplay
 			pricing.MaxOutputTokens = meta.MaxOutputTokens
 			pricing.OutputModalities = []string(meta.OutputModalities)
 			if vendor, exists := vendorMap[meta.VendorID]; exists {

@@ -1,5 +1,28 @@
 # Upstream Sync Log
 
+## 2026-09-18 - Free-form context and output capacity labels
+
+- User request: accept and preserve text such as 1.05M, 1M, 128K, 128.00K.
+- Added separate display text columns via additive GORM migration, retaining
+  numeric columns for legacy clients and existing records. Admin editing converts
+  old numeric values into editable text; clearing clears both display and fallback.
+- Catalog and details prefer literal text; React renders text, never injected HTML.
+  Preserved pricing/settlement, statistics, localization and pending summary layout.
+- Extended persistence/clear regression coverage. Go unavailable; frontend build
+  and diff checks passed. No live browser or database verification.
+- Commit/push: authorized for this batch, pending validation and publication.
+
+## 2026-09-18 - Match catalog usage row to reference
+
+- Local request: place usage/cache values directly below the model name and
+  above the description, with bold 18px numbers and muted 12px trailing labels.
+- Removed label prefixes and the empty badge-row gap; retained discount badges
+  alongside statistics, wrapping labels on narrow cards. Preserved all data and
+  billing logic, capacity fields, localization and card-height changes.
+- Validation: git diff --check and frontend production build passed. No browser
+  visual verification.
+- Commit/push: not requested, pending.
+
 ## 2026-09-18 - Publish model catalog metadata and usage batch
 
 - User authorized committing and pushing this batch to origin/main, including
