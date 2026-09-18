@@ -2750,3 +2750,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: existing modality, vendor, group, price, search, sorting, lazy loading, pricing, and billing behavior.
   - Validation: locale JSON parsing and `git diff --check`; frontend build pending.
   - Commit/push: pending.
+- 2026-09-18 - Fix model plaza context slider and metrics setting compatibility
+  - Local fix: accept both scalar and array values emitted by the Base UI context-length slider so dragging updates the filter reliably.
+  - Local fix: read the model plaza usage/cache visibility flag from the existing option map instead of extending the console-setting struct, avoiding legacy configuration decoding issues that could make the model plaza carousel return HTTP 500; the default remains enabled.
+  - Preserved: the setting only controls usage and cache metrics on external model plaza cards, while carousel validation, model filtering, pricing, billing, and other pages remain unchanged.
+  - Validation: `git diff --check`; all supported locale JSON files parsed successfully; `bun run build` in `web/default` passed.
+  - Commit/push: pending.

@@ -559,7 +559,12 @@ function ContextLengthFilter(props: {
           max={max}
           step={4096}
           value={[props.value]}
-          onValueChange={(value) => props.onChange(Number(value[0] ?? 0))}
+          onValueChange={(value) => {
+            const nextValue = Array.isArray(value) ? value[0] : value
+            if (typeof nextValue === 'number' && Number.isFinite(nextValue)) {
+              props.onChange(nextValue)
+            }
+          }}
           aria-label={t('Minimum context length')}
         />
         <div className='text-muted-foreground mt-2 flex justify-between text-xs'>
