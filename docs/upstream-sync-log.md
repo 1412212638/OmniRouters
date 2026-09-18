@@ -1,5 +1,44 @@
 # Upstream Sync Log
 
+## 2026-09-18 - Publish model catalog metadata and usage batch
+
+- User authorized committing and pushing this batch to origin/main, including
+  the previously pending card-height change. Unrelated untracked files excluded.
+- Validation: frontend production build passed in the implementation turn;
+  seven locale key/JSON checks and final diff checks passed. Go unavailable;
+  full typecheck blocked by existing errors. No live browser/DB verification.
+- Commit: this feature commit; push pending, exact hash recorded after push.
+
+## 2026-09-18 - Align catalog usage with all-time rankings
+
+- User correction: catalog usage must use the rankings all-time totals, not 24h.
+- Pricing now calls the same GetRankingQuotaTotals(0, now) aggregation as the
+  all-time rankings, retaining historical data even when data export is disabled.
+  All models are included, without the leaderboard's top-20 display limit.
+- Updated seven locales to label cumulative usage. Retained cache-rate semantics,
+  capacity metadata, pending card-height changes, and all billing behavior.
+- Validation: source comparison with rankingTimeRange; locale JSON/key checks
+  and git diff --check. Go unavailable; no live database verification.
+- Commit/push: pending, not requested. Supersedes the 24h usage notes below.
+
+## 2026-09-18 - Model plaza usage and capacity metadata
+
+- Local reason: show usage, cache rate, context and maximum output on catalog cards.
+- Added optional bounded capacity metadata to model create/update and pricing;
+  existing GORM migrations plus additive column checks persist both fields.
+- Catalog cards use 24h hourly quota-data totals, loaded once per pricing cache
+  refresh, and the existing performance summary cache-rate calculation. Missing
+  data displays a dash. Seven frontend locales include the new usage label.
+- Preserved billing/settlement, cache-hit-only denominator, metadata matching,
+  discounts, and the pending card-height adjustment. No per-card log queries.
+- Usage follows existing platform aggregation and flush delays; disabled data
+  export or missing records remain unknown. This is not lifetime usage.
+- Validation: diff checks; locale key checks; metadata save/clear regression test
+  added. Go is unavailable locally. Full TypeScript check is blocked by existing
+  missing test dependencies and unrelated types. Frontend production build
+  passed; all seven locale JSON/key checks passed. No browser visual verification.
+- Commit/push: pending; user requested no push for this batch.
+
 ## 2026-09-17 - Publication record
 
 - Local changes below (badge localization/gift icon and percentile card layout)

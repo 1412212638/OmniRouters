@@ -1,5 +1,7 @@
 {
   "translation": {
+    "Cache hit rate": "Taux de succès du cache",
+    "All-time usage": "Utilisation cumulée",
     "Two-factor authentication": "Authentification à deux facteurs",
     "OAuth": "OAuth",
     "OAuth callback": "Retour OAuth",

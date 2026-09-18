@@ -47,6 +47,8 @@ func resolveModelMetadata(records []Model, names []string) map[string]*Model {
 }
 
 type Model struct {
+	ContextLength int64 `json:"context_length,omitempty" binding:"min=0,max=2147483647"`
+	MaxOutputTokens int64 `json:"max_output_tokens,omitempty" binding:"min=0,max=2147483647"`
 	Id                        int            `json:"id"`
 	ModelName                 string         `json:"model_name" gorm:"size:128;not null;uniqueIndex:uk_model_name_delete_at,priority:1"`
 	Description               string         `json:"description,omitempty" gorm:"type:text"`
@@ -113,6 +115,8 @@ func (mi *Model) Update() error {
 	// Use a map so empty strings and zero values are persisted consistently.
 	return DB.Model(&Model{}).Where("id = ?", mi.Id).Updates(map[string]interface{}{
 		"model_name":                    mi.ModelName,
+		"context_length": mi.ContextLength,
+		"max_output_tokens": mi.MaxOutputTokens,
 		"description":                   mi.Description,
 		"icon":                          mi.Icon,
 		"tags":                          mi.Tags,

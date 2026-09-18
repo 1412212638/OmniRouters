@@ -85,6 +85,7 @@ export type PricingModel = {
    * Keep them data-driven; do not synthesize display values on the client.
    */
   context_length?: number
+  usage_tokens?: number
   max_output_tokens?: number
   knowledge_cutoff?: string
   release_date?: string

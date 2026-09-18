@@ -27,6 +27,9 @@ type PricingPluginVariant struct {
 }
 
 type Pricing struct {
+	ContextLength int64 `json:"context_length,omitempty"`
+	MaxOutputTokens int64 `json:"max_output_tokens,omitempty"`
+	UsageTokens *int64 `json:"usage_tokens,omitempty"`
 	BillingPluginVariants  []PricingPluginVariant               `json:"billing_plugin_variants,omitempty"`
 	ModelName              string                               `json:"model_name"`
 	CreatedTime            int64                                `json:"created_time"`
@@ -199,6 +202,18 @@ func appendPricingEndpoint(endpoints []string, endpoint string) []string {
 }
 
 func updatePricing() {
+	// Reuse hourly platform usage aggregates once per pricing cache refresh.
+	usageByModel := make(map[string]int64)
+	{
+		now := time.Now().Unix()
+		if rows, err := GetRankingQuotaTotals(0, now); err == nil {
+			for _, row := range rows {
+				usageByModel[row.ModelName] = row.TotalTokens
+			}
+		} else {
+			common.SysError("load model plaza usage: " + err.Error())
+		}
+	}
 	//modelRatios := common.GetModelRatios()
 	enableAbilities, err := GetAllEnableAbilityWithChannels()
 	if err != nil {
@@ -342,6 +357,10 @@ func updatePricing() {
 		}
 
 		// 补充模型元数据（描述、标签、供应商、状态）
+		if tokens, ok := usageByModel[model]; ok {
+			pricing.UsageTokens = &tokens
+		}
+
 		if meta, ok := metaMap[model]; ok {
 			// 若模型被禁用(status!=1)，则直接跳过，不返回给前端
 			if meta.Status != 1 {
@@ -353,6 +372,8 @@ func updatePricing() {
 			pricing.VendorID = meta.VendorID
 			pricing.CreatedTime = meta.CreatedTime
 			pricing.InputModalities = []string(meta.InputModalities)
+			pricing.ContextLength = meta.ContextLength
+			pricing.MaxOutputTokens = meta.MaxOutputTokens
 			pricing.OutputModalities = []string(meta.OutputModalities)
 			if vendor, exists := vendorMap[meta.VendorID]; exists {
 				pricing.VendorName = vendor.Name

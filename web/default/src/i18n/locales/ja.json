@@ -1,5 +1,7 @@
 {
   "translation": {
+    "Cache hit rate": "キャッシュヒット率",
+    "All-time usage": "累計使用量",
     "Two-factor authentication": "二段階認証",
     "OAuth": "OAuth",
     "OAuth callback": "OAuth コールバック",

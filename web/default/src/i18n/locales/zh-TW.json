@@ -1,5 +1,7 @@
 {
   "translation": {
+    "Cache hit rate": "快取命中率",
+    "All-time usage": "累計用量",
     "Two-factor authentication": "兩步驗證",
     "OAuth": "OAuth",
     "OAuth callback": "OAuth 回呼",

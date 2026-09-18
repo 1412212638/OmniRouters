@@ -819,6 +819,14 @@ function usePriceRows(props: {
   }
 }
 
+function formatCardTokens(value?: number): string {
+  if (value === undefined || !Number.isFinite(value) || value <= 0) return '-'
+  for (const [divisor, suffix] of [[1e9, 'B'], [1e6, 'M'], [1e3, 'K']] as const) {
+    if (value >= divisor) return `${Number((value / divisor).toFixed(2))}${suffix}`
+  }
+  return String(value)
+}
+
 function CatalogModelCard(props: {
   model: PricingModel
   perf?: PerfModelSummary
@@ -853,7 +861,7 @@ function CatalogModelCard(props: {
   const discountPercent = Number(((1 - displayGroupRatio) * 100).toFixed(1))
 
   return (
-    <article className='group bg-background hover:bg-muted/20 flex min-h-[284px] flex-col border-b p-4 transition-colors lg:border-r 2xl:p-5 dark:border-white/10 dark:hover:bg-white/[0.03]'>
+    <article className='group bg-background hover:bg-muted/20 flex min-h-[260px] flex-col border-b p-4 transition-colors sm:min-h-[300px] lg:min-h-[340px] lg:border-r 2xl:p-5 dark:border-white/10 dark:hover:bg-white/[0.03]'>
       <div className='flex items-start justify-between gap-3'>
         <div className='flex min-w-0 items-start gap-3'>
           <div className='bg-muted/60 flex size-10 shrink-0 items-center justify-center rounded-lg dark:bg-white/5'>
@@ -946,7 +954,12 @@ function CatalogModelCard(props: {
         )}
       </div>
 
-      <p className='text-foreground/90 mt-1 line-clamp-2 min-h-[2.5rem] text-sm leading-5'>
+      <div className='text-muted-foreground mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs tabular-nums'>
+        <span>{t('All-time usage')}: {formatCardTokens(props.model.usage_tokens)} {t('tokens')}</span>
+        <span>{t('Cache hit rate')}: {props.perf?.cache_rate !== undefined && Number.isFinite(props.perf.cache_rate) ? `${props.perf.cache_rate.toFixed(2)}%` : '-'}</span>
+      </div>
+
+      <p className='text-foreground/90 mt-2 line-clamp-2 min-h-[2.5rem] text-sm leading-5'>
         {props.model.description || t('No description available.')}
       </p>
 
@@ -1010,6 +1023,11 @@ function CatalogModelCard(props: {
             </InfoLine>
           </div>
         )}
+      </div>
+
+      <div className='mt-2.5 grid gap-x-3 gap-y-2.5 sm:grid-cols-2'>
+        <InfoLine label={`${t('Context')}:`}>{formatCardTokens(props.model.context_length)}</InfoLine>
+        <InfoLine label={`${t('Max output')}:`}>{formatCardTokens(props.model.max_output_tokens)}</InfoLine>
       </div>
 
       <div className='mt-auto grid gap-4 pt-5 sm:grid-cols-[minmax(0,1fr)_minmax(158px,50%)]'>

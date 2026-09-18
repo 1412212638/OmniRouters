@@ -204,6 +204,7 @@ func QuerySummaryAll(hours int, groups []string) (SummaryAllResult, error) {
 			avgTps = float64(total.outputTokens) / (float64(total.generationMs) / 1000.0)
 		}
 		models = append(models, ModelSummary{
+			CacheRate: cacheRate(total),
 			ModelName:           name,
 			AvgLatencyMs:        avgLatency,
 			SuccessRate:         math.Round(successRate*100) / 100,

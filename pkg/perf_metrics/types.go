@@ -70,6 +70,7 @@ type SuccessRatePoint struct {
 }
 
 type ModelSummary struct {
+	CacheRate *float64 `json:"cache_rate,omitempty"`
 	ModelName           string             `json:"model_name"`
 	AvgLatencyMs        int64              `json:"avg_latency_ms"`
 	SuccessRate         float64            `json:"success_rate"`

@@ -112,6 +112,8 @@ const extendedModelFormSchema = z.object({
   endpoints: z.string(),
   input_modalities: z.array(z.enum(MODEL_MODALITIES)),
   output_modalities: z.array(z.enum(MODEL_MODALITIES)),
+  context_length: z.number().int().min(0).max(2147483647).optional(),
+  max_output_tokens: z.number().int().min(0).max(2147483647).optional(),
   name_rule: z.number(),
   status: z.boolean(),
   sync_official: z.boolean(),
@@ -449,6 +451,8 @@ export function ModelMutateDrawer({
       endpoints: '',
       input_modalities: [],
       output_modalities: [],
+      context_length: 0,
+      max_output_tokens: 0,
       name_rule: 0,
       status: true,
       sync_official: true,
@@ -524,6 +528,8 @@ export function ModelMutateDrawer({
         endpoints: model.endpoints || '',
         input_modalities: normalizeSelectedModalities(model.input_modalities),
         output_modalities: normalizeSelectedModalities(model.output_modalities),
+        context_length: model.context_length || 0,
+        max_output_tokens: model.max_output_tokens || 0,
         name_rule: model.name_rule || 0,
         status: model.status === 1,
         sync_official: model.sync_official === 1,
@@ -556,6 +562,8 @@ export function ModelMutateDrawer({
         endpoints: '',
         input_modalities: [],
         output_modalities: [],
+        context_length: 0,
+        max_output_tokens: 0,
         name_rule: 0,
         status: true,
         sync_official: true,
@@ -890,6 +898,28 @@ export function ModelMutateDrawer({
                   </FormItem>
                 )}
               />
+
+              <FieldGroup className='grid gap-4 sm:grid-cols-2'>
+                {(['context_length', 'max_output_tokens'] as const).map((name) => (
+                  <FormField
+                    key={name}
+                    control={form.control}
+                    name={name}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t(name === 'context_length' ? 'Context' : 'Max output')} ({t('tokens')})</FormLabel>
+                        <FormControl>
+                          <Input type='number' min={0} max={2147483647} step={1}
+                            name={field.name} ref={field.ref} onBlur={field.onBlur}
+                            value={field.value || ''} placeholder='-'
+                            onChange={(event) => field.onChange(event.target.value === '' ? 0 : Number(event.target.value))} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </FieldGroup>
 
               <FormField
                 control={form.control}

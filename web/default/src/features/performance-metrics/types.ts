@@ -66,6 +66,7 @@ export type PerformanceMetricsData = {
 export type SuccessRatePoint = { ts: number; success_rate: number }
 
 export type PerfModelSummary = {
+  cache_rate?: number
   model_name: string
   avg_latency_ms: number
   success_rate: number

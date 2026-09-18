@@ -1,5 +1,7 @@
 {
   "translation": {
+    "Cache hit rate": "Доля попаданий в кэш",
+    "All-time usage": "Использование за всё время",
     "Two-factor authentication": "Двухфакторная аутентификация",
     "OAuth": "OAuth",
     "OAuth callback": "Обратный вызов OAuth",

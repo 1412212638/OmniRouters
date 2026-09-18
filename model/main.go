@@ -592,6 +592,8 @@ func ensureModelMetadataColumns() error {
 	}
 	columns := []string{
 		"InputModalities",
+		"ContextLength",
+		"MaxOutputTokens",
 		"OutputModalities",
 	}
 	for _, column := range columns {

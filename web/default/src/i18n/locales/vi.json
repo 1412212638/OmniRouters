@@ -1,5 +1,7 @@
 {
   "translation": {
+    "Cache hit rate": "Tỷ lệ trúng bộ nhớ đệm",
+    "All-time usage": "Tổng mức sử dụng",
     "Two-factor authentication": "Xác thực hai bước",
     "OAuth": "OAuth",
     "OAuth callback": "Callback OAuth",
