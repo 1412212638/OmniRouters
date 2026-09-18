@@ -2745,3 +2745,8 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: leaderboard metrics, model detail performance data, classic model plaza theme, pricing, billing, and existing carousel settings.
   - Validation: locale JSON parsing and `git diff --check`; frontend build pending.
   - Commit/push: pending.
+- 2026-09-18 - Add model plaza context length filter
+  - Local change: added a context length minimum slider below input type filters, with 0 meaning no restriction and a reset control; model cards are filtered by their numeric context length.
+  - Preserved: existing modality, vendor, group, price, search, sorting, lazy loading, pricing, and billing behavior.
+  - Validation: locale JSON parsing and `git diff --check`; frontend build pending.
+  - Commit/push: pending.

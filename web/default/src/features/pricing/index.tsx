@@ -58,6 +58,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Slider } from '@/components/ui/slider'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { getPerfMetricsSummary } from '@/features/performance-metrics/api'
 import type { PerfModelSummary } from '@/features/performance-metrics/types'
@@ -517,6 +518,62 @@ function FilterSection(props: {
         </div>
       </CollapsibleContent>
     </Collapsible>
+  )
+}
+
+function ContextLengthFilter(props: {
+  value: number
+  onChange: (value: number) => void
+  onReset: () => void
+}) {
+  const { t } = useTranslation()
+  const max = 1_000_000
+  const format = (value: number) =>
+    value >= 1_000_000
+      ? '1M'
+      : value >= 1_000
+        ? `${Math.round(value / 1_000)}K`
+        : String(value)
+
+  return (
+    <section className='flex flex-col gap-2'>
+      <div className='flex h-6 items-center justify-between gap-2'>
+        <h2 className='text-foreground text-sm font-semibold'>{t('Context Length')}</h2>
+        {props.value > 0 && (
+          <Button
+            type='button'
+            variant='ghost'
+            size='icon-xs'
+            title={t('Reset')}
+            aria-label={t('Reset')}
+            className='text-muted-foreground hover:text-foreground size-6 rounded-md'
+            onClick={props.onReset}
+          >
+            <ZenMuxRefreshCircleIcon className='size-4' />
+          </Button>
+        )}
+      </div>
+      <div className='px-1 pt-2'>
+        <Slider
+          min={0}
+          max={max}
+          step={4096}
+          value={[props.value]}
+          onValueChange={(value) => props.onChange(Number(value[0] ?? 0))}
+          aria-label={t('Minimum context length')}
+        />
+        <div className='text-muted-foreground mt-2 flex justify-between text-xs'>
+          <span>4K</span>
+          <span>64K</span>
+          <span>1M</span>
+        </div>
+        {props.value > 0 && (
+          <div className='text-muted-foreground mt-1 text-center text-xs'>
+            {t('At least {{value}}', { value: format(props.value) })}
+          </div>
+        )}
+      </div>
+    </section>
   )
 }
 
@@ -1136,6 +1193,7 @@ function CatalogPricing() {
   )
   const [searchInput, setSearchInput] = useState('')
   const [inputFilter, setInputFilter] = useState<string>(FILTER_ALL)
+  const [contextLengthFilter, setContextLengthFilter] = useState(0)
   const [outputFilter, setOutputFilter] = useState<string>(FILTER_ALL)
   const [vendorFilter, setVendorFilter] = useState<string>(FILTER_ALL)
   const [groupFilter, setGroupFilter] = useState<string>(FILTER_ALL)
@@ -1217,6 +1275,13 @@ function CatalogPricing() {
         if (!hasModality(model, 'input_modalities', inputFilter)) {
           return false
         }
+        if (
+          contextLengthFilter > 0 &&
+          (!Number.isFinite(model.context_length) ||
+            Number(model.context_length) < contextLengthFilter)
+        ) {
+          return false
+        }
         if (!hasModality(model, 'output_modalities', outputFilter)) {
           return false
         }
@@ -1278,6 +1343,7 @@ function CatalogPricing() {
         return result || sortByCreatedTime(left, right)
       })
   }, [
+    contextLengthFilter,
     groupFilter,
     inputFilter,
     models,
@@ -1296,6 +1362,7 @@ function CatalogPricing() {
     outputFilter,
     vendorFilter,
     groupFilter,
+    contextLengthFilter,
     priceFilter,
     sortBy,
   ].join('|')
@@ -1342,6 +1409,7 @@ function CatalogPricing() {
   const hasActiveFilters =
     Boolean(searchQuery) ||
     inputFilter !== FILTER_ALL ||
+    contextLengthFilter > 0 ||
     outputFilter !== FILTER_ALL ||
     vendorFilter !== FILTER_ALL ||
     groupFilter !== FILTER_ALL ||
@@ -1350,6 +1418,7 @@ function CatalogPricing() {
   const clearFilters = useCallback(() => {
     setSearchInput('')
     setInputFilter(FILTER_ALL)
+    setContextLengthFilter(0)
     setOutputFilter(FILTER_ALL)
     setVendorFilter(FILTER_ALL)
     setGroupFilter(FILTER_ALL)
@@ -1391,6 +1460,11 @@ function CatalogPricing() {
                 onOpenChange={(open) =>
                   setSidebarSectionExpanded('input', open)
                 }
+              />
+              <ContextLengthFilter
+                value={contextLengthFilter}
+                onChange={setContextLengthFilter}
+                onReset={() => setContextLengthFilter(0)}
               />
               <FilterSection
                 title={t('Vendor')}
