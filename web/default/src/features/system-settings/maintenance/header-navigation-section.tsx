@@ -47,6 +47,7 @@ import {
 } from './config'
 
 const headerNavSchema = z.object({
+  showUsageMetrics: z.boolean(),
   home: z.boolean(),
   console: z.boolean(),
   pricingEnabled: z.boolean(),
@@ -62,11 +63,13 @@ const headerNavSchema = z.object({
 type HeaderNavFormValues = z.infer<typeof headerNavSchema>
 
 type HeaderNavigationSectionProps = {
+  showUsageMetrics: boolean
   config: HeaderNavModulesConfig
   initialSerialized: string
 }
 
 const toFormValues = (config: HeaderNavModulesConfig): HeaderNavFormValues => ({
+  showUsageMetrics: false,
   home:
     config.home === undefined ? HEADER_NAV_DEFAULT.home : Boolean(config.home),
   console:
@@ -106,12 +109,16 @@ const toFormValues = (config: HeaderNavModulesConfig): HeaderNavFormValues => ({
 })
 
 export function HeaderNavigationSection({
+  showUsageMetrics,
   config,
   initialSerialized,
 }: HeaderNavigationSectionProps) {
   const { t } = useTranslation()
   const updateOption = useUpdateOption()
-  const formDefaults = useMemo(() => toFormValues(config), [config])
+  const formDefaults = useMemo(
+    () => ({ ...toFormValues(config), showUsageMetrics }),
+    [config, showUsageMetrics]
+  )
 
   const form = useForm<HeaderNavFormValues>({
     resolver: zodResolver(headerNavSchema),
@@ -147,14 +154,19 @@ export function HeaderNavigationSection({
     }
 
     const serialized = serializeHeaderNavModules(payload)
-    if (serialized === initialSerialized) {
-      return
+    if (values.showUsageMetrics !== showUsageMetrics) {
+      const result = await updateOption.mutateAsync({
+        key: 'console_setting.model_square_show_usage_metrics',
+        value: values.showUsageMetrics,
+      })
+      if (!result.success) return
     }
-
-    await updateOption.mutateAsync({
-      key: 'HeaderNavModules',
-      value: serialized,
-    })
+    if (serialized !== initialSerialized) {
+      await updateOption.mutateAsync({
+        key: 'HeaderNavModules',
+        value: serialized,
+      })
+    }
   }
 
   const resetToDefault = () => {
@@ -274,6 +286,24 @@ export function HeaderNavigationSection({
           <div className='grid gap-4 lg:grid-cols-2'>
             {accessModules.map((module) => (
               <SettingsControlGroup key={module.enabledKey}>
+                {module.enabledKey === 'pricingEnabled' && (
+                  <FormField
+                    control={form.control}
+                    name='showUsageMetrics'
+                    render={({ field }) => (
+                      <SettingsSwitchItem>
+                        <SettingsSwitchContent>
+                          <FormLabel>{t('Show model plaza usage metrics')}</FormLabel>
+                          <FormDescription>{t('Show usage and cache hit rate on model plaza cards only.')}</FormDescription>
+                        </SettingsSwitchContent>
+                        <FormControl>
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <FormMessage />
+                      </SettingsSwitchItem>
+                    )}
+                  />
+                )}
                 <FormField
                   control={form.control}
                   name={module.enabledKey}

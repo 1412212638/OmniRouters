@@ -2756,3 +2756,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: the setting only controls usage and cache metrics on external model plaza cards, while carousel validation, model filtering, pricing, billing, and other pages remain unchanged.
   - Validation: `git diff --check`; all supported locale JSON files parsed successfully; `bun run build` in `web/default` passed.
   - Commit/push: pending.
+- 2026-09-18 - Move model plaza metrics toggle and repair carousel crash
+  - Local fix: moved the usage/cache visibility switch into Site and Brand -> Header navigation, with a safe default of disabled.
+  - Local fix: removed the carousel page's invalid form-context usage and made status exposure opt-in, preventing the added setting from crashing the model plaza carousel flow.
+  - Preserved: carousel item editing, ordering, rotation, model plaza pricing, billing, and all other navigation settings.
+  - Validation: frontend production build passed; typecheck remains blocked by pre-existing repository errors; Go formatting was unavailable because Go is not installed locally.
+  - Commit/push: pending.

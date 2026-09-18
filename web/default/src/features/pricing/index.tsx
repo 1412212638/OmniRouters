@@ -1192,7 +1192,7 @@ export function Pricing() {
 function CatalogPricing() {
   const { t } = useTranslation()
   const { status } = useStatus()
-  const showUsageMetrics = status?.model_square_show_usage_metrics !== false
+  const showUsageMetrics = status?.model_square_show_usage_metrics === true
   const [selectedModelName, setSelectedModelName] = useState<string | null>(
     null
   )

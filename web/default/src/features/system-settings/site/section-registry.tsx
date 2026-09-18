@@ -63,6 +63,7 @@ const SITE_SECTIONS = [
       const headerNavSerialized = serializeHeaderNavModules(headerNavConfig)
       return (
         <HeaderNavigationSection
+          showUsageMetrics={settings['console_setting.model_square_show_usage_metrics']}
           config={headerNavConfig}
           initialSerialized={headerNavSerialized}
         />

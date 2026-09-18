@@ -138,6 +138,7 @@ export type SystemTaskListResponse = {
 }
 
 export type SiteSettings = {
+  'console_setting.model_square_show_usage_metrics': boolean
   'theme.frontend': string
   'theme.model_square': string
   Notice: string

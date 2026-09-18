@@ -64,7 +64,7 @@ func GetStatus(c *gin.Context) {
 		"telegram_bot_name":           common.TelegramBotName,
 		"theme":                       system_setting.GetThemeSettings().Frontend,
 		"model_square_theme":          system_setting.GetThemeSettings().ModelSquare,
-		"model_square_show_usage_metrics": common.OptionMap["console_setting.model_square_show_usage_metrics"] != "false" && common.OptionMap["console_setting.model_square_show_usage_metrics"] != "0",
+		"model_square_show_usage_metrics": common.OptionMap["console_setting.model_square_show_usage_metrics"] == "true" || common.OptionMap["console_setting.model_square_show_usage_metrics"] == "1",
 		"system_name":                 common.SystemName,
 		"logo":                        common.Logo,
 		"footer_html":                 common.Footer,

@@ -25,6 +25,7 @@ import {
 } from './section-registry.tsx'
 
 const defaultSiteSettings: SiteSettings = {
+  'console_setting.model_square_show_usage_metrics': false,
   'theme.frontend': 'default',
   'theme.model_square': 'catalog',
   Notice: '',

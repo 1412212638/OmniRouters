@@ -27,6 +27,7 @@ const STATUS_RELATED_KEYS = new Set([
   'theme.frontend',
   'theme.model_square',
   'console_setting.model_square_carousel',
+  'console_setting.model_square_show_usage_metrics',
   'HeaderNavModules',
   'SidebarModulesAdmin',
   'Notice',
