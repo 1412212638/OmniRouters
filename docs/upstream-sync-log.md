@@ -10,7 +10,8 @@
   Preserved pricing/settlement, statistics, localization and pending summary layout.
 - Extended persistence/clear regression coverage. Go unavailable; frontend build
   and diff checks passed. No live browser or database verification.
-- Commit/push: authorized for this batch, pending validation and publication.
+- Commit/push: `02c14a880` pushed to origin/main and verified with ls-remote;
+  includes the pending summary-row layout. This follow-up records publication.
 
 ## 2026-09-18 - Match catalog usage row to reference
 
