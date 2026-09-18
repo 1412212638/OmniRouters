@@ -135,6 +135,7 @@ export interface SystemStatus {
     password_register_enabled?: boolean
     model_square_theme?: string
     model_square_carousel?: ModelSquareCarouselItem[]
+    model_square_show_usage_metrics?: boolean
     custom_oauth_providers?: CustomOAuthProviderInfo[]
     [key: string]: unknown
   }
@@ -181,6 +182,7 @@ export interface SystemStatus {
   password_register_enabled?: boolean
   model_square_theme?: string
   model_square_carousel?: ModelSquareCarouselItem[]
+  model_square_show_usage_metrics?: boolean
   custom_oauth_providers?: CustomOAuthProviderInfo[]
   [key: string]: unknown
 }

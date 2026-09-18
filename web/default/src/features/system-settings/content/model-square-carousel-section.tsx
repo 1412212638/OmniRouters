@@ -9,12 +9,15 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { StaticDataTable } from '@/components/data-table/static/static-data-table'
 import { StaticRowActions } from '@/components/data-table/static/static-row-actions'
 import { Dialog } from '@/components/dialog'
 import { SettingsSection } from '../components/settings-section'
 import { useUpdateOption } from '../hooks/use-update-option'
+import { getOptionValue, useSystemOptions } from '../hooks/use-system-options'
+import { SettingsSwitchContent, SettingsSwitchItem } from '../components/settings-form-layout'
 
 type CarouselItem = { id: number; title: string; description: string; image: string; enabled: boolean; sort: number }
 const schema = z.object({ title: z.string().min(1).max(200), description: z.string().min(1).max(5000), image: z.string().min(1).max(5000), enabled: z.boolean(), sort: z.coerce.number().int().min(0).max(9999) })
@@ -24,6 +27,10 @@ type FormInput = z.input<typeof schema>
 export function ModelSquareCarouselSection({ data }: { data: string }) {
   const { t } = useTranslation()
   const updateOption = useUpdateOption()
+  const { data: systemOptions } = useSystemOptions()
+  const showUsageMetrics = getOptionValue(systemOptions?.data, {
+    'console_setting.model_square_show_usage_metrics': true,
+  })['console_setting.model_square_show_usage_metrics']
   const [items, setItems] = useState<CarouselItem[]>([])
   const [editing, setEditing] = useState<CarouselItem | null>(null)
   const [open, setOpen] = useState(false)
@@ -39,6 +46,13 @@ export function ModelSquareCarouselSection({ data }: { data: string }) {
   const save = async () => { try { await updateOption.mutateAsync({ key: 'console_setting.model_square_carousel', value: JSON.stringify(items) }); setDirty(false); toast.success(t('Model plaza carousel saved successfully')) } catch { toast.error(t('Failed to save model plaza carousel')) } }
 
   return <SettingsSection title={t('Model Plaza Carousel')} description={t('Manage the fixed promotional carousel shown first in the model plaza.') }>
+    <SettingsSwitchItem>
+      <SettingsSwitchContent>
+        <FormLabel>{t('Show model plaza usage metrics')}</FormLabel>
+        <FormDescription>{t('Show usage and cache hit rate on model plaza cards only.')}</FormDescription>
+      </SettingsSwitchContent>
+      <Switch checked={showUsageMetrics} disabled={updateOption.isPending} onCheckedChange={(checked) => updateOption.mutate({ key: 'console_setting.model_square_show_usage_metrics', value: checked })} />
+    </SettingsSwitchItem>
     <div className='flex flex-wrap gap-2'><Button size='sm' onClick={add}><Plus className='mr-2 size-4' />{t('Add Carousel Item')}</Button><Button size='sm' variant='secondary' disabled={!dirty || updateOption.isPending} onClick={save}><Save className='mr-2 size-4' />{t('Save Settings')}</Button></div>
     <StaticDataTable data={sorted} getRowKey={(item) => item.id} emptyContent={t('No carousel items yet.')} columns={[{ id: 'title', header: t('Title'), cell: (item) => item.title }, { id: 'image', header: t('Image'), cellClassName: 'max-w-xs truncate', cell: (item) => item.image }, { id: 'sort', header: t('Sort'), cell: (item) => item.sort }, { id: 'enabled', header: t('Enabled'), cell: (item) => item.enabled ? t('Yes') : t('No') }, { id: 'actions', header: t('Actions'), cell: (item) => <StaticRowActions editLabel={t('Edit')} deleteLabel={t('Delete')} menuLabel={t('Open menu')} onEdit={() => edit(item)} onDelete={() => remove(item)} /> }]} />
     <Dialog open={open} onOpenChange={setOpen} title={editing ? t('Edit Carousel Item') : t('Add Carousel Item')} contentClassName='max-w-2xl' footer={<><Button variant='outline' onClick={() => setOpen(false)}>{t('Cancel')}</Button><Button type='submit' form='model-square-carousel-form'>{editing ? t('Update') : t('Add')}</Button></>}>

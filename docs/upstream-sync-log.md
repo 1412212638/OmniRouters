@@ -2739,3 +2739,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: carousel validation, enabled/disabled behavior, fixed first-grid-slot layout, rotation controls, model filtering, pricing, billing, and existing unrelated locale entries.
   - Validation: Node JSON parsing, key-presence inspection, and `git diff --check`; full frontend typecheck/build not run because the repository has pre-existing typecheck failures.
   - Commit/push: pending.
+- 2026-09-18 - Add model plaza card metrics visibility setting and Chinese token unit
+  - Local change: added the `console_setting.model_square_show_usage_metrics` setting, enabled by default and exposed through the public status payload, to control whether external model plaza cards show usage and cache hit rate; disabling it hides the complete metrics row without affecting other pages.
+  - Local change: added a dedicated localized token unit key so the Chinese model plaza card displays `词元` while other pages retain their existing translations.
+  - Preserved: leaderboard metrics, model detail performance data, classic model plaza theme, pricing, billing, and existing carousel settings.
+  - Validation: locale JSON parsing and `git diff --check`; frontend build pending.
+  - Commit/push: pending.

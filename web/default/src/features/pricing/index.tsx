@@ -835,6 +835,7 @@ function CatalogModelCard(props: {
   selectedGroup?: string
   usableGroup: PricingUsableGroup
   onOpen: () => void
+  showUsageMetrics: boolean
 }) {
   const { t } = useTranslation()
   const { copyToClipboard } = useCopyToClipboard()
@@ -916,13 +917,13 @@ function CatalogModelCard(props: {
         </div>
       </div>
 
-      <div className='mt-3 flex flex-wrap items-center gap-x-3 gap-y-1'>
+      {props.showUsageMetrics && <div className='mt-3 flex flex-wrap items-center gap-x-3 gap-y-1'>
         <div className='grid min-w-0 flex-1 grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)] gap-x-2 tabular-nums'>
           <div className='flex min-w-0 flex-wrap items-baseline gap-x-1'>
             <span className='text-foreground/85 text-lg leading-6 font-bold'>
               {formatCardTokens(props.model.usage_tokens)}
             </span>
-            <span className='text-muted-foreground text-xs'>{t('tokens')}</span>
+            <span className='text-muted-foreground text-xs'>{t('Model plaza token unit')}</span>
           </div>
           <div className='flex min-w-0 flex-wrap items-baseline gap-x-1'>
             <span className='text-foreground/85 text-lg leading-6 font-bold'>
@@ -968,7 +969,7 @@ function CatalogModelCard(props: {
                 })}
           </span>
         )}
-      </div>
+      </div>}
 
       <p className='text-foreground/90 mt-1 line-clamp-2 min-h-[2.5rem] text-sm leading-5'>
         {props.model.description || t('No description available.')}
@@ -1129,6 +1130,7 @@ export function Pricing() {
 function CatalogPricing() {
   const { t } = useTranslation()
   const { status } = useStatus()
+  const showUsageMetrics = status?.model_square_show_usage_metrics !== false
   const [selectedModelName, setSelectedModelName] = useState<string | null>(
     null
   )
@@ -1594,6 +1596,7 @@ function CatalogPricing() {
                       onOpen={() =>
                         setSelectedModelName(model.model_name || '')
                       }
+                      showUsageMetrics={showUsageMetrics}
                     />
                   ))}
                 </div>
