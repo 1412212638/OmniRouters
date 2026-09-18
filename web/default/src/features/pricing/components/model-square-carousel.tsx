@@ -7,7 +7,9 @@ import { cn } from '@/lib/utils'
 
 export function ModelSquareCarousel({ items }: { items: ModelSquareCarouselItem[] }) {
   const { t } = useTranslation()
-  const activeItems = items.filter((item) => item.enabled !== false && item.image && item.title)
+  const activeItems = items
+    .filter((item) => item.enabled !== false && item.image && item.title)
+    .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0) || (a.id ?? 0) - (b.id ?? 0))
   const [index, setIndex] = useState(0)
   useEffect(() => { setIndex(0) }, [activeItems.length])
   useEffect(() => { if (activeItems.length < 2) return; const timer = window.setInterval(() => setIndex((current) => (current + 1) % activeItems.length), 6000); return () => window.clearInterval(timer) }, [activeItems.length])

@@ -5634,6 +5634,16 @@
     "Installed": "Установленные",
     "{{channels}} channels, {{tasks}} in-flight tasks": "Каналов: {{channels}}, активных задач: {{tasks}}",
     "Request Audit": "Аудит запроса",
-    "Raw Data": "Исходные данные"
+    "Raw Data": "Исходные данные",
+    "Model Plaza Carousel": "Карусель площади моделей",
+    "Manage the fixed promotional carousel shown first in the model plaza.": "Управляйте фиксированной промо-каруселью, отображаемой первой на площади моделей.",
+    "Add Carousel Item": "Добавить элемент карусели",
+    "Edit Carousel Item": "Изменить элемент карусели",
+    "No carousel items yet.": "Элементов карусели пока нет.",
+    "Image URL": "URL изображения",
+    "Lower values are displayed first.": "Сначала отображаются меньшие значения.",
+    "Model plaza carousel saved successfully": "Карусель площади моделей сохранена",
+    "Failed to save model plaza carousel": "Не удалось сохранить карусель",
+    "Go to slide {{count}}": "Перейти к слайду {{count}}"
   }
 }

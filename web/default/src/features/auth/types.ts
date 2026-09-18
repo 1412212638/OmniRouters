@@ -180,6 +180,7 @@ export interface SystemStatus {
   password_login_enabled?: boolean
   password_register_enabled?: boolean
   model_square_theme?: string
+  model_square_carousel?: ModelSquareCarouselItem[]
   custom_oauth_providers?: CustomOAuthProviderInfo[]
   [key: string]: unknown
 }

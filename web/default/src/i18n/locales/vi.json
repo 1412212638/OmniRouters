@@ -5635,6 +5635,16 @@
     "Installed": "Đã cài đặt",
     "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} kênh, {{tasks}} tác vụ đang chạy",
     "Request Audit": "Kiểm tra yêu cầu",
-    "Raw Data": "Dữ liệu thô"
+    "Raw Data": "Dữ liệu thô",
+    "Model Plaza Carousel": "Băng chuyền quảng bá sảnh mô hình",
+    "Manage the fixed promotional carousel shown first in the model plaza.": "Quản lý băng chuyền quảng bá cố định hiển thị đầu tiên trong sảnh mô hình.",
+    "Add Carousel Item": "Thêm mục băng chuyền",
+    "Edit Carousel Item": "Chỉnh sửa mục băng chuyền",
+    "No carousel items yet.": "Chưa có mục băng chuyền.",
+    "Image URL": "URL hình ảnh",
+    "Lower values are displayed first.": "Giá trị nhỏ hơn được hiển thị trước.",
+    "Model plaza carousel saved successfully": "Đã lưu băng chuyền sảnh mô hình",
+    "Failed to save model plaza carousel": "Không thể lưu băng chuyền sảnh mô hình",
+    "Go to slide {{count}}": "Đi tới trang chiếu {{count}}"
   }
 }

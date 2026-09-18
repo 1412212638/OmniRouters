@@ -5634,6 +5634,16 @@
     "Installed": "インストール済み",
     "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} チャンネル、処理中 {{tasks}} 件",
     "Request Audit": "リクエスト監査",
-    "Raw Data": "生データ"
+    "Raw Data": "生データ",
+    "Model Plaza Carousel": "モデル広場カルーセル",
+    "Manage the fixed promotional carousel shown first in the model plaza.": "モデル広場の先頭に表示する固定プロモーションカルーセルを管理します。",
+    "Add Carousel Item": "カルーセル項目を追加",
+    "Edit Carousel Item": "カルーセル項目を編集",
+    "No carousel items yet.": "カルーセル項目はありません。",
+    "Image URL": "画像 URL",
+    "Lower values are displayed first.": "小さい値が先に表示されます。",
+    "Model plaza carousel saved successfully": "モデル広場カルーセルを保存しました",
+    "Failed to save model plaza carousel": "モデル広場カルーセルの保存に失敗しました",
+    "Go to slide {{count}}": "{{count}} 番目のスライドへ"
   }
 }

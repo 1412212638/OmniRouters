@@ -2668,3 +2668,9 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: existing notice/timeline settings, model filtering/sorting/lazy loading, pricing and billing behavior, and the separate classic model plaza theme.
   - Validation: source inspection and `git diff --check`; Go/frontend builds not run in this environment.
   - Commit/push: pending.
+- 2026-09-18 - Fix model plaza carousel status wiring and localization
+  - Local fix: read the carousel from the already-unwrapped `/api/status` result, refresh the status query after saving carousel settings, and apply stable sort ordering to enabled carousel items.
+  - Local change: added carousel administration and accessibility strings to all supported default-frontend locales (`en`, `zh`, `zh-TW`, `fr`, `ru`, `ja`, `vi`).
+  - Preserved: carousel validation, enabled/disabled behavior, fixed first-grid-slot layout, rotation controls, model filtering, pricing, billing, and existing unrelated locale entries.
+  - Validation: Node JSON parsing, key-presence inspection, and `git diff --check`; full frontend typecheck/build not run because the repository has pre-existing typecheck failures.
+  - Commit/push: pending.

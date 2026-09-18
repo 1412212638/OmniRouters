@@ -5400,6 +5400,16 @@
     "Factory and custom plugins all stop serving immediately. In-flight tasks will be handled by timeout cleanup.": "出廠外掛與自訂外掛將立即停止服務。進行中的任務將由逾時清理處理。",
     "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} 個渠道，{{tasks}} 個進行中任務",
     "Request Audit": "請求稽核",
-    "Raw Data": "原始資料"
+    "Raw Data": "原始資料",
+    "Model Plaza Carousel": "模型廣場輪播",
+    "Manage the fixed promotional carousel shown first in the model plaza.": "管理顯示在模型廣場首位的固定推廣輪播。",
+    "Add Carousel Item": "新增輪播項目",
+    "Edit Carousel Item": "編輯輪播項目",
+    "No carousel items yet.": "目前沒有輪播項目。",
+    "Image URL": "圖片 URL",
+    "Lower values are displayed first.": "數值越小越優先顯示。",
+    "Model plaza carousel saved successfully": "模型廣場輪播儲存成功",
+    "Failed to save model plaza carousel": "模型廣場輪播儲存失敗",
+    "Go to slide {{count}}": "前往第 {{count}} 張"
   }
 }

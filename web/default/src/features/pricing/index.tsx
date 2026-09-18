@@ -1548,7 +1548,7 @@ function CatalogPricing() {
                 <div className='grid min-w-0 xl:grid-cols-3'>
                   <ModelSquareCarousel
                     items={
-                      (status?.data?.model_square_carousel as
+                      (status?.model_square_carousel as
                         | import('@/features/auth/types').ModelSquareCarouselItem[]
                         | undefined) ?? []
                     }

@@ -5675,6 +5675,16 @@
     "Use the usage fields declared by this plugin. The expression is validated when saved.": "Use the usage fields declared by this plugin. The expression is validated when saved.",
     "Unavailable": "Unavailable",
     "Nothing is saved until you apply the preview and save the pricing page.": "Nothing is saved until you apply the preview and save the pricing page.",
-    "Select a legacy-priced model to generate a billing expression. Nothing is saved until you apply the preview and save the pricing page.": "Select a legacy-priced model to generate a billing expression. Nothing is saved until you apply the preview and save the pricing page."
+    "Select a legacy-priced model to generate a billing expression. Nothing is saved until you apply the preview and save the pricing page.": "Select a legacy-priced model to generate a billing expression. Nothing is saved until you apply the preview and save the pricing page.",
+    "Model Plaza Carousel": "Model Plaza Carousel",
+    "Manage the fixed promotional carousel shown first in the model plaza.": "Manage the fixed promotional carousel shown first in the model plaza.",
+    "Add Carousel Item": "Add Carousel Item",
+    "Edit Carousel Item": "Edit Carousel Item",
+    "No carousel items yet.": "No carousel items yet.",
+    "Image URL": "Image URL",
+    "Lower values are displayed first.": "Lower values are displayed first.",
+    "Model plaza carousel saved successfully": "Model plaza carousel saved successfully",
+    "Failed to save model plaza carousel": "Failed to save model plaza carousel",
+    "Go to slide {{count}}": "Go to slide {{count}}"
   }
 }

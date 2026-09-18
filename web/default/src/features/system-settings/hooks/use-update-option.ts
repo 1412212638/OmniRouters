@@ -26,6 +26,7 @@ import type { UpdateOptionRequest } from '../types'
 const STATUS_RELATED_KEYS = new Set([
   'theme.frontend',
   'theme.model_square',
+  'console_setting.model_square_carousel',
   'HeaderNavModules',
   'SidebarModulesAdmin',
   'Notice',

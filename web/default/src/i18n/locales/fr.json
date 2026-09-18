@@ -5634,6 +5634,16 @@
     "Installed": "Installés",
     "{{channels}} channels, {{tasks}} in-flight tasks": "{{channels}} canaux, {{tasks}} tâches en cours",
     "Request Audit": "Audit de la requête",
-    "Raw Data": "Données brutes"
+    "Raw Data": "Données brutes",
+    "Model Plaza Carousel": "Carrousel de la place des modèles",
+    "Manage the fixed promotional carousel shown first in the model plaza.": "Gérez le carrousel promotionnel fixe affiché en premier dans la place des modèles.",
+    "Add Carousel Item": "Ajouter un élément au carrousel",
+    "Edit Carousel Item": "Modifier l'élément du carrousel",
+    "No carousel items yet.": "Aucun élément de carrousel.",
+    "Image URL": "URL de l'image",
+    "Lower values are displayed first.": "Les valeurs les plus faibles sont affichées en premier.",
+    "Model plaza carousel saved successfully": "Carrousel de la place des modèles enregistré",
+    "Failed to save model plaza carousel": "Échec de l'enregistrement du carrousel",
+    "Go to slide {{count}}": "Aller à la diapositive {{count}}"
   }
 }
