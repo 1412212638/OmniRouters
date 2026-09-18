@@ -7,7 +7,9 @@
 - Validation: frontend production build passed in the implementation turn;
   seven locale key/JSON checks and final diff checks passed. Go unavailable;
   full typecheck blocked by existing errors. No live browser/DB verification.
-- Commit: this feature commit; push pending, exact hash recorded after push.
+- Feature commit: `619c7d682`; verified on origin/main via git ls-remote.
+  Push reported a ref-lock race, but the remote already contained the exact
+  feature commit. This documentation follow-up records the verified outcome.
 
 ## 2026-09-18 - Align catalog usage with all-time rankings
 
