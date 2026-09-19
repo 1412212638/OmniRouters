@@ -355,3 +355,5 @@ const (
 	MsgCustomOAuthBindingNotFound   = "custom_oauth.binding_not_found"
 	MsgCustomOAuthProviderIdInvalid = "custom_oauth.provider_id_field_invalid"
 )
+
+const MsgOAuthNotAutoLinked = "oauth.not_auto_linked"

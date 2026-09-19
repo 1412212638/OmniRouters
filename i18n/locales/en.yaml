@@ -299,3 +299,5 @@ custom_oauth.has_bindings: "Cannot delete provider with existing user bindings"
 custom_oauth.binding_not_found: "OAuth binding not found"
 custom_oauth.provider_id_field_invalid: "Could not extract user ID from provider response"
 task_plugin.unknown_meta_field: 'Plugin metadata contains an unknown field "{{.Field}}". If this plugin was downloaded from the official marketplace, it may require a newer version of new-api. Try updating new-api and installing the plugin again.'
+
+oauth.not_auto_linked: "This legacy {{.Provider}} binding cannot be confirmed automatically. Sign in another way and relink the provider in account settings."

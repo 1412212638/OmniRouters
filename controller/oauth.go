@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/i18n"
@@ -118,6 +119,8 @@ func HandleOAuth(c *gin.Context) {
 			common.ApiErrorI18n(c, i18n.MsgUserRegisterDisabled)
 		case *OAuthEmailAlreadyTakenError:
 			common.ApiErrorI18n(c, i18n.MsgUserEmailAlreadyTaken)
+		case *OAuthLegacyBindingNotConfirmedError:
+			common.ApiErrorI18n(c, i18n.MsgOAuthNotAutoLinked, providerParams(provider.GetName()))
 		default:
 			common.ApiError(c, err)
 		}
@@ -156,17 +159,10 @@ func handleOAuthBind(c *gin.Context, provider oauth.Provider) {
 		return
 	}
 
-	// Check if this OAuth account is already bound (check both new ID and legacy ID)
+	// Only the permanent provider ID establishes an existing binding.
 	if provider.IsUserIDTaken(oauthUser.ProviderUserID) {
 		common.ApiErrorI18n(c, i18n.MsgOAuthAlreadyBound, providerParams(provider.GetName()))
 		return
-	}
-	// Also check legacy ID to prevent duplicate bindings during migration period
-	if legacyID, ok := oauthUser.Extra["legacy_id"].(string); ok && legacyID != "" {
-		if provider.IsUserIDTaken(legacyID) {
-			common.ApiErrorI18n(c, i18n.MsgOAuthAlreadyBound, providerParams(provider.GetName()))
-			return
-		}
 	}
 
 	// Get current user from session
@@ -219,24 +215,25 @@ func findOrCreateOAuthUser(c *gin.Context, provider oauth.Provider, oauthUser *o
 		return user, nil
 	}
 
-	// Try to find user with legacy ID (for GitHub migration from login to numeric ID)
-	if legacyID, ok := oauthUser.Extra["legacy_id"].(string); ok && legacyID != "" {
-		if provider.IsUserIDTaken(legacyID) {
-			err := provider.FillUserByProviderID(user, legacyID)
-			if err != nil {
-				return nil, err
-			}
-			if user.Id != 0 {
-				// Found user with legacy ID, migrate to new ID
-				common.SysLog(fmt.Sprintf("[OAuth] Migrating user %d from legacy_id=%s to new_id=%s",
-					user.Id, legacyID, oauthUser.ProviderUserID))
-				if err := user.UpdateGitHubId(oauthUser.ProviderUserID); err != nil {
-					common.SysError(fmt.Sprintf("[OAuth] Failed to migrate user %d: %s", user.Id, err.Error()))
-					// Continue with login even if migration fails
-				}
-				return user, nil
-			}
+	// A reusable GitHub login name is not proof of ownership of a legacy
+	// binding. This branch has no transactional second-factor migration flow;
+	// require an independent login and explicit rebind instead of issuing a
+	// session or rewriting the binding from a username match.
+	legacyID, _ := oauthUser.Extra["legacy_id"].(string)
+	if _, isGitHub := provider.(*oauth.GitHubProvider); isGitHub && isLegacyGitHubLogin(legacyID) && provider.IsUserIDTaken(legacyID) {
+		if err := provider.FillUserByProviderID(user, legacyID); err != nil {
+			return nil, err
 		}
+		if user.Id == 0 {
+			return nil, &OAuthUserDeletedError{}
+		}
+		if err := model.RecordAuditLog(&model.AuditLog{
+			UserId: user.Id, Username: user.Username, Category: model.AuditCategorySecurity,
+			Action: "github_legacy_binding_declined", Ip: c.ClientIP(), Success: false, Outcome: "failed",
+		}); err != nil {
+			common.SysError(fmt.Sprintf("[OAuth] Failed to audit declined legacy GitHub login for user %d: %s", user.Id, err))
+		}
+		return nil, &OAuthLegacyBindingNotConfirmedError{}
 	}
 
 	// User doesn't exist, create new user if registration is enabled
@@ -378,4 +375,15 @@ func handleOAuthError(c *gin.Context, err error) {
 	default:
 		common.ApiError(c, err)
 	}
+}
+
+// Numeric values are permanent account IDs, never legacy login candidates.
+func isLegacyGitHubLogin(value string) bool {
+	return strings.ContainsFunc(value, func(r rune) bool { return r < '0' || r > '9' })
+}
+
+type OAuthLegacyBindingNotConfirmedError struct{}
+
+func (e *OAuthLegacyBindingNotConfirmedError) Error() string {
+	return "legacy binding was not confirmed"
 }

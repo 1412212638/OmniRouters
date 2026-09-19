@@ -14,6 +14,7 @@ import (
 	relayconstant "github.com/QuantumNous/new-api/relay/constant"
 	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/relaykit/relayconvert/convmeta"
+	kitreasoning "github.com/QuantumNous/new-api/relaykit/relayconvert/reasoning"
 	"github.com/QuantumNous/new-api/relaykit/types"
 	"github.com/QuantumNous/new-api/setting/model_setting"
 	hosttypes "github.com/QuantumNous/new-api/types"
@@ -457,8 +458,25 @@ func GenRelayInfoGemini(c *gin.Context, request dto.Request) *RelayInfo {
 	info := genBaseRelayInfo(c, request)
 	info.RelayFormat = types.RelayFormatGemini
 	info.ShouldIncludeUsage = false
+	if req, ok := request.(*dto.GeminiChatRequest); ok && req != nil {
+		info.ReasoningEffort = geminiRequestReasoningEffort(req.GenerationConfig.ThinkingConfig)
+	}
 
 	return info
+}
+
+func geminiRequestReasoningEffort(config *dto.GeminiThinkingConfig) string {
+	if config == nil {
+		return ""
+	}
+	effort := config.ThinkingLevel
+	if canonical, err := kitreasoning.ParseEffort(effort); err == nil {
+		effort = string(canonical)
+	}
+	if effort == "" && config.ThinkingBudget != nil {
+		effort = string(kitreasoning.EffortFromBudget(*config.ThinkingBudget))
+	}
+	return effort
 }
 
 func GenRelayInfoImage(c *gin.Context, request dto.Request) *RelayInfo {
