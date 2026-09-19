@@ -2767,6 +2767,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: the formatted display text on cards, discrete slider behavior, minimum-context semantics, and billing behavior.
   - Validation: source inspection and `git diff --check`; frontend build pending.
   - Commit/push: pending.
+- 2026-09-19 - Reserve model plaza discount badge row height
+  - Local fix: always reserve the discount/free badge row height on external model cards so cards with and without a badge align consistently.
+  - Preserved: badge content, discount/free detection, pricing, filtering, and card interactions.
+  - Validation: `git diff --check`; frontend build pending.
+  - Commit/push: pending.
 - 2026-09-18 - Move model plaza metrics toggle and repair carousel crash
   - Local fix: moved the usage/cache visibility switch into Site and Brand -> Header navigation, with a safe default of disabled.
   - Local fix: removed the carousel page's invalid form-context usage and made status exposure opt-in, preventing the added setting from crashing the model plaza carousel flow.

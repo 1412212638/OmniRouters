@@ -1018,8 +1018,8 @@ function CatalogModelCard(props: {
         </div>
       </div>}
 
-      {hasDiscount && (
-        <div className='mt-3 flex justify-end'>
+      <div className='mt-3 flex h-[22px] justify-end'>
+        {hasDiscount && (
           <span
             className={cn(
               'inline-flex h-[22px] shrink-0 flex-nowrap items-center gap-1 whitespace-nowrap rounded px-2 text-[11px] font-medium',
@@ -1053,8 +1053,8 @@ function CatalogModelCard(props: {
                   fold: discountFold,
                 })}
           </span>
-        </div>
-      )}
+        )}
+      </div>
 
       <p className='text-foreground/90 mt-1 line-clamp-2 min-h-[2.5rem] text-sm leading-5'>
         {props.model.description || t('No description available.')}
