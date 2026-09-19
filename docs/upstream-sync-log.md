@@ -2762,6 +2762,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Preserved: minimum-context filtering, reset controls, other filters, pricing calculations, billing, and unrelated local files.
   - Validation: `git diff --check` and `bun run build` in `web/default` passed. No backend code changed; browser interaction was not re-tested during this push.
   - Commit/push: implementation committed as `bec91aa0f`; verified `origin/main` points to this commit with `git ls-remote`. The push reported a concurrent ref update, but the remote SHA exactly matches the local implementation commit.
+- 2026-09-19 - Include formatted context metadata in model plaza filtering
+  - Local fix: derive context filter values from the administrator's formatted display value when the numeric metadata field is absent, supporting values such as `400K`, `1.05M`, and `1M tokens`.
+  - Preserved: the formatted display text on cards, discrete slider behavior, minimum-context semantics, and billing behavior.
+  - Validation: source inspection and `git diff --check`; frontend build pending.
+  - Commit/push: pending.
 - 2026-09-18 - Move model plaza metrics toggle and repair carousel crash
   - Local fix: moved the usage/cache visibility switch into Site and Brand -> Header navigation, with a safe default of disabled.
   - Local fix: removed the carousel page's invalid form-context usage and made status exposure opt-in, preventing the added setting from crashing the model plaza carousel flow.

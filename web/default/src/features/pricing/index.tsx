@@ -118,6 +118,23 @@ type CatalogSort =
   | 'price-desc'
   | 'latency-asc'
 
+function getModelContextLength(model: PricingModel): number {
+  const numericLength = Number(model.context_length)
+  if (Number.isFinite(numericLength) && numericLength > 0) {
+    return numericLength
+  }
+
+  const display = model.context_length_display?.trim().replaceAll(',', '')
+  const match = display?.match(/^(\d+(?:\.\d+)?)\s*(K|M|B)?/i)
+  if (!match) return 0
+
+  const value = Number(match[1])
+  const multiplier = { k: 1_000, m: 1_000_000, b: 1_000_000_000 }[
+    (match[2] || '').toLowerCase()
+  ] || 1
+  return Number.isFinite(value) && value > 0 ? value * multiplier : 0
+}
+
 type ModalityOption = {
   value: Modality
   label: string
@@ -1237,7 +1254,7 @@ function CatalogPricing() {
   } = usePricingData()
 
   const contextLengths = useMemo(
-    () => [...new Set(models.map((model) => Number(model.context_length))
+    () => [...new Set(models.map(getModelContextLength)
       .filter((value) => Number.isFinite(value) && value > 0))]
       .sort((a, b) => a - b),
     [models]
@@ -1301,8 +1318,7 @@ function CatalogPricing() {
         }
         if (
           contextLengthFilter > 0 &&
-          (!Number.isFinite(model.context_length) ||
-            Number(model.context_length) < contextLengthFilter)
+          getModelContextLength(model) < contextLengthFilter
         ) {
           return false
         }
