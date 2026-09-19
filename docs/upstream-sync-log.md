@@ -2815,3 +2815,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Backend regression coverage added for UTF-8 codec independence/size boundaries, public plugin-error privacy, model mismatch retention/admin-only nesting/retry reset, OpenAI stream capture, and Claude tool-result resolution. Go tests, compilation and gofmt were not run because no Go toolchain is installed locally; no toolchain or Docker image was installed/built. GitHub CI compilation is still required.
 - Previous batch CI: Publish Docker image (GHCR) run 35466684065 completed successfully.
 - Commit/push: source commit pending; a publication record will identify its SHA and remote verification.
+
+### 2026-09-20 - Publication record for plugin privacy/diagnostics batch
+
+- Source commit: 62720004d41f9fc6ccc2d1760fff687ce4d69d91.
+- Push verification: git ls-remote confirmed origin/main equals the source commit. Although the push command reported a remote temporary-pack error, the exact intended commit is present on origin/main.
+- GitHub Actions: Publish Docker image (GHCR), run 35468936013, is in progress; successful compilation and image publication are not yet verified. Local Go tests remain unexecuted.
+- This documentation-only follow-up records source publication; its own push will be verified against origin/main.
