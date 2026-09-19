@@ -522,18 +522,17 @@ function FilterSection(props: {
 }
 
 function ContextLengthFilter(props: {
+  lengths: number[]
   value: number
   onChange: (value: number) => void
   onReset: () => void
 }) {
   const { t } = useTranslation()
-  const max = 1_000_000
-  const format = (value: number) =>
-    value >= 1_000_000
-      ? '1M'
-      : value >= 1_000
-        ? `${Math.round(value / 1_000)}K`
-        : String(value)
+  const steps = [0, ...props.lengths]
+  const max = steps.length - 1
+  const selectedIndex = Math.max(0, steps.indexOf(props.value))
+  const label = (value: number) => value === 0 ? t('All') : formatCardTokens(value)
+  const marks = [...new Set([0, Math.floor(max / 2), max])]
 
   return (
     <section className='flex flex-col gap-2'>
@@ -556,25 +555,29 @@ function ContextLengthFilter(props: {
       <div className='px-1 pt-2'>
         <Slider
           min={0}
-          max={max}
-          step={4096}
-          value={[props.value]}
+          max={Math.max(1, max)}
+          step={1}
+          disabled={max === 0}
+          value={[selectedIndex]}
           onValueChange={(value) => {
             const nextValue = Array.isArray(value) ? value[0] : value
             if (typeof nextValue === 'number' && Number.isFinite(nextValue)) {
-              props.onChange(nextValue)
+              props.onChange(steps[nextValue] ?? 0)
             }
           }}
           aria-label={t('Minimum context length')}
         />
-        <div className='text-muted-foreground mt-2 flex justify-between text-xs'>
-          <span>4K</span>
-          <span>64K</span>
-          <span>1M</span>
+        <div className='text-muted-foreground relative mt-2 h-5 text-xs'>
+          {marks.map((index) => (
+            <span key={index} className='absolute whitespace-nowrap' style={{
+              left: `${max ? index / max * 100 : 0}%`,
+              transform: index === 0 ? undefined : index === max ? 'translateX(-100%)' : 'translateX(-50%)',
+            }}>{label(steps[index])}</span>
+          ))}
         </div>
         {props.value > 0 && (
           <div className='text-muted-foreground mt-1 text-center text-xs'>
-            {t('At least {{value}}', { value: format(props.value) })}
+            {t('At least {{value}}', { value: label(props.value) })}
           </div>
         )}
       </div>
@@ -996,7 +999,10 @@ function CatalogModelCard(props: {
             <span className='text-muted-foreground text-xs'>{t('Cache hit rate')}</span>
           </div>
         </div>
-        {hasDiscount && (
+      </div>}
+
+      {hasDiscount && (
+        <div className='mt-3 flex justify-end'>
           <span
             className={cn(
               'inline-flex h-[22px] shrink-0 flex-nowrap items-center gap-1 whitespace-nowrap rounded px-2 text-[11px] font-medium',
@@ -1030,8 +1036,8 @@ function CatalogModelCard(props: {
                   fold: discountFold,
                 })}
           </span>
-        )}
-      </div>}
+        </div>
+      )}
 
       <p className='text-foreground/90 mt-1 line-clamp-2 min-h-[2.5rem] text-sm leading-5'>
         {props.model.description || t('No description available.')}
@@ -1229,6 +1235,19 @@ function CatalogPricing() {
     usdExchangeRate,
     groupModelRatioExpiry,
   } = usePricingData()
+
+  const contextLengths = useMemo(
+    () => [...new Set(models.map((model) => Number(model.context_length))
+      .filter((value) => Number.isFinite(value) && value > 0))]
+      .sort((a, b) => a - b),
+    [models]
+  )
+
+  useEffect(() => {
+    if (!isLoading && contextLengthFilter > 0 && !contextLengths.includes(contextLengthFilter)) {
+      setContextLengthFilter(0)
+    }
+  }, [contextLengths, contextLengthFilter, isLoading])
 
   const perfQuery = useQuery({
     queryKey: ['perf-metrics-summary', 24],
@@ -1467,6 +1486,7 @@ function CatalogPricing() {
                 }
               />
               <ContextLengthFilter
+                lengths={contextLengths}
                 value={contextLengthFilter}
                 onChange={setContextLengthFilter}
                 onReset={() => setContextLengthFilter(0)}
