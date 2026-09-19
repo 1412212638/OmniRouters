@@ -1,5 +1,10 @@
 {
   "translation": {
+    "Mapped Model": "Modèle mappé",
+    "Returned Model": "Modèle renvoyé",
+    "Model mismatch": "Modèle différent",
+    "Response Model": "Modèle de réponse",
+    "The returned model name is reported by the upstream provider and does not change billing.": "Le nom du modèle renvoyé est déclaré par le fournisseur et ne modifie pas la facturation.",
     "Cache hit rate": "Taux de succès du cache",
     "All-time usage": "Utilisation cumulée",
     "Two-factor authentication": "Authentification à deux facteurs",

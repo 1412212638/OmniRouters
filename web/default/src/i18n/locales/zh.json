@@ -1,5 +1,10 @@
 {
   "translation": {
+    "Mapped Model": "映射模型",
+    "Returned Model": "返回模型",
+    "Model mismatch": "模型不一致",
+    "Response Model": "响应模型",
+    "The returned model name is reported by the upstream provider and does not change billing.": "返回模型名称由上游提供，仅用于诊断，不改变计费。",
     "All-time usage": "累计用量",
     "Two-factor authentication": "两步验证",
     "OAuth": "OAuth",

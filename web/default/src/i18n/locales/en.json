@@ -1,5 +1,10 @@
 {
   "translation": {
+    "Mapped Model": "Mapped Model",
+    "Returned Model": "Returned Model",
+    "Model mismatch": "Model mismatch",
+    "Response Model": "Response Model",
+    "The returned model name is reported by the upstream provider and does not change billing.": "The returned model name is reported by the upstream provider and does not change billing.",
     "All-time usage": "All-time usage",
     "Two-factor authentication": "Two-factor authentication",
     "OAuth": "OAuth",

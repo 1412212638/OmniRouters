@@ -1,5 +1,10 @@
 {
   "translation": {
+    "Mapped Model": "Модель после сопоставления",
+    "Returned Model": "Возвращённая модель",
+    "Model mismatch": "Модель не совпадает",
+    "Response Model": "Модель ответа",
+    "The returned model name is reported by the upstream provider and does not change billing.": "Имя возвращённой модели указано провайдером и не влияет на оплату.",
     "Cache hit rate": "Доля попаданий в кэш",
     "All-time usage": "Использование за всё время",
     "Two-factor authentication": "Двухфакторная аутентификация",

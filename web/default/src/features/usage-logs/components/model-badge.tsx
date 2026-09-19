@@ -20,6 +20,7 @@ import { Route } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { StatusBadge } from '@/components/status-badge'
+import { Badge } from '@/components/ui/badge'
 import {
   Popover,
   PopoverContent,
@@ -28,9 +29,13 @@ import {
 import { getLobeIcon } from '@/lib/lobe-icon'
 import { cn } from '@/lib/utils'
 
+import { hasResponseModelMismatch } from '../lib/response-model'
+import type { ResponseModelInfo } from '../types'
+
 interface ModelBadgeProps {
   modelName: string
   actualModel?: string
+  responseModel?: ResponseModelInfo
   className?: string
 }
 
@@ -155,11 +160,22 @@ function ModelBadgeContent(props: ModelBadgeProps) {
 
 export function ModelBadge(props: ModelBadgeProps) {
   const { t } = useTranslation()
-
-  if (!props.actualModel) {
+  const observation = props.responseModel
+  const mismatch = hasResponseModelMismatch(observation)
+  if (!props.actualModel && !observation) {
     return <ModelBadgeContent {...props} />
   }
-
+  const rows = [
+    {
+      label: t('Request Model'),
+      value: observation?.requested_model || props.modelName,
+    },
+    {
+      label: t('Mapped Model'),
+      value: observation?.upstream_model || props.actualModel,
+    },
+    { label: t('Returned Model'), value: observation?.returned_model },
+  ]
   return (
     <Popover>
       <PopoverTrigger
@@ -168,26 +184,36 @@ export function ModelBadge(props: ModelBadgeProps) {
         }
       >
         <ModelBadgeContent {...props} />
-        <Route className='text-muted-foreground size-3 shrink-0' />
+        {mismatch ? (
+          <Badge variant='destructive'>{t('Model mismatch')}</Badge>
+        ) : (
+          <Route className='text-muted-foreground size-3 shrink-0' />
+        )}
       </PopoverTrigger>
-      <PopoverContent className='w-72'>
-        <div className='space-y-2'>
-          <div className='flex items-start justify-between gap-3'>
-            <span className='text-muted-foreground text-xs'>
-              {t('Request Model:')}
-            </span>
-            <span className='truncate font-mono text-xs font-medium'>
-              {props.modelName}
-            </span>
-          </div>
-          <div className='flex items-start justify-between gap-3'>
-            <span className='text-muted-foreground text-xs'>
-              {t('Actual Model:')}
-            </span>
-            <span className='truncate font-mono text-xs font-medium'>
-              {props.actualModel}
-            </span>
-          </div>
+      <PopoverContent className='w-80'>
+        <div className='flex flex-col gap-2'>
+          {rows
+            .filter((row) => row.value)
+            .map((row) => (
+              <div
+                key={row.label}
+                className='flex items-start justify-between gap-3'
+              >
+                <span className='text-muted-foreground shrink-0 text-xs'>
+                  {row.label}
+                </span>
+                <span className='min-w-0 text-right font-mono text-xs font-medium break-all'>
+                  {row.value}
+                </span>
+              </div>
+            ))}
+          {observation && (
+            <p className='text-muted-foreground text-xs'>
+              {t(
+                'The returned model name is reported by the upstream provider and does not change billing.'
+              )}
+            </p>
+          )}
         </div>
       </PopoverContent>
     </Popover>

@@ -1,5 +1,10 @@
 {
   "translation": {
+    "Mapped Model": "映射模型",
+    "Returned Model": "回傳模型",
+    "Model mismatch": "模型不一致",
+    "Response Model": "回應模型",
+    "The returned model name is reported by the upstream provider and does not change billing.": "回傳模型名稱由上游提供，僅用於診斷，不改變計費。",
     "Cache hit rate": "快取命中率",
     "All-time usage": "累計用量",
     "Two-factor authentication": "兩步驗證",

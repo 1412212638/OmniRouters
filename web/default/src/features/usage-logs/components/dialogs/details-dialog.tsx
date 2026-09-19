@@ -394,8 +394,8 @@ function BillingBreakdown(props: {
 
   return (
     <DetailSection label={t('Billing Details')}>
-      {rows.map((row, idx) => (
-        <DetailRow key={idx} label={row.label} value={row.value} mono />
+      {rows.map((row) => (
+        <DetailRow key={row.label} label={row.label} value={row.value} mono />
       ))}
     </DetailSection>
   )
@@ -460,11 +460,17 @@ function TokenBreakdown(props: { log: UsageLog; other: LogOtherData }) {
 
   return (
     <DetailSection label={t('Token Breakdown')}>
-      {rows.map((row, idx) => (
-        <DetailRow key={idx} label={row.label} value={row.value} mono />
+      {rows.map((row) => (
+        <DetailRow key={row.label} label={row.label} value={row.value} mono />
       ))}
     </DetailSection>
   )
+}
+
+function getReasoningVariant(effort: string): StatusBadgeProps['variant'] {
+  if (effort === 'high') return 'orange'
+  if (effort === 'medium') return 'yellow'
+  return 'green'
 }
 
 interface DetailsDialogProps {
@@ -954,9 +960,9 @@ export function DetailsDialog(props: DetailsDialogProps) {
             icon={<ShieldCheck className='size-3.5' aria-hidden='true' />}
             label={t('Top-up Audit Info')}
           >
-            {topupAuditFields.map((field, idx) => (
+            {topupAuditFields.map((field) => (
               <DetailRow
-                key={idx}
+                key={field.label}
                 label={field.label}
                 value={field.value}
                 mono
@@ -1043,9 +1049,9 @@ export function DetailsDialog(props: DetailsDialogProps) {
             {operationText != null && (
               <DetailRow label={t('Operation')} value={operationText} />
             )}
-            {loginAuditFields.map((field, idx) => (
+            {loginAuditFields.map((field) => (
               <DetailRow
-                key={idx}
+                key={field.label}
                 label={field.label}
                 value={field.value}
                 mono
@@ -1099,11 +1105,7 @@ export function DetailsDialog(props: DetailsDialogProps) {
               <StatusBadge
                 label={other.reasoning_effort}
                 variant={
-                  other.reasoning_effort === 'high'
-                    ? 'orange'
-                    : other.reasoning_effort === 'medium'
-                      ? 'yellow'
-                      : 'green'
+                  getReasoningVariant(other.reasoning_effort)
                 }
                 size='sm'
                 copyable={false}
@@ -1125,6 +1127,31 @@ export function DetailsDialog(props: DetailsDialogProps) {
               />
             }
           />
+        )}
+
+        {props.isAdmin && adminInfo?.response_model && (
+          <DetailSection label={t('Response Model')}>
+            <DetailRow
+              label={t('Request Model')}
+              value={adminInfo.response_model.requested_model}
+              mono
+            />
+            <DetailRow
+              label={t('Mapped Model')}
+              value={adminInfo.response_model.upstream_model}
+              mono
+            />
+            <DetailRow
+              label={t('Returned Model')}
+              value={adminInfo.response_model.returned_model}
+              mono
+            />
+            <p className='text-muted-foreground text-xs'>
+              {t(
+                'The returned model name is reported by the upstream provider and does not change billing.'
+              )}
+            </p>
+          </DetailSection>
         )}
 
         {/* Model mapping */}
@@ -1287,7 +1314,9 @@ export function DetailsDialog(props: DetailsDialogProps) {
               if (!parsed) return null
               return (
                 <div
-                  key={idx}
+                  // Audit lines can repeat; the immutable log position distinguishes occurrences.
+                  // eslint-disable-next-line react/no-array-index-key
+                  key={`${line}:${idx}`}
                   className='bg-background/60 flex min-w-0 flex-col gap-1.5 rounded border p-2 sm:flex-row sm:items-start sm:gap-2'
                 >
                   <StatusBadge

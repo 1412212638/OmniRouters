@@ -1,5 +1,10 @@
 {
   "translation": {
+    "Mapped Model": "Mô hình được ánh xạ",
+    "Returned Model": "Mô hình trả về",
+    "Model mismatch": "Mô hình không khớp",
+    "Response Model": "Mô hình phản hồi",
+    "The returned model name is reported by the upstream provider and does not change billing.": "Tên mô hình trả về do nhà cung cấp báo cáo và không thay đổi cách tính phí.",
     "Cache hit rate": "Tỷ lệ trúng bộ nhớ đệm",
     "All-time usage": "Tổng mức sử dụng",
     "Two-factor authentication": "Xác thực hai bước",

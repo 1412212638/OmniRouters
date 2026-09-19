@@ -113,8 +113,15 @@ export interface ToolSurchargeItem {
   price: number
 }
 
+export interface ResponseModelInfo {
+  requested_model: string
+  upstream_model: string
+  returned_model: string
+}
+
 export interface LogOtherData {
   admin_info?: {
+    response_model?: ResponseModelInfo
     is_multi_key?: boolean
     multi_key_index?: number
     use_channel?: number[]

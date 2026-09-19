@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useState } from 'react'
-import { type ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { GitBranch, Sparkles, KeyRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { getUserAvatarFallback, getUserAvatarStyle } from '@/lib/avatar'
@@ -215,9 +215,9 @@ function buildTypeDetailSegments(
     }
   } else {
     const isPerCall = isPerCallBilling(other.model_price)
-    if (isPerCall) {
+    if (isPerCall && other.model_price != null) {
       segments.push({
-        text: `${t('Per-call')} · ${formatBillingCurrencyFromUSD(other.model_price!, priceOpts)}`,
+        text: `${t('Per-call')} · ${formatBillingCurrencyFromUSD(other.model_price, priceOpts)}`,
       })
     } else if (other.model_ratio != null) {
       const inputPriceUSD = other.model_ratio * 2.0
@@ -602,6 +602,11 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
             <ModelBadge
               modelName={modelInfo.name}
               actualModel={isAdmin ? modelInfo.actualModel : undefined}
+              responseModel={
+                isAdmin
+                  ? parseLogOther(log.other)?.admin_info?.response_model
+                  : undefined
+              }
             />
           </div>
         )
@@ -723,6 +728,10 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
         const segments = buildDetailSegments(log, other, t, isAdmin)
         const primary = segments[0]
         const hasMore = segments.length > 1
+        const fallbackColor = log.content ? 'text-muted-foreground' : 'text-muted-foreground/40'
+        let primaryColor = 'text-foreground'
+        if (primary?.muted) primaryColor = 'text-muted-foreground/60'
+        else if (primary?.danger) primaryColor = 'text-red-600 dark:text-red-400'
 
         return (
           <>
@@ -736,11 +745,7 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
                 <span
                   className={cn(
                     'truncate leading-snug group-hover:underline',
-                    primary.muted
-                      ? 'text-muted-foreground/60'
-                      : primary.danger
-                        ? 'text-red-600 dark:text-red-400'
-                        : 'text-foreground'
+                    primaryColor
                   )}
                 >
                   {primary.text}
@@ -750,12 +755,10 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
                     </span>
                   )}
                 </span>
-              ) : log.content ? (
-                <span className='text-muted-foreground truncate group-hover:underline'>
-                  {log.content}
-                </span>
               ) : (
-                <span className='text-muted-foreground/40'>—</span>
+                <span className={cn('truncate group-hover:underline', fallbackColor)}>
+                  {log.content || '—'}
+                </span>
               )}
             </button>
             <DetailsDialog

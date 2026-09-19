@@ -1,5 +1,10 @@
 {
   "translation": {
+    "Mapped Model": "マッピング先モデル",
+    "Returned Model": "返却モデル",
+    "Model mismatch": "モデルの不一致",
+    "Response Model": "応答モデル",
+    "The returned model name is reported by the upstream provider and does not change billing.": "返却モデル名は上流プロバイダーの申告値であり、課金には影響しません。",
     "Cache hit rate": "キャッシュヒット率",
     "All-time usage": "累計使用量",
     "Two-factor authentication": "二段階認証",
