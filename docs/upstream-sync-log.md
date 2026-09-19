@@ -2792,3 +2792,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: 6237d9d77 model limiter reservations depend on the new protocol-outcome classification; evaluate with that batch. Responses WebSocket, request policies, metrics/outcome refactors, remaining frontend changes and Passkey multi-domain remain separate work. Intentionally not applied: 55a6cd2a4 interrupted-stream estimated charging, which conflicts with the local client_gone billing safeguards.
 - Validation: git diff --check passed; Node execution checked all 10 Hailuo model profiles, sample fields, legacy usage facts, H3 duration rejection and unchanged runtime functions. Added/adapted Go regression tests for image counts/usage, cross-protocol stream options, Ollama final frames, GitHub account isolation/audit, Hailuo profiles, Gemini route/effort, Zhipu effort, DeepSeek balances and audio extensions. Go tests, gofmt and compilation could not run because no local Go toolchain is installed; no toolchain or Docker image was installed/built. CI compilation remains required; Node checks do not validate the Go plugin host.
 - Commit/push: pending source commit and remote verification; publication record follows separately.
+
+### 2026-09-20 - Publication record for selected safety/protocol batch
+
+- Source commit: b24c61705fb50435a6fb5c38578af70c8039bee8.
+- Push verification: git ls-remote confirmed origin/main equals the source commit. The push reported a concurrent ref-lock update, but the remote already contains the exact intended commit.
+- GitHub Actions: Publish Docker image (GHCR), run 35466628041, was in progress when checked; build success and image publication are not yet verified. Go regression tests remain unexecuted locally.
+- This documentation-only follow-up records the verified source publication; its own push is pending remote verification.
