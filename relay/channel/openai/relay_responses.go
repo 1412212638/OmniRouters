@@ -36,6 +36,8 @@ func OaiResponsesHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http
 	}
 
 	info.ObserveResponseModel(responsesResponse.Model)
+	info.StreamStatus = relaycommon.NewStreamStatus()
+	service.ObserveResponsesOutcome(info, &dto.ResponsesStreamResponse{Response: &responsesResponse})
 
 	// 写入新的 response body
 	service.IOCopyBytesGracefully(c, resp, responseBody)
@@ -97,6 +99,7 @@ func OaiResponsesStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp
 			sr.Error(err)
 			return
 		}
+		service.ObserveResponsesOutcome(info, &streamResponse)
 		if streamResponse.Response != nil {
 			info.ObserveResponseModel(streamResponse.Response.Model)
 		}
@@ -160,6 +163,7 @@ func OaiResponsesStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp
 			}
 		}
 	})
+	info.StreamStatus.RequireTerminal()
 
 	estimatedUsage := false
 	if usage.CompletionTokens == 0 {

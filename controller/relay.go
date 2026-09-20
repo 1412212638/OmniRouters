@@ -190,8 +190,18 @@ func Relay(c *gin.Context, relayFormat types.RelayFormat) {
 	}
 	relayInfo.RetryIndex = 0
 	relayInfo.LastError = nil
+	defer func() {
+		if newAPIError != nil {
+			if relayInfo.StreamStatus == nil {
+				relayInfo.StreamStatus = relaycommon.NewStreamStatus()
+			}
+			relayInfo.StreamStatus.MarkFailed(string(newAPIError.GetErrorCode()), newAPIError.ToOpenAIError().Type, newAPIError.StatusCode)
+		}
+		common.SetContextKey(c, constant.ContextKeyResponseStreamStatus, relayInfo.StreamStatus)
+	}()
 
 	for ; retryParam.GetRetry() <= common.RetryTimes; retryParam.IncreaseRetry() {
+		relayInfo.ResetResponseAttempt(c)
 		relayInfo.RetryIndex = retryParam.GetRetry()
 		channel, channelErr := getChannel(c, relayInfo, retryParam)
 		if channelErr != nil {

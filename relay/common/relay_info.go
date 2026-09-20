@@ -226,6 +226,13 @@ func (info *RelayInfo) RequestedImageCount() int {
 	return 1
 }
 
+// ResetResponseAttempt prevents a failed channel attempt from poisoning the
+// success-limit decision for a later successful retry, including non-streams.
+func (info *RelayInfo) ResetResponseAttempt(c *gin.Context) {
+	info.StreamStatus = nil
+	common.SetContextKey(c, constant.ContextKeyResponseStreamStatus, info.StreamStatus)
+}
+
 func (info *RelayInfo) InitChannelMeta(c *gin.Context) {
 	info.ResponseModel = nil
 	channelType := common.GetContextKeyInt(c, constant.ContextKeyChannelType)

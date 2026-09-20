@@ -164,6 +164,14 @@ func geminiStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http
 		}
 
 		info.ObserveResponseModel(gjson.Get(data, "modelVersion").Str)
+		if errorData := gjson.Get(data, "error"); errorData.Exists() && errorData.Type != gjson.Null {
+			info.StreamStatus.MarkFailed("", errorData.Get("status").String(), 0)
+		}
+		for _, candidate := range geminiResponse.Candidates {
+			if candidate.FinishReason != nil && *candidate.FinishReason != "" && *candidate.FinishReason != "FINISH_REASON_UNSPECIFIED" {
+				info.StreamStatus.MarkCompleted()
+			}
+		}
 		markGeminiGoogleSearchCall(c, &geminiResponse)
 
 		// 统计图片数量
@@ -190,6 +198,7 @@ func geminiStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http
 			sr.Stop(fmt.Errorf("gemini callback stopped"))
 		}
 	})
+	info.StreamStatus.RequireTerminal()
 
 	if !hasBillableUsageMetadata {
 		if info.ReceivedResponseCount > 0 {

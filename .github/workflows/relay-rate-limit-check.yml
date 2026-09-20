@@ -1,0 +1,45 @@
+name: Relay rate-limit regression checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'common/rate*'
+      - 'middleware/model*rate*'
+      - 'relay/**'
+      - 'service/response_outcome*'
+      - 'constant/context_key.go'
+      - 'controller/relay.go'
+      - '.github/workflows/relay-rate-limit-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.1'
+          cache: true
+      - name: Run limiter and response outcome regressions with race detection
+        env:
+          GOWORK: 'off'
+          TEST_REDIS_ADDR: localhost:6379
+        run: >-
+          go test -mod=readonly -race
+          ./common ./middleware ./relay/common ./relay/helper
+          ./relay/channel/openai ./relay/channel/claude ./relay/channel/gemini ./service
+          -run 'Test(InMemoryRateLimiter|RateLimit|Model.*RateLimit|ResponseOutcome|ObserveResponsesOutcome|StreamStatus|StreamResult|StreamScanner|ResponseModel|OpenAI.*Outcome|Claude.*Outcome|Gemini.*Outcome)'
+          -count=1 -timeout=10m

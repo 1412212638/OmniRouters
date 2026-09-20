@@ -108,6 +108,21 @@ func ProcessStreamResponse(streamResponse dto.ChatCompletionsStreamResponse, res
 }
 
 func processTokenData(info *relaycommon.RelayInfo, data string, responseTextBuilder *strings.Builder, toolCount *int) error {
+	// Error envelopes may arrive after HTTP 200 and even after a finish frame.
+	var envelope struct {
+		Error any `json:"error"`
+	}
+	if err := common.UnmarshalJsonStr(data, &envelope); err != nil {
+		return err
+	}
+	if envelope.Error != nil {
+		apiErr := dto.GetOpenAIError(envelope.Error)
+		if apiErr != nil {
+			info.StreamStatus.MarkFailed(fmt.Sprint(apiErr.Code), apiErr.Type, 0)
+		} else {
+			info.StreamStatus.MarkFailed("", "", 0)
+		}
+	}
 	switch info.RelayMode {
 	case relayconstant.RelayModeChatCompletions:
 		var streamResponse dto.ChatCompletionsStreamResponse
@@ -115,11 +130,17 @@ func processTokenData(info *relaycommon.RelayInfo, data string, responseTextBuil
 			return err
 		}
 		info.ObserveResponseModel(streamResponse.Model)
+		observeChatOutcome(info, &streamResponse)
 		return ProcessStreamResponse(streamResponse, responseTextBuilder, toolCount)
 	case relayconstant.RelayModeCompletions:
 		var streamResponse dto.CompletionsStreamResponse
 		if err := common.UnmarshalJsonStr(data, &streamResponse); err != nil {
 			return err
+		}
+		for _, choice := range streamResponse.Choices {
+			if choice.FinishReason != "" {
+				info.StreamStatus.MarkCompleted()
+			}
 		}
 		processCompletionsStreamResponse(streamResponse, responseTextBuilder)
 	}

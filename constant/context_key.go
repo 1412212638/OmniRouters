@@ -71,6 +71,7 @@ const (
 	// ContextKeyLanguage stores the user's language preference for i18n
 	ContextKeyLanguage ContextKey = "language"
 	ContextKeyIsStream ContextKey = "is_stream"
+	ContextKeyResponseStreamStatus ContextKey = "response_stream_status"
 
 	// ContextKeySoraPricingContext stores validated Sora-only parameter pricing metadata.
 	ContextKeySoraPricingContext ContextKey = "sora_pricing_context"
