@@ -8,6 +8,7 @@ on:
       - 'middleware/model*rate*'
       - 'relay/**'
       - 'service/response_outcome*'
+      - 'logger/**'
       - 'constant/context_key.go'
       - 'controller/relay.go'
       - '.github/workflows/relay-rate-limit-check.yml'
@@ -40,6 +41,27 @@ jobs:
         run: >-
           go test -mod=readonly -race
           ./common ./middleware ./relay/common ./relay/helper
-          ./relay/channel/openai ./relay/channel/claude ./relay/channel/gemini ./service
+          ./relay/channel/openai ./relay/channel/claude ./relay/channel/gemini
           -run 'Test(InMemoryRateLimiter|RateLimit|Model.*RateLimit|ResponseOutcome|ObserveResponsesOutcome|StreamStatus|StreamResult|StreamScanner|ResponseModel|OpenAI.*Outcome|Claude.*Outcome|Gemini.*Outcome)'
           -count=1 -timeout=10m
+      - name: Report formatting for limiter and outcome sources
+        if: always()
+        run: >-
+          gofmt -d
+          common/rate-limit.go common/rate-limit_test.go common/rate_limit_reservation_test.go
+          constant/context_key.go controller/relay.go logger/logger.go
+          middleware/model-rate-limit.go middleware/model_rate_limit_test.go
+          relay/common/relay_info.go relay/common/stream_status.go relay/common/response_outcome_test.go
+          relay/helper/stream_result.go relay/helper/stream_result_test.go relay/helper/stream_scanner.go relay/helper/stream_scanner_test.go
+          relay/channel/openai/response_outcome.go relay/channel/openai/response_outcome_test.go
+          relay/channel/openai/helper.go relay/channel/openai/relay-openai.go relay/channel/openai/relay_responses.go
+          relay/channel/openai/chat_via_responses.go relay/channel/openai/responses_via_chat.go
+          relay/channel/claude/relay-claude.go relay/channel/claude/response_outcome_test.go
+          relay/channel/gemini/relay-gemini.go relay/channel/gemini/response_outcome_test.go
+          service/response_outcome.go service/response_outcome_test.go
+      - name: Run Responses outcome observer regression
+        env:
+          GOWORK: 'off'
+        # Existing task polling tests use pre-migration interfaces. Compile the
+        # observer and its behavior tests independently of that unrelated suite.
+        run: go test -mod=readonly -race ./service/response_outcome.go ./service/response_outcome_test.go -count=1

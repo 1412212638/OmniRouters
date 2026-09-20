@@ -2834,3 +2834,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: git diff --check passed. Added regression coverage for memory allocation/window expiry/concurrent initialization, reservation concurrency/idempotence/eviction, memory and Redis failure-vs-success/total limits, panic cleanup, disabled limits, cancellation, protocol outcomes, late errors, terminal truncation, retry reset and native adapter observation. Added a targeted GitHub Actions workflow using Redis and Go race detection; execution pending source push. Go, gofmt and local backend tests are unavailable on this machine; no toolchain or Docker build was installed/run locally. No frontend changes require a frontend build.
 - Previous batch publication confirmed: GHCR run 35468979878 completed successfully for the publication-record commit; source-only run 35468936013 was superseded/cancelled.
 - Commit/push: pending source commit and CI; publication record follows after remote verification.
+
+### 2026-09-20 - Race-check follow-up for model limits
+
+- Source 72a93500242eee6265f3dfd99c163a6e12f3f8f9 was pushed and verified on origin/main. CI run 35517712064 passed common, middleware (including live Redis), relay/common and all three adapter packages, but failed on historical scanner test configuration races, an actual logger rotation-counter race, and unrelated stale service task-test interfaces.
+- Local prerequisite fixes: made logger rotation count/dispatch flags atomic and serialized the one scanner test that modifies global ping/timeout settings. Scanner goroutine panics now explicitly mark a failed outcome even if transport EOF was recorded earlier; transport end-reason and billing decisions are preserved.
+- Validation scope: keep race detection for limiter/scanner/adapter regressions; run the new standalone Responses observer source/test pair separately from the stale service task test suite. Those task-suite compilation failures remain deferred and are not represented as passing. No task production code changed.
+- Validation: git diff --check passed; revised CI pending. Commit/push: pending follow-up commit and verification.

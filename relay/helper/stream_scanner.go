@@ -176,6 +176,7 @@ func StreamScannerHandler(c *gin.Context, resp *http.Response, info *relaycommon
 				if r := recover(); r != nil {
 					logger.LogError(c, fmt.Sprintf("ping goroutine panic: %v", r))
 					info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonPanic, fmt.Errorf("ping panic: %v", r))
+				info.StreamStatus.MarkFailed("relay_panic", "", 0)
 					stop()
 				}
 				logger.LogDebug(c, "ping goroutine exited")
@@ -226,6 +227,7 @@ func StreamScannerHandler(c *gin.Context, resp *http.Response, info *relaycommon
 			if r := recover(); r != nil {
 				logger.LogError(c, fmt.Sprintf("data handler goroutine panic: %v", r))
 				info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonPanic, fmt.Errorf("handler panic: %v", r))
+				info.StreamStatus.MarkFailed("relay_panic", "", 0)
 			}
 			stop()
 			wg.Done()
@@ -253,6 +255,7 @@ func StreamScannerHandler(c *gin.Context, resp *http.Response, info *relaycommon
 			if r := recover(); r != nil {
 				logger.LogError(c, fmt.Sprintf("scanner goroutine panic: %v", r))
 				info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonPanic, fmt.Errorf("scanner panic: %v", r))
+				info.StreamStatus.MarkFailed("relay_panic", "", 0)
 			}
 			stop()
 			logger.LogDebug(c, "scanner goroutine exited")

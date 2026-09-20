@@ -395,6 +395,17 @@ func TestStreamScannerHandler_PingDisabledByRelayInfo(t *testing.T) {
 
 // ---------- StreamStatus integration ----------
 
+func TestStreamScannerHandler_PanicOverridesCompletedOutcome(t *testing.T) {
+	c, response, info := setupStreamTest(t, strings.NewReader("data: chunk\n\n"))
+	info.DisablePing = true
+	StreamScannerHandler(c, response, info, func(string, *StreamResult) {
+		info.StreamStatus.MarkCompleted()
+		panic("adapter failure")
+	})
+	require.True(t, info.StreamStatus.ResponseFailed())
+	require.False(t, info.StreamStatus.RequestSucceeded())
+}
+
 func TestStreamScannerHandler_StreamStatus_DoneReason(t *testing.T) {
 	t.Parallel()
 
@@ -587,7 +598,7 @@ func TestStreamScannerHandler_StreamStatus_ReplacesPreInitialized(t *testing.T) 
 }
 
 func TestStreamScannerHandler_PingInterleavesWithSlowUpstream(t *testing.T) {
-	t.Parallel()
+	// This test changes shared ping and timeout settings, so it cannot run in parallel.
 
 	setting := operation_setting.GetGeneralSetting()
 	oldEnabled := setting.PingIntervalEnabled
