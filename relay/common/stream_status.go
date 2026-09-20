@@ -48,9 +48,9 @@ type StreamStatus struct {
 	UsagePresent bool
 	// UsageSource is one of missing, upstream_actual, or local_estimated.
 	// It is diagnostic only until disconnect-drain settlement is enabled.
-	UsageSource string
+	UsageSource    string
 	BillingSettled bool
-	endOnce   sync.Once
+	endOnce        sync.Once
 
 	mu         sync.Mutex
 	Errors     []StreamErrorEntry

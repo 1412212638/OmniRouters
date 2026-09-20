@@ -11,8 +11,8 @@ import (
 
 func TestObserveResponsesOutcome(t *testing.T) {
 	for _, tc := range []struct {
-		input string
-		want relaycommon.ResponseOutcome
+		input   string
+		want    relaycommon.ResponseOutcome
 		success bool
 	}{
 		{`{"type":"response.completed"}`, relaycommon.ResponseOutcomeCompleted, true},

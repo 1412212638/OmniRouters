@@ -176,7 +176,7 @@ func StreamScannerHandler(c *gin.Context, resp *http.Response, info *relaycommon
 				if r := recover(); r != nil {
 					logger.LogError(c, fmt.Sprintf("ping goroutine panic: %v", r))
 					info.StreamStatus.SetEndReason(relaycommon.StreamEndReasonPanic, fmt.Errorf("ping panic: %v", r))
-				info.StreamStatus.MarkFailed("relay_panic", "", 0)
+					info.StreamStatus.MarkFailed("relay_panic", "", 0)
 					stop()
 				}
 				logger.LogDebug(c, "ping goroutine exited")

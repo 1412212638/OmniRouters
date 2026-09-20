@@ -4,24 +4,24 @@ type ContextKey string
 
 const (
 	ContextKeyChannelConstraints ContextKey = "channel_constraints"
-	ContextKeyTokenCountMeta  ContextKey = "token_count_meta"
-	ContextKeyPromptTokens    ContextKey = "prompt_tokens"
-	ContextKeyEstimatedTokens ContextKey = "estimated_tokens"
+	ContextKeyTokenCountMeta     ContextKey = "token_count_meta"
+	ContextKeyPromptTokens       ContextKey = "prompt_tokens"
+	ContextKeyEstimatedTokens    ContextKey = "estimated_tokens"
 
 	ContextKeyOriginalModel    ContextKey = "original_model"
 	ContextKeyRequestStartTime ContextKey = "request_start_time"
 
 	/* token related keys */
-	ContextKeyTokenUnlimited         ContextKey = "token_unlimited_quota"
-	ContextKeyTokenKey               ContextKey = "token_key"
-	ContextKeyTokenId                ContextKey = "token_id"
-	ContextKeyTokenGroup             ContextKey = "token_group"
-	ContextKeyOriginTasks            ContextKey = "origin_tasks"
-	ContextKeyTokenSpecificChannelId ContextKey = "specific_channel_id"
-	ContextKeyTokenModelLimitEnabled ContextKey = "token_model_limit_enabled"
-	ContextKeyTokenModelLimit        ContextKey = "token_model_limit"
-	ContextKeyTokenCrossGroupRetry   ContextKey = "token_cross_group_retry"
-	ContextKeyTokenAutoGroups        ContextKey = "token_auto_groups"
+	ContextKeyTokenUnlimited            ContextKey = "token_unlimited_quota"
+	ContextKeyTokenKey                  ContextKey = "token_key"
+	ContextKeyTokenId                   ContextKey = "token_id"
+	ContextKeyTokenGroup                ContextKey = "token_group"
+	ContextKeyOriginTasks               ContextKey = "origin_tasks"
+	ContextKeyTokenSpecificChannelId    ContextKey = "specific_channel_id"
+	ContextKeyTokenModelLimitEnabled    ContextKey = "token_model_limit_enabled"
+	ContextKeyTokenModelLimit           ContextKey = "token_model_limit"
+	ContextKeyTokenCrossGroupRetry      ContextKey = "token_cross_group_retry"
+	ContextKeyTokenAutoGroups           ContextKey = "token_auto_groups"
 	ContextKeySubscriptionAllowedGroups ContextKey = "subscription_allowed_groups"
 
 	/* channel related keys */
@@ -69,8 +69,8 @@ const (
 	ContextKeyAdminRejectReason ContextKey = "admin_reject_reason"
 
 	// ContextKeyLanguage stores the user's language preference for i18n
-	ContextKeyLanguage ContextKey = "language"
-	ContextKeyIsStream ContextKey = "is_stream"
+	ContextKeyLanguage             ContextKey = "language"
+	ContextKeyIsStream             ContextKey = "is_stream"
 	ContextKeyResponseStreamStatus ContextKey = "response_stream_status"
 
 	// ContextKeySoraPricingContext stores validated Sora-only parameter pricing metadata.

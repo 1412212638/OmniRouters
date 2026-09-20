@@ -58,10 +58,15 @@ func TestModelRateLimitProtocolFailureReleasesSuccessLimit(t *testing.T) {
 			router.GET("/:outcome", func(c *gin.Context) { c.Set("id", user) }, limit, func(c *gin.Context) {
 				status := relaycommon.NewStreamStatus()
 				switch c.Param("outcome") {
-				case "failed": status.MarkFailed("upstream", "server_error", 0)
-				case "cancelled": status.MarkCancelled()
-				case "cut": status.RequireTerminal(); status.SetEndReason(relaycommon.StreamEndReasonEOF, nil)
-				default: status.MarkCompleted()
+				case "failed":
+					status.MarkFailed("upstream", "server_error", 0)
+				case "cancelled":
+					status.MarkCancelled()
+				case "cut":
+					status.RequireTerminal()
+					status.SetEndReason(relaycommon.StreamEndReasonEOF, nil)
+				default:
+					status.MarkCompleted()
 				}
 				common.SetContextKey(c, constant.ContextKeyResponseStreamStatus, status)
 				c.Status(http.StatusOK)
@@ -89,7 +94,8 @@ func TestModelMemoryRateLimitConcurrentReservationAndFailureRelease(t *testing.T
 	go func() { finished <- modelLimitRequest(router, "/slow") }()
 	select {
 	case <-entered:
-	case <-time.After(5*time.Second): t.Fatal("request did not enter handler")
+	case <-time.After(5 * time.Second):
+		t.Fatal("request did not enter handler")
 	}
 	blocked := modelLimitRequest(router, "/completed")
 	close(release)
@@ -105,11 +111,15 @@ func TestModelMemoryRateLimitPanicCleanupAndDisabledSuccessLimit(t *testing.T) {
 		router := gin.New()
 		router.Use(gin.Recovery())
 		router.GET("/:outcome", func(c *gin.Context) { c.Set("id", user) }, limit, func(c *gin.Context) {
-			if c.Param("outcome") == "panic" { panic("test") }
+			if c.Param("outcome") == "panic" {
+				panic("test")
+			}
 		})
 		require.Equal(t, http.StatusInternalServerError, modelLimitRequest(router, "/panic"))
 		require.Equal(t, http.StatusOK, modelLimitRequest(router, "/completed"))
-		if success == 0 { require.Equal(t, http.StatusOK, modelLimitRequest(router, "/completed")) }
+		if success == 0 {
+			require.Equal(t, http.StatusOK, modelLimitRequest(router, "/completed"))
+		}
 	}
 }
 

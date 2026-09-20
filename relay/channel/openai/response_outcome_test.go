@@ -46,9 +46,9 @@ func TestOpenAIResponsesOutcomePublishedFromActualStream(t *testing.T) {
 
 func TestOpenAIStreamOutcomePreservesTextAndFailureWins(t *testing.T) {
 	info := &relaycommon.RelayInfo{
-		RelayMode: relayconstant.RelayModeChatCompletions,
+		RelayMode:    relayconstant.RelayModeChatCompletions,
 		StreamStatus: relaycommon.NewStreamStatus(),
-		ChannelMeta: &relaycommon.ChannelMeta{},
+		ChannelMeta:  &relaycommon.ChannelMeta{},
 	}
 	var text strings.Builder
 	var tools int

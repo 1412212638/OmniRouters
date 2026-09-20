@@ -25,9 +25,9 @@ func TestResponseOutcomeRetryResetsContextAndRelayState(t *testing.T) {
 
 func TestResponseOutcomeSuccessAccounting(t *testing.T) {
 	for _, tc := range []struct {
-		name string
+		name      string
 		configure func(*StreamStatus)
-		want bool
+		want      bool
 	}{
 		{"legacy", func(s *StreamStatus) {}, true},
 		{"completed", func(s *StreamStatus) { s.MarkCompleted() }, true},
