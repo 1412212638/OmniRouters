@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -453,9 +454,66 @@ func validateTwoFactorAuth(twoFA *model.TwoFA, code string) bool {
 
 // validateChannel 通用的渠道校验函数
 func validateChannel(channel *model.Channel, isAdd bool) error {
+	if channel == nil {
+		return fmt.Errorf("channel cannot be empty")
+	}
+	const maxTaskExtendPluginKeys = 32
 	// 校验 channel settings
 	if err := channel.ValidateSettings(); err != nil {
 		return fmt.Errorf("渠道额外设置[channel setting] 格式错误：%s", err.Error())
+	}
+	if channel.Type == constant.ChannelTypeTaskPlugin {
+		pluginKey := strings.TrimSpace(channel.GetSetting().TaskPluginKey)
+		if pluginKey == "" {
+			return fmt.Errorf("task plugin key is required")
+		}
+		if len(pluginKey) > 30 {
+			return fmt.Errorf("task plugin key must not exceed 30 characters")
+		}
+		plugin, ok := jsplugin.DefaultRegistry.Get(pluginKey)
+		if !ok {
+			return fmt.Errorf("task plugin %q is not registered", pluginKey)
+		}
+		if !plugin.Meta.SupportsUpstream(jsplugin.UpstreamKindVendor) {
+			return fmt.Errorf("task plugin %q does not support a vendor upstream", pluginKey)
+		}
+		if channel.BaseURL == nil || strings.TrimSpace(*channel.BaseURL) == "" {
+			if plugin.Meta.BaseURL == "" {
+				return fmt.Errorf("base URL is required for task plugin channels")
+			}
+			defaultBaseURL := plugin.Meta.BaseURL
+			channel.BaseURL = &defaultBaseURL
+		}
+	}
+	setting := channel.GetSetting()
+	if channel.Type != constant.ChannelTypeNewAPI && len(setting.TaskExtendPluginKeys) > 0 {
+		return fmt.Errorf("task_extend_plugin_keys is only supported on New API channels")
+	}
+	if channel.Type == constant.ChannelTypeNewAPI {
+		if len(setting.TaskExtendPluginKeys) > maxTaskExtendPluginKeys {
+			return fmt.Errorf("task_extend_plugin_keys must not exceed %d plugins", maxTaskExtendPluginKeys)
+		}
+		keys := append([]string{}, setting.TaskExtendPluginKeys...)
+		if setting.TaskPluginKey != "" {
+			keys = append([]string{setting.TaskPluginKey}, keys...)
+		}
+		seen := make(map[string]struct{}, len(keys))
+		for _, key := range keys {
+			if key == "" || key != strings.TrimSpace(key) || len(key) > 30 {
+				return fmt.Errorf("task plugin key %q is invalid", key)
+			}
+			if _, ok := seen[key]; ok {
+				return fmt.Errorf("task plugin %q is bound more than once", key)
+			}
+			plugin, ok := jsplugin.DefaultRegistry.Get(key)
+			if !ok {
+				return fmt.Errorf("task plugin %q is not registered", key)
+			}
+			if !plugin.Meta.SupportsUpstream(jsplugin.UpstreamKindNewAPI) {
+				return fmt.Errorf("task plugin %q does not support a New API upstream", key)
+			}
+			seen[key] = struct{}{}
+		}
 	}
 
 	if channel.Type == constant.ChannelTypeNewAPI && strings.TrimSpace(channel.GetBaseURL()) == "" {
@@ -591,6 +649,10 @@ func AddChannel(c *gin.Context) {
 	err := c.ShouldBindJSON(&addChannelRequest)
 	if err != nil {
 		common.ApiError(c, err)
+		return
+	}
+	if addChannelRequest.Channel != nil && (addChannelRequest.Channel.Type == constant.ChannelTypeTaskPlugin || len(addChannelRequest.Channel.GetSetting().TaskPluginBindings()) > 0) && !authz.Can(c.GetInt("id"), c.GetInt("role"), authz.TaskPluginBind) {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "task plugin channels require the task_plugin.bind permission"})
 		return
 	}
 
@@ -958,9 +1020,14 @@ func UpdateChannel(c *gin.Context) {
 		})
 		return
 	}
+	_, settingProvided := requestData["setting"]
+	if settingProvided && !slices.Equal(channel.GetSetting().TaskPluginBindings(), originChannel.GetSetting().TaskPluginBindings()) && !authz.Can(c.GetInt("id"), c.GetInt("role"), authz.TaskPluginBind) {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "task plugin channels require the task_plugin.bind permission"})
+		return
+	}
 	originProxy := originChannel.GetSetting().Proxy
 	proxyChanged := false
-	if _, settingProvided := requestData["setting"]; settingProvided {
+	if settingProvided {
 		newProxy, _ := service.NormalizeProxyURL(channel.GetSetting().Proxy)
 		normalizedOriginProxy, originProxyErr := service.NormalizeProxyURL(originProxy)
 		proxyChanged = originProxyErr != nil || normalizedOriginProxy != newProxy
@@ -1428,6 +1495,10 @@ func CopyChannel(c *gin.Context) {
 	if err != nil {
 		common.SysError("failed to get channel by id: " + err.Error())
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取渠道信息失败，请稍后重试"})
+		return
+	}
+	if (origin.Type == constant.ChannelTypeTaskPlugin || len(origin.GetSetting().TaskPluginBindings()) > 0) && !authz.Can(c.GetInt("id"), c.GetInt("role"), authz.TaskPluginBind) {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "task plugin channels require the task_plugin.bind permission"})
 		return
 	}
 

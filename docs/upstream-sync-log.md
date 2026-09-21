@@ -8,6 +8,18 @@
 - Validation: `git diff --check`; JavaScript tests were not run because the required task-plugin runtime/toolchain is unavailable locally.
 - Commit/push: pending.
 
+## 2026-09-21 - New API channels bind multiple task plugins
+
+- Upstream reference: `4c34f25a4` (`feat(channel): bind multiple task plugins to New API channels`). This is a selective integration of the channel binding, plugin metadata, routing identity, polling and frontend configuration changes.
+- Integrated: New API channel settings now support `task_extend_plugin_keys`; bindings are validated against registered plugins that declare `meta.upstreams: ["new_api"]`, deduplicated for comparison, and protected by `task_plugin.bind` when added, copied or changed. Existing type-61 single-plugin channels remain supported.
+- Integrated: distributor selection, task private data and polling retain the selected channel/plugin identity; New API plugin requests use gateway Bearer authentication while vendor plugin authentication remains unchanged. Plugin disable unbinds the plugin from type-60 channels without disabling those gateway channels.
+- Integrated: default frontend exposes a multi-select for compatible New API task plugins, persists normalized bindings, and adds/removes declared plugin models while preserving custom models. Task plugin option responses now expose upstream declarations.
+- Adjusted: Alibaba and Doubao retain the local video capability/pricing implementation and declare New API compatibility. Unsupported `retainResult` metadata and the unimplemented `openai_image` claim/export were removed or disabled so the current host registry remains consistent.
+- Deferred: upstream OpenAI image protocol activation (`03563a4a7`) remains a separate batch because this host still needs image protocol registration, multipart indexed file references, synchronous polling, artifact handling and image quantity billing. No image protocol route is advertised by this batch.
+- Preserved: quota saturation and billing settlement safeguards, task retry/disconnect semantics, cross-database behavior, protected project identifiers and unrelated user worktree files. No database migration is required; bindings remain in channel setting JSON.
+- Validation: `git diff --check` passed. Go tests, compilation and `gofmt` could not run because no Go toolchain is installed locally. The repository's local `oxfmt`/`oxlint` binaries were unavailable, so targeted frontend format/lint could not run; frontend source was checked by static inspection. CI compilation and frontend checks remain required.
+- Commit/push: pending source commit and remote verification.
+
 ## 2026-09-18 - Free-form context and output capacity labels
 
 - User request: accept and preserve text such as 1.05M, 1M, 128K, 128.00K.

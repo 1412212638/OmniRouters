@@ -141,6 +141,7 @@ import {
   ADD_MODE_OPTIONS,
   CHANNEL_STATUS_LABELS,
   CHANNEL_TYPE_ADVANCED_CUSTOM,
+  CHANNEL_TYPE_NEW_API,
   CHANNEL_TYPE_TASK_PLUGIN,
   CHANNEL_TYPE_OPTIONS,
   CHANNEL_TYPE_WARNINGS,
@@ -175,6 +176,7 @@ import {
 } from '../../lib/status-code-risk-guard'
 import type { Channel } from '../../types'
 import { useChannels } from '../channels-provider'
+import { supportsNewAPIUpstream } from '../../lib/channel-plugin-extensions'
 import { AdvancedCustomEditorDialog } from '../dialogs/advanced-custom-editor-dialog'
 import { CodexOAuthDialog } from '../dialogs/codex-oauth-dialog'
 import { FetchModelsDialog } from '../dialogs/fetch-models-dialog'
@@ -718,6 +720,7 @@ export function ChannelMutateDrawer({
   const currentGroups = form.watch('group')
   const currentType = form.watch('type')
   const currentTaskPluginKey = form.watch('task_plugin_key')
+  const currentTaskExtendPluginKeys = form.watch('task_extend_plugin_keys')
   const currentStatus = form.watch('status')
   const currentBaseUrl = form.watch('base_url')
   const currentKey = form.watch('key')
@@ -909,9 +912,12 @@ export function ChannelMutateDrawer({
     () =>
       canEditSensitive
         ? taskPluginOptions.filter(
-        (plugin) =>
-          plugin.models.length > 0 &&
-          (!plugin.channelTypes || plugin.channelTypes.includes(currentType))
+            (plugin) =>
+              plugin.models.length > 0 &&
+              (currentType === CHANNEL_TYPE_NEW_API
+                ? supportsNewAPIUpstream(plugin)
+                : !plugin.channelTypes ||
+                  plugin.channelTypes.includes(currentType))
           )
         : [],
     [canEditSensitive, currentType, taskPluginOptions]
@@ -1417,6 +1423,41 @@ export function ChannelMutateDrawer({
       return newModels.length
     },
     [currentModelsArray, form]
+  )
+
+  const taskPluginExtensionOptions = useMemo(
+    () =>
+      taskPluginOptions
+        .filter(supportsNewAPIUpstream)
+        .map((plugin) => ({ value: plugin.key, label: plugin.name })),
+    [taskPluginOptions]
+  )
+
+  const handleTaskExtendPluginKeysChange = useCallback(
+    (keys: string[]) => {
+      const previous = form.getValues('task_extend_plugin_keys') ?? []
+      const removedModels = new Set(
+        taskPluginOptions
+          .filter(
+            (plugin) =>
+              previous.includes(plugin.key) && !keys.includes(plugin.key)
+          )
+          .flatMap((plugin) => plugin.models)
+      )
+      const models = parseModelsString(form.getValues('models') || '').filter(
+        (model) => !removedModels.has(model)
+      )
+      for (const plugin of taskPluginOptions) {
+        if (keys.includes(plugin.key)) {
+          for (const model of plugin.models) {
+            if (!models.includes(model)) models.push(model)
+          }
+        }
+      }
+      form.setValue('task_extend_plugin_keys', keys, { shouldDirty: true })
+      form.setValue('models', formatModelsArray(models), { shouldDirty: true })
+    },
+    [form, taskPluginOptions]
   )
 
   // Handle fetching models from upstream
@@ -3264,6 +3305,35 @@ export function ChannelMutateDrawer({
                     >
                       <ChannelModelsSection>
                         <div className='space-y-5'>
+                          {currentType === CHANNEL_TYPE_NEW_API && (
+                            <FormField
+                              control={form.control}
+                              name='task_extend_plugin_keys'
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t('Upstream task plugins')}</FormLabel>
+                                  <FormControl>
+                                    <MultiSelect
+                                      options={taskPluginExtensionOptions}
+                                      selected={field.value ?? currentTaskExtendPluginKeys ?? []}
+                                      onChange={handleTaskExtendPluginKeysChange}
+                                      placeholder={t(
+                                        'Select the task plugins installed on the upstream gateway'
+                                      )}
+                                      maxVisibleChips={8}
+                                      disabled={!canEditSensitive}
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    {t(
+                                      'This channel serves the models of every selected plugin. The upstream New API gateway must have the same plugins installed.'
+                                    )}
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
                           {currentType === CHANNEL_TYPE_TASK_PLUGIN && (
                             <FormField
                               control={form.control}
@@ -3298,7 +3368,7 @@ export function ChannelMutateDrawer({
                                       </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                      {taskPluginOptions.map((plugin) => (
+                                      {compatibleTaskPlugins.map((plugin) => (
                                         <SelectItem
                                           key={plugin.key}
                                           value={plugin.key}

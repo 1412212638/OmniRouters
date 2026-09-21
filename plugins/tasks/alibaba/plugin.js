@@ -299,7 +299,6 @@ export const meta = {
       models: ["wan2.7-image-pro", "wan2.7-image", "wan2.6-image", "wan2.6-t2i"].concat(Object.keys(QWEN_IMAGE_LIMITS), IMAGE_MODEL_SNAPSHOTS),
       decode: "createImageTask",
       render: "imageCreated",
-      retainResult: false,
     },
     {
       method: "POST",
@@ -332,7 +331,6 @@ export const meta = {
   protocols: [
     { name: "openai_responses", supports: ["stream", "sync", "background"] },
     { name: "openai_video", models: Object.keys(WAN_MODELS).concat(["wan2.7-t2v-2026-04-25", "wan2.7-t2v-2026-06-12", "wan2.7-i2v-2026-04-25"]) },
-    { name: "openai_image", models: Object.keys(IMAGE_MODELS).concat(IMAGE_MODEL_SNAPSHOTS) },
   ],
 };
 
@@ -1367,106 +1365,6 @@ export const protocols = {
         ],
         metadata: { vendor: "ali" },
       };
-    },
-  },
-  // OpenAI Images API. The host pins ctx.model, waits for the task to become
-  // terminal and honors response_format itself; the plugin maps the request
-  // onto the DashScope image services and renders data[] from the result.
-  openai_image: {
-    decodeRequest: function (ctx) {
-      const model = trimmed(ctx.model);
-      if (!model) throw new Error("model is required");
-      let req = {};
-      const uploads = [];
-      if (ctx.body && ctx.body.kind === "json") {
-        req = ctx.body.value;
-        if (!req || typeof req !== "object" || Array.isArray(req)) throw new Error("request body must be an object");
-      } else if (ctx.body && ctx.body.kind === "multipart") {
-        const fields = ctx.body.fields || {};
-        for (const name of Object.keys(fields)) {
-          if (fields[name].length > 1) throw new Error(name + " must be provided once");
-          req[name] = fields[name][0];
-        }
-        for (const key of ["n", "seed", "max_images", "upscale_factor", "strength", "top_scale", "bottom_scale", "left_scale", "right_scale"]) {
-          if (req[key] !== undefined) req[key] = Number(req[key]);
-        }
-        for (const key of ["prompt_extend", "watermark", "enable_thinking", "enable_interleave", "enable_sequential", "thinking_mode", "is_sketch"]) {
-          if (req[key] === undefined) continue;
-          if (req[key] !== "true" && req[key] !== "false") throw new Error(key + " must be true or false");
-          req[key] = req[key] === "true";
-        }
-        for (const key of ["parameters", "input"]) {
-          if (req[key] === undefined) continue;
-          try {
-            req[key] = JSON.parse(req[key]);
-          } catch (e) {
-            throw new Error(key + " must be a JSON object string");
-          }
-        }
-        for (const file of ctx.body.files || []) {
-          const upload = { __fileRef: file.ref, encoding: "dataUrl", mimeType: trimmed(file.mimeType) || "image/png", maxBytes: MAX_INPUT_IMAGE_BYTES };
-          // A mask upload is not a reference image; only wanx2.1-imageedit reads it.
-          if (file.field === "mask") req.mask = upload;
-          else if (/^image(\[\d*\])?$/.test(file.field)) uploads.push(upload);
-        }
-      } else throw new Error("JSON or multipart body required");
-      if (req.stream !== undefined && req.stream !== false && req.stream !== "false")
-        throw new Error("stream is not supported; the complete image response is returned once all images are generated");
-      if (req.response_format !== undefined && req.response_format !== "url" && req.response_format !== "b64_json")
-        throw new Error("response_format must be url or b64_json");
-      const requestBody = { model: model, prompt: typeof req.prompt === "string" ? req.prompt : "" };
-      if (!trimmed(requestBody.prompt) && !objectValue(req.input, "input").messages && !objectValue(req.input, "input").prompt)
-        throw new Error("prompt is required");
-      requestBody.n = req.n === undefined || req.n === null ? 1 : req.n;
-      if (!Number.isInteger(requestBody.n) || requestBody.n < 1) throw new Error("n must be a positive integer");
-      const images = [];
-      for (const image of [].concat(req.image === undefined ? [] : req.image, req.images === undefined ? [] : req.images)) {
-        if (isImageInput(image) || (typeof image === "string" && trimmed(image))) images.push(typeof image === "string" ? trimmed(image) : image);
-        else throw new Error("image must be an HTTP URL or Base64 data URL");
-      }
-      for (const upload of uploads) images.push(upload);
-      if (ctx.operation === "edit" && !images.length) throw new Error("image is required");
-      if (images.length) requestBody.images = images;
-      for (const key of [
-        "size",
-        "negative_prompt",
-        "prompt_extend",
-        "prompt_extend_mode",
-        "enable_thinking",
-        "watermark",
-        "seed",
-        "enable_interleave",
-        "max_images",
-        "enable_sequential",
-        "thinking_mode",
-        "bbox_list",
-        "color_palette",
-        "function",
-        "mask",
-        "strength",
-        "top_scale",
-        "bottom_scale",
-        "left_scale",
-        "right_scale",
-        "upscale_factor",
-        "is_sketch",
-      ]) {
-        if (Object.prototype.hasOwnProperty.call(req, key)) requestBody[key] = req[key];
-      }
-      // Provider passthrough: the same parameters/input objects the DashScope API accepts.
-      const metadata = {};
-      if (req.parameters !== undefined) metadata.parameters = objectValue(req.parameters, "parameters");
-      if (req.input !== undefined) metadata.input = objectValue(req.input, "input");
-      if (Object.keys(metadata).length) requestBody.metadata = metadata;
-      // The model may be a mapped alias; final validation runs after channel selection.
-      return { kind: "submit", model: model, action: images.length ? "image_to_image" : "text_to_image", requestBody: requestBody };
-    },
-    render: function (ctx, task) {
-      const data = [];
-      for (const part of imageContent(artifactData(task))) {
-        if (part.image) data.push(imageDatum(part.image));
-      }
-      return { created: task.created_at, data: data };
     },
   },
   openai_video: {

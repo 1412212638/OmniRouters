@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 
@@ -11,7 +12,8 @@ import (
 )
 
 type ChannelSettings struct {
-	TaskPluginKey          string `json:"task_plugin_key,omitempty"`
+	TaskPluginKey         string   `json:"task_plugin_key,omitempty"`
+	TaskExtendPluginKeys []string `json:"task_extend_plugin_keys,omitempty"`
 	ForceFormat            bool   `json:"force_format,omitempty"`
 	ThinkingToContent      bool   `json:"thinking_to_content,omitempty"`
 	Proxy                  string `json:"proxy"`
@@ -24,6 +26,24 @@ type ChannelSettings struct {
 	// HTTP2ConnectionShards spreads HTTP/2 traffic across N independent transports
 	// (1-8). Zero/unset means 1. Ignored when HTTPProtocol is "http1".
 	HTTP2ConnectionShards int `json:"http2_connection_shards,omitempty"`
+}
+
+func (s ChannelSettings) BindsTaskPlugin(key string) bool {
+	return key != "" && (s.TaskPluginKey == key || slices.Contains(s.TaskExtendPluginKeys, key))
+}
+
+func (s ChannelSettings) TaskPluginBindings() []string {
+	bindings := make([]string, 0, len(s.TaskExtendPluginKeys)+1)
+	if s.TaskPluginKey != "" {
+		bindings = append(bindings, s.TaskPluginKey)
+	}
+	for _, key := range s.TaskExtendPluginKeys {
+		if key != "" && !slices.Contains(bindings, key) {
+			bindings = append(bindings, key)
+		}
+	}
+	slices.Sort(bindings)
+	return bindings
 }
 
 const (

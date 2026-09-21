@@ -271,7 +271,7 @@ export const meta = {
     { method: "GET", path: "/doubao/api/v3/contents/generations/tasks/:task_id", type: "query", render: "taskStatus" },
     // The vendor image API answers synchronously and has no task to re-query;
     // the complete response is delivered once and never persisted.
-    { method: "POST", path: "/doubao/api/v3/images/generations", type: "submit", decode: "createImage", render: "imageCreated", retainResult: false },
+    { method: "POST", path: "/doubao/api/v3/images/generations", type: "submit", decode: "createImage", render: "imageCreated" },
   ],
   protocols: [
     { name: "openai_responses", supports: ["stream", "sync", "background"] },
