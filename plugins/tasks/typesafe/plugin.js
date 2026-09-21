@@ -49,4 +49,7 @@ export function parseSubmitResponse(ctx, response) {
   return { taskId: body.id || "systemone", status: "SUCCESS", data: body, usage: { input_tokens: inputTokens } };
 }
 
+// The task-plugin registry requires this hook even for native synchronous routes.
+export function parseTaskResult(ctx, response) { return parseSubmitResponse(ctx, response); }
+
 export function renderSystemOne(ctx, task) { return task.data; }

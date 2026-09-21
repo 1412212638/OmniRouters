@@ -2940,3 +2940,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: model mapping, Laya support, synchronous responses, and billing usage extraction.
 - Validation: JavaScript syntax check and `git diff --check`; Go toolchain unavailable locally.
 - Commit/push: pending.
+
+## 2026-09-22 - Fix TypeSafe task result hook registration
+
+- Local reason: plugin registration still required the standard `parseTaskResult` export for task plugins, including synchronous native routes.
+- Integrated: added `parseTaskResult` as a compatibility delegate to the synchronous response parser.
+- Preserved: native synchronous rendering and usage extraction.
+- Validation: JavaScript syntax check and `git diff --check`; Go toolchain unavailable locally.
+- Commit/push: pending.
