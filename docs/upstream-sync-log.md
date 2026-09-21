@@ -6,7 +6,7 @@
 - Integrated: native submissions now render the persisted public task view through the pinned route's native renderer after submission and settlement. TypeSafe returns its answers and usage directly; rendering failures return JSON errors rather than a misleading queued response.
 - Preserved: immediate terminal status persistence, actual-usage settlement, consume logs, refunds, private task identity filtering, existing Sora/OpenAI video and legacy response paths. No billing arithmetic or plugin source was changed.
 - Validation: added a native synchronous answers/usage response regression test; existing legacy and already-written response tests retained. `git diff --check` passed. Go tests could not run because Go is not installed locally; compilation and live verification remain pending.
-- Commit/push: pending; source-only change, no local image build.
+- Commit/push: source commit `2704500f3` (`fix(typesafe): render synchronous native responses`) pushed successfully to `origin/main`. GitHub Actions image build and live verification remain pending; no local image build. This publication record accompanies a documentation-only follow-up commit.
 
 ## 2026-09-21 - Register TypeSafe native task route
 
