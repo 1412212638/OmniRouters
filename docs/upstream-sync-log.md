@@ -2978,4 +2978,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: share free classification between card badges, green prices and the free/discount filters; recognize explicit zero token/request pricing while excluding dynamic-expression and Sora placeholders.
 - Preserved: quota calculations, settlement, group selection and existing discount styling; no backend changes.
 - Validation: eight targeted free-pricing regression cases and frontend production build passed; browser interaction not tested.
-- Commit/push: pending; bundled with Decisions output modality.
+- Commit/push: bundled with Decisions output modality in e6c9bd49e; verified GitHub origin/main matches this commit via git ls-remote. Push reported a concurrent ref update after the remote had reached the target commit.
