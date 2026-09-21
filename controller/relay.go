@@ -790,6 +790,38 @@ func presentTaskSubmission(c *gin.Context, outcome *taskSubmissionOutcome) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "Task submission failed", "type": "new_api_error"}})
 		return
 	}
+	if value, exists := c.Get(pluginruntime.ContextKeyPinnedRoute); exists {
+		pinned, ok := value.(pluginruntime.PinnedRoute)
+		requestValue, _ := c.Get(pluginruntime.ContextKeyRouteRequest)
+		request, requestOK := requestValue.(pluginruntime.RouteRequestContext)
+		if !ok || pinned.Plugin == nil || !requestOK {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "Invalid native task route context"}})
+			return
+		}
+		// Submission has already persisted terminal status and settled actual
+		// usage. Native routes own their response shape, including synchronous
+		// providers whose renderer returns task.data directly.
+		view, err := service.BuildTaskPluginView(outcome.Task)
+		var input map[string]any
+		if err == nil {
+			var encoded []byte
+			encoded, err = common.Marshal(view)
+			if err == nil {
+				err = common.Unmarshal(encoded, &input)
+			}
+		}
+		var response any
+		if err == nil {
+			response, err = pinned.Plugin.Engine.CallPath(c.Request.Context(), "native", []string{pinned.Route.Render}, request.JSValue(), input)
+		}
+		if err != nil {
+			logger.LogError(c, "native task response rendering failed: "+err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "Native task response rendering failed"}})
+			return
+		}
+		c.JSON(http.StatusOK, response)
+		return
+	}
 	if pinnedValue, exists := c.Get(pluginruntime.ContextKeyPinnedEndpoint); exists {
 		if pinned, ok := pinnedValue.(pluginruntime.PinnedEndpoint); ok && pinned.Protocol == "openai_video" && pinned.Operation.Name == "create" {
 			c.JSON(http.StatusOK, outcome.Task.ToOpenAIVideo())
