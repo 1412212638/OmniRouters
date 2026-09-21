@@ -2932,3 +2932,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: `/v1/systemone` routing, vendor/new-api URL handling, native synchronous answers, and token-based billing usage.
 - Validation: JavaScript syntax check and `git diff --check`; full Go test suite unavailable because Go is not installed locally.
 - Commit/push: source commit `c5f9f34a5` created; push pending until this log entry is amended with the final publication status.
+
+## 2026-09-22 - Fix TypeSafe embedded plugin startup metadata
+
+- Local reason: startup validation rejected the embedded TypeSafe plugin because token usage schemas require usage examples.
+- Integrated: added bounded `input_tokens` usage examples so the plugin registry accepts the built-in plugin.
+- Preserved: model mapping, Laya support, synchronous responses, and billing usage extraction.
+- Validation: JavaScript syntax check and `git diff --check`; Go toolchain unavailable locally.
+- Commit/push: pending.

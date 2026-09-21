@@ -11,7 +11,11 @@ export const meta = {
   fetchMode: "per_task",
   upstreams: ["vendor", "new_api"],
   routes: [{ method: "POST", path: "/typesafe/v1/systemone", type: "submit", decode: "decodeSystemOne", render: "renderSystemOne", retainResult: false }],
-  usageSchema: { input_tokens: { type: "number", unit: "token" } }
+  usageSchema: { input_tokens: { type: "number", unit: "token" } },
+  usageExamples: [
+    { label: "Short request", facts: { input_tokens: 402 } },
+    { label: "Maximum context", facts: { input_tokens: 65536 } }
+  ]
 };
 
 function declaredModel(model) {
