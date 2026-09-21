@@ -2925,3 +2925,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deliberately preserved: local auth method model, protected project identifiers, custom dialog content behavior, and all untracked user files.
 - Validation: targeted frontend format/lint checks and git diff --check; full frontend typecheck/build limitations are recorded below if encountered.
 - Commit/push: pending.
+## 2026-09-22 - TypeSafe/Laya model mapping compatibility
+
+- Local reason: the structured-decision plugin rejected channel model aliases because it validated `upstreamModel` instead of the gateway model, and did not declare Laya.
+- Integrated: added the built-in TypeSafe plugin template with `laya`, gateway-model validation, upstream model forwarding for mappings such as `jev-1.13.0` to `jev-1.13`, synchronous rendering, and bounded `usage.input_tokens` extraction.
+- Preserved: `/v1/systemone` routing, vendor/new-api URL handling, native synchronous answers, and token-based billing usage.
+- Validation: JavaScript syntax check and `git diff --check`; full Go test suite unavailable because Go is not installed locally.
+- Commit/push: source commit `c5f9f34a5` created; push pending until this log entry is amended with the final publication status.
