@@ -7,7 +7,7 @@
 - Preserved: backend billing expressions, pre-consume/settlement arithmetic, Sora/legacy protocol paths, protected identifiers, and unrelated untracked files. Structured answers do not fabricate output tokens or TPS. Existing historical metrics are not backfilled. Other task usage meters remain explicitly unsupported by this token estimator.
 - Validation: targeted frontend lint passed; Bun execution verified the configured expression yields inputPrice 0.042 and scaled preview cost 16.884 for 402 tokens. Full typecheck is blocked by existing missing testing-library/vitest dependencies and unrelated type errors. Go is unavailable locally; backend runtime validation remains pending.
 - Frontend production build: `bun run build` passed. Historical success rates will change as new samples arrive; prior failures remain in the selected time window.
-- Commit/push: pending.
+- Commit/push: source commit `dfcb049db` (`fix(typesafe): show usage pricing and record native metrics`) pushed successfully to `origin/main`. GitHub Actions image publication and deployment verification remain pending. This status is recorded in a documentation-only follow-up commit.
 
 ## 2026-09-21 - Return native synchronous plugin responses
 
