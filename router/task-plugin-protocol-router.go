@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/QuantumNous/new-api/controller"
 	"github.com/QuantumNous/new-api/middleware"
@@ -11,6 +12,13 @@ import (
 )
 
 func SetTaskPluginProtocolRouter(router *gin.Engine) {
+	// Resolve the declaration on every request so marketplace installation and
+	// activation take effect without restarting the HTTP server.
+	router.POST("/v1/systemone",
+		middleware.RouteTag("relay"), middleware.TokenAuth(), middleware.SystemPerformanceCheck(),
+		pinTypeSafeRoute, middleware.ModelRequestRateLimit(), middleware.PrepareTaskPluginRoute(),
+		middleware.Distribute(), controller.RelayTask,
+	)
 	for _, protocol := range pluginruntime.HostProtocols() {
 		for _, operation := range protocol.Operations {
 			for _, method := range operation.Methods {
@@ -22,6 +30,21 @@ func SetTaskPluginProtocolRouter(router *gin.Engine) {
 			}
 		}
 	}
+}
+
+func pinTypeSafeRoute(c *gin.Context) {
+	generation := pluginruntime.DefaultRegistry.Generation()
+	binding, ok := generation.LookupDeclaredRoute(http.MethodPost, "/typesafe/v1/systemone")
+	if !ok || binding.Plugin == nil || binding.Plugin.Meta.Key != "typesafe" {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": gin.H{
+			"message": "TypeSafe native route is unavailable; install and enable the TypeSafe plugin",
+			"type": "new_api_error", "code": "task_plugin_route_unavailable",
+		}})
+		return
+	}
+	c.Set(pluginruntime.ContextKeyPinnedRoute, pluginruntime.PinnedRoute{
+		Generation: generation, Plugin: binding.Plugin, Route: binding.Route,
+	})
 }
 
 func taskPluginProtocolHandlers(protocol, operation string) ([]gin.HandlerFunc, error) {
@@ -50,4 +73,3 @@ func taskPluginProtocolHandlers(protocol, operation string) ([]gin.HandlerFunc, 
 		return nil, fmt.Errorf("host protocol registry operation %s.%s has no handler", protocol, operation)
 	}
 }
-

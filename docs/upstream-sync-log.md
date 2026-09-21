@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-21 - Register TypeSafe native task route
+
+- Local reason: TypeSafe marketplace metadata declared `/typesafe/v1/systemone`, but the HTTP router only registered host protocol endpoints, so requests fell through to the web frontend.
+- Integrated: registered the gateway-facing TypeSafe POST route as `/v1/systemone` with plugin pinning, authentication, rate limiting, task preparation, distribution, and billing; missing-plugin responses now return explicit JSON 404 errors.
+- Preserved: vendor channels append `/v1/systemone` to their configured base URL, so ZenMux and ModelVerse use `https://zenmux.ai` and `https://api.modelverse.cn` respectively.
+- Validation: added route registration and missing-plugin regression tests; `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable locally.
+- Commit/push: pending.
+
 ## 2026-09-21 - Accept marketplace route retainResult metadata
 
 - Local reason: the official TypeSafe 1.0.0 task plugin was rejected because its route manifest declares the optional `retainResult` field.
