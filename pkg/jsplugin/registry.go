@@ -1755,7 +1755,7 @@ func decodeRoutes(value any) ([]Route, error) {
 		}
 		for key := range object {
 			switch key {
-			case "method", "path", "type", "action", "decode", "render", "taskIdParam", "models":
+			case "method", "path", "type", "action", "decode", "render", "taskIdParam", "models", "retainResult":
 			default:
 				return nil, fmt.Errorf("plugin meta route %d has unknown field %q", index, key)
 			}
@@ -1781,6 +1781,13 @@ func decodeRoutes(value any) ([]Route, error) {
 		}
 		if route.Render, err = stringMetaField(object, "render"); err != nil {
 			return nil, err
+		}
+		if value, exists := object["retainResult"]; exists {
+			retain, ok := value.(bool)
+			if !ok {
+				return nil, fmt.Errorf("plugin meta route %d retainResult must be a boolean", index)
+			}
+			route.RetainResult = retain
 		}
 		if route.TaskIDParam, err = stringMetaField(object, "taskIdParam"); err != nil {
 			return nil, err

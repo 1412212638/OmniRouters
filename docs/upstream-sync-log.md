@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-21 - Accept marketplace route retainResult metadata
+
+- Local reason: the official TypeSafe 1.0.0 task plugin was rejected because its route manifest declares the optional `retainResult` field.
+- Integrated: task-plugin route metadata parsing now accepts and validates `retainResult` as a boolean, preserving the value in the route descriptor for host compatibility.
+- Preserved: existing routing, task lifecycle, billing, and protected project identifiers.
+- Validation: `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable in this environment.
+- Commit/push: pending.
+
 ## 2026-09-21 - Repair task plugin binding compilation
 
 - Local reason: GHCR build of the previous binding batch failed with four `undefined: jsplugin` errors in `controller/channel.go`.

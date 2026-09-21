@@ -28,6 +28,7 @@ type Route struct {
 	Action      string    `json:"action,omitempty"`
 	Decode      string    `json:"decode,omitempty"`
 	Render      string    `json:"render,omitempty"`
+	RetainResult bool `json:"retainResult,omitempty"`
 	TaskIDParam string    `json:"taskIdParam,omitempty"`
 	// Models restricts this route to the listed models. The host matches the
 	// canonical top-level "model" body field before any JS hook runs; empty
