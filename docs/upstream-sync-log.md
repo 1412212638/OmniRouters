@@ -2925,6 +2925,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deliberately preserved: local auth method model, protected project identifiers, custom dialog content behavior, and all untracked user files.
 - Validation: targeted frontend format/lint checks and git diff --check; full frontend typecheck/build limitations are recorded below if encountered.
 - Commit/push: pending.
+## 2026-09-22 - Complete SystemOne runtime contract and gate image publication
+
+- Local reason: earlier fixes only checked JavaScript syntax and missed required query/native exports and host response contracts, causing startup panics and incorrect synchronous completion.
+- Integrated: TypeSafe 1.1.1 exposes all required hooks and native route members, decodes the host JSON envelope, forwards mapped upstream names from the canonical request, uses `/v1/systemone` for both upstream kinds, returns `taskData` and `immediate`, and supplies bounded estimate/actual usage hooks. Polling fails explicitly without resubmitting requests.
+- Preserved: Jev and Laya support, synchronous answers, gateway-facing routing, existing database overrides, Sora customizations, and existing pricing expressions. Database overrides still take precedence; existing installations must select the built-in version to use this source.
+- Validation: 20 deterministic fixtures passed under Node; `git diff --check` passed. No local Go toolchain or Docker build. Docker builder now runs `go run ./cmd/check-task-plugins`, exercising all embedded registration plus the same fixtures in the real Go runtime before image publication. CI result remains pending.
+- Commit/push: this source change is prepared for an authorized push to origin/main; actual revision and publication status will be recorded in a follow-up entry.
+
 ## 2026-09-22 - TypeSafe/Laya model mapping compatibility
 
 - Local reason: the structured-decision plugin rejected channel model aliases because it validated `upstreamModel` instead of the gateway model, and did not declare Laya.
@@ -2947,4 +2955,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Integrated: added `parseTaskResult` as a compatibility delegate to the synchronous response parser.
 - Preserved: native synchronous rendering and usage extraction.
 - Validation: JavaScript syntax check and `git diff --check`; Go toolchain unavailable locally.
+- Commit/push: pending.
+
+## 2026-09-22 - Complete TypeSafe query hook contract
+
+- Local reason: the plugin registry requires `buildQueryRequest` for every non-batch task plugin, including synchronous native routes.
+- Integrated: added a compatible query request hook delegating to the SystemOne request builder.
+- Preserved: synchronous native response behavior and model mapping.
+- Validation: JavaScript syntax check and `git diff --check`.
 - Commit/push: pending.

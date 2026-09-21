@@ -1,0 +1,501 @@
+{
+  "cases": [
+    {
+      "name": "decode jev-1.13.0",
+      "hook": "native",
+      "member": "decodeSystemOne",
+      "args": [
+        {
+          "body": {
+            "kind": "json",
+            "value": {
+              "model": "jev-1.13.0",
+              "state": "refund request",
+              "questions": {
+                "refund": {
+                  "type": "noul"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "kind": "submit",
+        "model": "jev-1.13.0",
+        "requestBody": {
+          "model": "jev-1.13.0",
+          "state": "refund request",
+          "questions": {
+            "refund": {
+              "type": "noul"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "map jev-1.13.0 vendor",
+      "hook": "buildSubmitRequest",
+      "args": [
+        {
+          "model": "jev-1.13.0",
+          "upstreamModel": "jev-1.13",
+          "requestBody": {
+            "model": "jev-1.13.0",
+            "state": "refund request",
+            "questions": {
+              "refund": {
+                "type": "noul"
+              }
+            }
+          },
+          "baseUrl": "https://upstream.example/v1/",
+          "apiKey": "fixture-key",
+          "upstream": {
+            "kind": "vendor"
+          }
+        }
+      ],
+      "expected": {
+        "url": "https://upstream.example/v1/systemone",
+        "method": "POST",
+        "headers": {
+          "Authorization": "Bearer fixture-key",
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        "body": {
+          "model": "jev-1.13",
+          "state": "refund request",
+          "questions": {
+            "refund": {
+              "type": "noul"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "map jev-1.13.0 new_api",
+      "hook": "buildSubmitRequest",
+      "args": [
+        {
+          "model": "jev-1.13.0",
+          "upstreamModel": "jev-1.13",
+          "requestBody": {
+            "model": "jev-1.13.0",
+            "state": "refund request",
+            "questions": {
+              "refund": {
+                "type": "noul"
+              }
+            }
+          },
+          "baseUrl": "https://upstream.example/v1/",
+          "apiKey": "fixture-key",
+          "upstream": {
+            "kind": "new_api"
+          }
+        }
+      ],
+      "expected": {
+        "url": "https://upstream.example/v1/systemone",
+        "method": "POST",
+        "headers": {
+          "Authorization": "Bearer fixture-key",
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        "body": {
+          "model": "jev-1.13",
+          "state": "refund request",
+          "questions": {
+            "refund": {
+              "type": "noul"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "decode laya",
+      "hook": "native",
+      "member": "decodeSystemOne",
+      "args": [
+        {
+          "body": {
+            "kind": "json",
+            "value": {
+              "model": "laya",
+              "state": "refund request",
+              "questions": {
+                "refund": {
+                  "type": "noul"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "kind": "submit",
+        "model": "laya",
+        "requestBody": {
+          "model": "laya",
+          "state": "refund request",
+          "questions": {
+            "refund": {
+              "type": "noul"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "map laya vendor",
+      "hook": "buildSubmitRequest",
+      "args": [
+        {
+          "model": "laya",
+          "upstreamModel": "provider/laya",
+          "requestBody": {
+            "model": "laya",
+            "state": "refund request",
+            "questions": {
+              "refund": {
+                "type": "noul"
+              }
+            }
+          },
+          "baseUrl": "https://upstream.example/v1/",
+          "apiKey": "fixture-key",
+          "upstream": {
+            "kind": "vendor"
+          }
+        }
+      ],
+      "expected": {
+        "url": "https://upstream.example/v1/systemone",
+        "method": "POST",
+        "headers": {
+          "Authorization": "Bearer fixture-key",
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        "body": {
+          "model": "provider/laya",
+          "state": "refund request",
+          "questions": {
+            "refund": {
+              "type": "noul"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "map laya new_api",
+      "hook": "buildSubmitRequest",
+      "args": [
+        {
+          "model": "laya",
+          "upstreamModel": "provider/laya",
+          "requestBody": {
+            "model": "laya",
+            "state": "refund request",
+            "questions": {
+              "refund": {
+                "type": "noul"
+              }
+            }
+          },
+          "baseUrl": "https://upstream.example/v1/",
+          "apiKey": "fixture-key",
+          "upstream": {
+            "kind": "new_api"
+          }
+        }
+      ],
+      "expected": {
+        "url": "https://upstream.example/v1/systemone",
+        "method": "POST",
+        "headers": {
+          "Authorization": "Bearer fixture-key",
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        "body": {
+          "model": "provider/laya",
+          "state": "refund request",
+          "questions": {
+            "refund": {
+              "type": "noul"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "synchronous completion",
+      "hook": "parseSubmitResponse",
+      "args": [
+        {},
+        {
+          "statusCode": 200,
+          "body": {
+            "id": "gen-test",
+            "model": "typesafe/jev-1.13",
+            "answers": {
+              "refund": {
+                "type": "noul",
+                "noul": 0.99
+              }
+            },
+            "usage": {
+              "input_tokens": 402,
+              "output_tokens": 72
+            }
+          }
+        }
+      ],
+      "expected": {
+        "taskId": "gen-test",
+        "taskData": {
+          "id": "gen-test",
+          "model": "typesafe/jev-1.13",
+          "answers": {
+            "refund": {
+              "type": "noul",
+              "noul": 0.99
+            }
+          },
+          "usage": {
+            "input_tokens": 402,
+            "output_tokens": 72
+          }
+        },
+        "immediate": {
+          "status": "SUCCESS",
+          "progress": "100%"
+        }
+      }
+    },
+    {
+      "name": "render answers",
+      "hook": "native",
+      "member": "renderSystemOne",
+      "args": [
+        {},
+        {
+          "data": {
+            "id": "gen-test",
+            "model": "typesafe/jev-1.13",
+            "answers": {
+              "refund": {
+                "type": "noul",
+                "noul": 0.99
+              }
+            },
+            "usage": {
+              "input_tokens": 402,
+              "output_tokens": 72
+            }
+          }
+        }
+      ],
+      "expected": {
+        "id": "gen-test",
+        "model": "typesafe/jev-1.13",
+        "answers": {
+          "refund": {
+            "type": "noul",
+            "noul": 0.99
+          }
+        },
+        "usage": {
+          "input_tokens": 402,
+          "output_tokens": 72
+        }
+      }
+    },
+    {
+      "name": "reserve bounded tokens",
+      "hook": "extractUsage",
+      "args": [
+        {}
+      ],
+      "expected": {
+        "input_tokens": 65536
+      }
+    },
+    {
+      "name": "settle actual tokens",
+      "hook": "extractUsageOnComplete",
+      "args": [
+        {},
+        {},
+        {
+          "id": "gen-test",
+          "model": "typesafe/jev-1.13",
+          "answers": {
+            "refund": {
+              "type": "noul",
+              "noul": 0.99
+            }
+          },
+          "usage": {
+            "input_tokens": 402,
+            "output_tokens": 72
+          }
+        }
+      ],
+      "expected": {
+        "input_tokens": 402
+      }
+    },
+    {
+      "name": "usage 0",
+      "hook": "extractUsageOnComplete",
+      "args": [
+        {},
+        {},
+        {
+          "usage": {
+            "input_tokens": 0
+          }
+        }
+      ],
+      "expected": {
+        "input_tokens": 0
+      }
+    },
+    {
+      "name": "usage 65536",
+      "hook": "extractUsageOnComplete",
+      "args": [
+        {},
+        {},
+        {
+          "usage": {
+            "input_tokens": 65536
+          }
+        }
+      ],
+      "expected": {
+        "input_tokens": 65536
+      }
+    },
+    {
+      "name": "reject usage -1",
+      "hook": "extractUsageOnComplete",
+      "args": [
+        {},
+        {},
+        {
+          "usage": {
+            "input_tokens": -1
+          }
+        }
+      ],
+      "expectedError": "Invalid SystemOne"
+    },
+    {
+      "name": "reject usage 65537",
+      "hook": "extractUsageOnComplete",
+      "args": [
+        {},
+        {},
+        {
+          "usage": {
+            "input_tokens": 65537
+          }
+        }
+      ],
+      "expectedError": "Invalid SystemOne"
+    },
+    {
+      "name": "reject usage 0.5",
+      "hook": "extractUsageOnComplete",
+      "args": [
+        {},
+        {},
+        {
+          "usage": {
+            "input_tokens": 0.5
+          }
+        }
+      ],
+      "expectedError": "Invalid SystemOne"
+    },
+    {
+      "name": "reject usage 402",
+      "hook": "extractUsageOnComplete",
+      "args": [
+        {},
+        {},
+        {
+          "usage": {
+            "input_tokens": "402"
+          }
+        }
+      ],
+      "expectedError": "Invalid SystemOne"
+    },
+    {
+      "name": "reject usage null",
+      "hook": "extractUsageOnComplete",
+      "args": [
+        {},
+        {},
+        {
+          "usage": {
+            "input_tokens": null
+          }
+        }
+      ],
+      "expectedError": "Invalid SystemOne"
+    },
+    {
+      "name": "no polling buildQueryRequest",
+      "hook": "buildQueryRequest",
+      "args": [
+        {}
+      ],
+      "expectedError": "polling is not supported"
+    },
+    {
+      "name": "no polling parseTaskResult",
+      "hook": "parseTaskResult",
+      "args": [
+        {}
+      ],
+      "expectedError": "polling is not supported"
+    },
+    {
+      "name": "reject upstream error",
+      "hook": "parseSubmitResponse",
+      "args": [
+        {},
+        {
+          "statusCode": 400,
+          "body": {
+            "id": "gen-test",
+            "model": "typesafe/jev-1.13",
+            "answers": {
+              "refund": {
+                "type": "noul",
+                "noul": 0.99
+              }
+            },
+            "usage": {
+              "input_tokens": 402,
+              "output_tokens": 72
+            }
+          }
+        }
+      ],
+      "expectedError": "upstream request failed"
+    }
+  ]
+}
