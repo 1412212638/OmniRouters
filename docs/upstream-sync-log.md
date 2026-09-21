@@ -1,5 +1,14 @@
 # Upstream Sync Log
 
+## 2026-09-22 - TypeSafe task pricing display and native performance samples
+
+- Local reason: token usage expressions using `u()` failed frontend preview, displayed empty pricing tiers, and successful native synchronous requests did not enter performance metrics.
+- Integrated: preview input/output token usage meters with task USD scaling; recognize `u("input_tokens") * price / 1000000` and output-token equivalents as per-million prices in the shared tier parser. Record native synchronous successes and native submission failures through the existing performance recorder.
+- Preserved: backend billing expressions, pre-consume/settlement arithmetic, Sora/legacy protocol paths, protected identifiers, and unrelated untracked files. Structured answers do not fabricate output tokens or TPS. Existing historical metrics are not backfilled. Other task usage meters remain explicitly unsupported by this token estimator.
+- Validation: targeted frontend lint passed; Bun execution verified the configured expression yields inputPrice 0.042 and scaled preview cost 16.884 for 402 tokens. Full typecheck is blocked by existing missing testing-library/vitest dependencies and unrelated type errors. Go is unavailable locally; backend runtime validation remains pending.
+- Frontend production build: `bun run build` passed. Historical success rates will change as new samples arrive; prior failures remain in the selected time window.
+- Commit/push: pending.
+
 ## 2026-09-21 - Return native synchronous plugin responses
 
 - Local reason: TypeSafe completed synchronously, but the task submission presenter ignored the pinned native renderer and returned a generic queued task envelope.

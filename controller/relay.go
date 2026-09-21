@@ -557,6 +557,9 @@ func RelayTask(c *gin.Context) {
 		}
 		outcome, taskErr := executeTaskSubmission(c, relayInfo)
 		if taskErr != nil {
+			if _, native := c.Get(pluginruntime.ContextKeyPinnedRoute); native {
+				perfmetrics.RecordRelayFailureSample(relayInfo, taskErr.StatusCode)
+			}
 			respondTaskError(c, taskErr)
 			return
 		}
@@ -820,6 +823,11 @@ func presentTaskSubmission(c *gin.Context, outcome *taskSubmissionOutcome) {
 			return
 		}
 		c.JSON(http.StatusOK, response)
+		if outcome.Task.Status == model.TaskStatusSuccess {
+			// Native synchronous submissions bypass the text-quota metrics path.
+			// Do not fabricate generated tokens or TPS from structured answers.
+			perfmetrics.RecordRelaySample(outcome.RelayInfo, true, 0, 0, 0)
+		}
 		return
 	}
 	if pinnedValue, exists := c.Get(pluginruntime.ContextKeyPinnedEndpoint); exists {

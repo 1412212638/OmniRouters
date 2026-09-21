@@ -262,7 +262,7 @@ export function tryParseVisualConfig(
 
     const cfg = normalizeVisualConfig({ tiers })
     const regenerated = generateExprFromVisualConfig(cfg)
-    if (regenerated.replace(/\s+/g, '') !== body.replace(/\s+/g, '')) {
+    if (regenerated.replaceAll(/\s+/g, '') !== body.replaceAll(/\s+/g, '')) {
       return null
     }
     return cfg
@@ -322,6 +322,11 @@ export function evalExprLocally(
       c: completionTokens,
       len,
       tier: tierFn,
+      u: (name: string) => {
+        if (name === 'input_tokens') return promptTokens
+        if (name === 'output_tokens') return completionTokens
+        throw new Error(`Unsupported task usage field: ${name}`)
+      },
       fixed: (amount: number) => amount * 1_000_000,
       max: Math.max,
       min: Math.min,
@@ -331,7 +336,7 @@ export function evalExprLocally(
       param: (path: string) => {
         if (!path) return requestParams
         return String(path)
-          .replace(/\[([^\]]+)\]/g, '.$1')
+          .replaceAll(/\[([^\]]+)\]/g, '.$1')
           .split('.')
           .filter(Boolean)
           .reduce<unknown>((value, key) => {
@@ -349,7 +354,12 @@ export function evalExprLocally(
       `"use strict"; return (${exprStr});`
     )
     const cost = Number(fn(...Object.values(env))) || 0
-    return { cost, matchedTier, error: null }
+    // The estimator consumes scaled token cost; task expressions return USD.
+    return {
+      cost: /\bu\s*\(/.test(exprStr) ? cost * 1_000_000 : cost,
+      matchedTier,
+      error: null,
+    }
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     return { cost: 0, matchedTier: '', error: message }
