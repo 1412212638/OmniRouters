@@ -2931,7 +2931,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Integrated: TypeSafe 1.1.1 exposes all required hooks and native route members, decodes the host JSON envelope, forwards mapped upstream names from the canonical request, uses `/v1/systemone` for both upstream kinds, returns `taskData` and `immediate`, and supplies bounded estimate/actual usage hooks. Polling fails explicitly without resubmitting requests.
 - Preserved: Jev and Laya support, synchronous answers, gateway-facing routing, existing database overrides, Sora customizations, and existing pricing expressions. Database overrides still take precedence; existing installations must select the built-in version to use this source.
 - Validation: 20 deterministic fixtures passed under Node; `git diff --check` passed. No local Go toolchain or Docker build. Docker builder now runs `go run ./cmd/check-task-plugins`, exercising all embedded registration plus the same fixtures in the real Go runtime before image publication. CI result remains pending.
-- Commit/push: this source change is prepared for an authorized push to origin/main; actual revision and publication status will be recorded in a follow-up entry.
+- Commit/push: source commit `828d174a6` successfully pushed to `origin/main`. Go-runtime validation and image publication are pending GitHub Actions; this documentation-only follow-up records the confirmed source push.
 
 ## 2026-09-22 - TypeSafe/Laya model mapping compatibility
 
