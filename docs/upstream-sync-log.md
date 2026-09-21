@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-21 - Repair task plugin binding compilation
+
+- Local reason: GHCR build of the previous binding batch failed with four `undefined: jsplugin` errors in `controller/channel.go`.
+- Fixed: import `github.com/QuantumNous/new-api/pkg/jsplugin` where channel validation uses its registry and upstream constants.
+- Preserved: all binding, routing, billing and frontend behavior; protected identifiers and unrelated worktree files. No additional upstream feature is integrated or deferred by this import-only fix.
+- Validation: source references and package declaration checked; `git diff --check` passed. Local Go compilation remains unavailable because Go is not installed. The preceding frontend production build passed; this fix changes no frontend source.
+- Commit/push: this entry accompanies the `fix(channel): import task plugin registry` source commit; push and CI verification pending.
+
 ## 2026-09-21 - Task plugin capability-aware video pricing
 
 - Upstream reference: 65d3a2171.
