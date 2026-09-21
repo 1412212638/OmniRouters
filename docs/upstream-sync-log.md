@@ -2855,3 +2855,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Remaining validation limitation: the unrelated full service task suite still has pre-existing obsolete TaskPollingAdaptor mocks and is not claimed as passing. Local Go tests were not run; the checks above ran in GitHub Actions using Go 1.26.1. Billing, UI and existing unrelated files are preserved.
 - Image publication: run 35518224174 successfully published the behaviorally equivalent race-fixed source. Run 35518519870 for the final formatting commit remains in progress at this check; its result is not yet claimed.
 - This documentation-only publication record uses [skip ci] to avoid cancelling/repeating the in-progress source image build. Its push is verified separately; it changes no executable source or workflow.
+## 2026-09-21 - First frontend fixes from upstream 9a0be8750
+
+- Upstream reference: 33320407f (OIDC save isolation), 2d7aef741 (CC Switch model dropdown), c49972441 and a5bf94022 (mobile dialog viewport fallbacks and editor follow-up), a89037d0b (linked-account OAuth verification).
+- Integrated: OIDC discovery now runs only when its URL changes or OIDC is newly enabled; invalid URLs are attached to the form and switch to the OIDC tab. CC Switch uses the default Combobox/Input controls with accessible labels and no mobile spacer. Dialog and alert-dialog primitives use dynamic viewport height/center fallbacks with safe-area CSS variables.
+- Already present or not applicable: linked-account OAuth verification is not present in the local default frontend verification contract, which currently exposes only 2FA and passkey methods; no speculative OAuth flow was added.
+- Deliberately preserved: local auth method model, protected project identifiers, custom dialog content behavior, and all untracked user files.
+- Validation: targeted frontend format/lint checks and git diff --check; full frontend typecheck/build limitations are recorded below if encountered.
+- Commit/push: pending.

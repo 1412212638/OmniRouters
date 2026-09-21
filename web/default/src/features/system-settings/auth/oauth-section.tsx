@@ -39,6 +39,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
 import { FormDirtyIndicator } from '../components/form-dirty-indicator'
 import { FormNavigationGuard } from '../components/form-navigation-guard'
 import {
@@ -290,14 +291,21 @@ export function OAuthSection(props: OAuthSectionProps) {
 
   const onSubmit = async (values: OAuthFormValues) => {
     let finalValues = values
-
-    if (values.oidc.well_known && values.oidc.well_known.trim() !== '') {
-      const wellKnown = values.oidc.well_known.trim()
+    const wellKnown = values.oidc.well_known.trim()
+    const discoveryUrlChanged =
+      wellKnown !== (baselineRef.current['oidc.well_known'] ?? '').trim()
+    const enablingOIDC =
+      values.oidc.enabled && !baselineRef.current['oidc.enabled']
+    if (wellKnown && (discoveryUrlChanged || enablingOIDC)) {
       if (
         !wellKnown.startsWith('http://') &&
         !wellKnown.startsWith('https://')
       ) {
-        toast.error(t('Well-Known URL must start with http:// or https://'))
+        setActiveTab('oidc')
+        form.setError('oidc.well_known', {
+          type: 'validate',
+          message: t('Well-Known URL must start with http:// or https://'),
+        })
         return
       }
 
@@ -311,6 +319,7 @@ export function OAuthSection(props: OAuthSectionProps) {
           ...values,
           oidc: {
             ...values.oidc,
+            well_known: wellKnown,
             authorization_endpoint: authEndpoint,
             token_endpoint: tokenEndpoint,
             user_info_endpoint: userInfoEndpoint,
@@ -371,7 +380,7 @@ export function OAuthSection(props: OAuthSectionProps) {
             <SettingsPageFormActions
               onSave={form.handleSubmit(onSubmit)}
               onReset={handleReset}
-              isSaving={updateOption.isPending}
+              isSaving={form.formState.isSubmitting}
               isResetDisabled={!form.formState.isDirty}
             />
             <FormDirtyIndicator isDirty={form.formState.isDirty} />
