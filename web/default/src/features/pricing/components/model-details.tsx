@@ -112,6 +112,7 @@ const CAPABILITY_LABEL_KEYS: Record<ModelCapability, string> = {
 }
 
 const MODALITY_LABEL_KEYS: Record<string, string> = {
+  decisions: 'Decisions',
   text: 'Text',
   image: 'Image',
   audio: 'Audio',

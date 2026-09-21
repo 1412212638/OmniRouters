@@ -2964,3 +2964,18 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: synchronous native response behavior and model mapping.
 - Validation: JavaScript syntax check and `git diff --check`.
 - Commit/push: pending.
+# 2026-09-22 - Decisions output modality
+
+- Local reason: add the requested Decisions output category and supplied SVG icon.
+- Changed: default model plaza tabs, counts, filtering, card icons, detail labels, admin metadata output selection and table labels; translated Decisions in all seven supported locales.
+- Preserved: existing modalities, input choices, pricing, billing, database storage and classic frontend.
+- Validation: default frontend production build, seven locale JSON/key checks and git diff --check passed; browser interaction not tested. No backend changes.
+- Commit/push: pending.
+
+## 2026-09-22 - Recognize zero base prices as free on model cards
+
+- Local reason: zero input/output prices did not show the free badge unless the group multiplier was also zero.
+- Changed: share free classification between card badges, green prices and the free/discount filters; recognize explicit zero token/request pricing while excluding dynamic-expression and Sora placeholders.
+- Preserved: quota calculations, settlement, group selection and existing discount styling; no backend changes.
+- Validation: eight targeted free-pricing regression cases and frontend production build passed; browser interaction not tested.
+- Commit/push: pending; bundled with Decisions output modality.

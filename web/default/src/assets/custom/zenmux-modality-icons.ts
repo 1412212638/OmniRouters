@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { type ComponentType, type SVGProps } from 'react'
 import {
   ZenMuxAudioIcon,
+  ZenMuxDecisionsIcon,
   ZenMuxEmbeddingIcon,
   ZenMuxFileIcon,
   ZenMuxImageIcon,
@@ -41,6 +42,7 @@ export const ZENMUX_MODALITY_ICONS = {
   rerank: ZenMuxRerankIcon,
   speech: ZenMuxSpeechIcon,
   transcription: ZenMuxTranscriptionIcon,
+  decisions: ZenMuxDecisionsIcon,
 } satisfies Record<string, ZenMuxIconComponent>
 
 export function getZenMuxModalityIcon(

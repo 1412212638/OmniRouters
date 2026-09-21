@@ -31,6 +31,7 @@ const MODEL_MODALITY_LABELS = {
   rerank: 'Rerank',
   speech: 'Speech',
   transcription: 'Transcription',
+  decisions: 'Decisions',
 } satisfies Record<ModelModality, string>
 
 function normalizeModalities(

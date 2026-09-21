@@ -108,6 +108,7 @@ export type Modality =
   | 'rerank'
   | 'speech'
   | 'transcription'
+  | 'decisions'
 
 /** Functional capabilities a model exposes. */
 export type ModelCapability =

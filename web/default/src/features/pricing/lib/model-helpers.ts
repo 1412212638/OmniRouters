@@ -116,3 +116,15 @@ export function replaceModelInPath(path: string, modelName: string): string {
 export function isTokenBasedModel(model: PricingModel): boolean {
   return model.quota_type === QUOTA_TYPE_VALUES.TOKEN
 }
+
+export function isFreePricingModel(model: PricingModel, displayRatio: number): boolean {
+  if (displayRatio === 0) return true
+  // Dynamic pricing can use zero placeholders for otherwise paid requests.
+  if (model.billing_mode === 'tiered_expr' || model.billing_expr?.trim() ||
+      model.sora_per_request_pricing?.enabled) return false
+  if (isTokenBasedModel(model)) {
+    return model.model_ratio === 0 &&
+      Number.isFinite(model.completion_ratio) && model.completion_ratio >= 0
+  }
+  return model.quota_type === QUOTA_TYPE_VALUES.REQUEST && model.model_price === 0
+}

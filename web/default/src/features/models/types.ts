@@ -32,6 +32,7 @@ export const MODEL_MODALITIES = [
   'rerank',
   'speech',
   'transcription',
+  'decisions',
 ] as const
 
 export type ModelModality = (typeof MODEL_MODALITIES)[number]

@@ -84,6 +84,7 @@ import {
 import {
   getAvailableGroups,
   getDisplayGroupRatio,
+  isFreePricingModel,
   isTokenBasedModel,
 } from './lib/model-helpers'
 import {
@@ -159,6 +160,7 @@ const MODALITY_OPTIONS: ModalityOption[] = [
     label: 'Transcription',
     icon: ZENMUX_MODALITY_ICONS.transcription,
   },
+  { value: 'decisions', label: 'Decisions', icon: ZENMUX_MODALITY_ICONS.decisions },
 ]
 
 const MODALITY_VALUES = MODALITY_OPTIONS.map((option) => option.value)
@@ -938,8 +940,8 @@ function CatalogModelCard(props: {
     props.selectedGroup,
     props.usableGroup
   )
-  const hasDiscount = displayGroupRatio >= 0 && displayGroupRatio < 1
-  const isFree = displayGroupRatio === 0
+  const isFree = isFreePricingModel(props.model, displayGroupRatio)
+  const hasDiscount = isFree || (displayGroupRatio >= 0 && displayGroupRatio < 1)
   const discountFold = Number((displayGroupRatio * 10).toFixed(1))
   const discountPercent = Number(((1 - displayGroupRatio) * 100).toFixed(1))
 
@@ -1342,10 +1344,11 @@ function CatalogPricing() {
           groupFilter,
           usableGroup
         )
-        if (priceFilter === 'free' && displayRatio !== 0) return false
+        const isFree = isFreePricingModel(model, displayRatio)
+        if (priceFilter === 'free' && !isFree) return false
         if (
           priceFilter === 'discount' &&
-          !(displayRatio > 0 && displayRatio < 1)
+          (isFree || !(displayRatio > 0 && displayRatio < 1))
         ) {
           return false
         }

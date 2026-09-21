@@ -211,6 +211,12 @@ const MODEL_MODALITY_OPTIONS: Array<{
     description: 'Speech to text transcription',
     icon: ZENMUX_MODALITY_ICONS.transcription,
   },
+  {
+    value: 'decisions',
+    label: 'Decisions',
+    description: 'Decisions',
+    icon: ZENMUX_MODALITY_ICONS.decisions,
+  },
 ]
 
 function normalizeSelectedModalities(
@@ -1042,6 +1048,7 @@ export function ModelMutateDrawer({
                         >
                           {MODEL_MODALITY_OPTIONS.map((option) => {
                             const id = `model-input-${option.value}`
+                            if (option.value === 'decisions') return null
                             const Icon = option.icon
                             return (
                               <Field
