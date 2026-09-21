@@ -18,7 +18,8 @@
 - Deferred: upstream OpenAI image protocol activation (`03563a4a7`) remains a separate batch because this host still needs image protocol registration, multipart indexed file references, synchronous polling, artifact handling and image quantity billing. No image protocol route is advertised by this batch.
 - Preserved: quota saturation and billing settlement safeguards, task retry/disconnect semantics, cross-database behavior, protected project identifiers and unrelated user worktree files. No database migration is required; bindings remain in channel setting JSON.
 - Validation: `git diff --check` passed. Go tests, compilation and `gofmt` could not run because no Go toolchain is installed locally. The repository's local `oxfmt`/`oxlint` binaries were unavailable, so targeted frontend format/lint could not run; frontend source was checked by static inspection. CI compilation and frontend checks remain required.
-- Commit/push: pending source commit and remote verification.
+- Source commit: `1b15466ba` (`feat(channel): bind multiple task plugins to new api`). Pushed to `origin/main` and verified by the successful push command.
+- GitHub Actions compilation and frontend checks remain pending; local Go tests and targeted formatter/linter binaries were unavailable.
 
 ## 2026-09-18 - Free-form context and output capacity labels
 
