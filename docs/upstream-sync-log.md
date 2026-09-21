@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-21 - Task plugin capability-aware video pricing
+
+- Upstream reference: 65d3a2171.
+- Integrated: Doubao Seedance and Alibaba Wan task plugins now derive usage schemas and pricing profiles from each model's supported resolutions and audio/reference-video capabilities. Unsupported resolutions are rejected before submission; omitted resolutions use the profile's highest supported tier; completion usage ignores out-of-profile values. Audio facts are included for the supported Seedance/Wan models.
+- Deliberately preserved: local plugin routing, image handling, quota validation/saturation, billing settlement, and protected project identifiers. Upstream test additions were not copied because the Alibaba test path is already an untracked local file and frontend pricing files use a different local architecture.
+- Validation: `git diff --check`; JavaScript tests were not run because the required task-plugin runtime/toolchain is unavailable locally.
+- Commit/push: pending.
+
 ## 2026-09-18 - Free-form context and output capacity labels
 
 - User request: accept and preserve text such as 1.05M, 1M, 128K, 128.00K.
