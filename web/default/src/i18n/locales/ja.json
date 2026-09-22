@@ -5577,6 +5577,8 @@
     "Installing...": "インストール中…",
     "Upgrade and enable": "アップグレードして有効化",
     "Upgrade {{name}}": "{{name}} をアップグレード",
+    "Single-plugin update": "プラグイン単体の更新",
+    "This updates only {{name}}. The marketplace source will replace its active source code; channels and credentials stay unchanged, and the previous version remains available for rollback.": "{{name}} のみを更新します。マーケットプレイスのソースが現在のソースを置き換えますが、チャネルと認証情報は変更されず、以前のバージョンへ戻すこともできます。",
     "Install {{name}}": "{{name}} をインストール",
     "{{key}} · version {{version}} · from {{source}}": "{{key}} · バージョン {{version}} · 提供元 {{source}}",
     "This source does not publish a sha256 for this version, so the downloaded source cannot be pinned to what the source intended.": "このソースはこのバージョンの sha256 を公開していないため、ダウンロードしたソースがソース側の意図した内容と一致するか確認できません。",

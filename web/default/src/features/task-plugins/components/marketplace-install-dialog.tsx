@@ -187,6 +187,19 @@ export function MarketplaceInstallDialog(props: MarketplaceInstallDialogProps) {
           </AlertDescription>
         </Alert>
 
+        {isUpgrade && (
+          <Alert>
+            <AlertTriangle />
+            <AlertTitle>{t('Single-plugin update')}</AlertTitle>
+            <AlertDescription>
+              {t(
+                'This updates only {{name}}. The marketplace source will replace its active source code; channels and credentials stay unchanged, and the previous version remains available for rollback.',
+                { name: target.plugin.name }
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
         <MarketplaceCapabilities plugin={target.plugin} version={entry} />
 
         {!entry?.sha256 && (
@@ -323,4 +336,3 @@ export function MarketplaceInstallDialog(props: MarketplaceInstallDialogProps) {
     </Dialog>
   )
 }
-

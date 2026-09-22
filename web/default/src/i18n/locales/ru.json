@@ -5577,6 +5577,8 @@
     "Installing...": "Установка…",
     "Upgrade and enable": "Обновить и включить",
     "Upgrade {{name}}": "Обновление {{name}}",
+    "Single-plugin update": "Обновление одного плагина",
+    "This updates only {{name}}. The marketplace source will replace its active source code; channels and credentials stay unchanged, and the previous version remains available for rollback.": "Будет обновлён только {{name}}. Код из магазина заменит активный код; каналы и учётные данные не изменятся, а предыдущая версия останется доступной для отката.",
     "Install {{name}}": "Установка {{name}}",
     "{{key}} · version {{version}} · from {{source}}": "{{key}} · версия {{version}} · из {{source}}",
     "This source does not publish a sha256 for this version, so the downloaded source cannot be pinned to what the source intended.": "Источник не публикует sha256 для этой версии, поэтому нельзя убедиться, что загруженный код совпадает с опубликованным.",

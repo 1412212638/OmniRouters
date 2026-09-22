@@ -5578,6 +5578,8 @@
     "Installing...": "Đang cài đặt…",
     "Upgrade and enable": "Nâng cấp và bật",
     "Upgrade {{name}}": "Nâng cấp {{name}}",
+    "Single-plugin update": "Cập nhật riêng một plugin",
+    "This updates only {{name}}. The marketplace source will replace its active source code; channels and credentials stay unchanged, and the previous version remains available for rollback.": "Thao tác này chỉ cập nhật {{name}}. Mã nguồn từ chợ plugin sẽ thay thế mã nguồn đang hoạt động; kênh và thông tin xác thực không thay đổi, đồng thời phiên bản trước vẫn có thể dùng để khôi phục.",
     "Install {{name}}": "Cài đặt {{name}}",
     "{{key}} · version {{version}} · from {{source}}": "{{key}} · phiên bản {{version}} · từ {{source}}",
     "This source does not publish a sha256 for this version, so the downloaded source cannot be pinned to what the source intended.": "Nguồn này không công bố sha256 cho phiên bản đó, nên không thể xác nhận mã nguồn đã tải đúng với nội dung nguồn phát hành.",

@@ -5595,6 +5595,8 @@
     "Installing...": "Installing...",
     "Upgrade and enable": "Upgrade and enable",
     "Upgrade {{name}}": "Upgrade {{name}}",
+    "Single-plugin update": "Single-plugin update",
+    "This updates only {{name}}. The marketplace source will replace its active source code; channels and credentials stay unchanged, and the previous version remains available for rollback.": "This updates only {{name}}. The marketplace source will replace its active source code; channels and credentials stay unchanged, and the previous version remains available for rollback.",
     "Install {{name}}": "Install {{name}}",
     "{{key}} · version {{version}} · from {{source}}": "{{key}} · version {{version}} · from {{source}}",
     "This source does not publish a sha256 for this version, so the downloaded source cannot be pinned to what the source intended.": "This source does not publish a sha256 for this version, so the downloaded source cannot be pinned to what the source intended.",

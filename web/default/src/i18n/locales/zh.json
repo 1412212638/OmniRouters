@@ -5595,6 +5595,8 @@
     "Installing...": "正在安装…",
     "Upgrade and enable": "升级并启用",
     "Upgrade {{name}}": "升级 {{name}}",
+    "Single-plugin update": "单插件更新",
+    "This updates only {{name}}. The marketplace source will replace its active source code; channels and credentials stay unchanged, and the previous version remains available for rollback.": "此次只更新 {{name}}。市场源码将替换其当前生效源码；渠道和凭据保持不变，旧版本仍可用于回滚。",
     "Install {{name}}": "安装 {{name}}",
     "{{key}} · version {{version}} · from {{source}}": "{{key}} · 版本 {{version}} · 来自 {{source}}",
     "This source does not publish a sha256 for this version, so the downloaded source cannot be pinned to what the source intended.": "该源未为此版本提供 sha256，因此无法确认下载到的源码与该源所发布的内容一致。",

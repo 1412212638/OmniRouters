@@ -32,7 +32,6 @@ import { resolveLocalizedText } from '@/lib/localized-text'
 import {
   findMarketplaceVersion,
   marketplaceBuiltInVersion,
-  resolveMarketplaceActionPolicy,
   type InstallState,
 } from '../lib/marketplace'
 import type { MarketplacePlugin, TaskPluginListItem } from '../types'
@@ -52,7 +51,6 @@ export function MarketplacePluginCard(props: MarketplacePluginCardProps) {
   const channelTypes = plugin.channelTypes ?? []
   const latestEntry = findMarketplaceVersion(plugin, plugin.latest)
   const labelClass = 'text-muted-foreground text-[11px] font-medium select-none'
-  const actionPolicy = resolveMarketplaceActionPolicy(props.installed)
   const builtInVersion = marketplaceBuiltInVersion(props.installed)
 
   return (
@@ -117,21 +115,17 @@ export function MarketplacePluginCard(props: MarketplacePluginCardProps) {
       )}
 
       <div className='mt-auto border-t pt-2'>
-        {actionPolicy.kind === 'system_update' ? (
-          <Badge variant='secondary'>{t('Updates with the system')}</Badge>
-        ) : (
-          <Button
-            size='sm'
-            variant={
-              props.installState.status === 'up_to_date' ? 'outline' : 'default'
-            }
-            className='w-full'
-            onClick={props.onInstall}
-          >
-            <Download />
-            {getActionLabel(props.installState, t)}
-          </Button>
-        )}
+        <Button
+          size='sm'
+          variant={
+            props.installState.status === 'up_to_date' ? 'outline' : 'default'
+          }
+          className='w-full'
+          onClick={props.onInstall}
+        >
+          <Download />
+          {getActionLabel(props.installState, t)}
+        </Button>
       </div>
     </div>
   )
@@ -182,4 +176,3 @@ function getActionLabel(
   if (state.status === 'up_to_date') return t('Reinstall latest')
   return t('Review and upgrade')
 }
-

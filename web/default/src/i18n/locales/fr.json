@@ -5577,6 +5577,8 @@
     "Installing...": "Installation…",
     "Upgrade and enable": "Mettre à jour et activer",
     "Upgrade {{name}}": "Mettre à jour {{name}}",
+    "Single-plugin update": "Mise à jour d’un seul plugin",
+    "This updates only {{name}}. The marketplace source will replace its active source code; channels and credentials stay unchanged, and the previous version remains available for rollback.": "Cette action met uniquement à jour {{name}}. Le code source du marché remplacera le code actif ; les canaux et identifiants restent inchangés et la version précédente demeure disponible pour revenir en arrière.",
     "Install {{name}}": "Installer {{name}}",
     "{{key}} · version {{version}} · from {{source}}": "{{key}} · version {{version}} · depuis {{source}}",
     "This source does not publish a sha256 for this version, so the downloaded source cannot be pinned to what the source intended.": "Cette source ne publie pas de sha256 pour cette version : impossible de garantir que le code téléchargé est bien celui qu’elle a publié.",

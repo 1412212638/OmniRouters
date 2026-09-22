@@ -2979,3 +2979,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: quota calculations, settlement, group selection and existing discount styling; no backend changes.
 - Validation: eight targeted free-pricing regression cases and frontend production build passed; browser interaction not tested.
 - Commit/push: bundled with Decisions output modality in e6c9bd49e; verified GitHub origin/main matches this commit via git ls-remote. Push reported a concurrent ref update after the remote had reached the target commit.
+## 2026-09-22 - Add explicit per-plugin marketplace updates
+
+- Local reason: built-in marketplace cards only showed a non-interactive "Updates with the system" badge, while this fork intentionally keeps gateway and customized plugin updates independent.
+- Integrated: every marketplace card now exposes its own install, review-and-upgrade, or reinstall action. The existing source/diff review flow updates only the selected plugin, retains previous database versions for rollback, and states that channels and credentials remain unchanged while active plugin source is replaced.
+- Preserved: integrity verification, conflict preflight, version history, factory fallback, channel configuration, and all other plugins remain untouched by a single-plugin action.
+- Validation: targeted oxlint, production build, locale JSON parsing, and `git diff --check` passed. Full typecheck remains blocked by pre-existing missing test dependencies and unrelated pricing, wallet, system-settings, and task-plugin type errors; none point to the files changed here.
+- Commit/push: pending.
