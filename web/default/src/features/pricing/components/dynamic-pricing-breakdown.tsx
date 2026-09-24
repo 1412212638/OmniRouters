@@ -354,11 +354,14 @@ export function DynamicPricingBreakdown({
                           >
                             {value > 0
                               ? v.kind === 'request'
-                                ? `${formatBillingCurrencyFromUSD(value / 1_000_000, {
-                                    digitsLarge: 4,
-                                    digitsSmall: 6,
-                                    abbreviate: false,
-                                  })}/${t('request')}`
+                                ? `${formatBillingCurrencyFromUSD(
+                                    value / 1_000_000,
+                                    {
+                                      digitsLarge: 4,
+                                      digitsSmall: 6,
+                                      abbreviate: false,
+                                    }
+                                  )}/${t('request')}`
                                 : `${symbol}${(value * rate).toFixed(4)}`
                               : '-'}
                           </div>

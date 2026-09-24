@@ -1,30 +1,14 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import { memo, useState } from 'react'
 import { ExternalLink, Megaphone } from 'lucide-react'
+import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+
 import { RichContent } from '@/components/rich-content'
-import { getAnnouncementColorClass } from '@/lib/colors'
-import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useAnnouncements } from '@/features/dashboard/hooks/use-status-data'
 import type { AnnouncementItem } from '@/features/dashboard/types'
+import { getAnnouncementColorClass } from '@/lib/colors'
+import { cn } from '@/lib/utils'
+
 import { PanelWrapper } from '../ui/panel-wrapper'
 import { AnnouncementDetailModal } from './announcement-detail-dialog'
 
@@ -93,8 +77,8 @@ export function AnnouncementsPanel() {
                     </time>
                   )}
                 </div>
-                <div className='relative flex min-w-0 flex-1 gap-4 border-l border-dashed border-border/70 pl-5'>
-                  <span className='bg-background absolute -left-[5px] top-1.5 size-2.5 rounded-full border-2 border-primary' />
+                <div className='border-border/70 relative flex min-w-0 flex-1 gap-4 border-l border-dashed pl-5'>
+                  <span className='bg-background border-primary absolute top-1.5 -left-[5px] size-2.5 rounded-full border-2' />
                   <div className='min-w-0 flex-1'>
                     <div className='mb-1 flex items-start gap-2'>
                       <AnnouncementStatusDot type={item.type} />

@@ -1,37 +1,21 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { ArrowRight, Flame, ShieldCheck, TrendingDown } from 'lucide-react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useAuthStore } from '@/stores/auth-store'
+
+import { StaggerContainer, StaggerItem } from '@/components/page-transition'
+import { Button } from '@/components/ui/button'
+import { getUserQuotaDates } from '@/features/dashboard/api'
+import { useSummaryCardsConfig } from '@/features/dashboard/hooks/use-dashboard-config'
+import type { QuotaDataItem } from '@/features/dashboard/types'
+import { useStatus } from '@/hooks/use-status'
 import { getCurrencyLabel, isCurrencyDisplayEnabled } from '@/lib/currency'
 import { formatNumber, formatQuota } from '@/lib/format'
 import { computeTimeRange } from '@/lib/time'
 import { cn } from '@/lib/utils'
-import { useStatus } from '@/hooks/use-status'
-import { Button } from '@/components/ui/button'
-import { StaggerContainer, StaggerItem } from '@/components/page-transition'
-import { getUserQuotaDates } from '@/features/dashboard/api'
-import { useSummaryCardsConfig } from '@/features/dashboard/hooks/use-dashboard-config'
-import type { QuotaDataItem } from '@/features/dashboard/types'
+import { useAuthStore } from '@/stores/auth-store'
+
 import { StatCard } from '../ui/stat-card'
 
 const SUMMARY_SPARKLINE_BUCKETS = 12

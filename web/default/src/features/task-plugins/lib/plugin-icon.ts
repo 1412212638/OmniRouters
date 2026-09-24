@@ -1,21 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import { getChannelTypeIcon } from '@/features/channels/lib/channel-utils'
 
 export type PluginIconDescriptor =
@@ -38,7 +20,9 @@ export type PluginIconInput = {
  * plugin without any logo still gets a stable, branded-looking mark instead of
  * a generic placeholder.
  */
-export function resolvePluginIcon(input: PluginIconInput): PluginIconDescriptor {
+export function resolvePluginIcon(
+  input: PluginIconInput
+): PluginIconDescriptor {
   const icon = input.icon?.trim()
   if (icon) {
     if (icon === 'text' || icon.startsWith('text:')) {
@@ -53,7 +37,10 @@ export function resolvePluginIcon(input: PluginIconInput): PluginIconDescriptor 
   }
   const channelTypes = input.channelTypes
   if (channelTypes != null && channelTypes.length > 0) {
-    return { kind: 'lobe', name: `${getChannelTypeIcon(channelTypes[0])}.Color` }
+    return {
+      kind: 'lobe',
+      name: `${getChannelTypeIcon(channelTypes[0])}.Color`,
+    }
   }
   return { kind: 'text', label: deriveTextLabel(input), colorSeed: input.key }
 }
@@ -85,4 +72,3 @@ export function textAvatarClass(colorSeed: string): string {
   }
   return TEXT_AVATAR_PALETTE[Math.abs(hash) % TEXT_AVATAR_PALETTE.length]
 }
-

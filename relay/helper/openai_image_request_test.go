@@ -206,6 +206,13 @@ func TestGetAndValidOpenAIImageRequestNBounds(t *testing.T) {
 		},
 	}
 
+	t.Run("Gemini generateContent image models reject multiple candidates", func(t *testing.T) {
+		c := newJSONContext(t, `{"model":"gemini-3.1-flash-lite-image","prompt":"a cat","n":2}`)
+		_, err := GetAndValidOpenAIImageRequest(c, relayconstant.RelayModeImagesGenerations)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "support one candidate")
+	})
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := newJSONContext(t, tt.body)

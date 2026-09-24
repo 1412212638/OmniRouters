@@ -1,24 +1,7 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+
 import {
   Form,
   FormControl,
@@ -27,6 +10,7 @@ import {
   FormLabel,
 } from '@/components/ui/form'
 import { Switch } from '@/components/ui/switch'
+
 import {
   SettingsControlChildren,
   SettingsForm,
@@ -51,7 +35,9 @@ type SidebarModulesSectionProps = {
 type SidebarFormValues = SidebarModulesAdminConfig
 
 const toTitleCase = (value: string) =>
-  value.replaceAll(/[_-]+/g, ' ').replaceAll(/\b\w/g, (char) => char.toUpperCase())
+  value
+    .replaceAll(/[_-]+/g, ' ')
+    .replaceAll(/\b\w/g, (char) => char.toUpperCase())
 
 export function SidebarModulesSection({
   config,
@@ -62,8 +48,8 @@ export function SidebarModulesSection({
 
   const sectionMeta: Record<string, { title: string; description: string }> = {
     chat: {
-      title: t('Chat area'),
-      description: t('Playground experiments and live conversations.'),
+      title: t('Studio area'),
+      description: t('Chat, image creation, and chat app shortcuts.'),
     },
     console: {
       title: t('Console area'),
@@ -85,12 +71,16 @@ export function SidebarModulesSection({
   > = {
     chat: {
       playground: {
-        title: t('Playground'),
-        description: t('Experiment with prompts and models in real time.'),
+        title: t('Chat'),
+        description: t('Chat with configured models in real time.'),
+      },
+      image: {
+        title: t('Image'),
+        description: t('Generate images with configured image models.'),
       },
       chat: {
-        title: t('Chat'),
-        description: t('Access previous conversations and start new ones.'),
+        title: t('Chat Apps'),
+        description: t('Open configured web and external chat applications.'),
       },
     },
     console: {

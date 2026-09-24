@@ -33,10 +33,10 @@ import { SettingsSection } from '../components/settings-section'
 import { useUpdateOption } from '../hooks/use-update-option'
 import { positiveIntegerSchema } from '../utils/numeric-field'
 import { GroupRatioForm } from './group-ratio-form'
+import { adaptModelPricingSnapshot } from './model-pricing-adapter'
 import { ModelRatioForm } from './model-ratio-form'
 import { ToolPriceSettings } from './tool-price-settings'
 import { UpstreamRatioSync } from './upstream-ratio-sync'
-import { adaptModelPricingSnapshot } from './model-pricing-adapter'
 import {
   formatJsonForTextarea,
   type JsonValidationError,
@@ -236,7 +236,9 @@ export function RatioSettingsCard({
     ),
     GroupModelRatio: normalizeJsonString(groupDefaults.GroupModelRatio),
     GroupModelUserRatio: normalizeJsonString(groupDefaults.GroupModelUserRatio),
-    GroupModelRatioExpiry: normalizeJsonString(groupDefaults.GroupModelRatioExpiry),
+    GroupModelRatioExpiry: normalizeJsonString(
+      groupDefaults.GroupModelRatioExpiry
+    ),
   })
   const modelSchema = useMemo(() => createModelSchema(t), [t])
   const groupSchema = useMemo(() => createGroupSchema(t), [t])
@@ -417,7 +419,9 @@ export function RatioSettingsCard({
 
       // Read back the server snapshot so the editor reflects persisted data,
       // rather than assuming every successful response was durable.
-      await queryClient.invalidateQueries({ queryKey: ['model-pricing-snapshot'] })
+      await queryClient.invalidateQueries({
+        queryKey: ['model-pricing-snapshot'],
+      })
       await queryClient.refetchQueries({ queryKey: ['model-pricing-snapshot'] })
 
       modelNormalizedDefaults.current = normalized
@@ -441,7 +445,9 @@ export function RatioSettingsCard({
         ),
         GroupModelRatio: normalizeJsonString(values.GroupModelRatio),
         GroupModelUserRatio: normalizeJsonString(values.GroupModelUserRatio),
-        GroupModelRatioExpiry: normalizeJsonString(values.GroupModelRatioExpiry),
+        GroupModelRatioExpiry: normalizeJsonString(
+          values.GroupModelRatioExpiry
+        ),
       }
 
       // Map form field names to API keys (most are 1:1, except GroupSpecialUsableGroup)
@@ -538,7 +544,8 @@ export function RatioSettingsCard({
           AudioCompletionRatio: modelDefaults.AudioCompletionRatio,
           'billing_setting.billing_mode': modelDefaults.BillingMode,
           'billing_setting.billing_expr': modelDefaults.BillingExpr,
-          'billing_setting.plugin_billing_expr': modelDefaults.PluginBillingExpr,
+          'billing_setting.plugin_billing_expr':
+            modelDefaults.PluginBillingExpr,
           'billing_setting.sora_per_request_pricing':
             modelDefaults.SoraPerRequestPricing,
         }}

@@ -1,31 +1,9 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import { useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { User, Wallet, LogOut, Settings } from 'lucide-react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useAuthStore } from '@/stores/auth-store'
-import { getUserAvatarFallback, getUserAvatarStyle } from '@/lib/avatar'
-import { ROLE } from '@/lib/roles'
-import useDialogState from '@/hooks/use-dialog'
-import { useIsSidebarModuleVisible } from '@/hooks/use-sidebar-config'
-import { useUserDisplay } from '@/hooks/use-user-display'
+
+import { SignOutDialog } from '@/components/sign-out-dialog'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,7 +13,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { SignOutDialog } from '@/components/sign-out-dialog'
+import useDialogState from '@/hooks/use-dialog'
+import { useIsSidebarModuleVisible } from '@/hooks/use-sidebar-config'
+import { useUserDisplay } from '@/hooks/use-user-display'
+import { getUserAvatarFallback, getUserAvatarStyle } from '@/lib/avatar'
+import { ROLE } from '@/lib/roles'
+import { useAuthStore } from '@/stores/auth-store'
 
 const avatarFallbackClassName = 'font-semibold text-white'
 

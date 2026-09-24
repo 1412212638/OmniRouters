@@ -1,28 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type FormEvent,
-  type ReactNode,
-} from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   CheckCircle2,
@@ -42,14 +17,18 @@ import {
   Ticket as TicketIcon,
   UserRound,
 } from 'lucide-react'
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { useAuthStore } from '@/stores/auth-store'
-import dayjs from '@/lib/dayjs'
-import { formatTimestamp } from '@/lib/format'
-import { cn } from '@/lib/utils'
-import { SectionPageLayout } from '@/components/layout'
+
 import { EmptyState } from '@/components/empty-state'
+import { SectionPageLayout } from '@/components/layout'
 import { StatusBadge } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -61,19 +40,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from '@/components/ui/native-select'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  TICKET_CATEGORIES,
-  TICKET_PRIORITIES,
-  TICKET_STATUSES,
-  getTicketCategoryLabel,
-  getTicketPriorityMeta,
-  getTicketStatusMeta,
-} from './constants'
+import dayjs from '@/lib/dayjs'
+import { formatTimestamp } from '@/lib/format'
+import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/stores/auth-store'
+
 import {
   assignTicket,
   closeTicket,
@@ -84,6 +57,14 @@ import {
   sendTicketMessage,
   updateTicketStatus,
 } from './api'
+import {
+  TICKET_CATEGORIES,
+  TICKET_PRIORITIES,
+  TICKET_STATUSES,
+  getTicketCategoryLabel,
+  getTicketPriorityMeta,
+  getTicketStatusMeta,
+} from './constants'
 import type { CreateTicketPayload, Ticket, TicketMessage } from './types'
 
 type TicketsPageProps = {
@@ -416,9 +397,7 @@ function TicketMessageItem({ message }: { message: TicketMessage }) {
 
       <div className='min-w-0'>
         <div className='flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1'>
-          <span className='truncate text-sm font-semibold'>
-            {senderLabel}
-          </span>
+          <span className='truncate text-sm font-semibold'>{senderLabel}</span>
           <span className='text-muted-foreground text-xs'>
             {formatTimestamp(message.created_at)}
           </span>
@@ -428,7 +407,7 @@ function TicketMessageItem({ message }: { message: TicketMessage }) {
             </span>
           )}
         </div>
-        <div className='mt-2 whitespace-pre-wrap break-words text-sm leading-6'>
+        <div className='mt-2 text-sm leading-6 break-words whitespace-pre-wrap'>
           {message.content}
         </div>
       </div>
@@ -436,13 +415,7 @@ function TicketMessageItem({ message }: { message: TicketMessage }) {
   )
 }
 
-function DetailField({
-  label,
-  value,
-}: {
-  label: string
-  value: ReactNode
-}) {
+function DetailField({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className='grid gap-1'>
       <dt className='text-muted-foreground text-xs'>{label}</dt>
@@ -462,7 +435,7 @@ function TicketProperties({
   const closeReasonLabel = getTicketCloseReasonLabel(ticket.close_reason)
 
   return (
-    <aside className='hidden w-72 shrink-0 border-l bg-muted/20 xl:block'>
+    <aside className='bg-muted/20 hidden w-72 shrink-0 border-l xl:block'>
       <div className='border-b px-4 py-3'>
         <h3 className='text-sm font-semibold'>{t('Ticket details')}</h3>
       </div>
@@ -546,7 +519,10 @@ function TicketReplyBox({
   }
 
   return (
-    <form onSubmit={submitReply} className='shrink-0 border-t bg-background p-3'>
+    <form
+      onSubmit={submitReply}
+      className='bg-background shrink-0 border-t p-3'
+    >
       <div className='mb-2 flex flex-wrap items-center justify-between gap-2'>
         <div className='flex items-center gap-2 text-sm font-semibold'>
           <Reply className='size-4' />
@@ -613,7 +589,7 @@ function TicketDetailPanel({
 
   if (!ticket) {
     return (
-      <div className='flex h-full min-h-0 items-center justify-center rounded-lg border bg-background'>
+      <div className='bg-background flex h-full min-h-0 items-center justify-center rounded-lg border'>
         <EmptyState
           icon={Inbox}
           title={t('No ticket selected')}
@@ -634,7 +610,7 @@ function TicketDetailPanel({
     : t('Ticket is closed')
 
   return (
-    <div className='flex h-full min-h-0 overflow-hidden rounded-lg border bg-background'>
+    <div className='bg-background flex h-full min-h-0 overflow-hidden rounded-lg border'>
       <div className='flex min-w-0 flex-1 flex-col'>
         <div className='shrink-0 border-b px-4 py-3'>
           <div className='flex flex-wrap items-start justify-between gap-3'>
@@ -645,7 +621,7 @@ function TicketDetailPanel({
                 <span>{formatTimestamp(ticket.created_at)}</span>
                 {admin && <span>{getUserLabel(ticket)}</span>}
               </div>
-              <h3 className='break-words text-base font-semibold sm:text-lg'>
+              <h3 className='text-base font-semibold break-words sm:text-lg'>
                 {ticket.title}
               </h3>
               <div className='mt-2 flex flex-wrap items-center gap-2 xl:hidden'>
@@ -716,14 +692,14 @@ function TicketDetailPanel({
         </div>
 
         {closed && (
-          <div className='text-muted-foreground flex shrink-0 flex-wrap items-center gap-2 border-b bg-muted/30 px-4 py-2 text-xs'>
+          <div className='text-muted-foreground bg-muted/30 flex shrink-0 flex-wrap items-center gap-2 border-b px-4 py-2 text-xs'>
             <Lock className='size-3.5' />
             <span>{closedNotice}</span>
           </div>
         )}
 
-        <div className='min-h-0 flex-1 overflow-hidden bg-muted/20 p-3 sm:p-4'>
-          <div className='flex h-full min-h-0 w-full flex-col overflow-hidden rounded-lg border bg-background shadow-sm'>
+        <div className='bg-muted/20 min-h-0 flex-1 overflow-hidden p-3 sm:p-4'>
+          <div className='bg-background flex h-full min-h-0 w-full flex-col overflow-hidden rounded-lg border shadow-sm'>
             <div className='flex shrink-0 flex-wrap items-center justify-between gap-2 border-b px-4 py-3'>
               <div className='flex items-center gap-2 text-sm font-semibold'>
                 <Mail className='size-4' />
@@ -947,7 +923,7 @@ export function TicketsPage({ admin = false }: TicketsPageProps) {
         </SectionPageLayout.Actions>
         <SectionPageLayout.Content>
           <div className='grid h-[calc(100vh-8.5rem)] min-h-[640px] gap-3 xl:grid-cols-[360px_minmax(0,1fr)]'>
-            <div className='flex min-h-0 flex-col overflow-hidden rounded-lg border bg-background'>
+            <div className='bg-background flex min-h-0 flex-col overflow-hidden rounded-lg border'>
               <div className='shrink-0 border-b px-3.5 py-3'>
                 <div className='mb-3 flex items-center justify-between gap-3'>
                   <div className='min-w-0'>
@@ -1124,7 +1100,10 @@ export function TicketsPage({ admin = false }: TicketsPageProps) {
               }}
               onAssignToMe={() => {
                 if (!selectedId || !currentUserId) return
-                assignMutation.mutate({ id: selectedId, adminId: currentUserId })
+                assignMutation.mutate({
+                  id: selectedId,
+                  adminId: currentUserId,
+                })
               }}
               onClose={() => {
                 if (!selectedId) return

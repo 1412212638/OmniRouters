@@ -1,4 +1,5 @@
-﻿/*
+﻿import { zodResolver } from '@hookform/resolvers/zod'
+/*
 Copyright (C) 2023-2026 QuantumNous
 
 This program is free software: you can redistribute it and/or modify
@@ -17,10 +18,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useEffect } from 'react'
-import * as z from 'zod'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
+import * as z from 'zod'
+
+import { Dialog } from '@/components/dialog'
+import { ReactIconByName } from '@/components/react-icon-by-name'
 import { Button } from '@/components/ui/button'
 import { Combobox } from '@/components/ui/combobox'
 import {
@@ -33,8 +36,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Dialog } from '@/components/dialog'
-import { ReactIconByName } from '@/components/react-icon-by-name'
 
 const createPaymentMethodDialogSchema = (t: (key: string) => string) =>
   z.object({
@@ -42,12 +43,16 @@ const createPaymentMethodDialogSchema = (t: (key: string) => string) =>
     type: z.string().min(1, t('Payment type key is required')),
     icon: z.string().optional(),
     min_topup: z.string().optional(),
-    fee_percent: z.string().refine(
-      (value) => value.trim() === '' || (
-        Number.isFinite(Number(value)) && Number(value) >= 0 && Number(value) <= 100
+    fee_percent: z
+      .string()
+      .refine(
+        (value) =>
+          value.trim() === '' ||
+          (Number.isFinite(Number(value)) &&
+            Number(value) >= 0 &&
+            Number(value) <= 100),
+        t('Handling fee must be between 0 and 100 percent')
       ),
-      t('Handling fee must be between 0 and 100 percent')
-    ),
   })
 
 type PaymentMethodDialogFormValues = z.infer<
@@ -139,7 +144,10 @@ export function PaymentMethodDialog({
         type: editData.type,
         icon: editData.icon ?? getDefaultIconName(editData.type),
         min_topup: editData.min_topup ?? '',
-        fee_percent: editData.fee_rate == null ? '' : String(Number(editData.fee_rate) * 100),
+        fee_percent:
+          editData.fee_rate == null
+            ? ''
+            : String(Number(editData.fee_rate) * 100),
       })
     } else {
       form.reset({
@@ -315,7 +323,13 @@ export function PaymentMethodDialog({
               <FormItem>
                 <FormLabel>{t('Handling fee')} (%)</FormLabel>
                 <FormControl>
-                  <Input type='number' min={0} max={100} step='0.01' {...field} />
+                  <Input
+                    type='number'
+                    min={0}
+                    max={100}
+                    step='0.01'
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

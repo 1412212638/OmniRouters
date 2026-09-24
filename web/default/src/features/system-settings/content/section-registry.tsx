@@ -1,21 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import type { ContentSettings } from '../types'
 import { createSectionRegistry } from '../utils/section-registry'
 import { AnnouncementsSection } from './announcements-section'
@@ -24,8 +6,8 @@ import { ChatSettingsSection } from './chat-settings-section'
 import { DashboardSection } from './dashboard-section'
 import { DrawingSettingsSection } from './drawing-settings-section'
 import { FAQSection } from './faq-section'
-import { UptimeKumaSection } from './uptime-kuma-section'
 import { ModelSquareCarouselSection } from './model-square-carousel-section'
+import { UptimeKumaSection } from './uptime-kuma-section'
 
 /**
  * Validate and coerce DataExportDefaultTime to a safe value
@@ -43,7 +25,13 @@ const CONTENT_SECTIONS = [
     id: 'notice',
     titleKey: 'Notice',
     build: (settings: ContentSettings) => (
-      <AnnouncementsSection enabled data={settings.Notice} optionKey='Notice' titleKey='Notice' showEnabled={false} />
+      <AnnouncementsSection
+        enabled
+        data={settings.Notice}
+        optionKey='Notice'
+        titleKey='Notice'
+        showEnabled={false}
+      />
     ),
   },
   {
@@ -75,7 +63,9 @@ const CONTENT_SECTIONS = [
     id: 'model-square-carousel',
     titleKey: 'Model Plaza Carousel',
     build: (settings: ContentSettings) => (
-      <ModelSquareCarouselSection data={settings['console_setting.model_square_carousel']} />
+      <ModelSquareCarouselSection
+        data={settings['console_setting.model_square_carousel']}
+      />
     ),
   },
   {

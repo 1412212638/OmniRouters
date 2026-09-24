@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/relay/channel"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relay/constant"
@@ -61,6 +62,50 @@ func (a *Adaptor) ConvertAudioRequest(c *gin.Context, info *relaycommon.RelayInf
 }
 
 func (a *Adaptor) ConvertImageRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.ImageRequest) (any, error) {
+	if common.IsGeminiGenerateContentImageModel(info.UpstreamModelName) {
+		// Gemini image models use generateContent and return image inlineData,
+		// while Imagen models below use the predict API and predictions[].
+		geminiRequest := &dto.GeminiChatRequest{
+			Contents: []dto.GeminiChatContent{{
+				Role: "user",
+				Parts: []dto.GeminiPart{{Text: request.Prompt}},
+			}},
+			GenerationConfig: dto.GeminiChatGenerationConfig{
+				ResponseModalities: []string{"TEXT", "IMAGE"},
+			},
+		}
+		imageConfig := map[string]string{}
+		size := strings.TrimSpace(request.Size)
+		if strings.Contains(size, ":") {
+			imageConfig["aspectRatio"] = size
+		}
+		switch size {
+		case "256x256", "512x512", "1024x1024":
+			imageConfig["aspectRatio"] = "1:1"
+		case "1536x1024":
+			imageConfig["aspectRatio"] = "3:2"
+		case "1024x1536":
+			imageConfig["aspectRatio"] = "2:3"
+		case "1792x1024":
+			imageConfig["aspectRatio"] = "16:9"
+		case "1024x1792":
+			imageConfig["aspectRatio"] = "9:16"
+		}
+		switch strings.ToLower(strings.TrimSpace(request.Quality)) {
+		case "high", "hd", "2k":
+			imageConfig["imageSize"] = "2K"
+		case "4k":
+			imageConfig["imageSize"] = "4K"
+		}
+		if len(imageConfig) > 0 {
+			encoded, err := common.Marshal(imageConfig)
+			if err != nil {
+				return nil, fmt.Errorf("failed to encode Gemini image config: %w", err)
+			}
+			geminiRequest.GenerationConfig.ImageConfig = encoded
+		}
+		return geminiRequest, nil
+	}
 	if !strings.HasPrefix(info.UpstreamModelName, "imagen") {
 		return nil, errors.New("not supported model for image generation, only imagen models are supported")
 	}
@@ -272,6 +317,10 @@ func (a *Adaptor) DoResponse(c *gin.Context, resp *http.Response, info *relaycom
 		} else {
 			return GeminiTextGenerationHandler(c, info, resp)
 		}
+	}
+
+	if info.RelayMode == constant.RelayModeImagesGenerations && common.IsGeminiGenerateContentImageModel(info.UpstreamModelName) {
+		return GeminiGenerateContentImageHandler(c, info, resp)
 	}
 
 	if strings.HasPrefix(info.UpstreamModelName, "imagen") {

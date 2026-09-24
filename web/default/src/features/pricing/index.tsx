@@ -130,9 +130,10 @@ function getModelContextLength(model: PricingModel): number {
   if (!match) return 0
 
   const value = Number(match[1])
-  const multiplier = { k: 1_000, m: 1_000_000, b: 1_000_000_000 }[
-    (match[2] || '').toLowerCase()
-  ] || 1
+  const multiplier =
+    { k: 1_000, m: 1_000_000, b: 1_000_000_000 }[
+      (match[2] || '').toLowerCase()
+    ] || 1
   return Number.isFinite(value) && value > 0 ? value * multiplier : 0
 }
 
@@ -160,7 +161,11 @@ const MODALITY_OPTIONS: ModalityOption[] = [
     label: 'Transcription',
     icon: ZENMUX_MODALITY_ICONS.transcription,
   },
-  { value: 'decisions', label: 'Decisions', icon: ZENMUX_MODALITY_ICONS.decisions },
+  {
+    value: 'decisions',
+    label: 'Decisions',
+    icon: ZENMUX_MODALITY_ICONS.decisions,
+  },
 ]
 
 const MODALITY_VALUES = MODALITY_OPTIONS.map((option) => option.value)
@@ -550,13 +555,16 @@ function ContextLengthFilter(props: {
   const steps = [0, ...props.lengths]
   const max = steps.length - 1
   const selectedIndex = Math.max(0, steps.indexOf(props.value))
-  const label = (value: number) => value === 0 ? t('All') : formatCardTokens(value)
+  const label = (value: number) =>
+    value === 0 ? t('All') : formatCardTokens(value)
   const marks = [...new Set([0, Math.floor(max / 2), max])]
 
   return (
     <section className='flex flex-col gap-2'>
       <div className='flex h-6 items-center justify-between gap-2'>
-        <h2 className='text-foreground text-sm font-semibold'>{t('Context Length')}</h2>
+        <h2 className='text-foreground text-sm font-semibold'>
+          {t('Context Length')}
+        </h2>
         {props.value > 0 && (
           <Button
             type='button'
@@ -588,10 +596,21 @@ function ContextLengthFilter(props: {
         />
         <div className='text-muted-foreground relative mt-2 h-5 text-xs'>
           {marks.map((index) => (
-            <span key={index} className='absolute whitespace-nowrap' style={{
-              left: `${max ? index / max * 100 : 0}%`,
-              transform: index === 0 ? undefined : index === max ? 'translateX(-100%)' : 'translateX(-50%)',
-            }}>{label(steps[index])}</span>
+            <span
+              key={index}
+              className='absolute whitespace-nowrap'
+              style={{
+                left: `${max ? (index / max) * 100 : 0}%`,
+                transform:
+                  index === 0
+                    ? undefined
+                    : index === max
+                      ? 'translateX(-100%)'
+                      : 'translateX(-50%)',
+              }}
+            >
+              {label(steps[index])}
+            </span>
           ))}
         </div>
         {props.value > 0 && (
@@ -905,8 +924,13 @@ function usePriceRows(props: {
 
 function formatCardTokens(value?: number): string {
   if (value === undefined || !Number.isFinite(value) || value <= 0) return '-'
-  for (const [divisor, suffix] of [[1e9, 'B'], [1e6, 'M'], [1e3, 'K']] as const) {
-    if (value >= divisor) return `${Number((value / divisor).toFixed(2))}${suffix}`
+  for (const [divisor, suffix] of [
+    [1e9, 'B'],
+    [1e6, 'M'],
+    [1e3, 'K'],
+  ] as const) {
+    if (value >= divisor)
+      return `${Number((value / divisor).toFixed(2))}${suffix}`
   }
   return String(value)
 }
@@ -941,7 +965,8 @@ function CatalogModelCard(props: {
     props.usableGroup
   )
   const isFree = isFreePricingModel(props.model, displayGroupRatio)
-  const hasDiscount = isFree || (displayGroupRatio >= 0 && displayGroupRatio < 1)
+  const hasDiscount =
+    isFree || (displayGroupRatio >= 0 && displayGroupRatio < 1)
   const discountFold = Number((displayGroupRatio * 10).toFixed(1))
   const discountPercent = Number(((1 - displayGroupRatio) * 100).toFixed(1))
 
@@ -1001,33 +1026,38 @@ function CatalogModelCard(props: {
         </div>
       </div>
 
-      {props.showUsageMetrics && <div className='mt-3 flex flex-wrap items-center gap-x-3 gap-y-1'>
-        <div className='grid min-w-0 flex-1 grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)] gap-x-2 tabular-nums'>
-          <div className='flex min-w-0 flex-wrap items-baseline gap-x-1'>
-            <span className='text-foreground/85 text-lg leading-6 font-bold'>
-              {formatCardTokens(props.model.usage_tokens)}
-            </span>
-            <span className='text-muted-foreground text-xs'>{t('Model plaza token unit')}</span>
-          </div>
-          <div className='flex min-w-0 flex-wrap items-baseline gap-x-1'>
-            <span className='text-foreground/85 text-lg leading-6 font-bold'>
-              {props.perf?.cache_rate !== undefined && Number.isFinite(props.perf.cache_rate)
-                ? `${props.perf.cache_rate.toFixed(2)}%`
-                : '-'}
-            </span>
-            <span className='text-muted-foreground text-xs'>{t('Cache hit rate')}</span>
+      {props.showUsageMetrics && (
+        <div className='mt-3 flex flex-wrap items-center gap-x-3 gap-y-1'>
+          <div className='grid min-w-0 flex-1 grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)] gap-x-2 tabular-nums'>
+            <div className='flex min-w-0 flex-wrap items-baseline gap-x-1'>
+              <span className='text-foreground/85 text-lg leading-6 font-bold'>
+                {formatCardTokens(props.model.usage_tokens)}
+              </span>
+              <span className='text-muted-foreground text-xs'>
+                {t('Model plaza token unit')}
+              </span>
+            </div>
+            <div className='flex min-w-0 flex-wrap items-baseline gap-x-1'>
+              <span className='text-foreground/85 text-lg leading-6 font-bold'>
+                {props.perf?.cache_rate !== undefined &&
+                Number.isFinite(props.perf.cache_rate)
+                  ? `${props.perf.cache_rate.toFixed(2)}%`
+                  : '-'}
+              </span>
+              <span className='text-muted-foreground text-xs'>
+                {t('Cache hit rate')}
+              </span>
+            </div>
           </div>
         </div>
-      </div>}
+      )}
 
       <div className='mt-3 flex h-[22px] justify-end'>
         {hasDiscount && (
           <span
             className={cn(
               'inline-flex h-[22px] shrink-0 flex-nowrap items-center gap-1 whitespace-nowrap rounded px-2 text-[11px] font-medium',
-              isFree
-                ? 'font-bold text-white'
-                : 'text-[#8b5e00]'
+              isFree ? 'font-bold text-white' : 'text-[#8b5e00]'
             )}
             style={
               isFree
@@ -1125,8 +1155,14 @@ function CatalogModelCard(props: {
       </div>
 
       <div className='mt-2.5 grid gap-x-3 gap-y-2.5 sm:grid-cols-2'>
-        <InfoLine label={`${t('Context')}:`}>{props.model.context_length_display || formatCardTokens(props.model.context_length)}</InfoLine>
-        <InfoLine label={`${t('Max output')}:`}>{props.model.max_output_tokens_display || formatCardTokens(props.model.max_output_tokens)}</InfoLine>
+        <InfoLine label={`${t('Context')}:`}>
+          {props.model.context_length_display ||
+            formatCardTokens(props.model.context_length)}
+        </InfoLine>
+        <InfoLine label={`${t('Max output')}:`}>
+          {props.model.max_output_tokens_display ||
+            formatCardTokens(props.model.max_output_tokens)}
+        </InfoLine>
       </div>
 
       <div className='mt-auto grid gap-4 pt-5 sm:grid-cols-[minmax(0,1fr)_minmax(158px,50%)]'>
@@ -1256,14 +1292,23 @@ function CatalogPricing() {
   } = usePricingData()
 
   const contextLengths = useMemo(
-    () => [...new Set(models.map(getModelContextLength)
-      .filter((value) => Number.isFinite(value) && value > 0))]
-      .sort((a, b) => a - b),
+    () =>
+      [
+        ...new Set(
+          models
+            .map(getModelContextLength)
+            .filter((value) => Number.isFinite(value) && value > 0)
+        ),
+      ].sort((a, b) => a - b),
     [models]
   )
 
   useEffect(() => {
-    if (!isLoading && contextLengthFilter > 0 && !contextLengths.includes(contextLengthFilter)) {
+    if (
+      !isLoading &&
+      contextLengthFilter > 0 &&
+      !contextLengths.includes(contextLengthFilter)
+    ) {
       setContextLengthFilter(0)
     }
   }, [contextLengths, contextLengthFilter, isLoading])

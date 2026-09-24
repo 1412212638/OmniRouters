@@ -712,67 +712,72 @@ function VisualTierCard({
         )}
       </div>
 
-      {tier.billing_unit === 'token' && <div className='space-y-2'>
-        <div className='flex items-center justify-between gap-3'>
-          <Label className='text-sm font-semibold'>{t('Token prices')}</Label>
-          <span className='bg-muted text-muted-foreground rounded-md px-2 py-1 text-xs'>
-            {PRICE_SUFFIX}
-          </span>
-        </div>
-
-        <div className='space-y-3'>
-          <div className='flex flex-wrap gap-x-4 gap-y-2'>
-            <PriceField
-              label={t('Input price')}
-              value={inputUnitPrice}
-              onChange={(value) =>
-                handlePriceChange('input_unit_cost', priceToUnitCost(value))
-              }
-            />
-            <PriceField
-              label={t('Output price')}
-              value={outputUnitPrice}
-              onChange={(value) =>
-                handlePriceChange('output_unit_cost', priceToUnitCost(value))
-              }
-            />
+      {tier.billing_unit === 'token' && (
+        <div className='space-y-2'>
+          <div className='flex items-center justify-between gap-3'>
+            <Label className='text-sm font-semibold'>{t('Token prices')}</Label>
+            <span className='bg-muted text-muted-foreground rounded-md px-2 py-1 text-xs'>
+              {PRICE_SUFFIX}
+            </span>
           </div>
 
-          <div className='space-y-2'>
-            <div className='flex h-7 items-center'>
-              <Tabs
-                value={cacheMode}
-                onValueChange={(value) =>
-                  value !== null && handleCacheModeChange(value as CacheMode)
-                }
-              >
-                <TabsList className='h-8'>
-                  <TabsTrigger
-                    value={CACHE_MODE_GENERIC}
-                    className='px-2 text-xs'
-                  >
-                    {t('Generic cache')}
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value={CACHE_MODE_TIMED}
-                    className='px-2 text-xs'
-                  >
-                    {t('Time-sliced cache (Claude)')}
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
+          <div className='space-y-3'>
             <div className='flex flex-wrap gap-x-4 gap-y-2'>
-              {CACHE_PRICE_VARS.map((variable) => {
-                if (variable.key === 'cc1h' && cacheMode !== CACHE_MODE_TIMED) {
-                  return null
+              <PriceField
+                label={t('Input price')}
+                value={inputUnitPrice}
+                onChange={(value) =>
+                  handlePriceChange('input_unit_cost', priceToUnitCost(value))
                 }
-                return renderPriceVariable(variable)
-              })}
+              />
+              <PriceField
+                label={t('Output price')}
+                value={outputUnitPrice}
+                onChange={(value) =>
+                  handlePriceChange('output_unit_cost', priceToUnitCost(value))
+                }
+              />
+            </div>
+
+            <div className='space-y-2'>
+              <div className='flex h-7 items-center'>
+                <Tabs
+                  value={cacheMode}
+                  onValueChange={(value) =>
+                    value !== null && handleCacheModeChange(value as CacheMode)
+                  }
+                >
+                  <TabsList className='h-8'>
+                    <TabsTrigger
+                      value={CACHE_MODE_GENERIC}
+                      className='px-2 text-xs'
+                    >
+                      {t('Generic cache')}
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value={CACHE_MODE_TIMED}
+                      className='px-2 text-xs'
+                    >
+                      {t('Time-sliced cache (Claude)')}
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+              <div className='flex flex-wrap gap-x-4 gap-y-2'>
+                {CACHE_PRICE_VARS.map((variable) => {
+                  if (
+                    variable.key === 'cc1h' &&
+                    cacheMode !== CACHE_MODE_TIMED
+                  ) {
+                    return null
+                  }
+                  return renderPriceVariable(variable)
+                })}
+              </div>
             </div>
           </div>
         </div>
-      </div>}
+      )}
 
       {/* Media prices */}
       <div className='space-y-1.5'>
@@ -929,10 +934,11 @@ function RawExprEditor({ exprString, onChange }: RawExprEditorProps) {
             <code>ao</code>
           </div>
           <div>
-            {t('Functions')}: <code>tier(name, value)</code>, <code>fixed(amount)</code>, <code>max</code>,{' '}
-            <code>min</code>, <code>ceil</code>, <code>floor</code>,{' '}
-            <code>abs</code>, <code>header(name)</code>,{' '}
-            <code>param(path)</code>, <code>has(source, text)</code>
+            {t('Functions')}: <code>tier(name, value)</code>,{' '}
+            <code>fixed(amount)</code>, <code>max</code>, <code>min</code>,{' '}
+            <code>ceil</code>, <code>floor</code>, <code>abs</code>,{' '}
+            <code>header(name)</code>, <code>param(path)</code>,{' '}
+            <code>has(source, text)</code>
           </div>
         </AlertDescription>
       </Alert>

@@ -1,30 +1,20 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useAuthStore } from '@/stores/auth-store'
-import { parseHeaderNavModulesFromStatus } from '@/lib/nav-modules'
+
 import { useStatus } from '@/hooks/use-status'
+import { parseHeaderNavModulesFromStatus } from '@/lib/nav-modules'
+import { useAuthStore } from '@/stores/auth-store'
 
 export type TopNavLink = {
   title: string
   href: string
+  dropdownItems?: Array<{
+    title: string
+    href: string
+    disabled?: boolean
+    external?: boolean
+  }>
+  items?: never
   disabled?: boolean
   requiresAuth?: boolean
   external?: boolean
@@ -82,8 +72,20 @@ export function useTopNavLinks(): TopNavLink[] {
   // Chat playground
   const playground = modules?.playground
   if (playground && typeof playground === 'object' && playground.enabled) {
-    const requiresAuth = playground.requireAuth && !isAuthed
-    links.push({ title: t('Chat'), href: '/playground', requiresAuth })
+    links.push({
+      title: t('Studio'),
+      href: '/playground',
+      dropdownItems: [
+        {
+          title: t('Chat'),
+          href: '/playground',
+        },
+        {
+          title: t('Image'),
+          href: '/image-playground',
+        },
+      ],
+    })
   }
 
   // Rankings

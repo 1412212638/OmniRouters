@@ -1,22 +1,4 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import { useEffect, useMemo, useState, type ElementType } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import {
   ArrowDown,
   ArrowUp,
@@ -27,16 +9,14 @@ import {
   Save,
   Trash2,
 } from 'lucide-react'
-import { useMutation } from '@tanstack/react-query'
+import { useEffect, useMemo, useState, type ElementType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from '@/components/ui/native-select'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { Switch } from '@/components/ui/switch'
 import {
   Table,
@@ -60,6 +40,7 @@ import {
   quotaUnitsToDollars,
 } from '@/lib/format'
 import { cn } from '@/lib/utils'
+
 import { recalculateMemberTiers } from '../api'
 import { SettingsPageActionsPortal } from '../components/settings-page-context'
 import { SettingsSection } from '../components/settings-section'
@@ -293,11 +274,15 @@ export function MemberTierSettingsSection({
     const seen = new Set<string>()
     for (const [index, rule] of rules.entries()) {
       if (!rule.group) {
-        toast.error(t('Tier {{index}} must select a group.', { index: index + 1 }))
+        toast.error(
+          t('Tier {{index}} must select a group.', { index: index + 1 })
+        )
         return false
       }
       if (seen.has(rule.group)) {
-        toast.error(t('Tier group cannot be duplicated: {{group}}', { group: rule.group }))
+        toast.error(
+          t('Tier group cannot be duplicated: {{group}}', { group: rule.group })
+        )
         return false
       }
       seen.add(rule.group)
@@ -355,7 +340,9 @@ export function MemberTierSettingsSection({
       value={formatThresholdInputValue(value, tokensOnly)}
       placeholder={thresholdPlaceholder}
       aria-label={label}
-      onChange={(event) => onChange(parseThresholdInputValue(event.target.value))}
+      onChange={(event) =>
+        onChange(parseThresholdInputValue(event.target.value))
+      }
     />
   )
 
@@ -397,7 +384,9 @@ export function MemberTierSettingsSection({
             onClick={saveRules}
           >
             <Save data-icon='inline-start' />
-            <span>{updateOption.isPending ? t('Saving...') : t('Save Rules')}</span>
+            <span>
+              {updateOption.isPending ? t('Saving...') : t('Save Rules')}
+            </span>
           </Button>
         </SettingsPageActionsPortal>
 
@@ -412,7 +401,9 @@ export function MemberTierSettingsSection({
 
         <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
           <div className='text-muted-foreground text-sm'>
-            {t('Rules are evaluated from top to bottom; later matched tiers win.')}
+            {t(
+              'Rules are evaluated from top to bottom; later matched tiers win.'
+            )}
           </div>
           <Button type='button' variant='outline' onClick={addRule}>
             <Plus data-icon='inline-start' />
@@ -560,7 +551,10 @@ export function MemberTierSettingsSection({
 
             <div className='grid gap-3 md:hidden'>
               {rules.map((rule, index) => (
-                <div key={`${rule.group}-${index}`} className='rounded-lg border p-3'>
+                <div
+                  key={`${rule.group}-${index}`}
+                  className='rounded-lg border p-3'
+                >
                   <div className='mb-3 flex items-start justify-between gap-3'>
                     <div className='min-w-0'>
                       <div className='text-sm font-medium'>

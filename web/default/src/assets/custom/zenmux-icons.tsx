@@ -1,21 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import { type SVGProps } from 'react'
 
 export function ZenMuxCopyIcon(props: SVGProps<SVGSVGElement>) {
@@ -311,12 +293,34 @@ export function ZenMuxTranscriptionIcon(props: SVGProps<SVGSVGElement>) {
 
 export function ZenMuxDecisionsIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' fill='none' viewBox='0 0 16 16' {...props}>
-      <path fill='currentColor' d='M2.667 12.666a.667.667 0 1 0-1.333.002.667.667 0 0 0 1.333-.002m1.333 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0M8.667 12.666a.667.667 0 1 0-1.333.002.667.667 0 0 0 1.333-.002m1.333 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0M14.667 12.666a.667.667 0 1 0-1.333.002.667.667 0 0 0 1.333-.002m1.333 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0' />
-      <path fill='currentColor' d='M1.333 11.333V10A2.667 2.667 0 0 1 4 7.333h2c.737 0 1.333-.596 1.333-1.333v-.667a.667.667 0 0 1 1.334 0V6A2.667 2.667 0 0 1 6 8.666H4c-.736 0-1.333.598-1.333 1.334v1.333a.668.668 0 0 1-1.334 0' />
-      <path fill='currentColor' d='M7.333 11.333v-6a.667.667 0 0 1 1.334 0v6a.668.668 0 0 1-1.334 0' />
-      <path fill='currentColor' d='M14.667 11.333V10A2.667 2.667 0 0 0 12 7.333h-2A1.333 1.333 0 0 1 8.667 6v-.667a.667.667 0 0 0-1.334 0V6A2.667 2.667 0 0 0 10 8.666h2c.737 0 1.333.598 1.333 1.334v1.333a.667.667 0 1 0 1.334 0' />
-      <path fill='currentColor' d='M7.058 1c.52-.52 1.364-.52 1.885 0L10 2.058c.52.52.52 1.364 0 1.884L8.943 5c-.52.52-1.364.52-1.885 0L6 3.942a1.333 1.333 0 0 1 0-1.884zm-.115 2L8 4.058 9.058 3 8 1.942z' />
+    <svg
+      xmlns='http://www.w3.org/2000/svg'
+      width='1em'
+      height='1em'
+      fill='none'
+      viewBox='0 0 16 16'
+      {...props}
+    >
+      <path
+        fill='currentColor'
+        d='M2.667 12.666a.667.667 0 1 0-1.333.002.667.667 0 0 0 1.333-.002m1.333 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0M8.667 12.666a.667.667 0 1 0-1.333.002.667.667 0 0 0 1.333-.002m1.333 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0M14.667 12.666a.667.667 0 1 0-1.333.002.667.667 0 0 0 1.333-.002m1.333 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0'
+      />
+      <path
+        fill='currentColor'
+        d='M1.333 11.333V10A2.667 2.667 0 0 1 4 7.333h2c.737 0 1.333-.596 1.333-1.333v-.667a.667.667 0 0 1 1.334 0V6A2.667 2.667 0 0 1 6 8.666H4c-.736 0-1.333.598-1.333 1.334v1.333a.668.668 0 0 1-1.334 0'
+      />
+      <path
+        fill='currentColor'
+        d='M7.333 11.333v-6a.667.667 0 0 1 1.334 0v6a.668.668 0 0 1-1.334 0'
+      />
+      <path
+        fill='currentColor'
+        d='M14.667 11.333V10A2.667 2.667 0 0 0 12 7.333h-2A1.333 1.333 0 0 1 8.667 6v-.667a.667.667 0 0 0-1.334 0V6A2.667 2.667 0 0 0 10 8.666h2c.737 0 1.333.598 1.333 1.334v1.333a.667.667 0 1 0 1.334 0'
+      />
+      <path
+        fill='currentColor'
+        d='M7.058 1c.52-.52 1.364-.52 1.885 0L10 2.058c.52.52.52 1.364 0 1.884L8.943 5c-.52.52-1.364.52-1.885 0L6 3.942a1.333 1.333 0 0 1 0-1.884zm-.115 2L8 4.058 9.058 3 8 1.942z'
+      />
     </svg>
   )
 }

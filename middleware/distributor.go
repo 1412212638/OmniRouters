@@ -105,8 +105,9 @@ func Distribute() func(c *gin.Context) {
 				}
 				var selectGroup string
 				usingGroup := common.GetContextKeyString(c, constant.ContextKeyUsingGroup)
-				// check path is /pg/chat/completions
-				if strings.HasPrefix(c.Request.URL.Path, "/pg/chat/completions") {
+				// Playground endpoints may override the user's active group.
+				if strings.HasPrefix(c.Request.URL.Path, "/pg/chat/completions") ||
+					strings.HasPrefix(c.Request.URL.Path, "/pg/images/generations") {
 					playgroundRequest := &dto.PlayGroundRequest{}
 					err = common.UnmarshalBodyReusable(c, playgroundRequest)
 					if err != nil {

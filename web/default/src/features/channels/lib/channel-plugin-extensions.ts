@@ -1,11 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-*/
 import type { TaskPluginOption } from '../api'
 import {
   CHANNEL_TYPE_NEW_API,
@@ -34,10 +26,13 @@ export function supportsChannelPluginExtensions(channelType: number): boolean {
 
 export function readTaskExtendPluginKeys(
   channelType: number,
-  setting: {
-    task_plugin_key?: unknown
-    task_extend_plugin_keys?: unknown
-  } | null | undefined
+  setting:
+    | {
+        task_plugin_key?: unknown
+        task_extend_plugin_keys?: unknown
+      }
+    | null
+    | undefined
 ): string[] {
   if (channelType !== CHANNEL_TYPE_NEW_API || !setting) return []
   const extensions = Array.isArray(setting.task_extend_plugin_keys)

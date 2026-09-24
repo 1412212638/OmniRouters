@@ -79,7 +79,8 @@ const models = [
   {
     id: 1,
     model_name: 'gpt-4.1',
-    description: 'General purpose flagship model with strong coding and tool use.',
+    description:
+      'General purpose flagship model with strong coding and tool use.',
     vendor_id: 1,
     quota_type: 0,
     model_ratio: 2,
@@ -121,7 +122,8 @@ const models = [
   {
     id: 4,
     model_name: 'claude-4-sonnet',
-    description: 'Balanced Claude model for coding, agents, and long documents.',
+    description:
+      'Balanced Claude model for coding, agents, and long documents.',
     vendor_id: 2,
     quota_type: 0,
     model_ratio: 3,
@@ -135,7 +137,8 @@ const models = [
   {
     id: 5,
     model_name: 'claude-4-opus',
-    description: 'High-capability Claude model for deep reasoning and difficult code.',
+    description:
+      'High-capability Claude model for deep reasoning and difficult code.',
     vendor_id: 2,
     quota_type: 0,
     model_ratio: 15,
@@ -162,7 +165,8 @@ const models = [
   {
     id: 7,
     model_name: 'gemini-2.5-flash',
-    description: 'Low-latency Gemini model for high-volume application traffic.',
+    description:
+      'Low-latency Gemini model for high-volume application traffic.',
     vendor_id: 3,
     quota_type: 0,
     model_ratio: 0.3,
@@ -175,7 +179,8 @@ const models = [
   {
     id: 8,
     model_name: 'deepseek-r1',
-    description: 'Reasoning model tuned for math, coding, and structured answers.',
+    description:
+      'Reasoning model tuned for math, coding, and structured answers.',
     vendor_id: 4,
     quota_type: 0,
     model_ratio: 0.55,
@@ -267,7 +272,9 @@ for (const [index, model] of models.entries()) {
     model.input_modalities = ['text', 'image']
     model.output_modalities = ['video']
   } else {
-    model.input_modalities = tags.includes('vision') ? ['text', 'image'] : ['text']
+    model.input_modalities = tags.includes('vision')
+      ? ['text', 'image']
+      : ['text']
     model.output_modalities = ['text']
   }
 }

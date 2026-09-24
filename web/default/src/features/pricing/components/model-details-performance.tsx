@@ -1,26 +1,8 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, Database, HeartPulse, Timer } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { cn } from '@/lib/utils'
+
 import {
   StaticDataTable,
   staticDataTableClassNames as tableStyles,
@@ -35,6 +17,8 @@ import {
   getSuccessRateTextClass,
 } from '@/features/performance-metrics/lib/format'
 import type { PerformanceGroup } from '@/features/performance-metrics/types'
+import { cn } from '@/lib/utils'
+
 import { type UptimeDayPoint } from '../lib/mock-stats'
 import type { PricingModel } from '../types'
 import { LatencyTrendChart, UptimeTrendChart } from './model-details-charts'
@@ -71,10 +55,7 @@ function StatCard(props: {
   )
 }
 
-function PercentileCard(props: {
-  label: string
-  values: string[]
-}) {
+function PercentileCard(props: { label: string; values: string[] }) {
   return (
     <div className='bg-background @container min-w-0 rounded-lg border p-3'>
       <div className='text-muted-foreground flex items-center gap-1.5 text-[10px] font-medium'>
@@ -87,7 +68,7 @@ function PercentileCard(props: {
             <dt className='text-muted-foreground text-xs'>
               {['P10', 'P50', 'P95', 'P99'][index]}
             </dt>
-            <dd className='text-foreground mt-1 break-words font-mono text-sm font-semibold tabular-nums'>
+            <dd className='text-foreground mt-1 font-mono text-sm font-semibold break-words tabular-nums'>
               {value}
             </dd>
           </div>
@@ -209,7 +190,10 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
   )
   const [selectedGroup, setSelectedGroup] = useState('all')
   const visibleGroups = useMemo(
-    () => selectedGroup === 'all' ? groups : groups.filter((group) => group.group === selectedGroup),
+    () =>
+      selectedGroup === 'all'
+        ? groups
+        : groups.filter((group) => group.group === selectedGroup),
     [groups, selectedGroup]
   )
   const performances = useMemo<PerformanceRow[]>(
@@ -233,8 +217,14 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
       })),
     [visibleGroups]
   )
-  const latencySeries = useMemo(() => toLatencySeries(visibleGroups), [visibleGroups])
-  const uptimeSeries = useMemo(() => toUptimeSeries(visibleGroups), [visibleGroups])
+  const latencySeries = useMemo(
+    () => toLatencySeries(visibleGroups),
+    [visibleGroups]
+  )
+  const uptimeSeries = useMemo(
+    () => toUptimeSeries(visibleGroups),
+    [visibleGroups]
+  )
   const uptimeByGroup = useMemo<Record<string, UptimeDayPoint[]>>(() => {
     const map: Record<string, UptimeDayPoint[]> = {}
     for (const group of visibleGroups) {
@@ -274,17 +264,24 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
         successRates.length
       : 0
   const incidentCount = uptimeSeries.reduce((s, p) => s + p.incidents, 0)
-  const percentileText = (value?: number) => value && value > 0 ? formatLatency(value) : '—'
-  const tpotPercentileText = (value?: number) => value && value > 0 ? formatTpot(value) : '—'
+  const percentileText = (value?: number) =>
+    value && value > 0 ? formatLatency(value) : '—'
+  const tpotPercentileText = (value?: number) =>
+    value && value > 0 ? formatTpot(value) : '—'
 
   return (
     <div className='flex flex-col gap-4'>
       {groups.length >= 2 && (
-        <div className='flex gap-1 overflow-x-auto rounded-lg border bg-muted/30 p-1'>
+        <div className='bg-muted/30 flex gap-1 overflow-x-auto rounded-lg border p-1'>
           <button
             type='button'
             onClick={() => setSelectedGroup('all')}
-            className={cn('shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors', selectedGroup === 'all' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+            className={cn(
+              'shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+              selectedGroup === 'all'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
           >
             {t('All groups')}
           </button>
@@ -293,7 +290,12 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
               key={group.group}
               type='button'
               onClick={() => setSelectedGroup(group.group)}
-              className={cn('shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors', selectedGroup === group.group ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+              className={cn(
+                'shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+                selectedGroup === group.group
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
             >
               {group.group}
             </button>
@@ -318,7 +320,9 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
           value={formatUptimePct(successRate)}
           hint={
             incidentCount > 0
-              ? t('{{count}} incidents in the last 24 hours', { count: incidentCount })
+              ? t('{{count}} incidents in the last 24 hours', {
+                  count: incidentCount,
+                })
               : t('No incidents in the last 24 hours')
           }
           valueClassName={getSuccessRateTextClass(successRate)}
@@ -339,8 +343,12 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
           icon={Database}
           label={t('Cache hit rate')}
           value={(() => {
-            const rates = performances.map((p) => p.cache_rate).filter((v): v is number => v !== undefined)
-            return rates.length ? `${(rates.reduce((sum, value) => sum + value, 0) / rates.length).toFixed(2)}%` : '—'
+            const rates = performances
+              .map((p) => p.cache_rate)
+              .filter((v): v is number => v !== undefined)
+            return rates.length
+              ? `${(rates.reduce((sum, value) => sum + value, 0) / rates.length).toFixed(2)}%`
+              : '—'
           })()}
           hint={t('Cached input tokens divided by input tokens')}
         />
@@ -349,14 +357,32 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
       <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
         <PercentileCard
           label={t('TTFT percentiles')}
-          values={(['ttft_p10_ms', 'ttft_p50_ms', 'ttft_p95_ms', 'ttft_p99_ms'] as const).map(
-            (key) => percentileText(performances.map((p) => p[key]).find((v) => v && v > 0))
+          values={(
+            [
+              'ttft_p10_ms',
+              'ttft_p50_ms',
+              'ttft_p95_ms',
+              'ttft_p99_ms',
+            ] as const
+          ).map((key) =>
+            percentileText(
+              performances.map((p) => p[key]).find((v) => v && v > 0)
+            )
           )}
         />
         <PercentileCard
           label={t('TPOT percentiles')}
-          values={(['tpot_p10_ms', 'tpot_p50_ms', 'tpot_p95_ms', 'tpot_p99_ms'] as const).map(
-            (key) => tpotPercentileText(performances.map((p) => p[key]).find((v) => v && v > 0))
+          values={(
+            [
+              'tpot_p10_ms',
+              'tpot_p50_ms',
+              'tpot_p95_ms',
+              'tpot_p99_ms',
+            ] as const
+          ).map((key) =>
+            tpotPercentileText(
+              performances.map((p) => p[key]).find((v) => v && v > 0)
+            )
           )}
         />
       </div>

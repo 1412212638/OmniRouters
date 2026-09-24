@@ -1,29 +1,13 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import { useEffect, useState } from 'react'
 import { ExternalLinkIcon, RefreshCcwIcon } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { formatTimestamp, formatTimestampToDate } from '@/lib/format'
+
+import { Dialog } from '@/components/dialog'
 import { Button } from '@/components/ui/button'
 import { Markdown } from '@/components/ui/markdown'
-import { Dialog } from '@/components/dialog'
+import { formatTimestamp, formatTimestampToDate } from '@/lib/format'
+
 import { SettingsSection } from '../components/settings-section'
 
 type ReleaseInfo = {
@@ -53,17 +37,31 @@ export function UpdateCheckerSection({
     let cancelled = false
     const reminderKey = 'omnirouters.update-reminder'
     fetch('https://api.github.com/repos/Calcium-Ion/new-api/releases/latest', {
-      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'new-api-dashboard' },
+      headers: {
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'new-api-dashboard',
+      },
     })
-      .then(async (response) => (response.ok ? ((await response.json()) as ReleaseInfo) : null))
+      .then(async (response) =>
+        response.ok ? ((await response.json()) as ReleaseInfo) : null
+      )
       .then((latest) => {
-        if (cancelled || !latest?.tag_name || latest.tag_name === currentVersion) return
+        if (
+          cancelled ||
+          !latest?.tag_name ||
+          latest.tag_name === currentVersion
+        )
+          return
         if (window.localStorage.getItem(reminderKey) === latest.tag_name) return
         window.localStorage.setItem(reminderKey, latest.tag_name)
-        toast.info(t('New version available: {{version}}', { version: latest.tag_name }))
+        toast.info(
+          t('New version available: {{version}}', { version: latest.tag_name })
+        )
       })
       .catch(() => undefined)
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [currentVersion, t])
 
   const uptime = startTime ? formatTimestamp(startTime) : t('Unknown')

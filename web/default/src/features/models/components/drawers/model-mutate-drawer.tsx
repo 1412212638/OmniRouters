@@ -540,8 +540,12 @@ export function ModelMutateDrawer({
         output_modalities: normalizeSelectedModalities(model.output_modalities),
         context_length: 0,
         max_output_tokens: 0,
-        context_length_display: model.context_length_display || (model.context_length ? String(model.context_length) : ''),
-        max_output_tokens_display: model.max_output_tokens_display || (model.max_output_tokens ? String(model.max_output_tokens) : ''),
+        context_length_display:
+          model.context_length_display ||
+          (model.context_length ? String(model.context_length) : ''),
+        max_output_tokens_display:
+          model.max_output_tokens_display ||
+          (model.max_output_tokens ? String(model.max_output_tokens) : ''),
         name_rule: model.name_rule || 0,
         status: model.status === 1,
         sync_official: model.sync_official === 1,
@@ -914,19 +918,38 @@ export function ModelMutateDrawer({
               />
 
               <FieldGroup className='grid gap-4 sm:grid-cols-2'>
-                {(['context_length_display', 'max_output_tokens_display'] as const).map((name) => (
+                {(
+                  [
+                    'context_length_display',
+                    'max_output_tokens_display',
+                  ] as const
+                ).map((name) => (
                   <FormField
                     key={name}
                     control={form.control}
                     name={name}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t(name === 'context_length_display' ? 'Context' : 'Max output')} ({t('tokens')})</FormLabel>
+                        <FormLabel>
+                          {t(
+                            name === 'context_length_display'
+                              ? 'Context'
+                              : 'Max output'
+                          )}{' '}
+                          ({t('tokens')})
+                        </FormLabel>
                         <FormControl>
-                          <Input type='text'
-                            name={field.name} ref={field.ref} onBlur={field.onBlur}
-                            value={field.value || ''} placeholder='-'
-                            onChange={(event) => field.onChange(event.target.value)} />
+                          <Input
+                            type='text'
+                            name={field.name}
+                            ref={field.ref}
+                            onBlur={field.onBlur}
+                            value={field.value || ''}
+                            placeholder='-'
+                            onChange={(event) =>
+                              field.onChange(event.target.value)
+                            }
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

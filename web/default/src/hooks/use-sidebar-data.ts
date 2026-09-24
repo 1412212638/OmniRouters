@@ -1,21 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import {
   Activity,
   ClipboardList,
@@ -29,6 +11,7 @@ import {
   ListTodo,
   Mail,
   MessageSquare,
+  ImageIcon,
   Puzzle,
   Radio,
   ServerCog,
@@ -39,8 +22,9 @@ import {
   Wallet,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+
+import type { SidebarData } from '@/components/layout/types'
 import { ROLE } from '@/lib/roles'
-import { type SidebarData } from '@/components/layout/types'
 
 /**
  * Root navigation groups for the application sidebar.
@@ -54,16 +38,23 @@ export function useSidebarData(): SidebarData {
   return {
     navGroups: [
       {
-        id: 'chat',
-        title: t('Chat'),
+        // Keep the existing permission keys compatible while presenting Studio
+        // as the user-facing workspace.
+        id: 'studio',
+        title: t('Studio'),
         items: [
           {
-            title: t('Playground'),
+            title: t('Chat'),
             url: '/playground',
             icon: FlaskConical,
           },
           {
-            title: t('Chat'),
+            title: t('Image'),
+            url: '/image-playground',
+            icon: ImageIcon,
+          },
+          {
+            title: t('Chat Apps'),
             icon: MessageSquare,
             type: 'chat-presets',
           },

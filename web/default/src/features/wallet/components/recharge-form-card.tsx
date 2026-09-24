@@ -371,9 +371,17 @@ export function RechargeFormCard({
                             <span className='max-w-full truncate'>
                               {method.name}
                             </span>
-                            {normalizeTopupFeeRate(method.fee_rate ?? topupInfo?.fee_rate) > 0 && (
+                            {normalizeTopupFeeRate(
+                              method.fee_rate ?? topupInfo?.fee_rate
+                            ) > 0 && (
                               <span className='text-muted-foreground text-[11px] font-normal'>
-                                {t('Handling fee')} {(normalizeTopupFeeRate(method.fee_rate ?? topupInfo?.fee_rate) * 100).toFixed(2)}%
+                                {t('Handling fee')}{' '}
+                                {(
+                                  normalizeTopupFeeRate(
+                                    method.fee_rate ?? topupInfo?.fee_rate
+                                  ) * 100
+                                ).toFixed(2)}
+                                %
                               </span>
                             )}
                             {disabledLabel && (

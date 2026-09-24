@@ -271,6 +271,9 @@ func GetAndValidOpenAIImageRequest(c *gin.Context, relayMode int) (*dto.ImageReq
 			imageRequest.N = common.GetPointer(uint(1))
 		}
 	}
+	if common.IsGeminiGenerateContentImageModel(imageRequest.Model) && imageRequest.N != nil && *imageRequest.N > 1 {
+		return nil, errors.New("Gemini image models support one candidate per request")
+	}
 
 	// Provider parameters can override the top-level count. Validate before
 	// pricing so malformed multipliers return a client error, not a pricing

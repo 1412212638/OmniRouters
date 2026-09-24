@@ -1,22 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import {
@@ -31,9 +12,14 @@ import {
   Sparkles,
   Timer,
 } from 'lucide-react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getLobeIcon } from '@/lib/lobe-icon'
-import { cn } from '@/lib/utils'
+
+import { CopyButton } from '@/components/copy-button'
+import { StaticDataTable } from '@/components/data-table'
+import { sideDrawerContentClassName } from '@/components/drawer-layout'
+import { GroupBadge } from '@/components/group-badge'
+import { PublicLayout } from '@/components/layout'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -44,11 +30,6 @@ import {
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CopyButton } from '@/components/copy-button'
-import { StaticDataTable } from '@/components/data-table'
-import { sideDrawerContentClassName } from '@/components/drawer-layout'
-import { GroupBadge } from '@/components/group-badge'
-import { PublicLayout } from '@/components/layout'
 import { getPerfMetrics } from '@/features/performance-metrics/api'
 import {
   formatLatency,
@@ -56,6 +37,9 @@ import {
   formatUptimePct,
   getSuccessRateTextClass,
 } from '@/features/performance-metrics/lib/format'
+import { getLobeIcon } from '@/lib/lobe-icon'
+import { cn } from '@/lib/utils'
+
 import { DEFAULT_TOKEN_UNIT, QUOTA_TYPE_VALUES } from '../constants'
 import { usePricingData } from '../hooks/use-pricing-data'
 import {
@@ -306,7 +290,8 @@ function ModelBackendQuickStats(props: { model: PricingModel }) {
       key: 'context',
       icon: Layers,
       label: t('Context'),
-      value: model.context_length_display || formatCatalogTokenCount(contextLength),
+      value:
+        model.context_length_display || formatCatalogTokenCount(contextLength),
       hint: t('Maximum input window'),
     })
   }
@@ -316,7 +301,8 @@ function ModelBackendQuickStats(props: { model: PricingModel }) {
       key: 'max-output',
       icon: Maximize2,
       label: t('Max output'),
-      value: model.max_output_tokens_display || formatCatalogTokenCount(maxOutput),
+      value:
+        model.max_output_tokens_display || formatCatalogTokenCount(maxOutput),
       hint: t('Maximum tokens per response'),
     })
   }
@@ -932,9 +918,15 @@ function GroupPricingSection(props: {
     const base = props.groupRatio[group] ?? 1
     const effective = effectiveGroupRatio[group] ?? 1
     const modelMultiplier = props.model.model_group_ratio?.[group]
-    const expiry = props.groupModelRatioExpiry?.[group]?.[props.model.model_name]
+    const expiry =
+      props.groupModelRatioExpiry?.[group]?.[props.model.model_name]
     const active = !expiry || expiry <= 0 || expiry > Date.now() / 1000
-    return { multiplier: effective, baseMultiplier: base, modelMultiplier, expiry: active && expiry && expiry > 0 ? expiry : undefined }
+    return {
+      multiplier: effective,
+      baseMultiplier: base,
+      modelMultiplier,
+      expiry: active && expiry && expiry > 0 ? expiry : undefined,
+    }
   }
 
   const availableGroups = useMemo(
@@ -1054,7 +1046,8 @@ function GroupPricingSection(props: {
                     {ruleInfo.multiplier}x
                     {ruleInfo.expiry && (
                       <span className='font-sans'>
-                        {t('Expires at')} {new Date(ruleInfo.expiry * 1000).toLocaleString()}
+                        {t('Expires at')}{' '}
+                        {new Date(ruleInfo.expiry * 1000).toLocaleString()}
                       </span>
                     )}
                   </span>
@@ -1154,9 +1147,7 @@ function GroupPricingSection(props: {
             cellClassName: 'text-muted-foreground py-2.5 text-xs',
             cell: (group) => {
               const expiry = getRuleInfo(group).expiry
-              return expiry
-                ? new Date(expiry * 1000).toLocaleString()
-                : '-'
+              return expiry ? new Date(expiry * 1000).toLocaleString() : '-'
             },
           },
           ...(isTokenBased
@@ -1167,7 +1158,13 @@ function GroupPricingSection(props: {
                   className: `${thClass} text-right`,
                   cellClassName: 'py-2.5 text-right font-mono',
                   cell: (group: string) => (
-                    <span className={getRuleInfo(group).multiplier < 1 ? 'text-success' : undefined}>
+                    <span
+                      className={
+                        getRuleInfo(group).multiplier < 1
+                          ? 'text-success'
+                          : undefined
+                      }
+                    >
                       {renderGroupPrice(group, 'input')}
                     </span>
                   ),
@@ -1178,7 +1175,13 @@ function GroupPricingSection(props: {
                   className: `${thClass} text-right`,
                   cellClassName: 'py-2.5 text-right font-mono',
                   cell: (group: string) => (
-                    <span className={getRuleInfo(group).multiplier < 1 ? 'text-success' : undefined}>
+                    <span
+                      className={
+                        getRuleInfo(group).multiplier < 1
+                          ? 'text-success'
+                          : undefined
+                      }
+                    >
                       {renderGroupPrice(group, 'output')}
                     </span>
                   ),
@@ -1189,7 +1192,13 @@ function GroupPricingSection(props: {
                   className: `${thClass} text-right`,
                   cellClassName: 'py-2.5 text-right font-mono',
                   cell: (group: string) => (
-                    <span className={getRuleInfo(group).multiplier < 1 ? 'text-success' : undefined}>
+                    <span
+                      className={
+                        getRuleInfo(group).multiplier < 1
+                          ? 'text-success'
+                          : undefined
+                      }
+                    >
                       {renderGroupPrice(group, ep.type)}
                     </span>
                   ),
@@ -1198,13 +1207,17 @@ function GroupPricingSection(props: {
             : [
                 {
                   id: 'price',
-                  header: isSoraPricing
-                    ? t('Price')
-                    : t('Price'),
+                  header: isSoraPricing ? t('Price') : t('Price'),
                   className: `${thClass} text-right`,
                   cellClassName: 'py-2.5 text-right font-mono',
                   cell: (group: string) => (
-                    <span className={getRuleInfo(group).multiplier < 1 ? 'text-success' : undefined}>
+                    <span
+                      className={
+                        getRuleInfo(group).multiplier < 1
+                          ? 'text-success'
+                          : undefined
+                      }
+                    >
                       {renderFixedGroupPrice(group)}
                       {isSoraPricing && (
                         <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
@@ -1306,8 +1319,8 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
               priceRate={props.priceRate}
               usdExchangeRate={props.usdExchangeRate}
               tokenUnit={props.tokenUnit}
-            showRechargePrice={showRechargePrice}
-            groupModelRatioExpiry={props.groupModelRatioExpiry}
+              showRechargePrice={showRechargePrice}
+              groupModelRatioExpiry={props.groupModelRatioExpiry}
             />
           </section>
 

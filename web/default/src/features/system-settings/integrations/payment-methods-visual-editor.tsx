@@ -1,4 +1,5 @@
-﻿/*
+﻿import { Lightbulb, Pencil, Plus, Search, Trash2 } from 'lucide-react'
+/*
 Copyright (C) 2023-2026 QuantumNous
 
 This program is free software: you can redistribute it and/or modify
@@ -17,7 +18,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useState, useMemo } from 'react'
-import { Lightbulb, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { StaticDataTable } from '@/components/data-table/static/static-data-table'
@@ -362,7 +362,10 @@ export function PaymentMethodsVisualEditor({
               {
                 id: 'fee-rate',
                 header: t('Handling fee'),
-                cell: (method) => method.fee_rate == null ? '-' : `${(Number(method.fee_rate) * 100).toFixed(2)}%`,
+                cell: (method) =>
+                  method.fee_rate == null
+                    ? '-'
+                    : `${(Number(method.fee_rate) * 100).toFixed(2)}%`,
               },
               {
                 id: 'actions',

@@ -15,10 +15,7 @@ export type LegacyModelPricingDefaults = {
   SoraPerRequestPricing: string
 }
 
-const optionKeys: Array<[
-  keyof LegacyModelPricingDefaults,
-  string,
-]> = [
+const optionKeys: Array<[keyof LegacyModelPricingDefaults, string]> = [
   ['ModelPrice', 'ModelPrice'],
   ['ModelRatio', 'ModelRatio'],
   ['CacheRatio', 'CacheRatio'],

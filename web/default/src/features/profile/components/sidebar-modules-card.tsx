@@ -1,27 +1,8 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import { useCallback, useEffect, useState } from 'react'
 import { LayoutDashboard } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { useAuthStore } from '@/stores/auth-store'
-import { api } from '@/lib/api'
+
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -31,6 +12,8 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
+import { api } from '@/lib/api'
+import { useAuthStore } from '@/stores/auth-store'
 
 type SidebarModuleConfig = {
   enabled: boolean
@@ -56,18 +39,23 @@ export function SidebarModulesCard() {
   const sectionDefs: SectionDef[] = [
     {
       key: 'chat',
-      title: t('Chat Area'),
-      description: t('Playground and chat functions'),
+      title: t('Studio area'),
+      description: t('Chat, image creation, and chat app shortcuts.'),
       modules: [
         {
           key: 'playground',
-          title: t('Playground'),
-          description: t('AI model testing environment'),
+          title: t('Chat'),
+          description: t('Chat with configured models in real time.'),
+        },
+        {
+          key: 'image',
+          title: t('Image'),
+          description: t('Generate images with configured image models.'),
         },
         {
           key: 'chat',
-          title: t('Chat'),
-          description: t('Chat session management'),
+          title: t('Chat Apps'),
+          description: t('Open configured web and external chat applications.'),
         },
       ],
     },
@@ -132,20 +120,42 @@ export function SidebarModulesCard() {
     },
   ]
 
+  const buildDefaultConfig = (): SidebarModulesConfig => {
+    const defaults: SidebarModulesConfig = {}
+    for (const section of sectionDefs) {
+      defaults[section.key] = { enabled: true }
+      for (const module of section.modules) {
+        defaults[section.key][module.key] = true
+      }
+    }
+    return defaults
+  }
+
+  const mergeConfigWithDefaults = (value: unknown): SidebarModulesConfig => {
+    const defaults = buildDefaultConfig()
+    if (!value || typeof value !== 'object') return defaults
+
+    Object.entries(value as Record<string, unknown>).forEach(
+      ([sectionKey, sectionValue]) => {
+        if (!sectionValue || typeof sectionValue !== 'object') return
+        defaults[sectionKey] = {
+          ...(defaults[sectionKey] ?? { enabled: true }),
+          ...(sectionValue as Record<string, boolean>),
+        }
+      }
+    )
+    return defaults
+  }
+
   const loadConfig = useCallback(async () => {
     try {
       const res = await api.get('/api/user/self')
       if (res.data.success && res.data.data?.sidebar_modules) {
         const raw = res.data.data.sidebar_modules
         const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
-        setConfig(parsed)
+        setConfig(mergeConfigWithDefaults(parsed))
       } else {
-        const defaults: SidebarModulesConfig = {}
-        for (const sec of sectionDefs) {
-          defaults[sec.key] = { enabled: true }
-          for (const mod of sec.modules) defaults[sec.key][mod.key] = true
-        }
-        setConfig(defaults)
+        setConfig(buildDefaultConfig())
       }
     } catch {
       /* ignore */
@@ -200,12 +210,7 @@ export function SidebarModulesCard() {
   }
 
   const handleReset = () => {
-    const defaults: SidebarModulesConfig = {}
-    for (const sec of sectionDefs) {
-      defaults[sec.key] = { enabled: true }
-      for (const mod of sec.modules) defaults[sec.key][mod.key] = true
-    }
-    setConfig(defaults)
+    setConfig(buildDefaultConfig())
     toast.success(t('Reset to default configuration'))
   }
 

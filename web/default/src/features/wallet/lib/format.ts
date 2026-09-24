@@ -1,27 +1,10 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import { DEFAULT_DISCOUNT_RATE } from '../constants'
 import {
   formatLocalCurrencyAmount,
   getCurrencyDisplay,
   type CurrencyFormatOptions,
 } from '@/lib/currency'
+
+import { DEFAULT_DISCOUNT_RATE } from '../constants'
 
 // ============================================================================
 // Wallet-specific Formatting Functions
@@ -90,7 +73,10 @@ export function normalizeTopupFeeRate(feeRate: unknown): number {
 }
 
 // Pancake quotes are already USD, matching its checkout session currency.
-export function formatPaymentQuote(amount: number, paymentType?: string): string {
+export function formatPaymentQuote(
+  amount: number,
+  paymentType?: string
+): string {
   if (paymentType === 'waffo_pancake') {
     return Number.isFinite(amount) ? `$${amount.toFixed(2)}` : '-'
   }

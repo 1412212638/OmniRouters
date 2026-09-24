@@ -1,23 +1,6 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import { splitBillingExprAndRequestRules } from '@/features/pricing/lib/billing-expr'
 import type { SoraPerRequestPricing } from '@/features/pricing/types'
+
 import { safeJsonParse } from '../utils/json-parser'
 import { formatPricingNumber } from './pricing-format'
 import {
@@ -116,8 +99,9 @@ const getExpressionSummary = (
   return t('Expression pricing')
 }
 
-const getSoraTierCount = (tiers?: ModelPricingSnapshot['soraResolutionTiers']) =>
-  normalizeSoraResolutionTiers(tiers || []).length
+const getSoraTierCount = (
+  tiers?: ModelPricingSnapshot['soraResolutionTiers']
+) => normalizeSoraResolutionTiers(tiers || []).length
 
 const getSoraPriceSummary = (
   row: ModelPricingSnapshot,
@@ -396,7 +380,8 @@ export const getSnapshotSignature = (snapshot?: ModelPricingSnapshot) => {
     billingExpr: snapshot.billingExpr || '',
     requestRuleExpr: snapshot.requestRuleExpr || '',
     pluginBillingExpressions: snapshot.pluginBillingExpressions || {},
-    soraPerRequestPricingEnabled: snapshot.soraPerRequestPricingEnabled ?? false,
+    soraPerRequestPricingEnabled:
+      snapshot.soraPerRequestPricingEnabled ?? false,
     soraResolutionTiers: snapshot.soraResolutionTiers || [],
     soraAudioGenerationSurcharge: snapshot.soraAudioGenerationSurcharge || '',
   })

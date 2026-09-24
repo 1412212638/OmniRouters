@@ -502,6 +502,55 @@ func GeminiImageHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.
 	return usage, nil
 }
 
+// GeminiGenerateContentImageHandler converts Gemini image-model responses
+// (candidates[].content.parts[].inlineData) to the OpenAI image response shape.
+func GeminiGenerateContentImageHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Response) (*dto.Usage, *types.NewAPIError) {
+	responseBody, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		return nil, types.NewOpenAIError(readErr, types.ErrorCodeBadResponseBody, http.StatusInternalServerError)
+	}
+	_ = resp.Body.Close()
+
+	var geminiResponse dto.GeminiChatResponse
+	if jsonErr := common.Unmarshal(responseBody, &geminiResponse); jsonErr != nil {
+		return nil, types.NewOpenAIError(jsonErr, types.ErrorCodeBadResponseBody, http.StatusInternalServerError)
+	}
+
+	openAIResponse := dto.ImageResponse{Created: common.GetTimestamp(), Data: make([]dto.ImageData, 0)}
+	for _, candidate := range geminiResponse.Candidates {
+		for _, part := range candidate.Content.Parts {
+			if part.InlineData == nil || part.InlineData.Data == "" {
+				continue
+			}
+			openAIResponse.Data = append(openAIResponse.Data, dto.ImageData{
+				B64Json:  part.InlineData.Data,
+				MimeType: part.InlineData.MimeType,
+			})
+		}
+	}
+	if len(openAIResponse.Data) == 0 {
+		return nil, types.NewOpenAIError(errors.New("no images generated"), types.ErrorCodeBadResponseBody, http.StatusInternalServerError)
+	}
+	info.UpdateImageCount(int64(len(openAIResponse.Data)))
+
+	jsonResponse, jsonErr := common.Marshal(openAIResponse)
+	if jsonErr != nil {
+		return nil, types.NewError(jsonErr, types.ErrorCodeBadResponse)
+	}
+	c.Writer.Header().Set("Content-Type", "application/json")
+	c.Writer.WriteHeader(resp.StatusCode)
+	_, _ = c.Writer.Write(jsonResponse)
+
+	const imageTokens = 258
+	generatedImages := len(openAIResponse.Data)
+	usage := &dto.Usage{
+		PromptTokens:     imageTokens * generatedImages,
+		CompletionTokens: 0,
+		TotalTokens:      imageTokens * generatedImages,
+	}
+	return usage, nil
+}
+
 type GeminiModelsResponse struct {
 	Models        []dto.GeminiModel `json:"models"`
 	NextPageToken string            `json:"nextPageToken"`

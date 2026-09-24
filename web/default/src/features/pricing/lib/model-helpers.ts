@@ -1,21 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import { EXCLUDED_GROUPS, FILTER_ALL, QUOTA_TYPE_VALUES } from '../constants'
 import type { PricingModel, PricingUsableGroup } from '../types'
 
@@ -117,14 +99,26 @@ export function isTokenBasedModel(model: PricingModel): boolean {
   return model.quota_type === QUOTA_TYPE_VALUES.TOKEN
 }
 
-export function isFreePricingModel(model: PricingModel, displayRatio: number): boolean {
+export function isFreePricingModel(
+  model: PricingModel,
+  displayRatio: number
+): boolean {
   if (displayRatio === 0) return true
   // Dynamic pricing can use zero placeholders for otherwise paid requests.
-  if (model.billing_mode === 'tiered_expr' || model.billing_expr?.trim() ||
-      model.sora_per_request_pricing?.enabled) return false
+  if (
+    model.billing_mode === 'tiered_expr' ||
+    model.billing_expr?.trim() ||
+    model.sora_per_request_pricing?.enabled
+  )
+    return false
   if (isTokenBasedModel(model)) {
-    return model.model_ratio === 0 &&
-      Number.isFinite(model.completion_ratio) && model.completion_ratio >= 0
+    return (
+      model.model_ratio === 0 &&
+      Number.isFinite(model.completion_ratio) &&
+      model.completion_ratio >= 0
+    )
   }
-  return model.quota_type === QUOTA_TYPE_VALUES.REQUEST && model.model_price === 0
+  return (
+    model.quota_type === QUOTA_TYPE_VALUES.REQUEST && model.model_price === 0
+  )
 }

@@ -1,21 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -170,13 +152,13 @@ import {
   hasAdvancedSettingsErrors,
   getAdvancedCustomStats,
 } from '../../lib'
+import { supportsNewAPIUpstream } from '../../lib/channel-plugin-extensions'
 import {
   collectInvalidStatusCodeEntries,
   collectNewDisallowedStatusCodeRedirects,
 } from '../../lib/status-code-risk-guard'
 import type { Channel } from '../../types'
 import { useChannels } from '../channels-provider'
-import { supportsNewAPIUpstream } from '../../lib/channel-plugin-extensions'
 import { AdvancedCustomEditorDialog } from '../dialogs/advanced-custom-editor-dialog'
 import { CodexOAuthDialog } from '../dialogs/codex-oauth-dialog'
 import { FetchModelsDialog } from '../dialogs/fetch-models-dialog'
@@ -923,7 +905,8 @@ export function ChannelMutateDrawer({
     [canEditSensitive, currentType, taskPluginOptions]
   )
   const selectedTaskPlugin = useMemo(
-    () => taskPluginOptions.find((plugin) => plugin.key === currentTaskPluginKey),
+    () =>
+      taskPluginOptions.find((plugin) => plugin.key === currentTaskPluginKey),
     [currentTaskPluginKey, taskPluginOptions]
   )
 
@@ -966,7 +949,13 @@ export function ChannelMutateDrawer({
   )
   const advancedHaveErrors =
     hasAdvancedSettingsErrors(formErrors) || Boolean(formErrors.advanced_custom)
-  const providerRequiresBaseUrl = [3, 8, 36, 45, CHANNEL_TYPE_TASK_PLUGIN].includes(currentType)
+  const providerRequiresBaseUrl = [
+    3,
+    8,
+    36,
+    45,
+    CHANNEL_TYPE_TASK_PLUGIN,
+  ].includes(currentType)
   const providerRequiresOther = [3, 18, 21, 39, 41, 49].includes(currentType)
   const identityComplete = Boolean(currentName?.trim() && currentType > 0)
   const credentialsComplete = Boolean(
@@ -2833,35 +2822,57 @@ export function ChannelMutateDrawer({
                                   <FormItem className='space-y-3 border-y py-4'>
                                     <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
                                       <div className='space-y-2'>
-                                        <FormLabel>{t('Advanced Custom Routes')}</FormLabel>
+                                        <FormLabel>
+                                          {t('Advanced Custom Routes')}
+                                        </FormLabel>
                                         <div className='flex flex-wrap gap-2'>
                                           <Badge variant='secondary'>
-                                            {t('Routes')}: {advancedCustomStats.routeCount}
+                                            {t('Routes')}:{' '}
+                                            {advancedCustomStats.routeCount}
                                           </Badge>
                                           {advancedCustomStats.routeTypeLabels
-                                            .slice(0, ADVANCED_CUSTOM_ROUTE_TYPE_PREVIEW_LIMIT)
+                                            .slice(
+                                              0,
+                                              ADVANCED_CUSTOM_ROUTE_TYPE_PREVIEW_LIMIT
+                                            )
                                             .map((label) => (
-                                              <Badge key={label} variant='outline' className='max-w-[12rem]'>
-                                                <span className='truncate'>{t(label)}</span>
+                                              <Badge
+                                                key={label}
+                                                variant='outline'
+                                                className='max-w-[12rem]'
+                                              >
+                                                <span className='truncate'>
+                                                  {t(label)}
+                                                </span>
                                               </Badge>
                                             ))}
-                                          {!advancedCustomStats.valid && field.value?.trim() && (
-                                            <Badge variant='destructive'>{t('Incomplete')}</Badge>
-                                          )}
+                                          {!advancedCustomStats.valid &&
+                                            field.value?.trim() && (
+                                              <Badge variant='destructive'>
+                                                {t('Incomplete')}
+                                              </Badge>
+                                            )}
                                         </div>
                                       </div>
                                       <Button
                                         type='button'
                                         variant='outline'
-                                        onClick={() => setAdvancedCustomEditorOpen(true)}
+                                        onClick={() =>
+                                          setAdvancedCustomEditorOpen(true)
+                                        }
                                         disabled={sensitiveLocked}
                                       >
-                                        <Code className='mr-2 h-4 w-4' aria-hidden='true' />
+                                        <Code
+                                          className='mr-2 h-4 w-4'
+                                          aria-hidden='true'
+                                        />
                                         {t('Edit routes')}
                                       </Button>
                                     </div>
                                     <FormDescription>
-                                      {t('Configure per-endpoint forwarding, model routing, authentication, and management routes.')}
+                                      {t(
+                                        'Configure per-endpoint forwarding, model routing, authentication, and management routes.'
+                                      )}
                                     </FormDescription>
                                     <FormMessage />
                                   </FormItem>
@@ -3311,12 +3322,20 @@ export function ChannelMutateDrawer({
                               name='task_extend_plugin_keys'
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>{t('Upstream task plugins')}</FormLabel>
+                                  <FormLabel>
+                                    {t('Upstream task plugins')}
+                                  </FormLabel>
                                   <FormControl>
                                     <MultiSelect
                                       options={taskPluginExtensionOptions}
-                                      selected={field.value ?? currentTaskExtendPluginKeys ?? []}
-                                      onChange={handleTaskExtendPluginKeysChange}
+                                      selected={
+                                        field.value ??
+                                        currentTaskExtendPluginKeys ??
+                                        []
+                                      }
+                                      onChange={
+                                        handleTaskExtendPluginKeysChange
+                                      }
                                       placeholder={t(
                                         'Select the task plugins installed on the upstream gateway'
                                       )}
@@ -3352,10 +3371,14 @@ export function ChannelMutateDrawer({
                                         updateModels(plugin.models)
                                       }
                                       if (plugin?.baseUrl && !currentBaseUrl) {
-                                        form.setValue('base_url', plugin.baseUrl, {
-                                          shouldDirty: true,
-                                          shouldValidate: true,
-                                        })
+                                        form.setValue(
+                                          'base_url',
+                                          plugin.baseUrl,
+                                          {
+                                            shouldDirty: true,
+                                            shouldValidate: true,
+                                          }
+                                        )
                                       }
                                     }}
                                     disabled={!canEditSensitive}

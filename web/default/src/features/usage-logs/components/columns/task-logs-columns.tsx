@@ -1,32 +1,16 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-/* eslint-disable react-refresh/only-export-components */
-import { useState, useMemo } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Music } from 'lucide-react'
+/* eslint-disable react-refresh/only-export-components */
+import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+
+import { DataTableColumnHeader } from '@/components/data-table'
+import { StatusBadge } from '@/components/status-badge'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { getUserAvatarFallback, getUserAvatarStyle } from '@/lib/avatar'
 import { formatTimestampToDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { DataTableColumnHeader } from '@/components/data-table'
-import { StatusBadge } from '@/components/status-badge'
+
 import { TASK_ACTIONS, TASK_STATUS } from '../../constants'
 import { taskActionMapper, taskStatusMapper } from '../../lib/mappers'
 import type { TaskLog } from '../../types'
@@ -320,10 +304,23 @@ export function useTaskLogsColumns(isAdmin: boolean): ColumnDef<TaskLog>[] {
         }
 
         if (!failReason) {
-          return <>
-            <button type='button' className='text-foreground text-xs hover:underline' onClick={() => setDialogOpen(true)}>{t('View details')}</button>
-            <TaskDetailsDialog log={log} isAdmin={isAdmin} open={dialogOpen} onOpenChange={setDialogOpen} />
-          </>
+          return (
+            <>
+              <button
+                type='button'
+                className='text-foreground text-xs hover:underline'
+                onClick={() => setDialogOpen(true)}
+              >
+                {t('View details')}
+              </button>
+              <TaskDetailsDialog
+                log={log}
+                isAdmin={isAdmin}
+                open={dialogOpen}
+                onOpenChange={setDialogOpen}
+              />
+            </>
+          )
         }
 
         return (

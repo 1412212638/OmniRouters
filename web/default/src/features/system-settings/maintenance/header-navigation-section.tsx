@@ -1,26 +1,9 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import { useEffect, useMemo } from 'react'
-import * as z from 'zod'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useMemo } from 'react'
+import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import * as z from 'zod'
+
 import {
   Form,
   FormControl,
@@ -30,6 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Switch } from '@/components/ui/switch'
+
 import {
   SettingsControlChildren,
   SettingsForm,
@@ -293,11 +277,20 @@ export function HeaderNavigationSection({
                     render={({ field }) => (
                       <SettingsSwitchItem>
                         <SettingsSwitchContent>
-                          <FormLabel>{t('Show model plaza usage metrics')}</FormLabel>
-                          <FormDescription>{t('Show usage and cache hit rate on model plaza cards only.')}</FormDescription>
+                          <FormLabel>
+                            {t('Show model plaza usage metrics')}
+                          </FormLabel>
+                          <FormDescription>
+                            {t(
+                              'Show usage and cache hit rate on model plaza cards only.'
+                            )}
+                          </FormDescription>
                         </SettingsSwitchContent>
                         <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
                         </FormControl>
                         <FormMessage />
                       </SettingsSwitchItem>

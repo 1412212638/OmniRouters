@@ -1,28 +1,9 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import { useState } from 'react'
 import type { TFunction } from 'i18next'
 import { Bell, Megaphone } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+
 import { RichContent } from '@/components/rich-content'
-import { getAnnouncementColorClass } from '@/lib/colors'
-import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -41,6 +22,8 @@ import {
 } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { getAnnouncementColorClass } from '@/lib/colors'
+import { cn } from '@/lib/utils'
 
 interface AnnouncementItem {
   id?: number | string
@@ -124,16 +107,21 @@ function TimelineEntry({
   return (
     <div className='flex gap-3'>
       <div className='relative flex w-12 shrink-0 justify-center pt-0.5'>
-        <span aria-hidden='true' className='border-border/70 absolute inset-y-0 left-1/2 border-l border-dashed' />
+        <span
+          aria-hidden='true'
+          className='border-border/70 absolute inset-y-0 left-1/2 border-l border-dashed'
+        />
         {date ? (
           <time className='bg-popover text-muted-foreground relative h-fit rounded-full border px-1.5 py-0.5 text-[10px] font-medium'>
             {date}
           </time>
-        ) : <AnnouncementDot type={type} />}
+        ) : (
+          <AnnouncementDot type={type} />
+        )}
       </div>
       <div className='min-w-0 flex-1 pb-5'>
         <div className='mb-1 flex items-start gap-2'>
-          <div className='min-w-0 flex-1 text-sm font-semibold leading-5'>
+          <div className='min-w-0 flex-1 text-sm leading-5 font-semibold'>
             <RichContent breaks content={title} />
           </div>
         </div>
@@ -292,7 +280,7 @@ function AnnouncementsContent({
             ? new Date(item.publishDate)
             : null
           const dateLabel = publishDate
-              ? publishDate.toLocaleDateString('en-US', {
+            ? publishDate.toLocaleDateString('en-US', {
                 month: 'short',
                 day: '2-digit',
               })

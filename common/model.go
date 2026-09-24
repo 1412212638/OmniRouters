@@ -32,6 +32,7 @@ var (
 		"gpt-image-1",
 		"grok-2-image",
 		"grok-image",
+		"grok-imagine-image",
 		"prefix:imagen-",
 		"flux-",
 		"flux.1-",
@@ -45,7 +46,6 @@ var (
 		"midjourney",
 		"ideogram",
 		"recraft",
-		"nano-banana",
 		"t2i",
 		"text-to-image",
 		"image-generation",
@@ -109,6 +109,9 @@ func IsOpenAIResponseOnlyModel(modelName string) bool {
 
 func IsImageGenerationModel(modelName string) bool {
 	modelName = strings.ToLower(modelName)
+	if IsGeminiGenerateContentImageModel(modelName) {
+		return true
+	}
 	for _, m := range ImageGenerationModels {
 		if prefix, ok := strings.CutPrefix(m, "prefix:"); ok {
 			if strings.HasPrefix(modelName, prefix) {
@@ -117,6 +120,27 @@ func IsImageGenerationModel(modelName string) bool {
 			continue
 		}
 		if strings.Contains(modelName, m) {
+			return true
+		}
+	}
+	return false
+}
+
+func IsGeminiGenerateContentImageModel(modelName string) bool {
+	modelName = strings.ToLower(strings.TrimSpace(modelName))
+	if strings.HasPrefix(modelName, "nano-banana") {
+		return true
+	}
+	if !strings.HasPrefix(modelName, "gemini-") {
+		return false
+	}
+
+	// Gemini image generation models use one of these terminal forms. Checking
+	// the full suffix avoids classifying image-understanding or image-edit
+	// models as generateContent image models merely because their names contain
+	// the `image` segment.
+	for _, suffix := range []string{"-image", "-image-preview", "-image-generation"} {
+		if strings.HasSuffix(modelName, suffix) {
 			return true
 		}
 	}

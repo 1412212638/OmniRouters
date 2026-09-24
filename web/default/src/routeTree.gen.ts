@@ -49,6 +49,7 @@ import { Route as AuthenticatedPlaygroundIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedModelsIndexRouteImport } from './routes/_authenticated/models/index'
 import { Route as AuthenticatedMemberTiersIndexRouteImport } from './routes/_authenticated/member-tiers/index'
 import { Route as AuthenticatedKeysIndexRouteImport } from './routes/_authenticated/keys/index'
+import { Route as AuthenticatedImagePlaygroundIndexRouteImport } from './routes/_authenticated/image-playground/index'
 import { Route as AuthenticatedEmailSettingsIndexRouteImport } from './routes/_authenticated/email-settings/index'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedChannelsIndexRouteImport } from './routes/_authenticated/channels/index'
@@ -286,6 +287,12 @@ const AuthenticatedKeysIndexRoute = AuthenticatedKeysIndexRouteImport.update({
   path: '/keys/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedImagePlaygroundIndexRoute =
+  AuthenticatedImagePlaygroundIndexRouteImport.update({
+    id: '/image-playground/',
+    path: '/image-playground/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEmailSettingsIndexRoute =
   AuthenticatedEmailSettingsIndexRouteImport.update({
     id: '/email-settings/',
@@ -470,6 +477,7 @@ export interface FileRoutesByFullPath {
   '/channels/': typeof AuthenticatedChannelsIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/email-settings/': typeof AuthenticatedEmailSettingsIndexRoute
+  '/image-playground/': typeof AuthenticatedImagePlaygroundIndexRoute
   '/keys/': typeof AuthenticatedKeysIndexRoute
   '/member-tiers/': typeof AuthenticatedMemberTiersIndexRoute
   '/models/': typeof AuthenticatedModelsIndexRoute
@@ -534,6 +542,7 @@ export interface FileRoutesByTo {
   '/channels': typeof AuthenticatedChannelsIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/email-settings': typeof AuthenticatedEmailSettingsIndexRoute
+  '/image-playground': typeof AuthenticatedImagePlaygroundIndexRoute
   '/keys': typeof AuthenticatedKeysIndexRoute
   '/member-tiers': typeof AuthenticatedMemberTiersIndexRoute
   '/models': typeof AuthenticatedModelsIndexRoute
@@ -602,6 +611,7 @@ export interface FileRoutesById {
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/email-settings/': typeof AuthenticatedEmailSettingsIndexRoute
+  '/_authenticated/image-playground/': typeof AuthenticatedImagePlaygroundIndexRoute
   '/_authenticated/keys/': typeof AuthenticatedKeysIndexRoute
   '/_authenticated/member-tiers/': typeof AuthenticatedMemberTiersIndexRoute
   '/_authenticated/models/': typeof AuthenticatedModelsIndexRoute
@@ -669,6 +679,7 @@ export interface FileRouteTypes {
     | '/channels/'
     | '/dashboard/'
     | '/email-settings/'
+    | '/image-playground/'
     | '/keys/'
     | '/member-tiers/'
     | '/models/'
@@ -733,6 +744,7 @@ export interface FileRouteTypes {
     | '/channels'
     | '/dashboard'
     | '/email-settings'
+    | '/image-playground'
     | '/keys'
     | '/member-tiers'
     | '/models'
@@ -800,6 +812,7 @@ export interface FileRouteTypes {
     | '/_authenticated/channels/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/email-settings/'
+    | '/_authenticated/image-playground/'
     | '/_authenticated/keys/'
     | '/_authenticated/member-tiers/'
     | '/_authenticated/models/'
@@ -1134,6 +1147,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKeysIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/image-playground/': {
+      id: '/_authenticated/image-playground/'
+      path: '/image-playground'
+      fullPath: '/image-playground/'
+      preLoaderRoute: typeof AuthenticatedImagePlaygroundIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/email-settings/': {
       id: '/_authenticated/email-settings/'
       path: '/email-settings'
@@ -1406,6 +1426,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChannelsIndexRoute: typeof AuthenticatedChannelsIndexRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedEmailSettingsIndexRoute: typeof AuthenticatedEmailSettingsIndexRoute
+  AuthenticatedImagePlaygroundIndexRoute: typeof AuthenticatedImagePlaygroundIndexRoute
   AuthenticatedKeysIndexRoute: typeof AuthenticatedKeysIndexRoute
   AuthenticatedMemberTiersIndexRoute: typeof AuthenticatedMemberTiersIndexRoute
   AuthenticatedModelsIndexRoute: typeof AuthenticatedModelsIndexRoute
@@ -1435,6 +1456,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChannelsIndexRoute: AuthenticatedChannelsIndexRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   AuthenticatedEmailSettingsIndexRoute: AuthenticatedEmailSettingsIndexRoute,
+  AuthenticatedImagePlaygroundIndexRoute:
+    AuthenticatedImagePlaygroundIndexRoute,
   AuthenticatedKeysIndexRoute: AuthenticatedKeysIndexRoute,
   AuthenticatedMemberTiersIndexRoute: AuthenticatedMemberTiersIndexRoute,
   AuthenticatedModelsIndexRoute: AuthenticatedModelsIndexRoute,

@@ -51,12 +51,15 @@ func ImageHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *type
 	if err != nil {
 		return types.NewErrorWithStatusCode(err, types.ErrorCodeInvalidRequest, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
 	}
+	if err := validateGeminiGenerateContentImageRequest(info, request, imageCount); err != nil {
+		return types.NewErrorWithStatusCode(err, types.ErrorCodeInvalidRequest, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
+	}
 	promptExtend := request.BillingParameters != nil && request.BillingParameters.PromptExtend != nil && *request.BillingParameters.PromptExtend
 
 	var requestBody io.Reader
 	var jsonData []byte
 
-	if model_setting.GetGlobalSettings().PassThroughRequestEnabled || info.ChannelSetting.PassThroughBodyEnabled {
+	if shouldPassThroughImageRequest(info, model_setting.GetGlobalSettings().PassThroughRequestEnabled) {
 		storage, err := common.GetBodyStorage(c)
 		if err != nil {
 			return types.NewErrorWithStatusCode(err, types.ErrorCodeReadRequestBodyFailed, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
@@ -111,6 +114,9 @@ func ImageHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *type
 		}
 		imageCount, err = quantityRequest.ImageCount(info.ChannelType == constant.ChannelTypeAli)
 		if err != nil {
+			return types.NewErrorWithStatusCode(err, types.ErrorCodeInvalidRequest, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
+		}
+		if err := validateGeminiGenerateContentImageRequest(info, request, imageCount); err != nil {
 			return types.NewErrorWithStatusCode(err, types.ErrorCodeInvalidRequest, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
 		}
 		promptExtend = outbound.Parameters != nil && outbound.Parameters.PromptExtend != nil && *outbound.Parameters.PromptExtend
@@ -199,4 +205,38 @@ func ImageHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *type
 
 	service.PostTextConsumeQuota(c, info, usage.(*dto.Usage), logContent)
 	return nil
+}
+
+func validateGeminiGenerateContentImageRequest(info *relaycommon.RelayInfo, request *dto.ImageRequest, imageCount int) error {
+	if !requiresGeminiImageConversion(info) {
+		return nil
+	}
+	if info.IsStream || request != nil && request.Stream != nil && *request.Stream {
+		return fmt.Errorf("Gemini image models do not support streaming image generation")
+	}
+	if imageCount > 1 {
+		return fmt.Errorf("Gemini image models support one candidate per request")
+	}
+	return nil
+}
+
+func shouldPassThroughImageRequest(info *relaycommon.RelayInfo, globalPassThrough bool) bool {
+	if info == nil {
+		return globalPassThrough
+	}
+	if requiresGeminiImageConversion(info) {
+		return false
+	}
+	channelPassThrough := info.ChannelMeta != nil && info.ChannelMeta.ChannelSetting.PassThroughBodyEnabled
+	return globalPassThrough || channelPassThrough
+}
+
+func requiresGeminiImageConversion(info *relaycommon.RelayInfo) bool {
+	if info == nil || info.RelayMode != relayconstant.RelayModeImagesGenerations || info.ChannelMeta == nil {
+		return false
+	}
+	if info.ChannelMeta.ApiType != constant.APITypeGemini && info.ChannelMeta.ApiType != constant.APITypeVertexAi {
+		return false
+	}
+	return common.IsGeminiGenerateContentImageModel(info.UpstreamModelName)
 }

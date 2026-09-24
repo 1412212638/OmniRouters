@@ -1,22 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import { useEffect, useState, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   BadgeCheck,
@@ -30,13 +11,12 @@ import {
   WalletCards,
   X,
 } from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { useAuthStore } from '@/stores/auth-store'
-import { formatQuota } from '@/lib/format'
-import { cn } from '@/lib/utils'
-import { SectionPageLayout } from '@/components/layout'
+
 import { EmptyState } from '@/components/empty-state'
+import { SectionPageLayout } from '@/components/layout'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -50,6 +30,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { formatQuota } from '@/lib/format'
+import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/stores/auth-store'
+
 import { getMemberTierSelf } from './api'
 import type { MemberTierEvaluation, MemberTierProgress } from './types'
 
@@ -205,7 +189,8 @@ function TierRail({ progress }: { progress: MemberTierProgress[] }) {
               </div>
               <div className='text-muted-foreground mt-1 grid gap-0.5 text-xs leading-5'>
                 <span>
-                  {t('Minimum top-up')}: {formatQuota(item.rule.min_topup_quota)}
+                  {t('Minimum top-up')}:{' '}
+                  {formatQuota(item.rule.min_topup_quota)}
                 </span>
                 <span>
                   {t('Minimum consumption')}:{' '}
@@ -503,7 +488,10 @@ function TierMatrixRow({
       <TableCell className='w-52 px-4 py-3 align-top'>
         <div className='grid grid-cols-2 gap-2'>
           <RatioBlock label={t('Model ratio')} value={item.group_ratio} />
-          <RatioBlock label={t('Top-up ratio')} value={item.topup_group_ratio} />
+          <RatioBlock
+            label={t('Top-up ratio')}
+            value={item.topup_group_ratio}
+          />
         </div>
       </TableCell>
       <TableCell className='w-28 px-4 py-3 text-right align-top'>

@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-24 - Add Studio dropdown to top navigation
+
+- Local reason: group the existing chat and image playground entries under the `Studio` top navigation menu to match the updated product layout.
+- Changed: replaced only the top-level `Chat` header link with a `Studio` dropdown containing `Chat` (`/playground`) and `Image` (`/image-playground`) entries; preserved all other top navigation links and routes.
+- Preserved: existing backend HeaderNavModules visibility and authentication behavior, sidebar navigation, and all unrelated header actions.
+- Validation: changed-file Oxlint, Oxfmt, typecheck, and `git diff --check` passed. Production build was started but the local process ended before emitting a completion status.
+- Commit/push: pending.
+
 ## 2026-09-22 - TypeSafe task pricing display and native performance samples
 
 - Local reason: token usage expressions using `u()` failed frontend preview, displayed empty pricing tiers, and successful native synchronous requests did not enter performance metrics.
@@ -23,6 +31,14 @@
 - Integrated: registered the gateway-facing TypeSafe POST route as `/v1/systemone` with plugin pinning, authentication, rate limiting, task preparation, distribution, and billing; missing-plugin responses now return explicit JSON 404 errors.
 - Preserved: vendor channels append `/v1/systemone` to their configured base URL, so ZenMux and ModelVerse use `https://zenmux.ai` and `https://api.modelverse.cn` respectively.
 - Validation: added route registration and missing-plugin regression tests; `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable locally.
+- Commit/push: pending.
+
+## 2026-09-24 - Reorganize Studio sidebar navigation
+
+- Local reason: make the workspace hierarchy clearer by grouping chat, image generation, and configured chat application shortcuts under a Studio sidebar section.
+- Changed: renamed the sidebar group to `Studio`; renamed the existing Playground item to `Chat`, the image playground item to `Image`, and the dynamic client shortcut item to `Chat Apps`; updated the sidebar module settings labels and descriptions in English and Chinese.
+- Preserved: existing `/playground` and `/image-playground` routes, dynamic preset behavior, route guards, and the `chat.playground` / `chat.chat` sidebar permission keys for backward compatibility.
+- Validation: changed-file Oxlint, Oxfmt, frontend production build, locale JSON parsing, and `git diff --check` passed. Full repository lint and Go tests remain limited by the existing unrelated frontend lint errors and unavailable Go toolchain.
 - Commit/push: pending.
 
 ## 2026-09-21 - Accept marketplace route retainResult metadata
@@ -2985,4 +3001,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Integrated: every marketplace card now exposes its own install, review-and-upgrade, or reinstall action. The existing source/diff review flow updates only the selected plugin, retains previous database versions for rollback, and states that channels and credentials remain unchanged while active plugin source is replaced.
 - Preserved: integrity verification, conflict preflight, version history, factory fallback, channel configuration, and all other plugins remain untouched by a single-plugin action.
 - Validation: targeted oxlint, production build, locale JSON parsing, and `git diff --check` passed. Full typecheck remains blocked by pre-existing missing test dependencies and unrelated pricing, wallet, system-settings, and task-plugin type errors; none point to the files changed here.
+- Commit/push: pending.
+
+## 2026-09-24 - Add image generation playground relay support
+
+- Local reason: add a dedicated image-generation Playground route for OpenAI-compatible image models and Gemini generateContent image models.
+- Changed: registered `/pg/images/generations`; reused Playground authentication, group selection, image request validation, billing, and OpenAI image responses; converted Gemini and Vertex Gemini image requests to `generateContent` and their inline image responses to `data[].b64_json` while preserving `mime_type`; forced that native conversion for both Playground and standard image routes when pass-through is enabled; added strict Gemini image-model suffix recognition plus `nano-banana` support and regression coverage for the requested GPT Image names; added the authenticated `/image-playground` page with group-scoped model loading, prompt/size/quality/count controls, full-image preview, MIME-aware download, and image generation results.
+- Preserved: existing chat Playground behavior, standard `/v1/images/generations`, Imagen `predict` conversion, OpenAI-compatible image adapters, and sidebar visibility settings for the existing Playground module. Gemini generateContent image requests reject streaming and counts above one after model mapping, including aliases.
+- Validation: added route-mode, model endpoint, request bounds, mapped-model compatibility, native Gemini/Vertex pass-through selection, Gemini request conversion, Gemini response MIME conversion, and image response conversion regression tests. Changed-file Oxlint and Oxfmt, frontend production build, locale JSON parsing, and `git diff --check` passed; repository-wide Oxlint still reports existing failures in unrelated files. Repository-wide `copyright:check` reports existing unrelated files needing header updates; none of the new image-playground files are listed. Go tests and gofmt could not run because the Go toolchain is unavailable locally; full frontend typecheck remains blocked by existing unrelated type errors and missing test dependencies.
 - Commit/push: pending.

@@ -1,25 +1,8 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import { useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Menu } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { ChevronDown, Menu } from 'lucide-react'
+import * as React from 'react'
+import { useMemo } from 'react'
+
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -27,7 +10,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { type TopNavLink } from '../types'
+import { cn } from '@/lib/utils'
+
+import type { TopNavLink } from '../types'
 
 type TopNavProps = React.HTMLAttributes<HTMLElement> & {
   links: TopNavLink[]
@@ -61,31 +46,51 @@ export function TopNav({ className, links, ...props }: TopNavProps) {
             <Menu />
           </DropdownMenuTrigger>
           <DropdownMenuContent side='bottom' align='start'>
-            {normalizedLinks.map(
-              ({ title, href, isActive, disabled, external }) => (
+            {normalizedLinks.map((link) =>
+              link.dropdownItems ? (
+                <React.Fragment key={link.title}>
+                  <DropdownMenuItem disabled>{link.title}</DropdownMenuItem>
+                  {link.dropdownItems.map((item) => (
+                    <DropdownMenuItem
+                      key={`${link.title}-${item.title}`}
+                      className='pl-5'
+                      render={
+                        item.external ? (
+                          <a
+                            href={item.href}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                          >
+                            {item.title}
+                          </a>
+                        ) : (
+                          <Link to={item.href} disabled={item.disabled}>
+                            {item.title}
+                          </Link>
+                        )
+                      }
+                    />
+                  ))}
+                </React.Fragment>
+              ) : (
                 <DropdownMenuItem
-                  key={`${title}-${href}`}
+                  key={`${link.title}-${link.href}`}
                   render={
-                    external ? (
+                    link.external ? (
                       <a
-                        href={href}
+                        href={link.href}
                         target='_blank'
                         rel='noopener noreferrer'
-                        className={!isActive ? 'text-muted-foreground' : ''}
                       >
-                        {title}
+                        {link.title}
                       </a>
                     ) : (
-                      <Link
-                        to={href}
-                        className={!isActive ? 'text-muted-foreground' : ''}
-                        disabled={disabled}
-                      >
-                        {title}
+                      <Link to={link.href} disabled={link.disabled}>
+                        {link.title}
                       </Link>
                     )
                   }
-                ></DropdownMenuItem>
+                />
               )
             )}
           </DropdownMenuContent>
@@ -100,25 +105,55 @@ export function TopNav({ className, links, ...props }: TopNavProps) {
         )}
         {...props}
       >
-        {normalizedLinks.map(({ title, href, isActive, disabled, external }) =>
-          external ? (
+        {normalizedLinks.map((link) =>
+          // oxlint-disable-next-line no-nested-ternary
+          link.dropdownItems ? (
+            <DropdownMenu key={link.title} modal={false}>
+              <DropdownMenuTrigger className='text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm font-medium transition-colors'>
+                {link.title}
+                <ChevronDown className='size-3.5' aria-hidden='true' />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align='start' className='min-w-40 p-2'>
+                {link.dropdownItems.map((item) => (
+                  <DropdownMenuItem
+                    key={`${link.title}-${item.title}`}
+                    render={
+                      item.external ? (
+                        <a
+                          href={item.href}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                        >
+                          {item.title}
+                        </a>
+                      ) : (
+                        <Link to={item.href} disabled={item.disabled}>
+                          {item.title}
+                        </Link>
+                      )
+                    }
+                  />
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : link.external ? (
             <a
-              key={`${title}-${href}`}
-              href={href}
+              key={`${link.title}-${link.href}`}
+              href={link.href}
               target='_blank'
               rel='noopener noreferrer'
-              className={`hover:text-primary text-sm font-medium transition-colors ${isActive ? '' : 'text-muted-foreground'}`}
+              className={`hover:text-primary text-sm font-medium transition-colors ${link.isActive ? '' : 'text-muted-foreground'}`}
             >
-              {title}
+              {link.title}
             </a>
           ) : (
             <Link
-              key={`${title}-${href}`}
-              to={href}
-              disabled={disabled}
-              className={`hover:text-primary text-sm font-medium transition-colors ${isActive ? '' : 'text-muted-foreground'}`}
+              key={`${link.title}-${link.href}`}
+              to={link.href}
+              disabled={link.disabled}
+              className={`hover:text-primary text-sm font-medium transition-colors ${link.isActive ? '' : 'text-muted-foreground'}`}
             >
-              {title}
+              {link.title}
             </Link>
           )
         )}

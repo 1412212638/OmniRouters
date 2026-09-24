@@ -1,22 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { type ColumnDef, type RowSelectionState } from '@tanstack/react-table'
 import {
@@ -26,9 +7,13 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { useIsMobile } from '@/hooks/use-mobile'
+
+import { DataTableView, useDataTable } from '@/components/data-table'
+import { Dialog } from '@/components/dialog'
+import { StatusBadge } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -45,9 +30,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DataTableView, useDataTable } from '@/components/data-table'
-import { Dialog } from '@/components/dialog'
-import { StatusBadge } from '@/components/status-badge'
+import { useIsMobile } from '@/hooks/use-mobile'
+
 import { applyUpstreamOverwrite } from '../../api'
 import { modelsQueryKeys, vendorsQueryKeys } from '../../lib'
 import type { SyncOverwritePayload } from '../../types'

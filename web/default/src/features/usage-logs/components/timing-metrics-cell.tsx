@@ -1,21 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import { CircleAlert } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -41,9 +23,7 @@ export function TimingMetricsCell(props: TimingMetricsCellProps) {
   const { t } = useTranslation()
   const showFirstToken = props.isStream
   const hasFrt = props.frtMs != null && props.frtMs > 0
-  const firstTokenLabel = hasFrt
-    ? formatUseTime(props.frtMs! / 1000)
-    : t('N/A')
+  const firstTokenLabel = hasFrt ? formatUseTime(props.frtMs! / 1000) : t('N/A')
   const totalTimeLabel = formatUseTime(props.useTimeSec)
 
   return (
@@ -98,9 +78,7 @@ interface StreamTpsCellProps {
 export function StreamTpsCell(props: StreamTpsCellProps) {
   const { t } = useTranslation()
   const showStreamError =
-    props.isStream &&
-    props.streamStatus &&
-    props.streamStatus.status !== 'ok'
+    props.isStream && props.streamStatus && props.streamStatus.status !== 'ok'
   const tpsLabel =
     props.tokensPerSecond != null
       ? `${Math.round(props.tokensPerSecond)} t/s`

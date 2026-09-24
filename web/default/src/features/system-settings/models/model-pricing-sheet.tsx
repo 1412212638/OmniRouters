@@ -1,21 +1,6 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery } from '@tanstack/react-query'
+import { AlertTriangle, Plus, Save, Trash2 } from 'lucide-react'
 import {
   forwardRef,
   useCallback,
@@ -24,13 +9,11 @@ import {
   useMemo,
   useState,
 } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { AlertTriangle, Plus, Save, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+
+import { sideDrawerContentClassName } from '@/components/drawer-layout'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   AlertDialog,
@@ -60,7 +43,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import {
   InputGroup,
   InputGroupAddon,
@@ -75,11 +57,13 @@ import {
 } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { previewModelPricingConversion } from '../api'
+import { Textarea } from '@/components/ui/textarea'
 import { getTaskPluginOptions } from '@/features/channels/api'
-import type { BillingUsageSchema } from '@/features/pricing/types'
 import { splitBillingExprAndRequestRules } from '@/features/pricing/lib/billing-expr'
-import { sideDrawerContentClassName } from '@/components/drawer-layout'
+import type { BillingUsageSchema } from '@/features/pricing/types'
+import { cn } from '@/lib/utils'
+
+import { previewModelPricingConversion } from '../api'
 import {
   EMPTY_LANE_ENABLED,
   EMPTY_LANE_PRICES,
@@ -741,10 +725,16 @@ export const ModelPricingEditorPanel = forwardRef<
         const split = splitBillingExprAndRequestRules(response.data.expression)
         setConversionPreview(split)
       } else {
-        toast.info(response.data?.unsupported_reason || response.message || t('Conversion preview unavailable'))
+        toast.info(
+          response.data?.unsupported_reason ||
+            response.message ||
+            t('Conversion preview unavailable')
+        )
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t('Conversion preview failed'))
+      toast.error(
+        error instanceof Error ? error.message : t('Conversion preview failed')
+      )
     } finally {
       setIsPreviewingConversion(false)
     }
@@ -766,25 +756,27 @@ export const ModelPricingEditorPanel = forwardRef<
         className
       )}
     >
-          <div className='border-b p-4'>
-          <div className='flex flex-wrap items-start justify-between gap-3'>
+      <div className='border-b p-4'>
+        <div className='flex flex-wrap items-start justify-between gap-3'>
           <div className='min-w-0'>
             <h3 className='truncate text-base font-medium'>
               {isEditMode ? t('Edit model pricing') : t('Add model pricing')}
             </h3>
           </div>
-        {isEditMode && pricingMode !== 'tiered_expr' && (
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            className='mt-3'
-            onClick={previewConversion}
-            disabled={isPreviewingConversion}
-          >
-            {isPreviewingConversion ? t('Previewing...') : t('Preview expression conversion')}
-          </Button>
-        )}
+          {isEditMode && pricingMode !== 'tiered_expr' && (
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              className='mt-3'
+              onClick={previewConversion}
+              disabled={isPreviewingConversion}
+            >
+              {isPreviewingConversion
+                ? t('Previewing...')
+                : t('Preview expression conversion')}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -1081,78 +1073,81 @@ export const ModelPricingEditorPanel = forwardRef<
                   </TabsContent>
                 </Tabs>
 
-                {(pluginRows.length > 0 || taskPluginOptionsQuery.isLoading) && (
-                    <Field className='rounded-lg border p-4'>
-                      <FieldContent>
-                        <FieldTitle>{t('Task plugin pricing')}</FieldTitle>
-                        <FieldDescription>
-                          {t(
-                            'Override the model expression for compatible task plugins. Leave empty to use the model expression.'
-                          )}
-                        </FieldDescription>
-                      </FieldContent>
+                {(pluginRows.length > 0 ||
+                  taskPluginOptionsQuery.isLoading) && (
+                  <Field className='rounded-lg border p-4'>
+                    <FieldContent>
+                      <FieldTitle>{t('Task plugin pricing')}</FieldTitle>
+                      <FieldDescription>
+                        {t(
+                          'Override the model expression for compatible task plugins. Leave empty to use the model expression.'
+                        )}
+                      </FieldDescription>
+                    </FieldContent>
 
-                      {taskPluginOptionsQuery.isLoading ? (
-                        <div className='text-muted-foreground text-sm'>
-                          {t('Loading task plugins...')}
-                        </div>
-                      ) : pluginRows.length === 0 ? (
-                        <div className='text-muted-foreground text-sm'>
-                          {t('No task plugins expose this model.')}
-                        </div>
-                      ) : (
-                        <div className='flex flex-col gap-3'>
-                          {pluginRows.map((plugin) => {
-                            const usageKeys = Object.keys(
-                              plugin.usageSchema || {}
-                            )
-                            return (
-                              <div
-                                key={plugin.key}
-                                className='flex min-w-0 flex-col gap-2 rounded-md border p-3'
-                              >
-                                <div className='flex min-w-0 items-center justify-between gap-3'>
-                                  <div className='min-w-0'>
-                                    <div className='truncate text-sm font-medium'>
-                                      {plugin.name}
-                                    </div>
-                                    <div className='text-muted-foreground truncate font-mono text-xs'>
-                                      {plugin.key}
-                                    </div>
+                    {taskPluginOptionsQuery.isLoading ? (
+                      <div className='text-muted-foreground text-sm'>
+                        {t('Loading task plugins...')}
+                      </div>
+                    ) : pluginRows.length === 0 ? (
+                      <div className='text-muted-foreground text-sm'>
+                        {t('No task plugins expose this model.')}
+                      </div>
+                    ) : (
+                      <div className='flex flex-col gap-3'>
+                        {pluginRows.map((plugin) => {
+                          const usageKeys = Object.keys(
+                            plugin.usageSchema || {}
+                          )
+                          return (
+                            <div
+                              key={plugin.key}
+                              className='flex min-w-0 flex-col gap-2 rounded-md border p-3'
+                            >
+                              <div className='flex min-w-0 items-center justify-between gap-3'>
+                                <div className='min-w-0'>
+                                  <div className='truncate text-sm font-medium'>
+                                    {plugin.name}
                                   </div>
-                                  {plugin.stale && (
-                                    <span className='text-destructive shrink-0 text-xs'>
-                                      {t('Unavailable')}
-                                    </span>
-                                  )}
+                                  <div className='text-muted-foreground truncate font-mono text-xs'>
+                                    {plugin.key}
+                                  </div>
                                 </div>
-                                <Textarea
-                                  value={pluginBillingExpressions[plugin.key] || ''}
-                                  placeholder='u("seconds") * 0.3'
-                                  className='min-h-20 font-mono text-xs'
-                                  onChange={(event) =>
-                                    setPluginBillingExpressions((current) => ({
-                                      ...current,
-                                      [plugin.key]: event.target.value,
-                                    }))
-                                  }
-                                />
-                                <FieldDescription className='text-xs leading-5'>
-                                  {usageKeys.length > 0
-                                    ? t('Available usage fields: {{fields}}', {
-                                        fields: usageKeys.join(', '),
-                                      })
-                                    : t(
-                                        'Use the usage fields declared by this plugin. The expression is validated when saved.'
-                                      )}
-                                </FieldDescription>
+                                {plugin.stale && (
+                                  <span className='text-destructive shrink-0 text-xs'>
+                                    {t('Unavailable')}
+                                  </span>
+                                )}
                               </div>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </Field>
-                  )}
+                              <Textarea
+                                value={
+                                  pluginBillingExpressions[plugin.key] || ''
+                                }
+                                placeholder='u("seconds") * 0.3'
+                                className='min-h-20 font-mono text-xs'
+                                onChange={(event) =>
+                                  setPluginBillingExpressions((current) => ({
+                                    ...current,
+                                    [plugin.key]: event.target.value,
+                                  }))
+                                }
+                              />
+                              <FieldDescription className='text-xs leading-5'>
+                                {usageKeys.length > 0
+                                  ? t('Available usage fields: {{fields}}', {
+                                      fields: usageKeys.join(', '),
+                                    })
+                                  : t(
+                                      'Use the usage fields declared by this plugin. The expression is validated when saved.'
+                                    )}
+                              </FieldDescription>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </Field>
+                )}
               </FieldGroup>
 
               <aside className='bg-muted/20 sticky top-0 rounded-lg border'>
@@ -1206,22 +1201,28 @@ export const ModelPricingEditorPanel = forwardRef<
       >
         <AlertDialogContent className='max-w-2xl'>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('Preview expression conversion')}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t('Preview expression conversion')}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {t('Review the generated expression before applying it to the draft. It will not be saved automatically.')}
+              {t(
+                'Review the generated expression before applying it to the draft. It will not be saved automatically.'
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className='space-y-3 text-sm'>
             <div>
               <div className='mb-1 font-medium'>{t('Billing expression')}</div>
-              <pre className='max-h-40 overflow-auto rounded-md bg-muted p-3 whitespace-pre-wrap break-words'>
+              <pre className='bg-muted max-h-40 overflow-auto rounded-md p-3 break-words whitespace-pre-wrap'>
                 {conversionPreview?.billingExpr || t('None')}
               </pre>
             </div>
             {conversionPreview?.requestRuleExpr && (
               <div>
-                <div className='mb-1 font-medium'>{t('Request rule expression')}</div>
-                <pre className='max-h-32 overflow-auto rounded-md bg-muted p-3 whitespace-pre-wrap break-words'>
+                <div className='mb-1 font-medium'>
+                  {t('Request rule expression')}
+                </div>
+                <pre className='bg-muted max-h-32 overflow-auto rounded-md p-3 break-words whitespace-pre-wrap'>
                   {conversionPreview.requestRuleExpr}
                 </pre>
               </div>
@@ -1229,7 +1230,9 @@ export const ModelPricingEditorPanel = forwardRef<
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
-            <Button onClick={applyConversionPreview}>{t('Apply to draft')}</Button>
+            <Button onClick={applyConversionPreview}>
+              {t('Apply to draft')}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
