@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-26 - Allow access-token authentication in playground relay
+
+- Local reason: Image Studio requests authenticated with the dashboard access token were rejected by the legacy playground guard before reaching the image relay.
+- Changed: removed the obsolete access-token rejection from `controller/playground.go`; session and access-token authenticated playground requests now use the same relay and playground billing path.
+- Preserved: playground model/group selection, image generation/edit routing, quota handling, and the existing authentication checks in `middleware.UserAuth`.
+- Validation: Go formatting/tests unavailable because the Go toolchain is not installed locally; frontend behavior is unchanged by this backend-only fix.
+- Commit/push: pending.
+
 ## 2026-09-26 - Match Image composer controls to Chat composer
 
 - Local reason: the Image Studio composer should use the same control placement and responsive behavior as the Chat composer.

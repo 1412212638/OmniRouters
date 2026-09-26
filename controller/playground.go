@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/QuantumNous/new-api/middleware"
@@ -23,12 +22,6 @@ func Playground(c *gin.Context) {
 			})
 		}
 	}()
-
-	useAccessToken := c.GetBool("use_access_token")
-	if useAccessToken {
-		newAPIError = types.NewError(errors.New("暂不支持使用 access token"), types.ErrorCodeAccessDenied, types.ErrOptionWithSkipRetry())
-		return
-	}
 
 	relayFormat := types.RelayFormatOpenAI
 	imageRelayMode := relayconstant.Path2RelayMode(c.Request.URL.Path)
