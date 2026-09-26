@@ -31,7 +31,8 @@ func Playground(c *gin.Context) {
 	}
 
 	relayFormat := types.RelayFormatOpenAI
-	if relayconstant.Path2RelayMode(c.Request.URL.Path) == relayconstant.RelayModeImagesGenerations {
+	imageRelayMode := relayconstant.Path2RelayMode(c.Request.URL.Path)
+	if imageRelayMode == relayconstant.RelayModeImagesGenerations || imageRelayMode == relayconstant.RelayModeImagesEdits {
 		relayFormat = types.RelayFormatOpenAIImage
 	}
 	relayInfo, err := relaycommon.GenRelayInfo(c, relayFormat, nil, nil)

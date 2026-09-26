@@ -1,6 +1,7 @@
 package gemini
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -65,10 +66,19 @@ func (a *Adaptor) ConvertImageRequest(c *gin.Context, info *relaycommon.RelayInf
 	if common.IsGeminiGenerateContentImageModel(info.UpstreamModelName) {
 		// Gemini image models use generateContent and return image inlineData,
 		// while Imagen models below use the predict API and predictions[].
+		parts := []dto.GeminiPart{}
+		if len(request.Image) > 0 {
+			imagePart, err := geminiImagePart(request.Image)
+			if err != nil {
+				return nil, err
+			}
+			parts = append(parts, imagePart)
+		}
+		parts = append(parts, dto.GeminiPart{Text: request.Prompt})
 		geminiRequest := &dto.GeminiChatRequest{
 			Contents: []dto.GeminiChatContent{{
 				Role: "user",
-				Parts: []dto.GeminiPart{{Text: request.Prompt}},
+				Parts: parts,
 			}},
 			GenerationConfig: dto.GeminiChatGenerationConfig{
 				ResponseModalities: []string{"TEXT", "IMAGE"},
@@ -169,6 +179,38 @@ func (a *Adaptor) ConvertImageRequest(c *gin.Context, info *relaycommon.RelayInf
 	}
 
 	return geminiRequest, nil
+}
+
+func geminiImagePart(raw []byte) (dto.GeminiPart, error) {
+	var image string
+	if err := common.Unmarshal(raw, &image); err != nil {
+		return dto.GeminiPart{}, fmt.Errorf("Gemini image input must be a data URL string: %w", err)
+	}
+	image = strings.TrimSpace(image)
+	if !strings.HasPrefix(image, "data:") {
+		return dto.GeminiPart{}, errors.New("Gemini image input must be a data URL")
+	}
+	rest := strings.TrimPrefix(image, "data:")
+	separator := strings.IndexByte(rest, ',')
+	if separator <= 0 || separator == len(rest)-1 {
+		return dto.GeminiPart{}, errors.New("invalid Gemini image data URL")
+	}
+	metadata := rest[:separator]
+	data := rest[separator+1:]
+	if !strings.Contains(metadata, ";base64") {
+		return dto.GeminiPart{}, errors.New("Gemini image input must use base64 data")
+	}
+	if _, err := base64.StdEncoding.DecodeString(data); err != nil {
+		return dto.GeminiPart{}, fmt.Errorf("invalid Gemini image base64 data: %w", err)
+	}
+	mimeType := strings.SplitN(metadata, ";", 2)[0]
+	if mimeType == "" {
+		mimeType = "image/png"
+	}
+	return dto.GeminiPart{InlineData: &dto.GeminiInlineData{
+		MimeType: mimeType,
+		Data:     data,
+	}}, nil
 }
 
 func (a *Adaptor) Init(info *relaycommon.RelayInfo) {

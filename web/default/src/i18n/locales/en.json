@@ -5723,6 +5723,11 @@
     "No image models available": "No image models available",
     "No images were returned": "No images were returned",
     "Failed to load image groups": "Failed to load image groups",
-    "Failed to load image models": "Failed to load image models"
+    "Failed to load image models": "Failed to load image models",
+    "Edit image": "Edit image",
+    "Editing": "Editing",
+    "Editing image": "Editing image",
+    "Reference image": "Reference image",
+    "Remove reference image": "Remove reference image"
   }
 }

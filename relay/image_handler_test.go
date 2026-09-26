@@ -27,6 +27,23 @@ func TestValidateGeminiGenerateContentImageRequestUsesMappedModel(t *testing.T) 
 	require.NoError(t, validateGeminiGenerateContentImageRequest(info, &dto.ImageRequest{}, 1))
 }
 
+func TestGeminiImageEditAlwaysUsesAdaptorConversion(t *testing.T) {
+	info := &relaycommon.RelayInfo{
+		RelayMode: relayconstant.RelayModeImagesEdits,
+		ChannelMeta: &relaycommon.ChannelMeta{
+			ApiType:          constant.APITypeGemini,
+			UpstreamModelName: "gemini-3.1-flash-lite-image",
+			ChannelSetting:    dto.ChannelSettings{PassThroughBodyEnabled: true},
+		},
+	}
+	require.False(t, shouldPassThroughImageRequest(info, true))
+	require.ErrorContains(
+		t,
+		validateGeminiGenerateContentImageRequest(info, &dto.ImageRequest{}, 1),
+		"input image",
+	)
+}
+
 func TestGeminiImageAlwaysUsesAdaptorConversion(t *testing.T) {
 	info := &relaycommon.RelayInfo{
 		IsPlayground: true,

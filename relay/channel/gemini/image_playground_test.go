@@ -38,6 +38,27 @@ func TestConvertGeminiImageModelRequest(t *testing.T) {
 	require.Equal(t, "2K", imageConfig["imageSize"])
 }
 
+func TestConvertGeminiImageEditRequestAddsInlineDataContext(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	c, _ := gin.CreateTestContext(httptest.NewRecorder())
+	c.Request = httptest.NewRequest(http.MethodPost, "/pg/images/edits", nil)
+	info := &relaycommon.RelayInfo{ChannelMeta: &relaycommon.ChannelMeta{
+		UpstreamModelName: "gemini-3.1-flash-lite-image",
+	}}
+
+	converted, err := (&Adaptor{}).ConvertImageRequest(c, info, dto.ImageRequest{
+		Prompt: "make the sky blue",
+		Image:  []byte(`"data:image/png;base64,aGVsbG8="`),
+	})
+	require.NoError(t, err)
+	request, ok := converted.(*dto.GeminiChatRequest)
+	require.True(t, ok)
+	require.Len(t, request.Contents[0].Parts, 2)
+	require.Equal(t, "image/png", request.Contents[0].Parts[0].InlineData.MimeType)
+	require.Equal(t, "aGVsbG8=", request.Contents[0].Parts[0].InlineData.Data)
+	require.Equal(t, "make the sky blue", request.Contents[0].Parts[1].Text)
+}
+
 func TestGeminiGenerateContentImageHandlerReturnsOpenAIImageResponse(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	recorder := httptest.NewRecorder()

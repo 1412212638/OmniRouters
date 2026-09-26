@@ -5723,6 +5723,11 @@
     "No image models available": "当前分组没有可用的图片模型",
     "No images were returned": "没有返回图片",
     "Failed to load image groups": "加载图片分组失败",
-    "Failed to load image models": "加载图片模型失败"
+    "Failed to load image models": "加载图片模型失败",
+    "Edit image": "编辑图片",
+    "Editing": "编辑中",
+    "Editing image": "正在编辑图片",
+    "Reference image": "参考图片",
+    "Remove reference image": "移除参考图片"
   }
 }

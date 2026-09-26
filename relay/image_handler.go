@@ -217,6 +217,10 @@ func validateGeminiGenerateContentImageRequest(info *relaycommon.RelayInfo, requ
 	if imageCount > 1 {
 		return fmt.Errorf("Gemini image models support one candidate per request")
 	}
+	if info.RelayMode == relayconstant.RelayModeImagesEdits &&
+		(request == nil || len(request.Image) == 0) {
+		return fmt.Errorf("Gemini image edits require an input image")
+	}
 	return nil
 }
 
@@ -232,7 +236,7 @@ func shouldPassThroughImageRequest(info *relaycommon.RelayInfo, globalPassThroug
 }
 
 func requiresGeminiImageConversion(info *relaycommon.RelayInfo) bool {
-	if info == nil || info.RelayMode != relayconstant.RelayModeImagesGenerations || info.ChannelMeta == nil {
+	if info == nil || (info.RelayMode != relayconstant.RelayModeImagesGenerations && info.RelayMode != relayconstant.RelayModeImagesEdits) || info.ChannelMeta == nil {
 		return false
 	}
 	if info.ChannelMeta.ApiType != constant.APITypeGemini && info.ChannelMeta.ApiType != constant.APITypeVertexAi {

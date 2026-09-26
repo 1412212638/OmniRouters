@@ -1,5 +1,21 @@
 # Upstream Sync Log
 
+## 2026-09-26 - Add contextual image editing in Image Studio
+
+- Local reason: image generation models can use a previous image as context for iterative edits, so the Image Studio needs a conversational edit flow.
+- Changed: added `/pg/images/edits`; the Image Studio keeps generated results, selects a reference image, sends OpenAI-compatible edits as multipart form data, and sends Gemini/Vertex edits as JSON data URLs; Gemini image adapters now convert the reference into `inlineData` for `generateContent`.
+- Preserved: first-generation behavior, image model/group loading, count limits, MIME-aware downloads, billing flow, Chat layout, and existing standard image routes.
+- Validation: changed frontend files passed Oxfmt, Oxlint, and targeted typecheck; production build passed. `git diff --check` passed. Go tests/gofmt were not run because the Go toolchain is unavailable locally.
+- Commit/push: pending.
+
+## 2026-09-26 - Align image playground with chat playground layout
+
+- Local reason: keep the Image workspace consistent with the Chat workspace after adding the image generation flow.
+- Changed: replaced the image page's two-column card layout with the Chat page's full-height conversation area and centered bottom prompt composer; moved image model, group, count, size, and quality controls into the composer while preserving generated image previews, downloads, and clear actions.
+- Preserved: image generation API behavior, model/group loading, Gemini count limits, MIME-aware downloads, authentication guards, and Chat playground layout.
+- Validation: changed-file Oxfmt and Oxlint passed; frontend production build passed. Full typecheck remains limited by existing unrelated repository errors and missing test dependencies.
+- Commit/push: pending.
+
 ## 2026-09-24 - Add Studio dropdown to top navigation
 
 - Local reason: group the existing chat and image playground entries under the `Studio` top navigation menu to match the updated product layout.

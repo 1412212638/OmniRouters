@@ -2,19 +2,30 @@ import {
   Download,
   ImageIcon,
   LoaderCircle,
-  Sparkles,
+  SendIcon,
   Trash2,
-  WandSparkles,
+  X,
 } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import {
+  Conversation,
+  ConversationContent,
+} from '@/components/ai-elements/conversation'
+import {
+  PromptInput,
+  PromptInputButton,
+  PromptInputFooter,
+  PromptInputHeader,
+  PromptInputTextarea,
+  PromptInputTools,
+} from '@/components/ai-elements/prompt-input'
 import { ModelGroupSelector } from '@/components/model-group-selector'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -22,11 +33,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 
 import {
   generateImages,
+  editGeminiImage,
+  editImage,
   getImageGroups,
   getImageModels,
   type ImageGroupOption,
@@ -38,6 +50,7 @@ type GeneratedImage = {
   src: string
   mimeType?: string
   revisedPrompt?: string
+  prompt: string
 }
 
 type ImageSource = {
@@ -108,6 +121,9 @@ export function ImagePlayground() {
   const [models, setModels] = useState<ImageModelOption[]>([])
   const [groups, setGroups] = useState<ImageGroupOption[]>([FALLBACK_GROUP])
   const [images, setImages] = useState<GeneratedImage[]>([])
+  const [referenceImageKey, setReferenceImageKey] = useState<string | null>(
+    null
+  )
   const [isLoadingOptions, setIsLoadingOptions] = useState(true)
   const [isGenerating, setIsGenerating] = useState(false)
 
@@ -118,6 +134,10 @@ export function ImagePlayground() {
   const selectedGroup = useMemo(
     () => group || groups[0]?.value || '',
     [group, groups]
+  )
+  const referenceImage = useMemo(
+    () => images.find((image) => image.key === referenceImageKey) ?? null,
+    [images, referenceImageKey]
   )
   const maxImageCount =
     selectedModel.toLowerCase().startsWith('gemini-') ||
@@ -149,7 +169,6 @@ export function ImagePlayground() {
   useEffect(() => {
     if (!selectedGroup) return
     let cancelled = false
-    setIsLoadingOptions(true)
     void getImageModels(selectedGroup)
       .then((loadedModels) => {
         if (cancelled) return
@@ -175,8 +194,8 @@ export function ImagePlayground() {
     }
   }, [selectedGroup, t])
 
-  const handleGenerate = async () => {
-    const trimmedPrompt = prompt.trim()
+  const handleGenerate = async (promptValue = prompt) => {
+    const trimmedPrompt = promptValue.trim()
     if (!trimmedPrompt) {
       toast.error(t('Prompt is required'))
       return
@@ -187,14 +206,25 @@ export function ImagePlayground() {
     }
     setIsGenerating(true)
     try {
-      const response = await generateImages({
+      const request = {
         model: selectedModel,
         group: selectedGroup || undefined,
         prompt: trimmedPrompt,
         n: Math.min(maxImageCount, Math.max(1, Number(count) || 1)),
         size,
         quality,
-      })
+      }
+      const isGeminiImageModel =
+        selectedModel.toLowerCase().startsWith('gemini-') ||
+        selectedModel.toLowerCase().startsWith('nano-banana')
+      let response
+      if (referenceImage) {
+        response = isGeminiImageModel
+          ? await editGeminiImage({ ...request, image: referenceImage.src })
+          : await editImage({ ...request, image: referenceImage.src })
+      } else {
+        response = await generateImages(request)
+      }
       const generated = (response.data ?? [])
         .map((item) => {
           const image = imageSrc(item)
@@ -202,6 +232,7 @@ export function ImagePlayground() {
           const generatedImage: GeneratedImage = {
             key: nanoid(),
             src: image.src,
+            prompt: trimmedPrompt,
           }
           if (image.mimeType) generatedImage.mimeType = image.mimeType
           if (item.revised_prompt) {
@@ -211,7 +242,8 @@ export function ImagePlayground() {
         })
         .filter((item): item is GeneratedImage => item !== null)
       if (!generated.length) throw new Error(t('No images were returned'))
-      setImages(generated)
+      setImages((current) => [...current, ...generated])
+      setReferenceImageKey(generated.at(-1)?.key ?? null)
     } catch (error) {
       toast.error(requestErrorMessage(error, t('Request failed')))
     } finally {
@@ -230,115 +262,220 @@ export function ImagePlayground() {
     }
   }
 
+  const handleGroupChange = (value: string) => {
+    setIsLoadingOptions(true)
+    setGroup(value)
+  }
+
+  let submitLabel = referenceImage ? t('Edit image') : t('Generate image')
+  if (isGenerating) submitLabel = t('Generating...')
+
   return (
-    <div className='bg-background relative flex min-h-0 flex-1 flex-col overflow-auto'>
-      <div className='mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-5 py-8 md:px-8 lg:py-12'>
-        <header className='border-border/60 flex flex-col gap-3 border-b pb-7 md:flex-row md:items-end md:justify-between'>
-          <div className='space-y-2'>
-            <div className='text-primary flex items-center gap-2 text-xs font-semibold uppercase'>
-              <Sparkles className='size-4' />
-              {t('Creative workspace')}
-            </div>
-            <h1 className='text-3xl font-semibold md:text-4xl'>
-              {t('Image Playground')}
-            </h1>
-          </div>
-        </header>
-
-        <div className='grid min-h-0 flex-1 gap-6 lg:grid-cols-[minmax(290px,360px)_1fr]'>
-          <section className='bg-background/80 border-border/70 h-fit space-y-5 rounded-lg border p-5 shadow-[0_18px_55px_-30px_rgba(15,23,42,0.4)] backdrop-blur'>
-            <div className='flex items-center justify-between'>
-              <div>
-                <h2 className='font-semibold'>{t('Create an image')}</h2>
-              </div>
-              <WandSparkles className='text-primary size-5' />
-            </div>
-
-            <div className='space-y-2'>
-              <Label htmlFor='image-prompt'>{t('Prompt')}</Label>
-              <Textarea
-                id='image-prompt'
-                value={prompt}
-                onChange={(event) => setPrompt(event.target.value)}
-                placeholder={t('Enter prompt')}
-                className='bg-background/70 min-h-32 resize-y leading-6'
-                disabled={isGenerating}
-              />
-            </div>
-
-            <div className='space-y-2'>
-              <Label>{t('Model')}</Label>
-              <ModelGroupSelector
-                selectedModel={selectedModel}
-                models={models}
-                onModelChange={handleModelChange}
-                selectedGroup={selectedGroup}
-                groups={groups}
-                onGroupChange={setGroup}
-                disabled={isGenerating || isLoadingOptions}
-              />
-              {models.length === 0 && !isLoadingOptions && (
-                <p className='text-muted-foreground text-xs'>
-                  {t('No image models available')}
-                </p>
+    <div className='relative flex size-full min-h-0 flex-col overflow-hidden'>
+      <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
+        <Conversation>
+          <ConversationContent className='p-0'>
+            <div className='mx-auto w-full max-w-4xl px-4 py-4'>
+              {images.length === 0 ? (
+                <div className='flex min-h-[min(520px,calc(100svh-18rem))] items-center justify-center px-1 py-8 md:py-12'>
+                  <div className='grid w-full max-w-2xl gap-5 text-center'>
+                    <div className='bg-muted/50 text-muted-foreground mx-auto flex size-11 items-center justify-center rounded-xl border'>
+                      <ImageIcon className='size-5' aria-hidden='true' />
+                    </div>
+                    <div className='grid gap-2'>
+                      <h2 className='text-xl font-semibold tracking-tight text-balance md:text-2xl'>
+                        {t('Create an image')}
+                      </h2>
+                      <p className='text-muted-foreground text-sm leading-6'>
+                        {t('No images yet')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className='grid gap-4'>
+                  <div className='flex items-center justify-between'>
+                    <div>
+                      <h2 className='font-semibold'>{t('Generated images')}</h2>
+                      <p className='text-muted-foreground mt-1 text-xs'>
+                        {t('{{count}} images', { count: images.length })}
+                      </p>
+                    </div>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      className='gap-2'
+                      onClick={() => {
+                        setImages([])
+                        setReferenceImageKey(null)
+                      }}
+                    >
+                      <Trash2 className='size-3.5' />
+                      {t('Clear')}
+                    </Button>
+                  </div>
+                  <div
+                    className={cn(
+                      'grid gap-4',
+                      images.length === 1 ? 'grid-cols-1' : 'sm:grid-cols-2'
+                    )}
+                  >
+                    {images.map((image, index) => (
+                      <figure
+                        key={image.key}
+                        className='group bg-background/75 border-border/70 relative overflow-hidden rounded-lg border shadow-[0_18px_55px_-30px_rgba(15,23,42,0.5)]'
+                      >
+                        <img
+                          src={image.src}
+                          alt={image.revisedPrompt || image.prompt}
+                          className='bg-muted aspect-square w-full object-contain'
+                        />
+                        <figcaption className='border-border/70 flex items-center justify-between gap-3 border-t px-4 py-3'>
+                          <span className='text-muted-foreground line-clamp-2 text-xs'>
+                            {image.revisedPrompt || image.prompt}
+                          </span>
+                          <div className='flex shrink-0 items-center gap-1'>
+                            <Button
+                              size='sm'
+                              variant={
+                                referenceImageKey === image.key
+                                  ? 'secondary'
+                                  : 'ghost'
+                              }
+                              onClick={() => setReferenceImageKey(image.key)}
+                            >
+                              {referenceImageKey === image.key
+                                ? t('Editing')
+                                : t('Edit')}
+                            </Button>
+                            <Button
+                              size='icon-sm'
+                              variant='secondary'
+                              aria-label={t('Download')}
+                              onClick={() =>
+                                downloadImage(image.src, index, image.mimeType)
+                              }
+                            >
+                              <Download className='size-4' />
+                            </Button>
+                          </div>
+                        </figcaption>
+                      </figure>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
+          </ConversationContent>
+        </Conversation>
+      </div>
 
-            <div className='grid grid-cols-2 gap-3'>
-              <div className='space-y-2'>
-                <Label htmlFor='image-count'>{t('Images')}</Label>
-                <Input
-                  id='image-count'
-                  type='number'
-                  min={1}
-                  max={maxImageCount}
-                  value={count}
-                  onChange={(event) =>
-                    setCount(
-                      String(
-                        Math.min(
-                          maxImageCount,
-                          Math.max(1, Number(event.target.value) || 1)
-                        )
+      <div className='mx-auto w-full max-w-4xl'>
+        <PromptInput
+          className='relative px-1 md:pb-4'
+          groupClassName='bg-background/95 dark:bg-background/80 border-border/70 shadow-[0_18px_60px_-32px_rgba(0,0,0,0.65)] ring-1 ring-foreground/5 rounded-xl overflow-hidden transition-all duration-200 focus-within:border-primary/45 focus-within:ring-primary/15 focus-within:shadow-[0_22px_70px_-34px_rgba(0,0,0,0.75)]'
+          onSubmit={({ text }) => {
+            void handleGenerate(text || '')
+          }}
+        >
+          {referenceImage && (
+            <PromptInputHeader className='border-border/60 bg-muted/20 px-3 py-2'>
+              <div className='flex items-center gap-2'>
+                <img
+                  src={referenceImage.src}
+                  alt={t('Reference image')}
+                  className='size-10 rounded-md border object-cover'
+                />
+                <span className='text-muted-foreground text-xs'>
+                  {t('Editing image')}
+                </span>
+                <PromptInputButton
+                  aria-label={t('Remove reference image')}
+                  className='text-muted-foreground hover:text-foreground'
+                  onClick={() => setReferenceImageKey(null)}
+                >
+                  <X className='size-4' />
+                </PromptInputButton>
+              </div>
+            </PromptInputHeader>
+          )}
+          <PromptInputTextarea
+            autoComplete='off'
+            autoCorrect='off'
+            autoCapitalize='off'
+            spellCheck={false}
+            className='min-h-20 px-5 pt-4 pb-3 leading-7 md:min-h-24 md:text-base'
+            disabled={isGenerating}
+            onChange={(event) => setPrompt(event.target.value)}
+            placeholder={t('Enter prompt')}
+          />
+          <PromptInputFooter className='border-border/60 bg-muted/20 dark:bg-muted/10 flex-wrap border-t px-3 py-2.5 backdrop-blur'>
+            <div className='flex min-w-0 flex-1 flex-wrap items-center gap-1.5'>
+              <PromptInputTools className='min-w-0'>
+                <ModelGroupSelector
+                  selectedModel={selectedModel}
+                  models={models}
+                  onModelChange={handleModelChange}
+                  selectedGroup={selectedGroup}
+                  groups={groups}
+                  onGroupChange={handleGroupChange}
+                  disabled={isGenerating || isLoadingOptions}
+                />
+              </PromptInputTools>
+              <Input
+                aria-label={t('Images')}
+                className='h-8 w-16'
+                type='number'
+                min={1}
+                max={maxImageCount}
+                value={count}
+                onChange={(event) =>
+                  setCount(
+                    String(
+                      Math.min(
+                        maxImageCount,
+                        Math.max(1, Number(event.target.value) || 1)
                       )
                     )
-                  }
-                  disabled={isGenerating || maxImageCount === 1}
-                />
-              </div>
-              <div className='space-y-2'>
-                <Label>{t('Size')}</Label>
-                <Select
-                  value={size}
-                  onValueChange={(value) => value && setSize(value)}
+                  )
+                }
+                disabled={isGenerating || maxImageCount === 1}
+                title={t('Images')}
+              />
+              <Select
+                value={size}
+                onValueChange={(value) => value && setSize(value)}
+                disabled={isGenerating}
+              >
+                <SelectTrigger
+                  aria-label={t('Size')}
+                  className='h-8 w-[7.5rem] text-xs'
                 >
-                  <SelectTrigger className='w-full'>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[
-                      '1024x1024',
-                      '1536x1024',
-                      '1024x1536',
-                      '1792x1024',
-                      '1024x1792',
-                    ].map((value) => (
-                      <SelectItem key={value} value={value}>
-                        {value}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className='space-y-2'>
-              <Label>{t('Quality')}</Label>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    '1024x1024',
+                    '1536x1024',
+                    '1024x1536',
+                    '1792x1024',
+                    '1024x1792',
+                  ].map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Select
                 value={quality}
                 onValueChange={(value) => value && setQuality(value)}
+                disabled={isGenerating}
               >
-                <SelectTrigger className='w-full'>
+                <SelectTrigger
+                  aria-label={t('Quality')}
+                  className='h-8 w-[6.5rem] text-xs'
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -350,88 +487,21 @@ export function ImagePlayground() {
                 </SelectContent>
               </Select>
             </div>
-
-            <Button
-              className='h-10 w-full gap-2'
-              onClick={handleGenerate}
+            <PromptInputButton
+              className='bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground h-8 px-3 font-medium shadow-sm'
               disabled={isGenerating || isLoadingOptions || !selectedModel}
+              type='submit'
+              variant='default'
             >
               {isGenerating ? (
                 <LoaderCircle className='size-4 animate-spin' />
               ) : (
-                <WandSparkles className='size-4' />
+                <SendIcon className='size-4' />
               )}
-              {isGenerating ? t('Generating...') : t('Generate image')}
-            </Button>
-          </section>
-
-          <section className='flex min-h-[420px] min-w-0 flex-col gap-4'>
-            <div className='flex items-center justify-between'>
-              <div>
-                <h2 className='font-semibold'>{t('Generated images')}</h2>
-                <p className='text-muted-foreground mt-1 text-xs'>
-                  {images.length
-                    ? t('{{count}} images', { count: images.length })
-                    : null}
-                </p>
-              </div>
-              {images.length > 0 && (
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  className='gap-2'
-                  onClick={() => setImages([])}
-                >
-                  <Trash2 className='size-3.5' />
-                  {t('Clear')}
-                </Button>
-              )}
-            </div>
-            {images.length === 0 ? (
-              <div className='bg-background/45 text-muted-foreground border-border/80 flex min-h-[390px] flex-1 flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center'>
-                <div className='bg-primary/10 text-primary mb-4 flex size-14 items-center justify-center rounded-lg'>
-                  <ImageIcon className='size-7' />
-                </div>
-                <p className='font-medium'>{t('No images yet')}</p>
-              </div>
-            ) : (
-              <div
-                className={cn(
-                  'grid gap-4',
-                  images.length === 1 ? 'grid-cols-1' : 'sm:grid-cols-2'
-                )}
-              >
-                {images.map((image, index) => (
-                  <figure
-                    key={image.key}
-                    className='group bg-background/75 border-border/70 relative overflow-hidden rounded-lg border shadow-[0_18px_55px_-30px_rgba(15,23,42,0.5)]'
-                  >
-                    <img
-                      src={image.src}
-                      alt={prompt}
-                      className='bg-muted aspect-square w-full object-contain'
-                    />
-                    <figcaption className='border-border/70 flex items-center justify-between gap-3 border-t px-4 py-3'>
-                      <span className='text-muted-foreground line-clamp-2 text-xs'>
-                        {image.revisedPrompt || prompt}
-                      </span>
-                      <Button
-                        size='icon-sm'
-                        variant='secondary'
-                        aria-label={t('Download')}
-                        onClick={() =>
-                          downloadImage(image.src, index, image.mimeType)
-                        }
-                      >
-                        <Download className='size-4' />
-                      </Button>
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
+              <span className='hidden sm:inline'>{submitLabel}</span>
+            </PromptInputButton>
+          </PromptInputFooter>
+        </PromptInput>
       </div>
     </div>
   )

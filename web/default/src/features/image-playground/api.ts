@@ -2,6 +2,7 @@ import { api } from '@/lib/api'
 
 export const IMAGE_PLAYGROUND_ENDPOINTS = {
   GENERATIONS: '/pg/images/generations',
+  EDITS: '/pg/images/edits',
   USER_MODELS: '/api/user/models',
   USER_GROUPS: '/api/user/self/groups',
 } as const
@@ -25,6 +26,11 @@ export type ImageGenerationResponse = {
   created?: number
 }
 
+export type ImageEditRequest = Omit<ImageGenerationRequest, 'group'> & {
+  group?: string
+  image: string
+}
+
 export type ImageModelOption = { label: string; value: string }
 export type ImageGroupOption = {
   label: string
@@ -45,6 +51,44 @@ export async function generateImages(
       skipErrorHandler: true,
     } as Record<string, unknown>
   )
+  return response.data
+}
+
+export async function editImage(
+  payload: ImageEditRequest,
+  signal?: AbortSignal
+): Promise<ImageGenerationResponse> {
+  const formData = new FormData()
+  formData.append('model', payload.model)
+  formData.append('prompt', payload.prompt)
+  formData.append('n', String(payload.n))
+  if (payload.group) formData.append('group', payload.group)
+  if (payload.size) formData.append('size', payload.size)
+  if (payload.quality) formData.append('quality', payload.quality)
+
+  const imageResponse = await fetch(payload.image, { signal })
+  if (!imageResponse.ok) {
+    throw new Error('Unable to read the reference image')
+  }
+  const imageBlob = await imageResponse.blob()
+  const extension = imageBlob.type.split('/')[1] || 'png'
+  formData.append('image', imageBlob, `reference.${extension}`)
+
+  const response = await api.post(IMAGE_PLAYGROUND_ENDPOINTS.EDITS, formData, {
+    signal,
+    skipErrorHandler: true,
+  } as Record<string, unknown>)
+  return response.data
+}
+
+export async function editGeminiImage(
+  payload: ImageEditRequest,
+  signal?: AbortSignal
+): Promise<ImageGenerationResponse> {
+  const response = await api.post(IMAGE_PLAYGROUND_ENDPOINTS.EDITS, payload, {
+    signal,
+    skipErrorHandler: true,
+  } as Record<string, unknown>)
   return response.data
 }
 
