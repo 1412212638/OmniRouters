@@ -6,8 +6,27 @@ export type GeneratedImage = {
   prompt: string
 }
 
+export type ImageGenerationMetadata = {
+  size?: string
+  aspectRatio?: string
+  quality?: string
+  count?: number
+}
+
+export type ImageGenerationEntry = {
+  key: string
+  prompt: string
+  model: string
+  group: string
+  status: 'loading' | 'complete' | 'error'
+  images: GeneratedImage[]
+  metadata?: ImageGenerationMetadata
+  error?: string
+}
+
 export type ImagePlaygroundState = {
   images: GeneratedImage[]
+  entries: ImageGenerationEntry[]
   referenceImageKey: string | null
   prompt: string
   model: string
@@ -59,6 +78,7 @@ function parseState(value: unknown): ImagePlaygroundState | null {
     count?: string
     size?: string
     quality?: string
+    entries?: unknown[]
   }
   if (!Array.isArray(candidate.images)) return null
 
@@ -71,6 +91,66 @@ function parseState(value: unknown): ImagePlaygroundState | null {
       typeof image.prompt === 'string'
     )
   )
+
+  const entries =
+    Array.isArray(candidate.entries) && candidate.entries.length > 0
+      ? candidate.entries.flatMap((entry): ImageGenerationEntry[] => {
+          const candidateEntry = entry as Partial<ImageGenerationEntry>
+          if (
+            !entry ||
+            typeof entry !== 'object' ||
+            typeof candidateEntry.key !== 'string' ||
+            typeof candidateEntry.prompt !== 'string' ||
+            typeof candidateEntry.model !== 'string' ||
+            typeof candidateEntry.group !== 'string' ||
+            !Array.isArray(candidateEntry.images)
+          ) {
+            return []
+          }
+          const status =
+            candidateEntry.status === 'complete' ||
+            candidateEntry.status === 'error'
+              ? candidateEntry.status
+              : 'error'
+          const entryImages = candidateEntry.images.filter(
+            (image): image is GeneratedImage =>
+              Boolean(
+                image &&
+                typeof image === 'object' &&
+                typeof image.key === 'string' &&
+                typeof image.src === 'string' &&
+                typeof image.prompt === 'string'
+              )
+          )
+          const metadata =
+            candidateEntry.metadata &&
+            typeof candidateEntry.metadata === 'object'
+              ? candidateEntry.metadata
+              : undefined
+          return [
+            {
+              key: candidateEntry.key,
+              prompt: candidateEntry.prompt,
+              model: candidateEntry.model,
+              group: candidateEntry.group,
+              status,
+              images: entryImages,
+              metadata,
+              error:
+                status === 'error'
+                  ? candidateEntry.error || 'Generation interrupted'
+                  : undefined,
+            },
+          ]
+        })
+      : images.map((image) => ({
+          key: `legacy-${image.key}`,
+          prompt: image.prompt,
+          model: typeof candidate.model === 'string' ? candidate.model : '',
+          group: typeof candidate.group === 'string' ? candidate.group : '',
+          status: 'complete' as const,
+          images: [image],
+        }))
 
   const parameterValues =
     candidate.parameterValues && typeof candidate.parameterValues === 'object'
@@ -98,6 +178,7 @@ function parseState(value: unknown): ImagePlaygroundState | null {
 
   return {
     images,
+    entries,
     referenceImageKey:
       typeof candidate.referenceImageKey === 'string'
         ? candidate.referenceImageKey

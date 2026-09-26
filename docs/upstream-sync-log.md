@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-27 - Present Image Studio results as conversational generations
+
+- Local reason: Image Studio results used a full-width square grid with a results header and top clear action, and requests left the workspace empty while generation was in progress.
+- Changed: added persisted generation entries with prompt/model metadata and loading, complete, and error states; inserted an in-place loading placeholder on submit, updated it with returned images or a retryable error, removed the results count and top clear controls, and constrained images to a conversational column while preserving their natural proportions.
+- Preserved: existing image request builder, model-specific parameters and request preview, contextual editing, attachment handling, bottom composer controls, image downloads, and legacy persisted image history through automatic migration.
+- Validation: targeted Oxlint, production `bun run build`, and `git diff --check` passed. Go validation was not needed for this frontend-only change.
+- Commit/push: pending.
+
 ## 2026-09-26 - Persist Image Studio history across navigation
 
 - Local reason: Image Studio kept generated images only in React state, so leaving and re-entering the route cleared the history.

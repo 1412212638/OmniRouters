@@ -2,14 +2,16 @@ import {
   Download,
   ImageIcon,
   LoaderCircle,
+  MoreHorizontal,
   PaperclipIcon,
+  Pencil,
+  RefreshCw,
   SendIcon,
-  Trash2,
   Trash2Icon,
   X,
 } from 'lucide-react'
 import { nanoid } from 'nanoid'
-import { useEffect, useMemo, useState } from 'react'
+import { type CSSProperties, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -34,6 +36,7 @@ import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -41,7 +44,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
 
 import {
   generateImages,
@@ -66,6 +68,8 @@ import {
   loadImagePlaygroundState,
   saveImagePlaygroundState,
   type GeneratedImage,
+  type ImageGenerationEntry,
+  type ImageGenerationMetadata,
 } from './storage'
 
 type ImageSource = {
@@ -125,6 +129,48 @@ function requestErrorMessage(error: unknown, fallback: string): string {
   return fallback
 }
 
+function requestMetadata(
+  request: Record<string, unknown>
+): ImageGenerationMetadata | undefined {
+  const parameters =
+    request.parameters && typeof request.parameters === 'object'
+      ? (request.parameters as Record<string, unknown>)
+      : undefined
+  const read = (key: string) => request[key] ?? parameters?.[key]
+  const size = read('size')
+  const aspectRatio = read('aspect_ratio') ?? read('aspectRatio')
+  const quality = read('quality')
+  const count = read('n')
+  const metadata: ImageGenerationMetadata = {}
+  if (typeof size === 'string') metadata.size = size
+  if (typeof aspectRatio === 'string') metadata.aspectRatio = aspectRatio
+  if (typeof quality === 'string') metadata.quality = quality
+  if (typeof count === 'number' && Number.isFinite(count)) {
+    metadata.count = count
+  }
+  return Object.keys(metadata).length ? metadata : undefined
+}
+
+function metadataLabel(
+  entry: ImageGenerationEntry,
+  t: (key: string, options?: { count: number }) => string
+) {
+  const metadata = entry.metadata
+  const details = [entry.model || entry.group]
+  if (metadata?.size) details.push(metadata.size)
+  if (metadata?.aspectRatio) details.push(metadata.aspectRatio)
+  if (metadata?.quality) details.push(metadata.quality)
+  if (metadata?.count) {
+    details.push(t('{{count}} outputs', { count: metadata.count }))
+  }
+  return details.filter(Boolean).join(' · ')
+}
+
+function aspectRatioStyle(value?: string): CSSProperties | undefined {
+  if (!value || !/^\d+(?::\d+|\s*\/\s*\d+)$/.test(value)) return undefined
+  return { aspectRatio: value.replace(':', ' / ') }
+}
+
 function ImagePromptInputHeader({
   referenceImage,
   onClearReference,
@@ -181,6 +227,7 @@ export function ImagePlayground() {
   const [models, setModels] = useState<ImageModelOption[]>([])
   const [groups, setGroups] = useState<ImageGroupOption[]>([FALLBACK_GROUP])
   const [images, setImages] = useState<GeneratedImage[]>([])
+  const [entries, setEntries] = useState<ImageGenerationEntry[]>([])
   const [referenceImageKey, setReferenceImageKey] = useState<string | null>(
     null
   )
@@ -194,6 +241,7 @@ export function ImagePlayground() {
       if (cancelled) return
       if (saved) {
         setImages(saved.images)
+        setEntries(saved.entries)
         setReferenceImageKey(saved.referenceImageKey)
         setPrompt(saved.prompt)
         setModel(saved.model)
@@ -212,6 +260,7 @@ export function ImagePlayground() {
     if (isRestoring) return
     void saveImagePlaygroundState({
       images,
+      entries,
       referenceImageKey,
       prompt,
       model,
@@ -221,6 +270,7 @@ export function ImagePlayground() {
     })
   }, [
     group,
+    entries,
     images,
     isRestoring,
     model,
@@ -372,18 +422,29 @@ export function ImagePlayground() {
       toast.error(t('Select a model'))
       return
     }
+    const request = buildImageRequest({
+      model: selectedModel,
+      group: selectedGroup || undefined,
+      prompt: trimmedPrompt,
+      capabilities,
+      parameterValues,
+      parameterEnabled,
+      image: attachedImage || referenceImage?.src,
+    })
+    const entryKey = nanoid()
+    const pendingEntry: ImageGenerationEntry = {
+      key: entryKey,
+      prompt: trimmedPrompt,
+      model: selectedModel,
+      group: selectedGroup,
+      status: 'loading',
+      images: [],
+      metadata: requestMetadata(request),
+    }
+    setEntries((current) => [...current, pendingEntry])
     setIsGenerating(true)
     try {
       const referenceSource = attachedImage || referenceImage?.src
-      const request = buildImageRequest({
-        model: selectedModel,
-        group: selectedGroup || undefined,
-        prompt: trimmedPrompt,
-        capabilities,
-        parameterValues,
-        parameterEnabled,
-        image: referenceSource,
-      })
       let response
       if (referenceSource) {
         response = isGeminiImageModel
@@ -410,9 +471,24 @@ export function ImagePlayground() {
         .filter((item): item is GeneratedImage => item !== null)
       if (!generated.length) throw new Error(t('No images were returned'))
       setImages((current) => [...current, ...generated])
+      setEntries((current) =>
+        current.map((entry) =>
+          entry.key === entryKey
+            ? { ...entry, status: 'complete', images: generated }
+            : entry
+        )
+      )
       setReferenceImageKey(generated.at(-1)?.key ?? null)
     } catch (error) {
-      toast.error(requestErrorMessage(error, t('Request failed')))
+      const message = requestErrorMessage(error, t('Request failed'))
+      setEntries((current) =>
+        current.map((entry) =>
+          entry.key === entryKey
+            ? { ...entry, status: 'error', error: message }
+            : entry
+        )
+      )
+      toast.error(message)
     } finally {
       setIsGenerating(false)
     }
@@ -436,7 +512,7 @@ export function ImagePlayground() {
         <Conversation>
           <ConversationContent className='p-0'>
             <div className='mx-auto w-full max-w-4xl px-4 py-4'>
-              {images.length === 0 ? (
+              {entries.length === 0 ? (
                 <div className='flex min-h-[min(520px,calc(100svh-18rem))] items-center justify-center px-1 py-8 md:py-12'>
                   <div className='grid w-full max-w-2xl gap-5 text-center'>
                     <div className='bg-muted/50 text-muted-foreground mx-auto flex size-11 items-center justify-center rounded-xl border'>
@@ -453,77 +529,126 @@ export function ImagePlayground() {
                   </div>
                 </div>
               ) : (
-                <div className='grid gap-4'>
-                  <div className='flex items-center justify-between'>
-                    <div>
-                      <h2 className='font-semibold'>{t('Generated images')}</h2>
-                      <p className='text-muted-foreground mt-1 text-xs'>
-                        {t('{{count}} images', { count: images.length })}
-                      </p>
-                    </div>
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      className='gap-2'
-                      onClick={() => {
-                        setImages([])
-                        setReferenceImageKey(null)
-                        void clearImagePlaygroundState()
-                      }}
-                    >
-                      <Trash2 className='size-3.5' />
-                      {t('Clear')}
-                    </Button>
-                  </div>
-                  <div
-                    className={cn(
-                      'grid gap-4',
-                      images.length === 1 ? 'grid-cols-1' : 'sm:grid-cols-2'
-                    )}
-                  >
-                    {images.map((image, index) => (
-                      <figure
-                        key={image.key}
-                        className='group bg-background/75 border-border/70 relative overflow-hidden rounded-lg border shadow-[0_18px_55px_-30px_rgba(15,23,42,0.5)]'
-                      >
-                        <img
-                          src={image.src}
-                          alt={image.revisedPrompt || image.prompt}
-                          className='bg-muted aspect-square w-full object-contain'
-                        />
-                        <figcaption className='border-border/70 flex items-center justify-between gap-3 border-t px-4 py-3'>
-                          <span className='text-muted-foreground line-clamp-2 text-xs'>
-                            {image.revisedPrompt || image.prompt}
-                          </span>
-                          <div className='flex shrink-0 items-center gap-1'>
-                            <Button
-                              size='sm'
-                              variant={
-                                referenceImageKey === image.key
-                                  ? 'secondary'
-                                  : 'ghost'
-                              }
-                              onClick={() => setReferenceImageKey(image.key)}
-                            >
-                              {referenceImageKey === image.key
-                                ? t('Editing')
-                                : t('Edit')}
-                            </Button>
-                            <Button
-                              size='icon-sm'
-                              variant='secondary'
-                              aria-label={t('Download')}
-                              onClick={() =>
-                                downloadImage(image.src, index, image.mimeType)
-                              }
-                            >
-                              <Download className='size-4' />
-                            </Button>
+                <div className='mx-auto w-full max-w-3xl space-y-10 px-4 py-6 md:px-8'>
+                  {entries.map((entry) => (
+                    <article key={entry.key} className='space-y-3'>
+                      <div className='space-y-1'>
+                        <p className='text-sm leading-6 whitespace-pre-wrap'>
+                          {entry.prompt}
+                        </p>
+                        <p className='text-muted-foreground text-xs'>
+                          {metadataLabel(entry, t)}
+                        </p>
+                      </div>
+
+                      {entry.status === 'loading' && (
+                        <div className='border-border/70 bg-muted/30 flex min-h-56 w-full max-w-[680px] items-center justify-center rounded-xl border'>
+                          <div className='text-muted-foreground flex items-center gap-2 text-sm'>
+                            <LoaderCircle className='size-4 animate-spin' />
+                            {t('Generating...')}
                           </div>
-                        </figcaption>
-                      </figure>
-                    ))}
-                  </div>
+                        </div>
+                      )}
+                      {entry.status === 'error' && (
+                        <div className='border-destructive/30 bg-destructive/5 text-destructive flex min-h-24 w-full max-w-[680px] items-center justify-between gap-4 rounded-xl border px-4 py-3 text-sm'>
+                          <span>{entry.error || t('Request failed')}</span>
+                          <Button
+                            size='sm'
+                            variant='outline'
+                            onClick={() => {
+                              setPrompt(entry.prompt)
+                              void handleGenerate(entry.prompt)
+                            }}
+                          >
+                            <RefreshCw className='size-3.5' />
+                            {t('Retry')}
+                          </Button>
+                        </div>
+                      )}
+                      {entry.status === 'complete' &&
+                        entry.images.map((image, index) => (
+                          <figure
+                            key={image.key}
+                            className='group border-border/70 bg-background/75 w-full max-w-[680px] overflow-hidden rounded-xl border shadow-[0_18px_55px_-30px_rgba(15,23,42,0.5)]'
+                          >
+                            <img
+                              src={image.src}
+                              alt={image.revisedPrompt || image.prompt}
+                              className='bg-muted block h-auto max-h-[min(68svh,720px)] w-full object-contain'
+                              style={aspectRatioStyle(
+                                entry.metadata?.aspectRatio
+                              )}
+                            />
+                            <figcaption className='border-border/70 flex items-center justify-between gap-3 border-t px-4 py-3'>
+                              <span className='text-muted-foreground line-clamp-2 text-xs'>
+                                {image.revisedPrompt || image.prompt}
+                              </span>
+                              <div className='flex shrink-0 items-center gap-1'>
+                                <Button
+                                  size='sm'
+                                  variant={
+                                    referenceImageKey === image.key
+                                      ? 'secondary'
+                                      : 'ghost'
+                                  }
+                                  onClick={() =>
+                                    setReferenceImageKey(image.key)
+                                  }
+                                >
+                                  <Pencil className='size-3.5' />
+                                  {referenceImageKey === image.key
+                                    ? t('Editing')
+                                    : t('Edit')}
+                                </Button>
+                                <Button
+                                  size='icon-sm'
+                                  variant='secondary'
+                                  aria-label={t('Download')}
+                                  onClick={() =>
+                                    downloadImage(
+                                      image.src,
+                                      index,
+                                      image.mimeType
+                                    )
+                                  }
+                                >
+                                  <Download className='size-4' />
+                                </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger
+                                    render={
+                                      <Button
+                                        size='icon-sm'
+                                        variant='ghost'
+                                        aria-label={t('More')}
+                                      />
+                                    }
+                                  >
+                                    <MoreHorizontal className='size-4' />
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align='end'>
+                                    <DropdownMenuItem
+                                      onClick={() => setPrompt(entry.prompt)}
+                                    >
+                                      <Pencil className='size-3.5' />
+                                      {t('Edit prompt')}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        void handleGenerate(entry.prompt)
+                                      }
+                                    >
+                                      <RefreshCw className='size-3.5' />
+                                      {t('Regenerate')}
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </figcaption>
+                          </figure>
+                        ))}
+                    </article>
+                  ))}
                 </div>
               )}
             </div>
@@ -612,10 +737,11 @@ export function ImagePlayground() {
                           aria-label={t('Clear chat history')}
                           className='text-muted-foreground hover:bg-destructive/10 hover:text-destructive font-medium'
                           disabled={
-                            isGenerating || isRestoring || images.length === 0
+                            isGenerating || isRestoring || entries.length === 0
                           }
                           onClick={() => {
                             setImages([])
+                            setEntries([])
                             setReferenceImageKey(null)
                             void clearImagePlaygroundState()
                           }}
