@@ -205,8 +205,57 @@ func GetAndValidOpenAIImageRequest(c *gin.Context, relayMode int) (*dto.ImageReq
 			}
 			imageRequest.Quality = formData.Get("quality")
 			imageRequest.Size = formData.Get("size")
+			imageRequest.ResponseFormat = formData.Get("response_format")
 			if parameters := formData.Get("parameters"); parameters != "" {
 				imageRequest.Extra = map[string]json.RawMessage{"parameters": json.RawMessage(parameters)}
+			}
+			if extraFields := formData.Get("extra_fields"); extraFields != "" {
+				imageRequest.ExtraFields = json.RawMessage(extraFields)
+			}
+			for key, target := range map[string]*json.RawMessage{
+				"background":         &imageRequest.Background,
+				"moderation":         &imageRequest.Moderation,
+				"output_format":      &imageRequest.OutputFormat,
+				"output_compression": &imageRequest.OutputCompression,
+				"partial_images":     &imageRequest.PartialImages,
+				"style":              &imageRequest.Style,
+				"user":               &imageRequest.User,
+				"input_fidelity":     &imageRequest.InputFidelity,
+			} {
+				if value := strings.TrimSpace(formData.Get(key)); value != "" {
+					if json.Valid([]byte(value)) {
+						*target = json.RawMessage(value)
+					} else {
+						encoded, marshalErr := common.Marshal(value)
+						if marshalErr != nil {
+							return nil, fmt.Errorf("invalid %s image parameter: %w", key, marshalErr)
+						}
+						*target = encoded
+					}
+				}
+			}
+			for key, values := range formData {
+				if len(values) == 0 || key == "model" || key == "prompt" || key == "group" ||
+					key == "n" || key == "size" || key == "quality" || key == "stream" ||
+					key == "response_format" || key == "background" || key == "moderation" ||
+					key == "output_format" || key == "output_compression" || key == "partial_images" ||
+					key == "style" || key == "user" || key == "input_fidelity" ||
+					key == "parameters" || key == "extra_fields" || key == "watermark" {
+					continue
+				}
+				if imageRequest.Extra == nil {
+					imageRequest.Extra = make(map[string]json.RawMessage)
+				}
+				value := strings.TrimSpace(values[0])
+				if !json.Valid([]byte(value)) {
+					encoded, marshalErr := common.Marshal(value)
+					if marshalErr != nil {
+						return nil, fmt.Errorf("invalid %s image parameter: %w", key, marshalErr)
+					}
+					imageRequest.Extra[key] = encoded
+				} else {
+					imageRequest.Extra[key] = json.RawMessage(value)
+				}
 			}
 			if streamValue := strings.TrimSpace(formData.Get("stream")); streamValue != "" {
 				stream, err := strconv.ParseBool(streamValue)

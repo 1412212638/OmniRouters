@@ -48,11 +48,19 @@ import {
   editGeminiImage,
   editImage,
   getImageGroups,
+  getImageModelCapabilities,
   getImageModels,
   type ImageGroupOption,
+  type ImageModelCapabilities,
   type ImageModelOption,
 } from './api'
 import { ImageParameterSettings } from './image-parameter-settings'
+import {
+  buildImageRequest,
+  type ImageParameterEnabled,
+  type ImageParameterValues,
+} from './image-request-builder'
+import { ImageRequestPreview } from './image-request-preview'
 import {
   clearImagePlaygroundState,
   loadImagePlaygroundState,
@@ -162,9 +170,14 @@ export function ImagePlayground() {
   const [prompt, setPrompt] = useState('')
   const [model, setModel] = useState('')
   const [group, setGroup] = useState('')
-  const [count, setCount] = useState('1')
-  const [size, setSize] = useState('1024x1024')
-  const [quality, setQuality] = useState('auto')
+  const [parameterValuesByModel, setParameterValuesByModel] = useState<
+    Record<string, ImageParameterValues>
+  >({})
+  const [parameterEnabledByModel, setParameterEnabledByModel] = useState<
+    Record<string, ImageParameterEnabled>
+  >({})
+  const [capabilities, setCapabilities] =
+    useState<ImageModelCapabilities | null>(null)
   const [models, setModels] = useState<ImageModelOption[]>([])
   const [groups, setGroups] = useState<ImageGroupOption[]>([FALLBACK_GROUP])
   const [images, setImages] = useState<GeneratedImage[]>([])
@@ -185,9 +198,8 @@ export function ImagePlayground() {
         setPrompt(saved.prompt)
         setModel(saved.model)
         setGroup(saved.group)
-        setCount(saved.count)
-        setSize(saved.size)
-        setQuality(saved.quality)
+        setParameterValuesByModel(saved.parameterValues)
+        setParameterEnabledByModel(saved.parameterEnabled)
       }
       setIsRestoring(false)
     })
@@ -204,20 +216,18 @@ export function ImagePlayground() {
       prompt,
       model,
       group,
-      count,
-      size,
-      quality,
+      parameterValues: parameterValuesByModel,
+      parameterEnabled: parameterEnabledByModel,
     })
   }, [
-    count,
     group,
     images,
     isRestoring,
     model,
     prompt,
-    quality,
+    parameterEnabledByModel,
+    parameterValuesByModel,
     referenceImageKey,
-    size,
   ])
 
   const selectedModel = useMemo(
@@ -232,11 +242,10 @@ export function ImagePlayground() {
     () => images.find((image) => image.key === referenceImageKey) ?? null,
     [images, referenceImageKey]
   )
-  const maxImageCount =
-    selectedModel.toLowerCase().startsWith('gemini-') ||
-    selectedModel.toLowerCase().startsWith('nano-banana')
-      ? 1
-      : 4
+  const operation = referenceImage ? 'edit' : 'generation'
+  const parameterScope = `${selectedGroup}::${selectedModel}::${operation}`
+  const parameterValues = parameterValuesByModel[parameterScope] ?? {}
+  const parameterEnabled = parameterEnabledByModel[parameterScope] ?? {}
 
   useEffect(() => {
     let cancelled = false
@@ -287,6 +296,69 @@ export function ImagePlayground() {
     }
   }, [selectedGroup, t])
 
+  useEffect(() => {
+    if (!selectedGroup || !selectedModel || isRestoring) return
+    let cancelled = false
+    setCapabilities(null)
+    void getImageModelCapabilities(selectedGroup, selectedModel, operation)
+      .then((loaded) => {
+        if (cancelled) return
+        setCapabilities(loaded)
+        const defaults: ImageParameterValues = {}
+        const defaultEnabled: ImageParameterEnabled = {}
+        loaded.parameters.forEach((parameter) => {
+          defaults[parameter.key] = parameter.default
+          defaultEnabled[parameter.key] = parameter.enabled_by_default
+        })
+        setParameterValuesByModel((current) => ({
+          ...current,
+          [parameterScope]: { ...defaults, ...current[parameterScope] },
+        }))
+        setParameterEnabledByModel((current) => ({
+          ...current,
+          [parameterScope]: {
+            ...defaultEnabled,
+            ...current[parameterScope],
+          },
+        }))
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCapabilities({ model: selectedModel, operation, parameters: [] })
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [isRestoring, operation, parameterScope, selectedGroup, selectedModel])
+
+  const updateParameterValue = (key: string, value: unknown) => {
+    setParameterValuesByModel((current) => ({
+      ...current,
+      [parameterScope]: { ...current[parameterScope], [key]: value },
+    }))
+  }
+  const updateParameterEnabled = (key: string, value: boolean) => {
+    setParameterEnabledByModel((current) => ({
+      ...current,
+      [parameterScope]: { ...current[parameterScope], [key]: value },
+    }))
+  }
+
+  const isGeminiImageModel =
+    selectedModel.toLowerCase().startsWith('gemini-') ||
+    selectedModel.toLowerCase().startsWith('nano-banana')
+  const buildRequest = (image?: string) =>
+    buildImageRequest({
+      model: selectedModel,
+      group: selectedGroup || undefined,
+      prompt: prompt.trim(),
+      capabilities,
+      parameterValues,
+      parameterEnabled,
+      image: image || referenceImage?.src,
+    })
+
   const handleGenerate = async (
     promptValue = prompt,
     attachedImage?: string
@@ -302,23 +374,21 @@ export function ImagePlayground() {
     }
     setIsGenerating(true)
     try {
-      const request = {
+      const referenceSource = attachedImage || referenceImage?.src
+      const request = buildImageRequest({
         model: selectedModel,
         group: selectedGroup || undefined,
         prompt: trimmedPrompt,
-        n: Math.min(maxImageCount, Math.max(1, Number(count) || 1)),
-        size,
-        quality,
-      }
-      const isGeminiImageModel =
-        selectedModel.toLowerCase().startsWith('gemini-') ||
-        selectedModel.toLowerCase().startsWith('nano-banana')
+        capabilities,
+        parameterValues,
+        parameterEnabled,
+        image: referenceSource,
+      })
       let response
-      const referenceSource = attachedImage || referenceImage?.src
       if (referenceSource) {
         response = isGeminiImageModel
-          ? await editGeminiImage({ ...request, image: referenceSource })
-          : await editImage({ ...request, image: referenceSource })
+          ? await editGeminiImage(request as typeof request & { image: string })
+          : await editImage(request as typeof request & { image: string })
       } else {
         response = await generateImages(request)
       }
@@ -350,13 +420,6 @@ export function ImagePlayground() {
 
   const handleModelChange = (value: string) => {
     setModel(value)
-    const normalized = value.toLowerCase()
-    if (
-      normalized.startsWith('gemini-') ||
-      normalized.startsWith('nano-banana')
-    ) {
-      setCount('1')
-    }
   }
 
   const handleGroupChange = (value: string) => {
@@ -497,14 +560,20 @@ export function ImagePlayground() {
               <div className='flex items-center justify-between gap-2 md:justify-start'>
                 <PromptInputTools className='bg-background/70 border-border/60 rounded-lg border p-1 shadow-xs'>
                   <ImageParameterSettings
-                    count={count}
-                    maxCount={maxImageCount}
-                    size={size}
-                    quality={quality}
+                    capabilities={capabilities}
+                    modelValue={selectedModel}
                     disabled={isGenerating || isRestoring}
-                    onCountChange={setCount}
-                    onSizeChange={setSize}
-                    onQualityChange={setQuality}
+                    parameterValues={parameterValues}
+                    parameterEnabled={parameterEnabled}
+                    onParameterValueChange={updateParameterValue}
+                    onParameterEnabledChange={updateParameterEnabled}
+                  />
+
+                  <ImageRequestPreview
+                    buildRequest={buildRequest}
+                    isEdit={Boolean(referenceImage)}
+                    isGeminiEdit={isGeminiImageModel}
+                    disabled={isGenerating || isRestoring || !selectedModel}
                   />
 
                   <Tooltip>

@@ -12,9 +12,8 @@ export type ImagePlaygroundState = {
   prompt: string
   model: string
   group: string
-  count: string
-  size: string
-  quality: string
+  parameterValues: Record<string, Record<string, unknown>>
+  parameterEnabled: Record<string, Record<string, boolean>>
 }
 
 const DATABASE_NAME = 'omnirouters-image-playground'
@@ -56,7 +55,11 @@ function openDatabase(): Promise<IDBDatabase | null> {
 
 function parseState(value: unknown): ImagePlaygroundState | null {
   if (!value || typeof value !== 'object') return null
-  const candidate = value as Partial<ImagePlaygroundState>
+  const candidate = value as Partial<ImagePlaygroundState> & {
+    count?: string
+    size?: string
+    quality?: string
+  }
   if (!Array.isArray(candidate.images)) return null
 
   const images = candidate.images.filter((image): image is GeneratedImage =>
@@ -69,6 +72,30 @@ function parseState(value: unknown): ImagePlaygroundState | null {
     )
   )
 
+  const parameterValues =
+    candidate.parameterValues && typeof candidate.parameterValues === 'object'
+      ? candidate.parameterValues
+      : {}
+  const parameterEnabled =
+    candidate.parameterEnabled && typeof candidate.parameterEnabled === 'object'
+      ? candidate.parameterEnabled
+      : {}
+  if (!candidate.parameterValues) {
+    const legacyValues: Record<string, unknown> = {}
+    if (typeof candidate.count === 'string') {
+      legacyValues.n = Number(candidate.count) || 1
+    }
+    if (typeof candidate.size === 'string') legacyValues.size = candidate.size
+    if (typeof candidate.quality === 'string') {
+      legacyValues.quality = candidate.quality
+    }
+    const legacyKey = `${candidate.group || ''}::${candidate.model || ''}::generation`
+    if (Object.keys(legacyValues).length > 0) {
+      ;(parameterValues as Record<string, Record<string, unknown>>)[legacyKey] =
+        legacyValues
+    }
+  }
+
   return {
     images,
     referenceImageKey:
@@ -78,9 +105,11 @@ function parseState(value: unknown): ImagePlaygroundState | null {
     prompt: typeof candidate.prompt === 'string' ? candidate.prompt : '',
     model: typeof candidate.model === 'string' ? candidate.model : '',
     group: typeof candidate.group === 'string' ? candidate.group : '',
-    count: typeof candidate.count === 'string' ? candidate.count : '1',
-    size: typeof candidate.size === 'string' ? candidate.size : '1024x1024',
-    quality: typeof candidate.quality === 'string' ? candidate.quality : 'auto',
+    parameterValues: parameterValues as Record<string, Record<string, unknown>>,
+    parameterEnabled: parameterEnabled as Record<
+      string,
+      Record<string, boolean>
+    >,
   }
 }
 
