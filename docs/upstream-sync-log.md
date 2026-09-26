@@ -6,7 +6,7 @@
 - Changed: added persisted generation entries with prompt/model metadata and loading, complete, and error states; inserted an in-place loading placeholder on submit, updated it with returned images or a retryable error, removed the results count and top clear controls, and constrained images to a conversational column while preserving their natural proportions.
 - Preserved: existing image request builder, model-specific parameters and request preview, contextual editing, attachment handling, bottom composer controls, image downloads, and legacy persisted image history through automatic migration.
 - Validation: targeted Oxlint, production `bun run build`, and `git diff --check` passed. Go validation was not needed for this frontend-only change.
-- Commit/push: pending.
+- Commit/push: commit `65e27c2e0` pushed to `origin/main`.
 
 ## 2026-09-26 - Persist Image Studio history across navigation
 
