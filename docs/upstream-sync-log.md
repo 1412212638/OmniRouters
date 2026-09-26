@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-26 - Match Image composer controls to Chat composer
+
+- Local reason: the Image Studio composer should use the same control placement and responsive behavior as the Chat composer.
+- Changed: aligned the Image composer into Chat's left tools and right model/send groups; added a Parameters popover for image count, size, and quality; wired the attachment button to accept a reference image and kept the clear-results action in the left tool group.
+- Preserved: contextual image editing, model/group selection, generated image history, downloads, and the existing Chat composer.
+- Validation: changed frontend files passed Oxfmt, Oxlint, targeted typecheck, and production build; locale JSON and `git diff --check` passed. Go tests/gofmt remain unavailable because the Go toolchain is not installed locally.
+- Commit/push: pending.
+
 ## 2026-09-26 - Add contextual image editing in Image Studio
 
 - Local reason: image generation models can use a previous image as context for iterative edits, so the Image Studio needs a conversational edit flow.

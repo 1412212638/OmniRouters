@@ -2,8 +2,10 @@ import {
   Download,
   ImageIcon,
   LoaderCircle,
+  PaperclipIcon,
   SendIcon,
   Trash2,
+  Trash2Icon,
   X,
 } from 'lucide-react'
 import { nanoid } from 'nanoid'
@@ -17,22 +19,28 @@ import {
 } from '@/components/ai-elements/conversation'
 import {
   PromptInput,
+  PromptInputActionAddAttachments,
+  PromptInputAttachments,
+  PromptInputAttachment,
   PromptInputButton,
   PromptInputFooter,
   PromptInputHeader,
   PromptInputTextarea,
   PromptInputTools,
+  usePromptInputAttachments,
 } from '@/components/ai-elements/prompt-input'
 import { ModelGroupSelector } from '@/components/model-group-selector'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 import {
@@ -44,6 +52,7 @@ import {
   type ImageGroupOption,
   type ImageModelOption,
 } from './api'
+import { ImageParameterSettings } from './image-parameter-settings'
 
 type GeneratedImage = {
   key: string
@@ -108,6 +117,46 @@ function requestErrorMessage(error: unknown, fallback: string): string {
     )
   }
   return fallback
+}
+
+function ImagePromptInputHeader({
+  referenceImage,
+  onClearReference,
+}: {
+  referenceImage: GeneratedImage | null
+  onClearReference: () => void
+}) {
+  const { t } = useTranslation()
+  const { files } = usePromptInputAttachments()
+
+  if (!referenceImage && files.length === 0) return null
+
+  return (
+    <PromptInputHeader className='border-border/60 bg-muted/20 flex-wrap px-3 py-2'>
+      {referenceImage && (
+        <div className='flex items-center gap-2'>
+          <img
+            src={referenceImage.src}
+            alt={t('Reference image')}
+            className='size-10 rounded-md border object-cover'
+          />
+          <span className='text-muted-foreground text-xs'>
+            {t('Editing image')}
+          </span>
+          <PromptInputButton
+            aria-label={t('Remove reference image')}
+            className='text-muted-foreground hover:text-foreground'
+            onClick={onClearReference}
+          >
+            <X className='size-4' />
+          </PromptInputButton>
+        </div>
+      )}
+      <PromptInputAttachments>
+        {(attachment) => <PromptInputAttachment data={attachment} />}
+      </PromptInputAttachments>
+    </PromptInputHeader>
+  )
 }
 
 export function ImagePlayground() {
@@ -194,7 +243,10 @@ export function ImagePlayground() {
     }
   }, [selectedGroup, t])
 
-  const handleGenerate = async (promptValue = prompt) => {
+  const handleGenerate = async (
+    promptValue = prompt,
+    attachedImage?: string
+  ) => {
     const trimmedPrompt = promptValue.trim()
     if (!trimmedPrompt) {
       toast.error(t('Prompt is required'))
@@ -218,10 +270,11 @@ export function ImagePlayground() {
         selectedModel.toLowerCase().startsWith('gemini-') ||
         selectedModel.toLowerCase().startsWith('nano-banana')
       let response
-      if (referenceImage) {
+      const referenceSource = attachedImage || referenceImage?.src
+      if (referenceSource) {
         response = isGeminiImageModel
-          ? await editGeminiImage({ ...request, image: referenceImage.src })
-          : await editImage({ ...request, image: referenceImage.src })
+          ? await editGeminiImage({ ...request, image: referenceSource })
+          : await editImage({ ...request, image: referenceSource })
       } else {
         response = await generateImages(request)
       }
@@ -372,33 +425,18 @@ export function ImagePlayground() {
 
       <div className='mx-auto w-full max-w-4xl'>
         <PromptInput
+          accept='image/*'
           className='relative px-1 md:pb-4'
           groupClassName='bg-background/95 dark:bg-background/80 border-border/70 shadow-[0_18px_60px_-32px_rgba(0,0,0,0.65)] ring-1 ring-foreground/5 rounded-xl overflow-hidden transition-all duration-200 focus-within:border-primary/45 focus-within:ring-primary/15 focus-within:shadow-[0_22px_70px_-34px_rgba(0,0,0,0.75)]'
-          onSubmit={({ text }) => {
-            void handleGenerate(text || '')
-          }}
+          multiple={false}
+          onSubmit={({ text, files }) =>
+            handleGenerate(text || '', files?.at(0)?.url)
+          }
         >
-          {referenceImage && (
-            <PromptInputHeader className='border-border/60 bg-muted/20 px-3 py-2'>
-              <div className='flex items-center gap-2'>
-                <img
-                  src={referenceImage.src}
-                  alt={t('Reference image')}
-                  className='size-10 rounded-md border object-cover'
-                />
-                <span className='text-muted-foreground text-xs'>
-                  {t('Editing image')}
-                </span>
-                <PromptInputButton
-                  aria-label={t('Remove reference image')}
-                  className='text-muted-foreground hover:text-foreground'
-                  onClick={() => setReferenceImageKey(null)}
-                >
-                  <X className='size-4' />
-                </PromptInputButton>
-              </div>
-            </PromptInputHeader>
-          )}
+          <ImagePromptInputHeader
+            referenceImage={referenceImage}
+            onClearReference={() => setReferenceImageKey(null)}
+          />
           <PromptInputTextarea
             autoComplete='off'
             autoCorrect='off'
@@ -409,9 +447,92 @@ export function ImagePlayground() {
             onChange={(event) => setPrompt(event.target.value)}
             placeholder={t('Enter prompt')}
           />
-          <PromptInputFooter className='border-border/60 bg-muted/20 dark:bg-muted/10 flex-wrap border-t px-3 py-2.5 backdrop-blur'>
-            <div className='flex min-w-0 flex-1 flex-wrap items-center gap-1.5'>
-              <PromptInputTools className='min-w-0'>
+          <PromptInputFooter className='border-border/60 bg-muted/20 dark:bg-muted/10 border-t px-3 py-2.5 backdrop-blur'>
+            <div className='flex w-full flex-col gap-2.5 md:flex-row md:items-center md:justify-between'>
+              <div className='flex items-center justify-between gap-2 md:justify-start'>
+                <PromptInputTools className='bg-background/70 border-border/60 rounded-lg border p-1 shadow-xs'>
+                  <ImageParameterSettings
+                    count={count}
+                    maxCount={maxImageCount}
+                    size={size}
+                    quality={quality}
+                    disabled={isGenerating}
+                    onCountChange={setCount}
+                    onSizeChange={setSize}
+                    onQualityChange={setQuality}
+                  />
+
+                  <Tooltip>
+                    <DropdownMenu>
+                      <TooltipTrigger
+                        render={
+                          <DropdownMenuTrigger
+                            render={
+                              <PromptInputButton
+                                aria-label={t('Attach')}
+                                className='text-muted-foreground hover:bg-muted/70 hover:text-foreground font-medium'
+                                disabled={isGenerating}
+                                variant='ghost'
+                              />
+                            }
+                          >
+                            <PaperclipIcon size={16} />
+                          </DropdownMenuTrigger>
+                        }
+                      />
+                      <TooltipContent>
+                        <p>{t('Attach')}</p>
+                      </TooltipContent>
+                      <DropdownMenuContent align='start'>
+                        <PromptInputActionAddAttachments
+                          label={t('Add photos or files')}
+                        />
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <PromptInputButton
+                          aria-label={t('Clear chat history')}
+                          className='text-muted-foreground hover:bg-destructive/10 hover:text-destructive font-medium'
+                          disabled={isGenerating || images.length === 0}
+                          onClick={() => {
+                            setImages([])
+                            setReferenceImageKey(null)
+                          }}
+                          variant='ghost'
+                        >
+                          <Trash2Icon size={16} />
+                        </PromptInputButton>
+                      }
+                    />
+                    <TooltipContent>
+                      <p>{t('Clear chat history')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </PromptInputTools>
+                <div className='flex items-center gap-1.5 md:hidden'>
+                  <PromptInputButton
+                    className='bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground h-8 px-3 font-medium shadow-sm'
+                    disabled={
+                      isGenerating || isLoadingOptions || !selectedModel
+                    }
+                    type='submit'
+                    variant='default'
+                  >
+                    {isGenerating ? (
+                      <LoaderCircle className='size-4 animate-spin' />
+                    ) : (
+                      <SendIcon className='size-4' />
+                    )}
+                    <span className='sr-only'>{submitLabel}</span>
+                  </PromptInputButton>
+                </div>
+              </div>
+
+              <div className='hidden min-w-0 items-center gap-2 md:flex'>
                 <ModelGroupSelector
                   selectedModel={selectedModel}
                   models={models}
@@ -421,85 +542,34 @@ export function ImagePlayground() {
                   onGroupChange={handleGroupChange}
                   disabled={isGenerating || isLoadingOptions}
                 />
-              </PromptInputTools>
-              <Input
-                aria-label={t('Images')}
-                className='h-8 w-16'
-                type='number'
-                min={1}
-                max={maxImageCount}
-                value={count}
-                onChange={(event) =>
-                  setCount(
-                    String(
-                      Math.min(
-                        maxImageCount,
-                        Math.max(1, Number(event.target.value) || 1)
-                      )
-                    )
-                  )
-                }
-                disabled={isGenerating || maxImageCount === 1}
-                title={t('Images')}
-              />
-              <Select
-                value={size}
-                onValueChange={(value) => value && setSize(value)}
-                disabled={isGenerating}
-              >
-                <SelectTrigger
-                  aria-label={t('Size')}
-                  className='h-8 w-[7.5rem] text-xs'
+                <PromptInputButton
+                  className='bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground h-8 px-3 font-medium shadow-sm'
+                  disabled={isGenerating || isLoadingOptions || !selectedModel}
+                  type='submit'
+                  variant='default'
                 >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[
-                    '1024x1024',
-                    '1536x1024',
-                    '1024x1536',
-                    '1792x1024',
-                    '1024x1792',
-                  ].map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={quality}
-                onValueChange={(value) => value && setQuality(value)}
-                disabled={isGenerating}
-              >
-                <SelectTrigger
-                  aria-label={t('Quality')}
-                  className='h-8 w-[6.5rem] text-xs'
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {['auto', 'low', 'medium', 'high'].map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  {isGenerating ? (
+                    <LoaderCircle className='size-4 animate-spin' />
+                  ) : (
+                    <SendIcon className='size-4' />
+                  )}
+                  <span className='hidden sm:inline'>{submitLabel}</span>
+                </PromptInputButton>
+              </div>
+
+              <div className='flex min-w-0 items-center md:hidden'>
+                <ModelGroupSelector
+                  className='w-full max-w-none'
+                  selectedModel={selectedModel}
+                  models={models}
+                  onModelChange={handleModelChange}
+                  selectedGroup={selectedGroup}
+                  groups={groups}
+                  onGroupChange={handleGroupChange}
+                  disabled={isGenerating || isLoadingOptions}
+                />
+              </div>
             </div>
-            <PromptInputButton
-              className='bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground h-8 px-3 font-medium shadow-sm'
-              disabled={isGenerating || isLoadingOptions || !selectedModel}
-              type='submit'
-              variant='default'
-            >
-              {isGenerating ? (
-                <LoaderCircle className='size-4 animate-spin' />
-              ) : (
-                <SendIcon className='size-4' />
-              )}
-              <span className='hidden sm:inline'>{submitLabel}</span>
-            </PromptInputButton>
           </PromptInputFooter>
         </PromptInput>
       </div>
