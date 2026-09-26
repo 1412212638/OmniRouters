@@ -6,7 +6,7 @@
 - Changed: removed the obsolete access-token rejection from `controller/playground.go`; session and access-token authenticated playground requests now use the same relay and playground billing path.
 - Preserved: playground model/group selection, image generation/edit routing, quota handling, and the existing authentication checks in `middleware.UserAuth`.
 - Validation: Go formatting/tests unavailable because the Go toolchain is not installed locally; frontend behavior is unchanged by this backend-only fix.
-- Commit/push: pending.
+- Commit/push: commit `54db53e46` pushed to `origin/main`.
 
 ## 2026-09-26 - Match Image composer controls to Chat composer
 
