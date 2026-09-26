@@ -53,14 +53,12 @@ import {
   type ImageModelOption,
 } from './api'
 import { ImageParameterSettings } from './image-parameter-settings'
-
-type GeneratedImage = {
-  key: string
-  src: string
-  mimeType?: string
-  revisedPrompt?: string
-  prompt: string
-}
+import {
+  clearImagePlaygroundState,
+  loadImagePlaygroundState,
+  saveImagePlaygroundState,
+  type GeneratedImage,
+} from './storage'
 
 type ImageSource = {
   src: string
@@ -175,6 +173,52 @@ export function ImagePlayground() {
   )
   const [isLoadingOptions, setIsLoadingOptions] = useState(true)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isRestoring, setIsRestoring] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    void loadImagePlaygroundState().then((saved) => {
+      if (cancelled) return
+      if (saved) {
+        setImages(saved.images)
+        setReferenceImageKey(saved.referenceImageKey)
+        setPrompt(saved.prompt)
+        setModel(saved.model)
+        setGroup(saved.group)
+        setCount(saved.count)
+        setSize(saved.size)
+        setQuality(saved.quality)
+      }
+      setIsRestoring(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (isRestoring) return
+    void saveImagePlaygroundState({
+      images,
+      referenceImageKey,
+      prompt,
+      model,
+      group,
+      count,
+      size,
+      quality,
+    })
+  }, [
+    count,
+    group,
+    images,
+    isRestoring,
+    model,
+    prompt,
+    quality,
+    referenceImageKey,
+    size,
+  ])
 
   const selectedModel = useMemo(
     () => model || models[0]?.value || '',
@@ -361,6 +405,7 @@ export function ImagePlayground() {
                       onClick={() => {
                         setImages([])
                         setReferenceImageKey(null)
+                        void clearImagePlaygroundState()
                       }}
                     >
                       <Trash2 className='size-3.5' />
@@ -443,7 +488,7 @@ export function ImagePlayground() {
             autoCapitalize='off'
             spellCheck={false}
             className='min-h-20 px-5 pt-4 pb-3 leading-7 md:min-h-24 md:text-base'
-            disabled={isGenerating}
+            disabled={isGenerating || isRestoring}
             onChange={(event) => setPrompt(event.target.value)}
             placeholder={t('Enter prompt')}
           />
@@ -456,7 +501,7 @@ export function ImagePlayground() {
                     maxCount={maxImageCount}
                     size={size}
                     quality={quality}
-                    disabled={isGenerating}
+                    disabled={isGenerating || isRestoring}
                     onCountChange={setCount}
                     onSizeChange={setSize}
                     onQualityChange={setQuality}
@@ -471,7 +516,7 @@ export function ImagePlayground() {
                               <PromptInputButton
                                 aria-label={t('Attach')}
                                 className='text-muted-foreground hover:bg-muted/70 hover:text-foreground font-medium'
-                                disabled={isGenerating}
+                                disabled={isGenerating || isRestoring}
                                 variant='ghost'
                               />
                             }
@@ -497,10 +542,13 @@ export function ImagePlayground() {
                         <PromptInputButton
                           aria-label={t('Clear chat history')}
                           className='text-muted-foreground hover:bg-destructive/10 hover:text-destructive font-medium'
-                          disabled={isGenerating || images.length === 0}
+                          disabled={
+                            isGenerating || isRestoring || images.length === 0
+                          }
                           onClick={() => {
                             setImages([])
                             setReferenceImageKey(null)
+                            void clearImagePlaygroundState()
                           }}
                           variant='ghost'
                         >
@@ -517,7 +565,10 @@ export function ImagePlayground() {
                   <PromptInputButton
                     className='bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground h-8 px-3 font-medium shadow-sm'
                     disabled={
-                      isGenerating || isLoadingOptions || !selectedModel
+                      isGenerating ||
+                      isRestoring ||
+                      isLoadingOptions ||
+                      !selectedModel
                     }
                     type='submit'
                     variant='default'
@@ -540,11 +591,16 @@ export function ImagePlayground() {
                   selectedGroup={selectedGroup}
                   groups={groups}
                   onGroupChange={handleGroupChange}
-                  disabled={isGenerating || isLoadingOptions}
+                  disabled={isGenerating || isRestoring || isLoadingOptions}
                 />
                 <PromptInputButton
                   className='bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground h-8 px-3 font-medium shadow-sm'
-                  disabled={isGenerating || isLoadingOptions || !selectedModel}
+                  disabled={
+                    isGenerating ||
+                    isRestoring ||
+                    isLoadingOptions ||
+                    !selectedModel
+                  }
                   type='submit'
                   variant='default'
                 >
@@ -566,7 +622,7 @@ export function ImagePlayground() {
                   selectedGroup={selectedGroup}
                   groups={groups}
                   onGroupChange={handleGroupChange}
-                  disabled={isGenerating || isLoadingOptions}
+                  disabled={isGenerating || isRestoring || isLoadingOptions}
                 />
               </div>
             </div>

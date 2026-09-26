@@ -1,0 +1,163 @@
+export type GeneratedImage = {
+  key: string
+  src: string
+  mimeType?: string
+  revisedPrompt?: string
+  prompt: string
+}
+
+export type ImagePlaygroundState = {
+  images: GeneratedImage[]
+  referenceImageKey: string | null
+  prompt: string
+  model: string
+  group: string
+  count: string
+  size: string
+  quality: string
+}
+
+const DATABASE_NAME = 'omnirouters-image-playground'
+const DATABASE_VERSION = 1
+const STORE_NAME = 'playground-state'
+const FALLBACK_STORAGE_KEY = 'image-playground-state'
+type StoredRecord = {
+  key: string
+  state: ImagePlaygroundState
+}
+
+function getStorageScope(): string {
+  try {
+    return window.localStorage.getItem('uid')?.trim() || 'anonymous'
+  } catch {
+    return 'anonymous'
+  }
+}
+
+function getFallbackKey(): string {
+  return `${FALLBACK_STORAGE_KEY}:${getStorageScope()}`
+}
+
+function openDatabase(): Promise<IDBDatabase | null> {
+  if (typeof indexedDB === 'undefined') return Promise.resolve(null)
+
+  return new Promise((resolve) => {
+    const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION)
+    request.addEventListener('upgradeneeded', () => {
+      if (!request.result.objectStoreNames.contains(STORE_NAME)) {
+        request.result.createObjectStore(STORE_NAME, { keyPath: 'key' })
+      }
+    })
+    request.addEventListener('success', () => resolve(request.result))
+    request.addEventListener('error', () => resolve(null))
+    request.addEventListener('blocked', () => resolve(null))
+  })
+}
+
+function parseState(value: unknown): ImagePlaygroundState | null {
+  if (!value || typeof value !== 'object') return null
+  const candidate = value as Partial<ImagePlaygroundState>
+  if (!Array.isArray(candidate.images)) return null
+
+  const images = candidate.images.filter((image): image is GeneratedImage =>
+    Boolean(
+      image &&
+      typeof image === 'object' &&
+      typeof image.key === 'string' &&
+      typeof image.src === 'string' &&
+      typeof image.prompt === 'string'
+    )
+  )
+
+  return {
+    images,
+    referenceImageKey:
+      typeof candidate.referenceImageKey === 'string'
+        ? candidate.referenceImageKey
+        : null,
+    prompt: typeof candidate.prompt === 'string' ? candidate.prompt : '',
+    model: typeof candidate.model === 'string' ? candidate.model : '',
+    group: typeof candidate.group === 'string' ? candidate.group : '',
+    count: typeof candidate.count === 'string' ? candidate.count : '1',
+    size: typeof candidate.size === 'string' ? candidate.size : '1024x1024',
+    quality: typeof candidate.quality === 'string' ? candidate.quality : 'auto',
+  }
+}
+
+function readFallback(): ImagePlaygroundState | null {
+  try {
+    const raw = window.localStorage.getItem(getFallbackKey())
+    return raw ? parseState(JSON.parse(raw)) : null
+  } catch {
+    return null
+  }
+}
+
+function writeFallback(state: ImagePlaygroundState): void {
+  try {
+    window.localStorage.setItem(getFallbackKey(), JSON.stringify(state))
+  } catch {
+    // IndexedDB is the primary store and has substantially more capacity.
+  }
+}
+
+export async function loadImagePlaygroundState(): Promise<ImagePlaygroundState | null> {
+  const database = await openDatabase()
+  if (!database) return readFallback()
+
+  return new Promise((resolve) => {
+    const transaction = database.transaction(STORE_NAME, 'readonly')
+    const request = transaction.objectStore(STORE_NAME).get(getStorageScope())
+    request.addEventListener('success', () => {
+      const record = request.result as StoredRecord | undefined
+      resolve(parseState(record?.state) ?? readFallback())
+    })
+    request.addEventListener('error', () => resolve(readFallback()))
+  })
+}
+
+export async function saveImagePlaygroundState(
+  state: ImagePlaygroundState
+): Promise<void> {
+  const database = await openDatabase()
+  if (!database) {
+    writeFallback(state)
+    return
+  }
+
+  await new Promise<void>((resolve) => {
+    const transaction = database.transaction(STORE_NAME, 'readwrite')
+    transaction.objectStore(STORE_NAME).put({
+      key: getStorageScope(),
+      state,
+    } satisfies StoredRecord)
+    transaction.addEventListener('complete', () => resolve())
+    transaction.addEventListener('error', () => {
+      writeFallback(state)
+      resolve()
+    })
+    transaction.addEventListener('abort', () => {
+      writeFallback(state)
+      resolve()
+    })
+  })
+}
+
+export async function clearImagePlaygroundState(): Promise<void> {
+  const database = await openDatabase()
+  if (database) {
+    await new Promise<void>((resolve) => {
+      const transaction = database.transaction(STORE_NAME, 'readwrite')
+      transaction.objectStore(STORE_NAME).delete(getStorageScope())
+      transaction.addEventListener('complete', () => resolve())
+      transaction.addEventListener('error', () => resolve())
+      transaction.addEventListener('abort', () => resolve())
+    })
+  }
+
+  try {
+    window.localStorage.removeItem(getFallbackKey())
+  } catch {
+    // Ignore storage cleanup errors.
+  }
+}

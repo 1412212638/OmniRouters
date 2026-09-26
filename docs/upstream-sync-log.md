@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-26 - Persist Image Studio history across navigation
+
+- Local reason: Image Studio kept generated images only in React state, so leaving and re-entering the route cleared the history.
+- Changed: added user-scoped IndexedDB persistence with a localStorage fallback for generated images, prompts, edit reference selection, and image generation parameters; clear actions remove the persisted state.
+- Preserved: image generation/edit requests, model and group selection, attachment handling, and the existing Chat Playground storage.
+- Validation: Oxfmt, Oxlint, production frontend build, and `git diff --check` passed. Full Go validation was not needed for this frontend-only change.
+- Commit/push: pending.
+
 ## 2026-09-26 - Allow access-token authentication in playground relay
 
 - Local reason: Image Studio requests authenticated with the dashboard access token were rejected by the legacy playground guard before reaching the image relay.
