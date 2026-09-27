@@ -84,21 +84,72 @@ export function buildImageRequest({
   return request
 }
 
-export function imageRequestJson(request: ImageRequestPayload) {
+function geminiImageRequest(request: ImageRequestPayload) {
+  const parts: Array<Record<string, unknown>> = [{ text: request.prompt }]
+  if (typeof request.image === 'string' && request.image.length > 0) {
+    const mimeType = request.image.match(/^data:([^;,]+)/)?.[1] ?? 'image/*'
+    parts.unshift({
+      inlineData: {
+        mimeType,
+        data: '<reference image omitted>',
+      },
+    })
+  }
+
+  const generationConfig: Record<string, unknown> = {
+    responseModalities: ['TEXT', 'IMAGE'],
+  }
+  const imageConfig: Record<string, string> = {}
+  if (typeof request.size === 'string' && request.size.includes(':')) {
+    imageConfig.aspectRatio = request.size
+  }
+  if (request.quality === '2K' || request.quality === '4K') {
+    imageConfig.imageSize = request.quality
+  }
+  if (Object.keys(imageConfig).length > 0) {
+    generationConfig.imageConfig = imageConfig
+  }
+
+  return {
+    contents: [{ role: 'user', parts }],
+    generationConfig,
+  }
+}
+
+export function imageRequestJson(
+  request: ImageRequestPayload,
+  isGemini = false
+) {
+  if (isGemini) {
+    return JSON.stringify(geminiImageRequest(request), null, 2)
+  }
   const copy = { ...request }
+  delete copy.group
   if (typeof copy.image === 'string') copy.image = '<reference image omitted>'
   return JSON.stringify(copy, null, 2)
+}
+
+export function imageRequestEndpoint(
+  model: string,
+  isEdit: boolean,
+  isGemini: boolean
+) {
+  if (isGemini) {
+    return `/v1beta/models/${encodeURIComponent(model)}:generateContent`
+  }
+  return isEdit ? '/v1/images/edits' : '/v1/images/generations'
 }
 
 export function imageRequestCurl(
   request: ImageRequestPayload,
   endpoint: string,
-  isEdit: boolean
+  isEdit: boolean,
+  isGemini = false
 ) {
-  const body = imageRequestJson(request)
-  if (isEdit) {
+  const body = imageRequestJson(request, isGemini)
+  if (isEdit && !isGemini) {
     const fields = Object.entries(request)
-      .filter(([key]) => key !== 'image')
+      .filter(([key]) => key !== 'image' && key !== 'group')
       .map(([key, value]) => {
         const rendered =
           typeof value === 'object' ? JSON.stringify(value) : String(value)

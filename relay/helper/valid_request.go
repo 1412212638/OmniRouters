@@ -270,13 +270,9 @@ func GetAndValidOpenAIImageRequest(c *gin.Context, relayMode int) (*dto.ImageReq
 
 			if imageRequest.Model == "gpt-image-1" {
 				if imageRequest.Quality == "" {
-					imageRequest.Quality = "standard"
+					imageRequest.Quality = "auto"
 				}
 			}
-			if imageRequest.N == nil || *imageRequest.N == 0 {
-				imageRequest.N = common.GetPointer(uint(1))
-			}
-
 			hasWatermark := formData.Has("watermark")
 			if hasWatermark {
 				watermark := formData.Get("watermark") == "true"
@@ -316,9 +312,12 @@ func GetAndValidOpenAIImageRequest(c *gin.Context, relayMode int) (*dto.ImageReq
 		//	return nil, errors.New("prompt is required")
 		//}
 
-		if imageRequest.N == nil || *imageRequest.N == 0 {
-			imageRequest.N = common.GetPointer(uint(1))
-		}
+	}
+	if err := imageRequest.ValidateGPTImageParameters(); err != nil {
+		return nil, err
+	}
+	if imageRequest.N == nil || *imageRequest.N == 0 {
+		imageRequest.N = common.GetPointer(uint(1))
 	}
 	if common.IsGeminiGenerateContentImageModel(imageRequest.Model) && imageRequest.N != nil && *imageRequest.N > 1 {
 		return nil, errors.New("Gemini image models support one candidate per request")

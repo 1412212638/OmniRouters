@@ -1,4 +1,5 @@
 import { SlidersHorizontalIcon } from 'lucide-react'
+import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { PromptInputButton } from '@/components/ai-elements/prompt-input'
@@ -59,6 +60,7 @@ export function ImageParameterSettings({
   onParameterValueChange,
 }: ImageParameterSettingsProps) {
   const { t } = useTranslation()
+  const inputId = useId()
   const parameters = capabilities?.parameters ?? []
 
   const reset = () => {
@@ -112,33 +114,44 @@ export function ImageParameterSettings({
       )
     }
 
+    const datalistId = `${inputId}-${parameter.key.replaceAll(/[^a-zA-Z0-9_-]/g, '-')}`
     return (
-      <Input
-        aria-label={parameter.key}
-        className='h-8 w-40 max-w-full'
-        disabled={controlDisabled}
-        min={parameter.min}
-        max={parameter.max}
-        step={parameter.step}
-        type={parameter.type === 'string' ? 'text' : 'number'}
-        value={String(value)}
-        onChange={(event) => {
-          if (parameter.type === 'string') {
-            onParameterValueChange(parameter.key, event.target.value)
-            return
-          }
-          const next = Number(event.target.value)
-          if (!Number.isFinite(next)) return
-          const bounded = Math.min(
-            parameter.max ?? Number.MAX_SAFE_INTEGER,
-            Math.max(parameter.min ?? Number.MIN_SAFE_INTEGER, next)
-          )
-          onParameterValueChange(
-            parameter.key,
-            parameter.type === 'integer' ? Math.round(bounded) : bounded
-          )
-        }}
-      />
+      <>
+        <Input
+          aria-label={parameter.key}
+          className='h-8 w-40 max-w-full'
+          disabled={controlDisabled}
+          list={parameter.type === 'string' ? datalistId : undefined}
+          min={parameter.min}
+          max={parameter.max}
+          step={parameter.step}
+          type={parameter.type === 'string' ? 'text' : 'number'}
+          value={String(value)}
+          onChange={(event) => {
+            if (parameter.type === 'string') {
+              onParameterValueChange(parameter.key, event.target.value)
+              return
+            }
+            const next = Number(event.target.value)
+            if (!Number.isFinite(next)) return
+            const bounded = Math.min(
+              parameter.max ?? Number.MAX_SAFE_INTEGER,
+              Math.max(parameter.min ?? Number.MIN_SAFE_INTEGER, next)
+            )
+            onParameterValueChange(
+              parameter.key,
+              parameter.type === 'integer' ? Math.round(bounded) : bounded
+            )
+          }}
+        />
+        {parameter.type === 'string' && parameter.options?.length ? (
+          <datalist id={datalistId}>
+            {parameter.options.map((option) => (
+              <option key={option} value={option} />
+            ))}
+          </datalist>
+        ) : null}
+      </>
     )
   }
 

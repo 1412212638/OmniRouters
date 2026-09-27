@@ -57,6 +57,12 @@ func imageEnum(key, requestKey string, defaultValue string, options []string, op
 	return parameter
 }
 
+func imageString(key, requestKey, defaultValue string, options []string, operations []string) ImageParameterCapability {
+	parameter := imageParameter(key, requestKey, "string", defaultValue, operations)
+	parameter.Options = options
+	return parameter
+}
+
 func imageInteger(key, requestKey string, defaultValue, min, max, step float64, operations []string) ImageParameterCapability {
 	parameter := imageParameter(key, requestKey, "integer", defaultValue, operations)
 	parameter.Min = imageNumber(min)
@@ -82,47 +88,55 @@ func imageOperations() []string { return []string{"generation", "edit"} }
 func imageCapabilityProfiles() []imageCapabilityProfile {
 	operations := imageOperations()
 	standard := []ImageParameterCapability{
-		imageInteger("n", "n", 1, 1, dto.MaxImageN, 1, operations),
 		imageEnum("size", "size", "1024x1024", []string{"1024x1024", "1536x1024", "1024x1536", "1792x1024", "1024x1792"}, operations),
 		imageEnum("quality", "quality", "auto", []string{"auto", "low", "medium", "high"}, operations),
 	}
-	openAIImage := append([]ImageParameterCapability{}, standard...)
-	openAIImage = append(openAIImage,
+	openAIExtras := []ImageParameterCapability{
 		imageEnum("background", "background", "auto", []string{"auto", "opaque", "transparent"}, operations),
 		imageEnum("output_format", "output_format", "png", []string{"png", "jpeg", "webp"}, operations),
 		imageInteger("output_compression", "output_compression", 100, 0, 100, 1, operations),
-	)
+	}
+	gptImage := []ImageParameterCapability{
+		imageInteger("n", "n", 1, 1, dto.MaxGPTImageN, 1, operations),
+		imageString("size", "size", "auto", []string{
+			"auto",
+			"1024x1024", "1024x768", "768x1024",
+			"1920x1088", "1088x1920", "1536x1024", "1024x1536",
+			"1920x816", "816x1920",
+			"2048x2048", "2736x2048", "2048x2736",
+			"2560x1440", "1440x2560", "3072x2048", "2048x3072",
+			"2560x1104", "1104x2560",
+			"2880x2880", "3312x2480", "2480x3312",
+			"3840x2160", "2160x3840", "3520x2352", "2352x3520",
+			"3840x1648", "1648x3840",
+		}, operations),
+		imageEnum("quality", "quality", "auto", []string{"auto", "low", "medium", "high", "xhigh", "max"}, operations),
+	}
+	gptImage = append(gptImage, openAIExtras...)
 	dallE := append([]ImageParameterCapability{}, standard...)
 	dallE = append(dallE,
 		imageEnum("response_format", "response_format", "url", []string{"url", "b64_json"}, operations),
 		imageEnum("style", "style", "vivid", []string{"vivid", "natural"}, operations),
 	)
-	countOnly := []ImageParameterCapability{
-		imageInteger("n", "n", 1, 1, dto.MaxImageN, 1, operations),
-	}
 	return []imageCapabilityProfile{
 		{ChannelTypes: []int{constant.ChannelTypeGemini, constant.ChannelTypeVertexAi}, Match: func(name string) bool {
 			lower := strings.ToLower(name)
 			return strings.HasPrefix(lower, "gemini-") || strings.HasPrefix(lower, "imagen") || strings.HasPrefix(lower, "nano-banana")
 		}, Parameters: []ImageParameterCapability{
-			imageInteger("n", "n", 1, 1, 1, 1, operations),
 			// Gemini's adapter accepts the OpenAI size field and maps it to aspectRatio.
 			imageEnum("aspect_ratio", "size", "1:1", []string{"1:1", "3:2", "2:3", "16:9", "9:16", "4:3", "3:4", "21:9"}, operations),
 			// Gemini's adapter maps quality to imageSize (1K/2K/4K).
 			imageEnum("image_size", "quality", "auto", []string{"auto", "2K", "4K"}, operations),
 		},},
 		{ChannelTypes: []int{constant.ChannelTypeXai}, Parameters: []ImageParameterCapability{
-			imageInteger("n", "n", 1, 1, dto.MaxImageN, 1, operations),
 			imageEnum("response_format", "response_format", "url", []string{"url", "b64_json"}, operations),
 		}},
 		{ChannelTypes: []int{constant.ChannelTypeMiniMax}, Parameters: []ImageParameterCapability{
-			imageInteger("n", "n", 1, 1, dto.MaxImageN, 1, operations),
 			imageEnum("aspect_ratio", "aspect_ratio", "1:1", []string{"1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3", "21:9"}, operations),
 			imageBoolean("prompt_optimizer", "prompt_optimizer", false, operations),
 			imageBoolean("watermark", "watermark", false, operations),
 		}},
 		{ChannelTypes: []int{constant.ChannelTypeAli}, Parameters: []ImageParameterCapability{
-			imageInteger("n", "parameters.n", 1, 1, dto.MaxImageN, 1, operations),
 			imageEnum("size", "parameters.size", "1024*1024", []string{"1024*1024", "1280*720", "720*1280", "1536*1024", "1024*1536"}, operations),
 			imageBoolean("watermark", "parameters.watermark", false, operations),
 			imageBoolean("prompt_extend", "parameters.prompt_extend", true, operations),
@@ -130,7 +144,6 @@ func imageCapabilityProfiles() []imageCapabilityProfile {
 			imageInteger("seed", "parameters.seed", 0, 0, 2147483647, 1, operations),
 		}},
 		{ChannelTypes: []int{constant.ChannelTypeSiliconFlow}, Parameters: []ImageParameterCapability{
-			imageInteger("n", "n", 1, 1, dto.MaxImageN, 1, operations),
 			imageEnum("image_size", "image_size", "1024x1024", []string{"512x512", "768x768", "1024x1024", "1280x720", "720x1280"}, operations),
 			imageInteger("seed", "seed", 0, 0, 2147483647, 1, operations),
 			imageInteger("num_inference_steps", "num_inference_steps", 20, 1, 100, 1, operations),
@@ -138,20 +151,18 @@ func imageCapabilityProfiles() []imageCapabilityProfile {
 			imageParameter("negative_prompt", "negative_prompt", "string", "", operations),
 		}},
 		{ChannelTypes: []int{constant.ChannelTypeReplicate}, Parameters: []ImageParameterCapability{
-			imageInteger("n", "n", 1, 1, dto.MaxImageN, 1, operations),
 			imageEnum("size", "size", "1024x1024", []string{"1024x1024", "1536x1024", "1024x1536", "1792x1024", "1024x1792"}, operations),
 			imageEnum("quality", "quality", "auto", []string{"auto", "low", "medium", "high"}, operations),
 			imageEnum("output_format", "output_format", "png", []string{"png", "jpeg", "webp"}, operations),
 		}},
 		{ChannelTypes: []int{constant.ChannelTypeOpenAI, constant.ChannelTypeOpenAIMax, constant.ChannelTypeAzure, constant.ChannelTypeOpenRouter}, Match: func(name string) bool {
 			return strings.HasPrefix(strings.ToLower(name), "gpt-image-")
-		}, Parameters: openAIImage},
+		}, Parameters: gptImage},
 		{ChannelTypes: []int{constant.ChannelTypeOpenAI, constant.ChannelTypeOpenAIMax, constant.ChannelTypeAzure, constant.ChannelTypeOpenRouter}, Match: func(name string) bool {
 			lower := strings.ToLower(name)
 			return strings.HasPrefix(lower, "dall-e-") || lower == "dall-e"
 		}, Parameters: dallE},
 		{ChannelTypes: []int{constant.ChannelTypeVolcEngine}, Parameters: []ImageParameterCapability{
-			imageInteger("n", "n", 1, 1, dto.MaxImageN, 1, operations),
 			imageEnum("size", "size", "1024x1024", []string{"1024x1024", "1536x1024", "1024x1536", "1792x1024", "1024x1792"}, operations),
 		}},
 		{ChannelTypes: []int{constant.ChannelTypeJimeng}, Parameters: []ImageParameterCapability{
@@ -161,7 +172,6 @@ func imageCapabilityProfiles() []imageCapabilityProfile {
 			imageBoolean("use_pre_llm", "extra_fields.use_pre_llm", true, operations),
 			imageBoolean("use_sr", "extra_fields.use_sr", true, operations),
 		}},
-		{Parameters: countOnly},
 	}
 }
 

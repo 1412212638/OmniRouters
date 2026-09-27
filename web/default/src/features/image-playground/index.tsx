@@ -7,6 +7,7 @@ import {
   Pencil,
   RefreshCw,
   SendIcon,
+  Trash2,
   Trash2Icon,
   X,
 } from 'lucide-react'
@@ -167,8 +168,10 @@ function metadataLabel(
 }
 
 function aspectRatioStyle(value?: string): CSSProperties | undefined {
-  if (!value || !/^\d+(?::\d+|\s*\/\s*\d+)$/.test(value)) return undefined
-  return { aspectRatio: value.replace(':', ' / ') }
+  if (!value || !/^\s*\d+\s*[:/xX]\s*\d+\s*$/.test(value)) {
+    return undefined
+  }
+  return { aspectRatio: value.trim().replace(/\s*[:/xX]\s*/, ' / ') }
 }
 
 function ImagePromptInputHeader({
@@ -478,7 +481,6 @@ export function ImagePlayground() {
             : entry
         )
       )
-      setReferenceImageKey(generated.at(-1)?.key ?? null)
     } catch (error) {
       const message = requestErrorMessage(error, t('Request failed'))
       setEntries((current) =>
@@ -542,7 +544,12 @@ export function ImagePlayground() {
                       </div>
 
                       {entry.status === 'loading' && (
-                        <div className='border-border/70 bg-muted/30 flex min-h-56 w-full max-w-[680px] items-center justify-center rounded-xl border'>
+                        <div
+                          className='border-border/70 bg-muted/30 flex min-h-48 w-full max-w-[478px] items-center justify-center rounded-xl border'
+                          style={aspectRatioStyle(
+                            entry.metadata?.aspectRatio || entry.metadata?.size
+                          )}
+                        >
                           <div className='text-muted-foreground flex items-center gap-2 text-sm'>
                             <LoaderCircle className='size-4 animate-spin' />
                             {t('Generating...')}
@@ -550,7 +557,7 @@ export function ImagePlayground() {
                         </div>
                       )}
                       {entry.status === 'error' && (
-                        <div className='border-destructive/30 bg-destructive/5 text-destructive flex min-h-24 w-full max-w-[680px] items-center justify-between gap-4 rounded-xl border px-4 py-3 text-sm'>
+                        <div className='border-destructive/30 bg-destructive/5 text-destructive flex min-h-24 w-full max-w-[478px] items-center justify-between gap-4 rounded-xl border px-4 py-3 text-sm'>
                           <span>{entry.error || t('Request failed')}</span>
                           <Button
                             size='sm'
@@ -569,40 +576,22 @@ export function ImagePlayground() {
                         entry.images.map((image, index) => (
                           <figure
                             key={image.key}
-                            className='group border-border/70 bg-background/75 w-full max-w-[680px] overflow-hidden rounded-xl border shadow-[0_18px_55px_-30px_rgba(15,23,42,0.5)]'
+                            className='group w-full max-w-[478px]'
                           >
                             <img
                               src={image.src}
                               alt={image.revisedPrompt || image.prompt}
-                              className='bg-muted block h-auto max-h-[min(68svh,720px)] w-full object-contain'
+                              className='bg-muted border-border/70 block h-auto w-full rounded-xl border object-contain shadow-[0_18px_55px_-30px_rgba(15,23,42,0.5)]'
                               style={aspectRatioStyle(
-                                entry.metadata?.aspectRatio
+                                entry.metadata?.aspectRatio ||
+                                  entry.metadata?.size
                               )}
                             />
-                            <figcaption className='border-border/70 flex items-center justify-between gap-3 border-t px-4 py-3'>
-                              <span className='text-muted-foreground line-clamp-2 text-xs'>
-                                {image.revisedPrompt || image.prompt}
-                              </span>
-                              <div className='flex shrink-0 items-center gap-1'>
+                            <figcaption className='flex items-center gap-2 px-0 pt-3'>
+                              <div className='flex flex-wrap items-center gap-2'>
                                 <Button
                                   size='sm'
-                                  variant={
-                                    referenceImageKey === image.key
-                                      ? 'secondary'
-                                      : 'ghost'
-                                  }
-                                  onClick={() =>
-                                    setReferenceImageKey(image.key)
-                                  }
-                                >
-                                  <Pencil className='size-3.5' />
-                                  {referenceImageKey === image.key
-                                    ? t('Editing')
-                                    : t('Edit')}
-                                </Button>
-                                <Button
-                                  size='icon-sm'
-                                  variant='secondary'
+                                  variant='outline'
                                   aria-label={t('Download')}
                                   onClick={() =>
                                     downloadImage(
@@ -612,7 +601,32 @@ export function ImagePlayground() {
                                     )
                                   }
                                 >
-                                  <Download className='size-4' />
+                                  <Download className='size-3.5' />
+                                  {t('Download')}
+                                </Button>
+                                <Button
+                                  size='sm'
+                                  variant={
+                                    referenceImageKey === image.key
+                                      ? 'secondary'
+                                      : 'outline'
+                                  }
+                                  onClick={() =>
+                                    setReferenceImageKey(image.key)
+                                  }
+                                >
+                                  <Pencil className='size-3.5' />
+                                  {t('Edit image')}
+                                </Button>
+                                <Button
+                                  size='sm'
+                                  variant='outline'
+                                  onClick={() =>
+                                    void handleGenerate(entry.prompt)
+                                  }
+                                >
+                                  <RefreshCw className='size-3.5' />
+                                  {t('Regenerate')}
                                 </Button>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger
@@ -634,12 +648,35 @@ export function ImagePlayground() {
                                       {t('Edit prompt')}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
-                                      onClick={() =>
-                                        void handleGenerate(entry.prompt)
-                                      }
+                                      variant='destructive'
+                                      onClick={() => {
+                                        setEntries((current) =>
+                                          current.filter(
+                                            (item) => item.key !== entry.key
+                                          )
+                                        )
+                                        setImages((current) =>
+                                          current.filter(
+                                            (item) =>
+                                              !entry.images.some(
+                                                (entryImage) =>
+                                                  entryImage.key === item.key
+                                              )
+                                          )
+                                        )
+                                        if (
+                                          entry.images.some(
+                                            (entryImage) =>
+                                              entryImage.key ===
+                                              referenceImageKey
+                                          )
+                                        ) {
+                                          setReferenceImageKey(null)
+                                        }
+                                      }}
                                     >
-                                      <RefreshCw className='size-3.5' />
-                                      {t('Regenerate')}
+                                      <Trash2 className='size-3.5' />
+                                      {t('Delete')}
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>

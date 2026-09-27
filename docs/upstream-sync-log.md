@@ -3074,3 +3074,19 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: the existing `/models` route and Models page, Chat Playground behavior, image history persistence, group/model selectors, access-token handling, and upstream provider adapters. Preview output uses `<your-token>` and omits reference image contents.
 - Validation: targeted image-playground Oxlint passed; frontend production build passed; `git diff --check` passed. Full frontend typecheck remains blocked by existing missing test dependencies and unrelated type errors. Go tests/gofmt could not run because Go is not installed locally. Untracked logs, reports, lockfiles, and helper files were deliberately excluded.
 - Commit/push: pending.
+
+## 2026-09-27 - Complete GPT image parameter bounds and editable size presets
+
+- Local reason: GPT image models need a stricter provider contract than the shared image defaults: `n` 1-10, quality values through `xhigh`/`max`, and constrained custom dimensions.
+- Changed: GPT image capability profiles now expose the provider-specific count, quality, common 1K/2K/4K size presets, and OpenAI output options; non-GPT profiles no longer expose `n` in Studio, including the generic fallback; request validation enforces `auto` or 16-aligned `WIDTHxHEIGHT`, 3840px maximum side, 1:3–3:1 aspect ratio, and 655,360–8,294,400 pixels; multipart GPT defaults use `auto`; the Studio size field now supports both preset suggestions and custom input; added regression coverage for capability exposure and validation boundaries.
+- Preserved: non-GPT image provider parameter rules, generic image billing bounds, existing Studio history/edit behavior, protected project identifiers, and unrelated untracked files.
+- Validation: frontend production build, targeted Oxlint/Oxfmt, and `git diff --check` passed. Full frontend typecheck remains blocked by existing missing test dependencies and unrelated type errors. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: pending; this work intentionally remains uncommitted for the next requested iteration.
+
+## 2026-09-27 - Show public image API paths in request preview
+
+- Local reason: the Studio request preview showed internal `/pg/images/*` routes, which are not the customer-facing API contract.
+- Changed: preview endpoint labels and generated cURL now use `/v1/images/generations` or `/v1/images/edits` for OpenAI-compatible image requests, and `/v1beta/models/{model}:generateContent` for Gemini image models; updated the preview description and translations.
+- Preserved: actual Studio request routing, request payload construction, reference-image redaction, model selection, and protected project identifiers.
+- Validation: targeted image-playground Oxfmt/Oxlint, frontend production build, and `git diff --check` passed. Full frontend typecheck remains blocked by existing missing test dependencies and unrelated type errors. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: pending.

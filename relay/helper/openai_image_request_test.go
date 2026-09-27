@@ -176,32 +176,32 @@ func TestGetAndValidOpenAIImageRequestNBounds(t *testing.T) {
 	}{
 		{
 			name:    "overflowed uint64 n is rejected",
-			body:    `{"model":"gpt-image-1","prompt":"a cat","n":18446744073686646784}`,
+			body:    `{"model":"test-image-model","prompt":"a cat","n":18446744073686646784}`,
 			wantErr: boundErr,
 		},
 		{
 			name:    "n above max is rejected",
-			body:    fmt.Sprintf(`{"model":"gpt-image-1","prompt":"a cat","n":%d}`, dto.MaxImageN+1),
+			body:    fmt.Sprintf(`{"model":"test-image-model","prompt":"a cat","n":%d}`, dto.MaxImageN+1),
 			wantErr: boundErr,
 		},
 		{
 			name:  "n at max is accepted",
-			body:  fmt.Sprintf(`{"model":"gpt-image-1","prompt":"a cat","n":%d}`, dto.MaxImageN),
+			body:  fmt.Sprintf(`{"model":"test-image-model","prompt":"a cat","n":%d}`, dto.MaxImageN),
 			wantN: dto.MaxImageN,
 		},
 		{
 			name:  "explicit n is accepted",
-			body:  `{"model":"gpt-image-1","prompt":"a cat","n":3}`,
+			body:  `{"model":"test-image-model","prompt":"a cat","n":3}`,
 			wantN: 3,
 		},
 		{
 			name:  "zero n defaults to 1",
-			body:  `{"model":"gpt-image-1","prompt":"a cat","n":0}`,
+			body:  `{"model":"test-image-model","prompt":"a cat","n":0}`,
 			wantN: 1,
 		},
 		{
 			name:  "absent n defaults to 1",
-			body:  `{"model":"gpt-image-1","prompt":"a cat"}`,
+			body:  `{"model":"test-image-model","prompt":"a cat"}`,
 			wantN: 1,
 		},
 	}

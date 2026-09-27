@@ -28,7 +28,11 @@ import {
 } from '@/components/ui/tooltip'
 
 import type { ImageRequestPayload } from './api'
-import { imageRequestCurl, imageRequestJson } from './image-request-builder'
+import {
+  imageRequestCurl,
+  imageRequestEndpoint,
+  imageRequestJson,
+} from './image-request-builder'
 
 type ImageRequestPreviewProps = {
   buildRequest: (image?: string) => ImageRequestPayload
@@ -49,12 +53,21 @@ export function ImageRequestPreview({
   const attachmentImage = files.at(0)?.url
   const request = buildRequest(attachmentImage)
   const editRequest = isEdit || Boolean(attachmentImage)
-  const endpoint = editRequest ? '/pg/images/edits' : '/pg/images/generations'
+  const endpoint = imageRequestEndpoint(
+    String(request.model ?? ''),
+    editRequest,
+    isGeminiEdit
+  )
   const code = useMemo(() => {
     if (tab === 'curl') {
-      return imageRequestCurl(request, endpoint, editRequest && !isGeminiEdit)
+      return imageRequestCurl(
+        request,
+        endpoint,
+        editRequest && !isGeminiEdit,
+        isGeminiEdit
+      )
     }
-    return imageRequestJson(request)
+    return imageRequestJson(request, isGeminiEdit)
   }, [endpoint, editRequest, isGeminiEdit, request, tab])
 
   const copy = async () => {
@@ -93,7 +106,7 @@ export function ImageRequestPreview({
         <DialogHeader>
           <DialogTitle>{t('Request preview')}</DialogTitle>
           <DialogDescription>
-            {t('Preview of the request sent to the image playground endpoint.')}
+            {t('Preview of the request sent to the public image API endpoint.')}
           </DialogDescription>
         </DialogHeader>
         <div className='flex flex-wrap items-center justify-between gap-3'>

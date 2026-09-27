@@ -2,9 +2,12 @@ package dto
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
+	"strconv"
+	"strings"
 
 	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
 	"github.com/QuantumNous/new-api/relaykit/types"
@@ -13,6 +16,17 @@ import (
 // MaxImageN caps the image generation count. Without this bound a huge or
 // wrapped-negative n overflows quota calculation into a negative charge.
 const MaxImageN = 128
+
+const (
+	MaxGPTImageN       = 10
+	GPTImageMaxSide    = int64(3840)
+	GPTImageMinPixels  = int64(655360)
+	GPTImageMaxPixels  = int64(8294400)
+)
+
+var gptImageQualities = map[string]struct{}{
+	"auto": {}, "low": {}, "medium": {}, "high": {}, "xhigh": {}, "max": {},
+}
 
 // ImageBillingParameters contains only the provider scalars parsed by request
 // validation. Keep this separate from the complete provider request payload.
@@ -69,6 +83,51 @@ func (i *ImageRequest) ImageCount(useProviderParameters bool) (int, error) {
 		}
 	}
 	return int(n), nil
+}
+
+// ValidateGPTImageParameters validates the size, quality, and count contract
+// used by GPT image models. Other image providers keep their own parameter
+// semantics and are intentionally not validated by this method.
+func (i *ImageRequest) ValidateGPTImageParameters() error {
+	if i == nil || !strings.HasPrefix(strings.ToLower(strings.TrimSpace(i.Model)), "gpt-image-") {
+		return nil
+	}
+	if i.N != nil && (*i.N < 1 || *i.N > MaxGPTImageN) {
+		return fmt.Errorf("n must be an integer between 1 and %d for GPT image models", MaxGPTImageN)
+	}
+	if quality := strings.ToLower(strings.TrimSpace(i.Quality)); quality != "" {
+		if _, ok := gptImageQualities[quality]; !ok {
+			return fmt.Errorf("quality must be one of auto, low, medium, high, xhigh, max for GPT image models")
+		}
+	}
+
+	size := strings.TrimSpace(i.Size)
+	if size == "" || strings.EqualFold(size, "auto") {
+		return nil
+	}
+	parts := strings.Split(strings.ToLower(size), "x")
+	if len(parts) != 2 {
+		return fmt.Errorf("size must be auto or WIDTHxHEIGHT for GPT image models")
+	}
+	width, widthErr := strconv.ParseInt(strings.TrimSpace(parts[0]), 10, 64)
+	height, heightErr := strconv.ParseInt(strings.TrimSpace(parts[1]), 10, 64)
+	if widthErr != nil || heightErr != nil || width <= 0 || height <= 0 {
+		return fmt.Errorf("size must be auto or WIDTHxHEIGHT for GPT image models")
+	}
+	if width%16 != 0 || height%16 != 0 {
+		return errors.New("GPT image size width and height must both be multiples of 16")
+	}
+	if width > GPTImageMaxSide || height > GPTImageMaxSide {
+		return fmt.Errorf("GPT image size longest side must be at most %d pixels", GPTImageMaxSide)
+	}
+	if width > height*3 || height > width*3 {
+		return errors.New("GPT image size aspect ratio must be between 1:3 and 3:1")
+	}
+	pixels := width * height
+	if pixels < GPTImageMinPixels || pixels > GPTImageMaxPixels {
+		return fmt.Errorf("GPT image size must contain between %d and %d pixels", GPTImageMinPixels, GPTImageMaxPixels)
+	}
+	return nil
 }
 
 func (i *ImageRequest) UnmarshalJSON(data []byte) error {
