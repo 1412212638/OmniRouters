@@ -3090,3 +3090,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: actual Studio request routing, request payload construction, reference-image redaction, model selection, and protected project identifiers.
 - Validation: targeted image-playground Oxfmt/Oxlint, frontend production build, and `git diff --check` passed. Full frontend typecheck remains blocked by existing missing test dependencies and unrelated type errors. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
 - Commit/push: included in source commit `f6a79b73d1e62b1cc6d2e556b0019fabad66b794`, pushed to `origin/main`.
+
+## 2026-09-27 - Fix Studio image edit model routing
+
+- Local reason: Image Studio edit requests sent multipart form data to `/pg/images/edits`, but channel distribution only extracted multipart model names for the public `/v1/images/edits` path, causing edits to fail with an empty-model error.
+- Changed: apply the image generation/edit model extraction to both public and Studio paths, preserve the selected Studio group for image edits, validate multipart parsing errors, and cover the Studio GPT image edit request with a middleware regression test.
+- Preserved: existing `/models` routing, Chat Playground behavior, public image API behavior, image request validation, billing, and protected project identifiers.
+- Validation: frontend Oxfmt check and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: pending.
