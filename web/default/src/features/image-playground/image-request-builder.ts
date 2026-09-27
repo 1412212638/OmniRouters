@@ -43,7 +43,16 @@ function valueForParameter(
   values: ImageParameterValues
 ) {
   const value = values[parameter.key]
-  if (value !== undefined && value !== null && value !== '') return value
+  if (
+    value !== undefined &&
+    value !== null &&
+    value !== '' &&
+    (!parameter.options ||
+      typeof value !== 'string' ||
+      parameter.options.includes(value))
+  ) {
+    return value
+  }
   return parameter.default
 }
 
@@ -71,10 +80,26 @@ export function buildImageRequest({
   if (group) request.group = group
   if (image) request.image = image
 
+  const outputFormatParameter = capabilities?.parameters.find(
+    (parameter) => parameter.key === 'output_format'
+  )
+  const outputFormat =
+    outputFormatParameter &&
+    parameterEnabled[outputFormatParameter.key] !== false
+      ? valueForParameter(outputFormatParameter, parameterValues)
+      : undefined
+
   capabilities?.parameters.forEach((parameter) => {
     if (parameterEnabled[parameter.key] === false) return
     const value = valueForParameter(parameter, parameterValues)
     if (value === undefined || value === null || value === '') return
+    if (
+      parameter.key === 'output_compression' &&
+      request.model.toLowerCase().startsWith('gpt-image-2.5') &&
+      outputFormat !== 'jpeg'
+    ) {
+      return
+    }
     setNestedValue(
       request,
       parameter.request_key,

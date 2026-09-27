@@ -3114,3 +3114,43 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: Studio/public image routing, Chat Playground behavior, billing, request validation, and protected project identifiers.
 - Validation: `git diff --check` passed; CI compilation is the required Go validation because Go is unavailable locally.
 - Commit/push: source commit `6858f1048` pushed to `origin/main`.
+
+## 2026-09-28 - Filter Studio routing fields from GPT image edits
+
+- Local reason: the upstream GPT Image 2.5 provider rejected the Studio-only `group` multipart field with `invalid field`.
+- Changed: omit `group` when rebuilding OpenAI-compatible image edit multipart requests, add the documented GPT `moderation` (`low`/`auto`) capability, and add regression coverage for both behaviors.
+- Preserved: group selection for channel routing, all other provider-specific image parameters, public image APIs, Chat Playground, and protected project identifiers.
+- Validation: `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: pending.
+
+## 2026-09-28 - Align GPT Image 2.5 Studio parameters with provider reference
+
+- Local reason: the supplied GPT Image 2.5 reference documents `moderation`, restricts output formats to PNG/JPEG, and only permits compression with JPEG output.
+- Changed: added a GPT Image 2.5-only `moderation` (`low`/`auto`) capability, applied the documented PNG/JPEG and quality options to GPT Image 2.5, and omit its `output_compression` unless `output_format` is `jpeg` while preserving legacy GPT Image profiles.
+- Preserved: other provider parameter profiles, group routing, image edit context, public APIs, billing, and protected project identifiers.
+- Validation: targeted frontend Oxfmt and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: pending.
+
+## 2026-09-28 - Send scalar image edit fields without JSON quotes
+
+- Local reason: Studio multipart edits serialized scalar string fields such as `background` and `output_format` with JSON quotes, while the provider expects plain multipart values.
+- Changed: serialize scalar multipart fields as plain strings and retain JSON encoding only for nested/object parameters.
+- Preserved: Gemini JSON edits, OpenAI image file uploads, request preview output, model/group routing, and protected project identifiers.
+- Validation: targeted frontend Oxfmt/Oxlint, production build, and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: pending.
+
+## 2026-09-28 - Sanitize Studio edits when pass-through is enabled
+
+- Local reason: pass-through mode could forward the Studio-only `group` field without the OpenAI adaptor's filtering step.
+- Changed: force Studio image requests through the adaptor so internal routing fields are removed even when global or channel pass-through is enabled.
+- Preserved: pass-through behavior for public image routes, provider adapters, group-based channel selection, and protected project identifiers.
+- Validation: targeted frontend checks, production build, and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: pending.
+
+## 2026-09-28 - Resolve GPT JPEG compression dependency before serialization
+
+- Local reason: capability ordering could process `output_compression` before `output_format`, incorrectly omitting compression for valid JPEG requests.
+- Changed: resolve the enabled output format before building the request and use it to gate GPT Image 2.5 compression.
+- Preserved: parameter switches, provider-specific request keys, request previews, and protected project identifiers.
+- Validation: targeted frontend Oxfmt/Oxlint, production build, and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: pending.

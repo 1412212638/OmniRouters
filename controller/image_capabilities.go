@@ -96,7 +96,7 @@ func imageCapabilityProfiles() []imageCapabilityProfile {
 		imageEnum("output_format", "output_format", "png", []string{"png", "jpeg", "webp"}, operations),
 		imageInteger("output_compression", "output_compression", 100, 0, 100, 1, operations),
 	}
-	gptImage := []ImageParameterCapability{
+	gptImageBase := []ImageParameterCapability{
 		imageInteger("n", "n", 1, 1, dto.MaxGPTImageN, 1, operations),
 		imageString("size", "size", "auto", []string{
 			"auto",
@@ -110,9 +110,18 @@ func imageCapabilityProfiles() []imageCapabilityProfile {
 			"3840x2160", "2160x3840", "3520x2352", "2352x3520",
 			"3840x1648", "1648x3840",
 		}, operations),
-		imageEnum("quality", "quality", "auto", []string{"auto", "low", "medium", "high", "xhigh", "max"}, operations),
 	}
+	gptImage := append(append([]ImageParameterCapability{}, gptImageBase...),
+		imageEnum("quality", "quality", "auto", []string{"auto", "low", "medium", "high", "xhigh", "max"}, operations),
+	)
 	gptImage = append(gptImage, openAIExtras...)
+	gptImage25 := append(append([]ImageParameterCapability{}, gptImageBase...),
+		imageEnum("quality", "quality", "low", []string{"low", "medium", "high", "xhigh", "max"}, operations),
+		imageEnum("background", "background", "auto", []string{"auto", "opaque", "transparent"}, operations),
+		imageEnum("output_format", "output_format", "png", []string{"png", "jpeg"}, operations),
+		imageInteger("output_compression", "output_compression", 100, 0, 100, 1, operations),
+		imageEnum("moderation", "moderation", "auto", []string{"low", "auto"}, operations),
+	)
 	dallE := append([]ImageParameterCapability{}, standard...)
 	dallE = append(dallE,
 		imageEnum("response_format", "response_format", "url", []string{"url", "b64_json"}, operations),
@@ -155,6 +164,9 @@ func imageCapabilityProfiles() []imageCapabilityProfile {
 			imageEnum("quality", "quality", "auto", []string{"auto", "low", "medium", "high"}, operations),
 			imageEnum("output_format", "output_format", "png", []string{"png", "jpeg", "webp"}, operations),
 		}},
+		{ChannelTypes: []int{constant.ChannelTypeOpenAI, constant.ChannelTypeOpenAIMax, constant.ChannelTypeAzure, constant.ChannelTypeOpenRouter}, Match: func(name string) bool {
+			return strings.HasPrefix(strings.ToLower(name), "gpt-image-2.5")
+		}, Parameters: gptImage25},
 		{ChannelTypes: []int{constant.ChannelTypeOpenAI, constant.ChannelTypeOpenAIMax, constant.ChannelTypeAzure, constant.ChannelTypeOpenRouter}, Match: func(name string) bool {
 			return strings.HasPrefix(strings.ToLower(name), "gpt-image-")
 		}, Parameters: gptImage},

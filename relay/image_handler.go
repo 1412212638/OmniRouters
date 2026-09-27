@@ -228,6 +228,13 @@ func shouldPassThroughImageRequest(info *relaycommon.RelayInfo, globalPassThroug
 	if info == nil {
 		return globalPassThrough
 	}
+	// Studio sends an internal group field for channel selection. Always
+	// rebuild Studio image requests so that field cannot leak to strict
+	// upstream image APIs, even when global or channel pass-through is enabled.
+	if info.IsPlayground && (info.RelayMode == relayconstant.RelayModeImagesGenerations ||
+		info.RelayMode == relayconstant.RelayModeImagesEdits) {
+		return false
+	}
 	if requiresGeminiImageConversion(info) {
 		return false
 	}

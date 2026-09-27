@@ -122,6 +122,33 @@ func TestGPTImageCapabilitiesExposeExtendedParameters(t *testing.T) {
 	if size.Type != "string" || !containsString(size.Options, "3840x2160") {
 		t.Fatalf("GPT size capability = %#v, want editable string with common sizes", size)
 	}
+	moderation := byKey["moderation"]
+	if moderation.Type != "enum" || moderation.Default != "auto" || !containsString(moderation.Options, "low") {
+		t.Fatalf("GPT moderation capability = %#v, want auto/low enum", moderation)
+	}
+	outputFormat := byKey["output_format"]
+	if containsString(outputFormat.Options, "webp") || !containsString(outputFormat.Options, "jpeg") {
+		t.Fatalf("GPT output format capability = %#v, want png/jpeg only", outputFormat.Options)
+	}
+}
+
+func TestGPTImageLegacyCapabilitiesRemainProviderCompatible(t *testing.T) {
+	parameters := intersectImageCapabilities(
+		imageCapabilityProfiles(),
+		[]int{constant.ChannelTypeOpenAI},
+		"gpt-image-1",
+		"generation",
+	)
+	byKey := make(map[string]ImageParameterCapability, len(parameters))
+	for _, parameter := range parameters {
+		byKey[parameter.Key] = parameter
+	}
+	if !containsString(byKey["quality"].Options, "auto") || !containsString(byKey["output_format"].Options, "webp") {
+		t.Fatalf("legacy GPT image capabilities changed unexpectedly: %#v", byKey)
+	}
+	if _, ok := byKey["moderation"]; ok {
+		t.Fatal("moderation must be limited to GPT Image 2.5 profiles")
+	}
 }
 
 func TestNonGPTImageCapabilitiesDoNotExposeCount(t *testing.T) {

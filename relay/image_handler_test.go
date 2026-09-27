@@ -44,6 +44,20 @@ func TestGeminiImageEditAlwaysUsesAdaptorConversion(t *testing.T) {
 	)
 }
 
+func TestPlaygroundImageEditAlwaysUsesAdaptorConversion(t *testing.T) {
+	info := &relaycommon.RelayInfo{
+		IsPlayground: true,
+		RelayMode:    relayconstant.RelayModeImagesEdits,
+		ChannelMeta: &relaycommon.ChannelMeta{
+			ApiType:       constant.APITypeOpenAI,
+			ChannelSetting: dto.ChannelSettings{PassThroughBodyEnabled: true},
+		},
+	}
+	require.False(t, shouldPassThroughImageRequest(info, true))
+	info.RelayMode = relayconstant.RelayModeImagesGenerations
+	require.False(t, shouldPassThroughImageRequest(info, true))
+}
+
 func TestGeminiImageAlwaysUsesAdaptorConversion(t *testing.T) {
 	info := &relaycommon.RelayInfo{
 		IsPlayground: true,

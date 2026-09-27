@@ -135,7 +135,11 @@ export async function editImage(
     if (value === undefined || value === null) {
       return
     }
-    if (['n', 'size', 'quality', 'response_format', 'stream'].includes(key)) {
+    if (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean'
+    ) {
       formData.append(key, String(value))
       return
     }

@@ -469,7 +469,9 @@ func (a *Adaptor) ConvertImageRequest(c *gin.Context, info *relaycommon.RelayInf
 		// 写入所有非文件字段
 		if mf != nil {
 			for key, values := range mf.Value {
-				if key == "model" {
+				// group is a Studio-only routing field and is not part of the
+				// upstream OpenAI image edit contract.
+				if key == "model" || key == "group" {
 					continue
 				}
 				for _, value := range values {
