@@ -3081,7 +3081,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: GPT image capability profiles now expose the provider-specific count, quality, common 1K/2K/4K size presets, and OpenAI output options; non-GPT profiles no longer expose `n` in Studio, including the generic fallback; request validation enforces `auto` or 16-aligned `WIDTHxHEIGHT`, 3840px maximum side, 1:3–3:1 aspect ratio, and 655,360–8,294,400 pixels; multipart GPT defaults use `auto`; the Studio size field now supports both preset suggestions and custom input; added regression coverage for capability exposure and validation boundaries.
 - Preserved: non-GPT image provider parameter rules, generic image billing bounds, existing Studio history/edit behavior, protected project identifiers, and unrelated untracked files.
 - Validation: frontend production build, targeted Oxlint/Oxfmt, and `git diff --check` passed. Full frontend typecheck remains blocked by existing missing test dependencies and unrelated type errors. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: pending; this work intentionally remains uncommitted for the next requested iteration.
+- Commit/push: source commit `f6a79b73d1e62b1cc6d2e556b0019fabad66b794` pushed to `origin/main`; the first push attempt hit a remote ref-lock race, and the retry confirmed the remote was already up to date.
 
 ## 2026-09-27 - Show public image API paths in request preview
 
@@ -3089,4 +3089,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: preview endpoint labels and generated cURL now use `/v1/images/generations` or `/v1/images/edits` for OpenAI-compatible image requests, and `/v1beta/models/{model}:generateContent` for Gemini image models; updated the preview description and translations.
 - Preserved: actual Studio request routing, request payload construction, reference-image redaction, model selection, and protected project identifiers.
 - Validation: targeted image-playground Oxfmt/Oxlint, frontend production build, and `git diff --check` passed. Full frontend typecheck remains blocked by existing missing test dependencies and unrelated type errors. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: pending.
+- Commit/push: included in source commit `f6a79b73d1e62b1cc6d2e556b0019fabad66b794`, pushed to `origin/main`.
