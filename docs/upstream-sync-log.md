@@ -3105,4 +3105,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: detect multipart requests by the Content-Type prefix and read `model`/`group` directly from the reusable multipart form before channel selection.
 - Preserved: public image routes, Chat Playground, request validation, billing, and protected project identifiers.
 - Validation: `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: code commit pending; changelog follow-up will record the final commit.
+- Commit/push: source commit `d9f5edf7c` pushed to `origin/main`.
