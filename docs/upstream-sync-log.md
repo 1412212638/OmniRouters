@@ -3121,7 +3121,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: omit `group` when rebuilding OpenAI-compatible image edit multipart requests, add the documented GPT `moderation` (`low`/`auto`) capability, and add regression coverage for both behaviors.
 - Preserved: group selection for channel routing, all other provider-specific image parameters, public image APIs, Chat Playground, and protected project identifiers.
 - Validation: `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
 
 ## 2026-09-28 - Align GPT Image 2.5 Studio parameters with provider reference
 
@@ -3129,7 +3129,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: added a GPT Image 2.5-only `moderation` (`low`/`auto`) capability, applied the documented PNG/JPEG and quality options to GPT Image 2.5, and omit its `output_compression` unless `output_format` is `jpeg` while preserving legacy GPT Image profiles.
 - Preserved: other provider parameter profiles, group routing, image edit context, public APIs, billing, and protected project identifiers.
 - Validation: targeted frontend Oxfmt and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
 
 ## 2026-09-28 - Send scalar image edit fields without JSON quotes
 
@@ -3137,7 +3137,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: serialize scalar multipart fields as plain strings and retain JSON encoding only for nested/object parameters.
 - Preserved: Gemini JSON edits, OpenAI image file uploads, request preview output, model/group routing, and protected project identifiers.
 - Validation: targeted frontend Oxfmt/Oxlint, production build, and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
 
 ## 2026-09-28 - Sanitize Studio edits when pass-through is enabled
 
@@ -3145,7 +3145,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: force Studio image requests through the adaptor so internal routing fields are removed even when global or channel pass-through is enabled.
 - Preserved: pass-through behavior for public image routes, provider adapters, group-based channel selection, and protected project identifiers.
 - Validation: targeted frontend checks, production build, and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
 
 ## 2026-09-28 - Resolve GPT JPEG compression dependency before serialization
 
@@ -3153,4 +3153,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: resolve the enabled output format before building the request and use it to gate GPT Image 2.5 compression.
 - Preserved: parameter switches, provider-specific request keys, request previews, and protected project identifiers.
 - Validation: targeted frontend Oxfmt/Oxlint, production build, and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
