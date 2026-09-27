@@ -3113,4 +3113,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: read the first value from multipart `model` and `group` fields with an empty-value guard.
 - Preserved: Studio/public image routing, Chat Playground behavior, billing, request validation, and protected project identifiers.
 - Validation: `git diff --check` passed; CI compilation is the required Go validation because Go is unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `6858f1048` pushed to `origin/main`.
