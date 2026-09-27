@@ -596,7 +596,14 @@ func getMultipartModelRequest(c *gin.Context) (*ModelRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ModelRequest{Model: form.Value.Get("model"), Group: form.Value.Get("group")}, nil
+	value := func(key string) string {
+		values := form.Value[key]
+		if len(values) == 0 {
+			return ""
+		}
+		return values[0]
+	}
+	return &ModelRequest{Model: value("model"), Group: value("group")}, nil
 }
 
 // tokenModelLimitAllows reports whether a token model-limit map authorizes

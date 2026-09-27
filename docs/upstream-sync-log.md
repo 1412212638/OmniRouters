@@ -3106,3 +3106,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: public image routes, Chat Playground, request validation, billing, and protected project identifiers.
 - Validation: `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
 - Commit/push: source commit `d9f5edf7c` pushed to `origin/main`.
+
+## 2026-09-27 - Fix multipart form compilation in Studio routing
+
+- Local reason: the GHCR build exposed that `multipart.Form.Value` is a `map[string][]string`; the routing fix incorrectly called a nonexistent `.Get` method.
+- Changed: read the first value from multipart `model` and `group` fields with an empty-value guard.
+- Preserved: Studio/public image routing, Chat Playground behavior, billing, request validation, and protected project identifiers.
+- Validation: `git diff --check` passed; CI compilation is the required Go validation because Go is unavailable locally.
+- Commit/push: pending.
