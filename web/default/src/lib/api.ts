@@ -252,6 +252,11 @@ export function getCommonHeaders(): Record<string, string> {
     headers['New-Api-User'] = uid
   }
 
+  const accessToken = getDashboardAccessToken()
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`
+  }
+
   return headers
 }
 

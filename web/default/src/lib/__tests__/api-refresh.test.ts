@@ -9,7 +9,8 @@ Object.defineProperty(globalThis, 'window', {
   configurable: true,
   value: domWindow,
 })
-const { api, setDashboardAccessToken } = await import('../api')
+const { api, getCommonHeaders, setDashboardAccessToken } =
+  await import('../api')
 const { useAuthStore } = await import('../../stores/auth-store')
 const user = { id: 1, username: 'test', role: 1 }
 const originalAdapter = axios.defaults.adapter
@@ -145,4 +146,15 @@ test('successful refresh is shared by concurrent requests and retries with the n
     domWindow.localStorage.getItem('dashboard_access_token'),
     'new-token'
   )
+})
+
+test('common headers include the dashboard token for streaming requests', () => {
+  domWindow.localStorage.setItem('uid', '7')
+  setDashboardAccessToken('stream-token')
+
+  assert.deepEqual(getCommonHeaders(), {
+    'Content-Type': 'application/json',
+    'New-Api-User': '7',
+    Authorization: 'Bearer stream-token',
+  })
 })

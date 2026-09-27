@@ -350,7 +350,14 @@ export function ImagePlayground() {
   }, [selectedGroup, t])
 
   useEffect(() => {
+    const modelIsLoadedForGroup = models.some(
+      (item) => item.value === selectedModel
+    )
     if (!selectedGroup || !selectedModel || isRestoring) return
+    if (!modelIsLoadedForGroup) {
+      setCapabilities(null)
+      return
+    }
     let cancelled = false
     setCapabilities(null)
     void getImageModelCapabilities(selectedGroup, selectedModel, operation)
@@ -383,7 +390,14 @@ export function ImagePlayground() {
     return () => {
       cancelled = true
     }
-  }, [isRestoring, operation, parameterScope, selectedGroup, selectedModel])
+  }, [
+    isRestoring,
+    models,
+    operation,
+    parameterScope,
+    selectedGroup,
+    selectedModel,
+  ])
 
   const updateParameterValue = (key: string, value: unknown) => {
     setParameterValuesByModel((current) => ({
@@ -502,6 +516,9 @@ export function ImagePlayground() {
 
   const handleGroupChange = (value: string) => {
     setIsLoadingOptions(true)
+    setModels([])
+    setModel('')
+    setCapabilities(null)
     setGroup(value)
   }
 

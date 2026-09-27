@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-28 - Fix Studio group transition and Chat streaming authentication
+
+- Local reason: changing Image Studio groups briefly probed capabilities with the previous model and showed a misleading availability toast; Chat SSE requests omitted the dashboard access token and were rejected as unauthenticated.
+- Changed: include the dashboard token and session credentials in streaming requests, wait for the selected group's model list before probing image capabilities, suppress transient capability-probe toasts, and clear stale image model state during group changes.
+- Preserved: Chat session authentication, image model routing, provider-specific capabilities, existing API request headers, and protected project identifiers.
+- Validation: streaming-header regression tests passed (10/10), targeted Oxfmt passed, frontend production build passed, and `git diff --check` passed. Targeted Oxlint still reports the existing `no-non-null-assertion` finding at `web/default/src/lib/api.ts:119`; Go tests/gofmt were not run because the Go toolchain is unavailable locally.
+- Commit/push: pending.
+
 ## 2026-09-27 - Proxy cross-origin Image Studio edit sources
 
 - Local reason: editing a generated image failed in browsers when the provider returned a signed image URL without CORS permission; the `<img>` element could display it, but `fetch()` could not read it for the edit upload.

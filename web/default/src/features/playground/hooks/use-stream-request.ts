@@ -44,6 +44,7 @@ export function useStreamRequest() {
         headers: getCommonHeaders(),
         method: 'POST',
         payload: JSON.stringify(payload),
+        withCredentials: true,
       })
 
       sseSourceRef.current = source

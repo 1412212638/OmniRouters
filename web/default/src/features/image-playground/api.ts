@@ -220,6 +220,10 @@ export async function getImageModelCapabilities(
     IMAGE_PLAYGROUND_ENDPOINTS.MODEL_CAPABILITIES,
     {
       params: { group, model, operation },
+      // Capability discovery is best-effort. A model can become unavailable
+      // while groups are refreshing, so do not show a global error toast for
+      // this probe; the caller falls back to an empty parameter set.
+      skipErrorHandler: true,
     }
   )
   const data = response.data?.data
