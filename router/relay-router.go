@@ -67,6 +67,7 @@ func SetRelayRouter(router *gin.Engine) {
 	playgroundRouter.Use(middleware.UserAuth(), middleware.Distribute())
 	{
 		playgroundRouter.POST("/chat/completions", controller.Playground)
+		playgroundRouter.POST("/images/source", controller.PlaygroundImageSource)
 		playgroundRouter.POST("/images/generations", controller.Playground)
 		playgroundRouter.POST("/images/edits", controller.Playground)
 	}

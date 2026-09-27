@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-27 - Proxy cross-origin Image Studio edit sources
+
+- Local reason: editing a generated image failed in browsers when the provider returned a signed image URL without CORS permission; the `<img>` element could display it, but `fetch()` could not read it for the edit upload.
+- Changed: added the authenticated `/pg/images/source` endpoint, which uses the existing SSRF-protected image downloader and size limits to return a controlled data URL; Image Studio now uses it for cross-origin references before OpenAI-compatible multipart or Gemini data URL editing.
+- Preserved: normal image generation, same-origin/data/blob image handling, contextual edit request formats, billing, model-specific parameters, and provider URL protection.
+- Validation: targeted frontend Oxfmt/Oxlint, production `bun run build`, and `git diff --check` passed. Go formatting/tests were unavailable because the Go toolchain is not installed locally.
+- Commit/push: pending.
+
 ## 2026-09-27 - Present Image Studio results as conversational generations
 
 - Local reason: Image Studio results used a full-width square grid with a results header and top clear action, and requests left the workspace empty while generation was in progress.

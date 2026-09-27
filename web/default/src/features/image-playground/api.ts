@@ -3,6 +3,7 @@ import { api } from '@/lib/api'
 export const IMAGE_PLAYGROUND_ENDPOINTS = {
   GENERATIONS: '/pg/images/generations',
   EDITS: '/pg/images/edits',
+  SOURCE: '/pg/images/source',
   USER_MODELS: '/api/user/models',
   USER_GROUPS: '/api/user/self/groups',
   MODEL_CAPABILITIES: '/api/user/image-model-capabilities',
@@ -29,6 +30,48 @@ export type ImageGenerationResponse = {
 
 export type ImageEditRequest = ImageRequestPayload & {
   image: string
+}
+
+function isSameOriginImage(image: string): boolean {
+  if (image.startsWith('data:') || image.startsWith('blob:')) return true
+  if (typeof window === 'undefined') return false
+  try {
+    return (
+      new URL(image, window.location.href).origin === window.location.origin
+    )
+  } catch {
+    return false
+  }
+}
+
+async function resolveImageSource(
+  image: string,
+  signal?: AbortSignal
+): Promise<string> {
+  if (isSameOriginImage(image)) return image
+
+  const response = await api.post(
+    IMAGE_PLAYGROUND_ENDPOINTS.SOURCE,
+    { url: image },
+    {
+      signal,
+      skipErrorHandler: true,
+    } as Record<string, unknown>
+  )
+  const dataURL = response.data?.data?.data_url
+  if (typeof dataURL !== 'string' || !dataURL.startsWith('data:image/')) {
+    throw new Error('Unable to read the reference image')
+  }
+  return dataURL
+}
+
+async function imageBlob(image: string, signal?: AbortSignal): Promise<Blob> {
+  const source = await resolveImageSource(image, signal)
+  const response = await fetch(source, { signal })
+  if (!response.ok) {
+    throw new Error('Unable to read the reference image')
+  }
+  return response.blob()
 }
 
 export type ImageParameterCapability = {
@@ -100,13 +143,9 @@ export async function editImage(
   })
   if (payload.group) formData.append('group', payload.group)
 
-  const imageResponse = await fetch(payload.image, { signal })
-  if (!imageResponse.ok) {
-    throw new Error('Unable to read the reference image')
-  }
-  const imageBlob = await imageResponse.blob()
-  const extension = imageBlob.type.split('/')[1] || 'png'
-  formData.append('image', imageBlob, `reference.${extension}`)
+  const referenceBlob = await imageBlob(payload.image, signal)
+  const extension = referenceBlob.type.split('/')[1] || 'png'
+  formData.append('image', referenceBlob, `reference.${extension}`)
 
   const response = await api.post(IMAGE_PLAYGROUND_ENDPOINTS.EDITS, formData, {
     signal,
@@ -119,11 +158,7 @@ export async function editGeminiImage(
   payload: ImageEditRequest,
   signal?: AbortSignal
 ): Promise<ImageGenerationResponse> {
-  const imageResponse = await fetch(payload.image, { signal })
-  if (!imageResponse.ok) {
-    throw new Error('Unable to read the reference image')
-  }
-  const imageBlob = await imageResponse.blob()
+  const referenceBlob = await imageBlob(payload.image, signal)
   const imageData = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader()
     reader.addEventListener('load', () => {
@@ -133,7 +168,7 @@ export async function editGeminiImage(
     reader.addEventListener('error', () =>
       reject(new Error('Unable to encode the reference image'))
     )
-    reader.readAsDataURL(imageBlob)
+    reader.readAsDataURL(referenceBlob)
   })
   const response = await api.post(
     IMAGE_PLAYGROUND_ENDPOINTS.EDITS,
