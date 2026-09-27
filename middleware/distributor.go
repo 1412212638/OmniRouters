@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"slices"
 	"strings"
 	"time"
 
@@ -543,9 +542,9 @@ func getModelRequest(c *gin.Context) (*ModelRequest, bool, error) {
 	} else if strings.HasPrefix(c.Request.URL.Path, "/v1/images/edits") ||
 		strings.HasPrefix(c.Request.URL.Path, "/pg/images/edits") {
 		//modelRequest.Model = common.GetStringIfEmpty(c.PostForm("model"), "gpt-image-1")
-		contentType := c.ContentType()
-		if slices.Contains([]string{gin.MIMEPOSTForm, gin.MIMEMultipartPOSTForm}, contentType) {
-			req, err := getModelFromRequest(c)
+		contentType := c.Request.Header.Get("Content-Type")
+		if strings.HasPrefix(contentType, gin.MIMEMultipartPOSTForm) {
+			req, err := getMultipartModelRequest(c)
 			if err != nil {
 				return nil, false, err
 			}
@@ -589,6 +588,15 @@ func getModelRequest(c *gin.Context) (*ModelRequest, bool, error) {
 	}
 
 	return &modelRequest, shouldSelectChannel, nil
+}
+
+// getMultipartModelRequest reads routing fields directly from multipart form values.
+func getMultipartModelRequest(c *gin.Context) (*ModelRequest, error) {
+	form, err := common.ParseMultipartFormReusable(c)
+	if err != nil {
+		return nil, err
+	}
+	return &ModelRequest{Model: form.Value.Get("model"), Group: form.Value.Get("group")}, nil
 }
 
 // tokenModelLimitAllows reports whether a token model-limit map authorizes

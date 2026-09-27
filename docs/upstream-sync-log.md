@@ -3097,4 +3097,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: apply the image generation/edit model extraction to both public and Studio paths, preserve the selected Studio group for image edits, validate multipart parsing errors, and cover the Studio GPT image edit request with a middleware regression test.
 - Preserved: existing `/models` routing, Chat Playground behavior, public image API behavior, image request validation, billing, and protected project identifiers.
 - Validation: frontend Oxfmt check and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `fe1640fa3` pushed to `origin/main`.
+
+## 2026-09-27 - Handle browser multipart boundaries for Studio edits
+
+- Local reason: the first routing fix still relied on an exact multipart Content-Type comparison, while browser requests include a boundary parameter and could bypass model extraction.
+- Changed: detect multipart requests by the Content-Type prefix and read `model`/`group` directly from the reusable multipart form before channel selection.
+- Preserved: public image routes, Chat Playground, request validation, billing, and protected project identifiers.
+- Validation: `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: code commit pending; changelog follow-up will record the final commit.
