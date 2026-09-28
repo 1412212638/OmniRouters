@@ -27,7 +27,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
-import type { ImageRequestPayload } from './api'
+import type { ImageRequestPayload, ImageRequestProfile } from './api'
 import {
   imageRequestCurl,
   imageRequestEndpoint,
@@ -38,6 +38,7 @@ type ImageRequestPreviewProps = {
   buildRequest: (image?: string) => ImageRequestPayload
   isEdit: boolean
   isGeminiEdit: boolean
+  profile: ImageRequestProfile
   disabled?: boolean
 }
 
@@ -45,6 +46,7 @@ export function ImageRequestPreview({
   buildRequest,
   isEdit,
   isGeminiEdit,
+  profile,
   disabled,
 }: ImageRequestPreviewProps) {
   const { t } = useTranslation()
@@ -52,11 +54,12 @@ export function ImageRequestPreview({
   const [tab, setTab] = useState<'json' | 'curl'>('json')
   const attachmentImage = files.at(0)?.url
   const request = buildRequest(attachmentImage)
-  const editRequest = isEdit || Boolean(attachmentImage)
+  const editRequest = isEdit
   const endpoint = imageRequestEndpoint(
     String(request.model ?? ''),
     editRequest,
-    isGeminiEdit
+    isGeminiEdit,
+    profile
   )
   const code = useMemo(() => {
     if (tab === 'curl') {
@@ -64,11 +67,12 @@ export function ImageRequestPreview({
         request,
         endpoint,
         editRequest && !isGeminiEdit,
-        isGeminiEdit
+        isGeminiEdit,
+        profile.referenceField
       )
     }
-    return imageRequestJson(request, isGeminiEdit)
-  }, [endpoint, editRequest, isGeminiEdit, request, tab])
+    return imageRequestJson(request, isGeminiEdit, profile.referenceField)
+  }, [endpoint, editRequest, isGeminiEdit, profile, request, tab])
 
   const copy = async () => {
     try {

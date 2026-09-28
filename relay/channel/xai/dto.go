@@ -1,6 +1,10 @@
 package xai
 
-import "github.com/QuantumNous/new-api/relaykit/dto"
+import (
+	"encoding/json"
+
+	"github.com/QuantumNous/new-api/relaykit/dto"
+)
 
 // ChatCompletionResponse represents the response from XAI chat completion API
 type ChatCompletionResponse struct {
@@ -21,6 +25,7 @@ type ImageRequest struct {
 	// Size           string          `json:"size,omitempty"`
 	// Quality        string          `json:"quality,omitempty"`
 	ResponseFormat string `json:"response_format,omitempty"`
+	Image          json.RawMessage `json:"image,omitempty"`
 	// Style          string          `json:"style,omitempty"`
 	// User           string          `json:"user,omitempty"`
 	// ExtraFields    json.RawMessage `json:"extra_fields,omitempty"`

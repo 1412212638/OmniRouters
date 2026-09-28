@@ -1,5 +1,21 @@
 # Upstream Sync Log
 
+## 2026-09-29 - Add controlled Image Studio request profiles
+
+- Local reason: image providers expose different generation/edit endpoints and request fields, so a single inferred payload was insufficient for provider-specific image APIs.
+- Changed: added persisted Auto/Generations/Edits/Custom request profiles, controlled endpoint and reference-field selection, validated custom JSON parameter editing, matching request previews, safe Studio-only extra-field merging, and Grok multipart edit handling; protected model, group, prompt, count, and reference fields from custom overrides.
+- Preserved: provider-specific capability controls, Gemini generateContent conversion, image count validation and billing, existing Chat and image history behavior, SSRF protections, and protected project identifiers.
+- Validation: frontend production `bun run build`, targeted Oxlint, and `git diff --check` passed. Go tests/gofmt were not run because the Go toolchain is unavailable locally.
+- Commit/push: pending; user requested implementation without pushing.
+
+## 2026-09-29 - Keep Image Studio prompt input controlled
+
+- Local reason: the Image Studio textarea did not bind its current value, so the empty workspace could render input state differently from Chat and restored prompt text was not reflected in the control.
+- Changed: bind the Image Studio prompt textarea to its React prompt state, matching the Chat composer behavior.
+- Preserved: image generation/edit requests, attachments, parameter controls, model/group routing, and protected project identifiers.
+- Validation: targeted Oxfmt and frontend production build pending. Go tests/gofmt were not run because the Go toolchain is unavailable locally.
+- Commit/push: pending; user requested local changes only.
+
 ## 2026-09-28 - Fix Studio group transition and Chat streaming authentication
 
 - Local reason: changing Image Studio groups briefly probed capabilities with the previous model and showed a misleading availability toast; Chat SSE requests omitted the dashboard access token and were rejected as unauthenticated.

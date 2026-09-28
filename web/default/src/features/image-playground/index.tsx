@@ -1,18 +1,22 @@
 import {
+  Camera,
   Download,
   ImageIcon,
   LoaderCircle,
   MoreHorizontal,
+  Palette,
   PaperclipIcon,
   Pencil,
   RefreshCw,
   SendIcon,
+  Sparkles,
   Trash2,
   Trash2Icon,
+  WandSparkles,
   X,
 } from 'lucide-react'
 import { nanoid } from 'nanoid'
-import { type CSSProperties, useEffect, useMemo, useState } from 'react'
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -50,16 +54,22 @@ import {
   generateImages,
   editGeminiImage,
   editImage,
+  IMAGE_PLAYGROUND_ENDPOINTS,
   getImageGroups,
   getImageModelCapabilities,
   getImageModels,
   type ImageGroupOption,
   type ImageModelCapabilities,
   type ImageModelOption,
+  type ImageRequestProfile,
 } from './api'
 import { ImageParameterSettings } from './image-parameter-settings'
+import { ImageRequestSettings } from './image-request-settings'
 import {
   buildImageRequest,
+  DEFAULT_IMAGE_REQUEST_PROFILE,
+  resolveImageRequestEndpoint,
+  validateImageCustomParameters,
   type ImageParameterEnabled,
   type ImageParameterValues,
 } from './image-request-builder'
@@ -82,6 +92,33 @@ const FALLBACK_GROUP: ImageGroupOption = {
   label: 'default',
   value: 'default',
 }
+
+const imageStarterPrompts = [
+  {
+    icon: Camera,
+    title: 'Cinematic portrait',
+    prompt:
+      'A cinematic portrait of a thoughtful traveler in soft window light, rich natural colors, shallow depth of field, editorial photography',
+  },
+  {
+    icon: Palette,
+    title: 'Product campaign',
+    prompt:
+      'A premium product campaign image for a modern wireless speaker, sculptural composition, warm studio light, clean editorial art direction',
+  },
+  {
+    icon: WandSparkles,
+    title: 'Illustrated world',
+    prompt:
+      'A whimsical illustrated night market in the clouds, tiny lanterns, expressive characters, layered details, storybook atmosphere',
+  },
+  {
+    icon: Sparkles,
+    title: 'Surprise me',
+    prompt:
+      'An unexpected visual concept that feels fresh and imaginative, with a clear subject, memorable composition, and polished art direction',
+  },
+] as const
 
 function imageSrc(item: {
   b64_json?: string
@@ -225,6 +262,9 @@ export function ImagePlayground() {
   const [parameterEnabledByModel, setParameterEnabledByModel] = useState<
     Record<string, ImageParameterEnabled>
   >({})
+  const [requestProfilesByModel, setRequestProfilesByModel] = useState<
+    Record<string, ImageRequestProfile>
+  >({})
   const [capabilities, setCapabilities] =
     useState<ImageModelCapabilities | null>(null)
   const [models, setModels] = useState<ImageModelOption[]>([])
@@ -237,6 +277,7 @@ export function ImagePlayground() {
   const [isLoadingOptions, setIsLoadingOptions] = useState(true)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isRestoring, setIsRestoring] = useState(true)
+  const promptInputRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -251,6 +292,7 @@ export function ImagePlayground() {
         setGroup(saved.group)
         setParameterValuesByModel(saved.parameterValues)
         setParameterEnabledByModel(saved.parameterEnabled)
+        setRequestProfilesByModel(saved.requestProfiles ?? {})
       }
       setIsRestoring(false)
     })
@@ -270,6 +312,7 @@ export function ImagePlayground() {
       group,
       parameterValues: parameterValuesByModel,
       parameterEnabled: parameterEnabledByModel,
+      requestProfiles: requestProfilesByModel,
     })
   }, [
     group,
@@ -281,6 +324,7 @@ export function ImagePlayground() {
     parameterEnabledByModel,
     parameterValuesByModel,
     referenceImageKey,
+    requestProfilesByModel,
   ])
 
   const selectedModel = useMemo(
@@ -299,6 +343,9 @@ export function ImagePlayground() {
   const parameterScope = `${selectedGroup}::${selectedModel}::${operation}`
   const parameterValues = parameterValuesByModel[parameterScope] ?? {}
   const parameterEnabled = parameterEnabledByModel[parameterScope] ?? {}
+  const requestProfileScope = `${selectedGroup}::${selectedModel}`
+  const requestProfile =
+    requestProfilesByModel[requestProfileScope] ?? DEFAULT_IMAGE_REQUEST_PROFILE
 
   useEffect(() => {
     let cancelled = false
@@ -412,9 +459,21 @@ export function ImagePlayground() {
     }))
   }
 
+  const updateRequestProfile = (profile: ImageRequestProfile) => {
+    setRequestProfilesByModel((current) => ({
+      ...current,
+      [requestProfileScope]: profile,
+    }))
+  }
+
   const isGeminiImageModel =
     selectedModel.toLowerCase().startsWith('gemini-') ||
     selectedModel.toLowerCase().startsWith('nano-banana')
+  const effectiveEndpoint = resolveImageRequestEndpoint(
+    selectedModel,
+    Boolean(referenceImage),
+    requestProfile
+  )
   const buildRequest = (image?: string) =>
     buildImageRequest({
       model: selectedModel,
@@ -424,6 +483,7 @@ export function ImagePlayground() {
       parameterValues,
       parameterEnabled,
       image: image || referenceImage?.src,
+      profile: requestProfile,
     })
 
   const handleGenerate = async (
@@ -439,6 +499,23 @@ export function ImagePlayground() {
       toast.error(t('Select a model'))
       return
     }
+    const customParametersError = validateImageCustomParameters(
+      requestProfile.customParameters
+    )
+    if (customParametersError) {
+      toast.error(t(customParametersError))
+      return
+    }
+    if (requestProfile.mode === 'custom' &&
+        requestProfile.endpoint === 'gemini' &&
+        !isGeminiImageModel) {
+      toast.error(t('The Gemini endpoint is only available for Gemini image models'))
+      return
+    }
+    if (effectiveEndpoint === 'edits' && requestProfile.referenceField !== 'image') {
+      toast.error(t('The edits endpoint requires the image reference field'))
+      return
+    }
     const request = buildImageRequest({
       model: selectedModel,
       group: selectedGroup || undefined,
@@ -447,6 +524,7 @@ export function ImagePlayground() {
       parameterValues,
       parameterEnabled,
       image: attachedImage || referenceImage?.src,
+      profile: requestProfile,
     })
     const entryKey = nanoid()
     const pendingEntry: ImageGenerationEntry = {
@@ -463,12 +541,27 @@ export function ImagePlayground() {
     try {
       const referenceSource = attachedImage || referenceImage?.src
       let response
-      if (referenceSource) {
-        response = isGeminiImageModel
-          ? await editGeminiImage(request as typeof request & { image: string })
-          : await editImage(request as typeof request & { image: string })
+      if (effectiveEndpoint === 'edits') {
+        if (!referenceSource) {
+          throw new Error(t('A reference image is required for the edits endpoint'))
+        }
+        response = await editImage(
+          request as typeof request & { image: string },
+          undefined,
+          IMAGE_PLAYGROUND_ENDPOINTS.EDITS
+        )
+      } else if (effectiveEndpoint === 'gemini' && referenceSource) {
+        response = await editGeminiImage(
+          request as typeof request & { image: string },
+          undefined,
+          IMAGE_PLAYGROUND_ENDPOINTS.EDITS
+        )
       } else {
-        response = await generateImages(request)
+        response = await generateImages(
+          request,
+          undefined,
+          IMAGE_PLAYGROUND_ENDPOINTS.GENERATIONS
+        )
       }
       const generated = (response.data ?? [])
         .map((item) => {
@@ -523,6 +616,8 @@ export function ImagePlayground() {
   }
 
   let submitLabel = referenceImage ? t('Edit image') : t('Generate image')
+  if (effectiveEndpoint === 'generations') submitLabel = t('Generate image')
+  if (effectiveEndpoint === 'edits') submitLabel = t('Edit image')
   if (isGenerating) submitLabel = t('Generating...')
 
   return (
@@ -541,9 +636,41 @@ export function ImagePlayground() {
                       <h2 className='text-xl font-semibold tracking-tight text-balance md:text-2xl'>
                         {t('Create an image')}
                       </h2>
-                      <p className='text-muted-foreground text-sm leading-6'>
-                        {t('No images yet')}
+                      <p className='text-muted-foreground mx-auto max-w-lg text-sm leading-6 text-balance'>
+                        {t(
+                          'Choose a visual direction to get started, or write your own prompt below.'
+                        )}
                       </p>
+                    </div>
+
+                    <div className='grid gap-2 text-left sm:grid-cols-2'>
+                      {imageStarterPrompts.map(
+                        ({ icon: Icon, title, prompt: promptKey }) => {
+                          const promptText = t(promptKey)
+
+                          return (
+                            <Button
+                              className='h-auto min-h-16 items-start justify-start gap-3 px-3 py-3 text-left whitespace-normal'
+                              key={title}
+                              onClick={() => {
+                                setPrompt(promptText)
+                                requestAnimationFrame(() =>
+                                  promptInputRef.current?.focus()
+                                )
+                              }}
+                              variant='outline'
+                            >
+                              <Icon className='text-muted-foreground mt-0.5 size-4 shrink-0' />
+                              <span className='grid gap-1'>
+                                <span className='font-medium'>{t(title)}</span>
+                                <span className='text-muted-foreground line-clamp-2 text-xs leading-5'>
+                                  {promptText}
+                                </span>
+                              </span>
+                            </Button>
+                          )
+                        }
+                      )}
                     </div>
                   </div>
                 </div>
@@ -733,6 +860,8 @@ export function ImagePlayground() {
             disabled={isGenerating || isRestoring}
             onChange={(event) => setPrompt(event.target.value)}
             placeholder={t('Enter prompt')}
+            ref={promptInputRef}
+            value={prompt}
           />
           <PromptInputFooter className='border-border/60 bg-muted/20 dark:bg-muted/10 border-t px-3 py-2.5 backdrop-blur'>
             <div className='flex w-full flex-col gap-2.5 md:flex-row md:items-center md:justify-between'>
@@ -748,10 +877,17 @@ export function ImagePlayground() {
                     onParameterEnabledChange={updateParameterEnabled}
                   />
 
+                  <ImageRequestSettings
+                    disabled={isGenerating || isRestoring}
+                    onChange={updateRequestProfile}
+                    profile={requestProfile}
+                  />
+
                   <ImageRequestPreview
                     buildRequest={buildRequest}
-                    isEdit={Boolean(referenceImage)}
-                    isGeminiEdit={isGeminiImageModel}
+                    isEdit={effectiveEndpoint === 'edits'}
+                    isGeminiEdit={effectiveEndpoint === 'gemini'}
+                    profile={requestProfile}
                     disabled={isGenerating || isRestoring || !selectedModel}
                   />
 

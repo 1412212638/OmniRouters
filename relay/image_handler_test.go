@@ -1,6 +1,7 @@
 package relay
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/QuantumNous/new-api/constant"
@@ -9,6 +10,25 @@ import (
 	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/stretchr/testify/require"
 )
+
+func TestMergePlaygroundImageExtraFieldsProtectsRoutingFields(t *testing.T) {
+	body := []byte(`{"model":"image-model","quality":"auto"}`)
+	extra := map[string]json.RawMessage{
+		"model":   json.RawMessage(`"other-model"`),
+		"group":   json.RawMessage(`"other-group"`),
+		"quality": json.RawMessage(`"high"`),
+		"seed":    json.RawMessage(`42`),
+	}
+	merged, err := mergePlaygroundImageExtraFields(body, extra)
+	require.NoError(t, err)
+	var got map[string]json.RawMessage
+	require.NoError(t, json.Unmarshal(merged, &got))
+	require.JSONEq(t, `"image-model"`, string(got["model"]))
+	require.JSONEq(t, `"high"`, string(got["quality"]))
+	require.JSONEq(t, `42`, string(got["seed"]))
+	_, hasGroup := got["group"]
+	require.False(t, hasGroup)
+}
 
 func TestValidateGeminiGenerateContentImageRequestUsesMappedModel(t *testing.T) {
 	info := &relaycommon.RelayInfo{

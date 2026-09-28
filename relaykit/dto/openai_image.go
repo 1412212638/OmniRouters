@@ -59,6 +59,8 @@ type ImageRequest struct {
 	WatermarkEnabled json.RawMessage `json:"watermark_enabled,omitempty"`
 	UserId           json.RawMessage `json:"user_id,omitempty"`
 	Image            json.RawMessage `json:"image,omitempty"`
+	// CustomParameters is reserved for Studio metadata and is never forwarded.
+	CustomParameters json.RawMessage `json:"custom_parameters,omitempty"`
 	// 用匿名参数接收额外参数
 	Extra             map[string]json.RawMessage `json:"-"`
 	BillingParameters *ImageBillingParameters    `json:"-"`

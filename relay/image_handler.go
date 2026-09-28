@@ -2,6 +2,7 @@ package relay
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -86,6 +87,12 @@ func ImageHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *type
 			jsonData, err = common.Marshal(convertedRequest)
 			if err != nil {
 				return types.NewError(err, types.ErrorCodeConvertRequestFailed, types.ErrOptionWithSkipRetry())
+			}
+			if info.IsPlayground {
+				jsonData, err = mergePlaygroundImageExtraFields(jsonData, request.Extra)
+				if err != nil {
+					return types.NewError(err, types.ErrorCodeConvertRequestFailed, types.ErrOptionWithSkipRetry())
+				}
 			}
 
 			// apply param override
@@ -205,6 +212,24 @@ func ImageHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *type
 
 	service.PostTextConsumeQuota(c, info, usage.(*dto.Usage), logContent)
 	return nil
+}
+
+func mergePlaygroundImageExtraFields(body []byte, extra map[string]json.RawMessage) ([]byte, error) {
+	if len(extra) == 0 {
+		return body, nil
+	}
+	var payload map[string]json.RawMessage
+	if err := common.Unmarshal(body, &payload); err != nil {
+		return nil, fmt.Errorf("invalid converted image request: %w", err)
+	}
+	for key, value := range extra {
+		switch key {
+		case "model", "group", "prompt", "n", "image", "image_url", "input", "custom_parameters":
+			continue
+		}
+		payload[key] = value
+	}
+	return common.Marshal(payload)
 }
 
 func validateGeminiGenerateContentImageRequest(info *relaycommon.RelayInfo, request *dto.ImageRequest, imageCount int) error {

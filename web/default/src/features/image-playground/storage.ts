@@ -33,6 +33,7 @@ export type ImagePlaygroundState = {
   group: string
   parameterValues: Record<string, Record<string, unknown>>
   parameterEnabled: Record<string, Record<string, boolean>>
+  requestProfiles: Record<string, import('./api').ImageRequestProfile>
 }
 
 const DATABASE_NAME = 'omnirouters-image-playground'
@@ -160,6 +161,10 @@ function parseState(value: unknown): ImagePlaygroundState | null {
     candidate.parameterEnabled && typeof candidate.parameterEnabled === 'object'
       ? candidate.parameterEnabled
       : {}
+  const requestProfiles =
+    candidate.requestProfiles && typeof candidate.requestProfiles === 'object'
+      ? candidate.requestProfiles
+      : {}
   if (!candidate.parameterValues) {
     const legacyValues: Record<string, unknown> = {}
     if (typeof candidate.count === 'string') {
@@ -191,6 +196,7 @@ function parseState(value: unknown): ImagePlaygroundState | null {
       string,
       Record<string, boolean>
     >,
+    requestProfiles: requestProfiles as ImagePlaygroundState['requestProfiles'],
   }
 }
 

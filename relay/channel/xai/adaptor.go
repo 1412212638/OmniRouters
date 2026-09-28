@@ -38,11 +38,18 @@ func (a *Adaptor) ConvertAudioRequest(c *gin.Context, info *relaycommon.RelayInf
 }
 
 func (a *Adaptor) ConvertImageRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.ImageRequest) (any, error) {
+	// Grok image edits use the OpenAI-compatible multipart contract. Reuse the
+	// shared multipart normalizer so uploaded reference images are preserved.
+	if info != nil && info.RelayMode == constant.RelayModeImagesEdits &&
+		!strings.HasPrefix(c.GetHeader("Content-Type"), "application/json") {
+		return (&openai.Adaptor{}).ConvertImageRequest(c, info, request)
+	}
 	xaiRequest := ImageRequest{
 		Model:          request.Model,
 		Prompt:         request.Prompt,
 		N:              int(lo.FromPtrOr(request.N, uint(1))),
 		ResponseFormat: request.ResponseFormat,
+		Image:          request.Image,
 	}
 	return xaiRequest, nil
 }
@@ -108,6 +115,10 @@ func (a *Adaptor) ConvertOpenAIResponsesRequest(c *gin.Context, info *relaycommo
 }
 
 func (a *Adaptor) DoRequest(c *gin.Context, info *relaycommon.RelayInfo, requestBody io.Reader) (any, error) {
+	if info != nil && info.RelayMode == constant.RelayModeImagesEdits &&
+		!strings.HasPrefix(c.GetHeader("Content-Type"), "application/json") {
+		return channel.DoFormRequest(a, c, info, requestBody)
+	}
 	return channel.DoApiRequest(a, c, info, requestBody)
 }
 

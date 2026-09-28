@@ -16,6 +16,21 @@ export type ImageRequestPayload = {
   [key: string]: unknown
 }
 
+export type ImageRequestMode = 'auto' | 'generations' | 'edits' | 'custom'
+export type ImageRequestEndpoint = 'generations' | 'edits' | 'gemini'
+export type ImageReferenceField =
+  | 'none'
+  | 'image'
+  | 'image_url'
+  | 'input.image'
+
+export type ImageRequestProfile = {
+  mode: ImageRequestMode
+  endpoint: ImageRequestEndpoint
+  referenceField: ImageReferenceField
+  customParameters: string
+}
+
 export type ImageGenerationRequest = ImageRequestPayload
 
 export type ImageGenerationResponse = {
@@ -103,10 +118,11 @@ export type ImageGroupOption = {
 
 export async function generateImages(
   payload: ImageGenerationRequest,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  endpoint = IMAGE_PLAYGROUND_ENDPOINTS.GENERATIONS
 ): Promise<ImageGenerationResponse> {
   const response = await api.post(
-    IMAGE_PLAYGROUND_ENDPOINTS.GENERATIONS,
+    endpoint,
     payload,
     {
       signal,
@@ -118,7 +134,8 @@ export async function generateImages(
 
 export async function editImage(
   payload: ImageEditRequest,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  endpoint = IMAGE_PLAYGROUND_ENDPOINTS.EDITS
 ): Promise<ImageGenerationResponse> {
   const formData = new FormData()
   formData.append('model', payload.model)
@@ -151,7 +168,7 @@ export async function editImage(
   const extension = referenceBlob.type.split('/')[1] || 'png'
   formData.append('image', referenceBlob, `reference.${extension}`)
 
-  const response = await api.post(IMAGE_PLAYGROUND_ENDPOINTS.EDITS, formData, {
+  const response = await api.post(endpoint, formData, {
     signal,
     skipErrorHandler: true,
   } as Record<string, unknown>)
@@ -160,7 +177,8 @@ export async function editImage(
 
 export async function editGeminiImage(
   payload: ImageEditRequest,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  endpoint = IMAGE_PLAYGROUND_ENDPOINTS.EDITS
 ): Promise<ImageGenerationResponse> {
   const referenceBlob = await imageBlob(payload.image, signal)
   const imageData = await new Promise<string>((resolve, reject) => {
@@ -175,7 +193,7 @@ export async function editGeminiImage(
     reader.readAsDataURL(referenceBlob)
   })
   const response = await api.post(
-    IMAGE_PLAYGROUND_ENDPOINTS.EDITS,
+    endpoint,
     { ...payload, image: imageData },
     {
       signal,

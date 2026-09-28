@@ -2,6 +2,7 @@ import type {
   ImageModelCapabilities,
   ImageParameterCapability,
   ImageRequestPayload,
+  ImageRequestProfile,
 } from './api'
 
 export type ImageParameterValues = Record<string, unknown>
@@ -15,6 +16,79 @@ export type BuildImageRequestOptions = {
   parameterValues: ImageParameterValues
   parameterEnabled: ImageParameterEnabled
   image?: string
+  profile?: ImageRequestProfile
+}
+
+export const DEFAULT_IMAGE_REQUEST_PROFILE: ImageRequestProfile = {
+  mode: 'auto',
+  endpoint: 'generations',
+  referenceField: 'image',
+  customParameters: '',
+}
+
+const protectedRequestKeys = new Set([
+  'model',
+  'group',
+  'prompt',
+  'n',
+  'image',
+  'image_url',
+  'input',
+])
+
+function parseCustomParameters(raw: string | undefined) {
+  if (!raw?.trim()) return {}
+  try {
+    const value = JSON.parse(raw) as unknown
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+    return Object.fromEntries(
+      Object.entries(value).filter(([key]) => !protectedRequestKeys.has(key))
+    )
+  } catch {
+    return {}
+  }
+}
+
+export function validateImageCustomParameters(raw: string | undefined): string | null {
+  if (!raw?.trim()) return null
+  try {
+    const value = JSON.parse(raw) as unknown
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return 'Custom JSON parameters must be an object'
+    }
+    const findProtectedKey = (input: unknown): string | undefined => {
+      if (!input || typeof input !== 'object') return undefined
+      for (const [key, nested] of Object.entries(input)) {
+        if (protectedRequestKeys.has(key)) return key
+        const child = findProtectedKey(nested)
+        if (child) return child
+      }
+      return undefined
+    }
+    const protectedKey = findProtectedKey(value)
+    return protectedKey
+      ? `${protectedKey} is controlled by Studio`
+      : null
+  } catch {
+    return 'Custom JSON parameters must be valid JSON'
+  }
+}
+
+export function resolveImageRequestEndpoint(
+  model: string,
+  hasReference: boolean,
+  profile: ImageRequestProfile
+): 'generations' | 'edits' | 'gemini' {
+  const lowerModel = model.toLowerCase()
+  if (lowerModel.startsWith('gemini-') || lowerModel.startsWith('nano-banana')) {
+    return 'gemini'
+  }
+  if (profile.mode === 'custom') return profile.endpoint
+  if (profile.mode === 'edits') return 'edits'
+  if (profile.mode === 'generations') return 'generations'
+  return hasReference && /^(gpt-image-|grok-imagine-image)/i.test(model)
+    ? 'edits'
+    : 'generations'
 }
 
 function setNestedValue(
@@ -75,10 +149,18 @@ export function buildImageRequest({
   parameterValues,
   parameterEnabled,
   image,
+  profile,
 }: BuildImageRequestOptions): ImageRequestPayload {
   const request: ImageRequestPayload = { model, prompt }
   if (group) request.group = group
-  if (image) request.image = image
+  const geminiModel = /^(gemini-|nano-banana)/i.test(model)
+  if (image && (geminiModel || profile?.referenceField !== 'none')) {
+    if (geminiModel) request.image = image
+    else if (profile?.referenceField === 'image_url') request.image_url = image
+    else if (profile?.referenceField === 'input.image') {
+      request.input = { image }
+    } else request.image = image
+  }
 
   const outputFormatParameter = capabilities?.parameters.find(
     (parameter) => parameter.key === 'output_format'
@@ -106,6 +188,19 @@ export function buildImageRequest({
       boundedValue(parameter, value)
     )
   })
+
+  Object.assign(request, parseCustomParameters(profile?.customParameters))
+  request.model = model
+  request.prompt = prompt
+  if (group) request.group = group
+  else delete request.group
+  if (image && (geminiModel || profile?.referenceField !== 'none')) {
+    if (geminiModel) request.image = image
+    else if (profile.referenceField === 'image_url') request.image_url = image
+    else if (profile.referenceField === 'input.image') {
+      request.input = { image }
+    } else request.image = image
+  }
   return request
 }
 
@@ -135,15 +230,24 @@ function geminiImageRequest(request: ImageRequestPayload) {
     generationConfig.imageConfig = imageConfig
   }
 
-  return {
+  const result: Record<string, unknown> = {
     contents: [{ role: 'user', parts }],
     generationConfig,
   }
+  for (const [key, value] of Object.entries(request)) {
+    if (
+      !['model', 'group', 'prompt', 'image', 'image_url', 'input', 'size', 'quality', 'n'].includes(key)
+    ) {
+      result[key] = value
+    }
+  }
+  return result
 }
 
 export function imageRequestJson(
   request: ImageRequestPayload,
-  isGemini = false
+  isGemini = false,
+  referenceField?: string
 ) {
   if (isGemini) {
     return JSON.stringify(geminiImageRequest(request), null, 2)
@@ -151,16 +255,29 @@ export function imageRequestJson(
   const copy = { ...request }
   delete copy.group
   if (typeof copy.image === 'string') copy.image = '<reference image omitted>'
+  if (typeof copy.image_url === 'string') copy.image_url = '<reference image omitted>'
+  if (referenceField === 'input.image' && copy.input && typeof copy.input === 'object') {
+    copy.input = { ...(copy.input as Record<string, unknown>), image: '<reference image omitted>' }
+  }
   return JSON.stringify(copy, null, 2)
 }
 
 export function imageRequestEndpoint(
   model: string,
   isEdit: boolean,
-  isGemini: boolean
+  isGemini: boolean,
+  profile?: ImageRequestProfile
 ) {
   if (isGemini) {
     return `/v1beta/models/${encodeURIComponent(model)}:generateContent`
+  }
+  if (profile?.mode === 'custom') {
+    if (profile.endpoint === 'gemini') {
+      return `/v1beta/models/${encodeURIComponent(model)}:generateContent`
+    }
+    return profile.endpoint === 'edits'
+      ? '/v1/images/edits'
+      : '/v1/images/generations'
   }
   return isEdit ? '/v1/images/edits' : '/v1/images/generations'
 }
@@ -169,9 +286,10 @@ export function imageRequestCurl(
   request: ImageRequestPayload,
   endpoint: string,
   isEdit: boolean,
-  isGemini = false
+  isGemini = false,
+  referenceField?: string
 ) {
-  const body = imageRequestJson(request, isGemini)
+  const body = imageRequestJson(request, isGemini, referenceField)
   if (isEdit && !isGemini) {
     const fields = Object.entries(request)
       .filter(([key]) => key !== 'image' && key !== 'group')
