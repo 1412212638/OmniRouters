@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-09-29 - Highlight Image Studio prompt input state
+
+- Local reason: Image Studio did not expose the same non-empty prompt state as Chat, so entered text could leave the composer visually inactive and the submit button disabled.
+- Changed: keep the Image Studio composer highlighted while a trimmed prompt is present and derive submit availability from the same prompt/model/loading conditions used by Chat.
+- Preserved: image request profiles, parameters, attachments, history persistence, model/group routing, and protected project identifiers.
+- Validation: targeted TypeScript, Oxlint, frontend production build, and `git diff --check` passed. Go tests/gofmt were not run because the Go toolchain is unavailable locally.
+- Commit/push: pending; user requested a local fix only.
+
 ## 2026-09-29 - Add controlled Image Studio request profiles
 
 - Local reason: image providers expose different generation/edit endpoints and request fields, so a single inferred payload was insufficient for provider-specific image APIs.

@@ -49,6 +49,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 
 import {
   generateImages,
@@ -64,7 +65,6 @@ import {
   type ImageRequestProfile,
 } from './api'
 import { ImageParameterSettings } from './image-parameter-settings'
-import { ImageRequestSettings } from './image-request-settings'
 import {
   buildImageRequest,
   DEFAULT_IMAGE_REQUEST_PROFILE,
@@ -74,6 +74,7 @@ import {
   type ImageParameterValues,
 } from './image-request-builder'
 import { ImageRequestPreview } from './image-request-preview'
+import { ImageRequestSettings } from './image-request-settings'
 import {
   clearImagePlaygroundState,
   loadImagePlaygroundState,
@@ -506,13 +507,20 @@ export function ImagePlayground() {
       toast.error(t(customParametersError))
       return
     }
-    if (requestProfile.mode === 'custom' &&
-        requestProfile.endpoint === 'gemini' &&
-        !isGeminiImageModel) {
-      toast.error(t('The Gemini endpoint is only available for Gemini image models'))
+    if (
+      requestProfile.mode === 'custom' &&
+      requestProfile.endpoint === 'gemini' &&
+      !isGeminiImageModel
+    ) {
+      toast.error(
+        t('The Gemini endpoint is only available for Gemini image models')
+      )
       return
     }
-    if (effectiveEndpoint === 'edits' && requestProfile.referenceField !== 'image') {
+    if (
+      effectiveEndpoint === 'edits' &&
+      requestProfile.referenceField !== 'image'
+    ) {
       toast.error(t('The edits endpoint requires the image reference field'))
       return
     }
@@ -543,7 +551,9 @@ export function ImagePlayground() {
       let response
       if (effectiveEndpoint === 'edits') {
         if (!referenceSource) {
-          throw new Error(t('A reference image is required for the edits endpoint'))
+          throw new Error(
+            t('A reference image is required for the edits endpoint')
+          )
         }
         response = await editImage(
           request as typeof request & { image: string },
@@ -619,6 +629,12 @@ export function ImagePlayground() {
   if (effectiveEndpoint === 'generations') submitLabel = t('Generate image')
   if (effectiveEndpoint === 'edits') submitLabel = t('Edit image')
   if (isGenerating) submitLabel = t('Generating...')
+  const canSubmit =
+    prompt.trim().length > 0 &&
+    Boolean(selectedModel) &&
+    !isGenerating &&
+    !isRestoring &&
+    !isLoadingOptions
 
   return (
     <div className='relative flex size-full min-h-0 flex-col overflow-hidden'>
@@ -841,7 +857,10 @@ export function ImagePlayground() {
         <PromptInput
           accept='image/*'
           className='relative px-1 md:pb-4'
-          groupClassName='bg-background/95 dark:bg-background/80 border-border/70 shadow-[0_18px_60px_-32px_rgba(0,0,0,0.65)] ring-1 ring-foreground/5 rounded-xl overflow-hidden transition-all duration-200 focus-within:border-primary/45 focus-within:ring-primary/15 focus-within:shadow-[0_22px_70px_-34px_rgba(0,0,0,0.75)]'
+          groupClassName={cn(
+            'bg-background/95 dark:bg-background/80 border-border/70 shadow-[0_18px_60px_-32px_rgba(0,0,0,0.65)] ring-1 ring-foreground/5 rounded-xl overflow-hidden transition-all duration-200 focus-within:border-primary/45 focus-within:ring-primary/15 focus-within:shadow-[0_22px_70px_-34px_rgba(0,0,0,0.75)]',
+            prompt.trim() && 'border-primary/45 ring-primary/15'
+          )}
           multiple={false}
           onSubmit={({ text, files }) =>
             handleGenerate(text || '', files?.at(0)?.url)
@@ -856,7 +875,7 @@ export function ImagePlayground() {
             autoCorrect='off'
             autoCapitalize='off'
             spellCheck={false}
-            className='min-h-20 px-5 pt-4 pb-3 leading-7 md:min-h-24 md:text-base'
+            className='text-foreground min-h-20 px-5 pt-4 pb-3 leading-7 md:min-h-24 md:text-base'
             disabled={isGenerating || isRestoring}
             onChange={(event) => setPrompt(event.target.value)}
             placeholder={t('Enter prompt')}
@@ -949,12 +968,7 @@ export function ImagePlayground() {
                 <div className='flex items-center gap-1.5 md:hidden'>
                   <PromptInputButton
                     className='bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground h-8 px-3 font-medium shadow-sm'
-                    disabled={
-                      isGenerating ||
-                      isRestoring ||
-                      isLoadingOptions ||
-                      !selectedModel
-                    }
+                    disabled={!canSubmit}
                     type='submit'
                     variant='default'
                   >
@@ -980,12 +994,7 @@ export function ImagePlayground() {
                 />
                 <PromptInputButton
                   className='bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground h-8 px-3 font-medium shadow-sm'
-                  disabled={
-                    isGenerating ||
-                    isRestoring ||
-                    isLoadingOptions ||
-                    !selectedModel
-                  }
+                  disabled={!canSubmit}
                   type='submit'
                   variant='default'
                 >
