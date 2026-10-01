@@ -3315,4 +3315,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: scoped access tokens, administrator step-up verification, and unrelated frontend changes remain separate batches.
 - Preserved: ordinary function tools, native Responses behavior, Claude/Gemini conversions, billing/accounting, all supported databases, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed; focused request, response, stream, registry, collision, and retry regression tests are present. Go tests and gofmt could not run because the local Go toolchain is unavailable.
-- Commit/push: implementation is staged for controlled commit; push verification follows after the commit.
+- Commit/push: source commit `7914d340c` is prepared for push; remote verification follows.
