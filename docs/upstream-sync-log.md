@@ -3246,3 +3246,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: non-OpenAI/custom model requests, OpenRouter reasoning conversion, GPT-4 behavior, billing, all supported databases, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable; focused DTO and adaptor regression tests were added.
 - Commit/push: source commit `da4142b0c` pushed to `origin/main`.
+
+## 2026-10-01 - Seventh functional upstream batch: record async task performance metrics
+
+- Upstream reference: `3abbb8198`; current upstream tip remains `56758edf9` with no newer commits.
+- Integrated: asynchronous task success, failure, and polling-failure terminal transitions now record one performance sample after the winning status CAS. Samples use the billing-context model when available, capture end-to-end latency, and record output tokens/generation time only for successful tasks with valid provider usage. Batch and single-task billing/refund paths share the same terminal finalizer.
+- Already present: the performance metric buckets, Redis persistence, task timestamps, token fields, and conditional task status updates were reused.
+- Deferred: timeout sweep transitions still use their existing independent refund path and are not sampled by this upstream-scoped change; covering timeout metrics will require a separate decision about legacy task model data and sweep semantics.
+- Preserved: task settlement/refund ordering, CAS race behavior, polling failure thresholds, all supported databases, frontend behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable; focused performance metric regression tests were added.
+- Commit/push: pending.

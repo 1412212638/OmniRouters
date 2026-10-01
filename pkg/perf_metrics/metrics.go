@@ -1,6 +1,7 @@
 package perfmetrics
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"math"
@@ -63,6 +64,40 @@ func RecordRelayFailureSample(info *relaycommon.RelayInfo, statusCode int) {
 		return
 	}
 	RecordRelaySample(info, false, 0, 0, 0)
+}
+
+// RecordTaskResult samples an async task once it wins its terminal status CAS.
+// Task latency is measured end to end; throughput is recorded only for
+// successful tasks that report provider token usage.
+func RecordTaskResult(task *model.Task, result *relaycommon.TaskInfo) {
+	if task == nil {
+		return
+	}
+	modelName := task.Properties.OriginModelName
+	if bc := task.PrivateData.BillingContext; bc != nil && bc.OriginModelName != "" {
+		modelName = bc.OriginModelName
+	}
+	endTs := task.FinishTime
+	if endTs <= 0 {
+		endTs = time.Now().Unix()
+	}
+	sample := Sample{
+		Model:   modelName,
+		Group:   task.Group,
+		Success: task.Status == model.TaskStatusSuccess,
+	}
+	if task.SubmitTime > 0 && endTs > task.SubmitTime {
+		sample.LatencyMs = (endTs - task.SubmitTime) * 1000
+	}
+	if sample.Success && result != nil {
+		tokens := int64(cmp.Or(result.TotalTokens, result.CompletionTokens))
+		genStart := cmp.Or(task.StartTime, task.SubmitTime)
+		if tokens > 0 && genStart > 0 && endTs > genStart {
+			sample.OutputTokens = tokens
+			sample.GenerationMs = (endTs - genStart) * 1000
+		}
+	}
+	Record(sample)
 }
 
 func Record(sample Sample) {
