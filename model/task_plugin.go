@@ -12,12 +12,24 @@ import (
 	"github.com/QuantumNous/new-api/constant"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"gorm.io/gorm/schema"
 )
 
 type TaskPluginChannelRef struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
 	Type int    `json:"type"`
+}
+
+// LongText stores large plugin payloads as LONGTEXT on MySQL and TEXT on
+// PostgreSQL and SQLite.
+type LongText string
+
+func (LongText) GormDBDataType(db *gorm.DB, _ *schema.Field) string {
+	if db.Dialector.Name() == string(common.DatabaseTypeMySQL) {
+		return "longtext"
+	}
+	return "text"
 }
 
 func GetTaskPluginUsage(key string) ([]TaskPluginChannelRef, int64, error) {
@@ -60,17 +72,17 @@ func UnbindTaskPlugin(channelID int, key string) (bool, error) {
 }
 
 type TaskPlugin struct {
-	Id         int64  `json:"id"`
-	Key        string `json:"key" gorm:"size:128;not null;uniqueIndex:uk_task_plugin_key_version,priority:1"`
-	APIVersion int    `json:"api_version" gorm:"not null"`
-	Version    string `json:"version" gorm:"size:64;not null;uniqueIndex:uk_task_plugin_key_version,priority:2"`
-	Source     string `json:"source" gorm:"type:text;not null"`
-	SourceHash string `json:"source_hash" gorm:"size:64;not null"`
-	Icon       string `json:"-" gorm:"size:524288"`
-	Enabled    bool   `json:"enabled" gorm:"not null"`
-	Active     bool   `json:"active" gorm:"not null;index"`
-	CreatedAt  int64  `json:"created_at" gorm:"not null"`
-	Remark     string `json:"remark" gorm:"type:text"`
+	Id         int64    `json:"id"`
+	Key        string   `json:"key" gorm:"size:128;not null;uniqueIndex:uk_task_plugin_key_version,priority:1"`
+	APIVersion int      `json:"api_version" gorm:"not null"`
+	Version    string   `json:"version" gorm:"size:64;not null;uniqueIndex:uk_task_plugin_key_version,priority:2"`
+	Source     LongText `json:"source" gorm:"not null"`
+	SourceHash string   `json:"source_hash" gorm:"size:64;not null"`
+	Icon       LongText `json:"-"`
+	Enabled    bool     `json:"enabled" gorm:"not null"`
+	Active     bool     `json:"active" gorm:"not null;index"`
+	CreatedAt  int64    `json:"created_at" gorm:"not null"`
+	Remark     string   `json:"remark" gorm:"type:text"`
 }
 
 func (plugin TaskPlugin) HasIcon() bool { return plugin.Icon != "" }
@@ -151,7 +163,7 @@ type TaskPluginSyncSnapshot struct {
 // the revision even though their local routing-generation counters differ.
 func GetTaskPluginSyncSnapshot() (TaskPluginSyncSnapshot, error) {
 	var activePlugins []TaskPlugin
-	if err := DB.Where(&TaskPlugin{Active: true}).
+	if err := DB.Omit("source", "icon").Where(&TaskPlugin{Active: true}).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "key"}}).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "version"}}).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}}).
@@ -195,6 +207,15 @@ func GetTaskPluginSyncSnapshot() (TaskPluginSyncSnapshot, error) {
 		Plugins:  enabledPlugins,
 		Revision: hex.EncodeToString(digest[:]),
 	}, nil
+}
+
+// GetTaskPluginSource loads one override's source only after its hash changed.
+// A plugin source is immutable for a key/version, so the snapshot row id still
+// identifies the source represented by its SourceHash.
+func GetTaskPluginSource(id int64) (LongText, error) {
+	var plugin TaskPlugin
+	err := DB.Select("source").Where(&TaskPlugin{Id: id}).Take(&plugin).Error
+	return plugin.Source, err
 }
 
 func ActivateTaskPlugin(key, version string) error {

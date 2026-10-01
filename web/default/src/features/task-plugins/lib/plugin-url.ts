@@ -3,7 +3,7 @@
  * controller/task_plugin.go). Enforced client-side too so an oversized fetch
  * fails with a readable message instead of a server rejection.
  */
-export const MAX_PLUGIN_SOURCE_BYTES = 1024 * 1024
+export const MAX_PLUGIN_SOURCE_BYTES = 8 * 1024 * 1024
 
 export function pluginSourceByteLength(source: string): number {
   return new TextEncoder().encode(source).length
@@ -72,7 +72,8 @@ export class PluginSourceFetchError extends Error {
 /**
  * Fetches plugin source in the browser. Every marketplace and URL-import fetch
  * goes through here: the gateway never makes the outbound request, so there is
- * no server-side SSRF surface.
+ * no server-side SSRF surface. Requests revalidate with the host so a
+ * republished source cannot be hidden behind a stale browser cache.
  */
 export async function fetchPluginSourceText(
   url: string,
@@ -80,7 +81,7 @@ export async function fetchPluginSourceText(
 ): Promise<string> {
   let response: Response
   try {
-    response = await fetchImpl(url)
+    response = await fetchImpl(url, { cache: 'no-cache' })
   } catch {
     throw new PluginSourceFetchError('unreachable')
   }

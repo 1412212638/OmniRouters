@@ -3186,3 +3186,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: parameter switches, provider-specific request keys, request previews, and protected project identifiers.
 - Validation: targeted frontend Oxfmt/Oxlint, production build, and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
 - Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
+
+## 2026-10-01 - First functional upstream stability batch
+
+- Upstream references: `d61d6be759`, `c0cff23a3a`, `feefe09f27`, `2506e1b980`, `f5e54ccdb2`; local comparison baseline `9a0be8750` and upstream tip `56758edf9`.
+- Integrated: task submissions now accept every upstream `2xx`; task-plugin source and icon columns use cross-database `LongText` (`longtext` on MySQL, `text` on PostgreSQL/SQLite) and the upload/browser limit is 8 MiB; each HTTP transport receives a cloned insecure TLS config; Waffo Pancake checkout, webhook store matching, and availability checks require the configured store ID; user creation rejects non-standard roles; marketplace index and source fetches revalidate with `cache: no-cache`.
+- Already present: hash-based task-plugin synchronization and lazy source loading from `2c175190c4` were verified in the local controller/model implementation and were not duplicated.
+- Deferred: `474ed66fb1` only applies to the upstream Alibaba `openai_image` protocol export, which this fork deliberately does not advertise yet; no unsupported protocol claim was introduced.
+- Preserved: existing plugin activation/version rollback, task billing and polling, provider routing, Waffo payment flows, all three supported primary databases, default/classic frontend boundaries, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed; locale JSON/key consistency and source-level searches passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally; frontend production build and browser tests remain pending.
+- Commit/push: source commit to be recorded after the first-batch commit; push status follows the commit.

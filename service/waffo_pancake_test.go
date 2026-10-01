@@ -9,6 +9,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/setting"
 	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
@@ -48,6 +49,22 @@ func TestCreateWaffoPancakeCheckoutSession_RequiresOrderMerchantExternalID(t *te
 	require.Error(t, err)
 	require.Nil(t, session)
 	require.Contains(t, err.Error(), "missing order merchant external id")
+}
+
+func TestCreateWaffoPancakeCheckoutSession_RequiresStoreID(t *testing.T) {
+	originalStoreID := setting.WaffoPancakeStoreID
+	t.Cleanup(func() { setting.WaffoPancakeStoreID = originalStoreID })
+	setting.WaffoPancakeStoreID = ""
+
+	session, err := CreateWaffoPancakeCheckoutSession(context.Background(), &WaffoPancakeCreateSessionParams{
+		ProductID:               "PROD_checkout_guard",
+		BuyerIdentity:           WaffoPancakeBuyerIdentityFromUserID(1),
+		OrderMerchantExternalID: "ORD_checkout_guard",
+	})
+
+	require.Error(t, err)
+	require.Nil(t, session)
+	require.Contains(t, err.Error(), "missing Waffo Pancake store id")
 }
 
 func TestResolveWaffoPancakeTradeNo_UsesWebhookOrderIDWhenLocalOrderExists(t *testing.T) {
