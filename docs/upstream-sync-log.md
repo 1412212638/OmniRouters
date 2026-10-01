@@ -3305,4 +3305,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: upstream `335ebcff7` Responses custom-tool conversion remains a separate protocol migration requiring request, response, stream, and registry state changes.
 - Preserved: system settings routes, backend authorization, root-user navigation, classic frontend behavior, protected project identifiers, and unrelated untracked worktree files.
 - Validation: targeted Oxfmt/Oxlint and `git diff --check` passed; full frontend build was not rerun for this one-line navigation metadata change.
-- Commit/push: pending.
+- Commit/push: source commit `42fd94a7e` pushed to `origin/main`; the final log publication commit follows.
