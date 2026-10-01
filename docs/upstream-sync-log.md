@@ -30,7 +30,7 @@
 - Changed: include the dashboard token and session credentials in streaming requests, wait for the selected group's model list before probing image capabilities, suppress transient capability-probe toasts, and clear stale image model state during group changes.
 - Preserved: Chat session authentication, image model routing, provider-specific capabilities, existing API request headers, and protected project identifiers.
 - Validation: streaming-header regression tests passed (10/10), targeted Oxfmt passed, frontend production build passed, and `git diff --check` passed. Targeted Oxlint still reports the existing `no-non-null-assertion` finding at `web/default/src/lib/api.ts:119`; Go tests/gofmt were not run because the Go toolchain is unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `d213d07c9` pushed to `origin/main`.
 
 ## 2026-09-27 - Proxy cross-origin Image Studio edit sources
 
@@ -3205,7 +3205,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: `87bb71e7fc` OpenAI Images task-protocol binding remains deferred because this checkout lacks the upstream `03563a4a7` host protocol/routing/synchronous image-task bridge; adding only the plugin claim would fail protocol validation or route to the legacy adaptor.
 - Preserved: current native image and Responses routes, task billing safety, provider capability checks, protected project identifiers, and unrelated untracked worktree files.
 - Validation: Node syntax check and `git diff --check` passed; focused Go regression coverage was added but Go tests/gofmt remain unavailable because the local Go toolchain is not installed.
-- Commit/push: pending.
+- Commit/push: source commit `1e606e46b` is present on `origin/main`.
 
 ## 2026-10-01 - Third functional upstream batch: preserve Claude native request fields
 
@@ -3215,4 +3215,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: the larger `335ebcff7` Responses custom-tool conversion, scoped access tokens, administrator step-up verification, and the frontend-specific Responses WebSocket setting require separate migrations or frontend adaptation and were not mixed into this batch.
 - Preserved: existing Claude routing, reasoning controls, pass-through filtering, billing, all supported databases, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable.
+- Commit/push: source commit `d213d07c9` is present on `origin/main`.
+
+## 2026-10-01 - Fourth functional upstream batch: refresh the channels table
+
+- Upstream reference: `2035a82ae`; current upstream tip remains `56758edf9` with no newer commits.
+- Integrated: the default frontend channel table now exposes a refresh icon beside sensitive-value visibility. It refetches the active query with the current search, filters, sorting, pagination, tag mode, and loading state, and exposes `aria-busy` while refreshing.
+- Already present: the channels query key, translation for `Refresh`, Base UI button/tooltip primitives, and existing mobile/card table behavior were reused.
+- Deferred: `d0cb7347c` GPT-6 token and sampling capability changes need a separate backend capability audit because the local model detection differs from upstream; Responses custom tools, scoped access tokens, administrator step-up verification, and Responses WebSocket settings remain separate migrations.
+- Preserved: channel mutations, channel routing, existing sensitive-value toggle, classic frontend, backend APIs, billing, protected project identifiers, and unrelated untracked worktree files.
+- Validation: targeted Oxfmt and Oxlint passed; `bun run build` for `web/default` passed; `git diff --check` passed.
 - Commit/push: pending.
