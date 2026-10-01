@@ -3324,3 +3324,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: ordinary function tools, native Responses behavior, Claude/Gemini conversions, billing/accounting, all supported databases, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed; focused request, response, stream, registry, collision, and retry regression tests are present. Go tests and gofmt could not run because the local Go toolchain is unavailable.
 - Commit/push: source commit `7914d340c` is prepared for push; remote verification follows.
+
+## 2026-10-01 - Friends Hub visual redesign and locale completion
+
+- Local reason: redesign the existing Friends Hub page against the approved reference layouts and complete its multi-language coverage.
+- Integrated: reorganized the default frontend into an account header, invitation feature panel, wallet balance, compact referral metrics, separate registration/cashback transfer actions, and tabbed friends/reward history views. Added responsive mobile list rows, real authenticated user avatar/name and join date, and precise translations for all 43 Friends Hub keys in en, zh, zh-TW, fr, ru, ja, and vi.
+- Preserved: existing Friends Hub summary, friends, rewards, cashback transfer, legacy registration-reward transfer, affiliate-code APIs, reward separation, wallet navigation, protected project identifiers, and unrelated untracked worktree files.
+- Validation: production frontend `bun run build` passed; targeted Oxfmt/Oxlint passed; JSON parsing and Friends Hub translation-key audit passed for all seven locales; `git diff --check` passed. Browser preview could not be rendered because the local dev/preview proxy returned HTTP 502 despite successful builds.
+- Commit/push: pending source commit and push after review.
