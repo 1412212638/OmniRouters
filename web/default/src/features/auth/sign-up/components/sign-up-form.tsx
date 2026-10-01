@@ -307,7 +307,9 @@ export function SignUpForm({
         )}
 
         <FormItem>
-          <FormLabel>{t('Invitation code (optional)')}</FormLabel>
+          <FormLabel>
+            {t('Invitation code (only applies when creating a new account)')}
+          </FormLabel>
           <FormControl>
             <Input
               value={affiliateCode}
@@ -316,7 +318,7 @@ export function SignUpForm({
                 setAffiliateCode(nextCode)
                 saveAffiliateCode(nextCode.trim())
               }}
-              placeholder={t('Enter invitation code')}
+              placeholder={t('Enter invitation code (optional)')}
               autoComplete='off'
             />
           </FormControl>

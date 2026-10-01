@@ -5129,6 +5129,8 @@
     "Sign in with email": "Sign in with email",
     "Invitation code (optional)": "Invitation code (optional)",
     "Enter invitation code": "Enter invitation code",
+    "Invitation code (only applies when creating a new account)": "Invitation code (only applies when creating a new account)",
+    "Enter invitation code (optional)": "Enter invitation code (optional)",
     "Only applies when creating a new account.": "Only applies when creating a new account.",
     "Welcome to our New API...": "Welcome to our New API...",
     "Well-Known URL": "Well-Known URL",

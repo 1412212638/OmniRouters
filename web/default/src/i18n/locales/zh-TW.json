@@ -5178,6 +5178,8 @@
     "Sign in with email": "使用電子郵件登入",
     "Invitation code (optional)": "邀請碼（可選）",
     "Enter invitation code": "請輸入邀請碼",
+    "Invitation code (only applies when creating a new account)": "邀請碼（僅在建立新帳號時生效）",
+    "Enter invitation code (optional)": "請輸入邀請碼（可選）",
     "Only applies when creating a new account.": "僅在建立新帳號時生效。",
     "Welcome to our New API...": "歡迎使用我們的 New API...",
     "Well-Known URL": "Well-Known URL",

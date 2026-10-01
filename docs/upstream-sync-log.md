@@ -3415,6 +3415,26 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
 - Commit/push: pending source commit and push.
 
+## 2026-10-02 - Keep invitation code on the sign-in landing view
+
+- Local reason: show invitation-code capture before choosing email/password login, while keeping the dedicated email-login view focused on already-registered account access.
+- Integrated: the sign-in landing view shows the optional invitation-code field; entering the email-login view hides it. The saved code remains available to OAuth and WeChat new-user registration flows.
+- Already present: registration-page invitation-code input and new-account attribution behavior were preserved.
+- Deferred: none.
+- Preserved: password login, OAuth providers, Passkey login, legal notices, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `bun run build`, targeted Oxfmt/Oxlint, locale-key presence checks, and `git diff --check` passed. Backend tooling was not needed for this frontend copy change.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Compact invitation-code copy
+
+- Local reason: reduce visual noise in the invitation-code area while keeping the new-account-only rule explicit.
+- Integrated: the label now states that the invitation code applies only when creating a new account, the input placeholder includes the optional hint, and the separate explanatory line is removed on sign-in and sign-up pages. All supported frontend locales were updated.
+- Already present: invitation-code persistence, registration attribution, OAuth/WeChat new-user handling, and existing legacy translation keys were preserved.
+- Deferred: none.
+- Preserved: authentication flows, legal consent behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: pending.
+- Commit/push: pending source commit and push.
+
 ## 2026-10-02 - Align registration terms footer
 
 - Local reason: match the registration page's legal notice placement with the redesigned sign-in page.

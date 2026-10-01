@@ -5098,6 +5098,8 @@
     "Sign in with email": "Войти по электронной почте",
     "Invitation code (optional)": "Код приглашения (необязательно)",
     "Enter invitation code": "Введите код приглашения",
+    "Invitation code (only applies when creating a new account)": "Код приглашения (действует только при создании новой учетной записи)",
+    "Enter invitation code (optional)": "Введите код приглашения (необязательно)",
     "Only applies when creating a new account.": "Действует только при создании новой учетной записи.",
     "Welcome to our New API...": "Добро пожаловать в наш New API...",
     "Well-Known URL": "Известный эксперт",

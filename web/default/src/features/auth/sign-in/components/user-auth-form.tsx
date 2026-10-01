@@ -352,10 +352,14 @@ export function UserAuthForm({
           </div>
         )}
 
-        {emailLoginExpanded && (
+        {!emailLoginExpanded && (
           <div className='border-border/70 mt-2 border-t pt-4'>
             <FormItem>
-              <FormLabel>{t('Invitation code (optional)')}</FormLabel>
+              <FormLabel>
+                {t(
+                  'Invitation code (only applies when creating a new account)'
+                )}
+              </FormLabel>
               <FormControl>
                 <Input
                   value={affiliateCode}
@@ -364,13 +368,10 @@ export function UserAuthForm({
                     setAffiliateCode(nextCode)
                     saveAffiliateCode(nextCode.trim())
                   }}
-                  placeholder={t('Enter invitation code')}
+                  placeholder={t('Enter invitation code (optional)')}
                   autoComplete='off'
                 />
               </FormControl>
-              <p className='text-muted-foreground text-xs'>
-                {t('Only applies when creating a new account.')}
-              </p>
             </FormItem>
           </div>
         )}

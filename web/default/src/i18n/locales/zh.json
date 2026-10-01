@@ -5129,6 +5129,8 @@
     "Sign in with email": "使用邮箱登录",
     "Invitation code (optional)": "邀请码（可选）",
     "Enter invitation code": "请输入邀请码",
+    "Invitation code (only applies when creating a new account)": "邀请码（仅在创建新账号时生效）",
+    "Enter invitation code (optional)": "请输入邀请码（可选）",
     "Only applies when creating a new account.": "仅在创建新账号时生效。",
     "Welcome to our New API...": "欢迎使用我们的 New API...",
     "Well-Known URL": "Well-Known URL",

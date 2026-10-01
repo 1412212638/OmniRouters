@@ -5099,6 +5099,8 @@
     "Sign in with email": "Đăng nhập bằng email",
     "Invitation code (optional)": "Mã mời (không bắt buộc)",
     "Enter invitation code": "Nhập mã mời",
+    "Invitation code (only applies when creating a new account)": "Mã mời (chỉ áp dụng khi tạo tài khoản mới)",
+    "Enter invitation code (optional)": "Nhập mã mời (không bắt buộc)",
     "Only applies when creating a new account.": "Chỉ áp dụng khi tạo tài khoản mới.",
     "Welcome to our New API...": "Chào mừng bạn đến với API mới của chúng tôi...",
     "Well-Known URL": "URL đã biết",
