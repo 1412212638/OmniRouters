@@ -31,7 +31,7 @@ export function SignIn() {
               {t('Back')}
             </button>
           )}
-          <h2 className='text-center text-2xl font-semibold tracking-tight sm:text-left'>
+          <h2 className='auth-sign-in-title text-center text-2xl font-semibold tracking-tight'>
             {t('Welcome to {{name}}', { name: systemName })}
           </h2>
           {emailLoginExpanded &&

@@ -3425,6 +3425,16 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bun run build`, targeted Oxfmt/Oxlint, locale-key presence checks, and `git diff --check` passed. Backend tooling was not needed for this frontend copy change.
 - Commit/push: pending source commit and push.
 
+## 2026-10-02 - Center the sign-in welcome title
+
+- Local reason: center the configured “Welcome to {{name}}” heading in the sign-in panel.
+- Integrated: the sign-in welcome title now remains centered across desktop and mobile layouts while the surrounding form alignment is unchanged.
+- Already present: registration and password-recovery title alignment, navigation, legal notices, and authentication behavior were preserved.
+- Deferred: none.
+- Preserved: invitation-code behavior, OAuth providers, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
+- Commit/push: pending source commit and push.
+
 ## 2026-10-02 - Compact invitation-code copy
 
 - Local reason: reduce visual noise in the invitation-code area while keeping the new-account-only rule explicit.

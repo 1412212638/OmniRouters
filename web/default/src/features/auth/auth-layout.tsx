@@ -400,6 +400,10 @@ const authClassicStyles = `
   font-weight: 750;
 }
 
+.auth-login-shell .auth-classic-card h2.auth-sign-in-title {
+  text-align: center !important;
+}
+
 .auth-login-shell .auth-classic-card input {
   min-height: 46px;
   border-radius: 10px;
