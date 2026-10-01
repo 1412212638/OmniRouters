@@ -57,6 +57,26 @@ export function OAuthProviders({
 
   const providerButtons: ProviderButton[] = []
 
+  // Custom providers are configured by the administrator and take priority
+  // over the built-in OAuth integrations in the sign-in list.
+  const customProviders = status?.custom_oauth_providers
+  if (customProviders && customProviders.length > 0) {
+    for (const provider of customProviders) {
+      providerButtons.push({
+        key: `custom-${provider.slug}`,
+        label: t('Continue with {{name}}', { name: provider.name }),
+        onClick: () => handleCustomOAuthLogin(provider),
+        icon: provider.icon ? (
+          <OAuthProviderIcon
+            icon={provider.icon}
+            name={provider.name}
+            className='h-4 w-4'
+          />
+        ) : undefined,
+      })
+    }
+  }
+
   if (status?.wechat_login && onWeChatLogin) {
     providerButtons.push({
       key: 'wechat',
@@ -113,25 +133,6 @@ export function OAuthProviders({
       onClick: handleTelegramLogin,
       icon: <IconTelegram className='h-4 w-4' />,
     })
-  }
-
-  // Custom OAuth providers
-  const customProviders = status?.custom_oauth_providers
-  if (customProviders && customProviders.length > 0) {
-    for (const provider of customProviders) {
-      providerButtons.push({
-        key: `custom-${provider.slug}`,
-        label: t('Continue with {{name}}', { name: provider.name }),
-        onClick: () => handleCustomOAuthLogin(provider),
-        icon: provider.icon ? (
-          <OAuthProviderIcon
-            icon={provider.icon}
-            name={provider.name}
-            className='h-4 w-4'
-          />
-        ) : undefined,
-      })
-    }
   }
 
   if (providerButtons.length === 0) return null

@@ -3404,3 +3404,33 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: existing login providers, password login behavior, legal consent, redirect handling, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `bun run build`, targeted Oxfmt, targeted Oxlint for the changed auth components (no new errors), locale-key presence checks, and `git diff --check` passed. The remaining `api.ts` Oxlint warnings/errors are pre-existing in that file (import ordering, `any`, and missing braces). Backend Go compilation and gofmt were not run because the local Go toolchain is unavailable; the Telegram flow call sites and WeChat/OAuth attribution paths were statically checked.
 - Commit/push: pending source commit and push.
+
+## 2026-10-02 - Separate OAuth and email sign-in views
+
+- Local reason: keep the sign-in landing view focused on OAuth providers and reveal the account registration prompt only after the user chooses email/password login.
+- Integrated: the sign-in page now switches to a dedicated email-login view with a back action, email/password fields, forgot-password link, invitation code, and registration link. OAuth providers and Passkey controls are hidden while the email view is active and return when the user goes back.
+- Already present: email login validation, Turnstile handling, invitation-code persistence, legal notice, redirect behavior, and localized strings were preserved.
+- Deferred: none.
+- Preserved: registration and password-recovery routes, OAuth callback behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Align registration terms footer
+
+- Local reason: match the registration page's legal notice placement with the redesigned sign-in page.
+- Integrated: the registration terms notice now uses the shared bottom-centered footer positioning within the right authentication column, including responsive mobile spacing.
+- Already present: the registration agreement checkbox and submit-time consent validation remain unchanged.
+- Deferred: none.
+- Preserved: registration fields, OAuth registration, invitation-code handling, legal links, protected project identifiers, and unrelated untracked worktree files.
+- Validation: pending.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Prioritize custom OAuth providers
+
+- Local reason: place administrator-configured OAuth providers, such as Google, before built-in OAuth integrations on the sign-in page.
+- Integrated: custom OAuth buttons now render first, preserving their configured order; GitHub and other built-in providers follow afterward.
+- Already present: custom provider authorization flow, provider icons, labels, and email-login placement were preserved.
+- Deferred: none.
+- Preserved: OAuth state handling, invitation-code capture, authentication routes, protected project identifiers, and unrelated untracked worktree files.
+- Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
+- Commit/push: pending source commit and push.

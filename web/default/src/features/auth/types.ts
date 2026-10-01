@@ -210,4 +210,6 @@ export interface CustomOAuthProviderInfo {
 
 export interface AuthFormProps extends React.HTMLAttributes<HTMLFormElement> {
   redirectTo?: string
+  emailLoginExpanded?: boolean
+  onEmailLoginExpandedChange?: (expanded: boolean) => void
 }

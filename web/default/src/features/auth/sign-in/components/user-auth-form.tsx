@@ -44,11 +44,12 @@ import { cn } from '@/lib/utils'
 export function UserAuthForm({
   className,
   redirectTo,
+  emailLoginExpanded = false,
+  onEmailLoginExpandedChange,
   ...props
 }: AuthFormProps) {
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
-  const [emailLoginExpanded, setEmailLoginExpanded] = useState(false)
   const [affiliateCode, setAffiliateCode] = useState(getInitialAffiliateCode)
   const [wechatCode, setWeChatCode] = useState('')
   const [passkeySupported, setPasskeySupported] = useState(false)
@@ -241,21 +242,23 @@ export function UserAuthForm({
         className={cn('grid gap-4', className)}
         {...props}
       >
-        <OAuthProviders
-          status={status}
-          disabled={isLoading}
-          onWeChatLogin={hasWeChatLogin ? handleOpenWeChatDialog : undefined}
-          isWeChatLoading={isWeChatSubmitting}
-          showDivider={false}
-          buttonClassName='border-0 bg-muted hover:bg-muted/80'
-        />
+        {!emailLoginExpanded && (
+          <OAuthProviders
+            status={status}
+            disabled={isLoading}
+            onWeChatLogin={hasWeChatLogin ? handleOpenWeChatDialog : undefined}
+            isWeChatLoading={isWeChatSubmitting}
+            showDivider={false}
+            buttonClassName='border-0 bg-muted hover:bg-muted/80'
+          />
+        )}
 
         {passwordLoginEnabled && (
           <div className='contents'>
             {!emailLoginExpanded ? (
               <Button
                 type='button'
-                onClick={() => setEmailLoginExpanded(true)}
+                onClick={() => onEmailLoginExpandedChange?.(true)}
                 className='h-11 w-full justify-center gap-2 rounded-lg'
               >
                 <Mail className='h-4 w-4' />
@@ -325,7 +328,7 @@ export function UserAuthForm({
           </div>
         )}
 
-        {passkeyLoginEnabled && (
+        {!emailLoginExpanded && passkeyLoginEnabled && (
           <div className='mt-2 space-y-1'>
             <Button
               type='button'
@@ -349,26 +352,28 @@ export function UserAuthForm({
           </div>
         )}
 
-        <div className='border-border/70 mt-2 border-t pt-4'>
-          <FormItem>
-            <FormLabel>{t('Invitation code (optional)')}</FormLabel>
-            <FormControl>
-              <Input
-                value={affiliateCode}
-                onChange={(event) => {
-                  const nextCode = event.target.value
-                  setAffiliateCode(nextCode)
-                  saveAffiliateCode(nextCode.trim())
-                }}
-                placeholder={t('Enter invitation code')}
-                autoComplete='off'
-              />
-            </FormControl>
-            <p className='text-muted-foreground text-xs'>
-              {t('Only applies when creating a new account.')}
-            </p>
-          </FormItem>
-        </div>
+        {emailLoginExpanded && (
+          <div className='border-border/70 mt-2 border-t pt-4'>
+            <FormItem>
+              <FormLabel>{t('Invitation code (optional)')}</FormLabel>
+              <FormControl>
+                <Input
+                  value={affiliateCode}
+                  onChange={(event) => {
+                    const nextCode = event.target.value
+                    setAffiliateCode(nextCode)
+                    saveAffiliateCode(nextCode.trim())
+                  }}
+                  placeholder={t('Enter invitation code')}
+                  autoComplete='off'
+                />
+              </FormControl>
+              <p className='text-muted-foreground text-xs'>
+                {t('Only applies when creating a new account.')}
+              </p>
+            </FormItem>
+          </div>
+        )}
       </form>
 
       {hasWeChatLogin && (

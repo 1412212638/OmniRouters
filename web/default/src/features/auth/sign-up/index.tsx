@@ -35,7 +35,7 @@ export function SignUp() {
         <TermsFooter
           variant='sign-up'
           status={status}
-          className='mt-5 text-left'
+          className='auth-terms-footer'
         />
       </div>
     </AuthLayout>
