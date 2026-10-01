@@ -3266,3 +3266,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: Docker/GHCR source-only build policy, release artifact names, cross-platform build flags, runtime behavior, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed; workflow YAML was checked by targeted path/reference searches. Go tests and gofmt were not applicable to workflow-only changes.
 - Commit/push: pending.
+
+## 2026-10-01 - Ninth functional upstream batch: preserve relay conversion media and response segments
+
+- Upstream reference: `4eb3b9160`; current upstream tip remains `56758edf9` with no newer commits.
+- Integrated/adapted: Claude `tool_result` image blocks now become Chat Completions `image_url` media on the surrounding user message, while text stays on the tool message and unknown blocks retain the historical JSON fallback. Responses streaming conversion now preserves closed reasoning/message outputs and opens new numbered segments after mid-stream finish reasons, including reasoning summary part lifecycle events.
+- Already present: local relaykit DTOs, hosted-tool handling, annotation support, sequence-number mode, and the existing conversion registry were preserved; only the affected local state machine and request converter were adapted.
+- Deferred: the upstream Responses custom-tool conversion, scoped access tokens, administrator step-up verification, billing trust/pre-consume migration, and frontend-only `web/src` changes remain separate work.
+- Preserved: existing Claude reasoning/model suffix behavior, tool-call ordering and validation, hosted tool events, annotations, usage accounting, all supported databases, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed; focused Claude and Responses regression tests were added. Go tests and gofmt could not run because the local Go toolchain is unavailable.
+- Commit/push: pending.

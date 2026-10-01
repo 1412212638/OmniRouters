@@ -132,6 +132,70 @@ func TestChatCompletionsStreamToResponsesEventsAggregatesUsageAndToolArgs(t *tes
 	assert.Equal(t, `"{\"q\":\"x\"}"`, string(events[9].Payload.Response.Output[1].Arguments))
 }
 
+func TestChatCompletionsStreamToResponsesReopensItemsAfterMidStreamFinish(t *testing.T) {
+	state := NewChatToResponsesStreamState("resp_1", "gpt-test")
+	toolIndex := 0
+	toolCalls := "tool_calls"
+	stop := "stop"
+
+	chunks := []*dto.ChatCompletionsStreamResponse{
+		{Choices: []dto.ChatCompletionsStreamResponseChoice{{
+			Delta: dto.ChatCompletionsStreamResponseChoiceDelta{ReasoningContent: lo.ToPtr("round 1")},
+		}}},
+		{Choices: []dto.ChatCompletionsStreamResponseChoice{{
+			Delta: dto.ChatCompletionsStreamResponseChoiceDelta{Content: lo.ToPtr("calling")},
+		}}},
+		{Choices: []dto.ChatCompletionsStreamResponseChoice{{
+			Delta: dto.ChatCompletionsStreamResponseChoiceDelta{ToolCalls: []dto.ToolCallResponse{{
+				Index: &toolIndex, ID: "call_1", Type: "function",
+				Function: dto.FunctionResponse{Name: "lookup", Arguments: "{}"},
+			}}},
+		}}},
+		{Choices: []dto.ChatCompletionsStreamResponseChoice{{FinishReason: &toolCalls}}},
+		{Choices: []dto.ChatCompletionsStreamResponseChoice{{
+			Delta: dto.ChatCompletionsStreamResponseChoiceDelta{ReasoningContent: lo.ToPtr("round 2")},
+		}}},
+		{Choices: []dto.ChatCompletionsStreamResponseChoice{{
+			Delta:        dto.ChatCompletionsStreamResponseChoiceDelta{Content: lo.ToPtr("final")},
+			FinishReason: &stop,
+		}}},
+	}
+
+	var events []ChatToResponsesStreamEvent
+	for _, chunk := range chunks {
+		events = append(events, mustResponsesEventsFromChatChunk(t, state, chunk)...)
+	}
+	events = append(events, FinalizeChatCompletionsStreamToResponses(state)...)
+
+	addedParts, doneParts := 0, 0
+	for _, event := range events {
+		switch event.Type {
+		case responsesEventReasoningSummaryPartAdded:
+			addedParts++
+		case responsesEventReasoningSummaryPartDone:
+			doneParts++
+		}
+	}
+	assert.Equal(t, 2, addedParts)
+	assert.Equal(t, 2, doneParts)
+
+	completed := events[len(events)-1]
+	require.Equal(t, responsesEventCompleted, completed.Type)
+	require.NotNil(t, completed.Payload.Response)
+	output := completed.Payload.Response.Output
+	require.Len(t, output, 5)
+	assert.Equal(t, []string{
+		responsesOutputTypeReasoning, responsesOutputTypeMessage, responsesOutputTypeFunctionCall,
+		responsesOutputTypeReasoning, responsesOutputTypeMessage,
+	}, []string{output[0].Type, output[1].Type, output[2].Type, output[3].Type, output[4].Type})
+	assert.Equal(t, "resp_1_reasoning_0", output[0].ID)
+	assert.Equal(t, "round 1", output[0].Summary[0].Text)
+	assert.Equal(t, "resp_1_msg_0", output[1].ID)
+	assert.Equal(t, "resp_1_reasoning_1", output[3].ID)
+	assert.Equal(t, "round 2", output[3].Summary[0].Text)
+	assert.Equal(t, "resp_1_msg_1", output[4].ID)
+}
+
 func mustResponsesEventsFromChatChunk(t *testing.T, state *ChatToResponsesStreamState, chunk *dto.ChatCompletionsStreamResponse) []ChatToResponsesStreamEvent {
 	t.Helper()
 	events, err := ChatCompletionsStreamChunkToResponsesEvents(chunk, state)
