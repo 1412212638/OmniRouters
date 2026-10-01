@@ -3340,7 +3340,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Already present: administrator quota settings, first-top-up cashback configuration, legacy registration reward counters, and the existing seven-locale translation structure were reused.
 - Preserved: reward settlement semantics, registration/cashback separation, wallet transfers, privacy masking, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `bun run build`, targeted Oxfmt/Oxlint, locale JSON parsing, and `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable.
-- Commit/push: pending source commit and push.
+- Commit/push: source commit `f2e4967ff` pushed to `origin/main`.
 
 ## 2026-10-02 - Sign-in page visual refresh
 
@@ -3351,7 +3351,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: the hero image remains an externally hosted URL supplied by the user; no backend banner configuration or local asset pipeline was added.
 - Preserved: authentication APIs, OAuth provider discovery, legal policy links, protected project identifiers, and unrelated untracked worktree files.
 - Validation: remote image returned HTTP 200; production `bun run build`, targeted Oxfmt/Oxlint, browser preview rendering, and `git diff --check` passed. Full `bun run typecheck` remains blocked by pre-existing repository-wide type errors and missing test dependencies; Go tests and gofmt were not run because the local Go toolchain is unavailable.
-- Commit/push: pending source commit and push.
+- Commit/push: source commit `31e1ac030` pushed to `origin/main`.
 
 ## 2026-10-02 - Friends Hub summary simplification
 
@@ -3361,7 +3361,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: no new reward logic, API, or translation keys were needed for this presentation-only adjustment.
 - Preserved: wallet/account behavior, reward settlement semantics, navigation routes, privacy masking, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Go tests and gofmt were not run because the local Go toolchain is unavailable.
-- Commit/push: pending source commit and push.
+- Commit/push: source commit `dfa68e8d6` pushed to `origin/main`.
 
 ## 2026-10-02 - Sign-in responsive and dark-theme correction
 
@@ -3372,4 +3372,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: none.
 - Preserved: authentication APIs, public navigation behavior outside sign-in, provider discovery, legal policy links, protected project identifiers, and unrelated untracked worktree files.
 - Validation: production frontend `bun run build` and `git diff --check` passed. Browser preview was refreshed, but the CDP screenshot probe timed out during hot reload; no application build or runtime error was reported.
-- Commit/push: pending source commit and push.
+- Commit/push: source commit `31e1ac030` pushed to `origin/main`; this log publication follows separately.
