@@ -3285,4 +3285,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: later upstream commits `5fe8917be`, `dfd3cd893`, `811212067`, `d04c118c8`, and `6c14c0762` target upstream frontend paths or behaviors that need separate adaptation to this fork's `web/default` implementation.
 - Preserved: legacy string/object output encoding, unknown content-part fallback, assistant tool-call ordering, native Responses behavior, existing request validation, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed. Focused Go tests and gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `73ae5d60d` pushed to `origin/main`; the final log publication commit follows.
