@@ -18,9 +18,10 @@ type TelegramAuthFlowState struct {
 	CodeVerifier string `json:"code_verifier"`
 	ClientID     string `json:"client_id"`
 	RedirectURI  string `json:"redirect_uri"`
+	AffiliateCode string `json:"affiliate_code,omitempty"`
 }
 
-func CreateTelegramAuthFlow(userID int, intent string) (string, *model.AuthFlow, *oauth.TelegramOAuthFlow, error) {
+func CreateTelegramAuthFlow(userID int, intent, affiliateCode string) (string, *model.AuthFlow, *oauth.TelegramOAuthFlow, error) {
 	if intent != model.AuthFlowIntentLogin && intent != model.AuthFlowIntentBind {
 		return "", nil, nil, ErrTelegramAuthFlowInvalid
 	}
@@ -32,6 +33,7 @@ func CreateTelegramAuthFlow(userID int, intent string) (string, *model.AuthFlow,
 		CodeVerifier: flow.CodeVerifier,
 		ClientID:     flow.ClientID,
 		RedirectURI:  flow.RedirectURI,
+		AffiliateCode: strings.TrimSpace(affiliateCode),
 	})
 	if err != nil {
 		return "", nil, nil, err

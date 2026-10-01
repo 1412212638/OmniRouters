@@ -3373,3 +3373,34 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: authentication APIs, public navigation behavior outside sign-in, provider discovery, legal policy links, protected project identifiers, and unrelated untracked worktree files.
 - Validation: production frontend `bun run build` and `git diff --check` passed. Browser preview was refreshed, but the CDP screenshot probe timed out during hot reload; no application build or runtime error was reported.
 - Commit/push: source commit `31e1ac030` pushed to `origin/main`; this log publication follows separately.
+
+## 2026-10-02 - Unify public authentication page layouts
+
+- Local reason: apply the redesigned sign-in presentation consistently to registration and password recovery, and make the sign-in greeting use the configured system name.
+- Integrated: the sign-in title now reads “Welcome to {{name}}” using the live system name, with translations for en, zh, zh-TW, fr, ru, ja, and vi. Registration and forgot-password now use the same two-column hero image, navigation/header, mobile, and theme-aware layout as sign-in.
+- Already present: existing registration legal-consent enforcement, registration terms footer, password recovery flow, authentication providers, and route behavior were retained.
+- Deferred: reset-password, OTP, and OAuth callback screens remain on the existing compact auth layout because they are follow-up/security states rather than public sign-in, sign-up, or recovery entry screens.
+- Preserved: auth APIs, form validation, verification flows, redirect behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Pin sign-in terms notice to the bottom
+
+- Local reason: center the sign-in legal notice and place it at the bottom of the right-hand authentication area.
+- Integrated: the sign-in `TermsFooter` now uses a dedicated responsive footer position, centered horizontally on desktop and mobile, with safe-area spacing on mobile and reserved form padding to prevent overlap.
+- Already present: agreement/privacy visibility, localized copy, links, and sign-up consent behavior were preserved.
+- Deferred: none.
+- Preserved: authentication behavior, page navigation, theme handling, protected project identifiers, and unrelated untracked worktree files.
+- Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Add invitation-aware authentication entry flow
+
+- Local reason: make OAuth-first sign-in and invitation-code behavior explicit and preserve referral attribution across all supported registration paths.
+- Integrated: the sign-in page now presents configured OAuth providers first, keeps email/password login behind a clear email button, and shows an optional invitation-code field with a new-account-only explanation. The sign-up form also shows and submits the invitation code, prefilled from `?aff=` or existing browser storage.
+- Integrated: standard OAuth already retained invitation state; Telegram now carries the code in its server-owned auth flow, and WeChat now resolves the code only when creating a new user. Existing users logging in through OAuth or WeChat are not rebound to an inviter.
+- Already present: standard OAuth state validation, email registration payload support, referral reward settlement, and invite-link capture were reused.
+- Deferred: none.
+- Preserved: existing login providers, password login behavior, legal consent, redirect handling, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `bun run build`, targeted Oxfmt, targeted Oxlint for the changed auth components (no new errors), locale-key presence checks, and `git diff --check` passed. The remaining `api.ts` Oxlint warnings/errors are pre-existing in that file (import ordering, `any`, and missing braces). Backend Go compilation and gofmt were not run because the local Go toolchain is unavailable; the Telegram flow call sites and WeChat/OAuth attribution paths were statically checked.
+- Commit/push: pending source commit and push.

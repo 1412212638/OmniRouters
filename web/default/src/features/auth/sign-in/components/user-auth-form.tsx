@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from '@tanstack/react-router'
-import { Loader2, LogIn, KeyRound } from 'lucide-react'
+import { Loader2, LogIn, Mail, KeyRound } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -26,6 +26,11 @@ import { OAuthProviders } from '@/features/auth/components/oauth-providers'
 import { loginFormSchema } from '@/features/auth/constants'
 import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
 import { useTurnstile } from '@/features/auth/hooks/use-turnstile'
+import {
+  getAffiliateCode,
+  getInitialAffiliateCode,
+  saveAffiliateCode,
+} from '@/features/auth/lib/storage'
 import { beginPasskeyLogin, finishPasskeyLogin } from '@/features/auth/passkey'
 import type { AuthFormProps } from '@/features/auth/types'
 import { useStatus } from '@/hooks/use-status'
@@ -43,6 +48,8 @@ export function UserAuthForm({
 }: AuthFormProps) {
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
+  const [emailLoginExpanded, setEmailLoginExpanded] = useState(false)
+  const [affiliateCode, setAffiliateCode] = useState(getInitialAffiliateCode)
   const [wechatCode, setWeChatCode] = useState('')
   const [passkeySupported, setPasskeySupported] = useState(false)
   const [isPasskeyLoading, setIsPasskeyLoading] = useState(false)
@@ -149,7 +156,7 @@ export function UserAuthForm({
 
     setIsWeChatSubmitting(true)
     try {
-      const res = await wechatLoginByCode(wechatCode)
+      const res = await wechatLoginByCode(wechatCode, getAffiliateCode())
       if (res?.success) {
         await handleLoginSuccess(res.data as { id?: number } | null, redirectTo)
         toast.success(t('Signed in via WeChat'))
@@ -234,70 +241,88 @@ export function UserAuthForm({
         className={cn('grid gap-4', className)}
         {...props}
       >
+        <OAuthProviders
+          status={status}
+          disabled={isLoading}
+          onWeChatLogin={hasWeChatLogin ? handleOpenWeChatDialog : undefined}
+          isWeChatLoading={isWeChatSubmitting}
+          showDivider={false}
+          buttonClassName='border-0 bg-muted hover:bg-muted/80'
+        />
+
         {passwordLoginEnabled && (
-          <>
-            {/* Username Field */}
-            <FormField
-              control={form.control}
-              name='username'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('Username or Email')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder={t('Enter your username or email')}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Password Field */}
-            <FormField
-              control={form.control}
-              name='password'
-              render={({ field }) => (
-                <FormItem className='relative'>
-                  <FormLabel>{t('Password')}</FormLabel>
-                  <FormControl>
-                    <PasswordInput
-                      placeholder={t('Enter password')}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                  <Link
-                    to='/forgot-password'
-                    className='text-muted-foreground absolute end-0 -top-0.5 z-10 text-sm font-medium hover:opacity-75'
-                  >
-                    {t('Forgot password?')}
-                  </Link>
-                </FormItem>
-              )}
-            />
-
-            {/* Submit Button */}
-            <Button
-              type='submit'
-              className='mt-2 w-full justify-center gap-2'
-              disabled={isLoading}
-            >
-              {isLoading ? <Loader2 className='animate-spin' /> : <LogIn />}
-              {t('Sign in')}
-            </Button>
-
-            {/* Turnstile */}
-            {isTurnstileEnabled && (
-              <div className='mt-2'>
-                <Turnstile
-                  siteKey={turnstileSiteKey}
-                  onVerify={setTurnstileToken}
+          <div className='contents'>
+            {!emailLoginExpanded ? (
+              <Button
+                type='button'
+                onClick={() => setEmailLoginExpanded(true)}
+                className='h-11 w-full justify-center gap-2 rounded-lg'
+              >
+                <Mail className='h-4 w-4' />
+                {t('Sign in with email')}
+              </Button>
+            ) : (
+              <>
+                <FormField
+                  control={form.control}
+                  name='username'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('Username or Email')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t('Enter your username or email')}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
+
+                <FormField
+                  control={form.control}
+                  name='password'
+                  render={({ field }) => (
+                    <FormItem className='relative'>
+                      <FormLabel>{t('Password')}</FormLabel>
+                      <FormControl>
+                        <PasswordInput
+                          placeholder={t('Enter password')}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                      <Link
+                        to='/forgot-password'
+                        className='text-muted-foreground absolute end-0 -top-0.5 z-10 text-sm font-medium hover:opacity-75'
+                      >
+                        {t('Forgot password?')}
+                      </Link>
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type='submit'
+                  className='mt-2 w-full justify-center gap-2'
+                  disabled={isLoading}
+                >
+                  {isLoading ? <Loader2 className='animate-spin' /> : <LogIn />}
+                  {t('Sign in')}
+                </Button>
+
+                {isTurnstileEnabled && (
+                  <div className='mt-2'>
+                    <Turnstile
+                      siteKey={turnstileSiteKey}
+                      onVerify={setTurnstileToken}
+                    />
+                  </div>
+                )}
+              </>
             )}
-          </>
+          </div>
         )}
 
         {passkeyLoginEnabled && (
@@ -324,13 +349,26 @@ export function UserAuthForm({
           </div>
         )}
 
-        {/* OAuth Providers */}
-        <OAuthProviders
-          status={status}
-          disabled={isLoading}
-          onWeChatLogin={hasWeChatLogin ? handleOpenWeChatDialog : undefined}
-          isWeChatLoading={isWeChatSubmitting}
-        />
+        <div className='border-border/70 mt-2 border-t pt-4'>
+          <FormItem>
+            <FormLabel>{t('Invitation code (optional)')}</FormLabel>
+            <FormControl>
+              <Input
+                value={affiliateCode}
+                onChange={(event) => {
+                  const nextCode = event.target.value
+                  setAffiliateCode(nextCode)
+                  saveAffiliateCode(nextCode.trim())
+                }}
+                placeholder={t('Enter invitation code')}
+                autoComplete='off'
+              />
+            </FormControl>
+            <p className='text-muted-foreground text-xs'>
+              {t('Only applies when creating a new account.')}
+            </p>
+          </FormItem>
+        </div>
       </form>
 
       {hasWeChatLogin && (

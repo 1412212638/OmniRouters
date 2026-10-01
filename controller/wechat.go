@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
@@ -96,7 +97,11 @@ func WeChatAuth(c *gin.Context) {
 			user.Role = common.RoleCommonUser
 			user.Status = common.UserStatusEnabled
 
-			if err := user.Insert(0); err != nil {
+			inviterID := 0
+			if affCode := strings.TrimSpace(c.Query("aff")); affCode != "" {
+				inviterID, _ = model.GetUserIdByAffCode(affCode)
+			}
+			if err := user.Insert(inviterID); err != nil {
 				c.JSON(http.StatusOK, gin.H{
 					"success": false,
 					"message": err.Error(),

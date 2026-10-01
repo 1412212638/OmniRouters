@@ -100,14 +100,24 @@ export async function getOAuthState(): Promise<string> {
   return ''
 }
 
-export async function startTelegramOAuth(intent: 'login' | 'bind' = 'login') {
-  const res = await api.get('/api/oauth/telegram/start', { params: { intent } })
+export async function startTelegramOAuth(
+  intent: 'login' | 'bind' = 'login',
+  affCode = ''
+) {
+  const res = await api.get('/api/oauth/telegram/start', {
+    params: { intent, ...(intent === 'login' ? { aff: affCode } : {}) },
+  })
   return res.data as { success: boolean; data?: { authorization_url?: string } }
 }
 
 // WeChat login by authorization code
-export async function wechatLoginByCode(code: string): Promise<ApiResponse> {
-  const res = await api.get('/api/oauth/wechat', { params: { code } })
+export async function wechatLoginByCode(
+  code: string,
+  affCode = ''
+): Promise<ApiResponse> {
+  const res = await api.get('/api/oauth/wechat', {
+    params: { code, aff: affCode },
+  })
   return res.data
 }
 

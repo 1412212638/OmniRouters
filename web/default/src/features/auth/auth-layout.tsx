@@ -10,7 +10,7 @@ import { AuthMascot } from './components/auth-mascot'
 
 type AuthLayoutProps = {
   children: React.ReactNode
-  variant?: 'default' | 'sign-in'
+  variant?: 'default' | 'modern' | 'sign-in'
 }
 
 const loginHeroImage = 'https://cos.frostai.cn/omnirouters/login_en.webp'
@@ -372,6 +372,7 @@ const authClassicStyles = `
 }
 
 .auth-login-shell .auth-classic-form-column {
+  position: relative;
   background: var(--background);
   padding: 72px clamp(32px, 6vw, 92px);
 }
@@ -418,8 +419,17 @@ const authClassicStyles = `
   );
 }
 
+.auth-login-shell .auth-terms-footer {
+  position: absolute;
+  right: clamp(32px, 6vw, 92px);
+  bottom: 28px;
+  left: clamp(32px, 6vw, 92px);
+  margin: 0;
+  text-align: center;
+}
+
 @media (max-width: 1023px) {
-  .auth-classic-shell {
+  .auth-classic-shell:not(.auth-login-shell) {
     overflow-y: auto;
     overflow-x: hidden;
     background: linear-gradient(145deg, #e8e3f2 0%, #ffffff 56%);
@@ -458,6 +468,11 @@ const authClassicStyles = `
     min-height: 100svh;
     padding: 72px 40px;
   }
+
+  .auth-login-shell .auth-terms-footer {
+    right: 40px;
+    left: 40px;
+  }
 }
 
 @media (max-width: 767px) {
@@ -473,11 +488,17 @@ const authClassicStyles = `
     min-height: 100svh;
     align-items: flex-start;
     overflow-y: auto;
-    padding: clamp(104px, 18svh, 168px) 20px 44px;
+    padding: clamp(104px, 18svh, 168px) 20px 92px;
   }
 
   .auth-login-shell .auth-classic-panel-wrap {
     width: min(390px, 100%);
+  }
+
+  .auth-login-shell .auth-terms-footer {
+    right: 20px;
+    bottom: max(20px, env(safe-area-inset-bottom));
+    left: 20px;
   }
 
   .auth-classic-panel-wrap {
@@ -520,10 +541,10 @@ const authClassicStyles = `
 export function AuthLayout({ children, variant = 'default' }: AuthLayoutProps) {
   const { t } = useTranslation()
   const { systemName, logo, loading } = useSystemConfig()
-  const isSignIn = variant === 'sign-in'
+  const isModern = variant === 'modern' || variant === 'sign-in'
 
   return (
-    <div className={cn('auth-classic-shell', isSignIn && 'auth-login-shell')}>
+    <div className={cn('auth-classic-shell', isModern && 'auth-login-shell')}>
       <style>{authClassicStyles}</style>
       <PublicHeader
         showAuthButtons={false}
@@ -533,10 +554,10 @@ export function AuthLayout({ children, variant = 'default' }: AuthLayoutProps) {
       />
       <div className='auth-classic-grid'>
         <section
-          className={cn('auth-classic-hero', isSignIn && 'auth-login-hero')}
-          aria-hidden={isSignIn ? undefined : true}
+          className={cn('auth-classic-hero', isModern && 'auth-login-hero')}
+          aria-hidden={isModern ? undefined : true}
         >
-          {isSignIn ? (
+          {isModern ? (
             <img
               src={loginHeroImage}
               alt=''

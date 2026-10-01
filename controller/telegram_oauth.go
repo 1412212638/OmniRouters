@@ -24,7 +24,11 @@ func StartTelegramOAuth(c *gin.Context) {
 			return
 		}
 	}
-	state, _, flow, err := service.CreateTelegramAuthFlow(userID, intent)
+	affiliateCode := ""
+	if intent == model.AuthFlowIntentLogin {
+		affiliateCode = strings.TrimSpace(c.Query("aff"))
+	}
+	state, _, flow, err := service.CreateTelegramAuthFlow(userID, intent, affiliateCode)
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -49,6 +53,11 @@ func HandleTelegramOAuth(c *gin.Context) {
 	flowRecord, flow, err := service.ReadTelegramAuthFlow(state, intent)
 	if err != nil || (intent == model.AuthFlowIntentBind && flowRecord.UserId != userID) {
 		common.ApiError(c, errors.New("Telegram OAuth 状态无效或已过期"))
+		return
+	}
+	var flowState service.TelegramAuthFlowState
+	if err := common.UnmarshalJsonStr(flowRecord.Payload, &flowState); err != nil {
+		common.ApiError(c, err)
 		return
 	}
 	provider := oauth.NewTelegramOAuthProvider(nil)
@@ -105,8 +114,8 @@ func HandleTelegramOAuth(c *gin.Context) {
 		user.Email = model.NormalizeEmail(oauthUser.Email)
 	}
 	inviterID := 0
-	if aff, ok := session.Get("aff").(string); ok && aff != "" {
-		inviterID, _ = model.GetUserIdByAffCode(aff)
+	if flowState.AffiliateCode != "" {
+		inviterID, _ = model.GetUserIdByAffCode(flowState.AffiliateCode)
 	}
 	if err = service.CommitTelegramLogin(state, oauthUser.ProviderUserID, user, inviterID); err != nil {
 		common.ApiError(c, err)

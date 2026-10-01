@@ -27,7 +27,10 @@ import { registerFormSchema } from '@/features/auth/constants'
 import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
 import { useEmailVerification } from '@/features/auth/hooks/use-email-verification'
 import { useTurnstile } from '@/features/auth/hooks/use-turnstile'
-import { getAffiliateCode } from '@/features/auth/lib/storage'
+import {
+  getInitialAffiliateCode,
+  saveAffiliateCode,
+} from '@/features/auth/lib/storage'
 import { useStatus } from '@/hooks/use-status'
 import { cn } from '@/lib/utils'
 
@@ -38,6 +41,7 @@ export function SignUpForm({
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [verificationCode, setVerificationCode] = useState('')
+  const [affiliateCode, setAffiliateCode] = useState(getInitialAffiliateCode)
   const [agreedToLegal, setAgreedToLegal] = useState(false)
   const [wechatCode, setWeChatCode] = useState('')
   const [isWeChatDialogOpen, setIsWeChatDialogOpen] = useState(false)
@@ -133,7 +137,7 @@ export function SignUpForm({
         password: data.password,
         email: data.email || undefined,
         verification_code: verificationCode || undefined,
-        aff_code: getAffiliateCode(),
+        aff_code: affiliateCode.trim(),
         turnstile: turnstileToken,
       })
 
@@ -141,7 +145,7 @@ export function SignUpForm({
         toast.success(t('Account created! Please sign in'))
         redirectToLogin()
       }
-    } catch (_error) {
+    } catch {
       // Errors are handled by global interceptor
     } finally {
       setIsLoading(false)
@@ -150,6 +154,16 @@ export function SignUpForm({
 
   async function handleSendVerificationCode() {
     await sendCode(emailValue || '')
+  }
+
+  function renderVerificationButtonContent() {
+    if (isActive) {
+      return t('Resend ({{seconds}}s)', { seconds: secondsLeft })
+    }
+    if (isSendingCode) {
+      return <Loader2 className='h-4 w-4 animate-spin' />
+    }
+    return t('Send code')
   }
 
   const handleOpenWeChatDialog = () => {
@@ -177,7 +191,7 @@ export function SignUpForm({
 
     setIsWeChatSubmitting(true)
     try {
-      const res = await wechatLoginByCode(wechatCode)
+      const res = await wechatLoginByCode(wechatCode, affiliateCode.trim())
       if (res?.success) {
         await handleLoginSuccess(res.data as { id?: number } | null)
         toast.success(t('Signed in via WeChat'))
@@ -185,7 +199,7 @@ export function SignUpForm({
       } else {
         toast.error(res?.message || t('Login failed'))
       }
-    } catch (_error) {
+    } catch {
       toast.error(t('Login failed'))
     } finally {
       setIsWeChatSubmitting(false)
@@ -286,17 +300,27 @@ export function SignUpForm({
                 disabled={isLoading || isSendingCode || isActive || !emailValue}
                 onClick={handleSendVerificationCode}
               >
-                {isActive ? (
-                  t('Resend ({{seconds}}s)', { seconds: secondsLeft })
-                ) : isSendingCode ? (
-                  <Loader2 className='h-4 w-4 animate-spin' />
-                ) : (
-                  t('Send code')
-                )}
+                {renderVerificationButtonContent()}
               </Button>
             </div>
           </>
         )}
+
+        <FormItem>
+          <FormLabel>{t('Invitation code (optional)')}</FormLabel>
+          <FormControl>
+            <Input
+              value={affiliateCode}
+              onChange={(event) => {
+                const nextCode = event.target.value
+                setAffiliateCode(nextCode)
+                saveAffiliateCode(nextCode.trim())
+              }}
+              placeholder={t('Enter invitation code')}
+              autoComplete='off'
+            />
+          </FormControl>
+        </FormItem>
 
         {/* Turnstile */}
         {isTurnstileEnabled && (

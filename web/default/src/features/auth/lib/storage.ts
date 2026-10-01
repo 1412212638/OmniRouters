@@ -74,6 +74,16 @@ export function getAffiliateCode(): string {
   }
 }
 
+export function getInitialAffiliateCode(): string {
+  if (typeof window === 'undefined') return ''
+  const fromUrl = new URLSearchParams(window.location.search).get('aff')?.trim()
+  if (fromUrl) {
+    saveAffiliateCode(fromUrl)
+    return fromUrl
+  }
+  return getAffiliateCode()
+}
+
 /**
  * Save affiliate code to localStorage
  */

@@ -2,6 +2,7 @@ import { Link, useSearch } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useStatus } from '@/hooks/use-status'
+import { useSystemConfig } from '@/hooks/use-system-config'
 
 import { AuthLayout } from '../auth-layout'
 import { TermsFooter } from '../components/terms-footer'
@@ -11,13 +12,14 @@ export function SignIn() {
   const { t } = useTranslation()
   const { redirect } = useSearch({ from: '/(auth)/sign-in' })
   const { status } = useStatus()
+  const { systemName } = useSystemConfig()
 
   return (
     <AuthLayout variant='sign-in'>
       <div className='w-full space-y-8'>
         <div className='space-y-2'>
           <h2 className='text-center text-2xl font-semibold tracking-tight sm:text-left'>
-            {t('Sign in')}
+            {t('Welcome to {{name}}', { name: systemName })}
           </h2>
           {!status?.self_use_mode_enabled &&
             status?.register_enabled !== false && (
@@ -39,7 +41,7 @@ export function SignIn() {
         <TermsFooter
           variant='sign-in'
           status={status}
-          className='mt-5 text-left'
+          className='auth-terms-footer'
         />
       </div>
     </AuthLayout>
