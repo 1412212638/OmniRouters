@@ -3341,3 +3341,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: reward settlement semantics, registration/cashback separation, wallet transfers, privacy masking, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `bun run build`, targeted Oxfmt/Oxlint, locale JSON parsing, and `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable.
 - Commit/push: pending source commit and push.
+
+## 2026-10-02 - Friends Hub summary simplification
+
+- Local reason: remove redundant summary content after reviewing the Friends Hub layout.
+- Integrated: removed the separate wallet balance card from the invitation area and removed the duplicate first-top-up cashback statistic. The compact summary now contains only invited friends, completed first top-ups, and total rewards; the reward rules panel and the two detailed transfer sections remain the source of cashback and pending-reward details.
+- Already present: reward-rule explanations, one-time registration rewards, first-top-up-only cashback wording, registration/cashback transfer actions, and the existing seven-locale translation structure were preserved.
+- Deferred: no new reward logic, API, or translation keys were needed for this presentation-only adjustment.
+- Preserved: wallet/account behavior, reward settlement semantics, navigation routes, privacy masking, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Go tests and gofmt were not run because the local Go toolchain is unavailable.
+- Commit/push: pending source commit and push.

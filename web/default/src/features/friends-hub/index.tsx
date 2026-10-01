@@ -1,7 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
 import {
-  ArrowRight,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -203,82 +201,62 @@ export function FriendsHub() {
           </div>
         </div>
 
-        <div className='grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]'>
-          <Card className='overflow-hidden border-amber-200/80 bg-amber-50/70 dark:border-amber-900/60 dark:bg-amber-950/20'>
-            <CardHeader className='gap-1 border-b border-amber-200/70 pb-4 dark:border-amber-900/50'>
-              <CardTitle className='flex items-center gap-2 text-base'>
-                <Gift className='size-4 text-amber-700 dark:text-amber-300' />
-                {t('My referral invitation')}
-              </CardTitle>
-              <p className='text-muted-foreground text-sm'>
-                {t(
-                  'Invite friends and earn rewards for their first successful top-up.'
-                )}
-              </p>
-            </CardHeader>
-            <CardContent className='grid gap-4 pt-5 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]'>
-              <div className='min-w-0'>
-                <span className='text-muted-foreground text-xs'>
-                  {t('Invitation Code')}
+        <Card className='overflow-hidden border-amber-200/80 bg-amber-50/70 dark:border-amber-900/60 dark:bg-amber-950/20'>
+          <CardHeader className='gap-1 border-b border-amber-200/70 pb-4 dark:border-amber-900/50'>
+            <CardTitle className='flex items-center gap-2 text-base'>
+              <Gift className='size-4 text-amber-700 dark:text-amber-300' />
+              {t('My referral invitation')}
+            </CardTitle>
+            <p className='text-muted-foreground text-sm'>
+              {t(
+                'Invite friends and earn rewards for their first successful top-up.'
+              )}
+            </p>
+          </CardHeader>
+          <CardContent className='grid gap-4 pt-5 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]'>
+            <div className='min-w-0'>
+              <span className='text-muted-foreground text-xs'>
+                {t('Invitation Code')}
+              </span>
+              <div className='mt-1 flex items-center gap-2'>
+                <span className='min-w-0 truncate text-2xl font-semibold tracking-[0.12em]'>
+                  {inviteCode || '-'}
                 </span>
-                <div className='mt-1 flex items-center gap-2'>
-                  <span className='min-w-0 truncate text-2xl font-semibold tracking-[0.12em]'>
-                    {inviteCode || '-'}
-                  </span>
-                  <Button
-                    variant='ghost'
-                    size='icon'
-                    className='size-8 shrink-0'
-                    aria-label={t('Copy invitation code')}
-                    title={t('Copy invitation code')}
-                    onClick={() => void copy('code', inviteCode)}
-                    disabled={!inviteCode}
-                  >
-                    {copied === 'code' ? <Check /> : <ClipboardCopy />}
-                  </Button>
-                </div>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='size-8 shrink-0'
+                  aria-label={t('Copy invitation code')}
+                  title={t('Copy invitation code')}
+                  onClick={() => void copy('code', inviteCode)}
+                  disabled={!inviteCode}
+                >
+                  {copied === 'code' ? <Check /> : <ClipboardCopy />}
+                </Button>
               </div>
-              <div className='min-w-0'>
-                <span className='text-muted-foreground text-xs'>
-                  {t('Invitation link')}
-                </span>
-                <div className='mt-1 flex min-w-0 gap-2'>
-                  <div className='bg-background/80 flex min-h-9 min-w-0 flex-1 items-center truncate rounded-md border border-amber-200/80 px-3 text-xs dark:border-amber-900/60'>
-                    {inviteLink || '-'}
-                  </div>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    className='shrink-0 border-amber-300/80 bg-transparent'
-                    onClick={() => void copy('link', inviteLink)}
-                    disabled={!inviteLink}
-                  >
-                    {copied === 'link' ? <Check /> : <Link2 />}
-                    <span className='hidden sm:inline'>{t('Copy Link')}</span>
-                  </Button>
+            </div>
+            <div className='min-w-0'>
+              <span className='text-muted-foreground text-xs'>
+                {t('Invitation link')}
+              </span>
+              <div className='mt-1 flex min-w-0 gap-2'>
+                <div className='bg-background/80 flex min-h-9 min-w-0 flex-1 items-center truncate rounded-md border border-amber-200/80 px-3 text-xs dark:border-amber-900/60'>
+                  {inviteLink || '-'}
                 </div>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className='shrink-0 border-amber-300/80 bg-transparent'
+                  onClick={() => void copy('link', inviteLink)}
+                  disabled={!inviteLink}
+                >
+                  {copied === 'link' ? <Check /> : <Link2 />}
+                  <span className='hidden sm:inline'>{t('Copy Link')}</span>
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className='flex flex-col justify-between'>
-            <CardHeader className='pb-2'>
-              <CardTitle className='text-sm'>{t('Wallet balance')}</CardTitle>
-            </CardHeader>
-            <CardContent className='pt-0'>
-              <p className='text-2xl font-semibold tabular-nums'>
-                {formatQuota(numberValue(summary.wallet_quota))}
-              </p>
-              <Button
-                variant='link'
-                className='mt-2 h-auto px-0 text-xs'
-                render={<Link to='/wallet' />}
-              >
-                {t('Go to wallet')} <ArrowRight />
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader className='gap-1 pb-4'>
@@ -355,16 +333,8 @@ export function FriendsHub() {
           </CardContent>
         </Card>
 
-        <div className='grid gap-3 sm:grid-cols-2 xl:grid-cols-4'>
+        <div className='grid gap-3 sm:grid-cols-3'>
           {[
-            {
-              label: t('First top-up cashback'),
-              value:
-                cashbackRate > 0
-                  ? formatPercent(cashbackRate)
-                  : t('Not enabled'),
-              icon: Gift,
-            },
             {
               label: t('Invited friends'),
               value: numberValue(summary.invite_count),
