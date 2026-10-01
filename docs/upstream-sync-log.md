@@ -3265,7 +3265,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: access-token editing, scoped access tokens, administrator step-up verification, billing trust/pre-consume changes, and frontend-only `web/src` fixes require separate migrations or are not part of the production frontend trees in this checkout.
 - Preserved: Docker/GHCR source-only build policy, release artifact names, cross-platform build flags, runtime behavior, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed; workflow YAML was checked by targeted path/reference searches. Go tests and gofmt were not applicable to workflow-only changes.
-- Commit/push: pending.
+- Commit/push: source commit `283493b7b` pushed to `origin/main`.
 
 ## 2026-10-01 - Ninth functional upstream batch: preserve relay conversion media and response segments
 
@@ -3275,4 +3275,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: the upstream Responses custom-tool conversion, scoped access tokens, administrator step-up verification, billing trust/pre-consume migration, and frontend-only `web/src` changes remain separate work.
 - Preserved: existing Claude reasoning/model suffix behavior, tool-call ordering and validation, hosted tool events, annotations, usage accounting, all supported databases, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed; focused Claude and Responses regression tests were added. Go tests and gofmt could not run because the local Go toolchain is unavailable.
-- Commit/push: pending.
+- Commit/push: source commit `9ee61f301` pushed to `origin/main`; the follow-up log publication commit is recorded below.
