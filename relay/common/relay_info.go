@@ -184,7 +184,10 @@ type RelayInfo struct {
 	StreamStatus *StreamStatus
 
 	// convOptions caches the converter settings snapshot (see ConvOptions).
-	convOptions                    *convmeta.Options
+	convOptions *convmeta.Options
+	// responsesToolState is written by request conversion and read by the
+	// matching response conversion (see ResponsesToolState).
+	responsesToolState *convmeta.ResponsesToolState
 	conversionDiagnostics          []types.ConversionDiagnostic
 	conversionDiagnosticKeys       map[conversionDiagnosticKey]struct{}
 	conversionDiagnosticsTruncated bool
@@ -815,6 +818,19 @@ func (info *RelayInfo) EnsureClaudeConvertInfo() *convmeta.ClaudeConvertInfo {
 		}
 	}
 	return info.ClaudeConvertInfo
+}
+
+func (info *RelayInfo) ResponsesToolState() *convmeta.ResponsesToolState {
+	if info == nil {
+		return nil
+	}
+	return info.responsesToolState
+}
+
+func (info *RelayInfo) SetResponsesToolState(state *convmeta.ResponsesToolState) {
+	if info != nil {
+		info.responsesToolState = state
+	}
 }
 
 func (info *RelayInfo) GetSendResponseCount() int {

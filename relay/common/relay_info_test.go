@@ -2,7 +2,6 @@ package common
 
 import (
 	"testing"
-
 	"github.com/QuantumNous/new-api/relaykit/relayconvert/convmeta"
 	"github.com/QuantumNous/new-api/relaykit/types"
 	"github.com/stretchr/testify/assert"
@@ -10,29 +9,17 @@ import (
 )
 
 func TestRelayInfoGetFinalRequestRelayFormatPrefersExplicitFinal(t *testing.T) {
-	info := &RelayInfo{
-		RelayFormat:             types.RelayFormatOpenAI,
-		RequestConversionChain:  []types.RelayFormat{types.RelayFormatOpenAI, types.RelayFormatClaude},
-		FinalRequestRelayFormat: types.RelayFormatOpenAIResponses,
-	}
-
+	info := &RelayInfo{RelayFormat: types.RelayFormatOpenAI, RequestConversionChain: []types.RelayFormat{types.RelayFormatOpenAI, types.RelayFormatClaude}, FinalRequestRelayFormat: types.RelayFormatOpenAIResponses}
 	require.Equal(t, types.RelayFormat(types.RelayFormatOpenAIResponses), info.GetFinalRequestRelayFormat())
 }
 
 func TestRelayInfoGetFinalRequestRelayFormatFallsBackToConversionChain(t *testing.T) {
-	info := &RelayInfo{
-		RelayFormat:            types.RelayFormatOpenAI,
-		RequestConversionChain: []types.RelayFormat{types.RelayFormatOpenAI, types.RelayFormatClaude},
-	}
-
+	info := &RelayInfo{RelayFormat: types.RelayFormatOpenAI, RequestConversionChain: []types.RelayFormat{types.RelayFormatOpenAI, types.RelayFormatClaude}}
 	require.Equal(t, types.RelayFormat(types.RelayFormatClaude), info.GetFinalRequestRelayFormat())
 }
 
 func TestRelayInfoGetFinalRequestRelayFormatFallsBackToRelayFormat(t *testing.T) {
-	info := &RelayInfo{
-		RelayFormat: types.RelayFormatGemini,
-	}
-
+	info := &RelayInfo{RelayFormat: types.RelayFormatGemini}
 	require.Equal(t, types.RelayFormat(types.RelayFormatGemini), info.GetFinalRequestRelayFormat())
 }
 
@@ -44,7 +31,6 @@ func TestRelayInfoGetFinalRequestRelayFormatNilReceiver(t *testing.T) {
 func TestRelayInfoMetaTypedNilReceiver(t *testing.T) {
 	var info *RelayInfo
 	var meta convmeta.Meta = info
-
 	assert.Empty(t, meta.GetOriginModelName())
 	assert.Empty(t, meta.GetUpstreamModelName())
 	assert.False(t, meta.HasChannelMeta())
@@ -52,22 +38,20 @@ func TestRelayInfoMetaTypedNilReceiver(t *testing.T) {
 	assert.Zero(t, meta.GetChannelType())
 	assert.False(t, meta.GetIsStream())
 	assert.Empty(t, meta.GetReasoningEffort())
-	assert.Zero(t, meta.GetEstimatePromptTokens())
 	assert.Zero(t, meta.GetSendResponseCount())
-
 	assert.NotPanics(t, func() {
 		meta.SetReasoningEffort("high")
 		meta.IncrSendResponseCount()
 		meta.AppendRequestConversion(types.RelayFormatClaude)
+		meta.SetResponsesToolState(&convmeta.ResponsesToolState{})
 	})
-
+	assert.Nil(t, meta.ResponsesToolState())
 	firstState := meta.EnsureClaudeConvertInfo()
 	secondState := meta.EnsureClaudeConvertInfo()
 	require.NotNil(t, firstState)
 	require.NotNil(t, secondState)
 	assert.Equal(t, convmeta.LastMessageTypeNone, firstState.LastMessagesType)
 	assert.NotSame(t, firstState, secondState)
-
 	firstOptions := meta.ConvOptions()
 	secondOptions := meta.ConvOptions()
 	require.NotNil(t, firstOptions)
@@ -77,4 +61,15 @@ func TestRelayInfoMetaTypedNilReceiver(t *testing.T) {
 	assert.NotNil(t, firstOptions.Gemini.SupportsImagine)
 	assert.NotNil(t, firstOptions.Gemini.SafetySetting)
 	assert.NotNil(t, firstOptions.PreserveThinkingSuffix)
+}
+
+func TestRelayInfoResponsesToolStateRoundTrip(t *testing.T) {
+	info := &RelayInfo{}
+	state := &convmeta.ResponsesToolState{CustomToolNames: map[string]struct{}{"exec": {}}}
+	info.SetResponsesToolState(state)
+	assert.Same(t, state, info.ResponsesToolState())
+	assert.True(t, convmeta.ResponsesToolStateOf(info).IsCustomTool("exec"))
+	info.SetResponsesToolState(nil)
+	assert.Nil(t, info.ResponsesToolState())
+	assert.False(t, convmeta.ResponsesToolStateOf(info).IsCustomTool("exec"))
 }

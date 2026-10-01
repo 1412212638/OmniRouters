@@ -3306,3 +3306,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: system settings routes, backend authorization, root-user navigation, classic frontend behavior, protected project identifiers, and unrelated untracked worktree files.
 - Validation: targeted Oxfmt/Oxlint and `git diff --check` passed; full frontend build was not rerun for this one-line navigation metadata change.
 - Commit/push: source commit `42fd94a7e` pushed to `origin/main`; the final log publication commit follows.
+
+## 2026-10-01 - Thirteenth functional upstream batch: preserve Responses custom tools on Chat upstreams
+
+- Upstream reference: `335ebcff7`; upstream tip remains `56758edf9`.
+- Integrated/adapted: Responses custom tools now cross the Chat Completions compatibility boundary as function tools with one string `input` argument, preserving descriptions and grammar hints. Custom tool choices and custom tool call history are encoded as Chat function choices/calls, while synchronous and streaming Chat responses restore `custom_tool_call` items and emit `response.custom_tool_call_input.delta` / `done` events. Conversion state records the encoded custom tool names and clears on every new or retry conversion, preventing stale restoration across channels.
+- Already present: local Responses tool-output media hoisting, reasoning output lifecycle, hosted-tool normalization, annotation handling, conversion loss policy, and request/response registries were retained and merged with the upstream custom-tool path. Added the upstream conversion diagnostic collector needed by the registry integration.
+- Deferred: scoped access tokens, administrator step-up verification, and unrelated frontend changes remain separate batches.
+- Preserved: ordinary function tools, native Responses behavior, Claude/Gemini conversions, billing/accounting, all supported databases, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed; focused request, response, stream, registry, collision, and retry regression tests are present. Go tests and gofmt could not run because the local Go toolchain is unavailable.
+- Commit/push: implementation is staged for controlled commit; push verification follows after the commit.

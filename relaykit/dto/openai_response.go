@@ -442,6 +442,7 @@ type ResponsesOutput struct {
 	Name                string                          `json:"name,omitempty"`
 	Arguments           json.RawMessage                 `json:"arguments,omitempty"`
 	Summary             []ResponsesReasoningSummaryPart `json:"summary,omitempty"`
+	Input               json.RawMessage                 `json:"input,omitempty"`
 	Action              json.RawMessage                 `json:"action,omitempty"`
 	Queries             json.RawMessage                 `json:"queries,omitempty"`
 	Results             json.RawMessage                 `json:"results,omitempty"`
@@ -456,6 +457,60 @@ type ResponsesOutput struct {
 	ItemError           json.RawMessage                 `json:"error,omitempty"`
 	ApprovalRequestID   string                          `json:"approval_request_id,omitempty"`
 	MCPTools            json.RawMessage                 `json:"tools,omitempty"`
+}
+
+// MarshalJSON keeps hosted-tool variants within their protocol-specific
+// schemas. ResponsesOutput also represents messages, images, and function
+// calls, whose fields must not leak into web_search_call, mcp_call, or
+// custom_tool_call items.
+func (r ResponsesOutput) MarshalJSON() ([]byte, error) {
+	switch r.Type {
+	case "custom_tool_call":
+		input := r.Input
+		if len(input) == 0 {
+			input = json.RawMessage(`""`)
+		}
+		return kitutil.Marshal(struct {
+			Type   string          `json:"type"`
+			ID     string          `json:"id,omitempty"`
+			Status string          `json:"status,omitempty"`
+			CallID string          `json:"call_id"`
+			Name   string          `json:"name"`
+			Input  json.RawMessage `json:"input"`
+		}{Type: r.Type, ID: r.ID, Status: r.Status, CallID: r.CallId, Name: r.Name, Input: input})
+	case "web_search_call":
+		return kitutil.Marshal(struct {
+			Type   string          `json:"type"`
+			ID     string          `json:"id"`
+			Status string          `json:"status,omitempty"`
+			Action json.RawMessage `json:"action,omitempty"`
+		}{Type: r.Type, ID: r.ID, Status: r.Status, Action: r.Action})
+	case "mcp_call":
+		return kitutil.Marshal(struct {
+			Type              string          `json:"type"`
+			ID                string          `json:"id"`
+			Name              string          `json:"name"`
+			ServerLabel       string          `json:"server_label"`
+			Arguments         json.RawMessage `json:"arguments"`
+			Status            string          `json:"status,omitempty"`
+			Output            json.RawMessage `json:"output,omitempty"`
+			Error             json.RawMessage `json:"error,omitempty"`
+			ApprovalRequestID string          `json:"approval_request_id,omitempty"`
+		}{
+			Type:              r.Type,
+			ID:                r.ID,
+			Name:              r.Name,
+			ServerLabel:       r.ServerLabel,
+			Arguments:         r.Arguments,
+			Status:            r.Status,
+			Output:            r.Output,
+			Error:             r.ItemError,
+			ApprovalRequestID: r.ApprovalRequestID,
+		})
+	default:
+		type responsesOutputAlias ResponsesOutput
+		return kitutil.Marshal(responsesOutputAlias(r))
+	}
 }
 
 // ArgumentsString returns function call arguments in the string form expected by Chat Completions.
@@ -511,6 +566,7 @@ type ResponsesStreamResponse struct {
 	Param           string                   `json:"param,omitempty"`
 	Delta           string                   `json:"delta,omitempty"`
 	Arguments       *string                  `json:"arguments,omitempty"`
+	Input           *string                  `json:"input,omitempty"`
 	Name            string                   `json:"name,omitempty"`
 	Text            *string                  `json:"text,omitempty"`
 	Item            *ResponsesOutput         `json:"item,omitempty"`
@@ -520,6 +576,8 @@ type ResponsesStreamResponse struct {
 	Obfuscation     string                   `json:"obfuscation,omitempty"`
 	// - response.function_call_arguments.delta
 	// - response.function_call_arguments.done
+	// - response.custom_tool_call_input.delta
+	// - response.custom_tool_call_input.done
 	OutputIndex  *int                           `json:"output_index,omitempty"`
 	ContentIndex *int                           `json:"content_index,omitempty"`
 	SummaryIndex *int                           `json:"summary_index,omitempty"`
