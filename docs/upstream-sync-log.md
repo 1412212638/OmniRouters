@@ -3276,3 +3276,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: existing Claude reasoning/model suffix behavior, tool-call ordering and validation, hosted tool events, annotations, usage accounting, all supported databases, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed; focused Claude and Responses regression tests were added. Go tests and gofmt could not run because the local Go toolchain is unavailable.
 - Commit/push: source commit `9ee61f301` pushed to `origin/main`; the follow-up log publication commit is recorded below.
+
+## 2026-10-01 - Tenth functional upstream batch: preserve Responses tool-output media
+
+- Upstream reference: `6e9de44a7`; current upstream tip remains `56758edf9`.
+- Integrated/adapted: Responses `function_call_output` content-part arrays now retain text on their Chat tool messages and convert image, file, audio, and video parts into Chat media content. Hoisted media is emitted after the contiguous tool-output batch, and media-only tool results receive a non-empty placeholder. Added regression coverage for mixed text/media, placeholder labels, legacy payload compatibility, parallel tool outputs, and end-of-input flushing.
+- Already present: the shared Responses content-part converter already mapped each supported media type for ordinary user messages and is reused for tool outputs.
+- Deferred: later upstream commits `5fe8917be`, `dfd3cd893`, `811212067`, `d04c118c8`, and `6c14c0762` target upstream frontend paths or behaviors that need separate adaptation to this fork's `web/default` implementation.
+- Preserved: legacy string/object output encoding, unknown content-part fallback, assistant tool-call ordering, native Responses behavior, existing request validation, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed. Focused Go tests and gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: pending.
