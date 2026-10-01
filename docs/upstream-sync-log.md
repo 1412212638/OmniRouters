@@ -3235,4 +3235,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: upstream frontend task-matrix display/parser changes target the unavailable `web/src` frontend and were not copied into `web/default`; GPT-6 capability changes, Responses custom tools, scoped access tokens, administrator step-up verification, and Responses WebSocket settings remain separate batches.
 - Preserved: existing pricing option validation, database locking and transactions, billing expression semantics, task settlement, all supported databases, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable; the upstream test fixture infrastructure is not present in this checkout, so focused source-level coverage was added instead.
-- Commit/push: pending.
+- Commit/push: source commit `705e82dd6` pushed to `origin/main`.
