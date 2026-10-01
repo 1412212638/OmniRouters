@@ -3255,4 +3255,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: timeout sweep transitions still use their existing independent refund path and are not sampled by this upstream-scoped change; covering timeout metrics will require a separate decision about legacy task model data and sweep semantics.
 - Preserved: task settlement/refund ordering, CAS race behavior, polling failure thresholds, all supported databases, frontend behavior, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable; focused performance metric regression tests were added.
-- Commit/push: pending.
+- Commit/push: source commit `0e9a36cd7` pushed to `origin/main`; the follow-up log publication commit is recorded below.
