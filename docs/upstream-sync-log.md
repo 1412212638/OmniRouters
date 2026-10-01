@@ -3225,4 +3225,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: `d0cb7347c` GPT-6 token and sampling capability changes need a separate backend capability audit because the local model detection differs from upstream; Responses custom tools, scoped access tokens, administrator step-up verification, and Responses WebSocket settings remain separate migrations.
 - Preserved: channel mutations, channel routing, existing sensitive-value toggle, classic frontend, backend APIs, billing, protected project identifiers, and unrelated untracked worktree files.
 - Validation: targeted Oxfmt and Oxlint passed; `bun run build` for `web/default` passed; `git diff --check` passed.
-- Commit/push: pending.
+- Commit/push: source commit `6544f2605` pushed to `origin/main`.
