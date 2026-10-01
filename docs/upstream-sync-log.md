@@ -3296,3 +3296,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: language selector options, persisted user settings, all translations, classic frontend behavior, protected project identifiers, and unrelated untracked worktree files.
 - Validation: targeted Bun tests, Oxfmt, Oxlint, and `git diff --check` passed.
 - Commit/push: source commit `669a3cf2f` pushed to `origin/main`; the final log publication commit follows.
+
+## 2026-10-01 - Twelfth functional upstream batch: hide system settings from non-root admins
+
+- Upstream reference: `dfd3cd893`; current upstream tip remains `56758edf9`.
+- Integrated: the default frontend marks the System Settings sidebar entry as `ROLE.SUPER_ADMIN`, so non-root administrators no longer see the root-only navigation item while existing route and permission guards remain unchanged.
+- Already present: the sidebar role filter and the System Info root-only entry were reused.
+- Deferred: upstream `335ebcff7` Responses custom-tool conversion remains a separate protocol migration requiring request, response, stream, and registry state changes.
+- Preserved: system settings routes, backend authorization, root-user navigation, classic frontend behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: targeted Oxfmt/Oxlint and `git diff --check` passed; full frontend build was not rerun for this one-line navigation metadata change.
+- Commit/push: pending.
