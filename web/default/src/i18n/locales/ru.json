@@ -5712,6 +5712,25 @@
     "Transferred": "Переведено",
     "Wallet balance": "Баланс кошелька",
     "Invite friends and earn rewards for their first successful top-up.": "Приглашайте друзей и получайте награды за их первое успешное пополнение.",
-    "Registration rewards and first top-up cashback are tracked separately and can be transferred to your wallet.": "Награды за регистрацию и кэшбэк за первое пополнение учитываются отдельно и могут быть переведены в кошелёк."
+    "Registration rewards and first top-up cashback are tracked separately and can be transferred to your wallet.": "Награды за регистрацию и кэшбэк за первое пополнение учитываются отдельно и могут быть переведены в кошелёк.",
+    "Reward rules": "Правила вознаграждений",
+    "One-time": "Однократно",
+    "Inviter registration reward": "Награда пригласившему за регистрацию",
+    "Invitee registration reward": "Награда приглашённому за регистрацию",
+    "Each invited friend can trigger this reward once after registering through your invitation.": "Каждый приглашённый друг может активировать эту награду один раз после регистрации по вашему приглашению.",
+    "New users receive this one-time reward after registering with an invitation code.": "Новые пользователи получают эту разовую награду после регистрации по коду приглашения.",
+    "Only the invited friend’s first successful top-up qualifies. Later top-ups do not generate cashback.": "Учитывается только первое успешное пополнение приглашённого друга. Последующие пополнения не дают кэшбэк.",
+    "Current rate": "Текущая ставка",
+    "Not enabled": "Не включено",
+    "Eligible once per invited friend": "Доступно один раз для каждого приглашённого друга",
+    "Cashback is based on the final wallet credit.": "Кэшбэк рассчитывается от итогового зачисления в кошелёк.",
+    "Reward rules are configured by the administrator.": "Правила вознаграждений настраивает администратор.",
+    "How rewards work": "Как работают награды",
+    "Registration rewards are issued once when registration is completed.": "Награда за регистрацию начисляется один раз после завершения регистрации.",
+    "First top-up cashback is created once after the first successful wallet top-up.": "Кэшбэк за первое пополнение создаётся один раз после первого успешного пополнения кошелька.",
+    "Inviter reward": "Награда пригласившему",
+    "Invitee reward": "Награда приглашённому",
+    "This reward is credited directly to the invited friend’s wallet.": "Эта награда зачисляется непосредственно в кошелёк приглашённого друга.",
+    "No cashback is created after subsequent top-ups.": "После последующих пополнений кэшбэк не начисляется."
   }
 }

@@ -5475,6 +5475,25 @@
     "Transferred": "已轉入",
     "Wallet balance": "錢包餘額",
     "Invite friends and earn rewards for their first successful top-up.": "邀請好友，從他們首次成功儲值中獲得獎勵。",
-    "Registration rewards and first top-up cashback are tracked separately and can be transferred to your wallet.": "註冊獎勵與首筆儲值回饋分開記錄，可分別轉入錢包。"
+    "Registration rewards and first top-up cashback are tracked separately and can be transferred to your wallet.": "註冊獎勵與首筆儲值回饋分開記錄，可分別轉入錢包。",
+    "Reward rules": "獎勵規則",
+    "One-time": "一次性",
+    "Inviter registration reward": "邀請者註冊獎勵",
+    "Invitee registration reward": "受邀者註冊獎勵",
+    "Each invited friend can trigger this reward once after registering through your invitation.": "每位受邀好友透過你的邀請完成註冊後，僅可觸發一次此獎勵。",
+    "New users receive this one-time reward after registering with an invitation code.": "新使用者使用邀請碼完成註冊後，可獲得這項一次性獎勵。",
+    "Only the invited friend’s first successful top-up qualifies. Later top-ups do not generate cashback.": "僅受邀好友的首次成功儲值符合資格，後續儲值不會產生回饋。",
+    "Current rate": "目前比例",
+    "Not enabled": "未啟用",
+    "Eligible once per invited friend": "每位受邀好友僅可享有一次",
+    "Cashback is based on the final wallet credit.": "回饋按最終入帳的錢包額度計算。",
+    "Reward rules are configured by the administrator.": "獎勵規則由管理員設定。",
+    "How rewards work": "獎勵如何生效",
+    "Registration rewards are issued once when registration is completed.": "完成註冊後發放一次註冊獎勵。",
+    "First top-up cashback is created once after the first successful wallet top-up.": "首次成功儲值後產生一次首筆儲值回饋。",
+    "Inviter reward": "邀請者獎勵",
+    "Invitee reward": "受邀者獎勵",
+    "This reward is credited directly to the invited friend’s wallet.": "此獎勵會直接發放至受邀好友的錢包。",
+    "No cashback is created after subsequent top-ups.": "後續儲值不會再產生回饋。"
   }
 }

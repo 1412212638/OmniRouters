@@ -9,6 +9,8 @@ export interface FriendsSummary {
   first_top_up_invite_count?: number
   registration_pending_quota?: number
   registration_total_quota?: number
+  inviter_registration_reward_quota?: number
+  invitee_registration_reward_quota?: number
   cashback_pending_quota?: number
   cashback_total_quota?: number
   wallet_quota?: number

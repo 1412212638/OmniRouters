@@ -3332,3 +3332,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: existing Friends Hub summary, friends, rewards, cashback transfer, legacy registration-reward transfer, affiliate-code APIs, reward separation, wallet navigation, protected project identifiers, and unrelated untracked worktree files.
 - Validation: production frontend `bun run build` passed; targeted Oxfmt/Oxlint passed; JSON parsing and Friends Hub translation-key audit passed for all seven locales; `git diff --check` passed. Browser preview could not be rendered because the local dev/preview proxy returned HTTP 502 despite successful builds.
 - Commit/push: pending source commit and push after review.
+
+## 2026-10-02 - Friends Hub reward rule clarification
+
+- Local reason: make one-time invitation rewards and first-top-up cashback conditions explicit so the configured cashback percentage cannot be mistaken for recurring cashback on every top-up.
+- Integrated: the Friends Hub summary now exposes the configured inviter and invitee registration reward amounts. The page adds a three-part reward rules panel covering one-time inviter registration rewards, one-time invitee registration rewards, and first-top-up-only cashback based on final wallet credit; a zero cashback rate is shown as disabled. Existing transfer actions, reward history, and API behavior remain unchanged.
+- Already present: administrator quota settings, first-top-up cashback configuration, legacy registration reward counters, and the existing seven-locale translation structure were reused.
+- Preserved: reward settlement semantics, registration/cashback separation, wallet transfers, privacy masking, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `bun run build`, targeted Oxfmt/Oxlint, locale JSON parsing, and `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable.
+- Commit/push: pending source commit and push.

@@ -5713,6 +5713,25 @@
     "Transferred": "Đã chuyển",
     "Wallet balance": "Số dư ví",
     "Invite friends and earn rewards for their first successful top-up.": "Mời bạn bè và nhận phần thưởng khi họ nạp tiền thành công lần đầu.",
-    "Registration rewards and first top-up cashback are tracked separately and can be transferred to your wallet.": "Phần thưởng đăng ký và hoàn tiền lần nạp đầu tiên được theo dõi riêng và có thể chuyển vào ví."
+    "Registration rewards and first top-up cashback are tracked separately and can be transferred to your wallet.": "Phần thưởng đăng ký và hoàn tiền lần nạp đầu tiên được theo dõi riêng và có thể chuyển vào ví.",
+    "Reward rules": "Quy tắc phần thưởng",
+    "One-time": "Một lần",
+    "Inviter registration reward": "Phần thưởng đăng ký của người mời",
+    "Invitee registration reward": "Phần thưởng đăng ký của người được mời",
+    "Each invited friend can trigger this reward once after registering through your invitation.": "Mỗi người bạn được mời chỉ có thể kích hoạt phần thưởng này một lần sau khi đăng ký qua lời mời của bạn.",
+    "New users receive this one-time reward after registering with an invitation code.": "Người dùng mới nhận phần thưởng một lần này sau khi đăng ký bằng mã mời.",
+    "Only the invited friend’s first successful top-up qualifies. Later top-ups do not generate cashback.": "Chỉ lần nạp tiền thành công đầu tiên của người được mời được áp dụng. Các lần nạp sau không tạo hoàn tiền.",
+    "Current rate": "Tỷ lệ hiện tại",
+    "Not enabled": "Chưa bật",
+    "Eligible once per invited friend": "Được áp dụng một lần cho mỗi người bạn được mời",
+    "Cashback is based on the final wallet credit.": "Khoản hoàn tiền được tính theo số dư cuối cùng được ghi có vào ví.",
+    "Reward rules are configured by the administrator.": "Quy tắc phần thưởng do quản trị viên thiết lập.",
+    "How rewards work": "Cách phần thưởng hoạt động",
+    "Registration rewards are issued once when registration is completed.": "Phần thưởng đăng ký được cấp một lần khi hoàn tất đăng ký.",
+    "First top-up cashback is created once after the first successful wallet top-up.": "Hoàn tiền nạp lần đầu được tạo một lần sau lần nạp tiền thành công đầu tiên vào ví.",
+    "Inviter reward": "Phần thưởng người mời",
+    "Invitee reward": "Phần thưởng người được mời",
+    "This reward is credited directly to the invited friend’s wallet.": "Phần thưởng này được cộng trực tiếp vào ví của người bạn được mời.",
+    "No cashback is created after subsequent top-ups.": "Các lần nạp tiền tiếp theo không tạo thêm hoàn tiền."
   }
 }

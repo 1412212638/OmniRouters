@@ -5794,6 +5794,25 @@
     "Transferred": "Transferred",
     "Wallet balance": "Wallet balance",
     "Invite friends and earn rewards for their first successful top-up.": "Invite friends and earn rewards for their first successful top-up.",
-    "Registration rewards and first top-up cashback are tracked separately and can be transferred to your wallet.": "Registration rewards and first top-up cashback are tracked separately and can be transferred to your wallet."
+    "Registration rewards and first top-up cashback are tracked separately and can be transferred to your wallet.": "Registration rewards and first top-up cashback are tracked separately and can be transferred to your wallet.",
+    "Reward rules": "Reward rules",
+    "One-time": "One-time",
+    "Inviter registration reward": "Inviter registration reward",
+    "Invitee registration reward": "Invitee registration reward",
+    "Each invited friend can trigger this reward once after registering through your invitation.": "Each invited friend can trigger this reward once after registering through your invitation.",
+    "New users receive this one-time reward after registering with an invitation code.": "New users receive this one-time reward after registering with an invitation code.",
+    "Only the invited friend’s first successful top-up qualifies. Later top-ups do not generate cashback.": "Only the invited friend’s first successful top-up qualifies. Later top-ups do not generate cashback.",
+    "Current rate": "Current rate",
+    "Not enabled": "Not enabled",
+    "Eligible once per invited friend": "Eligible once per invited friend",
+    "Cashback is based on the final wallet credit.": "Cashback is based on the final wallet credit.",
+    "Reward rules are configured by the administrator.": "Reward rules are configured by the administrator.",
+    "How rewards work": "How rewards work",
+    "Registration rewards are issued once when registration is completed.": "Registration rewards are issued once when registration is completed.",
+    "First top-up cashback is created once after the first successful wallet top-up.": "First top-up cashback is created once after the first successful wallet top-up.",
+    "Inviter reward": "Inviter reward",
+    "Invitee reward": "Invitee reward",
+    "This reward is credited directly to the invited friend’s wallet.": "This reward is credited directly to the invited friend’s wallet.",
+    "No cashback is created after subsequent top-ups.": "No cashback is created after subsequent top-ups."
   }
 }

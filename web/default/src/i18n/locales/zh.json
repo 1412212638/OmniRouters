@@ -5795,6 +5795,25 @@
     "Transferred": "已转入",
     "Wallet balance": "钱包余额",
     "Invite friends and earn rewards for their first successful top-up.": "邀请好友并从他们首次成功充值中获得奖励。",
-    "Registration rewards and first top-up cashback are tracked separately and can be transferred to your wallet.": "注册奖励与首充返现分开记录，可分别转入钱包。"
+    "Registration rewards and first top-up cashback are tracked separately and can be transferred to your wallet.": "注册奖励与首充返现分开记录，可分别转入钱包。",
+    "Reward rules": "奖励规则",
+    "One-time": "一次性",
+    "Inviter registration reward": "邀请者注册奖励",
+    "Invitee registration reward": "受邀者注册奖励",
+    "Each invited friend can trigger this reward once after registering through your invitation.": "每位受邀好友通过你的邀请完成注册后，仅可触发一次该奖励。",
+    "New users receive this one-time reward after registering with an invitation code.": "新用户使用邀请码完成注册后，可获得这项一次性奖励。",
+    "Only the invited friend’s first successful top-up qualifies. Later top-ups do not generate cashback.": "仅受邀好友的首次成功充值符合条件，后续充值不会产生返现。",
+    "Current rate": "当前比例",
+    "Not enabled": "未启用",
+    "Eligible once per invited friend": "每位受邀好友仅可享受一次",
+    "Cashback is based on the final wallet credit.": "返现按最终到账的钱包额度计算。",
+    "Reward rules are configured by the administrator.": "奖励规则由管理员设置。",
+    "How rewards work": "奖励如何生效",
+    "Registration rewards are issued once when registration is completed.": "注册完成后发放一次注册奖励。",
+    "First top-up cashback is created once after the first successful wallet top-up.": "首次成功充值后生成一次首充返现。",
+    "Inviter reward": "邀请者奖励",
+    "Invitee reward": "受邀者奖励",
+    "This reward is credited directly to the invited friend’s wallet.": "该奖励会直接发放至受邀好友的钱包。",
+    "No cashback is created after subsequent top-ups.": "后续充值不会再产生返现。"
   }
 }

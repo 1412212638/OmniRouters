@@ -16,12 +16,14 @@ import (
 // Registration rewards remain backed by the legacy user counters while
 // first-top-up rewards come from the referral ledger.
 type ReferralFriendsSummary struct {
-	InviteCount              int64
-	FirstTopUpInviteCount    int64
-	RegistrationPendingQuota int
-	RegistrationTotalQuota   int
-	CashbackPendingQuota      int
-	CashbackTotalQuota        int
+	InviteCount                      int64
+	FirstTopUpInviteCount            int64
+	InviterRegistrationRewardQuota  int
+	InviteeRegistrationRewardQuota   int
+	RegistrationPendingQuota         int
+	RegistrationTotalQuota           int
+	CashbackPendingQuota             int
+	CashbackTotalQuota               int
 }
 
 type ReferralFriend struct {
@@ -58,12 +60,14 @@ func GetReferralFriendsSummary(userID int) (*ReferralFriendsSummary, *User, erro
 		return nil, nil, err
 	}
 	return &ReferralFriendsSummary{
-		InviteCount:              inviteCount,
-		FirstTopUpInviteCount:    cashbackInviteCount,
-		RegistrationPendingQuota: user.AffQuota,
-		RegistrationTotalQuota:   user.AffHistoryQuota,
-		CashbackPendingQuota:      int(totals.Pending),
-		CashbackTotalQuota:        int(totals.Total),
+		InviteCount:                     inviteCount,
+		FirstTopUpInviteCount:           cashbackInviteCount,
+		InviterRegistrationRewardQuota: common.QuotaForInviter,
+		InviteeRegistrationRewardQuota: common.QuotaForInvitee,
+		RegistrationPendingQuota:        user.AffQuota,
+		RegistrationTotalQuota:          user.AffHistoryQuota,
+		CashbackPendingQuota:             int(totals.Pending),
+		CashbackTotalQuota:               int(totals.Total),
 	}, &user, nil
 }
 

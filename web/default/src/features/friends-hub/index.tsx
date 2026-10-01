@@ -154,6 +154,15 @@ export function FriendsHub() {
   const avatarStyle = getUserAvatarStyle(displayName)
   const registrationPending = numberValue(summary.registration_pending_quota)
   const cashbackPending = numberValue(summary.cashback_pending_quota)
+  const cashbackRate = numberValue(
+    summary.referral_rate ?? summary.cashback_rate
+  )
+  const inviterRegistrationReward = numberValue(
+    summary.inviter_registration_reward_quota
+  )
+  const inviteeRegistrationReward = numberValue(
+    summary.invitee_registration_reward_quota
+  )
   const totalRewards =
     numberValue(summary.registration_total_quota) +
     numberValue(summary.cashback_total_quota)
@@ -271,13 +280,89 @@ export function FriendsHub() {
           </Card>
         </div>
 
+        <Card>
+          <CardHeader className='gap-1 pb-4'>
+            <CardTitle className='text-base'>{t('How rewards work')}</CardTitle>
+            <p className='text-muted-foreground text-sm'>
+              {t('Reward rules are configured by the administrator.')}
+            </p>
+          </CardHeader>
+          <CardContent className='pt-0'>
+            <div className='grid gap-5 md:grid-cols-3 md:divide-x'>
+              <div className='border-l-2 border-amber-400 pl-4 md:border-l-0 md:pr-5'>
+                <div className='flex flex-wrap items-center gap-2'>
+                  <h3 className='text-sm font-semibold'>
+                    {t('Inviter registration reward')}
+                  </h3>
+                  <Badge variant='outline'>{t('One-time')}</Badge>
+                </div>
+                <p className='mt-2 text-xl font-semibold tabular-nums'>
+                  {formatQuota(inviterRegistrationReward)}
+                </p>
+                <p className='text-muted-foreground mt-1 text-xs leading-5'>
+                  {t(
+                    'Each invited friend can trigger this reward once after registering through your invitation.'
+                  )}
+                </p>
+              </div>
+              <div className='border-l-2 border-sky-400 pl-4 md:px-5'>
+                <div className='flex flex-wrap items-center gap-2'>
+                  <h3 className='text-sm font-semibold'>
+                    {t('Invitee registration reward')}
+                  </h3>
+                  <Badge variant='outline'>{t('One-time')}</Badge>
+                </div>
+                <p className='mt-2 text-xl font-semibold tabular-nums'>
+                  {formatQuota(inviteeRegistrationReward)}
+                </p>
+                <p className='text-muted-foreground mt-1 text-xs leading-5'>
+                  {t(
+                    'New users receive this one-time reward after registering with an invitation code.'
+                  )}
+                </p>
+                <p className='text-muted-foreground mt-1 text-xs leading-5'>
+                  {t(
+                    'This reward is credited directly to the invited friend’s wallet.'
+                  )}
+                </p>
+              </div>
+              <div className='border-l-2 border-emerald-400 pl-4 md:pl-5'>
+                <div className='flex flex-wrap items-center gap-2'>
+                  <h3 className='text-sm font-semibold'>
+                    {t('First top-up cashback')}
+                  </h3>
+                  <Badge variant='outline'>
+                    {t('Eligible once per invited friend')}
+                  </Badge>
+                </div>
+                <p className='mt-2 text-xl font-semibold tabular-nums'>
+                  {cashbackRate > 0
+                    ? formatPercent(cashbackRate)
+                    : t('Not enabled')}
+                </p>
+                <p className='text-muted-foreground mt-1 text-xs leading-5'>
+                  {t(
+                    'Only the invited friend’s first successful top-up qualifies. Later top-ups do not generate cashback.'
+                  )}
+                </p>
+                {cashbackRate > 0 && (
+                  <p className='text-muted-foreground mt-1 text-xs leading-5'>
+                    {t('Cashback is based on the final wallet credit.')}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className='grid gap-3 sm:grid-cols-2 xl:grid-cols-4'>
           {[
             {
-              label: t('Referral rate'),
-              value: formatPercent(
-                numberValue(summary.referral_rate ?? summary.cashback_rate)
-              ),
+              label: t('First top-up cashback'),
+              value:
+                cashbackRate > 0
+                  ? formatPercent(cashbackRate)
+                  : t('Not enabled'),
               icon: Gift,
             },
             {

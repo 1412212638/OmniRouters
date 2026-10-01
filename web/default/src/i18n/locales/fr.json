@@ -5712,6 +5712,25 @@
     "Transferred": "Transféré",
     "Wallet balance": "Solde du portefeuille",
     "Invite friends and earn rewards for their first successful top-up.": "Invitez vos amis et gagnez des récompenses lors de leur premier rechargement réussi.",
-    "Registration rewards and first top-up cashback are tracked separately and can be transferred to your wallet.": "Les récompenses d’inscription et le remboursement du premier rechargement sont suivis séparément et peuvent être transférés vers votre portefeuille."
+    "Registration rewards and first top-up cashback are tracked separately and can be transferred to your wallet.": "Les récompenses d’inscription et le remboursement du premier rechargement sont suivis séparément et peuvent être transférés vers votre portefeuille.",
+    "Reward rules": "Règles des récompenses",
+    "One-time": "Une seule fois",
+    "Inviter registration reward": "Récompense d’inscription du parrain",
+    "Invitee registration reward": "Récompense d’inscription de l’invité",
+    "Each invited friend can trigger this reward once after registering through your invitation.": "Chaque ami invité peut déclencher cette récompense une seule fois après s’être inscrit via votre invitation.",
+    "New users receive this one-time reward after registering with an invitation code.": "Les nouveaux utilisateurs reçoivent cette récompense unique après s’être inscrits avec un code d’invitation.",
+    "Only the invited friend’s first successful top-up qualifies. Later top-ups do not generate cashback.": "Seul le premier rechargement réussi de l’ami invité est éligible. Les rechargements suivants ne génèrent aucun remboursement.",
+    "Current rate": "Taux actuel",
+    "Not enabled": "Non activé",
+    "Eligible once per invited friend": "Éligible une fois par ami invité",
+    "Cashback is based on the final wallet credit.": "Le remboursement est calculé sur le crédit final du portefeuille.",
+    "Reward rules are configured by the administrator.": "Les règles des récompenses sont configurées par l’administrateur.",
+    "How rewards work": "Fonctionnement des récompenses",
+    "Registration rewards are issued once when registration is completed.": "Les récompenses d’inscription sont versées une seule fois lorsque l’inscription est terminée.",
+    "First top-up cashback is created once after the first successful wallet top-up.": "Le remboursement du premier rechargement est créé une seule fois après le premier rechargement réussi du portefeuille.",
+    "Inviter reward": "Récompense du parrain",
+    "Invitee reward": "Récompense de l’invité",
+    "This reward is credited directly to the invited friend’s wallet.": "Cette récompense est créditée directement sur le portefeuille de l’ami invité.",
+    "No cashback is created after subsequent top-ups.": "Aucun remboursement n’est créé après les rechargements suivants."
   }
 }

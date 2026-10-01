@@ -68,6 +68,8 @@ func GetFriendsSummary(c *gin.Context) {
 		"invite_count":                summary.InviteCount,
 		"first_top_up_invite_count":   summary.FirstTopUpInviteCount,
 		"first_topup_count":            summary.FirstTopUpInviteCount,
+		"inviter_registration_reward_quota": summary.InviterRegistrationRewardQuota,
+		"invitee_registration_reward_quota": summary.InviteeRegistrationRewardQuota,
 		"registration_pending_quota": summary.RegistrationPendingQuota,
 		"registration_total_quota":   summary.RegistrationTotalQuota,
 		"cashback_pending_quota":     summary.CashbackPendingQuota,
