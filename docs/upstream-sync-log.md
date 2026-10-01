@@ -6,7 +6,7 @@
 - Changed: added the cross-database `referral_rewards` ledger with invitee/type and source-top-up idempotency keys; added the `ReferralFirstTopUpCashbackRate` option with strict `0-100` validation; and connected Epay, Stripe, Creem, Waffo, Waffo Pancake, and qualifying administrator completion flows to an in-transaction first-top-up settlement hook. The hook snapshots the rate in basis points, uses the provider-computed credited quota, records explicit `no_reward` placeholders when cashback is disabled or rounds to zero, and leaves positive rewards pending for a later Friends Hub transfer flow. Added authenticated Friends Hub APIs and default frontend navigation/page with masked friend data, separate registration/cashback counters, and separate transfer actions.
 - Preserved: existing `QuotaForInviter`/`QuotaForInvitee` registration rewards, `AffQuota` transfer semantics, subscription and redemption behavior, payment-provider idempotency, wallet quota limits, protected project identifiers, and unrelated untracked worktree files. Subscription-created `TopUp` rows do not invoke the cashback hook.
 - Validation: `git diff --check`, targeted `oxlint`, and `bun run build` for `web/default` passed. Go tests and gofmt could not run because the Go toolchain is not installed locally; focused model/controller regression tests were added for idempotency, zero-rate qualification locking, prior top-up exclusion, and PII masking.
-- Commit/push: pending; this is the first implementation batch and has not been pushed.
+- Commit/push: local commit `1b99f1942`; push pending until the final remote check.
 
 ## 2026-09-29 - Highlight Image Studio prompt input state
 
