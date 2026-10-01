@@ -3245,4 +3245,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: the upstream controller channel-test suite depends on a capability refactor and test helpers absent from this checkout; Responses custom tools, scoped access tokens, administrator step-up verification, and Responses WebSocket settings remain separate migrations.
 - Preserved: non-OpenAI/custom model requests, OpenRouter reasoning conversion, GPT-4 behavior, billing, all supported databases, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable; focused DTO and adaptor regression tests were added.
-- Commit/push: pending.
+- Commit/push: source commit `da4142b0c` pushed to `origin/main`.
