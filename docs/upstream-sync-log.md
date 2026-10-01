@@ -3342,6 +3342,17 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bun run build`, targeted Oxfmt/Oxlint, locale JSON parsing, and `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable.
 - Commit/push: pending source commit and push.
 
+## 2026-10-02 - Sign-in page visual refresh
+
+- Local reason: apply the approved two-column sign-in design with a user-provided hero image and simplify login consent presentation.
+- Integrated: the sign-in route now uses a dedicated layout variant with `https://cos.frostai.cn/omnirouters/login_en.webp` on the left and a clean, card-free form area on the right. The sign-in page hides the public navigation and duplicate header brand while retaining language and theme controls.
+- Integrated: the sign-in flow now presents existing terms and privacy links through the `TermsFooter` “By clicking sign in...” notice instead of a checkbox. Password login, OAuth, Passkey, Turnstile, WeChat login, redirect handling, and registration consent behavior remain intact.
+- Already present: existing `AuthLayout` behavior for registration, forgot-password, reset, OTP, and OAuth callback pages was preserved through the new sign-in-only variant; the public header keeps its default navigation and branding behavior everywhere else.
+- Deferred: the hero image remains an externally hosted URL supplied by the user; no backend banner configuration or local asset pipeline was added.
+- Preserved: authentication APIs, OAuth provider discovery, legal policy links, protected project identifiers, and unrelated untracked worktree files.
+- Validation: remote image returned HTTP 200; production `bun run build`, targeted Oxfmt/Oxlint, browser preview rendering, and `git diff --check` passed. Full `bun run typecheck` remains blocked by pre-existing repository-wide type errors and missing test dependencies; Go tests and gofmt were not run because the local Go toolchain is unavailable.
+- Commit/push: pending source commit and push.
+
 ## 2026-10-02 - Friends Hub summary simplification
 
 - Local reason: remove redundant summary content after reviewing the Friends Hub layout.
@@ -3350,4 +3361,15 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: no new reward logic, API, or translation keys were needed for this presentation-only adjustment.
 - Preserved: wallet/account behavior, reward settlement semantics, navigation routes, privacy masking, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Go tests and gofmt were not run because the local Go toolchain is unavailable.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Sign-in responsive and dark-theme correction
+
+- Local reason: correct the approved sign-in redesign after reviewing mobile layout, navigation visibility, desktop column proportions, vertical alignment, and dark-theme behavior.
+- Integrated: sign-in now keeps the public brand and navigation header, uses equal 50/50 desktop columns with a vertically centered form, hides the hero image on narrow mobile screens for a single-column flow, and keeps language, theme, and the mobile navigation menu available in the header.
+- Integrated: sign-in-only colors now inherit the active theme variables for page background, text, links, borders, inputs, focus states, and primary button states, so dark mode remains readable.
+- Already present: the externally hosted login hero image, sign-in consent notice, authentication providers, redirect handling, and registration/other auth-page layouts were preserved.
+- Deferred: none.
+- Preserved: authentication APIs, public navigation behavior outside sign-in, provider discovery, legal policy links, protected project identifiers, and unrelated untracked worktree files.
+- Validation: production frontend `bun run build` and `git diff --check` passed. Browser preview was refreshed, but the CDP screenshot probe timed out during hot reload; no application build or runtime error was reported.
 - Commit/push: pending source commit and push.

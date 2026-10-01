@@ -13,7 +13,7 @@ export function SignIn() {
   const { status } = useStatus()
 
   return (
-    <AuthLayout>
+    <AuthLayout variant='sign-in'>
       <div className='w-full space-y-8'>
         <div className='space-y-2'>
           <h2 className='text-center text-2xl font-semibold tracking-tight sm:text-left'>
@@ -39,7 +39,7 @@ export function SignIn() {
         <TermsFooter
           variant='sign-in'
           status={status}
-          className='text-center'
+          className='mt-5 text-left'
         />
       </div>
     </AuthLayout>

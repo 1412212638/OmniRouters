@@ -4,12 +4,16 @@ import { useTranslation } from 'react-i18next'
 import { PublicHeader } from '@/components/layout'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useSystemConfig } from '@/hooks/use-system-config'
+import { cn } from '@/lib/utils'
 
 import { AuthMascot } from './components/auth-mascot'
 
 type AuthLayoutProps = {
   children: React.ReactNode
+  variant?: 'default' | 'sign-in'
 }
+
+const loginHeroImage = 'https://cos.frostai.cn/omnirouters/login_en.webp'
 
 const authClassicStyles = `
 .auth-classic-shell {
@@ -326,6 +330,94 @@ const authClassicStyles = `
   box-shadow: var(--auth-yellow-shadow);
 }
 
+.auth-login-shell {
+  --auth-bg: var(--background);
+  --auth-panel-bg: var(--background);
+  --auth-panel-border: var(--border);
+  --auth-panel-shadow: none;
+  --auth-brand: var(--foreground);
+  --auth-title: var(--foreground);
+  --auth-subtitle: var(--muted-foreground);
+  --auth-label: var(--foreground);
+  --auth-link: var(--primary);
+  --auth-link-hover: var(--primary);
+  --auth-primary-bg: var(--foreground);
+  --auth-primary-text: var(--background);
+  --auth-input-bg: var(--background);
+  --auth-input-border: var(--border);
+  --auth-input-focus: color-mix(in oklch, var(--primary) 28%, transparent);
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.auth-login-shell .auth-classic-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.auth-login-shell .auth-classic-hero {
+  align-items: stretch;
+  background: var(--background);
+}
+
+.auth-login-shell .auth-classic-hero::before {
+  display: none;
+}
+
+.auth-login-hero-image {
+  display: block;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.auth-login-shell .auth-classic-form-column {
+  background: var(--background);
+  padding: 72px clamp(32px, 6vw, 92px);
+}
+
+.auth-login-shell .auth-classic-panel-wrap {
+  width: min(420px, 100%);
+}
+
+.auth-login-shell .auth-classic-brand {
+  display: none;
+}
+
+.auth-login-shell .auth-classic-card {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  backdrop-filter: none;
+}
+
+.auth-login-shell .auth-classic-card h2 {
+  text-align: left !important;
+  font-size: 32px;
+  font-weight: 750;
+}
+
+.auth-login-shell .auth-classic-card input {
+  min-height: 46px;
+  border-radius: 10px;
+  background: var(--background);
+}
+
+.auth-login-shell .auth-classic-card form > button:not([type='button']) {
+  min-height: 46px;
+  border-radius: 10px;
+}
+
+.auth-login-shell .auth-classic-card form > button:not([type='button']):hover:not(:disabled) {
+  background: color-mix(
+    in oklch,
+    var(--auth-primary-bg) 88%,
+    var(--auth-primary-text)
+  );
+}
+
 @media (max-width: 1023px) {
   .auth-classic-shell {
     overflow-y: auto;
@@ -349,9 +441,45 @@ const authClassicStyles = `
   .auth-classic-panel-wrap {
     width: min(420px, calc(100vw - 32px));
   }
+
+  .auth-login-shell .auth-classic-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    min-height: 100svh;
+  }
+
+  .auth-login-shell .auth-classic-hero {
+    display: flex;
+    min-height: 100svh;
+    max-height: none;
+  }
+
+  .auth-login-shell .auth-classic-form-column {
+    min-height: 100svh;
+    padding: 72px 40px;
+  }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
+  .auth-login-shell .auth-classic-grid {
+    display: block;
+  }
+
+  .auth-login-shell .auth-classic-hero {
+    display: none;
+  }
+
+  .auth-login-shell .auth-classic-form-column {
+    min-height: 100svh;
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: clamp(104px, 18svh, 168px) 20px 44px;
+  }
+
+  .auth-login-shell .auth-classic-panel-wrap {
+    width: min(390px, 100%);
+  }
+
   .auth-classic-panel-wrap {
     width: min(358px, calc(100vw - 32px));
   }
@@ -367,6 +495,10 @@ const authClassicStyles = `
 
   .auth-classic-card h2 {
     font-size: 26px;
+  }
+
+  .auth-login-shell .auth-classic-card h2 {
+    font-size: 28px;
   }
 }
 
@@ -385,17 +517,34 @@ const authClassicStyles = `
 }
 `
 
-export function AuthLayout({ children }: AuthLayoutProps) {
+export function AuthLayout({ children, variant = 'default' }: AuthLayoutProps) {
   const { t } = useTranslation()
   const { systemName, logo, loading } = useSystemConfig()
+  const isSignIn = variant === 'sign-in'
 
   return (
-    <div className='auth-classic-shell'>
+    <div className={cn('auth-classic-shell', isSignIn && 'auth-login-shell')}>
       <style>{authClassicStyles}</style>
-      <PublicHeader showAuthButtons={false} showNotifications={false} />
+      <PublicHeader
+        showAuthButtons={false}
+        showBrand
+        showNotifications={false}
+        showNavigation
+      />
       <div className='auth-classic-grid'>
-        <section className='auth-classic-hero' aria-hidden='true'>
-          <AuthMascot />
+        <section
+          className={cn('auth-classic-hero', isSignIn && 'auth-login-hero')}
+          aria-hidden={isSignIn ? undefined : true}
+        >
+          {isSignIn ? (
+            <img
+              src={loginHeroImage}
+              alt=''
+              className='auth-login-hero-image'
+            />
+          ) : (
+            <AuthMascot />
+          )}
         </section>
 
         <section className='auth-classic-form-column'>

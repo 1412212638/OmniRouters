@@ -42,6 +42,7 @@ export interface PublicHeaderProps {
   leftContent?: React.ReactNode
   rightContent?: React.ReactNode
   showNavigation?: boolean
+  showBrand?: boolean
   showAuthButtons?: boolean
   showNotifications?: boolean
   className?: string
@@ -55,6 +56,8 @@ export function PublicHeader(props: PublicHeaderProps) {
     logo: customLogo,
     siteName: customSiteName,
     homeUrl = '/',
+    showNavigation = true,
+    showBrand = true,
     showAuthButtons = true,
     showNotifications = true,
   } = props
@@ -201,76 +204,87 @@ export function PublicHeader(props: PublicHeaderProps) {
             )}
           >
             {/* Logo */}
-            <Link
-              to={homeUrl}
-              className='group flex shrink-0 items-center gap-2.5'
-            >
-              <div className='flex size-7 shrink-0 items-center justify-center transition-all duration-300 group-hover:scale-105'>
-                {loading ? (
-                  <Skeleton className='size-full rounded-lg' />
-                ) : customLogo ? (
-                  customLogo
-                ) : (
-                  <HeaderLogo
-                    src={systemLogo}
-                    loading={loading}
-                    logoLoaded={logoLoaded}
-                    className='size-full rounded-lg object-contain'
-                  />
-                )}
-              </div>
-              <span className='text-sm font-semibold tracking-tight'>
-                {loading ? <Skeleton className='h-4 w-16' /> : displaySiteName}
-              </span>
-            </Link>
+            {showBrand ? (
+              <Link
+                to={homeUrl}
+                className='group flex shrink-0 items-center gap-2.5'
+              >
+                <div className='flex size-7 shrink-0 items-center justify-center transition-all duration-300 group-hover:scale-105'>
+                  {loading ? (
+                    <Skeleton className='size-full rounded-lg' />
+                  ) : customLogo ? (
+                    customLogo
+                  ) : (
+                    <HeaderLogo
+                      src={systemLogo}
+                      loading={loading}
+                      logoLoaded={logoLoaded}
+                      className='size-full rounded-lg object-contain'
+                    />
+                  )}
+                </div>
+                <span className='text-sm font-semibold tracking-tight'>
+                  {loading ? (
+                    <Skeleton className='h-4 w-16' />
+                  ) : (
+                    displaySiteName
+                  )}
+                </span>
+              </Link>
+            ) : (
+              <span aria-hidden='true' />
+            )}
 
             {/* Desktop nav */}
             <div className='hidden items-center gap-0.5 sm:flex'>
-              {links.map((link, i) => {
-                const isActive = pathname === link.href
-                if (link.external) {
+              {showNavigation &&
+                links.map((link, i) => {
+                  const isActive = pathname === link.href
+                  if (link.external) {
+                    return (
+                      <a
+                        key={i}
+                        href={link.href}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        aria-disabled={link.disabled}
+                        tabIndex={link.disabled ? -1 : undefined}
+                        onClick={(event) => handleNavLinkClick(event, link)}
+                        className={cn(
+                          'text-muted-foreground hover:text-foreground rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors duration-200',
+                          link.disabled && 'pointer-events-none opacity-50'
+                        )}
+                      >
+                        {t(link.title)}
+                      </a>
+                    )
+                  }
                   return (
-                    <a
+                    <Link
                       key={i}
-                      href={link.href}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      aria-disabled={link.disabled}
-                      tabIndex={link.disabled ? -1 : undefined}
+                      to={link.href}
+                      disabled={link.disabled}
                       onClick={(event) => handleNavLinkClick(event, link)}
                       className={cn(
-                        'text-muted-foreground hover:text-foreground rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors duration-200',
+                        'rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors duration-200',
+                        isActive
+                          ? 'text-foreground'
+                          : 'text-muted-foreground hover:text-foreground',
                         link.disabled && 'pointer-events-none opacity-50'
                       )}
                     >
                       {t(link.title)}
-                    </a>
+                    </Link>
                   )
-                }
-                return (
-                  <Link
-                    key={i}
-                    to={link.href}
-                    disabled={link.disabled}
-                    onClick={(event) => handleNavLinkClick(event, link)}
-                    className={cn(
-                      'rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors duration-200',
-                      isActive
-                        ? 'text-foreground'
-                        : 'text-muted-foreground hover:text-foreground',
-                      link.disabled && 'pointer-events-none opacity-50'
-                    )}
-                  >
-                    {t(link.title)}
-                  </Link>
-                )
-              })}
+                })}
 
-              {(showLanguageSwitcher ||
-                showThemeSwitch ||
-                showNotifications) && (
-                <div className='bg-border/40 mx-2 h-4 w-px' />
-              )}
+              {showNavigation &&
+                links.length > 0 &&
+                (showLanguageSwitcher ||
+                  showThemeSwitch ||
+                  showNotifications) && (
+                  <div className='bg-border/40 mx-2 h-4 w-px' />
+                )}
 
               {showLanguageSwitcher && <LanguageSwitcher />}
               {showThemeSwitch && <ThemeSwitch />}
@@ -309,121 +323,126 @@ export function PublicHeader(props: PublicHeaderProps) {
 
             {/* Mobile: compact actions + hamburger */}
             <div className='flex items-center gap-2 sm:hidden'>
+              {showLanguageSwitcher && <LanguageSwitcher />}
               {showThemeSwitch && <ThemeSwitch />}
               {showAuthButtons && !loading && isAuthenticated && (
                 <ProfileDropdown />
               )}
-              <Button
-                type='button'
-                variant='ghost'
-                size='icon'
-                className='size-9'
-                onClick={() => setMobileOpen((v) => !v)}
-                aria-label={t('Toggle navigation menu')}
-              >
-                <div className='relative size-4'>
-                  <span
-                    className={cn(
-                      'absolute inset-x-0 block h-[1.5px] origin-center rounded-full bg-current transition-all duration-300',
-                      mobileOpen ? 'top-[7px] rotate-45' : 'top-[3px]'
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      'absolute inset-x-0 top-[7px] block h-[1.5px] rounded-full bg-current transition-all duration-300',
-                      mobileOpen ? 'scale-x-0 opacity-0' : 'opacity-100'
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      'absolute inset-x-0 block h-[1.5px] origin-center rounded-full bg-current transition-all duration-300',
-                      mobileOpen ? 'top-[7px] -rotate-45' : 'top-[11px]'
-                    )}
-                  />
-                </div>
-              </Button>
+              {showNavigation && (
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon'
+                  className='size-9'
+                  onClick={() => setMobileOpen((v) => !v)}
+                  aria-label={t('Toggle navigation menu')}
+                >
+                  <div className='relative size-4'>
+                    <span
+                      className={cn(
+                        'absolute inset-x-0 block h-[1.5px] origin-center rounded-full bg-current transition-all duration-300',
+                        mobileOpen ? 'top-[7px] rotate-45' : 'top-[3px]'
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        'absolute inset-x-0 top-[7px] block h-[1.5px] rounded-full bg-current transition-all duration-300',
+                        mobileOpen ? 'scale-x-0 opacity-0' : 'opacity-100'
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        'absolute inset-x-0 block h-[1.5px] origin-center rounded-full bg-current transition-all duration-300',
+                        mobileOpen ? 'top-[7px] -rotate-45' : 'top-[11px]'
+                      )}
+                    />
+                  </div>
+                </Button>
+              )}
             </div>
           </nav>
         </div>
       </header>
 
       {/* Mobile full-screen overlay */}
-      <div
-        className={cn(
-          'bg-background/98 fixed inset-0 z-40 backdrop-blur-2xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] sm:pointer-events-none sm:hidden',
-          mobileOpen
-            ? 'pointer-events-auto opacity-100'
-            : 'pointer-events-none opacity-0'
-        )}
-      >
-        <div className='flex h-full flex-col justify-between px-8 pt-20 pb-10'>
-          <nav className='flex flex-col gap-1'>
-            {links.map((link, i) => {
-              const isActive = pathname === link.href
-              const linkClassName = cn(
-                'flex items-center gap-3 py-3 text-base font-medium tracking-tight transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
-                mobileOpen
-                  ? 'translate-y-0 opacity-100'
-                  : 'translate-y-4 opacity-0',
-                isActive ? 'text-foreground' : 'text-muted-foreground',
-                link.disabled && 'pointer-events-none opacity-50'
-              )
-              const transitionStyle = {
-                transitionDelay: mobileOpen ? `${100 + i * 50}ms` : '0ms',
-              }
-              if (link.external) {
+      {showNavigation && (
+        <div
+          className={cn(
+            'bg-background/98 fixed inset-0 z-40 backdrop-blur-2xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] sm:pointer-events-none sm:hidden',
+            mobileOpen
+              ? 'pointer-events-auto opacity-100'
+              : 'pointer-events-none opacity-0'
+          )}
+        >
+          <div className='flex h-full flex-col justify-between px-8 pt-20 pb-10'>
+            <nav className='flex flex-col gap-1'>
+              {links.map((link, i) => {
+                const isActive = pathname === link.href
+                const linkClassName = cn(
+                  'flex items-center gap-3 py-3 text-base font-medium tracking-tight transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
+                  mobileOpen
+                    ? 'translate-y-0 opacity-100'
+                    : 'translate-y-4 opacity-0',
+                  isActive ? 'text-foreground' : 'text-muted-foreground',
+                  link.disabled && 'pointer-events-none opacity-50'
+                )
+                const transitionStyle = {
+                  transitionDelay: mobileOpen ? `${100 + i * 50}ms` : '0ms',
+                }
+                if (link.external) {
+                  return (
+                    <a
+                      key={i}
+                      href={link.href}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      aria-disabled={link.disabled}
+                      tabIndex={link.disabled ? -1 : undefined}
+                      onClick={(event) => handleNavLinkClick(event, link, true)}
+                      className={linkClassName}
+                      style={transitionStyle}
+                    >
+                      {t(link.title)}
+                    </a>
+                  )
+                }
                 return (
-                  <a
+                  <Link
                     key={i}
-                    href={link.href}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    aria-disabled={link.disabled}
-                    tabIndex={link.disabled ? -1 : undefined}
+                    to={link.href}
+                    disabled={link.disabled}
                     onClick={(event) => handleNavLinkClick(event, link, true)}
                     className={linkClassName}
                     style={transitionStyle}
                   >
                     {t(link.title)}
-                  </a>
+                  </Link>
                 )
-              }
-              return (
-                <Link
-                  key={i}
-                  to={link.href}
-                  disabled={link.disabled}
-                  onClick={(event) => handleNavLinkClick(event, link, true)}
-                  className={linkClassName}
-                  style={transitionStyle}
-                >
-                  {t(link.title)}
-                </Link>
-              )
-            })}
-          </nav>
+              })}
+            </nav>
 
-          <div
-            className={cn(
-              'flex flex-col gap-3 transition-all duration-500',
-              mobileOpen
-                ? 'translate-y-0 opacity-100'
-                : 'translate-y-4 opacity-0'
-            )}
-            style={{ transitionDelay: mobileOpen ? '250ms' : '0ms' }}
-          >
-            {showAuthButtons && (
-              <Link
-                to={isAuthenticated ? '/dashboard' : '/sign-in'}
-                onClick={() => setMobileOpen(false)}
-                className='bg-foreground text-background inline-flex h-10 items-center justify-center rounded-lg text-sm font-medium transition-opacity hover:opacity-90 active:opacity-80'
-              >
-                {isAuthenticated ? t('Go to Dashboard') : t('Sign in')}
-              </Link>
-            )}
+            <div
+              className={cn(
+                'flex flex-col gap-3 transition-all duration-500',
+                mobileOpen
+                  ? 'translate-y-0 opacity-100'
+                  : 'translate-y-4 opacity-0'
+              )}
+              style={{ transitionDelay: mobileOpen ? '250ms' : '0ms' }}
+            >
+              {showAuthButtons && (
+                <Link
+                  to={isAuthenticated ? '/dashboard' : '/sign-in'}
+                  onClick={() => setMobileOpen(false)}
+                  className='bg-foreground text-background inline-flex h-10 items-center justify-center rounded-lg text-sm font-medium transition-opacity hover:opacity-90 active:opacity-80'
+                >
+                  {isAuthenticated ? t('Go to Dashboard') : t('Sign in')}
+                </Link>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <Dialog
         open={!!authPromptTarget}
