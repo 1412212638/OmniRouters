@@ -3226,3 +3226,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: channel mutations, channel routing, existing sensitive-value toggle, classic frontend, backend APIs, billing, protected project identifiers, and unrelated untracked worktree files.
 - Validation: targeted Oxfmt and Oxlint passed; `bun run build` for `web/default` passed; `git diff --check` passed.
 - Commit/push: source commit `6544f2605` pushed to `origin/main`.
+
+## 2026-10-01 - Fifth functional upstream batch: keep unchanged task prices editable
+
+- Upstream reference: `3509ae7c1`; current upstream tip remains `56758edf9` with no newer commits.
+- Integrated: model pricing validation now allows an unchanged billing expression or plugin override to remain saveable when a sole task-plugin provider narrows its usage profile. Edited expressions and unchanged expressions for shared models continue to validate against the current provider schemas.
+- Already present: plugin usage profiles, shared-model detection, task expression smoke tests, pricing option validation, and local empty/null pricing compatibility were reused.
+- Deferred: upstream frontend task-matrix display/parser changes target the unavailable `web/src` frontend and were not copied into `web/default`; GPT-6 capability changes, Responses custom tools, scoped access tokens, administrator step-up verification, and Responses WebSocket settings remain separate batches.
+- Preserved: existing pricing option validation, database locking and transactions, billing expression semantics, task settlement, all supported databases, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable; the upstream test fixture infrastructure is not present in this checkout, so focused source-level coverage was added instead.
+- Commit/push: pending.
