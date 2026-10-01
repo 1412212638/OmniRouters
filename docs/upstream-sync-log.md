@@ -3286,3 +3286,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: legacy string/object output encoding, unknown content-part fallback, assistant tool-call ordering, native Responses behavior, existing request validation, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed. Focused Go tests and gofmt could not run because the Go toolchain is unavailable locally.
 - Commit/push: source commit `73ae5d60d` pushed to `origin/main`; the final log publication commit follows.
+
+## 2026-10-01 - Eleventh functional upstream batch: preserve cached Traditional Chinese locale
+
+- Upstream reference: `5fe8917be`; current upstream tip remains `56758edf9`.
+- Integrated: language detection now recognizes the normalized `zhtw` form produced when a cached `zhTW` interface code is lowercased, preserving Traditional Chinese after page reloads. Added regression coverage for normalized codes, browser locale mapping, and non-Chinese pass-through.
+- Already present: the default frontend's `zhCN`/`zhTW` resource mapping and locale normalization were reused.
+- Deferred: the remaining upstream frontend-only fixes require separate adaptation or are already represented differently in this fork.
+- Preserved: language selector options, persisted user settings, all translations, classic frontend behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: targeted Bun tests, Oxfmt, Oxlint, and `git diff --check` passed.
+- Commit/push: pending.
