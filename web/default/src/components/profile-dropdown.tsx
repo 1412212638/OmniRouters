@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import { User, Wallet, LogOut, Settings } from 'lucide-react'
+import { User, Wallet, LogOut, Settings, UserRoundPlus } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -93,6 +93,13 @@ export function ProfileDropdown() {
             <DropdownMenuItem onClick={() => navigate({ to: '/wallet' })}>
               <Wallet className='size-4' />
               {t('Wallet')}
+            </DropdownMenuItem>
+          )}
+
+          {isWalletVisible && (
+            <DropdownMenuItem onClick={() => navigate({ to: '/friends-hub' })}>
+              <UserRoundPlus className='size-4' />
+              {t('Friends Hub')}
             </DropdownMenuItem>
           )}
 

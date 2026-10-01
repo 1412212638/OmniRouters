@@ -1,4 +1,5 @@
 import { Share2 } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
 import { CopyButton } from '@/components/copy-button'
@@ -100,6 +101,14 @@ export function AffiliateRewardsCard({
               {t('Transfer to Balance')}
             </Button>
           )}
+          <Button
+            variant='outline'
+            className='h-9 shrink-0 px-3'
+            size='sm'
+            render={<Link to='/friends-hub' />}
+          >
+            {t('Friends Hub')}
+          </Button>
         </div>
       </CardContent>
     </Card>

@@ -36,6 +36,7 @@ const quotaSchema = z.object({
   PreConsumedQuota: z.coerce.number().min(0),
   QuotaForInviter: z.coerce.number().min(0),
   QuotaForInvitee: z.coerce.number().min(0),
+  ReferralFirstTopUpCashbackRate: z.coerce.number().min(0).max(100),
   TopUpLink: z.string(),
   general_setting: z.object({
     docs_link: z.string(),
@@ -200,6 +201,35 @@ export function QuotaSettingsSection({
                     {t('Quota given to invited users ({{formattedQuota}})', {
                       formattedQuota: formatQuotaInputValue(field.value),
                     })}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='ReferralFirstTopUpCashbackRate'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('First Top-up Cashback Rate')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type='number'
+                      min={0}
+                      max={100}
+                      step='0.01'
+                      value={field.value ?? ''}
+                      onChange={handleNumberChange(field.onChange)}
+                      name={field.name}
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {t(
+                      'Percentage paid to an inviter after an invited user completes their first successful wallet top-up. Set to 0 to disable.'
+                    )}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

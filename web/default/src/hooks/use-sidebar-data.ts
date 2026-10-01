@@ -20,6 +20,7 @@ import {
   User,
   Users,
   Wallet,
+  UserRoundPlus,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -107,6 +108,11 @@ export function useSidebarData(): SidebarData {
             title: t('Wallet'),
             url: '/wallet',
             icon: Wallet,
+          },
+          {
+            title: t('Friends Hub'),
+            url: '/friends-hub',
+            icon: UserRoundPlus,
           },
           {
             title: t('Member Tiers'),

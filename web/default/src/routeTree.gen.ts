@@ -50,6 +50,7 @@ import { Route as AuthenticatedModelsIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedMemberTiersIndexRouteImport } from './routes/_authenticated/member-tiers/index'
 import { Route as AuthenticatedKeysIndexRouteImport } from './routes/_authenticated/keys/index'
 import { Route as AuthenticatedImagePlaygroundIndexRouteImport } from './routes/_authenticated/image-playground/index'
+import { Route as AuthenticatedFriendsHubIndexRouteImport } from './routes/_authenticated/friends-hub/index'
 import { Route as AuthenticatedEmailSettingsIndexRouteImport } from './routes/_authenticated/email-settings/index'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedChannelsIndexRouteImport } from './routes/_authenticated/channels/index'
@@ -293,6 +294,12 @@ const AuthenticatedImagePlaygroundIndexRoute =
     path: '/image-playground/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedFriendsHubIndexRoute =
+  AuthenticatedFriendsHubIndexRouteImport.update({
+    id: '/friends-hub/',
+    path: '/friends-hub/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEmailSettingsIndexRoute =
   AuthenticatedEmailSettingsIndexRouteImport.update({
     id: '/email-settings/',
@@ -477,6 +484,7 @@ export interface FileRoutesByFullPath {
   '/channels/': typeof AuthenticatedChannelsIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/email-settings/': typeof AuthenticatedEmailSettingsIndexRoute
+  '/friends-hub/': typeof AuthenticatedFriendsHubIndexRoute
   '/image-playground/': typeof AuthenticatedImagePlaygroundIndexRoute
   '/keys/': typeof AuthenticatedKeysIndexRoute
   '/member-tiers/': typeof AuthenticatedMemberTiersIndexRoute
@@ -542,6 +550,7 @@ export interface FileRoutesByTo {
   '/channels': typeof AuthenticatedChannelsIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/email-settings': typeof AuthenticatedEmailSettingsIndexRoute
+  '/friends-hub': typeof AuthenticatedFriendsHubIndexRoute
   '/image-playground': typeof AuthenticatedImagePlaygroundIndexRoute
   '/keys': typeof AuthenticatedKeysIndexRoute
   '/member-tiers': typeof AuthenticatedMemberTiersIndexRoute
@@ -611,6 +620,7 @@ export interface FileRoutesById {
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/email-settings/': typeof AuthenticatedEmailSettingsIndexRoute
+  '/_authenticated/friends-hub/': typeof AuthenticatedFriendsHubIndexRoute
   '/_authenticated/image-playground/': typeof AuthenticatedImagePlaygroundIndexRoute
   '/_authenticated/keys/': typeof AuthenticatedKeysIndexRoute
   '/_authenticated/member-tiers/': typeof AuthenticatedMemberTiersIndexRoute
@@ -679,6 +689,7 @@ export interface FileRouteTypes {
     | '/channels/'
     | '/dashboard/'
     | '/email-settings/'
+    | '/friends-hub/'
     | '/image-playground/'
     | '/keys/'
     | '/member-tiers/'
@@ -744,6 +755,7 @@ export interface FileRouteTypes {
     | '/channels'
     | '/dashboard'
     | '/email-settings'
+    | '/friends-hub'
     | '/image-playground'
     | '/keys'
     | '/member-tiers'
@@ -812,6 +824,7 @@ export interface FileRouteTypes {
     | '/_authenticated/channels/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/email-settings/'
+    | '/_authenticated/friends-hub/'
     | '/_authenticated/image-playground/'
     | '/_authenticated/keys/'
     | '/_authenticated/member-tiers/'
@@ -1154,6 +1167,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedImagePlaygroundIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/friends-hub/': {
+      id: '/_authenticated/friends-hub/'
+      path: '/friends-hub'
+      fullPath: '/friends-hub/'
+      preLoaderRoute: typeof AuthenticatedFriendsHubIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/email-settings/': {
       id: '/_authenticated/email-settings/'
       path: '/email-settings'
@@ -1426,6 +1446,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChannelsIndexRoute: typeof AuthenticatedChannelsIndexRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedEmailSettingsIndexRoute: typeof AuthenticatedEmailSettingsIndexRoute
+  AuthenticatedFriendsHubIndexRoute: typeof AuthenticatedFriendsHubIndexRoute
   AuthenticatedImagePlaygroundIndexRoute: typeof AuthenticatedImagePlaygroundIndexRoute
   AuthenticatedKeysIndexRoute: typeof AuthenticatedKeysIndexRoute
   AuthenticatedMemberTiersIndexRoute: typeof AuthenticatedMemberTiersIndexRoute
@@ -1456,6 +1477,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChannelsIndexRoute: AuthenticatedChannelsIndexRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   AuthenticatedEmailSettingsIndexRoute: AuthenticatedEmailSettingsIndexRoute,
+  AuthenticatedFriendsHubIndexRoute: AuthenticatedFriendsHubIndexRoute,
   AuthenticatedImagePlaygroundIndexRoute:
     AuthenticatedImagePlaygroundIndexRoute,
   AuthenticatedKeysIndexRoute: AuthenticatedKeysIndexRoute,

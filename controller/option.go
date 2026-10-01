@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -233,6 +234,12 @@ func UpdateOption(c *gin.Context) {
 				"success": false,
 				"message": "invalid model square theme, available values: catalog, classic",
 			})
+			return
+		}
+	case "ReferralFirstTopUpCashbackRate":
+		rate, parseErr := strconv.ParseFloat(option.Value.(string), 64)
+		if parseErr != nil || math.IsNaN(rate) || math.IsInf(rate, 0) || rate < 0 || rate > 100 {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "首充返现比例必须在 0 到 100 之间"})
 			return
 		}
 	case "LinuxDOOAuthEnabled":
