@@ -36,6 +36,18 @@ const IMAGE_MODELS = {
     tools: false,
     fastPromptMode: true,
   },
+  "doubao-seedream-5-0-flash-260915": {
+    presets: ["1K", "1.5K", "2K"],
+    minPixels: 921600,
+    maxPixels: 4624220,
+    maxReferenceImages: 10,
+    sequential: false,
+    layers: true,
+    outputFormat: true,
+    background: true,
+    tools: false,
+    fastPromptMode: false,
+  },
   "doubao-seedream-5-0-lite-260128": {
     presets: ["2K", "3K", "4K"],
     minPixels: 3686400,
@@ -164,6 +176,43 @@ const IMAGE_USAGE_SCHEMA = {
   },
 };
 
+// Models whose smallest output exceeds IMAGE_TIER_MAX_PIXELS only ever produce
+// images above 1.5K, so their pricing has a single output tier.
+function hasLowerImageTier(profile) {
+  return profile.minPixels <= IMAGE_TIER_MAX_PIXELS;
+}
+
+// Usage facts remain a complete vector for compatibility with expressions saved
+// before each model received its narrower pricing profile.
+function seedreamUsageFacts(lower, higher, inputImages, layered) {
+  return { images_up_to_1_5k: lower, images_above_1_5k: higher, input_images: inputImages, layer_decomposition: layered };
+}
+
+// Expose only output tiers and options that a model can actually produce while
+// retaining the stable usage fact names used by existing billing expressions.
+function seedreamUsageSchema(profile) {
+  const schema = {};
+  if (hasLowerImageTier(profile)) {
+    schema.images_up_to_1_5k = IMAGE_USAGE_SCHEMA.images_up_to_1_5k;
+    schema.images_above_1_5k = IMAGE_USAGE_SCHEMA.images_above_1_5k;
+  } else {
+    schema.images_above_1_5k = { ...IMAGE_USAGE_SCHEMA.images_above_1_5k, description: { en: "Image generation unit price", zh: "图片生成单价" } };
+  }
+  schema.input_images = IMAGE_USAGE_SCHEMA.input_images;
+  if (profile.layers) schema.layer_decomposition = IMAGE_USAGE_SCHEMA.layer_decomposition;
+  return schema;
+}
+
+function seedreamUsageExamples(profile) {
+  const examples = [{ label: "2K · 1 张", facts: seedreamUsageFacts(0, 1, 0, false) }];
+  if (hasLowerImageTier(profile)) examples.push({ label: "1K · 1 张 · 2 张参考图", facts: seedreamUsageFacts(1, 0, 2, false) });
+  else examples.push({ label: "2K · 1 张 · 2 张参考图", facts: seedreamUsageFacts(0, 1, 2, false) });
+  if (profile.sequential) examples.push({ label: "2K · 4 张组图", facts: seedreamUsageFacts(0, 4, 0, false) });
+  if (profile.layers) examples.push({ label: "图层拆分 · 2K 底图 + 4 层 1.5K", facts: seedreamUsageFacts(4, 1, 1, true) });
+  const keys = Object.keys(seedreamUsageSchema(profile));
+  return examples.map((example) => ({ label: example.label, facts: Object.fromEntries(keys.map((key) => [key, example.facts[key]])) }));
+}
+
 // Usage facts for one Seedance capability profile: the pricing table then
 // lists only the resolutions and input kinds the model offers.
 function seedanceUsageSchema(profile) {
@@ -221,15 +270,16 @@ function seedanceUsageExamples(profile) {
   });
 }
 
-// One usage profile per distinct capability shape.
-function seedanceUsageProfiles() {
+// One usage profile per distinct pricing shape of a capability table.
+function capabilityUsageProfiles(models, usageSchema, usageExamples) {
   const profiles = [];
-  for (const model of Object.keys(VIDEO_MODELS)) {
-    const capability = VIDEO_MODELS[model];
-    const shape = capability.resolutions.join("/") + (capability.videoInput ? "+video" : "") + (capability.audio ? "+audio" : "");
+  for (const model of Object.keys(models)) {
+    const schema = usageSchema(models[model]);
+    const examples = usageExamples(models[model]);
+    const shape = JSON.stringify([schema, examples]);
     let profile = profiles.find((entry) => entry.shape === shape);
     if (!profile) {
-      profile = { shape: shape, models: [], schema: seedanceUsageSchema(capability), examples: seedanceUsageExamples(capability) };
+      profile = { shape: shape, models: [], schema: schema, examples: examples };
       profiles.push(profile);
     }
     profile.models.push(model);
@@ -246,7 +296,7 @@ export const meta = {
     en: "Volcengine Doubao Seedance video generation and Seedream image generation",
     zh: "火山引擎豆包 Seedance 视频生成与 Seedream 图片生成",
   },
-  version: "1.1.0",
+  version: "1.2.0",
   author: { name: "QuantumNous" },
   channelTypes: [54, 45], // VolcEngine-type channels serve Ark video models with the same wire format
   models: Object.keys(VIDEO_MODELS).concat(Object.keys(IMAGE_MODELS)),
@@ -254,18 +304,9 @@ export const meta = {
   upstreams: ["vendor", "new_api"],
   usageSchema: seedanceUsageSchema(DEFAULT_VIDEO_PROFILE),
   usageExamples: seedanceUsageExamples(DEFAULT_VIDEO_PROFILE),
-  usageProfiles: seedanceUsageProfiles().concat([
-    {
-      models: Object.keys(IMAGE_MODELS),
-      schema: IMAGE_USAGE_SCHEMA,
-      examples: [
-        { label: "2K · 1 张", facts: { images_up_to_1_5k: 0, images_above_1_5k: 1, input_images: 0, layer_decomposition: false } },
-        { label: "1K · 1 张 · 2 张参考图", facts: { images_up_to_1_5k: 1, images_above_1_5k: 0, input_images: 2, layer_decomposition: false } },
-        { label: "2K · 4 张组图", facts: { images_up_to_1_5k: 0, images_above_1_5k: 4, input_images: 0, layer_decomposition: false } },
-        { label: "图层拆分 · 2K 底图 + 4 层 1.5K", facts: { images_up_to_1_5k: 4, images_above_1_5k: 1, input_images: 1, layer_decomposition: true } },
-      ],
-    },
-  ]),
+  usageProfiles: capabilityUsageProfiles(VIDEO_MODELS, seedanceUsageSchema, seedanceUsageExamples).concat(
+    capabilityUsageProfiles(IMAGE_MODELS, seedreamUsageSchema, seedreamUsageExamples)
+  ),
   routes: [
     { method: "POST", path: "/doubao/api/v3/contents/generations/tasks", type: "submit", decode: "createTask", render: "taskCreated" },
     { method: "GET", path: "/doubao/api/v3/contents/generations/tasks/:task_id", type: "query", render: "taskStatus" },
@@ -548,12 +589,7 @@ function convertImage(ctx) {
   return {
     body: body,
     action: images.length ? "image_to_image" : "text_to_image",
-    facts: {
-      images_up_to_1_5k: higherTier ? 0 : imageCount,
-      images_above_1_5k: higherTier ? imageCount : 0,
-      input_images: images.length,
-      layer_decomposition: layered,
-    },
+    facts: seedreamUsageFacts(higherTier ? 0 : imageCount, higherTier ? imageCount : 0, images.length, layered),
   };
 }
 
@@ -586,27 +622,31 @@ function imagePayloads(body) {
 
 // Completion facts. Each successful image is counted at its own pixel tier from
 // data[].size (official pricing bills layers individually). Payloads without a
-// parseable size keep the submit-time tier estimate; usage.input_images
-// replaces the estimated reference count only when it is a bounded integer.
-function imageUsage(body) {
+// parseable size keep the submit-time tier estimate, except on single-tier
+// models where every payload is necessarily in the upper tier.
+function imageUsage(body, profile) {
   const usage = body.usage || {};
   const payloads = imagePayloads(body);
   const facts = {};
-  let lower = 0,
-    higher = 0,
-    sized = true;
-  for (const item of payloads) {
-    const dims = imageSizePixels(item.size);
-    if (!dims) {
-      sized = false;
-      break;
+  if (hasLowerImageTier(profile)) {
+    let lower = 0,
+      higher = 0,
+      sized = true;
+    for (const item of payloads) {
+      const dims = imageSizePixels(item.size);
+      if (!dims) {
+        sized = false;
+        break;
+      }
+      if (dims.pixels > IMAGE_TIER_MAX_PIXELS) higher += 1;
+      else lower += 1;
     }
-    if (dims.pixels > IMAGE_TIER_MAX_PIXELS) higher += 1;
-    else lower += 1;
-  }
-  if (sized) {
-    facts.images_up_to_1_5k = lower;
-    facts.images_above_1_5k = higher;
+    if (sized) {
+      facts.images_up_to_1_5k = lower;
+      facts.images_above_1_5k = higher;
+    }
+  } else {
+    facts.images_above_1_5k = payloads.length;
   }
   if (Number.isInteger(usage.input_images) && usage.input_images >= 0 && usage.input_images <= MAX_REFERENCE_IMAGES) facts.input_images = usage.input_images;
   return facts;
@@ -816,7 +856,9 @@ export function extractUsage(ctx) {
   const profile = videoProfile(ctx);
   const resolution = videoResolution(ctx);
   const facts = { tokens: estimateTokens(seconds, resolution), resolution: resolution };
-  if (profile.videoInput) facts.video_input = hasVideo(metadata.content) ? "video" : "none";
+  // Preserve the shared video_input fact for expressions saved before the
+  // capability profiles narrowed this field to selected Seedance models.
+  facts.video_input = hasVideo(metadata.content) ? "video" : "none";
   if (profile.audio) facts.generate_audio = metadata.generate_audio !== false;
   return facts;
 }
@@ -901,7 +943,7 @@ export function buildContentRequest(ctx) {
 }
 
 export function extractUsageOnComplete(task, taskResult, body) {
-  if (imageTask(task)) return imageUsage(body || {});
+  if (imageTask(task)) return imageUsage(body || {}, imageProfile(task));
   if (!body || body.status !== "succeeded") return {};
   const facts = {};
   const usage = body.usage || {};

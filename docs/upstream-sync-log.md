@@ -3195,4 +3195,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: `474ed66fb1` only applies to the upstream Alibaba `openai_image` protocol export, which this fork deliberately does not advertise yet; no unsupported protocol claim was introduced.
 - Preserved: existing plugin activation/version rollback, task billing and polling, provider routing, Waffo payment flows, all three supported primary databases, default/classic frontend boundaries, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed; locale JSON/key consistency and source-level searches passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally; frontend production build and browser tests remain pending.
-- Commit/push: source commit to be recorded after the first-batch commit; push status follows the commit.
+- Commit/push: source commit `d73c7423e` is present on `origin/main`; the initial push raced with an existing remote update, and fetch confirmed the commit is already published.
+
+## 2026-10-01 - Second functional upstream batch: Seedream model pricing profiles
+
+- Upstream references: `ae73ef8e25`; related protocol commit `87bb71e7fc` was reviewed separately.
+- Integrated: Doubao now advertises Seedream 5.0 Flash `doubao-seedream-5-0-flash-260915`, validates its 1K/1.5K/2K capability profile, exposes per-model image pricing dimensions, and settles single-tier image results as the upper output tier. Submission facts remain a complete compatibility vector for existing billing expressions, and Seedance facts retain the shared `video_input` selector.
+- Already present: the existing native Doubao image route, request bounds, output validation, and task billing hooks were reused.
+- Deferred: `87bb71e7fc` OpenAI Images task-protocol binding remains deferred because this checkout lacks the upstream `03563a4a7` host protocol/routing/synchronous image-task bridge; adding only the plugin claim would fail protocol validation or route to the legacy adaptor.
+- Preserved: current native image and Responses routes, task billing safety, provider capability checks, protected project identifiers, and unrelated untracked worktree files.
+- Validation: Node syntax check and `git diff --check` passed; focused Go regression coverage was added but Go tests/gofmt remain unavailable because the local Go toolchain is not installed.
+- Commit/push: pending.
