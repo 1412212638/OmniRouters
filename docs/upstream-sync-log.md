@@ -3256,3 +3256,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: task settlement/refund ordering, CAS race behavior, polling failure thresholds, all supported databases, frontend behavior, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable; focused performance metric regression tests were added.
 - Commit/push: source commit `0e9a36cd7` pushed to `origin/main`; the follow-up log publication commit is recorded below.
+
+## 2026-10-01 - Eighth functional upstream batch: fix release version injection
+
+- Upstream reference: `5401874c6`; current upstream tip remains `56758edf9` with no newer commits.
+- Integrated: release and Electron Windows/Linux/macOS build workflows now inject `common.Version` using the repository's full Go module import path, so tagged binaries receive the intended version instead of silently missing the linker target.
+- Already present: the existing `common.Version` variable and tag-derived `VERSION` workflow inputs were reused.
+- Deferred: access-token editing, scoped access tokens, administrator step-up verification, billing trust/pre-consume changes, and frontend-only `web/src` fixes require separate migrations or are not part of the production frontend trees in this checkout.
+- Preserved: Docker/GHCR source-only build policy, release artifact names, cross-platform build flags, runtime behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed; workflow YAML was checked by targeted path/reference searches. Go tests and gofmt were not applicable to workflow-only changes.
+- Commit/push: pending.
