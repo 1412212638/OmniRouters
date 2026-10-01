@@ -3295,4 +3295,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: the remaining upstream frontend-only fixes require separate adaptation or are already represented differently in this fork.
 - Preserved: language selector options, persisted user settings, all translations, classic frontend behavior, protected project identifiers, and unrelated untracked worktree files.
 - Validation: targeted Bun tests, Oxfmt, Oxlint, and `git diff --check` passed.
-- Commit/push: pending.
+- Commit/push: source commit `669a3cf2f` pushed to `origin/main`; the final log publication commit follows.
