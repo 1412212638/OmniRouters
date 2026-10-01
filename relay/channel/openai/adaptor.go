@@ -328,42 +328,42 @@ func (a *Adaptor) ConvertOpenAIRequest(c *gin.Context, info *relaycommon.RelayIn
 		}
 
 	}
-	isOModel := dto.IsOpenAIReasoningOModel(info.UpstreamModelName)
-	isGPT5Model := dto.IsOpenAIGPT5Model(info.UpstreamModelName)
-	if isOModel || isGPT5Model {
-		if lo.FromPtrOr(request.MaxCompletionTokens, uint(0)) == 0 && lo.FromPtrOr(request.MaxTokens, uint(0)) != 0 {
-			request.MaxCompletionTokens = request.MaxTokens
-			request.MaxTokens = nil
-		}
-
-		if isOModel {
-			request.Temperature = nil
-		}
-
-		// gpt-5系列模型适配 归零不再支持的参数
-		if isGPT5Model {
-			request.Temperature = nil
-			request.TopP = nil
-			request.LogProbs = nil
-		}
-
-		// 转换模型推理力度后缀
+	// Resolve supported model suffixes before selecting capabilities. Unknown
+	// future generations keep their model id and request parameters untouched.
+	modelName := strings.ToLower(strings.TrimSpace(info.UpstreamModelName))
+	knownSuffixModel := dto.IsOpenAIReasoningOModel(modelName) ||
+		dto.IsOpenAIGPT5Model(modelName) ||
+		strings.HasPrefix(modelName, "gpt-6-sol") ||
+		strings.HasPrefix(modelName, "gpt-6-luna") ||
+		strings.HasPrefix(modelName, "gpt-6-astra")
+	if knownSuffixModel {
 		effort, originModel := reasoning.ParseOpenAIReasoningEffortFromModelSuffix(info.UpstreamModelName)
 		if effort != "" {
 			request.ReasoningEffort = effort
 			info.UpstreamModelName = originModel
 			request.Model = originModel
 		}
-
-		info.ReasoningEffort = request.ReasoningEffort
-
-		// o系列模型developer适配（o1-mini除外）
-		if !strings.HasPrefix(info.UpstreamModelName, "o1-mini") && !strings.HasPrefix(info.UpstreamModelName, "o1-preview") {
-			//修改第一个Message的内容，将system改为developer
-			if len(request.Messages) > 0 && request.Messages[0].Role == "system" {
-				request.Messages[0].Role = "developer"
-			}
+	}
+	if knownSuffixModel {
+		capabilities := dto.GetOpenAIChatCapabilities(info.UpstreamModelName, request.ReasoningEffort)
+		if capabilities.UseMaxCompletionTokens && lo.FromPtrOr(request.MaxCompletionTokens, uint(0)) == 0 && lo.FromPtrOr(request.MaxTokens, uint(0)) != 0 {
+			request.MaxCompletionTokens = request.MaxTokens
+			request.MaxTokens = nil
 		}
+		if !capabilities.SupportsTemperature {
+			request.Temperature = nil
+		}
+		if !capabilities.SupportsTopP {
+			request.TopP = nil
+		}
+		if !capabilities.SupportsLogProbs {
+			request.LogProbs = nil
+			request.TopLogProbs = nil
+		}
+		if capabilities.UseDeveloperRole && len(request.Messages) > 0 && request.Messages[0].Role == "system" {
+			request.Messages[0].Role = "developer"
+		}
+		info.ReasoningEffort = request.ReasoningEffort
 	}
 
 	return request, nil

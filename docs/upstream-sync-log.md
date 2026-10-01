@@ -3236,3 +3236,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: existing pricing option validation, database locking and transactions, billing expression semantics, task settlement, all supported databases, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable; the upstream test fixture infrastructure is not present in this checkout, so focused source-level coverage was added instead.
 - Commit/push: source commit `705e82dd6` pushed to `origin/main`.
+
+## 2026-10-01 - Sixth functional upstream batch: model-specific GPT-6 chat capabilities
+
+- Upstream reference: `d0cb7347c`; current upstream tip remains `56758edf9` with no newer commits.
+- Integrated: OpenAI chat compatibility now uses an explicit capability matrix. GPT-6 Sol/Luna use `max_completion_tokens` and retain sampling parameters only with no reasoning or `none`; GPT-6 Astra uses `max_completion_tokens` but rejects sampling fields; strict GPT-5 matching remains intact; unknown future generations such as GPT-7 retain their request parameters. Model suffix handling is limited to recognized OpenAI families.
+- Already present: existing reasoning suffix parsing, developer-role conversion, pointer-valued token fields, and shared request DTOs were reused.
+- Deferred: the upstream controller channel-test suite depends on a capability refactor and test helpers absent from this checkout; Responses custom tools, scoped access tokens, administrator step-up verification, and Responses WebSocket settings remain separate migrations.
+- Preserved: non-OpenAI/custom model requests, OpenRouter reasoning conversion, GPT-4 behavior, billing, all supported databases, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable; focused DTO and adaptor regression tests were added.
+- Commit/push: pending.
