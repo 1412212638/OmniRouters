@@ -3206,3 +3206,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: current native image and Responses routes, task billing safety, provider capability checks, protected project identifiers, and unrelated untracked worktree files.
 - Validation: Node syntax check and `git diff --check` passed; focused Go regression coverage was added but Go tests/gofmt remain unavailable because the local Go toolchain is not installed.
 - Commit/push: pending.
+
+## 2026-10-01 - Third functional upstream batch: preserve Claude native request fields
+
+- Upstream references: `c2b7a9a9e0` and `789c970199`; current upstream tip remains `56758edf9` with no newer commits.
+- Integrated: Claude message DTOs now retain per-message `output_config`, and native Claude requests retain the `safeguards` object while being decoded and re-encoded for upstream calls. Added a JSON round-trip regression test covering both fields.
+- Already present: request-level Claude `output_config`, shared Claude conversion, and existing reasoning extraction were reused without changing their behavior.
+- Deferred: the larger `335ebcff7` Responses custom-tool conversion, scoped access tokens, administrator step-up verification, and the frontend-specific Responses WebSocket setting require separate migrations or frontend adaptation and were not mixed into this batch.
+- Preserved: existing Claude routing, reasoning controls, pass-through filtering, billing, all supported databases, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable.
+- Commit/push: pending.
