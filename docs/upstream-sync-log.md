@@ -1,5 +1,15 @@
 # Upstream Sync Log
 
+## 2026-10-02 - Support the upstream openai_image task-plugin protocol
+
+- Upstream commit: `03563a4a7` (`feat(plugins): serve OpenAI Images API through task plugins`).
+- Integrated: registered the `openai_image` host protocol so plugin metadata containing this claim passes review and upgrade validation; mapped `POST /v1/images/generations` and `POST /v1/images/edits`; added the synchronous image task bridge with durable submission, asynchronous task polling, plugin rendering, URL/Base64 response handling, and OpenAI-compatible errors; routed unclaimed image models through the existing relay fallback; and exposed the two protocol endpoints in the default task-plugin UI.
+- Already present: existing native image relay behavior, task billing and settlement, plugin generation pinning, and marketplace metadata validation rules.
+- Deferred: the broader upstream provider migration and unrelated Alibaba/Doubao adaptor changes from `03563a4a7`; those require separate compatibility review and are not needed to fix the plugin review/upgrade error.
+- Preserved: protected project identifiers, existing image routes outside the shared protocol endpoints, Friends Hub/Image Studio/Command Menu/Wallet changes, and unrelated untracked worktree files.
+- Validation: `gofmt` completed; `go build ./controller ./router ./pkg/jsplugin` passed; `go test ./pkg/jsplugin` passed with the new host-protocol mapping regression test; full controller/router test runs remain blocked by pre-existing repository test failures unrelated to this change. `git diff --check` passed.
+- Commit/push: pending local commit; not pushed because the user reported the error but did not request a GitHub push in this turn.
+
 ## 2026-10-01 - Friends Hub first batch: first-top-up cashback ledger
 
 - Local reason: the confirmed Friends Hub plan needs a separate, auditable cashback path when an invited friend completes their first successful wallet top-up, while preserving the existing fixed registration rewards.

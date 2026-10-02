@@ -41,7 +41,12 @@ type pluginProtocolBridgeDeps struct {
 	admissionTimeout   time.Duration
 	getByTaskId        func(int, string) (*model.Task, bool, error)
 	resolvePlugin      func(constant.TaskPlatform) (*pluginruntime.LoadedPlugin, *pluginruntime.RoutingGeneration, bool)
+	imagePollInterval  time.Duration
+	pollTask           func(context.Context, *model.Task) error
+	downloadImage      func(url string) (mimeType string, base64Data string, err error)
 }
+
+const taskPluginImagePollInterval = 3 * time.Second
 
 func defaultPluginProtocolBridgeDeps() pluginProtocolBridgeDeps {
 	timeout := time.Duration(constant.TaskPluginProtocolTimeoutSeconds) * time.Second
@@ -77,6 +82,9 @@ func defaultPluginProtocolBridgeDeps() pluginProtocolBridgeDeps {
 		admissionTimeout:   pluginruntime.DefaultCallTimeout,
 		getByTaskId:        model.GetByTaskId,
 		resolvePlugin:      resolveTaskPluginForProtocolRetrieve,
+		imagePollInterval:  taskPluginImagePollInterval,
+		pollTask:           pollTaskPluginImageTask,
+		downloadImage:      service.GetImageFromUrl,
 	}
 }
 
@@ -126,6 +134,15 @@ func (d pluginProtocolBridgeDeps) withDefaults() pluginProtocolBridgeDeps {
 	}
 	if d.resolvePlugin == nil {
 		d.resolvePlugin = defaults.resolvePlugin
+	}
+	if d.imagePollInterval <= 0 {
+		d.imagePollInterval = defaults.imagePollInterval
+	}
+	if d.pollTask == nil {
+		d.pollTask = defaults.pollTask
+	}
+	if d.downloadImage == nil {
+		d.downloadImage = defaults.downloadImage
 	}
 	return d
 }

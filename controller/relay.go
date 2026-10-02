@@ -507,11 +507,14 @@ func RelayTaskPluginEndpoint(c *gin.Context, fallback gin.HandlerFunc) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "Task protocol request failed", "type": "new_api_error", "code": "task_protocol_error"}})
 		return
 	}
-	if pinned.Protocol != "openai_responses" {
+	switch pinned.Protocol {
+	case "openai_responses":
+		serveTaskPluginProtocol(c, pinned, defaultPluginProtocolBridgeDeps())
+	case pluginruntime.ProtocolOpenAIImage:
+		serveTaskPluginImageProtocol(c, pinned, defaultPluginProtocolBridgeDeps())
+	default:
 		fallback(c)
-		return
 	}
-	serveTaskPluginProtocol(c, pinned, defaultPluginProtocolBridgeDeps())
 }
 
 func RelayTaskFetch(c *gin.Context) {

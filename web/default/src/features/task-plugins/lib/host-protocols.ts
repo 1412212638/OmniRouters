@@ -27,4 +27,8 @@ export const HOST_PROTOCOL_ENDPOINTS: Record<string, HostProtocolEndpoint[]> = {
     { method: 'GET', path: '/v1/videos/{task_id}' },
     { method: 'GET', path: '/v1/videos/{task_id}/content' },
   ],
+  openai_image: [
+    { method: 'POST', path: '/v1/images/generations' },
+    { method: 'POST', path: '/v1/images/edits' },
+  ],
 }

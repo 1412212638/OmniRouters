@@ -22,14 +22,14 @@ const (
 )
 
 type Route struct {
-	Method      string    `json:"method"`
-	Path        string    `json:"path"`
-	Type        RouteType `json:"type"`
-	Action      string    `json:"action,omitempty"`
-	Decode      string    `json:"decode,omitempty"`
-	Render      string    `json:"render,omitempty"`
-	RetainResult bool `json:"retainResult,omitempty"`
-	TaskIDParam string    `json:"taskIdParam,omitempty"`
+	Method       string    `json:"method"`
+	Path         string    `json:"path"`
+	Type         RouteType `json:"type"`
+	Action       string    `json:"action,omitempty"`
+	Decode       string    `json:"decode,omitempty"`
+	Render       string    `json:"render,omitempty"`
+	RetainResult bool      `json:"retainResult,omitempty"`
+	TaskIDParam  string    `json:"taskIdParam,omitempty"`
 	// Models restricts this route to the listed models. The host matches the
 	// canonical top-level "model" body field before any JS hook runs; empty
 	// means unrestricted. Must be a subset of meta.models.
@@ -89,7 +89,14 @@ var hostProtocols = []HostProtocolDefinition{
 		{Name: "retrieve", Methods: []string{http.MethodGet}, Path: "/v1/videos/:task_id", BodyKinds: []BodyKind{BodyNone}, RequiredProtocolMembers: []string{"render"}},
 		{Name: "content", Methods: []string{http.MethodGet, http.MethodHead}, Path: "/v1/videos/:task_id/content", BodyKinds: []BodyKind{BodyNone}, RequiredDriverHooks: []string{"listArtifacts", "buildContentRequest"}},
 	}},
+	{Name: ProtocolOpenAIImage, Operations: []HostProtocolOperation{
+		{Name: "generate", Methods: []string{http.MethodPost}, Path: "/v1/images/generations", BodyKinds: []BodyKind{BodyJSON}, ModelField: "model", RequiredProtocolMembers: []string{"decodeRequest", "render"}},
+		{Name: "edit", Methods: []string{http.MethodPost}, Path: "/v1/images/edits", BodyKinds: []BodyKind{BodyJSON, BodyMultipart}, ModelField: "model", RequiredProtocolMembers: []string{"decodeRequest", "render"}},
+	}},
 }
+
+// ProtocolOpenAIImage is the host protocol serving the OpenAI Images API.
+const ProtocolOpenAIImage = "openai_image"
 
 func HostProtocol(name string) (HostProtocolDefinition, bool) {
 	for _, definition := range hostProtocols {

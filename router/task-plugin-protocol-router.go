@@ -38,7 +38,7 @@ func pinTypeSafeRoute(c *gin.Context) {
 	if !ok || binding.Plugin == nil || binding.Plugin.Meta.Key != "typesafe" {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": gin.H{
 			"message": "TypeSafe native route is unavailable; install and enable the TypeSafe plugin",
-			"type": "new_api_error", "code": "task_plugin_route_unavailable",
+			"type":    "new_api_error", "code": "task_plugin_route_unavailable",
 		}})
 		return
 	}
@@ -55,6 +55,14 @@ func taskPluginProtocolHandlers(protocol, operation string) ([]gin.HandlerFunc, 
 			middleware.ModelRequestRateLimit(), middleware.PinTaskPluginEndpoint(), middleware.PrepareTaskPluginEndpoint(), middleware.Distribute(),
 			func(c *gin.Context) {
 				controller.RelayTaskPluginEndpoint(c, func(c *gin.Context) { controller.Relay(c, types.RelayFormatOpenAIResponses) })
+			},
+		}, nil
+	case "openai_image.generate", "openai_image.edit":
+		return []gin.HandlerFunc{
+			middleware.RouteTag("relay"), middleware.SystemPerformanceCheck(), middleware.TokenAuth(),
+			middleware.ModelRequestRateLimit(), middleware.PinTaskPluginEndpoint(), middleware.PrepareTaskPluginEndpoint(), middleware.Distribute(),
+			func(c *gin.Context) {
+				controller.RelayTaskPluginEndpoint(c, func(c *gin.Context) { controller.Relay(c, types.RelayFormatOpenAIImage) })
 			},
 		}, nil
 	case "openai_video.create":
