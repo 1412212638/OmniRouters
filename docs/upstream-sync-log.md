@@ -8,7 +8,7 @@
 - Deferred: the broader upstream provider migration and unrelated Alibaba/Doubao adaptor changes from `03563a4a7`; those require separate compatibility review and are not needed to fix the plugin review/upgrade error.
 - Preserved: protected project identifiers, existing image routes outside the shared protocol endpoints, Friends Hub/Image Studio/Command Menu/Wallet changes, and unrelated untracked worktree files.
 - Validation: `gofmt` completed; `go build ./controller ./router ./pkg/jsplugin` passed; `go test ./pkg/jsplugin` passed with the new host-protocol mapping regression test; full controller/router test runs remain blocked by pre-existing repository test failures unrelated to this change. `git diff --check` passed.
-- Commit/push: pending local commit; not pushed because the user reported the error but did not request a GitHub push in this turn.
+- Commit/push: source commit `a11154870` (`fix(plugins): support openai image protocol`); not pushed because the user reported the error but did not request a GitHub push in this turn.
 
 ## 2026-10-01 - Friends Hub first batch: first-top-up cashback ledger
 
