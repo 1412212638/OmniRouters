@@ -3503,4 +3503,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: full upstream provider-tab group pricing redesign, request simulation panel, bulk-copy workflow, localized usage-example cards, and upstream visual editor internals that depend on the newer `web/src` design system.
 - Preserved: existing default-theme layout, billing expression backend contract, model/group pricing behavior, protected project identifiers, authentication/Friends Hub changes, and unrelated untracked worktree files.
 - Validation: `bun run build`, `bun run format:check`, targeted frontend type-check filtering, and `git diff --check` passed. Full `bun run typecheck` remains blocked by pre-existing repository errors (missing test dependencies, duplicate redemption imports, and unrelated model/settings type errors).
-- Commit: `3dbefcb04` (`feat(pricing): add task usage pricing matrix and plugin details`). Push: not performed in this turn; the commit remains local.
+- Commit: `3d7b32125` (`feat(pricing): add task usage pricing matrix and plugin details`). Push: confirmed on `origin/main` at `3d7b32125279f8627682b4ffe7ddad23c17cb3e8`.
