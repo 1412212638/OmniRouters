@@ -5739,6 +5739,15 @@
     "Inviter reward": "Phần thưởng người mời",
     "Invitee reward": "Phần thưởng người được mời",
     "This reward is credited directly to the invited friend’s wallet.": "Phần thưởng này được cộng trực tiếp vào ví của người bạn được mời.",
-    "No cashback is created after subsequent top-ups.": "Các lần nạp tiền tiếp theo không tạo thêm hoàn tiền."
+    "No cashback is created after subsequent top-ups.": "Các lần nạp tiền tiếp theo không tạo thêm hoàn tiền.",
+    "Task pricing": "Định giá tác vụ",
+    "Usage based": "Theo mức sử dụng",
+    "Prices are charged according to the task usage fields shown below.": "Giá được tính theo các trường mức sử dụng tác vụ hiển thị bên dưới.",
+    "Task condition": "Điều kiện tác vụ",
+    "Configure task prices by usage fields such as duration, count, or resolution. The generated expression is used for billing.": "Cấu hình giá tác vụ theo thời lượng, số lần hoặc độ phân giải. Biểu thức được tạo sẽ dùng để tính phí.",
+    "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.": "Giá được tính theo đơn vị sử dụng. Mức dùng token được tính theo mỗi 1 triệu token.",
+    "This model has no enum conditions, so one base pricing row is shown.": "Mô hình này không có điều kiện enum nên hiển thị một dòng giá cơ bản.",
+    "Expression will be generated after entering prices": "Biểu thức sẽ được tạo sau khi nhập giá",
+    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "Hãy kiểm tra biểu thức được tạo trước khi áp dụng vào bản nháp. Biểu thức sẽ không tự động lưu."
   }
 }

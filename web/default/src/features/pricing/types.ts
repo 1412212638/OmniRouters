@@ -30,6 +30,7 @@ export type SoraPerRequestPricing = {
 }
 
 export type PricingModel = {
+  billing_plugin_variants?: BillingPluginVariant[]
   id: number
   model_name: string
   description?: string
@@ -58,6 +59,8 @@ export type PricingModel = {
   billing_mode?: string
   /** Raw expression describing dynamic / tiered billing */
   billing_expr?: string
+  billing_usage_schema?: BillingUsageSchema
+  billing_usage_examples?: BillingUsageExample[]
   /** Optional Sora-specific per-request pricing configuration */
   sora_per_request_pricing?: SoraPerRequestPricing
   /** Pricing version returned by backend, useful for cache busting */
@@ -130,3 +133,31 @@ export type PriceType =
   | 'audio_input'
   | 'audio_output'
 export type QuotaType = 0 | 1 // 0: token-based, 1: per-request
+
+export type BillingUsageUnit = 'second' | 'count' | 'token' | 'credit'
+
+export type BillingUsageFieldSchema = {
+  type?: 'number' | 'boolean'
+  unit?: BillingUsageUnit
+  unitLabel?: string | Record<string, string>
+  enum?: string[]
+  enumLabels?: Record<string, string | Record<string, string>>
+  description?: string | Record<string, string>
+}
+
+export type BillingUsageSchema = Record<string, BillingUsageFieldSchema>
+
+export type BillingUsageExample = {
+  label: string
+  facts: Record<string, string | number>
+}
+
+export type BillingPluginVariant = {
+  plugin_key: string
+  plugin_name: string
+  icon?: string
+  billing_expr: string
+  billing_mode?: 'ratio' | 'tiered_expr'
+  billing_usage_schema: BillingUsageSchema
+  billing_usage_examples?: BillingUsageExample[]
+}

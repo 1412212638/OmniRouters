@@ -5738,6 +5738,15 @@
     "Inviter reward": "Награда пригласившему",
     "Invitee reward": "Награда приглашённому",
     "This reward is credited directly to the invited friend’s wallet.": "Эта награда зачисляется непосредственно в кошелёк приглашённого друга.",
-    "No cashback is created after subsequent top-ups.": "После последующих пополнений кэшбэк не начисляется."
+    "No cashback is created after subsequent top-ups.": "После последующих пополнений кэшбэк не начисляется.",
+    "Task pricing": "Цены задач",
+    "Usage based": "По объёму использования",
+    "Prices are charged according to the task usage fields shown below.": "Цена рассчитывается по указанным ниже полям использования задачи.",
+    "Task condition": "Условие задачи",
+    "Configure task prices by usage fields such as duration, count, or resolution. The generated expression is used for billing.": "Настройте цены задач по длительности, количеству или разрешению. Сгенерированное выражение используется для расчёта.",
+    "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.": "Цена рассчитывается за единицу использования. Токены оцениваются за 1 млн токенов.",
+    "This model has no enum conditions, so one base pricing row is shown.": "У этой модели нет условий-перечислений, поэтому показана одна базовая строка.",
+    "Expression will be generated after entering prices": "Выражение будет создано после ввода цен",
+    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "Проверьте созданное выражение перед применением к черновику. Оно не сохраняется автоматически."
   }
 }

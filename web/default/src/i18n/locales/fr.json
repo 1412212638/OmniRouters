@@ -5738,6 +5738,15 @@
     "Inviter reward": "Récompense du parrain",
     "Invitee reward": "Récompense de l’invité",
     "This reward is credited directly to the invited friend’s wallet.": "Cette récompense est créditée directement sur le portefeuille de l’ami invité.",
-    "No cashback is created after subsequent top-ups.": "Aucun remboursement n’est créé après les rechargements suivants."
+    "No cashback is created after subsequent top-ups.": "Aucun remboursement n’est créé après les rechargements suivants.",
+    "Task pricing": "Tarification des tâches",
+    "Usage based": "Selon l’usage",
+    "Prices are charged according to the task usage fields shown below.": "Les prix sont calculés selon les champs d’utilisation de la tâche affichés ci-dessous.",
+    "Task condition": "Condition de tâche",
+    "Configure task prices by usage fields such as duration, count, or resolution. The generated expression is used for billing.": "Configurez les prix des tâches selon la durée, le nombre ou la résolution. L’expression générée sert à la facturation.",
+    "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.": "Les prix sont calculés par unité d’utilisation. Les tokens sont tarifés par million.",
+    "This model has no enum conditions, so one base pricing row is shown.": "Ce modèle n’a aucune condition énumérée ; une ligne de base est affichée.",
+    "Expression will be generated after entering prices": "L’expression sera générée après la saisie des prix",
+    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "Vérifiez l’expression générée avant de l’appliquer au brouillon. Elle ne sera pas enregistrée automatiquement."
   }
 }

@@ -3494,3 +3494,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: OAuth state handling, invitation-code capture, authentication routes, protected project identifiers, and unrelated untracked worktree files.
 - Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
 - Commit/push: pending source commit and push.
+
+## 2026-10-02 - Add task usage pricing matrix and plugin pricing display
+
+- Upstream commits: `74629e29f` (`feat(plugins): enhance task streaming and model pricing`) and `b932e6d87` (`fix(web): robustly display conditional task billing prices`).
+- Integrated: synchronized the task usage schema and task-tier parser utilities into `web/default`; added task matrix editing for duration/count/token/resolution-style usage fields; generated billing expressions from the matrix and retained raw expression editing for unsupported shapes; added plugin-specific matrix editing using each plugin's declared usage schema; extended public model pricing data types for usage schemas and plugin variants; and added task pricing tables to model details, including separate plugin variant pricing sections.
+- Already present: backend plugin usage schema discovery, billing expression validation/storage, quota pre-consume and settlement, plugin billing overrides, group pricing, Sora pricing, and existing token/request pricing UI.
+- Deferred: full upstream provider-tab group pricing redesign, request simulation panel, bulk-copy workflow, localized usage-example cards, and upstream visual editor internals that depend on the newer `web/src` design system.
+- Preserved: existing default-theme layout, billing expression backend contract, model/group pricing behavior, protected project identifiers, authentication/Friends Hub changes, and unrelated untracked worktree files.
+- Validation: `bun run build`, `bun run format:check`, targeted frontend type-check filtering, and `git diff --check` passed. Full `bun run typecheck` remains blocked by pre-existing repository errors (missing test dependencies, duplicate redemption imports, and unrelated model/settings type errors).
+- Commit: `3dbefcb04` (`feat(pricing): add task usage pricing matrix and plugin details`). Push: not performed in this turn; the commit remains local.

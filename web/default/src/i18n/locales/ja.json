@@ -5738,6 +5738,15 @@
     "Inviter reward": "招待者報酬",
     "Invitee reward": "招待された側の報酬",
     "This reward is credited directly to the invited friend’s wallet.": "この報酬は招待された友達のウォレットに直接付与されます。",
-    "No cashback is created after subsequent top-ups.": "その後のチャージではキャッシュバックは発生しません。"
+    "No cashback is created after subsequent top-ups.": "その後のチャージではキャッシュバックは発生しません。",
+    "Task pricing": "タスク料金",
+    "Usage based": "使用量ベース",
+    "Prices are charged according to the task usage fields shown below.": "料金は以下に表示されるタスク使用量フィールドに基づいて計算されます。",
+    "Task condition": "タスク条件",
+    "Configure task prices by usage fields such as duration, count, or resolution. The generated expression is used for billing.": "期間、回数、解像度などの使用量フィールドでタスク料金を設定します。生成された式が請求に使用されます。",
+    "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.": "料金は使用単位ごとに計算されます。トークンは 100 万トークン単位で設定します。",
+    "This model has no enum conditions, so one base pricing row is shown.": "このモデルには列挙条件がないため、基本料金の行を 1 つ表示します。",
+    "Expression will be generated after entering prices": "料金を入力すると式が生成されます",
+    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "下書きに適用する前に生成された式を確認してください。自動保存はされません。"
   }
 }

@@ -5821,6 +5821,15 @@
     "Inviter reward": "邀请者奖励",
     "Invitee reward": "受邀者奖励",
     "This reward is credited directly to the invited friend’s wallet.": "该奖励会直接发放至受邀好友的钱包。",
-    "No cashback is created after subsequent top-ups.": "后续充值不会再产生返现。"
+    "No cashback is created after subsequent top-ups.": "后续充值不会再产生返现。",
+    "Task pricing": "任务定价",
+    "Usage based": "按用量计费",
+    "Prices are charged according to the task usage fields shown below.": "价格根据下方显示的任务用量字段计费。",
+    "Task condition": "任务条件",
+    "Configure task prices by usage fields such as duration, count, or resolution. The generated expression is used for billing.": "根据时长、次数或分辨率等用量字段配置任务价格。生成的表达式将用于计费。",
+    "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.": "价格按用量单位计费。Token 用量按每 100 万 Token 定价。",
+    "This model has no enum conditions, so one base pricing row is shown.": "此模型没有枚举条件，因此显示一行基础价格。",
+    "Expression will be generated after entering prices": "输入价格后将生成表达式",
+    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "应用到草稿前请检查生成的表达式。表达式不会自动保存。"
   }
 }

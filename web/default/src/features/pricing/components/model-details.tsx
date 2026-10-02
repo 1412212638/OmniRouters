@@ -67,6 +67,7 @@ import type {
 import { DynamicPricingBreakdown } from './dynamic-pricing-breakdown'
 import { ModelDetailsApi } from './model-details-api'
 import { ModelDetailsPerformance } from './model-details-performance'
+import { TaskPricingSection } from './task-pricing-section'
 
 // ----------------------------------------------------------------------------
 // Local UI helpers
@@ -588,6 +589,7 @@ function PriceSection(props: {
   usdExchangeRate: number
   tokenUnit: TokenUnit
   showRechargePrice: boolean
+  groupModelRatioExpiry?: Record<string, Record<string, number>>
 }) {
   const { t } = useTranslation()
   const isTokenBased = isTokenBasedModel(props.model)
@@ -1033,7 +1035,6 @@ function GroupPricingSection(props: {
         <div className='space-y-3'>
           {availableGroups.map((group) => {
             const ruleInfo = getRuleInfo(group)
-            const ratio = effectiveGroupRatio[group] || 1
             const formattedPricesByTier =
               formattedPricesByGroup.get(group) ??
               new Map<DynamicPricingTier, Map<string, string>>()
@@ -1311,6 +1312,27 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
             {isDynamic && (
               <DynamicPricingBreakdown billingExpr={props.model.billing_expr} />
             )}
+            <TaskPricingSection
+              model={props.model}
+              priceRate={props.priceRate}
+              usdExchangeRate={props.usdExchangeRate}
+            />
+            {props.model.billing_plugin_variants?.map((variant) => (
+              <TaskPricingSection
+                key={variant.plugin_key}
+                model={{
+                  ...props.model,
+                  billing_plugin_variants: undefined,
+                  billing_mode: variant.billing_mode,
+                  billing_expr: variant.billing_expr,
+                  billing_usage_schema: variant.billing_usage_schema,
+                  billing_usage_examples: variant.billing_usage_examples,
+                }}
+                priceRate={props.priceRate}
+                usdExchangeRate={props.usdExchangeRate}
+                title={`${variant.plugin_name} ${t('Task pricing')}`}
+              />
+            ))}
             <GroupPricingSection
               model={props.model}
               groupRatio={props.groupRatio}

@@ -83,6 +83,7 @@ import {
 } from './model-pricing-core'
 import { PriceInput, PriceLane } from './model-pricing-inputs'
 import { formatPricingNumber } from './pricing-format'
+import { TaskUsagePricingEditor } from './task-usage-pricing-editor'
 import { TieredPricingEditor } from './tiered-pricing-editor'
 import {
   cloneSoraResolutionTiers,
@@ -572,6 +573,13 @@ export const ModelPricingEditorPanel = forwardRef<
     watchedValues.price,
   ])
 
+  const taskUsageSchema = useMemo(() => {
+    const row = pluginRows.find(
+      (item) => Object.keys(item.usageSchema || {}).length > 0
+    )
+    return row?.usageSchema
+  }, [pluginRows])
+
   const validatePricingValues = useCallback(() => {
     if (
       pricingMode === 'per-token' &&
@@ -1059,6 +1067,16 @@ export const ModelPricingEditorPanel = forwardRef<
                     </FieldGroup>
                   </TabsContent>
 
+                  {taskUsageSchema && pricingMode === 'tiered_expr' && (
+                    <TaskUsagePricingEditor
+                      schema={taskUsageSchema}
+                      expression={billingExpr}
+                      onExpressionChange={(nextExpression) => {
+                        setBillingExpr(nextExpression)
+                        setPricingMode('tiered_expr')
+                      }}
+                    />
+                  )}
                   <TabsContent value='tiered_expr' className='pt-0'>
                     <FieldGroup className='gap-5'>
                       <TieredPricingEditor
@@ -1119,19 +1137,40 @@ export const ModelPricingEditorPanel = forwardRef<
                                   </span>
                                 )}
                               </div>
-                              <Textarea
-                                value={
-                                  pluginBillingExpressions[plugin.key] || ''
-                                }
-                                placeholder='u("seconds") * 0.3'
-                                className='min-h-20 font-mono text-xs'
-                                onChange={(event) =>
-                                  setPluginBillingExpressions((current) => ({
-                                    ...current,
-                                    [plugin.key]: event.target.value,
-                                  }))
-                                }
-                              />
+                              {(!plugin.usageSchema ||
+                                Object.keys(plugin.usageSchema).length ===
+                                  0) && (
+                                <Textarea
+                                  value={
+                                    pluginBillingExpressions[plugin.key] || ''
+                                  }
+                                  placeholder='u("seconds") * 0.3'
+                                  className='min-h-20 font-mono text-xs'
+                                  onChange={(event) =>
+                                    setPluginBillingExpressions((current) => ({
+                                      ...current,
+                                      [plugin.key]: event.target.value,
+                                    }))
+                                  }
+                                />
+                              )}
+                              {plugin.usageSchema &&
+                                Object.keys(plugin.usageSchema).length > 0 && (
+                                  <TaskUsagePricingEditor
+                                    schema={plugin.usageSchema}
+                                    expression={
+                                      pluginBillingExpressions[plugin.key] || ''
+                                    }
+                                    onExpressionChange={(nextExpression) =>
+                                      setPluginBillingExpressions(
+                                        (current) => ({
+                                          ...current,
+                                          [plugin.key]: nextExpression,
+                                        })
+                                      )
+                                    }
+                                  />
+                                )}
                               <FieldDescription className='text-xs leading-5'>
                                 {usageKeys.length > 0
                                   ? t('Available usage fields: {{fields}}', {

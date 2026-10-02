@@ -5820,6 +5820,15 @@
     "Inviter reward": "Inviter reward",
     "Invitee reward": "Invitee reward",
     "This reward is credited directly to the invited friend’s wallet.": "This reward is credited directly to the invited friend’s wallet.",
-    "No cashback is created after subsequent top-ups.": "No cashback is created after subsequent top-ups."
+    "No cashback is created after subsequent top-ups.": "No cashback is created after subsequent top-ups.",
+    "Task pricing": "Task pricing",
+    "Usage based": "Usage based",
+    "Prices are charged according to the task usage fields shown below.": "Prices are charged according to the task usage fields shown below.",
+    "Task condition": "Task condition",
+    "Configure task prices by usage fields such as duration, count, or resolution. The generated expression is used for billing.": "Configure task prices by usage fields such as duration, count, or resolution. The generated expression is used for billing.",
+    "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.": "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.",
+    "This model has no enum conditions, so one base pricing row is shown.": "This model has no enum conditions, so one base pricing row is shown.",
+    "Expression will be generated after entering prices": "Expression will be generated after entering prices",
+    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "Review the generated expression before applying it to the draft. It will not be saved automatically."
   }
 }
