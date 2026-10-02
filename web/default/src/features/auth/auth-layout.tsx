@@ -495,6 +495,11 @@ const authClassicStyles = `
     padding: clamp(104px, 18svh, 168px) 20px 92px;
   }
 
+  .auth-login-shell.auth-sign-in-shell .auth-classic-form-column {
+    align-items: center;
+    padding: 72px 20px 92px;
+  }
+
   .auth-login-shell .auth-classic-panel-wrap {
     width: min(390px, 100%);
   }
@@ -546,9 +551,16 @@ export function AuthLayout({ children, variant = 'default' }: AuthLayoutProps) {
   const { t } = useTranslation()
   const { systemName, logo, loading } = useSystemConfig()
   const isModern = variant === 'modern' || variant === 'sign-in'
+  const isSignIn = variant === 'sign-in'
 
   return (
-    <div className={cn('auth-classic-shell', isModern && 'auth-login-shell')}>
+    <div
+      className={cn(
+        'auth-classic-shell',
+        isModern && 'auth-login-shell',
+        isSignIn && 'auth-sign-in-shell'
+      )}
+    >
       <style>{authClassicStyles}</style>
       <PublicHeader
         showAuthButtons={false}

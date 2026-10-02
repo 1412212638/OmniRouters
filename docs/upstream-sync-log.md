@@ -3435,6 +3435,36 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
 - Commit/push: pending source commit and push.
 
+## 2026-10-02 - Use the modern layout during OAuth callbacks
+
+- Local reason: OAuth callback loading states were still rendered with the legacy authentication shell before redirecting to the dashboard.
+- Integrated: the OAuth callback screen now uses the same modern two-column hero image and theme-aware authentication layout as sign-in, so GitHub, custom OAuth, and other callback flows no longer flash the old page while processing.
+- Already present: provider-specific loading copy, callback processing, binding mode behavior, error handling, and redirect logic were preserved.
+- Deferred: none.
+- Preserved: OAuth state handling, invitation-code capture, protected project identifiers, and unrelated untracked worktree files.
+- Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Remove duplicate registration consent checkbox
+
+- Local reason: the registration form showed both a required checkbox and a footer stating that creating an account constitutes agreement.
+- Integrated: removed the duplicate checkbox and all client-side checkbox gating from email registration and WeChat/OAuth registration controls. The bottom-centered terms notice remains the single visible consent statement.
+- Already present: agreement and privacy links, registration API behavior, validation, invitation-code handling, and account creation flow were preserved.
+- Deferred: none.
+- Preserved: sign-in consent presentation, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Center the mobile sign-in content
+
+- Local reason: the mobile sign-in content was aligned toward the top of the viewport after the responsive layout change.
+- Integrated: mobile sign-in now vertically centers the welcome heading, OAuth controls, email entry, and invitation-code area while keeping the navigation header and bottom legal notice visible. Registration and recovery pages retain their scroll-friendly responsive positioning.
+- Already present: desktop two-column proportions, mobile hero hiding, theme handling, and authentication behavior were preserved.
+- Deferred: none.
+- Preserved: OAuth callback layout, registration consent behavior, invitation-code handling, protected project identifiers, and unrelated untracked worktree files.
+- Validation: pending.
+- Commit/push: pending source commit and push.
+
 ## 2026-10-02 - Compact invitation-code copy
 
 - Local reason: reduce visual noise in the invitation-code area while keeping the new-account-only rule explicit.
