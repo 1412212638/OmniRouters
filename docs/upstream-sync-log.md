@@ -6,7 +6,7 @@
 - Changed: added a card-only range calculator for mutually exclusive time-based request rules and updated the default model plaza card to use it. The DeepSeek V4.1 Flash preset now renders its off-peak base and 2x peak prices as input/output ranges; unsupported or overlapping rule expressions retain the `Dynamic Pricing` fallback.
 - Preserved: the model details drawer, detailed dynamic-pricing breakdown, pricing table, raw billing expressions, all non-time request rules, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` and the `web/default` production build passed. The repository-wide protected-header format check still reports existing changes in unrelated working-tree files; targeted Oxfmt completed for the two changed pricing files, while targeted Oxlint reports only pre-existing findings in `index.tsx`.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-10-03 - Add DeepSeek V4.1 Flash peak/off-peak pricing preset
 
@@ -14,7 +14,7 @@
 - Changed: added a localized time-based preset with the configured off-peak base expression (`p * 1 + c * 4 + cr * 0.02`) and two Shanghai weekday peak windows, 09:00-12:00 and 14:00-18:00, each multiplied by 2. Weekends and all other times fall back to the base off-peak prices. Fixed dynamic-pricing condition summaries so weekday ranges render localized weekday names rather than misleading hour-like values.
 - Preserved: existing model price fields, visual/raw expression modes, request-rule semantics, all other presets, classic frontend behavior, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check`, locale JSON parsing, and `bun run build` in `web/default` passed. Targeted Oxlint still reports pre-existing findings in the edited editor file (array-index keys, nested ternary, and other existing style rules); no new finding was isolated to the preset block.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-10-02 - Support the upstream openai_image task-plugin protocol
 
@@ -72,7 +72,7 @@
 - Changed: added the authenticated `/pg/images/source` endpoint, which uses the existing SSRF-protected image downloader and size limits to return a controlled data URL; Image Studio now uses it for cross-origin references before OpenAI-compatible multipart or Gemini data URL editing.
 - Preserved: normal image generation, same-origin/data/blob image handling, contextual edit request formats, billing, model-specific parameters, and provider URL protection.
 - Validation: targeted frontend Oxfmt/Oxlint, production `bun run build`, and `git diff --check` passed. Go formatting/tests were unavailable because the Go toolchain is not installed locally.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-27 - Present Image Studio results as conversational generations
 
@@ -112,7 +112,7 @@
 - Changed: added `/pg/images/edits`; the Image Studio keeps generated results, selects a reference image, sends OpenAI-compatible edits as multipart form data, and sends Gemini/Vertex edits as JSON data URLs; Gemini image adapters now convert the reference into `inlineData` for `generateContent`.
 - Preserved: first-generation behavior, image model/group loading, count limits, MIME-aware downloads, billing flow, Chat layout, and existing standard image routes.
 - Validation: changed frontend files passed Oxfmt, Oxlint, and targeted typecheck; production build passed. `git diff --check` passed. Go tests/gofmt were not run because the Go toolchain is unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-26 - Align image playground with chat playground layout
 
@@ -120,7 +120,7 @@
 - Changed: replaced the image page's two-column card layout with the Chat page's full-height conversation area and centered bottom prompt composer; moved image model, group, count, size, and quality controls into the composer while preserving generated image previews, downloads, and clear actions.
 - Preserved: image generation API behavior, model/group loading, Gemini count limits, MIME-aware downloads, authentication guards, and Chat playground layout.
 - Validation: changed-file Oxfmt and Oxlint passed; frontend production build passed. Full typecheck remains limited by existing unrelated repository errors and missing test dependencies.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-24 - Add Studio dropdown to top navigation
 
@@ -128,7 +128,7 @@
 - Changed: replaced only the top-level `Chat` header link with a `Studio` dropdown containing `Chat` (`/playground`) and `Image` (`/image-playground`) entries; preserved all other top navigation links and routes.
 - Preserved: existing backend HeaderNavModules visibility and authentication behavior, sidebar navigation, and all unrelated header actions.
 - Validation: changed-file Oxlint, Oxfmt, typecheck, and `git diff --check` passed. Production build was started but the local process ended before emitting a completion status.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-22 - TypeSafe task pricing display and native performance samples
 
@@ -153,7 +153,7 @@
 - Integrated: registered the gateway-facing TypeSafe POST route as `/v1/systemone` with plugin pinning, authentication, rate limiting, task preparation, distribution, and billing; missing-plugin responses now return explicit JSON 404 errors.
 - Preserved: vendor channels append `/v1/systemone` to their configured base URL, so ZenMux and ModelVerse use `https://zenmux.ai` and `https://api.modelverse.cn` respectively.
 - Validation: added route registration and missing-plugin regression tests; `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-24 - Reorganize Studio sidebar navigation
 
@@ -161,7 +161,7 @@
 - Changed: renamed the sidebar group to `Studio`; renamed the existing Playground item to `Chat`, the image playground item to `Image`, and the dynamic client shortcut item to `Chat Apps`; updated the sidebar module settings labels and descriptions in English and Chinese.
 - Preserved: existing `/playground` and `/image-playground` routes, dynamic preset behavior, route guards, and the `chat.playground` / `chat.chat` sidebar permission keys for backward compatibility.
 - Validation: changed-file Oxlint, Oxfmt, frontend production build, locale JSON parsing, and `git diff --check` passed. Full repository lint and Go tests remain limited by the existing unrelated frontend lint errors and unavailable Go toolchain.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-21 - Accept marketplace route retainResult metadata
 
@@ -169,7 +169,7 @@
 - Integrated: task-plugin route metadata parsing now accepts and validates `retainResult` as a boolean, preserving the value in the route descriptor for host compatibility.
 - Preserved: existing routing, task lifecycle, billing, and protected project identifiers.
 - Validation: `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable in this environment.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-21 - Repair task plugin binding compilation
 
@@ -185,7 +185,7 @@
 - Integrated: Doubao Seedance and Alibaba Wan task plugins now derive usage schemas and pricing profiles from each model's supported resolutions and audio/reference-video capabilities. Unsupported resolutions are rejected before submission; omitted resolutions use the profile's highest supported tier; completion usage ignores out-of-profile values. Audio facts are included for the supported Seedance/Wan models.
 - Deliberately preserved: local plugin routing, image handling, quota validation/saturation, billing settlement, and protected project identifiers. Upstream test additions were not copied because the Alibaba test path is already an untracked local file and frontend pricing files use a different local architecture.
 - Validation: `git diff --check`; JavaScript tests were not run because the required task-plugin runtime/toolchain is unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-21 - New API channels bind multiple task plugins
 
@@ -329,7 +329,7 @@
 - Changed: pass uncached prompt tokens separately, matching the ordinary settlement path; cache rate now uses cached / (cached + uncached).
 - Preserved: billing, quota settlement, usage logs, routing, and provider usage parsing.
 - Validation: `git diff --check`; Go compilation and browser verification unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-13 - Add per-group performance tabs
 
@@ -339,7 +339,7 @@
 - Preserved existing performance collection, billing, permissions, and table
   views.
 - Validation: `git diff --check`; frontend build and Go tests were not run.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-12 - Preserve cache counters in performance group results
 
@@ -633,7 +633,7 @@
 - No task source change was required in this reconciliation. Sora per-request billing, `audio_generation` surcharge, plugin billing, pre-consume, settlement, refunds, payment, mail, and frontend customizations remain preserved.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. GitHub Actions remains the verification gate.
 - Local commit/push: pending on `main`.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-07 (first-round database audit)
 
@@ -641,7 +641,7 @@
 - Already present locally: SQLite WAL, pragma busy timeout, immediate transaction locking, JSON `[]byte`/`string` scanning, `prefill_groups` constraint migration, and Token Key uniqueness migration. These were retained because the local implementations include existing cross-database and project-specific safeguards.
 - No upstream database code was copied in this audit. PostgreSQL pooler handling and migration behavior remain under targeted verification before the next batch.
 - Validation: source comparison and `git diff --check`; real PostgreSQL/MySQL runtime tests remain unavailable in this environment.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-07 (OpenAI model generation compatibility)
 
@@ -649,7 +649,7 @@
 - Preserved: reasoning suffix parsing, channel-specific conversion, Sora/audio pricing, plugin flows and billing.
 - Deferred: upstream's larger capability matrix and extensive tests require model-by-model validation against our custom conversion behavior.
 - Validation: `git diff --check`; Go tests unavailable because the local Go toolchain is not installed.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-07 (Ali image response format)
 
@@ -657,21 +657,21 @@
 - Preserved: image quantity, Sora/audio pricing, plugin task flows, payment behavior, and all quota settlement paths.
 - Already present: upstream response-header timeout, transport safeguards, and the broader plugin task lifecycle changes were compared and retained in their local implementations.
 - Validation: `git diff --check`; Go tests unavailable because the local Go toolchain is not installed.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-07 (wallet fee display adjustment)
 
 - Local request: remove the inline fee preview beside the custom amount and show the fee-inclusive amount in the confirmation dialog.
 - Changed frontend display only: confirmation `You Pay` now shows base amount plus the displayed fee; no backend order, credit, or billing behavior changed.
 - Validation: `git diff --check`; frontend build unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-07 (Waffo Pancake unit price setting)
 
 - Added the existing `WaffoPancakeUnitPrice` option to the Waffo Pancake admin section; `1.05` makes a `$10` recharge quote `$10.50`.
 - Preserved store/product binding, checkout callbacks, settlement and quota credit behavior.
 - Validation: `git diff --check`; frontend build unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-06 (Pancake USD quote display)
 
@@ -2642,7 +2642,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved billing, TPOT, and existing percentile minimum-sample behavior.
 - Validation: `git diff --check`; Go tests were not run because Go is not
   installed in the local environment.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 ## 2026-09-13 - Restore pricing catalog metadata and creation ordering
 
 - Local fix: pricing responses now include model creation time, input/output
@@ -2652,7 +2652,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   display behavior.
 - Validation: `git diff --check`; Go tests were not run because Go is not
   installed locally.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-13 - Fix model pricing page 500 on legacy empty options
   - Local fix: treat empty/null pricing Option values as unconfigured empty maps and emit a diagnostic error log with the affected key.
   - Preserved: all existing pricing expressions, Sora/audio billing, group discounts, plugins, and payment flows.
@@ -2668,130 +2668,130 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Local change: system announcement management list now sorts publish dates from oldest to newest, matching the timeline view.
   - Preserved: timeline ordering, announcement content, types, and expand/collapse behavior.
   - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-13 - Prevent model pricing snapshot panic on malformed completion ratio
   - Local fix: guard the display-only audio comparison against missing/non-finite completion ratios instead of using an unsafe type assertion.
   - Preserved: actual billing, valid pricing, Sora/audio charging, group discounts, plugins, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-13 - Fix MySQL reserved-key query causing options/model-pricing failures
   - Local fix: use the dialect-safe quoted Option key column when reading the Waffo Pancake unit price from the options endpoint; this prevents MySQL 1064 errors from breaking pricing settings.
   - Preserved: existing payment amounts, billing calculations, pricing expressions, Sora/audio billing, and other payment providers.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-13 - Fix billing model pricing page initialization crash
   - Local fix: include the plugin billing expression option in the billing settings defaults so the model pricing editor receives the complete pricing contract.
   - Preserved: existing model pricing, task plugins, Sora/audio billing, group discounts, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-13 - Begin frontend model pricing snapshot integration
   - Local change: added typed snapshot/conversion API clients and initiated snapshot querying in the model pricing card; legacy option data remains the fallback during migration.
   - Preserved: existing editor, save behavior, Sora/audio pricing, group discounts, plugins, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-13 - Add model pricing snapshot adapter boundary
   - Local change: added a typed adapter that maps snapshot options to the legacy editor fields with field-level fallback; no save or billing behavior changes yet.
   - Preserved: existing model pricing editor, Sora/audio billing, plugins, group discounts, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-13 - Connect model pricing snapshot adapter to editor reads
   - Local change: model pricing editor now prefers the snapshot option maps and falls back per field to legacy system options; existing save behavior is unchanged.
   - Preserved: JSON editor, Sora/audio billing, task plugins, group discounts, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-13 - Add model pricing conversion preview UI
   - Local change: model pricing editor now exposes a conversion preview action for legacy pricing and applies the returned expression to the draft without saving automatically.
   - Preserved: existing save flow, Sora/audio pricing, task plugins, group discounts, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-13 - Preserve request rules in conversion preview
   - Local change: conversion preview now splits combined expressions using the shared parser before populating billing and request-rule editor state.
   - Preserved: existing save flow and all billing/payment customizations.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-13 - Re-fetch pricing snapshot after model pricing saves
   - Local change: successful model pricing updates now invalidate and refetch the snapshot query so subsequent rendering uses server-persisted values.
   - Preserved: existing option writes, Sora/audio billing, plugins, group discounts, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Make pricing conversion preview confirmation-based
   - Local change: conversion results now appear in a review dialog and are applied to the draft only after confirmation; no automatic save occurs.
   - Preserved: existing pricing, Sora/audio billing, task plugins, group discounts, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Add conversion preview translations
   - Local change: added English and Chinese translations for the conversion preview action, review dialog, status messages, and expression labels.
   - Preserved: all existing pricing, Sora/audio billing, plugins, group discounts, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Add stream disconnect billing diagnostics
   - Local fix: stream logs now record whether usage was present and whether billing settlement succeeded when a streamed request ends, including `client_gone` cases.
   - Preserved: all quota calculations, pre-consume/settlement decisions, retry behavior, Sora/audio billing, task plugins, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Classify stream usage source before disconnect settlement changes
   - Local fix: stream logs now distinguish missing usage, provider-reported usage, and locally estimated usage using the existing BillingUsage metadata and local token-count marker.
   - Billing impact: diagnostic only; no settlement, pre-consume, retry, or charge amount behavior changed.
   - Preserved: Sora/audio billing, task plugins, payment flows, and non-stream requests.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Add regression coverage for stream usage source classification
   - Local change: added tests covering missing, upstream-reported, estimated, and locally counted usage classifications before disconnect settlement work.
   - Billing impact: tests only; no runtime settlement or stream lifecycle behavior changed.
   - Preserved: all existing billing, retry, Sora/audio, task plugin, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Bounded upstream drain after streamed client disconnect
   - Local fix: the shared stream scanner now keeps consuming the upstream body for up to 10 seconds after `client_gone`, allowing provider terminal usage events to reach existing relay handlers while standard downstream writes remain suppressed by the canceled request context; the body is still force-closed after the bounded window.
   - Billing impact: no pricing, pre-consume, settlement, refund, retry, Sora/audio, or task-plugin formula changes. This only gives existing provider-usage parsers a bounded opportunity to produce actual usage; local-estimate behavior is unchanged and remains separately diagnosed.
   - Preserved: all non-stream requests, normal stream completion, handler-stop behavior, and resource cleanup after timeout.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow. Added/updated stream scanner regression coverage for terminal data after client disconnect.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Protect client-gone settlement from local estimates
   - Local fix: when a streamed request ends with `client_gone`, only provider-reported usage is allowed to drive variable settlement; missing/local-estimated usage settles to zero so pre-consume can be returned instead of charging a partial local estimate. Fixed-price expression settlements remain unchanged.
   - Preserved: normal streams, provider usage settlement, Sora/audio fixed-price behavior, task plugins, retry behavior, group discounts, wallet/payment flows, and non-stream requests.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow. Added usage-source precedence coverage.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Mark manual streaming usage fallbacks as estimated
   - Local fix: OpenAI Responses and streaming TTS paths now mark locally filled token counts explicitly, so client-gone protection cannot mistake fallback counts for provider-reported usage.
   - Preserved: provider usage parsing, normal stream billing, fixed-price billing, Sora/audio behavior, task plugins, retries, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Add client-gone settlement guard coverage
   - Local change: added focused regression cases for normal streams, missing usage, local estimates, and provider-reported usage at the client-gone settlement boundary.
   - Billing impact: tests only; no additional runtime pricing behavior beyond the guarded settlement path.
   - Preserved: all existing billing and provider flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Preserve Claude fallback usage classification
   - Local fix: Claude stream finalization now marks the native BillingUsage snapshot as estimated when missing completion/input fields were filled by local text counting, preventing a partial fallback from being treated as fully provider-reported usage after `client_gone`.
   - Preserved: complete Claude usage, normal settlement, cache fields, tool billing, Sora/audio, plugins, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Mark disconnects in direct stream handlers
   - Local fix: Cohere, Tencent, Zhipu, and Ollama direct scanner paths now record `client_gone` when the downstream request context is canceled; Ollama's empty disconnected usage is explicitly marked as local/missing rather than provider-reported.
   - Billing impact: no normal usage, pricing, pre-consume, settlement, refund, retry, Sora/audio, plugin, or payment formula changes. The existing client-gone guard can now recognize these direct handlers and avoid charging their local fallback usage.
   - Preserved: normal stream responses and each provider's existing parser/output behavior.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Add direct-handler disconnect regression coverage
   - Local change: added a focused test proving a canceled downstream request initializes stream status and records `client_gone` for direct scanner implementations.
   - Billing impact: tests only; no additional runtime pricing or settlement changes.
   - Preserved: all existing provider, billing, task-plugin, and payment behavior.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Add bounded Cohere stream drain
   - Local fix: the Cohere direct stream handler now keeps parsing provider lines for up to the shared 10-second disconnect window, suppresses drained output, and closes/joins the scanner on timeout so terminal provider usage can still be captured without a goroutine leak.
   - Billing impact: no pricing or settlement formula changes; only terminal provider usage already parsed by the handler can affect billing.
   - Preserved: normal Cohere output format, final usage parsing, fallback estimation, retry behavior, Sora/audio, task plugins, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Make Cohere drain cancellation leak-safe
   - Local fix: Cohere scanner delivery can now be canceled while blocked on its data channel; normal completion, client disconnect, and drain timeout all join the scanner before returning.
   - Billing impact: no pricing or settlement formula changes; terminal provider usage remains the only usage recovered during drain.
   - Preserved: normal Cohere streaming, fallback estimation, retries, Sora/audio, task plugins, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Finalize streaming disconnect billing hardening batch
   - Local batch: finalized the shared stream drain, usage-source classification, client-gone settlement guard, manual fallback markers, direct-handler disconnect status, Cohere drain, and Zhipu metadata drain work recorded above.
   - Preserved: Sora/audio billing, task plugins, retries, group discounts, wallet/payment flows, and all unrelated untracked workspace files.
@@ -2802,13 +2802,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Billing impact: no pricing or settlement formula changes; only provider metadata already parsed by the handler can affect billing.
   - Preserved: normal Zhipu data/meta output, fallback behavior, retries, Sora/audio, task plugins, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Preserve buffered Zhipu terminal metadata
   - Local fix: after the Zhipu scanner completion signal, the disconnect drain now non-blockingly consumes residual buffered `meta` frames before settlement.
   - Billing impact: no pricing or settlement formula changes; this only prevents an already-read provider usage frame from being dropped at channel shutdown.
   - Preserved: normal Zhipu output, fallback behavior, retries, Sora/audio, task plugins, and payment flows.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-14 - Expose pricing conversion preview and task-plugin pricing in the model editor
   - Local fix: added a page-level legacy pricing conversion dialog with model selection, backend preview, draft-only application, and the existing explicit save step. The model editor now shows compatible task plugins, their declared usage fields, and per-plugin expression overrides; plugin-only model names are included in the pricing table and marked with a plugin badge.
   - Backend hardening: plugin billing option updates now participate in pricing refresh and are validated against the installed plugin model/schema before persistence.
@@ -2821,31 +2821,31 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Billing impact: no change to pricing, pre-consume, settlement, refund, retry, Sora/audio, task-plugin, or payment logic. The bounded drain only controls how long existing provider parsers may wait for terminal provider-reported usage after `client_gone`; local-estimate billing protection remains unchanged.
   - Preserved: upstream response-header wait, streaming timeout, normal stream behavior, downstream cancellation, body cleanup, and all unrelated untracked workspace files.
   - Validation: `git diff --check`; local compilation/tests not run per source-only workflow. Checked that all former `ClientGoneDrainTimeout` references use the shared runtime getter.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Clarify model pricing rule multipliers in model details
   - Local fix: the pricing catalog now includes the resolved model-specific multiplier per group; the model details panel separately shows group ratio, model ratio, effective ratio, and active expiration time.
   - Billing impact: no pricing calculation, pre-consume, settlement, refund, or expression evaluation changes; this is display metadata only.
   - Preserved: existing model pricing, discount rules, expression pricing, group filtering, classic frontend, and protected project identifiers.
   - Validation: `git diff --check`; Go/frontend build not run because Go is unavailable and this source-only change does not require local image builds.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Restore Sora tier preview data in model details
   - Local fix: include enabled Sora per-request resolution pricing in the model catalog response so the existing model-details preview can render each resolution tier again.
   - Billing impact: no change to Sora request calculation, group multipliers, pre-consume, settlement, refund, or other pricing logic; this only restores display metadata.
   - Preserved: existing model details layout, group pricing display, expression pricing, classic frontend, and protected project identifiers.
   - Validation: `git diff --check`; Go/frontend build not run because Go is unavailable and this is a source-only metadata fix.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Apply model pricing rule multiplier in normal billing paths
   - Local fix: the shared group-ratio resolver now applies the active model-specific multiplier, including user-specific overrides, before pre-consume and settlement; logs retain base, model, and effective group ratios separately.
   - Billing impact: intentional correction for configured model pricing rules that were previously displayed and resolved as the base group ratio in ordinary text billing. Rules without a model multiplier remain unchanged.
   - Preserved: expression evaluation, expiration checks, group fallback behavior, Sora/task billing, refunds, and protected project identifiers.
   - Validation: `git diff --check`; Go build/tests not run because Go is unavailable.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Simplify model catalog ratio display
   - Local fix: model details now show only the final effective multiplier in the group pricing table, removing the redundant base/model/effective chain; diagnostic ratio fields remain available in usage-log details.
   - Billing impact: no change to billing or settlement; display-only simplification.
   - Preserved: model rule multiplier application, expiration handling, expression pricing, Sora/task billing, and protected project identifiers.
   - Validation: `git diff --check`; Go/frontend build not run because Go is unavailable.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Fix model pricing expression conversion preview feedback
   - Local fix: imported the frontend toast dependency used by the model pricing editor's conversion preview, report an empty model name instead of silently returning, and preserve explicitly entered zero-valued legacy prices when building the preview request.
   - Billing impact: no change to model pricing conversion, expression evaluation, pre-consume, settlement, refund, or saved pricing data; this only fixes preview invocation and input transport.
@@ -2856,37 +2856,37 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Local change: the System Notice settings section now uses the announcement list editor, supporting independent notice records with add, edit, delete, publish date, type, and expandable content; legacy plain-text Notice values are loaded as one record.
   - Preserved: the Notice option key and public Notice endpoint, existing console announcements, and protected project identifiers.
   - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Move system notice under content management
   - Local change: moved the System Notice editor from Site Settings into the existing Content Management menu beside Announcements, while preserving the Notice option key and legacy migration behavior.
   - Preserved: public Notice endpoint, existing platform announcements, system information/site settings, and protected project identifiers.
   - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Render structured system notices correctly
   - Local fix: the notification popover now detects the structured Notice announcement array and renders separate timeline entries instead of exposing the serialized JSON; legacy plain-text Notice values remain supported.
   - Preserved: Notice endpoint, announcement types, publish dates, expand/collapse behavior, and protected project identifiers.
   - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Use English dates in announcement timelines
   - Local change: system notices and platform announcements now format timeline dates consistently as English abbreviated month plus day, such as `Sep 12`.
   - Preserved: announcement content, types, publish ordering, expand/collapse behavior, legacy Notice compatibility, and protected project identifiers.
   - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Restore newest-first announcement management ordering
   - Local change: system announcement management list sorts publish dates newest to oldest, so recently published notices appear first.
   - Preserved: timeline ordering, announcement content, types, and expand/collapse behavior.
   - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Rename content announcement menu labels
   - Local change: renamed the content submenus from System Notice to Notice and Announcements to Timeline.
   - Preserved: announcement storage, editing behavior, frontend rendering, and protected project identifiers.
   - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Sort notification announcements newest first
   - Local change: parsed announcements in the notification tab now display newest published items first, while the timeline view remains unchanged.
   - Preserved: announcement content, date formatting, and timeline ordering.
   - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Restore legacy video task submission JSON response
   - Local regression: `/v1/video/generations` can select its task plugin during submission, after the controller's pinned-plugin branch check. The legacy success branch persisted the task and consumption log but never presented the response, yielding an empty HTTP 200.
   - Changed: invoke the shared task presenter after logging in that branch; preserve responses already written by legacy adaptors. Added presenter regression tests for public task identity and avoiding duplicate responses.
@@ -2897,22 +2897,22 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Local change: added a task detail dialog for task data, status, model, plugin/provider metadata, upstream task ID, and failure details; successful tasks now have a View details action.
   - Preserved: role-based hiding of upstream/plugin fields, task submission, polling, billing, settlement, and existing error/video/audio actions.
   - Validation: `git diff --check`; frontend build not run per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Accept Sora size in custom per-request pricing validation
   - Local fix: derive configured resolution tiers from the OpenAI-compatible `size` field (`720x1280`/`1280x720` and `1792x1024`/`1024x1792`); a single configured tier is used as the default when neither field is supplied.
   - Preserved: explicit `resolution` takes precedence, request payload forwarding, existing Sora/audio fixed-charge logic, and all non-Sora channels.
   - Validation: source inspection and targeted regression test added; no local compilation or image build per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Preserve shared Sora-channel video request fields in the task plugin
   - Local fix: the Sora plugin now forwards `resolution`, `images`, `aspect_ratio`, `input_region`, and `audio_generation` for models sharing a Sora channel type.
   - Preserved: model-specific routing, upstream request behavior for existing Sora models, and custom Sora per-request/audio billing.
   - Validation: source inspection and diff check; no local compilation or image build per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Preserve arbitrary JSON fields for shared Sora-type channels
   - Local fix: Sora plugin Responses decoding now starts from a copy of the complete client JSON instead of rebuilding a fixed allowlist. Provider-specific fields survive while the routed model and prompt/image compatibility behavior remain intact.
   - Preserved: Sora per-request/audio billing, task actions, polling, and existing multipart handling.
   - Validation: source-level inspection and `git diff --check`; no local compilation or image build per source-only workflow.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-15 - Preserve JSON fields on Sora plugin fallback submission
   - Local fix: when a Sora-type channel uses the task plugin for a model that is not declared by the shared Sora endpoint, the fallback path now invokes the plugin's JSON protocol decoder instead of `ValidateBasicTaskRequest`. The complete request body, including provider-specific fields such as `resolution`, `images`, `aspect_ratio`, `input_region`, `audio_generation`, and unknown fields, reaches `buildSubmitRequest` unchanged apart from the routed model compatibility rewrite.
   - Preserved: shared endpoint routing, non-Sora and multipart validation paths, task actions, polling, existing request body forwarding, and the existing Sora custom billing code; this change does not alter quota calculation or settlement.
@@ -2922,40 +2922,40 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Local change: performance metrics now calculate and expose P10 and P50 for TTFT and TPOT, and display them alongside P95 and P99.
   - Preserved: existing percentile definitions, units, group filtering, and performance cards.
   - Validation: `git diff --check`; Go/frontend builds not run.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-16 - Refresh model plaza free and discount badges
   - Local change: updated external model cards to use the orange-gold limited-free badge and light-gold limited-discount badge styling.
   - Preserved: discount/free detection, price filtering, localization fallback, and model card layout.
   - Validation: `git diff --check`; frontend typecheck not clean because of pre-existing repository errors.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-18 - Add model plaza promotional carousel configuration
   - Local change: added a notification-style model plaza carousel editor with title, description, image, enabled state, and ordering; enabled items render in a fixed first grid slot with responsive object-cover imagery, automatic rotation, controls, and indicators.
   - Preserved: existing notice/timeline settings, model filtering/sorting/lazy loading, pricing and billing behavior, and the separate classic model plaza theme.
   - Validation: source inspection and `git diff --check`; Go/frontend builds not run in this environment.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-18 - Fix model plaza carousel status wiring and localization
   - Local fix: read the carousel from the already-unwrapped `/api/status` result, refresh the status query after saving carousel settings, and apply stable sort ordering to enabled carousel items.
   - Local change: added carousel administration and accessibility strings to all supported default-frontend locales (`en`, `zh`, `zh-TW`, `fr`, `ru`, `ja`, `vi`).
   - Preserved: carousel validation, enabled/disabled behavior, fixed first-grid-slot layout, rotation controls, model filtering, pricing, billing, and existing unrelated locale entries.
   - Validation: Node JSON parsing, key-presence inspection, and `git diff --check`; full frontend typecheck/build not run because the repository has pre-existing typecheck failures.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-18 - Add model plaza card metrics visibility setting and Chinese token unit
   - Local change: added the `console_setting.model_square_show_usage_metrics` setting, enabled by default and exposed through the public status payload, to control whether external model plaza cards show usage and cache hit rate; disabling it hides the complete metrics row without affecting other pages.
   - Local change: added a dedicated localized token unit key so the Chinese model plaza card displays `词元` while other pages retain their existing translations.
   - Preserved: leaderboard metrics, model detail performance data, classic model plaza theme, pricing, billing, and existing carousel settings.
   - Validation: locale JSON parsing and `git diff --check`; frontend build pending.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-18 - Add model plaza context length filter
   - Local change: added a context length minimum slider below input type filters, with 0 meaning no restriction and a reset control; model cards are filtered by their numeric context length.
   - Preserved: existing modality, vendor, group, price, search, sorting, lazy loading, pricing, and billing behavior.
   - Validation: locale JSON parsing and `git diff --check`; frontend build pending.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-18 - Fix model plaza context slider and metrics setting compatibility
   - Local fix: accept both scalar and array values emitted by the Base UI context-length slider so dragging updates the filter reliably.
   - Local fix: read the model plaza usage/cache visibility flag from the existing option map instead of extending the console-setting struct, avoiding legacy configuration decoding issues that could make the model plaza carousel return HTTP 500; the default remains enabled.
   - Preserved: the setting only controls usage and cache metrics on external model plaza cards, while carousel validation, model filtering, pricing, billing, and other pages remain unchanged.
   - Validation: `git diff --check`; all supported locale JSON files parsed successfully; `bun run build` in `web/default` passed.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-19 - Discrete context filters and independent discount badges
   - Local change: use sorted, unique positive model context lengths as slider steps; show sparse labels, disable an empty slider, and reset unavailable selections after loading.
   - Local fix: keep free/discount badges visible when external-card usage and cache metrics are disabled.
@@ -2966,18 +2966,18 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
   - Local fix: derive context filter values from the administrator's formatted display value when the numeric metadata field is absent, supporting values such as `400K`, `1.05M`, and `1M tokens`.
   - Preserved: the formatted display text on cards, discrete slider behavior, minimum-context semantics, and billing behavior.
   - Validation: source inspection and `git diff --check`; frontend build pending.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-19 - Reserve model plaza discount badge row height
   - Local fix: always reserve the discount/free badge row height on external model cards so cards with and without a badge align consistently.
   - Preserved: badge content, discount/free detection, pricing, filtering, and card interactions.
   - Validation: `git diff --check`; frontend build pending.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 - 2026-09-18 - Move model plaza metrics toggle and repair carousel crash
   - Local fix: moved the usage/cache visibility switch into Site and Brand -> Header navigation, with a safe default of disabled.
   - Local fix: removed the carousel page's invalid form-context usage and made status exposure opt-in, preventing the added setting from crashing the model plaza carousel flow.
   - Preserved: carousel item editing, ordering, rotation, model plaza pricing, billing, and all other navigation settings.
   - Validation: frontend production build passed; typecheck remains blocked by pre-existing repository errors; Go formatting was unavailable because Go is not installed locally.
-  - Commit/push: pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-20 - Selected upstream safety, image billing, and protocol fixes
 
@@ -3062,7 +3062,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Already present or not applicable: linked-account OAuth verification is not present in the local default frontend verification contract, which currently exposes only 2FA and passkey methods; no speculative OAuth flow was added.
 - Deliberately preserved: local auth method model, protected project identifiers, custom dialog content behavior, and all untracked user files.
 - Validation: targeted frontend format/lint checks and git diff --check; full frontend typecheck/build limitations are recorded below if encountered.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 ## 2026-09-22 - Complete SystemOne runtime contract and gate image publication
 
 - Local reason: earlier fixes only checked JavaScript syntax and missed required query/native exports and host response contracts, causing startup panics and incorrect synchronous completion.
@@ -3085,7 +3085,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Integrated: added bounded `input_tokens` usage examples so the plugin registry accepts the built-in plugin.
 - Preserved: model mapping, Laya support, synchronous responses, and billing usage extraction.
 - Validation: JavaScript syntax check and `git diff --check`; Go toolchain unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-22 - Fix TypeSafe task result hook registration
 
@@ -3093,7 +3093,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Integrated: added `parseTaskResult` as a compatibility delegate to the synchronous response parser.
 - Preserved: native synchronous rendering and usage extraction.
 - Validation: JavaScript syntax check and `git diff --check`; Go toolchain unavailable locally.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-22 - Complete TypeSafe query hook contract
 
@@ -3101,14 +3101,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Integrated: added a compatible query request hook delegating to the SystemOne request builder.
 - Preserved: synchronous native response behavior and model mapping.
 - Validation: JavaScript syntax check and `git diff --check`.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 # 2026-09-22 - Decisions output modality
 
 - Local reason: add the requested Decisions output category and supplied SVG icon.
 - Changed: default model plaza tabs, counts, filtering, card icons, detail labels, admin metadata output selection and table labels; translated Decisions in all seven supported locales.
 - Preserved: existing modalities, input choices, pricing, billing, database storage and classic frontend.
 - Validation: default frontend production build, seven locale JSON/key checks and git diff --check passed; browser interaction not tested. No backend changes.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-22 - Recognize zero base prices as free on model cards
 
@@ -3123,7 +3123,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Integrated: every marketplace card now exposes its own install, review-and-upgrade, or reinstall action. The existing source/diff review flow updates only the selected plugin, retains previous database versions for rollback, and states that channels and credentials remain unchanged while active plugin source is replaced.
 - Preserved: integrity verification, conflict preflight, version history, factory fallback, channel configuration, and all other plugins remain untouched by a single-plugin action.
 - Validation: targeted oxlint, production build, locale JSON parsing, and `git diff --check` passed. Full typecheck remains blocked by pre-existing missing test dependencies and unrelated pricing, wallet, system-settings, and task-plugin type errors; none point to the files changed here.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-24 - Add image generation playground relay support
 
@@ -3131,7 +3131,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: registered `/pg/images/generations`; reused Playground authentication, group selection, image request validation, billing, and OpenAI image responses; converted Gemini and Vertex Gemini image requests to `generateContent` and their inline image responses to `data[].b64_json` while preserving `mime_type`; forced that native conversion for both Playground and standard image routes when pass-through is enabled; added strict Gemini image-model suffix recognition plus `nano-banana` support and regression coverage for the requested GPT Image names; added the authenticated `/image-playground` page with group-scoped model loading, prompt/size/quality/count controls, full-image preview, MIME-aware download, and image generation results.
 - Preserved: existing chat Playground behavior, standard `/v1/images/generations`, Imagen `predict` conversion, OpenAI-compatible image adapters, and sidebar visibility settings for the existing Playground module. Gemini generateContent image requests reject streaming and counts above one after model mapping, including aliases.
 - Validation: added route-mode, model endpoint, request bounds, mapped-model compatibility, native Gemini/Vertex pass-through selection, Gemini request conversion, Gemini response MIME conversion, and image response conversion regression tests. Changed-file Oxlint and Oxfmt, frontend production build, locale JSON parsing, and `git diff --check` passed; repository-wide Oxlint still reports existing failures in unrelated files. Repository-wide `copyright:check` reports existing unrelated files needing header updates; none of the new image-playground files are listed. Go tests and gofmt could not run because the Go toolchain is unavailable locally; full frontend typecheck remains blocked by existing unrelated type errors and missing test dependencies.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-26 - Add model-aware image playground parameters and request preview
 
@@ -3139,7 +3139,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: added an authenticated image-model capability endpoint with conservative channel intersections; added provider-aware parameter profiles for OpenAI, Gemini/Vertex, xAI, MiniMax, Ali, SiliconFlow, Replicate, and Jimeng; added capability-driven parameter controls and per-group/model/operation persistence; added a shared request builder used by generation, edit, JSON preview, and cURL preview; expanded multipart parsing for provider parameters while preserving image count validation and `dto.MaxImageN` billing bounds; converted browser attachment URLs to data URLs for Gemini edits; added backend capability regression tests and localized UI strings.
 - Preserved: the existing `/models` route and Models page, Chat Playground behavior, image history persistence, group/model selectors, access-token handling, and upstream provider adapters. Preview output uses `<your-token>` and omits reference image contents.
 - Validation: targeted image-playground Oxlint passed; frontend production build passed; `git diff --check` passed. Full frontend typecheck remains blocked by existing missing test dependencies and unrelated type errors. Go tests/gofmt could not run because Go is not installed locally. Untracked logs, reports, lockfiles, and helper files were deliberately excluded.
-- Commit/push: pending.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-27 - Complete GPT image parameter bounds and editable size presets
 
