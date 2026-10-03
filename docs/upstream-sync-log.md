@@ -1,5 +1,21 @@
 # Upstream Sync Log
 
+## 2026-10-03 - Show safe peak/off-peak ranges on model plaza cards
+
+- Local reason: model plaza cards should communicate a peak/off-peak token price as a compact range such as input `1-2` and output `4-8`, without making the card look like a generic dynamic-pricing warning.
+- Changed: added a card-only range calculator for mutually exclusive time-based request rules and updated the default model plaza card to use it. The DeepSeek V4.1 Flash preset now renders its off-peak base and 2x peak prices as input/output ranges; unsupported or overlapping rule expressions retain the `Dynamic Pricing` fallback.
+- Preserved: the model details drawer, detailed dynamic-pricing breakdown, pricing table, raw billing expressions, all non-time request rules, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` and the `web/default` production build passed. The repository-wide protected-header format check still reports existing changes in unrelated working-tree files; targeted Oxfmt completed for the two changed pricing files, while targeted Oxlint reports only pre-existing findings in `index.tsx`.
+- Commit/push: pending.
+
+## 2026-10-03 - Add DeepSeek V4.1 Flash peak/off-peak pricing preset
+
+- Local reason: simplify configuring the confirmed DeepSeek V4.1 Flash weekday peak schedule in the default model pricing editor.
+- Changed: added a localized time-based preset with the configured off-peak base expression (`p * 1 + c * 4 + cr * 0.02`) and two Shanghai weekday peak windows, 09:00-12:00 and 14:00-18:00, each multiplied by 2. Weekends and all other times fall back to the base off-peak prices. Fixed dynamic-pricing condition summaries so weekday ranges render localized weekday names rather than misleading hour-like values.
+- Preserved: existing model price fields, visual/raw expression modes, request-rule semantics, all other presets, classic frontend behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check`, locale JSON parsing, and `bun run build` in `web/default` passed. Targeted Oxlint still reports pre-existing findings in the edited editor file (array-index keys, nested ternary, and other existing style rules); no new finding was isolated to the preset block.
+- Commit/push: pending.
+
 ## 2026-10-02 - Support the upstream openai_image task-plugin protocol
 
 - Upstream commit: `03563a4a7` (`feat(plugins): serve OpenAI Images API through task plugins`).

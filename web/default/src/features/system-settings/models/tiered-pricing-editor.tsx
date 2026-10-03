@@ -308,6 +308,59 @@ const PRESET_GROUPS: PresetGroup[] = [
           },
         ],
       },
+      {
+        key: 'deepseek-v4.1-flash-peak',
+        label: 'DeepSeek V4.1 Flash (Peak/Off-peak)',
+        expr: 'tier("base", p * 1 + c * 4 + cr * 0.02)',
+        requestRules: [
+          {
+            conditions: [
+              {
+                source: SOURCE_TIME as 'time',
+                timeFunc: 'weekday',
+                timezone: 'Asia/Shanghai',
+                mode: MATCH_RANGE,
+                value: '',
+                rangeStart: '1',
+                rangeEnd: '6',
+              },
+              {
+                source: SOURCE_TIME as 'time',
+                timeFunc: 'hour',
+                timezone: 'Asia/Shanghai',
+                mode: MATCH_RANGE,
+                value: '',
+                rangeStart: '9',
+                rangeEnd: '12',
+              },
+            ],
+            multiplier: '2',
+          },
+          {
+            conditions: [
+              {
+                source: SOURCE_TIME as 'time',
+                timeFunc: 'weekday',
+                timezone: 'Asia/Shanghai',
+                mode: MATCH_RANGE,
+                value: '',
+                rangeStart: '1',
+                rangeEnd: '6',
+              },
+              {
+                source: SOURCE_TIME as 'time',
+                timeFunc: 'hour',
+                timezone: 'Asia/Shanghai',
+                mode: MATCH_RANGE,
+                value: '',
+                rangeStart: '14',
+                rangeEnd: '18',
+              },
+            ],
+            multiplier: '2',
+          },
+        ],
+      },
     ],
   },
 ]
@@ -1384,7 +1437,7 @@ function PresetSection({ applyPreset }: PresetSectionProps) {
                 className='h-7 text-xs'
                 onClick={() => applyPreset(preset)}
               >
-                {preset.label}
+                {t(preset.label)}
               </Button>
             ))}
           </div>

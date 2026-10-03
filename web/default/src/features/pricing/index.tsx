@@ -78,6 +78,7 @@ import {
 } from './constants'
 import { usePricingData } from './hooks/use-pricing-data'
 import {
+  getDynamicCatalogPriceRanges,
   getDynamicDisplayGroupRatio,
   getDynamicPricingSummary,
 } from './lib/dynamic-price'
@@ -805,6 +806,17 @@ function usePriceRows(props: {
           ),
         })
       : null
+  const catalogPriceRanges = dynamicSummary?.hasRequestRules
+    ? getDynamicCatalogPriceRanges(pricingModel, {
+        tokenUnit: props.tokenUnit,
+        priceRate: props.priceRate,
+        usdExchangeRate: props.usdExchangeRate,
+        groupRatioMultiplier: getDynamicDisplayGroupRatio(
+          pricingModel,
+          props.selectedGroup
+        ),
+      })
+    : dynamicSummary?.primaryRanges || null
   const soraSummary = getSoraPricingDisplay(pricingModel, {
     priceRate: props.priceRate,
     usdExchangeRate: props.usdExchangeRate,
@@ -814,9 +826,8 @@ function usePriceRows(props: {
   if (
     dynamicSummary &&
     (dynamicSummary.isSpecialExpression ||
-      dynamicSummary.hasRequestRules ||
-      (dynamicSummary.entries.length === 0 &&
-        dynamicSummary.primaryRanges.length === 0))
+      (dynamicSummary.hasRequestRules && !catalogPriceRanges?.length) ||
+      (dynamicSummary.entries.length === 0 && !catalogPriceRanges?.length))
   ) {
     return {
       kind: 'single',
@@ -834,11 +845,11 @@ function usePriceRows(props: {
     }
   }
 
-  if (dynamicSummary && dynamicSummary.primaryRanges.length > 0) {
-    const inputRange = dynamicSummary.primaryRanges.find(
+  if (dynamicSummary && catalogPriceRanges && catalogPriceRanges.length > 0) {
+    const inputRange = catalogPriceRanges.find(
       (entry) => entry.field === 'inputPrice'
     )
-    const outputRange = dynamicSummary.primaryRanges.find(
+    const outputRange = catalogPriceRanges.find(
       (entry) => entry.field === 'outputPrice'
     )
 

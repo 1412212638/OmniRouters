@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next'
 
 import { StaticDataTable } from '@/components/data-table'
 import { Badge } from '@/components/ui/badge'
+import { toIntlLocale } from '@/i18n/languages'
 import { formatBillingCurrencyFromUSD } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 import { useSystemConfigStore } from '@/stores/system-config-store'
@@ -112,14 +113,49 @@ function formatConditionSummary(
     .join(' && ')
 }
 
+function formatWeekdayRange(
+  rangeStart: string,
+  rangeEnd: string,
+  language: string
+): string {
+  const start = Number(rangeStart)
+  const end = Number(rangeEnd)
+  if (
+    !Number.isInteger(start) ||
+    !Number.isInteger(end) ||
+    start < 0 ||
+    start > 6 ||
+    end < 0 ||
+    end > 6 ||
+    start === end
+  ) {
+    return `${rangeStart}~${rangeEnd}`
+  }
+
+  const formatter = new Intl.DateTimeFormat(toIntlLocale(language), {
+    weekday: 'short',
+    timeZone: 'UTC',
+  })
+  const dayMs = 24 * 60 * 60 * 1000
+  const base = Date.UTC(2026, 0, 4) // Sunday, matching weekday() numbering.
+  const endIndex = start < end ? end - 1 : (end + 6) % 7
+  const from = formatter.format(new Date(base + start * dayMs))
+  const to = formatter.format(new Date(base + endIndex * dayMs))
+  return from === to ? from : `${from}–${to}`
+}
+
 function describeCondition(
   cond: RequestCondition,
-  t: (key: string) => string
+  t: (key: string) => string,
+  language: string
 ): string {
   if (cond.source === SOURCE_TIME) {
     const fn = t(TIME_FUNC_LABELS[cond.timeFunc] || cond.timeFunc)
     const tz = cond.timezone || 'UTC'
     if (cond.mode === MATCH_RANGE) {
+      if (cond.timeFunc === 'weekday') {
+        return `${fn} ${formatWeekdayRange(cond.rangeStart, cond.rangeEnd, language)} (${tz})`
+      }
       return `${fn} ${cond.rangeStart}:00~${cond.rangeEnd}:00 (${tz})`
     }
     const opMap: Record<string, string> = {
@@ -147,7 +183,8 @@ function describeCondition(
 
 function describeGroup(
   group: RequestRuleGroup,
-  t: (key: string) => string
+  t: (key: string) => string,
+  language: string
 ): string {
   const conditions = group.conditions || []
   const timeConditions = conditions.filter(
@@ -161,7 +198,7 @@ function describeGroup(
 
   if (timeConditions.length > 0) {
     const timeLabels = timeConditions.map((condition) =>
-      describeCondition(condition, t).replace(/ \([^)]*\)$/, '')
+      describeCondition(condition, t, language).replace(/ \([^)]*\)$/, '')
     )
     const timezones = Array.from(
       new Set(timeConditions.map((condition) => condition.timezone || 'UTC'))
@@ -174,7 +211,7 @@ function describeGroup(
   if (otherConditions.length > 0) {
     parts.push(
       `${t('All other conditions')}: ${otherConditions
-        .map((condition) => describeCondition(condition, t))
+        .map((condition) => describeCondition(condition, t, language))
         .join(' && ')}`
     )
   }
@@ -188,7 +225,7 @@ export function DynamicPricingBreakdown({
   hideCacheColumns = false,
   compact = false,
 }: DynamicPricingBreakdownProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const expr = billingExpr || ''
   const currency = useSystemConfigStore((s) => s.config.currency)
 
@@ -492,7 +529,7 @@ export function DynamicPricingBreakdown({
                     compact ? 'text-xs' : 'text-sm'
                   )}
                 >
-                  {describeGroup(group, t)}
+                  {describeGroup(group, t, i18n.language)}
                 </span>
                 <Badge
                   variant='secondary'

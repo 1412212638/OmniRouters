@@ -9,10 +9,11 @@ import {
   tryParseRequestRuleExpr,
   type BillingVar,
   type ParsedTier,
+  type RequestRuleGroup,
 } from './billing-expr'
 import { getDisplayGroupRatio } from './model-helpers'
 
-type DynamicPriceOptions = {
+export type DynamicPriceOptions = {
   tokenUnit: TokenUnit
   showRechargePrice?: boolean
   priceRate?: number
@@ -217,6 +218,131 @@ function getDynamicPrimaryPriceRanges(
     if (!PRIMARY_DYNAMIC_FIELDS.has(variable.field || '')) return []
     const range = getDynamicPriceRange(tiers, variable, options)
     return range ? [range] : []
+  })
+}
+
+function getTimeRuleInterval(
+  condition: RequestRuleGroup['conditions'][number]
+): [number, number] | null {
+  if (condition.source !== 'time') return null
+
+  if (condition.mode === 'eq') {
+    const value = Number(condition.value)
+    return Number.isFinite(value) ? [value, value + 1] : null
+  }
+
+  if (condition.mode === 'range') {
+    const start = Number(condition.rangeStart)
+    const end = Number(condition.rangeEnd)
+    return Number.isFinite(start) && Number.isFinite(end) && start < end
+      ? [start, end]
+      : null
+  }
+
+  return null
+}
+
+function timeRuleGroupsAreDisjoint(
+  left: RequestRuleGroup,
+  right: RequestRuleGroup
+): boolean {
+  for (const leftCondition of left.conditions) {
+    const leftInterval = getTimeRuleInterval(leftCondition)
+    if (!leftInterval) continue
+
+    for (const rightCondition of right.conditions) {
+      if (
+        rightCondition.source !== 'time' ||
+        leftCondition.source !== 'time' ||
+        rightCondition.timeFunc !== leftCondition.timeFunc ||
+        rightCondition.timezone !== leftCondition.timezone
+      ) {
+        continue
+      }
+      const rightInterval = getTimeRuleInterval(rightCondition)
+      if (!rightInterval) continue
+      if (
+        leftInterval[0] >= rightInterval[1] ||
+        rightInterval[0] >= leftInterval[1]
+      ) {
+        return true
+      }
+    }
+  }
+
+  return false
+}
+
+/**
+ * Returns a safe card-only price range for request-rule pricing. The full
+ * request rules remain available to the detail view; this helper only handles
+ * mutually exclusive time windows such as peak/off-peak pricing.
+ */
+export function getDynamicCatalogPriceRanges(
+  model: PricingModel,
+  options: DynamicPriceOptions
+): DynamicPriceRange[] | null {
+  if (!isDynamicPricingModel(model)) return null
+
+  const tiers = getDynamicPricingTiers(model)
+  if (tiers.length !== 1) return null
+
+  const { requestRuleExpr } = splitBillingExprAndRequestRules(
+    model.billing_expr || ''
+  )
+  const groups = tryParseRequestRuleExpr(requestRuleExpr || '')
+  if (!groups || groups.length === 0) return null
+
+  const multipliers = groups.map((group) => Number(group.multiplier))
+  if (
+    multipliers.some(
+      (multiplier) => !Number.isFinite(multiplier) || multiplier < 0
+    )
+  ) {
+    return null
+  }
+
+  const allTimeRules = groups.every((group) =>
+    group.conditions.every((condition) => condition.source === 'time')
+  )
+  const disjoint =
+    allTimeRules &&
+    groups.every((group, index) =>
+      groups
+        .slice(index + 1)
+        .every((other) => timeRuleGroupsAreDisjoint(group, other))
+    )
+  if (!disjoint) return null
+
+  const multiplierRange = {
+    min: Math.min(1, ...multipliers),
+    max: Math.max(1, ...multipliers),
+  }
+
+  return BILLING_PRICING_VARS.flatMap((variable) => {
+    if (!PRIMARY_DYNAMIC_FIELDS.has(variable.field || '')) return []
+    const field = variable.field
+    if (!field) return []
+    const baseValue = Number(tiers[0][field])
+    if (!Number.isFinite(baseValue) || baseValue < 0) return []
+
+    const minValue = baseValue * multiplierRange.min
+    const maxValue = baseValue * multiplierRange.max
+    const minFormatted = formatDynamicUnitPrice(minValue, options)
+    const maxFormatted = formatDynamicUnitPrice(maxValue, options)
+    return [
+      {
+        key: variable.key,
+        field,
+        minValue,
+        maxValue,
+        formatted:
+          minValue === maxValue
+            ? minFormatted
+            : `${minFormatted}-${maxFormatted}`,
+        displayUnit: 'token' as const,
+      },
+    ]
   })
 }
 
