@@ -3523,4 +3523,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: automatic supplier inference from channel protocol type remains intentionally unsupported; existing untracked Friends Hub, Image Playground, Command Menu, Wallet, generated reports, and local helper files were excluded.
 - Preserved: protected project identifiers and all unrelated authentication, wallet, and upstream-sync changes.
 - Validation: JSON parsing for all six frontend locales, targeted frontend type-check filtering, Oxfmt on changed frontend files, frontend production build, and git diff --check passed. Go tests/build were attempted with the repository test suite but remain blocked by pre-existing unrelated compilation errors.
-- Commit/push: pending local commit; not pushed to GitHub in this round.
+- Commit/push: source commit `62209288f` (`feat(pricing): support multiple model suppliers`); pushed successfully to `origin/main` on 2026-10-03.
+
