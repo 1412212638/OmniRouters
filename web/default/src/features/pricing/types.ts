@@ -39,6 +39,7 @@ export type PricingModel = {
   vendor_name?: string
   vendor_icon?: string
   vendor_description?: string
+  available_vendors?: PricingVendor[]
   created_time?: number
   quota_type: number
   model_ratio: number

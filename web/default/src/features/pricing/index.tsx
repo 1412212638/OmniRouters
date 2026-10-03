@@ -315,8 +315,12 @@ function buildVendorOptions(
 ): FilterOption[] {
   const counts = new Map<number, number>()
   for (const model of models) {
-    if (!model.vendor_id) continue
-    counts.set(model.vendor_id, (counts.get(model.vendor_id) || 0) + 1)
+    const ids =
+      model.available_vendors?.map((vendor) => vendor.id) ||
+      (model.vendor_id ? [model.vendor_id] : [])
+    for (const vendorId of ids) {
+      counts.set(vendorId, (counts.get(vendorId) || 0) + 1)
+    }
   }
 
   return vendors
@@ -1168,18 +1172,44 @@ function CatalogModelCard(props: {
       <div className='mt-auto grid gap-4 pt-5 sm:grid-cols-[minmax(0,1fr)_minmax(158px,50%)]'>
         <div className='min-w-0 space-y-2'>
           <div className='text-muted-foreground text-sm'>
-            {t('Available from {{count}} providers', { count: 1 })}
+            {t('Available from {{count}} providers', {
+              count:
+                props.model.available_vendors?.length ||
+                (props.model.vendor_id ? 1 : 0),
+            })}
           </div>
-          <div className='flex min-w-0 items-center gap-2'>
-            <div className='bg-muted/60 flex size-5 shrink-0 items-center justify-center rounded-full dark:bg-white/5'>
-              {props.model.vendor_icon ? (
-                getLobeIcon(props.model.vendor_icon, 16)
-              ) : (
-                <span className='text-muted-foreground text-[10px] font-semibold'>
-                  {(props.model.vendor_name || '?').charAt(0)}
-                </span>
-              )}
-            </div>
+          <div className='flex min-w-0 items-center gap-1.5'>
+            {(props.model.available_vendors?.length
+              ? props.model.available_vendors
+              : [
+                  {
+                    id: props.model.vendor_id || 0,
+                    name: props.model.vendor_name || '?',
+                    icon: props.model.vendor_icon,
+                  },
+                ]
+            )
+              .slice(0, 4)
+              .map((vendor) => (
+                <div
+                  key={vendor.id}
+                  title={vendor.name}
+                  className='bg-muted/60 flex size-5 shrink-0 items-center justify-center rounded-full dark:bg-white/5'
+                >
+                  {vendor.icon ? (
+                    getLobeIcon(vendor.icon, 16)
+                  ) : (
+                    <span className='text-muted-foreground text-[10px] font-semibold'>
+                      {vendor.name.charAt(0)}
+                    </span>
+                  )}
+                </div>
+              ))}
+            {(props.model.available_vendors?.length || 0) > 4 && (
+              <span className='text-muted-foreground text-xs'>
+                +{(props.model.available_vendors?.length || 0) - 4}
+              </span>
+            )}
           </div>
         </div>
 
@@ -1374,6 +1404,9 @@ function CatalogPricing() {
         }
         if (
           vendorFilter !== FILTER_ALL &&
+          !(model.available_vendors || []).some(
+            (vendor) => String(vendor.id) === vendorFilter
+          ) &&
           String(model.vendor_id || '') !== vendorFilter
         ) {
           return false

@@ -5747,6 +5747,11 @@
     "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.": "Цена рассчитывается за единицу использования. Токены оцениваются за 1 млн токенов.",
     "This model has no enum conditions, so one base pricing row is shown.": "У этой модели нет условий-перечислений, поэтому показана одна базовая строка.",
     "Expression will be generated after entering prices": "Выражение будет создано после ввода цен",
-    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "Проверьте созданное выражение перед применением к черновику. Оно не сохраняется автоматически."
+    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "Проверьте созданное выражение перед применением к черновику. Оно не сохраняется автоматически.",
+    "Vendors": "Поставщики",
+    "Select vendors": "Выбрать поставщиков",
+    "Select every provider that can serve this model.": "Выберите всех поставщиков, которые могут предоставлять эту модель.",
+    "Bind a supplier to make it available on the model marketplace.": "Привяжите поставщика, чтобы сделать его доступным на витрине моделей.",
+    "Select vendor (optional)": "Выбрать поставщика"
   }
 }

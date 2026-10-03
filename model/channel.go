@@ -23,6 +23,7 @@ import (
 type Channel struct {
 	Id                 int     `json:"id"`
 	Type               int     `json:"type" gorm:"default:0"`
+	VendorID           *int    `json:"vendor_id,omitempty" gorm:"index"`
 	Key                string  `json:"key" gorm:"not null"`
 	OpenAIOrganization *string `json:"openai_organization"`
 	TestModel          *string `json:"test_model"`
@@ -590,6 +591,10 @@ func (channel *Channel) Update() error {
 	var err error
 	err = DB.Model(channel).Updates(channel).Error
 	if err != nil {
+		return err
+	}
+	// Explicitly persist nullable supplier bindings so clearing a selection writes NULL.
+	if err = DB.Model(&Channel{}).Where("id = ?", channel.Id).Update("vendor_id", channel.VendorID).Error; err != nil {
 		return err
 	}
 	DB.Model(channel).First(channel, "id = ?", channel.Id)

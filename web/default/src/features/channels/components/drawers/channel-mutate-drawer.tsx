@@ -93,6 +93,7 @@ import {
   SecureVerificationDialog,
   useSecureVerification,
 } from '@/features/auth/secure-verification'
+import { getVendors } from '@/features/models/api'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { useHiddenClickUnlock } from '@/hooks/use-hidden-click-unlock'
 import {
@@ -641,6 +642,13 @@ export function ChannelMutateDrawer({
   })
 
   // Fetch available groups
+  const { data: vendorsData } = useQuery({
+    queryKey: ['vendors', 'all'],
+    queryFn: () => getVendors({ page_size: 1000 }),
+    enabled: open,
+  })
+  const vendors = vendorsData?.data?.items || []
+
   const { data: groupsData, isLoading: isLoadingGroups } = useQuery({
     queryKey: ['groups'],
     queryFn: getGroups,
@@ -2070,6 +2078,60 @@ export function ChannelMutateDrawer({
                               )}
                             />
                           </fieldset>
+
+                          <FormField
+                            control={form.control}
+                            name='vendor_id'
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{t('Vendor')}</FormLabel>
+                                <Select
+                                  items={vendors.map((vendor) => ({
+                                    value: String(vendor.id),
+                                    label: vendor.name,
+                                  }))}
+                                  value={
+                                    field.value
+                                      ? String(field.value)
+                                      : undefined
+                                  }
+                                  onValueChange={(value) =>
+                                    field.onChange(
+                                      value ? Number(value) : undefined
+                                    )
+                                  }
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue
+                                        placeholder={t(
+                                          'Select vendor (optional)'
+                                        )}
+                                      />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent alignItemWithTrigger={false}>
+                                    <SelectGroup>
+                                      {vendors.map((vendor) => (
+                                        <SelectItem
+                                          key={vendor.id}
+                                          value={String(vendor.id)}
+                                        >
+                                          {vendor.name}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectGroup>
+                                  </SelectContent>
+                                </Select>
+                                <FormDescription>
+                                  {t(
+                                    'Bind a supplier to make it available in the model marketplace.'
+                                  )}
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
                           <FormField
                             control={form.control}

@@ -5748,6 +5748,11 @@
     "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.": "Giá được tính theo đơn vị sử dụng. Mức dùng token được tính theo mỗi 1 triệu token.",
     "This model has no enum conditions, so one base pricing row is shown.": "Mô hình này không có điều kiện enum nên hiển thị một dòng giá cơ bản.",
     "Expression will be generated after entering prices": "Biểu thức sẽ được tạo sau khi nhập giá",
-    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "Hãy kiểm tra biểu thức được tạo trước khi áp dụng vào bản nháp. Biểu thức sẽ không tự động lưu."
+    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "Hãy kiểm tra biểu thức được tạo trước khi áp dụng vào bản nháp. Biểu thức sẽ không tự động lưu.",
+    "Vendors": "Nhà cung cấp",
+    "Select vendors": "Chọn nhà cung cấp",
+    "Select every provider that can serve this model.": "Chọn tất cả nhà cung cấp có thể cung cấp mô hình này.",
+    "Bind a supplier to make it available in the model marketplace.": "Liên kết nhà cung cấp để hiển thị trong chợ mô hình.",
+    "Select vendor (optional)": "Chọn nhà cung cấp"
   }
 }

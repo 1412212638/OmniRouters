@@ -51,12 +51,19 @@ export function usePricingData() {
       const vendor = model.vendor_id
         ? vendorMap.get(model.vendor_id)
         : undefined
+      const availableVendors = model.available_vendors?.length
+        ? model.available_vendors
+        : vendor
+          ? [vendor]
+          : []
       return {
         ...model,
         key: model.model_name,
-        vendor_name: vendor?.name,
-        vendor_icon: vendor?.icon,
-        vendor_description: vendor?.description,
+        available_vendors: availableVendors,
+        vendor_name: availableVendors[0]?.name || vendor?.name,
+        vendor_icon: availableVendors[0]?.icon || vendor?.icon,
+        vendor_description:
+          availableVendors[0]?.description || vendor?.description,
         group_ratio: Object.fromEntries(
           Object.entries(data.group_ratio).map(([group, ratio]) => [
             group,

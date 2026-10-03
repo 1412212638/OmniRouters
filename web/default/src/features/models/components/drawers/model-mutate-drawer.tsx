@@ -38,6 +38,7 @@ import {
   sideDrawerSwitchItemClassName,
 } from '@/components/drawer-layout'
 import { JsonEditor } from '@/components/json-editor'
+import { MultiSelect } from '@/components/multi-select'
 import { TagInput } from '@/components/tag-input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -109,6 +110,7 @@ const extendedModelFormSchema = z.object({
   icon: z.string(),
   tags: z.array(z.string()),
   vendor_id: z.number().optional(),
+  vendor_ids: z.array(z.number()),
   endpoints: z.string(),
   input_modalities: z.array(z.enum(MODEL_MODALITIES)),
   output_modalities: z.array(z.enum(MODEL_MODALITIES)),
@@ -456,6 +458,7 @@ export function ModelMutateDrawer({
       icon: '',
       tags: [],
       vendor_id: undefined,
+      vendor_ids: [],
       endpoints: '',
       input_modalities: [],
       output_modalities: [],
@@ -535,6 +538,8 @@ export function ModelMutateDrawer({
         icon: model.icon || '',
         tags: parseModelTags(model.tags),
         vendor_id: model.vendor_id,
+        vendor_ids:
+          model.vendor_ids || (model.vendor_id ? [model.vendor_id] : []),
         endpoints: model.endpoints || '',
         input_modalities: normalizeSelectedModalities(model.input_modalities),
         output_modalities: normalizeSelectedModalities(model.output_modalities),
@@ -575,6 +580,7 @@ export function ModelMutateDrawer({
         icon: '',
         tags: [],
         vendor_id: undefined,
+        vendor_ids: [],
         endpoints: '',
         input_modalities: [],
         output_modalities: [],
@@ -982,40 +988,31 @@ export function ModelMutateDrawer({
 
               <FormField
                 control={form.control}
-                name='vendor_id'
+                name='vendor_ids'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('Vendor')}</FormLabel>
-                    <Select
-                      items={vendors.map((vendor) => ({
-                        value: String(vendor.id),
-                        label: vendor.name,
-                      }))}
-                      onValueChange={(value) =>
-                        field.onChange(
-                          value ? Number.parseInt(value) : undefined
-                        )
-                      }
-                      value={field.value ? String(field.value) : undefined}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('Select vendor')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent alignItemWithTrigger={false}>
-                        <SelectGroup>
-                          {vendors.map((vendor) => (
-                            <SelectItem
-                              key={vendor.id}
-                              value={String(vendor.id)}
-                            >
-                              {vendor.name}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>{t('Vendors')}</FormLabel>
+                    <FormControl>
+                      <MultiSelect
+                        options={vendors.map((vendor) => ({
+                          value: String(vendor.id),
+                          label: vendor.name,
+                        }))}
+                        selected={(field.value || []).map(String)}
+                        onChange={(values: string[]) => {
+                          const ids = values
+                            .map(Number)
+                            .filter((id) => Number.isInteger(id) && id > 0)
+                          field.onChange(ids)
+                          form.setValue('vendor_id', ids[0])
+                        }}
+                        placeholder={t('Select vendors')}
+                        emptyText={t('No vendors found')}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {t('Select every provider that can serve this model.')}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

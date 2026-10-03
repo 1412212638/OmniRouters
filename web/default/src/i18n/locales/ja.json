@@ -5747,6 +5747,11 @@
     "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.": "料金は使用単位ごとに計算されます。トークンは 100 万トークン単位で設定します。",
     "This model has no enum conditions, so one base pricing row is shown.": "このモデルには列挙条件がないため、基本料金の行を 1 つ表示します。",
     "Expression will be generated after entering prices": "料金を入力すると式が生成されます",
-    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "下書きに適用する前に生成された式を確認してください。自動保存はされません。"
+    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "下書きに適用する前に生成された式を確認してください。自動保存はされません。",
+    "Vendors": "ベンダー",
+    "Select vendors": "ベンダーを選択",
+    "Select every provider that can serve this model.": "このモデルを提供できるすべてのベンダーを選択してください。",
+    "Bind a supplier to make it available in the model marketplace.": "ベンダーを紐付けるとモデルマーケットプレイスで利用可能になります。",
+    "Select vendor (optional)": "ベンダーを選択"
   }
 }

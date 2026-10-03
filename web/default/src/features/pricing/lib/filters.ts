@@ -38,7 +38,11 @@ export function filterByVendor(
   vendor: string
 ): PricingModel[] {
   if (vendor === FILTER_ALL) return models
-  return models.filter((m) => m.vendor_name === vendor)
+  return models.filter(
+    (m) =>
+      m.available_vendors?.some((item) => item.name === vendor) ||
+      m.vendor_name === vendor
+  )
 }
 
 /**

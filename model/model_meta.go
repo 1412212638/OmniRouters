@@ -57,6 +57,7 @@ type Model struct {
 	Icon                      string         `json:"icon,omitempty" gorm:"type:text"`
 	Tags                      string         `json:"tags,omitempty" gorm:"type:varchar(255)"`
 	VendorID                  int            `json:"vendor_id,omitempty" gorm:"index"`
+	VendorIDs                 []int          `json:"vendor_ids,omitempty" gorm:"-"`
 	Endpoints                 string         `json:"endpoints,omitempty" gorm:"type:text"`
 	InputModalities            StringList     `json:"input_modalities,omitempty" gorm:"type:text"`
 	OutputModalities           StringList     `json:"output_modalities,omitempty" gorm:"type:text"`
@@ -87,6 +88,9 @@ func (mi *Model) Insert() error {
 	if err := DB.Create(mi).Error; err != nil {
 		return err
 	}
+	if err := syncModelVendorIDs(mi); err != nil {
+		return err
+	}
 
 	return DB.Model(&Model{}).Where("id = ?", mi.Id).Updates(map[string]interface{}{
 		"status":        originalStatus,
@@ -115,12 +119,12 @@ func WhereModelNameExact(db *gorm.DB, name string) *gorm.DB {
 func (mi *Model) Update() error {
 	mi.UpdatedTime = common.GetTimestamp()
 	// Use a map so empty strings and zero values are persisted consistently.
-	return DB.Model(&Model{}).Where("id = ?", mi.Id).Updates(map[string]interface{}{
+	if err := DB.Model(&Model{}).Where("id = ?", mi.Id).Updates(map[string]interface{}{
 		"model_name":                    mi.ModelName,
-		"context_length": mi.ContextLength,
-		"context_length_display": mi.ContextLengthDisplay,
-		"max_output_tokens_display": mi.MaxOutputTokensDisplay,
-		"max_output_tokens": mi.MaxOutputTokens,
+		"context_length":                mi.ContextLength,
+		"context_length_display":        mi.ContextLengthDisplay,
+		"max_output_tokens_display":     mi.MaxOutputTokensDisplay,
+		"max_output_tokens":              mi.MaxOutputTokens,
 		"description":                   mi.Description,
 		"icon":                          mi.Icon,
 		"tags":                          mi.Tags,
@@ -132,20 +136,53 @@ func (mi *Model) Update() error {
 		"sync_official":                 mi.SyncOfficial,
 		"name_rule":                     mi.NameRule,
 		"updated_time":                  mi.UpdatedTime,
-	}).Error
+	}).Error; err != nil {
+		return err
+	}
+	return syncModelVendorIDs(mi)
+}
+
+func syncModelVendorIDs(mi *Model) error {
+	if !DB.Migrator().HasTable(&ModelVendor{}) {
+		return nil
+	}
+	vendorIDs := mi.VendorIDs
+	if len(vendorIDs) == 0 && mi.VendorID > 0 {
+		vendorIDs = []int{mi.VendorID}
+	}
+	return SetModelVendorIDs(mi.Id, vendorIDs)
 }
 
 func (mi *Model) Delete() error {
-	return DB.Delete(mi).Error
+	return DB.Transaction(func(tx *gorm.DB) error {
+		if tx.Migrator().HasTable(&ModelVendor{}) {
+			if err := tx.Where("model_id = ?", mi.Id).Delete(&ModelVendor{}).Error; err != nil {
+				return err
+			}
+		}
+		return tx.Delete(mi).Error
+	})
 }
 
 func GetVendorModelCounts() (map[int64]int64, error) {
+	if !DB.Migrator().HasTable(&ModelVendor{}) {
+		var legacyStats []struct {
+			VendorID int64
+			Count    int64
+		}
+		if err := DB.Model(&Model{}).Select("vendor_id as vendor_id, count(*) as count").Group("vendor_id").Scan(&legacyStats).Error; err != nil {
+			return nil, err
+		}
+		legacyCounts := make(map[int64]int64, len(legacyStats))
+		for _, item := range legacyStats { legacyCounts[item.VendorID] = item.Count }
+		return legacyCounts, nil
+	}
 	var stats []struct {
 		VendorID int64
 		Count    int64
 	}
-	if err := DB.Model(&Model{}).
-		Select("vendor_id as vendor_id, count(*) as count").
+	if err := DB.Model(&ModelVendor{}).
+		Select("vendor_id as vendor_id, count(distinct model_id) as count").
 		Group("vendor_id").
 		Scan(&stats).Error; err != nil {
 		return nil, err
@@ -153,6 +190,19 @@ func GetVendorModelCounts() (map[int64]int64, error) {
 	m := make(map[int64]int64, len(stats))
 	for _, s := range stats {
 		m[s.VendorID] = s.Count
+	}
+	var legacy []Model
+	if err := DB.Where("vendor_id > ?", 0).Find(&legacy).Error; err != nil {
+		return nil, err
+	}
+	for _, item := range legacy {
+		var relationCount int64
+		if err := DB.Model(&ModelVendor{}).Where("model_id = ?", item.Id).Count(&relationCount).Error; err != nil {
+			return nil, err
+		}
+		if relationCount == 0 {
+			m[int64(item.VendorID)]++
+		}
 	}
 	return m, nil
 }
@@ -252,11 +302,14 @@ func SearchModels(keyword string, vendor string, status string, syncOfficial str
 		db = db.Where("model_name LIKE ? OR description LIKE ? OR tags LIKE ?", like, like, like)
 	}
 	if vendor != "" {
+		vendorQuery := DB.Model(&Vendor{}).Select("id")
 		if vid, err := strconv.Atoi(vendor); err == nil {
-			db = db.Where("models.vendor_id = ?", vid)
+			vendorQuery = vendorQuery.Where("id = ?", vid)
 		} else {
-			db = db.Joins("JOIN vendors ON vendors.id = models.vendor_id").Where("vendors.name LIKE ?", "%"+vendor+"%")
+			vendorQuery = vendorQuery.Where("name LIKE ?", "%"+vendor+"%")
 		}
+		modelVendorQuery := DB.Model(&ModelVendor{}).Select("model_id").Where("vendor_id IN (?)", vendorQuery)
+		db = db.Where("models.vendor_id IN (?) OR models.id IN (?)", vendorQuery, modelVendorQuery)
 	}
 	if statusValue, ok := parseModelStatusFilter(status); ok {
 		db = db.Where("models.status = ?", statusValue)

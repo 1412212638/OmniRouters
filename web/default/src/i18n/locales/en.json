@@ -5829,6 +5829,11 @@
     "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.": "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.",
     "This model has no enum conditions, so one base pricing row is shown.": "This model has no enum conditions, so one base pricing row is shown.",
     "Expression will be generated after entering prices": "Expression will be generated after entering prices",
-    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "Review the generated expression before applying it to the draft. It will not be saved automatically."
+    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "Review the generated expression before applying it to the draft. It will not be saved automatically.",
+    "Vendors": "Vendors",
+    "Select vendors": "Select vendors",
+    "Select every provider that can serve this model.": "Select every provider that can serve this model.",
+    "Bind a supplier to make it available in the model marketplace.": "Bind a supplier to make it available in the model marketplace.",
+    "Select vendor (optional)": "Select vendor"
   }
 }

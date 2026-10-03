@@ -55,6 +55,7 @@ type Pricing struct {
 	OutputModalities       []string                             `json:"output_modalities,omitempty"`
 	VendorName             string                               `json:"vendor_name,omitempty"`
 	VendorIcon             string                               `json:"vendor_icon,omitempty"`
+	AvailableVendors       []PricingVendor                     `json:"available_vendors,omitempty"`
 	BillingMode            string                               `json:"billing_mode,omitempty"`
 	BillingExpr            string                               `json:"billing_expr,omitempty"`
 	BillingUsageSchema     map[string]jsplugin.UsageFieldSchema `json:"billing_usage_schema,omitempty"`
@@ -242,6 +243,32 @@ func updatePricing() {
 	// 初始化默认供应商映射
 	initDefaultVendorMapping(metaMap, vendorMap, enableAbilities)
 
+	metaIDs := make([]int, 0, len(metaMap))
+	for _, meta := range metaMap {
+		if meta != nil && meta.Id > 0 {
+			metaIDs = append(metaIDs, meta.Id)
+		}
+	}
+	modelVendorIDs := make(map[int][]int)
+	if DB.Migrator().HasTable(&ModelVendor{}) {
+		modelVendorIDs, _ = GetModelVendorIDsMap(metaIDs)
+	}
+	availableVendorIDs := make(map[string][]int)
+	addVendor := func(modelName string, vendorID int) {
+		if vendorID <= 0 { return }
+		for _, existing := range availableVendorIDs[modelName] { if existing == vendorID { return } }
+		availableVendorIDs[modelName] = append(availableVendorIDs[modelName], vendorID)
+	}
+	for modelName, meta := range metaMap {
+		if meta == nil { continue }
+		for _, vendorID := range modelVendorIDs[meta.Id] { addVendor(modelName, vendorID) }
+		if len(availableVendorIDs[modelName]) == 0 { addVendor(modelName, meta.VendorID) }
+	}
+	for _, ability := range enableAbilities {
+		if ability.ChannelVendorID != nil { addVendor(ability.Model, *ability.ChannelVendorID) }
+	}
+	for _, ids := range availableVendorIDs { sort.Ints(ids) }
+
 	// 构建对前端友好的供应商列表
 	vendorsList = make([]PricingVendor, 0, len(vendorMap))
 	for _, v := range vendorMap {
@@ -379,10 +406,19 @@ func updatePricing() {
 			pricing.MaxOutputTokensDisplay = meta.MaxOutputTokensDisplay
 			pricing.MaxOutputTokens = meta.MaxOutputTokens
 			pricing.OutputModalities = []string(meta.OutputModalities)
-			if vendor, exists := vendorMap[meta.VendorID]; exists {
-				pricing.VendorName = vendor.Name
-				pricing.VendorIcon = vendor.Icon
+		}
+		vendorIDs := availableVendorIDs[model]
+		pricing.AvailableVendors = make([]PricingVendor, 0, len(vendorIDs))
+		for _, vendorID := range vendorIDs {
+			if vendor, exists := vendorMap[vendorID]; exists {
+				pricing.AvailableVendors = append(pricing.AvailableVendors, PricingVendor{ID: vendor.Id, Name: vendor.Name, Description: vendor.Description, Icon: vendor.Icon})
 			}
+		}
+		if len(pricing.AvailableVendors) > 0 {
+			primary := pricing.AvailableVendors[0]
+			pricing.VendorID = primary.ID
+			pricing.VendorName = primary.Name
+			pricing.VendorIcon = primary.Icon
 		}
 		modelPrice, findPrice := ratio_setting.GetModelPrice(model, false)
 		if findPrice {

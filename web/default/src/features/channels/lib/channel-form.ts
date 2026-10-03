@@ -180,6 +180,7 @@ function addRequiredIssue(
 export const channelFormSchema = z
   .object({
     name: z.string().min(1, ERROR_MESSAGES.REQUIRED_NAME),
+    vendor_id: z.number().optional(),
     type: z.number().min(0, ERROR_MESSAGES.REQUIRED_TYPE),
     base_url: z.string().optional(),
     task_plugin_key: z.string().optional(),
@@ -783,6 +784,7 @@ export function transformFormDataToCreatePayload(formData: ChannelFormValues): {
 
   const channel: Partial<Channel> = {
     name: formData.name,
+    vendor_id: formData.vendor_id ?? null,
     type: formData.type,
     base_url: normalizeBaseUrl(formData.base_url) || null,
     key: formData.key,
@@ -832,6 +834,7 @@ export function transformFormDataToUpdatePayload(
   const payload: Partial<Channel> = {
     id: channelId,
     name: formData.name,
+    vendor_id: formData.vendor_id ?? null,
     type: formData.type,
     base_url: normalizeBaseUrl(formData.base_url) || null,
     openai_organization: formData.openai_organization || null,

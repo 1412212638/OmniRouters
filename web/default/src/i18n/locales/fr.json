@@ -5747,6 +5747,11 @@
     "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.": "Les prix sont calculés par unité d’utilisation. Les tokens sont tarifés par million.",
     "This model has no enum conditions, so one base pricing row is shown.": "Ce modèle n’a aucune condition énumérée ; une ligne de base est affichée.",
     "Expression will be generated after entering prices": "L’expression sera générée après la saisie des prix",
-    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "Vérifiez l’expression générée avant de l’appliquer au brouillon. Elle ne sera pas enregistrée automatiquement."
+    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "Vérifiez l’expression générée avant de l’appliquer au brouillon. Elle ne sera pas enregistrée automatiquement.",
+    "Vendors": "Fournisseurs",
+    "Select vendors": "Sélectionner les fournisseurs",
+    "Select every provider that can serve this model.": "Sélectionnez tous les fournisseurs qui peuvent proposer ce modèle.",
+    "Bind a supplier to make it available in the model marketplace.": "Associez un fournisseur pour le rendre disponible dans la place de marché des modèles.",
+    "Select vendor (optional)": "Sélectionner le fournisseur"
   }
 }

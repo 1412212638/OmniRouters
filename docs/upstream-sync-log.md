@@ -3514,3 +3514,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: existing default-theme layout, billing expression backend contract, model/group pricing behavior, protected project identifiers, authentication/Friends Hub changes, and unrelated untracked worktree files.
 - Validation: `bun run build`, `bun run format:check`, targeted frontend type-check filtering, and `git diff --check` passed. Full `bun run typecheck` remains blocked by pre-existing repository errors (missing test dependencies, duplicate redemption imports, and unrelated model/settings type errors).
 - Commit: `3d7b32125` (`feat(pricing): add task usage pricing matrix and plugin details`). Push: confirmed on `origin/main` at `3d7b32125279f8627682b4ffe7ddad23c17cb3e8`.
+
+## 2026-10-03 - Add multi-supplier model marketplace metadata
+
+- Local reason: the model marketplace needed to show every supplier that can serve a model, while supplier identity remains independent from channel protocol type.
+- Integrated: added the model_vendors many-to-many relation with legacy vendor_id compatibility; added nullable supplier binding to channels; synchronized model and channel admin forms; merged model-selected suppliers with enabled channel-bound suppliers in pricing cache; exposed available_vendors; updated marketplace cards and filters for multiple suppliers; added localized labels and relation regression coverage.
+- Already present: legacy supplier metadata, default model supplier inference, channel ability routing, pricing ratios, task-plugin pricing, and existing model marketplace layout were preserved.
+- Deferred: automatic supplier inference from channel protocol type remains intentionally unsupported; existing untracked Friends Hub, Image Playground, Command Menu, Wallet, generated reports, and local helper files were excluded.
+- Preserved: protected project identifiers and all unrelated authentication, wallet, and upstream-sync changes.
+- Validation: JSON parsing for all six frontend locales, targeted frontend type-check filtering, Oxfmt on changed frontend files, frontend production build, and git diff --check passed. Go tests/build were attempted with the repository test suite but remain blocked by pre-existing unrelated compilation errors.
+- Commit/push: pending local commit; not pushed to GitHub in this round.

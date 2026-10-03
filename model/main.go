@@ -355,6 +355,7 @@ func migrateDB() error {
 		&TaskPlugin{},
 		&Model{},
 		&Vendor{},
+		&ModelVendor{},
 		&PrefillGroup{},
 		&Setup{},
 		&TwoFA{},
@@ -375,6 +376,9 @@ func migrateDB() error {
 		&AuthzRole{},
 	)
 	if err != nil {
+		return err
+	}
+	if err := MigrateLegacyModelVendors(); err != nil {
 		return err
 	}
 	if err := InitializeUserAuthVersions(); err != nil {
@@ -428,6 +432,7 @@ func migrateDBFast() error {
 		{&Task{}, "Task"},
 		{&Model{}, "Model"},
 		{&Vendor{}, "Vendor"},
+		{&ModelVendor{}, "ModelVendor"},
 		{&PrefillGroup{}, "PrefillGroup"},
 		{&Setup{}, "Setup"},
 		{&TwoFA{}, "TwoFA"},
@@ -467,6 +472,9 @@ func migrateDBFast() error {
 		if err != nil {
 			return err
 		}
+	}
+	if err := MigrateLegacyModelVendors(); err != nil {
+		return err
 	}
 	if err := InitializeUserAuthVersions(); err != nil {
 		return err

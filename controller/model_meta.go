@@ -161,7 +161,12 @@ func DeleteModelMeta(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
-	if err := model.DB.Delete(&model.Model{}, id).Error; err != nil {
+	var target model.Model
+	if err := model.DB.First(&target, id).Error; err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	if err := target.Delete(); err != nil {
 		common.ApiError(c, err)
 		return
 	}
@@ -173,6 +178,24 @@ func DeleteModelMeta(c *gin.Context) {
 func enrichModels(models []*model.Model) {
 	if len(models) == 0 {
 		return
+	}
+
+	// 填充多供应商关系，旧数据没有关系记录时回退到 legacy vendor_id。
+	modelIDs := make([]int, 0, len(models))
+	for _, m := range models {
+		if m != nil {
+			modelIDs = append(modelIDs, m.Id)
+		}
+	}
+	vendorIDsByModel, _ := model.GetModelVendorIDsMap(modelIDs)
+	for _, m := range models {
+		if m == nil {
+			continue
+		}
+		m.VendorIDs = vendorIDsByModel[m.Id]
+		if len(m.VendorIDs) == 0 && m.VendorID > 0 {
+			m.VendorIDs = []int{m.VendorID}
+		}
 	}
 
 	// 1) 拆分精确与规则匹配

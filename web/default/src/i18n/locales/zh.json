@@ -5830,6 +5830,11 @@
     "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.": "价格按用量单位计费。Token 用量按每 100 万 Token 定价。",
     "This model has no enum conditions, so one base pricing row is shown.": "此模型没有枚举条件，因此显示一行基础价格。",
     "Expression will be generated after entering prices": "输入价格后将生成表达式",
-    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "应用到草稿前请检查生成的表达式。表达式不会自动保存。"
+    "Review the generated expression before applying it to the draft. It will not be saved automatically.": "应用到草稿前请检查生成的表达式。表达式不会自动保存。",
+    "Vendors": "供应商",
+    "Select vendors": "选择供应商",
+    "Select every provider that can serve this model.": "选择所有可以提供此模型的供应商。",
+    "Bind a supplier to make it available in the model marketplace.": "绑定供应商后，该供应商会显示为模型广场中的可用供应商。",
+    "Select vendor (optional)": "选择供应商"
   }
 }
