@@ -2651,6 +2651,7 @@
     "Matched": "已命中",
     "Matched models": "匹配模型",
     "Matched Tier": "命中阶梯",
+    "Base tier / off-peak fallback": "基础档位 / 闲时兜底",
     "Matches models not claimed by earlier splits.": "匹配前面分流未占用的模型。",
     "Matching Rules": "匹配规则",
     "Max Disk Cache Size (MB)": "磁盘缓存最大总量 (MB)",

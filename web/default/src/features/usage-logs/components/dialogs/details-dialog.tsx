@@ -213,9 +213,18 @@ function BillingBreakdown(props: {
         })
       }
     } else {
+      const hasOnlyUnmatchedRequestRules =
+        Array.isArray(other.request_rules) &&
+        other.request_rules.length > 0 &&
+        other.request_rules.every((rule) => rule.matched !== true)
+      const matchedTier = other.matched_tier?.trim()
+      const isBaseTierFallback =
+        matchedTier?.toLowerCase() === 'base' || hasOnlyUnmatchedRequestRules
       rows.push({
         label: t('Matched Tier'),
-        value: t('No matching results'),
+        value: isBaseTierFallback
+          ? t('Base tier / off-peak fallback')
+          : matchedTier || t('No matching results'),
       })
     }
   } else if (isPerCall) {

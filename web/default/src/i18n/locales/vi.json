@@ -2632,6 +2632,7 @@
     "Matched": "Đã khớp",
     "Matched models": "Mô hình khớp",
     "Matched Tier": "Bậc khớp",
+    "Base tier / off-peak fallback": "Bậc cơ sở / dự phòng ngoài giờ cao điểm",
     "Matches models not claimed by earlier splits.": "Khớp các mô hình chưa được nhánh trước nhận.",
     "Matching Rules": "Quy tắc khớp",
     "Max Disk Cache Size (MB)": "Dung lượng tối đa bộ nhớ đệm đĩa (MB)",

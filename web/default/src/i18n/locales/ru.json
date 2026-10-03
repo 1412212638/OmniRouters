@@ -2631,6 +2631,7 @@
     "Matched": "Совпадение",
     "Matched models": "Модели для сопоставления",
     "Matched Tier": "Подходящий уровень",
+    "Base tier / off-peak fallback": "Базовый уровень / резерв вне пикового времени",
     "Matches models not claimed by earlier splits.": "Совпадает с моделями, не занятыми предыдущими ветками.",
     "Matching Rules": "Правила сопоставления",
     "Max Disk Cache Size (MB)": "Макс. размер дискового кэша (МБ)",

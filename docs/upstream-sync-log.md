@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-04 - Preserve channel supplier binding and clarify tier fallback
+
+- Local reason: channel supplier selections were saved but omitted when channel data was converted back into edit-form defaults, and usage-log billing details called an unmatched peak rule set "No matching results" even when the base off-peak tier was the correct fallback.
+- Changed: restore `vendor_id` into channel edit defaults and classify it as an editable non-sensitive channel field; show a localized `Base tier / off-peak fallback` label when all request multipliers are false, while retaining the existing unknown/parse-failure fallback for ambiguous logs.
+- Preserved: channel supplier persistence API, marketplace supplier aggregation, detailed dynamic pricing rules, billing calculations, existing log data formats, protected project identifiers, and unrelated untracked worktree files.
+- Validation: targeted Oxfmt, locale JSON parsing, `bun run build`, and `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable in this environment.
+- Commit/push: pending.
+
 ## 2026-10-03 - Show safe peak/off-peak ranges on model plaza cards
 
 - Local reason: model plaza cards should communicate a peak/off-peak token price as a compact range such as input `1-2` and output `4-8`, without making the card look like a generic dynamic-pricing warning.

@@ -2631,6 +2631,7 @@
     "Matched": "Correspondant",
     "Matched models": "Modèles associés",
     "Matched Tier": "Palier correspondant",
+    "Base tier / off-peak fallback": "Palier de base / repli hors pointe",
     "Matches models not claimed by earlier splits.": "Correspond aux modèles non pris par les branches précédentes.",
     "Matching Rules": "Règles de correspondance",
     "Max Disk Cache Size (MB)": "Taille max du cache disque (Mo)",

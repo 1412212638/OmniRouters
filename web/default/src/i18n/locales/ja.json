@@ -2631,6 +2631,7 @@
     "Matched": "一致",
     "Matched models": "一致モデル",
     "Matched Tier": "一致した階層",
+    "Base tier / off-peak fallback": "基本ティア / オフピークのフォールバック",
     "Matches models not claimed by earlier splits.": "前の分岐で使われていないモデルに一致します。",
     "Matching Rules": "マッチングルール",
     "Max Disk Cache Size (MB)": "ディスクキャッシュ最大容量 (MB)",

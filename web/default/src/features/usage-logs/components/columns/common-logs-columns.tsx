@@ -189,8 +189,19 @@ function buildTypeDetailSegments(
         })
       }
     } else {
+      const hasOnlyUnmatchedRequestRules =
+        Array.isArray(other.request_rules) &&
+        other.request_rules.length > 0 &&
+        other.request_rules.every((rule) => rule.matched !== true)
+      const matchedTier = other.matched_tier?.trim()
+      const isBaseTierFallback =
+        matchedTier?.toLowerCase() === 'base' || hasOnlyUnmatchedRequestRules
       segments.push({
-        text: `${t('Dynamic Pricing')} · ${t('No matching results')}`,
+        text: `${t('Dynamic Pricing')} · ${t(
+          isBaseTierFallback
+            ? 'Base tier / off-peak fallback'
+            : 'No matching results'
+        )}`,
         muted: true,
       })
     }

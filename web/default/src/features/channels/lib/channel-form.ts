@@ -553,6 +553,7 @@ export function transformChannelToFormDefaults(
   return {
     name: channel.name || '',
     type: channel.type,
+    vendor_id: channel.vendor_id ?? undefined,
     base_url: channel.base_url || '',
     task_plugin_key: extraSettings.task_plugin_key,
     key: '', // Never populate key from backend for security
