@@ -3416,7 +3416,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: reset-password, OTP, and OAuth callback screens remain on the existing compact auth layout because they are follow-up/security states rather than public sign-in, sign-up, or recovery entry screens.
 - Preserved: auth APIs, form validation, verification flows, redirect behavior, protected project identifiers, and unrelated untracked worktree files.
 - Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed.
-- Commit/push: pending source commit and push.
+- Commit/push: source commit `791f1d2dc` created locally; not pushed.
 
 ## 2026-10-02 - Pin sign-in terms notice to the bottom
 
@@ -3567,5 +3567,15 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: no upstream commit was involved; no unrelated frontend or deployment work was changed.
 - Preserved: protected project identifiers and unrelated untracked worktree files.
 - Validation: added focused supplier aggregation regression tests and ran `git diff --check`; Go test execution remains unavailable because the local Go toolchain is not installed.
+- Commit/push: pending source commit and push.
+
+## 2026-10-04 - Persist channel supplier binding on reload
+
+- Local reason: a channel could display its newly selected supplier until the page was refreshed, then the supplier field was empty because the nullable `vendor_id` update passed a pointer directly to the database driver.
+- Integrated: channel updates now write the concrete supplier ID (or NULL) explicitly, and a regression test verifies that a saved binding remains after loading the channel again.
+- Already present: channel form submission, nullable supplier clearing, model plaza supplier aggregation, and pricing cache invalidation were preserved.
+- Deferred: no upstream commit was involved; no unrelated frontend or deployment work was changed.
+- Preserved: protected project identifiers and unrelated untracked worktree files.
+- Validation: added a focused SQLite persistence test and ran `git diff --check`; Go test execution remains unavailable because the local Go toolchain is not installed.
 - Commit/push: pending source commit and push.
 

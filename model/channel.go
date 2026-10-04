@@ -593,8 +593,13 @@ func (channel *Channel) Update() error {
 	if err != nil {
 		return err
 	}
-	// Explicitly persist nullable supplier bindings so clearing a selection writes NULL.
-	if err = DB.Model(&Channel{}).Where("id = ?", channel.Id).Update("vendor_id", channel.VendorID).Error; err != nil {
+	// Persist nullable supplier bindings explicitly. Pass the concrete integer to
+	// the driver so the value survives a later read on every supported database.
+	var vendorID any
+	if channel.VendorID != nil {
+		vendorID = *channel.VendorID
+	}
+	if err = DB.Model(&Channel{}).Where("id = ?", channel.Id).Update("vendor_id", vendorID).Error; err != nil {
 		return err
 	}
 	DB.Model(channel).First(channel, "id = ?", channel.Id)
