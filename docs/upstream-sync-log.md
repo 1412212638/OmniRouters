@@ -3428,6 +3428,16 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: added a focused SQLite query regression test and ran `git diff --check`; Go test execution remains unavailable because the local Go toolchain is not installed.
 - Commit/push: source commit `13685f8c9` created locally; not pushed.
 
+## 2026-10-04 - Keep channel supplier visible after reload
+
+- Local reason: a channel edit drawer could show an empty supplier after a page reload when the detail request temporarily returned a nullable field without the value already present in the channel list.
+- Integrated: channel detail queries now refetch whenever the edit drawer mounts, and form hydration falls back to the current channel row's persisted supplier ID when the detail payload is temporarily missing it.
+- Already present: database supplier persistence, model plaza synchronization, and channel supplier selection behavior were preserved.
+- Deferred: none.
+- Preserved: protected project identifiers and unrelated untracked worktree files.
+- Validation: targeted frontend formatting/lint checks and `git diff --check`; full typecheck remains blocked by existing repository errors.
+- Commit/push: pending source commit and push.
+
 ## 2026-10-02 - Pin sign-in terms notice to the bottom
 
 - Local reason: center the sign-in legal notice and place it at the bottom of the right-hand authentication area.

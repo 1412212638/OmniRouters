@@ -639,6 +639,7 @@ export function ChannelMutateDrawer({
     queryKey: channelsQueryKeys.detail(channelId || 0),
     queryFn: () => getChannel(channelId || 0),
     enabled: isEditing && Boolean(channelId),
+    refetchOnMount: 'always',
   })
 
   // Fetch available groups
@@ -1247,7 +1248,14 @@ export function ChannelMutateDrawer({
   // Load channel data into form when editing
   useEffect(() => {
     if (isEditing && channelData?.data) {
-      const defaults = transformChannelToFormDefaults(channelData.data)
+      // Keep the list value as a fallback while the detail response is being
+      // refreshed. This prevents a transient missing nullable field from
+      // clearing an already persisted supplier selection in the form.
+      const channelForForm =
+        channelData.data.vendor_id == null && currentRow?.vendor_id != null
+          ? { ...channelData.data, vendor_id: currentRow.vendor_id }
+          : channelData.data
+      const defaults = transformChannelToFormDefaults(channelForForm)
       form.reset(defaults)
       setAdvancedSettingsOpen(
         readAdvancedSettingsPreference() || hasAdvancedSettingsValues(defaults)
@@ -1266,7 +1274,7 @@ export function ChannelMutateDrawer({
       initialModelMappingRef.current = ''
       initialStatusCodeMappingRef.current = ''
     }
-  }, [isEditing, channelData, form])
+  }, [isEditing, channelData, currentRow, form])
 
   // Handle type change - set default values for specific types
   useEffect(() => {
