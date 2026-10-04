@@ -93,7 +93,7 @@ import {
   SecureVerificationDialog,
   useSecureVerification,
 } from '@/features/auth/secure-verification'
-import { getVendors } from '@/features/models/api'
+import { getVendor, getVendors } from '@/features/models/api'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { useHiddenClickUnlock } from '@/hooks/use-hidden-click-unlock'
 import {
@@ -648,7 +648,34 @@ export function ChannelMutateDrawer({
     queryFn: () => getVendors({ page_size: 1000 }),
     enabled: open,
   })
-  const vendors = vendorsData?.data?.items || []
+  const vendorList = useMemo(
+    () => vendorsData?.data?.items || [],
+    [vendorsData?.data?.items]
+  )
+  const detailHasVendorField = Boolean(
+    channelData?.data && Object.hasOwn(channelData.data, 'vendor_id')
+  )
+  const selectedVendorId = detailHasVendorField
+    ? channelData?.data?.vendor_id
+    : currentRow?.vendor_id
+  const selectedVendorInList =
+    selectedVendorId != null &&
+    vendorList.some((vendor) => vendor.id === selectedVendorId)
+  const { data: selectedVendorData } = useQuery({
+    queryKey: ['vendors', 'detail', selectedVendorId || 0],
+    queryFn: () => getVendor(selectedVendorId as number),
+    enabled: open && selectedVendorId != null && !selectedVendorInList,
+  })
+  const vendors = useMemo(() => {
+    const selectedVendor = selectedVendorData?.data
+    if (
+      !selectedVendor ||
+      vendorList.some((vendor) => vendor.id === selectedVendor.id)
+    ) {
+      return vendorList
+    }
+    return [...vendorList, selectedVendor]
+  }, [selectedVendorData?.data, vendorList])
 
   const { data: groupsData, isLoading: isLoadingGroups } = useQuery({
     queryKey: ['groups'],
@@ -1252,7 +1279,8 @@ export function ChannelMutateDrawer({
       // refreshed. This prevents a transient missing nullable field from
       // clearing an already persisted supplier selection in the form.
       const channelForForm =
-        channelData.data.vendor_id == null && currentRow?.vendor_id != null
+        !Object.hasOwn(channelData.data, 'vendor_id') &&
+        currentRow?.vendor_id != null
           ? { ...channelData.data, vendor_id: currentRow.vendor_id }
           : channelData.data
       const defaults = transformChannelToFormDefaults(channelForForm)

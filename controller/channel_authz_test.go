@@ -129,6 +129,23 @@ func TestClearChannelReadOnlyFields(t *testing.T) {
 	assert.Equal(t, "default", channel.Group)
 }
 
+func TestPreserveOmittedChannelVendor(t *testing.T) {
+	vendorID := 42
+	origin := &model.Channel{VendorID: &vendorID}
+	channel := &PatchChannel{}
+
+	preserveOmittedChannelVendor(channel, origin, map[string]any{"models": "glm-5.3"})
+	if channel.VendorID == nil || *channel.VendorID != vendorID {
+		t.Fatalf("omitted vendor binding was not preserved: %#v", channel.VendorID)
+	}
+
+	channel.VendorID = nil
+	preserveOmittedChannelVendor(channel, origin, map[string]any{"vendor_id": nil})
+	if channel.VendorID != nil {
+		t.Fatalf("explicit null vendor binding should remain clear: %#v", channel.VendorID)
+	}
+}
+
 func TestUpdateChannelRejectsStatusField(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	recorder := httptest.NewRecorder()

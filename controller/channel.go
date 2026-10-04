@@ -1022,6 +1022,10 @@ func UpdateChannel(c *gin.Context) {
 		})
 		return
 	}
+	// The channel endpoint also accepts partial updates (for example, changing
+	// only models or priority). Preserve the stored supplier unless the request
+	// explicitly includes vendor_id, including an explicit null to clear it.
+	preserveOmittedChannelVendor(&channel, originChannel, requestData)
 	_, settingProvided := requestData["setting"]
 	if settingProvided && !slices.Equal(channel.GetSetting().TaskPluginBindings(), originChannel.GetSetting().TaskPluginBindings()) && !authz.Can(c.GetInt("id"), c.GetInt("role"), authz.TaskPluginBind) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "task plugin channels require the task_plugin.bind permission"})

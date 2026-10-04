@@ -2,6 +2,17 @@ package controller
 
 import "github.com/QuantumNous/new-api/model"
 
+// preserveOmittedChannelVendor keeps partial channel updates from clearing an
+// existing supplier binding. An explicit null still clears the binding.
+func preserveOmittedChannelVendor(channel *PatchChannel, origin *model.Channel, requestData map[string]any) {
+	if channel == nil || origin == nil {
+		return
+	}
+	if _, provided := requestData["vendor_id"]; !provided {
+		channel.VendorID = origin.VendorID
+	}
+}
+
 func channelHasSensitiveChanges(channel *PatchChannel, origin *model.Channel, requestData map[string]any) bool {
 	if _, ok := requestData["type"]; ok && channel.Type != origin.Type {
 		return true

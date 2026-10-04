@@ -3599,3 +3599,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: added a focused SQLite persistence test and ran `git diff --check`; Go test execution remains unavailable because the local Go toolchain is not installed.
 - Commit/push: pending source commit and push.
 
+## 2026-10-04 - Keep channel supplier binding across partial updates and refresh
+
+- Local reason: the supplier could still appear empty after a page refresh, especially when a partial channel update or the paginated vendor list omitted the selected supplier.
+- Integrated: partial channel updates now preserve the stored `vendor_id` unless the request explicitly sends `vendor_id` (including `null` to clear it); channel responses always include the nullable field; the channel editor loads a selected supplier by ID when it is outside the first vendor page; and malformed settings are cleared with targeted column updates so stale full-row saves cannot erase supplier bindings.
+- Already present: explicit supplier persistence in full channel edits, model marketplace supplier aggregation, channel detail refetching, and model editor supplier synchronization were preserved.
+- Deferred: no upstream commit was involved; database-specific deployment verification still requires a running Go backend and the user's deployed instance.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: targeted `oxlint`, `oxfmt --check`, and `git diff --check` passed. Full frontend format check remains blocked by unrelated existing formatting issues and a repository file access error; Go tests remain unavailable because the local Go toolchain is not installed.
+- Commit/push: source commit `3b1bc29b6` (`fix(channels): preserve vendor binding across refresh`); push pending.
+
