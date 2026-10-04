@@ -3416,7 +3416,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: reset-password, OTP, and OAuth callback screens remain on the existing compact auth layout because they are follow-up/security states rather than public sign-in, sign-up, or recovery entry screens.
 - Preserved: auth APIs, form validation, verification flows, redirect behavior, protected project identifiers, and unrelated untracked worktree files.
 - Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed.
-- Commit/push: source commit `791f1d2dc` created locally; not pushed.
+- Commit/push: source commit `e9a21409b` created locally; not pushed.
 
 ## 2026-10-02 - Pin sign-in terms notice to the bottom
 
