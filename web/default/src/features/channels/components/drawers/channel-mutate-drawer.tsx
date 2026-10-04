@@ -635,12 +635,23 @@ export function ChannelMutateDrawer({
   const sensitiveLocked = isEditing && !canEditSensitive
 
   // Fetch channel details if editing
-  const { data: channelData, isLoading: isChannelLoading } = useQuery({
+  const {
+    data: channelData,
+    isLoading: isChannelLoading,
+    isFetching: isChannelFetching,
+  } = useQuery({
     queryKey: channelsQueryKeys.detail(channelId || 0),
     queryFn: () => getChannel(channelId || 0),
-    enabled: isEditing && Boolean(channelId),
+    enabled: open && isEditing && Boolean(channelId),
     refetchOnMount: 'always',
   })
+
+  // React Query can keep a previous result available while a key changes.
+  // Never use that result to initialize another channel's form or supplier.
+  const currentChannelData =
+    channelData?.data && channelData.data.id === channelId
+      ? channelData.data
+      : undefined
 
   // Fetch available groups
   const { data: vendorsData } = useQuery({
@@ -653,10 +664,10 @@ export function ChannelMutateDrawer({
     [vendorsData?.data?.items]
   )
   const detailHasVendorField = Boolean(
-    channelData?.data && Object.hasOwn(channelData.data, 'vendor_id')
+    currentChannelData && Object.hasOwn(currentChannelData, 'vendor_id')
   )
   const selectedVendorId = detailHasVendorField
-    ? channelData?.data?.vendor_id
+    ? currentChannelData?.vendor_id
     : currentRow?.vendor_id
   const selectedVendorInList =
     selectedVendorId != null &&
@@ -723,7 +734,7 @@ export function ChannelMutateDrawer({
 
   // Check if this is a multi-key channel
   const isMultiKeyChannel =
-    isEditing && channelData?.data?.channel_info?.is_multi_key === true
+    isEditing && currentChannelData?.channel_info?.is_multi_key === true
 
   // Form setup
   const form = useForm<ChannelFormValues>({
@@ -868,7 +879,8 @@ export function ChannelMutateDrawer({
   // Helper computed values
   const isBatchMode =
     multiKeyMode === 'batch' || multiKeyMode === 'multi_to_single'
-  const isChannelDetailLoading = isEditing && isChannelLoading
+  const isChannelDetailLoading =
+    isEditing && (!currentChannelData || isChannelLoading || isChannelFetching)
   const supportsMultiKeyAddMode =
     currentType !== 57 && !(currentType === 41 && vertexKeyType === 'api_key')
   const addModeOptions = useMemo(
@@ -1274,15 +1286,15 @@ export function ChannelMutateDrawer({
 
   // Load channel data into form when editing
   useEffect(() => {
-    if (isEditing && channelData?.data) {
+    if (isEditing && currentChannelData) {
       // Keep the list value as a fallback while the detail response is being
       // refreshed. This prevents a transient missing nullable field from
       // clearing an already persisted supplier selection in the form.
       const channelForForm =
-        !Object.hasOwn(channelData.data, 'vendor_id') &&
+        !Object.hasOwn(currentChannelData, 'vendor_id') &&
         currentRow?.vendor_id != null
-          ? { ...channelData.data, vendor_id: currentRow.vendor_id }
-          : channelData.data
+          ? { ...currentChannelData, vendor_id: currentRow.vendor_id }
+          : currentChannelData
       const defaults = transformChannelToFormDefaults(channelForForm)
       form.reset(defaults)
       setAdvancedSettingsOpen(
@@ -1290,11 +1302,11 @@ export function ChannelMutateDrawer({
       )
       // Store initial values for comparison
       initialModelsRef.current = parseModelsString(
-        channelData.data.models || ''
+        currentChannelData.models || ''
       )
-      initialModelMappingRef.current = channelData.data.model_mapping || ''
+      initialModelMappingRef.current = currentChannelData.model_mapping || ''
       initialStatusCodeMappingRef.current =
-        channelData.data.status_code_mapping || ''
+        currentChannelData.status_code_mapping || ''
     } else if (!isEditing) {
       form.reset(CHANNEL_FORM_DEFAULT_VALUES)
       setAdvancedSettingsOpen(false)
@@ -1302,7 +1314,7 @@ export function ChannelMutateDrawer({
       initialModelMappingRef.current = ''
       initialStatusCodeMappingRef.current = ''
     }
-  }, [isEditing, channelData, currentRow, form])
+  }, [isEditing, currentChannelData, currentRow, form])
 
   // Handle type change - set default values for specific types
   useEffect(() => {

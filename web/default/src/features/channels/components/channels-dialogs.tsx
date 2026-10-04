@@ -11,14 +11,29 @@ import { UpstreamUpdateDialog } from './dialogs/upstream-update-dialog'
 import { ChannelMutateDrawer } from './drawers/channel-mutate-drawer'
 
 export function ChannelsDialogs() {
-  const { open, setOpen, currentRow, upstream } = useChannels()
+  const { open, setOpen, currentRow, setCurrentRow, upstream } = useChannels()
+
+  const closeChannelEditor = (nextOpen: boolean) => {
+    if (nextOpen) return
+    setOpen(null)
+    setCurrentRow(null)
+  }
 
   return (
     <>
       {/* Channel Create/Update Drawer */}
       <ChannelMutateDrawer
+        // Keep form state and detail requests isolated when switching rows.
+        // The drawer stays mounted while its Sheet is closed, so a stable
+        // component instance can otherwise briefly expose the previous
+        // channel's supplier binding.
+        key={
+          open === 'update-channel'
+            ? `update-${currentRow?.id ?? 'empty'}`
+            : 'create-channel'
+        }
         open={open === 'create-channel' || open === 'update-channel'}
-        onOpenChange={(v) => !v && setOpen(null)}
+        onOpenChange={closeChannelEditor}
         currentRow={open === 'update-channel' ? currentRow : null}
       />
 

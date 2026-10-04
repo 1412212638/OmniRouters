@@ -3446,7 +3446,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: none.
 - Preserved: authentication behavior, page navigation, theme handling, protected project identifiers, and unrelated untracked worktree files.
 - Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed.
-- Commit/push: pending source commit and push.
+- Commit/push: source commit `604586bf2` (`fix(channels): isolate vendor detail state`); push pending.
 
 ## 2026-10-02 - Add invitation-aware authentication entry flow
 
@@ -3608,4 +3608,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: protected project identifiers and all unrelated untracked worktree files.
 - Validation: targeted `oxlint`, `oxfmt --check`, and `git diff --check` passed. Full frontend format check remains blocked by unrelated existing formatting issues and a repository file access error; Go tests remain unavailable because the local Go toolchain is not installed.
 - Commit/push: source commit `3b1bc29b6` (`fix(channels): preserve vendor binding across refresh`); push pending.
+
+## 2026-10-05 - Isolate channel supplier details when switching editors
+
+- Local reason: channel supplier fields could still show intermittently or inherit another channel's supplier when the editor drawer was reused while a previous detail request was in flight.
+- Integrated: keyed the channel editor by mode and channel ID, cleared the active row when the editor closes, disabled detail queries while the drawer is closed, accepted detail responses only when their channel ID matches the active row, and kept the form, supplier selector, and multi-key state behind the same matching detail record. Detail refetches now remain in the loading state until the current channel response is available.
+- Already present: explicit nullable `vendor_id` persistence, partial-update preservation, model marketplace supplier aggregation, selected-vendor lookup, and channel list refresh behavior were preserved.
+- Deferred: no upstream commit was involved; database deployment verification still requires a running Go backend and the user's deployed instance.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: `git diff --check`, targeted Oxfmt check, and targeted Oxlint check passed; full frontend typecheck/build and Go tests remain subject to the repository's existing toolchain limitations.
+- Commit/push: pending source commit and push.
 
