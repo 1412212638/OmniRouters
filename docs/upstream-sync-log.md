@@ -3418,6 +3418,16 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed.
 - Commit/push: source commit `e9a21409b` created locally; not pushed.
 
+## 2026-10-04 - Filter model editor suppliers by enabled channels
+
+- Local reason: the model editor showed every supplier, and suppliers newly bound to channels were not automatically included in the model's selected supplier list.
+- Integrated: model metadata now merges supplier IDs from enabled channels for the exact model, while the model editor filters its supplier picker to that merged set. Existing model suppliers remain selected and new models retain the full supplier list.
+- Already present: model-vendor ordering, channel vendor persistence, model plaza supplier aggregation, and supplier de-duplication were preserved.
+- Deferred: none.
+- Preserved: protected project identifiers and unrelated untracked worktree files.
+- Validation: added a focused SQLite query regression test and ran `git diff --check`; Go test execution remains unavailable because the local Go toolchain is not installed.
+- Commit/push: pending source commit and push.
+
 ## 2026-10-02 - Pin sign-in terms notice to the bottom
 
 - Local reason: center the sign-in legal notice and place it at the bottom of the right-hand authentication area.

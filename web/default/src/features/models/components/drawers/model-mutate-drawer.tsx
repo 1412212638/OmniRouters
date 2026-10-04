@@ -358,7 +358,10 @@ export function ModelMutateDrawer({
     enabled: open,
   })
 
-  const vendors = vendorsData?.data?.items || []
+  const vendors = useMemo(
+    () => vendorsData?.data?.items || [],
+    [vendorsData?.data?.items]
+  )
 
   // Fetch model detail if editing
   const { data: modelData } = useQuery({
@@ -371,6 +374,16 @@ export function ModelMutateDrawer({
     },
     enabled: open && isEditing,
   })
+
+  // Existing models only need suppliers configured on the model or exposed by
+  // one of its enabled channels. New models keep the full supplier list.
+  const selectableVendors = useMemo(() => {
+    if (!isEditing || !modelData?.data?.vendor_ids) {
+      return vendors
+    }
+    const availableVendorIDs = new Set(modelData.data.vendor_ids)
+    return vendors.filter((vendor) => availableVendorIDs.has(vendor.id))
+  }, [isEditing, modelData?.data?.vendor_ids, vendors])
 
   // Fetch system options for ratio configuration
   const { data: systemOptionsData } = useSystemOptions()
@@ -994,7 +1007,7 @@ export function ModelMutateDrawer({
                     <FormLabel>{t('Vendors')}</FormLabel>
                     <FormControl>
                       <MultiSelect
-                        options={vendors.map((vendor) => ({
+                        options={selectableVendors.map((vendor) => ({
                           value: String(vendor.id),
                           label: vendor.name,
                         }))}

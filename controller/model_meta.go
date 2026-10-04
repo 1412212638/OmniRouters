@@ -187,7 +187,14 @@ func enrichModels(models []*model.Model) {
 			modelIDs = append(modelIDs, m.Id)
 		}
 	}
+	modelNames := make([]string, 0, len(models))
+	for _, m := range models {
+		if m != nil {
+			modelNames = append(modelNames, m.ModelName)
+		}
+	}
 	vendorIDsByModel, _ := model.GetModelVendorIDsMap(modelIDs)
+	channelVendorIDsByModel, _ := model.GetEnabledChannelVendorIDsByModelsMap(modelNames)
 	for _, m := range models {
 		if m == nil {
 			continue
@@ -195,6 +202,17 @@ func enrichModels(models []*model.Model) {
 		m.VendorIDs = vendorIDsByModel[m.Id]
 		if len(m.VendorIDs) == 0 && m.VendorID > 0 {
 			m.VendorIDs = []int{m.VendorID}
+		}
+		seenVendorIDs := make(map[int]struct{}, len(m.VendorIDs))
+		for _, vendorID := range m.VendorIDs {
+			seenVendorIDs[vendorID] = struct{}{}
+		}
+		for _, vendorID := range channelVendorIDsByModel[m.ModelName] {
+			if _, exists := seenVendorIDs[vendorID]; exists {
+				continue
+			}
+			m.VendorIDs = append(m.VendorIDs, vendorID)
+			seenVendorIDs[vendorID] = struct{}{}
 		}
 	}
 

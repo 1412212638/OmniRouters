@@ -238,6 +238,46 @@ func GetBoundChannelsByModelsMap(modelNames []string) (map[string][]BoundChannel
 	return result, nil
 }
 
+// GetEnabledChannelVendorIDsByModelsMap returns suppliers from enabled
+// channels that currently expose each exact model. The result preserves
+// channel order and removes duplicate supplier IDs.
+func GetEnabledChannelVendorIDsByModelsMap(modelNames []string) (map[string][]int, error) {
+	result := make(map[string][]int)
+	if len(modelNames) == 0 {
+		return result, nil
+	}
+	type row struct {
+		Model     string
+		VendorID  int
+		ChannelID int
+	}
+	var rows []row
+	err := DB.Table("abilities").
+		Select("abilities.model as model, channels.vendor_id as vendor_id, channels.id as channel_id").
+		Joins("JOIN channels ON channels.id = abilities.channel_id").
+		Where("abilities.model IN ? AND abilities.enabled = ? AND channels.status = ? AND channels.vendor_id IS NOT NULL", modelNames, true, common.ChannelStatusEnabled).
+		Order("abilities.model ASC, channels.id ASC").
+		Scan(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	seen := make(map[string]map[int]struct{})
+	for _, row := range rows {
+		if row.VendorID <= 0 {
+			continue
+		}
+		if seen[row.Model] == nil {
+			seen[row.Model] = make(map[int]struct{})
+		}
+		if _, exists := seen[row.Model][row.VendorID]; exists {
+			continue
+		}
+		seen[row.Model][row.VendorID] = struct{}{}
+		result[row.Model] = append(result[row.Model], row.VendorID)
+	}
+	return result, nil
+}
+
 func normalizeLookupValues(values []string) []string {
 	seen := make(map[string]struct{}, len(values))
 	normalized := make([]string, 0, len(values))
