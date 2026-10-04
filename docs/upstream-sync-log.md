@@ -3426,7 +3426,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: none.
 - Preserved: protected project identifiers and unrelated untracked worktree files.
 - Validation: added a focused SQLite query regression test and ran `git diff --check`; Go test execution remains unavailable because the local Go toolchain is not installed.
-- Commit/push: pending source commit and push.
+- Commit/push: source commit `13685f8c9` created locally; not pushed.
 
 ## 2026-10-02 - Pin sign-in terms notice to the bottom
 
