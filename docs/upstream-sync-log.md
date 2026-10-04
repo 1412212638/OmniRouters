@@ -3436,7 +3436,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: none.
 - Preserved: protected project identifiers and unrelated untracked worktree files.
 - Validation: targeted frontend formatting/lint checks and `git diff --check`; full typecheck remains blocked by existing repository errors.
-- Commit/push: pending source commit and push.
+- Commit/push: source commit `76855e22f` created locally; not pushed.
 
 ## 2026-10-02 - Pin sign-in terms notice to the bottom
 
