@@ -9,6 +9,7 @@ type ModelVendor struct {
 	ID       int    `json:"id"`
 	ModelID  int    `json:"model_id" gorm:"not null;uniqueIndex:uk_model_vendor,priority:1"`
 	VendorID int    `json:"vendor_id" gorm:"not null;uniqueIndex:uk_model_vendor,priority:2;index"`
+	SortOrder int   `json:"sort_order" gorm:"not null;default:0;index"`
 	Model    Model  `json:"-" gorm:"foreignKey:ModelID;constraint:OnDelete:CASCADE"`
 	Vendor   Vendor `json:"-" gorm:"foreignKey:VendorID;constraint:OnDelete:CASCADE"`
 }
@@ -17,7 +18,7 @@ func (ModelVendor) TableName() string { return "model_vendors" }
 
 func GetModelVendorIDs(modelID int) ([]int, error) {
 	var rows []ModelVendor
-	if err := DB.Where("model_id = ?", modelID).Order("vendor_id ASC").Find(&rows).Error; err != nil {
+	if err := DB.Where("model_id = ?", modelID).Order("sort_order ASC, vendor_id ASC").Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	ids := make([]int, 0, len(rows))
@@ -33,7 +34,7 @@ func GetModelVendorIDsMap(modelIDs []int) (map[int][]int, error) {
 		return result, nil
 	}
 	var rows []ModelVendor
-	if err := DB.Where("model_id IN ?", modelIDs).Order("model_id ASC, vendor_id ASC").Find(&rows).Error; err != nil {
+	if err := DB.Where("model_id IN ?", modelIDs).Order("model_id ASC, sort_order ASC, vendor_id ASC").Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	for _, row := range rows {
@@ -78,7 +79,11 @@ func SetModelVendorIDs(modelID int, vendorIDs []int) error {
 				continue
 			}
 			seen[vendorID] = struct{}{}
-			rows = append(rows, ModelVendor{ModelID: modelID, VendorID: vendorID})
+			rows = append(rows, ModelVendor{
+				ModelID:   modelID,
+				VendorID:  vendorID,
+				SortOrder: len(rows),
+			})
 		}
 		if len(rows) > 0 {
 			return tx.Create(&rows).Error

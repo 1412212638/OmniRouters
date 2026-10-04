@@ -35,14 +35,14 @@ func TestSetModelVendorIDsDeduplicatesAndReplaces(t *testing.T) {
 	if err := DB.Where("model_name = ?", "deepseek-v4.1-flash").First(&m).Error; err != nil {
 		t.Fatalf("load model: %v", err)
 	}
-	if err := SetModelVendorIDs(m.Id, []int{1, 2, 2, 3, 1}); err != nil {
+	if err := SetModelVendorIDs(m.Id, []int{3, 1, 2, 2, 1}); err != nil {
 		t.Fatalf("set vendors: %v", err)
 	}
 	got, err := GetModelVendorIDs(m.Id)
 	if err != nil {
 		t.Fatalf("get vendors: %v", err)
 	}
-	if len(got) != 3 || got[0] != 1 || got[1] != 2 || got[2] != 3 {
+	if len(got) != 3 || got[0] != 3 || got[1] != 1 || got[2] != 2 {
 		t.Fatalf("unexpected vendors: %#v", got)
 	}
 	if err := SetModelVendorIDs(m.Id, []int{3}); err != nil {

@@ -21,6 +21,9 @@ var channelsIDM map[int]*Channel                     // all channels include dis
 var channelSyncLock sync.RWMutex
 
 func InitChannelCache() {
+	// Channel availability and supplier bindings are inputs to the model plaza
+	// pricing cache. Invalidate even when the memory channel cache is disabled.
+	InvalidatePricingCache()
 	if !common.MemoryCacheEnabled {
 		return
 	}

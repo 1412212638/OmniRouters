@@ -3549,3 +3549,23 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: JSON parsing for all six frontend locales, targeted frontend type-check filtering, Oxfmt on changed frontend files, frontend production build, and git diff --check passed. Go tests/build were attempted with the repository test suite but remain blocked by pre-existing unrelated compilation errors.
 - Commit/push: source commit `62209288f` (`feat(pricing): support multiple model suppliers`); pushed successfully to `origin/main` on 2026-10-03.
 
+## 2026-10-04 - Preserve model supplier selection order
+
+- Local reason: reopening a model reordered selected suppliers by database ID instead of retaining the order chosen in the editor.
+- Integrated: added an explicit `sort_order` to model-vendor relations, persisted the submitted supplier order when saving, and returned supplier IDs in that order for model editing and marketplace metadata. Existing rows remain readable with a deterministic vendor-ID tie-breaker and will receive explicit ordering on their next save.
+- Already present: multi-supplier selection, legacy `vendor_id` compatibility, channel-bound supplier merging, pricing display, and supplier filtering were preserved.
+- Deferred: none.
+- Preserved: protected project identifiers and unrelated untracked worktree files.
+- Validation: targeted model vendor regression test and `git diff --check`; full repository test suite was not run.
+- Commit/push: pending source commit and push.
+
+## 2026-10-04 - Link channel suppliers to model plaza
+
+- Local reason: a supplier bound to an enabled channel was not reliably visible in the model plaza after the channel was saved, because the pricing cache could remain stale; supplier merging also reordered configured suppliers by vendor ID.
+- Integrated: model plaza supplier aggregation now preserves the explicit model supplier order, appends suppliers from enabled channel abilities, and de-duplicates IDs. Channel cache rebuilds now invalidate the pricing cache so channel supplier changes are reflected immediately.
+- Already present: channel `vendor_id` persistence, enabled-ability joins, model metadata supplier fallback, and the model editor supplier selection flow were preserved.
+- Deferred: no upstream commit was involved; no unrelated frontend or deployment work was changed.
+- Preserved: protected project identifiers and unrelated untracked worktree files.
+- Validation: added focused supplier aggregation regression tests and ran `git diff --check`; Go test execution remains unavailable because the local Go toolchain is not installed.
+- Commit/push: pending source commit and push.
+

@@ -204,6 +204,42 @@ func appendPricingEndpoint(endpoints []string, endpoint string) []string {
 	return append(endpoints, endpoint)
 }
 
+// buildAvailableVendorIDs combines the explicitly configured model suppliers
+// with suppliers bound to currently enabled channels. Model configuration keeps
+// its submitted order; channel suppliers are appended in ability query order.
+// A supplier is emitted once per model.
+func buildAvailableVendorIDs(metaMap map[string]*Model, modelVendorIDs map[int][]int, enableAbilities []AbilityWithChannel) map[string][]int {
+	availableVendorIDs := make(map[string][]int)
+	addVendor := func(modelName string, vendorID int) {
+		if modelName == "" || vendorID <= 0 {
+			return
+		}
+		for _, existing := range availableVendorIDs[modelName] {
+			if existing == vendorID {
+				return
+			}
+		}
+		availableVendorIDs[modelName] = append(availableVendorIDs[modelName], vendorID)
+	}
+	for modelName, meta := range metaMap {
+		if meta == nil {
+			continue
+		}
+		for _, vendorID := range modelVendorIDs[meta.Id] {
+			addVendor(modelName, vendorID)
+		}
+		if len(availableVendorIDs[modelName]) == 0 {
+			addVendor(modelName, meta.VendorID)
+		}
+	}
+	for _, ability := range enableAbilities {
+		if ability.ChannelVendorID != nil {
+			addVendor(ability.Model, *ability.ChannelVendorID)
+		}
+	}
+	return availableVendorIDs
+}
+
 func updatePricing() {
 	// Reuse hourly platform usage aggregates once per pricing cache refresh.
 	usageByModel := make(map[string]int64)
@@ -253,21 +289,7 @@ func updatePricing() {
 	if DB.Migrator().HasTable(&ModelVendor{}) {
 		modelVendorIDs, _ = GetModelVendorIDsMap(metaIDs)
 	}
-	availableVendorIDs := make(map[string][]int)
-	addVendor := func(modelName string, vendorID int) {
-		if vendorID <= 0 { return }
-		for _, existing := range availableVendorIDs[modelName] { if existing == vendorID { return } }
-		availableVendorIDs[modelName] = append(availableVendorIDs[modelName], vendorID)
-	}
-	for modelName, meta := range metaMap {
-		if meta == nil { continue }
-		for _, vendorID := range modelVendorIDs[meta.Id] { addVendor(modelName, vendorID) }
-		if len(availableVendorIDs[modelName]) == 0 { addVendor(modelName, meta.VendorID) }
-	}
-	for _, ability := range enableAbilities {
-		if ability.ChannelVendorID != nil { addVendor(ability.Model, *ability.ChannelVendorID) }
-	}
-	for _, ids := range availableVendorIDs { sort.Ints(ids) }
+	availableVendorIDs := buildAvailableVendorIDs(metaMap, modelVendorIDs, enableAbilities)
 
 	// 构建对前端友好的供应商列表
 	vendorsList = make([]PricingVendor, 0, len(vendorMap))
