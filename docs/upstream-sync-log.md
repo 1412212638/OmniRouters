@@ -3446,7 +3446,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: none.
 - Preserved: authentication behavior, page navigation, theme handling, protected project identifiers, and unrelated untracked worktree files.
 - Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed.
-- Commit/push: source commit `604586bf2` (`fix(channels): isolate vendor detail state`); push pending.
+- Commit/push: pending source commit and push.
 
 ## 2026-10-02 - Add invitation-aware authentication entry flow
 
@@ -3617,5 +3617,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: no upstream commit was involved; database deployment verification still requires a running Go backend and the user's deployed instance.
 - Preserved: protected project identifiers and all unrelated untracked worktree files.
 - Validation: `git diff --check`, targeted Oxfmt check, and targeted Oxlint check passed; full frontend typecheck/build and Go tests remain subject to the repository's existing toolchain limitations.
-- Commit/push: pending source commit and push.
+- Commit/push: source commit `9495ee760` (`fix(channels): isolate vendor detail state`); pushed to `origin/main`.
 
