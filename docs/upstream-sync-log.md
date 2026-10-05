@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-05 - Show matched dynamic multipliers in compact usage logs
+
+- Local reason: the compact usage-log row could show `Dynamic Pricing · No matching results` while the detail drawer showed a matched `2x` request rule and the charge reflected that multiplier.
+- Changed: compact log rendering now gives matched request-rule traces priority and displays their multiplier(s), even when the compact payload cannot parse the full expression summary.
+- Preserved: detailed pricing breakdowns, billing calculations, fallback labels for genuinely unmatched rules, existing log formats, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` and the `web/default` production build passed. Go tests were not run because the local Go toolchain is unavailable.
+- Commit/push: pending.
+
 ## 2026-10-05 - Preserve matched time-rule traces when settlement falls back
 
 - Local reason: dynamic billing logs could show `base / off-peak fallback` even when the reserved charge was already multiplied by the active peak rule. The settlement fallback path discarded the pre-consume request-rule trace.

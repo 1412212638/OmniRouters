@@ -189,6 +189,9 @@ function buildTypeDetailSegments(
         })
       }
     } else {
+      const matchedRequestRules = Array.isArray(other.request_rules)
+        ? other.request_rules.filter((rule) => rule.matched === true)
+        : []
       const hasOnlyUnmatchedRequestRules =
         Array.isArray(other.request_rules) &&
         other.request_rules.length > 0 &&
@@ -199,12 +202,18 @@ function buildTypeDetailSegments(
         (matchedTier?.toLowerCase() === 'base' &&
           (!Array.isArray(other.request_rules) ||
             other.request_rules.length === 0))
+      const matchedMultiplierText = matchedRequestRules
+        .map((rule) => `${rule.multiplier}x`)
+        .join(' / ')
       segments.push({
-        text: `${t('Dynamic Pricing')} · ${t(
-          isBaseTierFallback
-            ? 'Base tier / off-peak fallback'
-            : 'No matching results'
-        )}`,
+        text:
+          matchedRequestRules.length > 0
+            ? `${t('Dynamic Pricing')} · ${t('Matched')} ${matchedMultiplierText}`
+            : `${t('Dynamic Pricing')} · ${t(
+                isBaseTierFallback
+                  ? 'Base tier / off-peak fallback'
+                  : 'No matching results'
+              )}`,
         muted: true,
       })
     }
