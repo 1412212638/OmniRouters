@@ -219,7 +219,10 @@ function BillingBreakdown(props: {
         other.request_rules.every((rule) => rule.matched !== true)
       const matchedTier = other.matched_tier?.trim()
       const isBaseTierFallback =
-        matchedTier?.toLowerCase() === 'base' || hasOnlyUnmatchedRequestRules
+        hasOnlyUnmatchedRequestRules ||
+        (matchedTier?.toLowerCase() === 'base' &&
+          (!Array.isArray(other.request_rules) ||
+            other.request_rules.length === 0))
       rows.push({
         label: t('Matched Tier'),
         value: isBaseTierFallback

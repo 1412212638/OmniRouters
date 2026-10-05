@@ -3454,7 +3454,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: none.
 - Preserved: authentication behavior, page navigation, theme handling, protected project identifiers, and unrelated untracked worktree files.
 - Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed.
-- Commit/push: pending source commit and push.
+- Commit/push: source commit `9d80caa9c` (`fix(logs): distinguish matched time multipliers`); pushed to `origin/main`.
 
 ## 2026-10-02 - Add invitation-aware authentication entry flow
 
@@ -3666,4 +3666,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: protected project identifiers and all unrelated untracked worktree files.
 - Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
 - Commit/push: source commit `8a84833ef` (`fix(channels): keep supplier visible in editor`); pushed to `origin/main`.
+
+## 2026-10-05 - Show matched time multipliers in usage logs
+
+- Local reason: a tiered billing log could charge the active time multiplier correctly but still label the matched tier as the off-peak fallback whenever the base tier name was `base`.
+- Integrated: usage-log details and the compact log column now use the off-peak fallback label only when every request rule is unmatched (or no request rules exist); a matched request multiplier keeps the actual base tier label.
+- Already present: backend billing evaluation, request-rule traces, and the existing pricing calculation were preserved.
+- Deferred: no upstream commit was involved; live deployment verification still requires rebuilding and deploying the updated frontend image.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: targeted Oxfmt/Oxlint checks and the production frontend build are required; Go tests are unaffected by this frontend-only change.
+- Commit/push: pending source commit and push.
 
