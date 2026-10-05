@@ -6,7 +6,7 @@
 - Changed: embed Go timezone data in the billing expression runtime, capture one evaluation instant for all time predicates, and add fixed Shanghai peak-window and invalid-zone fallback regression coverage.
 - Preserved: existing expression syntax, UTC fallback behavior for invalid or empty zones, billing amounts, request-rule trace format, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` and `web/default` `bun run build` passed. The targeted Go tests are included but could not run in this workspace because the Go toolchain is unavailable; CI compilation and tests remain required. The deployed container must be recreated from the new image before the backend fix is active.
-- Commit/push: source commit and push pending.
+- Commit/push: source commit `4b000dbe5` (`fix(billing): embed timezone data for peak rules`); remote `origin/main` was verified at the same commit after the initial ref-lock race.
 
 ## 2026-10-05 - Parse task-plugin token expressions in model plaza pricing
 
