@@ -94,6 +94,7 @@ import {
   useSecureVerification,
 } from '@/features/auth/secure-verification'
 import { getVendor, getVendors } from '@/features/models/api'
+import { vendorsQueryKeys } from '@/features/models/lib'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { useHiddenClickUnlock } from '@/hooks/use-hidden-click-unlock'
 import {
@@ -656,7 +657,7 @@ export function ChannelMutateDrawer({
 
   // Fetch available groups
   const { data: vendorsData } = useQuery({
-    queryKey: ['vendors', 'all'],
+    queryKey: vendorsQueryKeys.list({ page_size: 1000 }),
     queryFn: () => getVendors({ page_size: 1000 }),
     enabled: open,
   })

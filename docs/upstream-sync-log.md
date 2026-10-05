@@ -3639,6 +3639,16 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
 - Commit/push: local source commit pending; not pushed until live confirmation.
 
+## 2026-10-05 - Share the vendor query cache with the channel table
+
+- Local reason: the channel table and edit drawer used different React Query keys for the same vendor list, allowing the drawer to render with an empty option set even when the table already displayed the supplier.
+- Integrated: the channel editor now uses the shared `vendorsQueryKeys.list({ page_size: 1000 })` key, so it reuses the table's loaded vendor metadata and keeps the selected supplier option stable.
+- Already present: selected-row supplier fallback, controlled selector display, nullable persistence, and detail request isolation were preserved.
+- Deferred: no upstream commit was involved; live deployment verification still requires the user's running instance.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
+- Commit/push: local source commit pending; not pushed until live confirmation.
+
 ## 2026-10-05 - Prefer the selected channel row for supplier hydration
 
 - Local reason: the edit drawer could still show an empty supplier when the detail response contained a stale or empty binding, even though the selected channel row visibly had a supplier.
