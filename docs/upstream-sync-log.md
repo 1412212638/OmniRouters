@@ -3465,7 +3465,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: none.
 - Preserved: existing login providers, password login behavior, legal consent, redirect handling, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `bun run build`, targeted Oxfmt, targeted Oxlint for the changed auth components (no new errors), locale-key presence checks, and `git diff --check` passed. The remaining `api.ts` Oxlint warnings/errors are pre-existing in that file (import ordering, `any`, and missing braces). Backend Go compilation and gofmt were not run because the local Go toolchain is unavailable; the Telegram flow call sites and WeChat/OAuth attribution paths were statically checked.
-- Commit/push: source commit `6594bff23` (`fix(logs): distinguish matched time multipliers`); pushed to `origin/main`.
+- Commit/push: pending source commit and push.
 
 ## 2026-10-05 - Highlight matched request multipliers in billing details
 
@@ -3475,7 +3475,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: no upstream commit was involved; live deployment verification still requires rebuilding and deploying the updated frontend image.
 - Preserved: protected project identifiers and all unrelated untracked worktree files.
 - Validation: targeted Oxfmt/Oxlint checks and the production frontend build are required; Go tests are unaffected by this frontend-only change.
-- Commit/push: source commit `6594bff23` (`fix(logs): distinguish matched time multipliers`); pushed to `origin/main`.
+- Commit/push: source commit `62ba60e81` (`fix(logs): highlight matched billing rules`); pushed to `origin/main`.
 
 ## 2026-10-02 - Separate OAuth and email sign-in views
 
