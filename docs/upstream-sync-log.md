@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-05 - Parse task-plugin token expressions in model plaza pricing
+
+- Local reason: model plaza pricing used the token-only `p`/`c` expression parser, so task-plugin expressions such as `tier("base", u("input_tokens") * 0.042 / 1000000)` were incorrectly labeled as special/unparseable.
+- Changed: the shared pricing summary now falls back to the existing schema-aware task pricing display parser, maps task input/output token fields into the catalog's primary price entries, formats token rates using the existing per-token-unit conversion, and applies group/recharge display multipliers. Model details now use that same parse result for its expression status and render task pricing by group with each group's multiplier.
+- Preserved: expression execution and billing semantics, the raw-expression fallback for genuinely unsupported expressions, existing task pricing tables, plugin-specific billing metadata, protected project identifiers, and unrelated untracked worktree files.
+- Validation: an executable Bun assertion for the reported `jev-1.13.0` expression passed and produced `$0.042` per 1M input tokens; targeted Oxfmt, targeted Oxlint (dynamic-price, model-card, and pricing-columns), `bun run build`, and `git diff --check` passed. Full `bun run typecheck` remains blocked by pre-existing errors in unrelated files and missing Vitest/testing-library dependencies; the check also initially identified and helped fix a type error in the new entry mapper.
+- Commit/push: not committed or pushed; no GitHub push was requested in this turn.
+
 ## 2026-10-04 - Preserve channel supplier binding and clarify tier fallback
 
 - Local reason: channel supplier selections were saved but omitted when channel data was converted back into edit-form defaults, and usage-log billing details called an unmatched peak rule set "No matching results" even when the base off-peak tier was the correct fallback.

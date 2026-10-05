@@ -881,9 +881,17 @@ function usePriceRows(props: {
       inputValue: inputEntry?.formatted || t('Dynamic Pricing'),
       outputValue: outputEntry?.formatted || '-',
       inputUnit:
-        inputEntry?.displayUnit === 'request' ? t('request') : tokenUnitLabel,
+        inputEntry?.displayUnit === 'request'
+          ? t('request')
+          : inputEntry?.displayUnit === 'custom'
+            ? inputEntry.unit || ''
+            : tokenUnitLabel,
       outputUnit:
-        outputEntry?.displayUnit === 'request' ? t('request') : tokenUnitLabel,
+        outputEntry?.displayUnit === 'request'
+          ? t('request')
+          : outputEntry?.displayUnit === 'custom'
+            ? outputEntry.unit || ''
+            : tokenUnitLabel,
     }
   }
 

@@ -122,6 +122,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
                 {entry.formatted}
               </span>
               {entry.displayUnit === 'token' && `/${tokenUnitLabel}`}
+              {entry.displayUnit === 'custom' && `/${entry.unit}`}
             </span>
           ))}
         </>
@@ -139,6 +140,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
                 {entry.formatted}
               </span>
               {entry.displayUnit === 'token' && `/${tokenUnitLabel}`}
+              {entry.displayUnit === 'custom' && `/${entry.unit}`}
             </span>
           ))}
         </>

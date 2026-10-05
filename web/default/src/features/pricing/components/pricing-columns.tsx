@@ -156,6 +156,7 @@ export function usePricingColumns(
                     )}
                     {stripTrailingZeros(entry.formatted)}
                     {entry.displayUnit === 'token' && `/${tokenUnitLabel}`}
+                    {entry.displayUnit === 'custom' && `/${entry.unit}`}
                   </span>
                 ))}
               </span>

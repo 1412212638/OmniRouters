@@ -12,6 +12,7 @@ import {
   type RequestRuleGroup,
 } from './billing-expr'
 import { getDisplayGroupRatio } from './model-helpers'
+import { getTaskPricingDisplayTiers } from './task-matrix-display'
 
 export type DynamicPriceOptions = {
   tokenUnit: TokenUnit
@@ -29,7 +30,8 @@ export type DynamicPriceEntry = {
   value: number
   formatted: string
   variable?: BillingVar
-  displayUnit: 'token' | 'request'
+  displayUnit: 'token' | 'request' | 'custom'
+  unit?: string
 }
 
 export type DynamicPriceRange = {
@@ -57,6 +59,14 @@ export type DynamicPricingSummary = {
 
 const PRIMARY_DYNAMIC_FIELDS = new Set(['inputPrice', 'outputPrice'])
 
+function isPrimaryDynamicField(field: string): boolean {
+  return (
+    PRIMARY_DYNAMIC_FIELDS.has(field) ||
+    field === 'input_tokens' ||
+    field === 'output_tokens'
+  )
+}
+
 export function isDynamicPricingModel(model: PricingModel): boolean {
   return model.billing_mode === 'tiered_expr' && Boolean(model.billing_expr)
 }
@@ -77,6 +87,74 @@ function applyRechargeRate(
 ): number {
   if (!showWithRecharge) return price
   return (price * priceRate) / usdExchangeRate
+}
+
+function formatTaskUnitPrice(
+  value: number,
+  unit: string | undefined,
+  options: DynamicPriceOptions
+): string {
+  if (unit === 'token') return formatDynamicUnitPrice(value, options)
+  const groupRatio = options.groupRatioMultiplier ?? 1
+  const priceRate = options.priceRate ?? 1
+  const usdExchangeRate = options.usdExchangeRate ?? 1
+  return formatBillingCurrencyFromUSD(
+    applyRechargeRate(
+      value * groupRatio,
+      options.showRechargePrice ?? false,
+      priceRate,
+      usdExchangeRate
+    ),
+    { digitsLarge: 4, digitsSmall: 6, abbreviate: false }
+  )
+}
+
+function taskFieldLabel(field: string): string {
+  if (field === 'input_tokens') return 'Input'
+  if (field === 'output_tokens') return 'Output'
+  if (field === 'cached_tokens') return 'Cached'
+  return field
+}
+
+function getTaskPriceEntries(
+  model: PricingModel,
+  options: DynamicPriceOptions,
+  taskTiers?: ReturnType<typeof getTaskPricingDisplayTiers>
+): DynamicPriceEntry[] {
+  const schema = model.billing_usage_schema
+  if (!schema || !model.billing_expr) return []
+  const { billingExpr } = splitBillingExprAndRequestRules(model.billing_expr)
+  const tiers = taskTiers ?? getTaskPricingDisplayTiers(billingExpr, schema)
+  if (tiers.length === 0) return []
+
+  const fields = Object.keys(schema).filter((field) =>
+    tiers.some((tier) => Number(tier.unitPrices[field]) > 0)
+  )
+  return fields.flatMap((field) => {
+    const definition = schema[field]
+    const values = tiers
+      .map((tier) => Number(tier.unitPrices[field]))
+      .filter((value) => Number.isFinite(value) && value > 0)
+    if (!definition?.unit || values.length === 0) return []
+    const min = Math.min(...values)
+    const max = Math.max(...values)
+    const formattedMin = formatTaskUnitPrice(min, definition.unit, options)
+    const formattedMax = formatTaskUnitPrice(max, definition.unit, options)
+    const displayUnit = definition.unit === 'token' ? 'token' : 'custom'
+    return [
+      {
+        key: `task:${field}`,
+        field,
+        label: taskFieldLabel(field),
+        shortLabel: taskFieldLabel(field),
+        value: min,
+        formatted:
+          min === max ? formattedMin : `${formattedMin}-${formattedMax}`,
+        displayUnit,
+        unit: definition.unit,
+      },
+    ]
+  })
 }
 
 export function formatDynamicUnitPrice(
@@ -381,23 +459,36 @@ export function getDynamicPricingSummary(
 
   const tiers = getDynamicPricingTiers(model)
   const tier = tiers[0] || null
-  const entries = getDynamicPriceEntries(tier, options)
+  const taskTiers = model.billing_usage_schema
+    ? getTaskPricingDisplayTiers(
+        splitBillingExprAndRequestRules(model.billing_expr || '').billingExpr,
+        model.billing_usage_schema
+      )
+    : []
+  const taskEntries = model.billing_usage_schema
+    ? getTaskPriceEntries(model, options, taskTiers)
+    : []
+  const entries =
+    taskEntries.length > 0 ? taskEntries : getDynamicPriceEntries(tier, options)
   const rawExpression = model.billing_expr || ''
   const hasRequestRules = hasDynamicRequestRules(model)
 
   return {
     tiers,
     tier,
-    tierCount: tiers.length,
+    tierCount: tiers.length || taskTiers.length,
     hasRequestRules,
-    isSpecialExpression: rawExpression.trim().length > 0 && tiers.length === 0,
+    isSpecialExpression:
+      rawExpression.trim().length > 0 &&
+      tiers.length === 0 &&
+      taskEntries.length === 0,
     rawExpression,
     entries,
     primaryEntries: entries.filter((entry) =>
-      PRIMARY_DYNAMIC_FIELDS.has(entry.field)
+      isPrimaryDynamicField(entry.field)
     ),
     secondaryEntries: entries.filter(
-      (entry) => !PRIMARY_DYNAMIC_FIELDS.has(entry.field)
+      (entry) => !isPrimaryDynamicField(entry.field)
     ),
     primaryRanges: hasRequestRules
       ? []

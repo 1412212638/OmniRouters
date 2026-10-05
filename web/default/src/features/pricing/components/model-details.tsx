@@ -525,9 +525,8 @@ function ModelHeader(props: { model: PricingModel }) {
   const modelIcon = modelIconKey ? getLobeIcon(modelIconKey, 20) : null
   const description = model.description || model.vendor_description || null
   const isSpecialExpression =
-    model.billing_mode === 'tiered_expr' &&
-    Boolean(model.billing_expr) &&
-    getDynamicPricingTiers(model).length === 0
+    getDynamicPricingSummary(model, { tokenUnit: DEFAULT_TOKEN_UNIT })
+      ?.isSpecialExpression ?? false
   const isSoraPricing = isSoraPerRequestPricingModel(model)
   const billingLabel =
     model.quota_type === QUOTA_TYPE_VALUES.TOKEN || isSoraPricing
@@ -690,6 +689,11 @@ function PriceSection(props: {
                   {entry.displayUnit === 'token' && (
                     <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
                       / {tokenUnitLabel}
+                    </span>
+                  )}
+                  {entry.displayUnit === 'custom' && entry.unit && (
+                    <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
+                      / {entry.unit}
                     </span>
                   )}
                 </div>
@@ -979,6 +983,27 @@ function GroupPricingSection(props: {
     const dynamicTiers = getDynamicPricingTiers(props.model)
 
     if (dynamicTiers.length === 0) {
+      if (props.model.billing_usage_schema) {
+        return (
+          <section>
+            <SectionTitle>{t('Pricing by Group')}</SectionTitle>
+            <AutoGroupChain model={props.model} autoGroups={props.autoGroups} />
+            <div className='space-y-5'>
+              {availableGroups.map((group) => (
+                <TaskPricingSection
+                  key={group}
+                  model={props.model}
+                  priceRate={props.priceRate}
+                  usdExchangeRate={props.usdExchangeRate}
+                  groupRatio={effectiveGroupRatio[group] ?? 1}
+                  title={`${group} ${t('Task pricing')}`}
+                />
+              ))}
+            </div>
+          </section>
+        )
+      }
+
       return (
         <section>
           <SectionTitle>{t('Pricing by Group')}</SectionTitle>
@@ -1309,7 +1334,7 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
               showRechargePrice={showRechargePrice}
               groupModelRatioExpiry={props.groupModelRatioExpiry}
             />
-            {isDynamic && (
+            {isDynamic && !props.model.billing_usage_schema && (
               <DynamicPricingBreakdown billingExpr={props.model.billing_expr} />
             )}
             <TaskPricingSection
