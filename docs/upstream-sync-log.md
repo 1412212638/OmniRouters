@@ -3637,7 +3637,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: no upstream commit was involved; live deployment verification still requires the user's running instance.
 - Preserved: protected project identifiers and all unrelated untracked worktree files.
 - Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
-- Commit/push: local source commit pending; not pushed until live confirmation.
+- Commit/push: source commit `b882d8568` (`fix(channels): preserve supplier in editor fallback`); pushed to `origin/main`.
 
 ## 2026-10-05 - Share the vendor query cache with the channel table
 
@@ -3647,7 +3647,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: no upstream commit was involved; live deployment verification still requires the user's running instance.
 - Preserved: protected project identifiers and all unrelated untracked worktree files.
 - Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
-- Commit/push: local source commit pending; not pushed until live confirmation.
+- Commit/push: source commit `245c55d6f` (`fix(channels): share vendor query cache`); pushed to `origin/main`.
 
 ## 2026-10-05 - Prefer the selected channel row for supplier hydration
 
@@ -3657,5 +3657,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: no upstream commit was involved; live deployment verification still requires the user's running instance.
 - Preserved: protected project identifiers and all unrelated untracked worktree files.
 - Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
-- Commit/push: local source commit pending; not pushed until live confirmation.
+- Commit/push: source commit `8a84833ef` (`fix(channels): keep supplier visible in editor`); pushed to `origin/main`.
 
