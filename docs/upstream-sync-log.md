@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-05 - Make billing time rules reliable in minimal containers
+
+- Local reason: peak/off-peak billing logs continued to report the off-peak fallback at a Beijing-time request such as Monday 15:13 because named timezone loading could silently fall back to UTC when the runtime image lacked zoneinfo.
+- Changed: embed Go timezone data in the billing expression runtime, capture one evaluation instant for all time predicates, and add fixed Shanghai peak-window and invalid-zone fallback regression coverage.
+- Preserved: existing expression syntax, UTC fallback behavior for invalid or empty zones, billing amounts, request-rule trace format, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` and `web/default` `bun run build` passed. The targeted Go tests are included but could not run in this workspace because the Go toolchain is unavailable; CI compilation and tests remain required. The deployed container must be recreated from the new image before the backend fix is active.
+- Commit/push: source commit and push pending.
+
 ## 2026-10-05 - Parse task-plugin token expressions in model plaza pricing
 
 - Local reason: model plaza pricing used the token-only `p`/`c` expression parser, so task-plugin expressions such as `tier("base", u("input_tokens") * 0.042 / 1000000)` were incorrectly labeled as special/unparseable.

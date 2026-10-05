@@ -5,6 +5,7 @@ import (
 	"math"
 	"strings"
 	"time"
+	_ "time/tzdata"
 
 	"github.com/QuantumNous/new-api/relaykit/dto"
 
@@ -67,6 +68,10 @@ func runProgram(prog *vm.Program, requestRules []RequestRuleTrace, usedVars map[
 		trace.ImageCount = &imageCount
 	}
 
+	// Capture one instant for all time predicates in this evaluation. Besides
+	// keeping weekday/hour consistent around a minute boundary, the embedded
+	// tzdata import above makes named zones available in minimal containers.
+	evaluationNow := time.Now()
 	env := map[string]any{
 		"image_count": float64(imageCount),
 		"p":           params.P,
@@ -134,11 +139,11 @@ func runProgram(prog *vm.Program, requestRules []RequestRuleTrace, usedVars map[
 			}
 			return strings.Contains(fmt.Sprint(source), substr)
 		},
-		"hour":    func(tz string) int { return timeInZone(tz).Hour() },
-		"minute":  func(tz string) int { return timeInZone(tz).Minute() },
-		"weekday": func(tz string) int { return int(timeInZone(tz).Weekday()) },
-		"month":   func(tz string) int { return int(timeInZone(tz).Month()) },
-		"day":     func(tz string) int { return timeInZone(tz).Day() },
+		"hour":    func(tz string) int { return timeInZoneAt(evaluationNow, tz).Hour() },
+		"minute":  func(tz string) int { return timeInZoneAt(evaluationNow, tz).Minute() },
+		"weekday": func(tz string) int { return int(timeInZoneAt(evaluationNow, tz).Weekday()) },
+		"month":   func(tz string) int { return int(timeInZoneAt(evaluationNow, tz).Month()) },
+		"day":     func(tz string) int { return timeInZoneAt(evaluationNow, tz).Day() },
 		"max":     math.Max,
 		"min":     math.Min,
 		"abs":     math.Abs,
@@ -158,15 +163,19 @@ func runProgram(prog *vm.Program, requestRules []RequestRuleTrace, usedVars map[
 }
 
 func timeInZone(tz string) time.Time {
+	return timeInZoneAt(time.Now(), tz)
+}
+
+func timeInZoneAt(now time.Time, tz string) time.Time {
 	tz = strings.TrimSpace(tz)
 	if tz == "" {
-		return time.Now().UTC()
+		return now.UTC()
 	}
 	loc, err := time.LoadLocation(tz)
 	if err != nil {
-		return time.Now().UTC()
+		return now.UTC()
 	}
-	return time.Now().In(loc)
+	return now.In(loc)
 }
 
 func normalizeHeaders(headers map[string]string) map[string]string {
