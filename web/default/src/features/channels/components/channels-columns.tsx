@@ -28,6 +28,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import type { Vendor } from '@/features/models/types'
 import { toIntlLocale } from '@/i18n/languages'
 import {
   formatCurrencyFromUSD,
@@ -69,6 +70,8 @@ import {
   type CodexUsageDialogData,
 } from './dialogs/codex-usage-dialog'
 import { NumericSpinnerInput } from './numeric-spinner-input'
+
+const EMPTY_VENDORS: Vendor[] = []
 
 function parseIonetMeta(otherInfo: string | null | undefined): null | {
   source?: string
@@ -571,11 +574,17 @@ export function BalanceCell({ channel }: { channel: Channel }) {
 export function useChannelsColumns(
   options: {
     enableSelection?: boolean
+    vendors?: Vendor[]
   } = {}
 ): ColumnDef<Channel>[] {
   const { t, i18n } = useTranslation()
   const { sensitiveVisible } = useChannels()
   const enableSelection = options.enableSelection ?? true
+  const vendors = options.vendors ?? EMPTY_VENDORS
+  const vendorMap = useMemo(
+    () => new Map(vendors.map((vendor) => [vendor.id, vendor])),
+    [vendors]
+  )
   const locale = toIntlLocale(i18n.resolvedLanguage || i18n.language)
   // The column definitions only depend on the translation function, the active
   // locale, and sensitive-data visibility. Memoizing keeps the array (and every
@@ -879,6 +888,34 @@ export function useChannelsColumns(
           return value.includes(String(row.getValue(id)))
         },
         size: 220,
+        enableSorting: false,
+      },
+
+      // Vendor column
+      {
+        accessorKey: 'vendor_id',
+        header: t('Vendor'),
+        meta: { mobileHidden: true },
+        cell: ({ row }) => {
+          if (isTagAggregateRow(row.original)) {
+            return <span className='text-muted-foreground text-xs'>-</span>
+          }
+
+          const vendorId = row.original.vendor_id
+          const vendor = vendorId == null ? undefined : vendorMap.get(vendorId)
+          if (!vendor) {
+            return <span className='text-muted-foreground text-xs'>-</span>
+          }
+
+          return (
+            <ProviderBadge
+              iconKey={vendor.icon}
+              label={vendor.name}
+              className='max-w-[12rem]'
+            />
+          )
+        },
+        size: 160,
         enableSorting: false,
       },
 
@@ -1211,6 +1248,6 @@ export function useChannelsColumns(
         meta: { pinned: 'right' as const },
       },
     ],
-    [enableSelection, t, locale, sensitiveVisible]
+    [enableSelection, t, locale, sensitiveVisible, vendorMap]
   )
 }

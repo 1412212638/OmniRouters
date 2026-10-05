@@ -24,6 +24,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { getVendors } from '@/features/models/api'
+import { vendorsQueryKeys } from '@/features/models/lib'
 import { useMediaQuery } from '@/hooks'
 import { useTableUrlState } from '@/hooks/use-table-url-state'
 import { getLobeIcon } from '@/lib/lobe-icon'
@@ -192,6 +194,16 @@ export function ChannelsTable() {
     queryFn: getGroups,
   })
 
+  const { data: vendorsData } = useQuery({
+    queryKey: vendorsQueryKeys.list({ page_size: 1000 }),
+    queryFn: () => getVendors({ page_size: 1000 }),
+  })
+
+  const vendors = useMemo(
+    () => vendorsData?.data?.items || [],
+    [vendorsData?.data?.items]
+  )
+
   const groupOptions = useMemo(
     () =>
       (groupsData?.data || []).map((g) => ({
@@ -288,7 +300,10 @@ export function ChannelsTable() {
   const typeCounts = data?.data?.type_counts
 
   // Columns configuration
-  const columns = useChannelsColumns({ enableSelection: batchMode })
+  const columns = useChannelsColumns({
+    enableSelection: batchMode,
+    vendors,
+  })
 
   // React Table instance
   const { table } = useDataTable({
@@ -299,6 +314,7 @@ export function ChannelsTable() {
     initialColumnVisibility: {
       models: false,
       tag: false,
+      vendor_id: false,
     },
     columnVisibilityStorageKey: CHANNELS_COLUMN_VISIBILITY_STORAGE_KEY,
     columnSizingStorageKey: isMobile

@@ -639,6 +639,7 @@ export function ChannelMutateDrawer({
     data: channelData,
     isLoading: isChannelLoading,
     isFetching: isChannelFetching,
+    isFetchedAfterMount: isChannelFetchedAfterMount,
   } = useQuery({
     queryKey: channelsQueryKeys.detail(channelId || 0),
     queryFn: () => getChannel(channelId || 0),
@@ -649,7 +650,7 @@ export function ChannelMutateDrawer({
   // React Query can keep a previous result available while a key changes.
   // Never use that result to initialize another channel's form or supplier.
   const currentChannelData =
-    channelData?.data && channelData.data.id === channelId
+    !isChannelFetching && channelData?.data && channelData.data.id === channelId
       ? channelData.data
       : undefined
 
@@ -880,7 +881,11 @@ export function ChannelMutateDrawer({
   const isBatchMode =
     multiKeyMode === 'batch' || multiKeyMode === 'multi_to_single'
   const isChannelDetailLoading =
-    isEditing && (!currentChannelData || isChannelLoading || isChannelFetching)
+    isEditing &&
+    (!currentChannelData ||
+      isChannelLoading ||
+      isChannelFetching ||
+      !isChannelFetchedAfterMount)
   const supportsMultiKeyAddMode =
     currentType !== 57 && !(currentType === 41 && vertexKeyType === 'api_key')
   const addModeOptions = useMemo(
@@ -1287,6 +1292,18 @@ export function ChannelMutateDrawer({
   // Load channel data into form when editing
   useEffect(() => {
     if (isEditing && currentChannelData) {
+      // A detail query can have a cached response from before the latest save.
+      // Wait for the request started by this drawer mount before resetting the
+      // form; otherwise the cached vendor_id briefly clears the selection and
+      // can win the first-open race with the fresh response.
+      if (
+        isChannelLoading ||
+        isChannelFetching ||
+        !isChannelFetchedAfterMount
+      ) {
+        return
+      }
+
       // Keep the list value as a fallback while the detail response is being
       // refreshed. This prevents a transient missing nullable field from
       // clearing an already persisted supplier selection in the form.
@@ -1314,7 +1331,15 @@ export function ChannelMutateDrawer({
       initialModelMappingRef.current = ''
       initialStatusCodeMappingRef.current = ''
     }
-  }, [isEditing, currentChannelData, currentRow, form])
+  }, [
+    isEditing,
+    currentChannelData,
+    currentRow,
+    form,
+    isChannelLoading,
+    isChannelFetching,
+    isChannelFetchedAfterMount,
+  ])
 
   // Handle type change - set default values for specific types
   useEffect(() => {

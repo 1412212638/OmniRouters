@@ -3619,3 +3619,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check`, targeted Oxfmt check, and targeted Oxlint check passed; full frontend typecheck/build and Go tests remain subject to the repository's existing toolchain limitations.
 - Commit/push: source commit `9495ee760` (`fix(channels): isolate vendor detail state`); pushed to `origin/main`.
 
+## 2026-10-05 - Stabilize first channel editor open and expose supplier column
+
+- Local reason: the first editor open after saving could initialize from a cached detail response before the fresh request completed, leaving the supplier empty until the drawer was opened again; administrators also needed to inspect suppliers directly from the channel table.
+- Integrated: form hydration now waits for the current drawer mount's detail request to complete before applying data, and stale detail results are ignored while fetching. Added a hidden-by-default `Vendor` column to the channel table, backed by the vendor metadata endpoint and available through the column visibility menu.
+- Already present: nullable supplier persistence, channel/model supplier synchronization, selected-vendor fallback loading, and the existing table/card layouts were preserved.
+- Deferred: no upstream commit was involved; database deployment verification still requires a running Go backend and the user's deployed instance.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
+- Commit/push: pending source commit and push.
+
