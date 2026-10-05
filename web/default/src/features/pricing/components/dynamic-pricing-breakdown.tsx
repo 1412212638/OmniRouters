@@ -43,6 +43,7 @@ import {
   type ParsedTier,
   type RequestCondition,
   type RequestRuleGroup,
+  type RequestRuleTrace,
   type TierCondition,
 } from '../lib/billing-expr'
 
@@ -54,6 +55,8 @@ type DynamicPricingBreakdownProps = {
    * the usage-log details dialog to show which tier the engine selected.
    */
   matchedTierLabel?: string | null
+  /** Runtime request-rule traces from a usage log, aligned with rule groups. */
+  requestRules?: RequestRuleTrace[]
   /**
    * Hide cache-pricing columns regardless of the per-tier values. The log
    * details dialog passes this when the actual request did not consume any
@@ -222,6 +225,7 @@ function describeGroup(
 export function DynamicPricingBreakdown({
   billingExpr,
   matchedTierLabel,
+  requestRules,
   hideCacheColumns = false,
   compact = false,
 }: DynamicPricingBreakdownProps) {
@@ -521,7 +525,11 @@ export function DynamicPricingBreakdown({
             {ruleGroups.map((group, gi) => (
               <li
                 key={`group-${gi}`}
-                className='bg-muted/50 flex items-center justify-between gap-3 rounded-md px-3 py-2'
+                className={cn(
+                  'bg-muted/50 flex items-center justify-between gap-3 rounded-md px-3 py-2',
+                  requestRules?.[gi]?.matched &&
+                    'bg-emerald-50/70 ring-1 ring-emerald-500/30 dark:bg-emerald-500/10'
+                )}
               >
                 <span
                   className={cn(
@@ -533,10 +541,22 @@ export function DynamicPricingBreakdown({
                 </span>
                 <Badge
                   variant='secondary'
-                  className='shrink-0 bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300'
+                  className={cn(
+                    'shrink-0 bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300',
+                    requestRules?.[gi]?.matched &&
+                      'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
+                  )}
                 >
                   {group.multiplier}x
                 </Badge>
+                {requestRules?.[gi]?.matched && (
+                  <Badge
+                    variant='secondary'
+                    className='shrink-0 bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
+                  >
+                    {t('Matched')}
+                  </Badge>
+                )}
               </li>
             ))}
           </ul>
