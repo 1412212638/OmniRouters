@@ -6,7 +6,7 @@
 - Changed: compact log rendering now gives matched request-rule traces priority and displays their multiplier(s), even when the compact payload cannot parse the full expression summary.
 - Preserved: detailed pricing breakdowns, billing calculations, fallback labels for genuinely unmatched rules, existing log formats, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` and the `web/default` production build passed. Go tests were not run because the local Go toolchain is unavailable.
-- Commit/push: pending.
+- Commit/push: source commit `dab9f3b87` (`fix(logs): show matched dynamic multiplier in list`); remote `origin/main` was verified at the same commit after the ref-lock race.
 
 ## 2026-10-05 - Preserve matched time-rule traces when settlement falls back
 
