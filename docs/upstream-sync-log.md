@@ -3629,3 +3629,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
 - Commit/push: source commit `48446d475` (`fix(channels): stabilize vendor editor and add column`); pushed to `origin/main`.
 
+## 2026-10-05 - Fall back to list supplier in channel editor
+
+- Local reason: the channel list could show a persisted supplier while the detail response returned a nullable or omitted `vendor_id`, causing the edit drawer to show an empty supplier selector.
+- Integrated: channel editor supplier selection and form hydration now use the detail binding when present and fall back to the selected list row when the detail value is empty. The selected fallback supplier is still loaded into the selector when it is outside the initial vendor page.
+- Already present: explicit nullable supplier persistence, detail request isolation, channel table supplier column, model marketplace supplier synchronization, and stale-response protection were preserved.
+- Deferred: no upstream commit was involved; live deployment verification still requires the user's running instance.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
+- Commit/push: local source commit pending; not pushed until live confirmation.
+

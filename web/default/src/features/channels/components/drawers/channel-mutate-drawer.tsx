@@ -664,12 +664,11 @@ export function ChannelMutateDrawer({
     () => vendorsData?.data?.items || [],
     [vendorsData?.data?.items]
   )
-  const detailHasVendorField = Boolean(
-    currentChannelData && Object.hasOwn(currentChannelData, 'vendor_id')
-  )
-  const selectedVendorId = detailHasVendorField
-    ? currentChannelData?.vendor_id
-    : currentRow?.vendor_id
+  // The list response already contains the persisted binding. Some deployed
+  // backends may still return a nullable/omitted vendor_id from the detail
+  // endpoint, so do not let that transient empty value erase the list value.
+  const selectedVendorId =
+    currentChannelData?.vendor_id ?? currentRow?.vendor_id
   const selectedVendorInList =
     selectedVendorId != null &&
     vendorList.some((vendor) => vendor.id === selectedVendorId)
@@ -1308,8 +1307,7 @@ export function ChannelMutateDrawer({
       // refreshed. This prevents a transient missing nullable field from
       // clearing an already persisted supplier selection in the form.
       const channelForForm =
-        !Object.hasOwn(currentChannelData, 'vendor_id') &&
-        currentRow?.vendor_id != null
+        currentChannelData.vendor_id == null && currentRow?.vendor_id != null
           ? { ...currentChannelData, vendor_id: currentRow.vendor_id }
           : currentChannelData
       const defaults = transformChannelToFormDefaults(channelForForm)
