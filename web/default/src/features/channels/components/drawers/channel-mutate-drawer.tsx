@@ -664,11 +664,11 @@ export function ChannelMutateDrawer({
     () => vendorsData?.data?.items || [],
     [vendorsData?.data?.items]
   )
-  // The list response already contains the persisted binding. Some deployed
-  // backends may still return a nullable/omitted vendor_id from the detail
-  // endpoint, so do not let that transient empty value erase the list value.
+  // The row the administrator clicked is the freshest value rendered in the
+  // table. Prefer it over a stale or nullable detail response while the drawer
+  // is being hydrated.
   const selectedVendorId =
-    currentChannelData?.vendor_id ?? currentRow?.vendor_id
+    currentRow?.vendor_id ?? currentChannelData?.vendor_id
   const selectedVendorInList =
     selectedVendorId != null &&
     vendorList.some((vendor) => vendor.id === selectedVendorId)
@@ -1307,7 +1307,7 @@ export function ChannelMutateDrawer({
       // refreshed. This prevents a transient missing nullable field from
       // clearing an already persisted supplier selection in the form.
       const channelForForm =
-        currentChannelData.vendor_id == null && currentRow?.vendor_id != null
+        currentRow?.vendor_id != null
           ? { ...currentChannelData, vendor_id: currentRow.vendor_id }
           : currentChannelData
       const defaults = transformChannelToFormDefaults(channelForForm)
@@ -1338,6 +1338,19 @@ export function ChannelMutateDrawer({
     isChannelFetching,
     isChannelFetchedAfterMount,
   ])
+
+  // A later hydration pass can still reset the nullable field. Fill it back
+  // from the selected row without marking the form dirty.
+  useEffect(() => {
+    if (!isEditing || currentRow?.vendor_id == null) return
+    if (form.getValues('vendor_id') != null) return
+
+    form.setValue('vendor_id', currentRow.vendor_id, {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: false,
+    })
+  }, [currentRow?.vendor_id, form, isEditing])
 
   // Handle type change - set default values for specific types
   useEffect(() => {
@@ -2153,55 +2166,71 @@ export function ChannelMutateDrawer({
                           <FormField
                             control={form.control}
                             name='vendor_id'
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>{t('Vendor')}</FormLabel>
-                                <Select
-                                  items={vendors.map((vendor) => ({
-                                    value: String(vendor.id),
-                                    label: vendor.name,
-                                  }))}
-                                  value={
-                                    field.value
-                                      ? String(field.value)
-                                      : undefined
-                                  }
-                                  onValueChange={(value) =>
-                                    field.onChange(
-                                      value ? Number(value) : undefined
-                                    )
-                                  }
-                                >
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue
-                                        placeholder={t(
-                                          'Select vendor (optional)'
-                                        )}
-                                      />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent alignItemWithTrigger={false}>
-                                    <SelectGroup>
-                                      {vendors.map((vendor) => (
-                                        <SelectItem
-                                          key={vendor.id}
-                                          value={String(vendor.id)}
+                            render={({ field }) => {
+                              let vendorValue: string | undefined
+                              const vendorFieldDirty = Boolean(
+                                form.formState.dirtyFields.vendor_id
+                              )
+                              if (field.value != null) {
+                                vendorValue = String(field.value)
+                              } else if (
+                                !vendorFieldDirty &&
+                                selectedVendorId != null
+                              ) {
+                                vendorValue = String(selectedVendorId)
+                              }
+                              const selectedVendor = vendors.find(
+                                (vendor) => String(vendor.id) === vendorValue
+                              )
+                              return (
+                                <FormItem>
+                                  <FormLabel>{t('Vendor')}</FormLabel>
+                                  <Select
+                                    key={vendorValue ?? 'vendor-empty'}
+                                    items={vendors.map((vendor) => ({
+                                      value: String(vendor.id),
+                                      label: vendor.name,
+                                    }))}
+                                    value={vendorValue}
+                                    onValueChange={(value) =>
+                                      field.onChange(
+                                        value ? Number(value) : undefined
+                                      )
+                                    }
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue
+                                          placeholder={t(
+                                            'Select vendor (optional)'
+                                          )}
                                         >
-                                          {vendor.name}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectGroup>
-                                  </SelectContent>
-                                </Select>
-                                <FormDescription>
-                                  {t(
-                                    'Bind a supplier to make it available in the model marketplace.'
-                                  )}
-                                </FormDescription>
-                                <FormMessage />
-                              </FormItem>
-                            )}
+                                          {selectedVendor?.name}
+                                        </SelectValue>
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent alignItemWithTrigger={false}>
+                                      <SelectGroup>
+                                        {vendors.map((vendor) => (
+                                          <SelectItem
+                                            key={vendor.id}
+                                            value={String(vendor.id)}
+                                          >
+                                            {vendor.name}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectGroup>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormDescription>
+                                    {t(
+                                      'Bind a supplier to make it available in the model marketplace.'
+                                    )}
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )
+                            }}
                           />
 
                           <FormField

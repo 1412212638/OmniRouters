@@ -3639,3 +3639,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
 - Commit/push: local source commit pending; not pushed until live confirmation.
 
+## 2026-10-05 - Prefer the selected channel row for supplier hydration
+
+- Local reason: the edit drawer could still show an empty supplier when the detail response contained a stale or empty binding, even though the selected channel row visibly had a supplier.
+- Integrated: supplier hydration now prefers the selected list row, uses the detail response only as a fallback, restores the row binding after later form hydration passes, and keeps the selected ID/name as a controlled display fallback for the supplier selector.
+- Already present: nullable supplier persistence, detail request isolation, channel table supplier column, and selected-vendor lookup were preserved.
+- Deferred: no upstream commit was involved; live deployment verification still requires the user's running instance.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
+- Commit/push: local source commit pending; not pushed until live confirmation.
+
