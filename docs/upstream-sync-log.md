@@ -3477,6 +3477,16 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: targeted Oxfmt/Oxlint checks and the production frontend build are required; Go tests are unaffected by this frontend-only change.
 - Commit/push: source commit `62ba60e81` (`fix(logs): highlight matched billing rules`); pushed to `origin/main`.
 
+## 2026-10-05 - Show hidden model providers from the overflow badge
+
+- Local reason: model plaza cards showed `+N` for additional providers but hovering the badge did not reveal which providers were hidden.
+- Integrated: the provider overflow badge now opens a tooltip listing each hidden provider with its icon and name, while retaining the compact four-icon card layout.
+- Already present: provider aggregation, ordering, icons, counts, card navigation, and model details were preserved.
+- Deferred: no upstream commit was involved; no backend or data changes were needed.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: targeted Oxfmt/Oxlint checks, production frontend build, and `git diff --check` are required.
+- Commit/push: pending source commit and push.
+
 ## 2026-10-02 - Separate OAuth and email sign-in views
 
 - Local reason: keep the sign-in landing view focused on OAuth providers and reveal the account registration prompt only after the user chooses email/password login.

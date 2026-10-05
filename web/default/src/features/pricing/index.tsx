@@ -60,6 +60,12 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Slider } from '@/components/ui/slider'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { getPerfMetricsSummary } from '@/features/performance-metrics/api'
 import type { PerfModelSummary } from '@/features/performance-metrics/types'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
@@ -992,6 +998,17 @@ function CatalogModelCard(props: {
     isFree || (displayGroupRatio >= 0 && displayGroupRatio < 1)
   const discountFold = Number((displayGroupRatio * 10).toFixed(1))
   const discountPercent = Number(((1 - displayGroupRatio) * 100).toFixed(1))
+  const availableVendors = props.model.available_vendors?.length
+    ? props.model.available_vendors
+    : [
+        {
+          id: props.model.vendor_id || 0,
+          name: props.model.vendor_name || '?',
+          icon: props.model.vendor_icon,
+        },
+      ]
+  const visibleVendors = availableVendors.slice(0, 4)
+  const hiddenVendors = availableVendors.slice(4)
 
   return (
     <article className='group bg-background hover:bg-muted/20 flex min-h-[260px] flex-col border-b p-4 transition-colors sm:min-h-[300px] lg:min-h-[340px] lg:border-r 2xl:p-5 dark:border-white/10 dark:hover:bg-white/[0.03]'>
@@ -1198,36 +1215,61 @@ function CatalogModelCard(props: {
             })}
           </div>
           <div className='flex min-w-0 items-center gap-1.5'>
-            {(props.model.available_vendors?.length
-              ? props.model.available_vendors
-              : [
-                  {
-                    id: props.model.vendor_id || 0,
-                    name: props.model.vendor_name || '?',
-                    icon: props.model.vendor_icon,
-                  },
-                ]
-            )
-              .slice(0, 4)
-              .map((vendor) => (
-                <div
-                  key={vendor.id}
-                  title={vendor.name}
-                  className='bg-muted/60 flex size-5 shrink-0 items-center justify-center rounded-full dark:bg-white/5'
-                >
-                  {vendor.icon ? (
-                    getLobeIcon(vendor.icon, 16)
-                  ) : (
-                    <span className='text-muted-foreground text-[10px] font-semibold'>
-                      {vendor.name.charAt(0)}
-                    </span>
-                  )}
-                </div>
-              ))}
-            {(props.model.available_vendors?.length || 0) > 4 && (
-              <span className='text-muted-foreground text-xs'>
-                +{(props.model.available_vendors?.length || 0) - 4}
-              </span>
+            {visibleVendors.map((vendor) => (
+              <div
+                key={vendor.id}
+                title={vendor.name}
+                className='bg-muted/60 flex size-5 shrink-0 items-center justify-center rounded-full dark:bg-white/5'
+              >
+                {vendor.icon ? (
+                  getLobeIcon(vendor.icon, 16)
+                ) : (
+                  <span className='text-muted-foreground text-[10px] font-semibold'>
+                    {vendor.name.charAt(0)}
+                  </span>
+                )}
+              </div>
+            ))}
+            {hiddenVendors.length > 0 && (
+              <TooltipProvider delay={0}>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <span
+                        tabIndex={0}
+                        aria-label={`+${hiddenVendors.length}`}
+                        className='text-muted-foreground inline-flex cursor-help items-center rounded px-0.5 text-xs outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50'
+                      />
+                    }
+                  >
+                    +{hiddenVendors.length}
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side='top'
+                    className='border-border bg-popover text-popover-foreground max-w-64 p-2'
+                  >
+                    <div className='space-y-1'>
+                      {hiddenVendors.map((vendor) => (
+                        <div
+                          key={vendor.id}
+                          className='flex items-center gap-2 text-xs'
+                        >
+                          <span className='bg-muted/60 inline-flex size-5 shrink-0 items-center justify-center rounded-full dark:bg-white/5'>
+                            {vendor.icon ? (
+                              getLobeIcon(vendor.icon, 14)
+                            ) : (
+                              <span className='text-muted-foreground text-[10px] font-semibold'>
+                                {vendor.name.charAt(0)}
+                              </span>
+                            )}
+                          </span>
+                          <span className='truncate'>{vendor.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
         </div>
