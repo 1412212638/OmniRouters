@@ -3627,5 +3627,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: no upstream commit was involved; database deployment verification still requires a running Go backend and the user's deployed instance.
 - Preserved: protected project identifiers and all unrelated untracked worktree files.
 - Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
-- Commit/push: pending source commit and push.
+- Commit/push: source commit `48446d475` (`fix(channels): stabilize vendor editor and add column`); pushed to `origin/main`.
 
