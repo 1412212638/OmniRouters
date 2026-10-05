@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-05 - Preserve matched time-rule traces when settlement falls back
+
+- Local reason: dynamic billing logs could show `base / off-peak fallback` even when the reserved charge was already multiplied by the active peak rule. The settlement fallback path discarded the pre-consume request-rule trace.
+- Changed: freeze request-rule trace data in the billing snapshot, refresh it for image quantity recalculation, and use it when writing consume logs if settlement returns no trace. Task snapshots carry the same metadata for consistency.
+- Preserved: settlement and quota amounts, existing fallback semantics, actual settlement traces when available, expression syntax, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` and `web/default` `bun run build` passed. Targeted Go tests could not run because the local Go toolchain is unavailable; CI compilation and tests remain required. New images must be deployed before the log metadata fix is active.
+- Commit/push: pending.
+
 ## 2026-10-05 - Make billing time rules reliable in minimal containers
 
 - Local reason: peak/off-peak billing logs continued to report the off-peak fallback at a Beijing-time request such as Monday 15:13 because named timezone loading could silently fall back to UTC when the runtime image lacked zoneinfo.

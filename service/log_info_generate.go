@@ -409,8 +409,12 @@ func InjectTieredBillingInfo(other *model.LogOther, relayInfo *relaycommon.Relay
 		if result.FixedPrice != nil {
 			other.SetPublic("fixed_price", *result.FixedPrice)
 		}
-		if len(result.RequestRules) > 0 {
-			other.SetPublic("request_rules", result.RequestRules)
+		requestRules := result.RequestRules
+		if len(requestRules) == 0 {
+			requestRules = snap.EstimatedRequestRules
+		}
+		if len(requestRules) > 0 {
+			other.SetPublic("request_rules", requestRules)
 		}
 	} else if snap.EstimatedBillingUnit != "" {
 		if snap.EstimatedImageCount != nil {
@@ -420,6 +424,9 @@ func InjectTieredBillingInfo(other *model.LogOther, relayInfo *relaycommon.Relay
 		other.SetPublic("billing_unit", snap.EstimatedBillingUnit)
 		if snap.EstimatedFixedPrice != nil {
 			other.SetPublic("fixed_price", *snap.EstimatedFixedPrice)
+		}
+		if len(snap.EstimatedRequestRules) > 0 {
+			other.SetPublic("request_rules", snap.EstimatedRequestRules)
 		}
 	}
 }

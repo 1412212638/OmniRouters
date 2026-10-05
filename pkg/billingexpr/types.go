@@ -73,6 +73,11 @@ type BillingSnapshot struct {
 	EstimatedQuotaBeforeGroup float64        `json:"estimated_quota_before_group"`
 	EstimatedQuotaAfterGroup  int            `json:"estimated_quota_after_group"`
 	EstimatedTier             string         `json:"estimated_tier"`
+	// EstimatedRequestRules preserves the request-rule trace captured during
+	// pre-consume. Settlement may fall back to the reserved amount when an
+	// upstream response is incomplete; the log still needs to explain which
+	// request multiplier produced that reservation.
+	EstimatedRequestRules     []RequestRuleTrace `json:"estimated_request_rules,omitempty"`
 	EstimatedBillingUnit      BillingUnit    `json:"estimated_billing_unit,omitempty"`
 	EstimatedFixedPrice       *float64       `json:"estimated_fixed_price,omitempty"`
 	QuotaPerUnit              float64        `json:"quota_per_unit"`
