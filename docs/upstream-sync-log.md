@@ -6,7 +6,7 @@
 - Changed: both compact usage-log rows and the detail billing summary now reserve the off-peak label for expressions that actually contain request rules and have all of them unmatched; flat expressions display their recorded tier name.
 - Preserved: real time-rule fallback labels, matched multiplier labels, billing calculations, detailed pricing tables, protected project identifiers, and unrelated untracked worktree files.
 - Validation: `git diff --check` and the `web/default` production build are required for this change; Go tests are not applicable to the frontend-only fix.
-- Commit/push: pending.
+- Commit/push: implementation commit `ce9b12b11`; this log-status update will be committed separately before pushing both commits.
 
 ## 2026-10-05 - Show matched dynamic multipliers in compact usage logs
 
