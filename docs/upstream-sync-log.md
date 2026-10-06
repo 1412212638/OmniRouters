@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-06 - Do not label flat expressions as off-peak fallback
+
+- Local reason: logs for ordinary expressions such as `tier("base", u("input_tokens") * price)` had no request rules, but the UI treated the `base` tier with an empty rule list as an off-peak fallback.
+- Changed: both compact usage-log rows and the detail billing summary now reserve the off-peak label for expressions that actually contain request rules and have all of them unmatched; flat expressions display their recorded tier name.
+- Preserved: real time-rule fallback labels, matched multiplier labels, billing calculations, detailed pricing tables, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` and the `web/default` production build are required for this change; Go tests are not applicable to the frontend-only fix.
+- Commit/push: pending.
+
 ## 2026-10-05 - Show matched dynamic multipliers in compact usage logs
 
 - Local reason: the compact usage-log row could show `Dynamic Pricing · No matching results` while the detail drawer showed a matched `2x` request rule and the charge reflected that multiplier.
