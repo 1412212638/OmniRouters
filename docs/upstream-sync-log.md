@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-12 - Add temporary test-user creation script
+
+- Local reason: provide a repeatable way to create large batches of disposable ordinary users for internal load testing.
+- Changed: added `bin/create-test-users.ps1`; it calls the existing admin user-create API with role `1`, generates cryptographically random usernames and passwords, writes usernames only, supports resume through the output file, and never prints or persists passwords.
+- Preserved: existing user creation API, password hashing, user quotas, invitation behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: PowerShell syntax and a dry-run parameter validation are pending; the script was not executed against a live deployment.
+- Commit/push: pending.
+
 ## 2026-10-06 - Do not label flat expressions as off-peak fallback
 
 - Local reason: logs for ordinary expressions such as `tier("base", u("input_tokens") * price)` had no request rules, but the UI treated the `base` tier with an empty rule list as an off-peak fallback.
