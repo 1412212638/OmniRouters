@@ -7,7 +7,7 @@
 - Preserved: existing email login, invitation-code display, official WeChat callback and scan-polling behavior, protected project identifiers, and unrelated worktree changes.
 - Deferred: no upstream commit was involved; live WeChat scan verification still requires the configured official account and deployed callback.
 - Validation: targeted Oxlint and Oxfmt checks, the production frontend build, and `git diff --check` passed. Full TypeScript checking remains blocked by missing test dependencies and existing errors in unrelated components; the preview browser returned 502 through the environment proxy while a direct localhost request returned 200.
-- Commit/push: pending source commit and push.
+- Commit/push: source commit `d0f5e31dd` (`feat(auth): add official WeChat login`) is present on `origin/main`; this log-status update is pending.
 
 ## 2026-10-13 - Add official WeChat account login flow
 
