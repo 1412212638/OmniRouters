@@ -9,7 +9,10 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-const ExternalIdentityProviderTelegram = "telegram"
+const (
+	ExternalIdentityProviderTelegram      = "telegram"
+	ExternalIdentityProviderWeChatOfficial = "wechat_official"
+)
 
 var ErrExternalIdentityAlreadyClaimed = errors.New("external identity is already claimed")
 

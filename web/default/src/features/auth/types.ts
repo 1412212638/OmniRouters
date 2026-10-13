@@ -101,6 +101,9 @@ export interface SystemStatus {
     wechat_qr_code_image_url?: string
     wechat_account_qrcode_image_url?: string
     WeChatAccountQRCodeImageURL?: string
+    wechat_official_login?: boolean
+    wechat_official_name?: string
+    wechat_official_qrcode?: string
     turnstile_check?: boolean
     turnstile_site_key?: string
     email_verification?: boolean
@@ -148,6 +151,9 @@ export interface SystemStatus {
   wechat_qr_code_image_url?: string
   wechat_account_qrcode_image_url?: string
   WeChatAccountQRCodeImageURL?: string
+  wechat_official_login?: boolean
+  wechat_official_name?: string
+  wechat_official_qrcode?: string
   turnstile_check?: boolean
   turnstile_site_key?: string
   email_verification?: boolean
@@ -210,6 +216,6 @@ export interface CustomOAuthProviderInfo {
 
 export interface AuthFormProps extends React.HTMLAttributes<HTMLFormElement> {
   redirectTo?: string
-  emailLoginExpanded?: boolean
-  onEmailLoginExpandedChange?: (expanded: boolean) => void
+  loginMode?: 'options' | 'email' | 'wechat'
+  onLoginModeChange?: (mode: 'options' | 'email' | 'wechat') => void
 }

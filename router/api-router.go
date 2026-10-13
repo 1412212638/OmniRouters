@@ -51,6 +51,11 @@ func SetApiRouter(router *gin.Engine) {
 		// Non-standard OAuth (WeChat, Telegram) - keep original routes
 		apiRouter.GET("/oauth/wechat", middleware.ScopedCriticalRateLimit("login"), controller.WeChatAuth)
 		apiRouter.POST("/oauth/wechat/bind", middleware.CriticalRateLimit(), anonymousRequestBodyLimit, controller.WeChatBind)
+		apiRouter.GET("/oauth/wechat/official/callback", controller.WeChatOfficialCallback)
+		apiRouter.POST("/oauth/wechat/official/callback", anonymousRequestBodyLimit, controller.WeChatOfficialCallback)
+		apiRouter.GET("/oauth/wechat/official/qr", middleware.ScopedCriticalRateLimit("login"), controller.WeChatOfficialQR)
+		apiRouter.GET("/oauth/wechat/official/poll", middleware.ScopedCriticalRateLimit("login"), controller.WeChatOfficialPoll)
+		apiRouter.GET("/oauth/wechat/official/login", middleware.ScopedCriticalRateLimit("login"), controller.WeChatOfficialLogin)
 		apiRouter.GET("/oauth/telegram/login", middleware.ScopedCriticalRateLimit("login"), controller.TelegramLogin)
 		apiRouter.GET("/oauth/telegram/bind", middleware.CriticalRateLimit(), controller.TelegramBind)
 		apiRouter.GET("/oauth/telegram/start", middleware.ScopedCriticalRateLimit("login"), controller.StartTelegramOAuth)

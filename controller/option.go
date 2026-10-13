@@ -266,6 +266,11 @@ func UpdateOption(c *gin.Context) {
 			})
 			return
 		}
+	case "WeChatOfficialEnabled":
+		if option.Value == "true" && (strings.TrimSpace(common.WeChatOfficialAppID) == "" || strings.TrimSpace(common.WeChatOfficialAppSecret) == "" || strings.TrimSpace(common.WeChatOfficialToken) == "") {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "无法启用官方微信公众号登录，请先填入 AppID、AppSecret 以及 Token！"})
+			return
+		}
 	case "TurnstileCheckEnabled":
 		if option.Value == "true" && common.TurnstileSiteKey == "" {
 			c.JSON(http.StatusOK, gin.H{

@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { register, wechatLoginByCode } from '@/features/auth/api'
 import { OAuthProviders } from '@/features/auth/components/oauth-providers'
+import { WeChatOfficialLoginDialog } from '@/features/auth/components/wechat-official-login-dialog'
 import { registerFormSchema } from '@/features/auth/constants'
 import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
 import { useEmailVerification } from '@/features/auth/hooks/use-email-verification'
@@ -44,6 +45,8 @@ export function SignUpForm({
   const [wechatCode, setWeChatCode] = useState('')
   const [isWeChatDialogOpen, setIsWeChatDialogOpen] = useState(false)
   const [isWeChatSubmitting, setIsWeChatSubmitting] = useState(false)
+  const [isOfficialWeChatDialogOpen, setIsOfficialWeChatDialogOpen] =
+    useState(false)
 
   const { status } = useStatus()
   const {
@@ -81,6 +84,9 @@ export function SignUpForm({
     status?.data?.oauth_register_enabled ??
     true
   const hasWeChatLogin = Boolean(status?.wechat_login)
+  const hasOfficialWeChatLogin = Boolean(
+    status?.wechat_official_login ?? status?.data?.wechat_official_login
+  )
 
   const wechatQrCodeUrl = useMemo(() => {
     return (
@@ -325,6 +331,11 @@ export function SignUpForm({
             status={status}
             disabled={isLoading}
             onWeChatLogin={hasWeChatLogin ? handleOpenWeChatDialog : undefined}
+            onOfficialWeChatLogin={
+              hasOfficialWeChatLogin
+                ? () => setIsOfficialWeChatDialogOpen(true)
+                : undefined
+            }
             isWeChatLoading={isWeChatSubmitting}
             className='pt-2'
           />
@@ -391,6 +402,15 @@ export function SignUpForm({
             />
           </div>
         </Dialog>
+      )}
+      {hasOfficialWeChatLogin && (
+        <WeChatOfficialLoginDialog
+          open={isOfficialWeChatDialogOpen}
+          onOpenChange={setIsOfficialWeChatDialogOpen}
+          onSuccess={async (data) => {
+            await handleLoginSuccess(data as { id?: number } | null)
+          }}
+        />
       )}
     </Form>
   )

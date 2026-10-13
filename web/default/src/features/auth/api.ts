@@ -121,6 +121,43 @@ export async function wechatLoginByCode(
   return res.data
 }
 
+export type WeChatOfficialQrResponse = {
+  success: boolean
+  message: string
+  data?: {
+    code: string
+    image_url: string
+    expires_in: number
+    name?: string
+  }
+}
+
+export async function createWeChatOfficialQr(): Promise<WeChatOfficialQrResponse> {
+  const res = await api.get<WeChatOfficialQrResponse>(
+    '/api/oauth/wechat/official/qr'
+  )
+  return res.data
+}
+
+export async function pollWeChatOfficialLogin(code: string) {
+  const res = await api.get<{
+    success: boolean
+    message: string
+    data?: { status?: 'pending' | 'ready' | 'consumed'; expires_at?: number }
+  }>('/api/oauth/wechat/official/poll', { params: { code } })
+  return res.data
+}
+
+export async function loginWithWeChatOfficial(
+  code: string,
+  affCode = ''
+): Promise<ApiResponse> {
+  const res = await api.get('/api/oauth/wechat/official/login', {
+    params: { code, aff: affCode },
+  })
+  return res.data
+}
+
 // ----------------------------------------------------------------------------
 // Registration
 // ----------------------------------------------------------------------------

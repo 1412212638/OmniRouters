@@ -15,16 +15,18 @@ export function SignIn() {
   const { redirect } = useSearch({ from: '/(auth)/sign-in' })
   const { status } = useStatus()
   const { systemName } = useSystemConfig()
-  const [emailLoginExpanded, setEmailLoginExpanded] = useState(false)
+  const [loginMode, setLoginMode] = useState<'options' | 'email' | 'wechat'>(
+    'options'
+  )
 
   return (
     <AuthLayout variant='sign-in'>
       <div className='w-full space-y-8'>
         <div className='space-y-2'>
-          {emailLoginExpanded && (
+          {loginMode !== 'options' && (
             <button
               type='button'
-              onClick={() => setEmailLoginExpanded(false)}
+              onClick={() => setLoginMode('options')}
               className='text-muted-foreground hover:text-foreground mb-6 inline-flex items-center gap-2 text-sm transition-colors'
             >
               <ArrowLeft className='h-4 w-4' />
@@ -32,9 +34,11 @@ export function SignIn() {
             </button>
           )}
           <h2 className='auth-sign-in-title text-center text-2xl font-semibold tracking-tight'>
-            {t('Welcome to {{name}}', { name: systemName })}
+            {loginMode === 'wechat'
+              ? t('Official WeChat login')
+              : t('Welcome to {{name}}', { name: systemName })}
           </h2>
-          {emailLoginExpanded &&
+          {loginMode === 'email' &&
             !status?.self_use_mode_enabled &&
             status?.register_enabled !== false && (
               <p className='text-muted-foreground text-left text-sm sm:text-base'>
@@ -52,8 +56,8 @@ export function SignIn() {
 
         <UserAuthForm
           redirectTo={redirect}
-          emailLoginExpanded={emailLoginExpanded}
-          onEmailLoginExpandedChange={setEmailLoginExpanded}
+          loginMode={loginMode}
+          onLoginModeChange={setLoginMode}
         />
 
         <TermsFooter

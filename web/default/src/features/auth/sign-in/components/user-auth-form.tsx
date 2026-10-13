@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { login, wechatLoginByCode } from '@/features/auth/api'
 import { OAuthProviders } from '@/features/auth/components/oauth-providers'
+import { WeChatOfficialLoginView } from '@/features/auth/components/wechat-official-login-view'
 import { loginFormSchema } from '@/features/auth/constants'
 import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
 import { useTurnstile } from '@/features/auth/hooks/use-turnstile'
@@ -44,8 +45,8 @@ import { cn } from '@/lib/utils'
 export function UserAuthForm({
   className,
   redirectTo,
-  emailLoginExpanded = false,
-  onEmailLoginExpandedChange,
+  loginMode = 'options',
+  onLoginModeChange,
   ...props
 }: AuthFormProps) {
   const { t } = useTranslation()
@@ -76,7 +77,11 @@ export function UserAuthForm({
   const { handleLoginSuccess, redirectTo2FA } = useAuthRedirect()
 
   const passkeyButtonDisabled = isPasskeyLoading || !passkeySupported
+  const emailLoginExpanded = loginMode === 'email'
   const hasWeChatLogin = Boolean(status?.wechat_login)
+  const hasOfficialWeChatLogin = Boolean(
+    status?.wechat_official_login ?? status?.data?.wechat_official_login
+  )
 
   useEffect(() => {
     detectPasskeySupport()
@@ -105,6 +110,16 @@ export function UserAuthForm({
       ''
     )
   }, [status])
+
+  if (loginMode === 'wechat') {
+    return (
+      <WeChatOfficialLoginView
+        onSuccess={async (data) => {
+          await handleLoginSuccess(data as { id?: number } | null, redirectTo)
+        }}
+      />
+    )
+  }
 
   async function onSubmit(data: z.infer<typeof loginFormSchema>) {
     if (!passwordLoginEnabled) {
@@ -247,6 +262,11 @@ export function UserAuthForm({
             status={status}
             disabled={isLoading}
             onWeChatLogin={hasWeChatLogin ? handleOpenWeChatDialog : undefined}
+            onOfficialWeChatLogin={
+              hasOfficialWeChatLogin
+                ? () => onLoginModeChange?.('wechat')
+                : undefined
+            }
             isWeChatLoading={isWeChatSubmitting}
             showDivider={false}
             buttonClassName='border-0 bg-muted hover:bg-muted/80'
@@ -258,7 +278,7 @@ export function UserAuthForm({
             {!emailLoginExpanded ? (
               <Button
                 type='button'
-                onClick={() => onEmailLoginExpandedChange?.(true)}
+                onClick={() => onLoginModeChange?.('email')}
                 className='h-11 w-full justify-center gap-2 rounded-lg'
               >
                 <Mail className='h-4 w-4' />

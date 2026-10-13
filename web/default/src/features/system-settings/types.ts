@@ -170,6 +170,11 @@ export type AuthSettings = {
   WeChatServerAddress: string
   WeChatServerToken: string
   WeChatAccountQRCodeImageURL: string
+  WeChatOfficialEnabled: boolean
+  WeChatOfficialName: string
+  WeChatOfficialAppID: string
+  WeChatOfficialAppSecret: string
+  WeChatOfficialToken: string
   TurnstileCheckEnabled: boolean
   TurnstileSiteKey: string
   TurnstileSecretKey: string

@@ -1,5 +1,23 @@
 # Upstream Sync Log
 
+## 2026-10-13 - Show official WeChat QR login as a dedicated sign-in view
+
+- Local reason: make official WeChat login consistent with email login by opening a focused view only after the user selects it.
+- Changed: added mutually exclusive options/email/WeChat modes on sign-in; the WeChat mode displays the QR code inline with a back action and stops polling when unmounted. The sign-up dialog remains available and shares the same QR view.
+- Preserved: existing email login, invitation-code display, official WeChat callback and scan-polling behavior, protected project identifiers, and unrelated worktree changes.
+- Deferred: no upstream commit was involved; live WeChat scan verification still requires the configured official account and deployed callback.
+- Validation: targeted Oxlint and Oxfmt checks, the production frontend build, and `git diff --check` passed. Full TypeScript checking remains blocked by missing test dependencies and existing errors in unrelated components; the preview browser returned 502 through the environment proxy while a direct localhost request returned 200.
+- Commit/push: pending source commit and push.
+
+## 2026-10-13 - Add official WeChat account login flow
+
+- Local reason: provide a native official-account QR login path so administrators can configure AppID, AppSecret, Token, and account name without deploying the legacy external WeChat code-exchange service.
+- Changed: added official WeChat access-token and temporary QR-state handling, signed callback verification, SCAN/subscribe XML processing, polling and login endpoints, configuration options, and the default admin settings UI. Added controller regression tests for signature validation, QR callback state updates, and invalid signatures.
+- Preserved: the existing external WeChat server integration and routes, affiliate-code registration handling, protected project identifiers, and unrelated untracked worktree files.
+- Deferred: live WeChat platform verification requires a registered and verified official account, callback URL/token configuration, and public HTTPS deployment; automated tests do not call WeChat services.
+- Validation: `git diff --check`, locale JSON parsing, Oxfmt checks, and the production frontend build passed. Frontend typecheck remains blocked by pre-existing repository errors outside this change; Go tests are added but could not be run in this workspace because the Go toolchain is unavailable.
+- Commit/push: pending source commit and push.
+
 ## 2026-10-12 - Add temporary test-user creation script
 
 - Local reason: provide a repeatable way to create large batches of disposable ordinary users for internal load testing.

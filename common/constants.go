@@ -151,6 +151,14 @@ var WeChatServerAddress = ""
 var WeChatServerToken = ""
 var WeChatAccountQRCodeImageURL = ""
 
+// Official WeChat account login settings. These are independent from the
+// legacy external WeChat code-exchange service above.
+var WeChatOfficialEnabled = false
+var WeChatOfficialName = ""
+var WeChatOfficialAppID = ""
+var WeChatOfficialAppSecret = ""
+var WeChatOfficialToken = ""
+
 var TurnstileSiteKey = ""
 var TurnstileSecretKey = ""
 

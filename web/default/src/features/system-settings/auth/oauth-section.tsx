@@ -73,6 +73,11 @@ const oauthSchema = z.object({
   WeChatServerAddress: z.string(),
   WeChatServerToken: z.string(),
   WeChatAccountQRCodeImageURL: z.string(),
+  WeChatOfficialEnabled: z.boolean(),
+  WeChatOfficialName: z.string(),
+  WeChatOfficialAppID: z.string(),
+  WeChatOfficialAppSecret: z.string(),
+  WeChatOfficialToken: z.string(),
 })
 
 type OAuthFormValues = z.infer<typeof oauthSchema>
@@ -103,6 +108,11 @@ type FlatOAuthDefaults = {
   WeChatServerAddress: string
   WeChatServerToken: string
   WeChatAccountQRCodeImageURL: string
+  WeChatOfficialEnabled: boolean
+  WeChatOfficialName: string
+  WeChatOfficialAppID: string
+  WeChatOfficialAppSecret: string
+  WeChatOfficialToken: string
 }
 
 const oauthTabContentClassName =
@@ -187,6 +197,11 @@ const buildFormDefaults = (defaults: FlatOAuthDefaults): OAuthFormValues => ({
   WeChatServerAddress: defaults.WeChatServerAddress ?? '',
   WeChatServerToken: defaults.WeChatServerToken ?? '',
   WeChatAccountQRCodeImageURL: defaults.WeChatAccountQRCodeImageURL ?? '',
+  WeChatOfficialEnabled: defaults.WeChatOfficialEnabled,
+  WeChatOfficialName: defaults.WeChatOfficialName ?? '',
+  WeChatOfficialAppID: defaults.WeChatOfficialAppID ?? '',
+  WeChatOfficialAppSecret: defaults.WeChatOfficialAppSecret ?? '',
+  WeChatOfficialToken: defaults.WeChatOfficialToken ?? '',
 })
 
 const normalizeFormValues = (values: OAuthFormValues): FlatOAuthDefaults => ({
@@ -215,6 +230,11 @@ const normalizeFormValues = (values: OAuthFormValues): FlatOAuthDefaults => ({
   WeChatServerAddress: values.WeChatServerAddress,
   WeChatServerToken: values.WeChatServerToken,
   WeChatAccountQRCodeImageURL: values.WeChatAccountQRCodeImageURL,
+  WeChatOfficialEnabled: values.WeChatOfficialEnabled,
+  WeChatOfficialName: values.WeChatOfficialName,
+  WeChatOfficialAppID: values.WeChatOfficialAppID,
+  WeChatOfficialAppSecret: values.WeChatOfficialAppSecret,
+  WeChatOfficialToken: values.WeChatOfficialToken,
 })
 
 type OAuthSectionProps = {
@@ -247,6 +267,7 @@ export function OAuthSection(props: OAuthSectionProps) {
     'linuxdo',
     t('Site URL')
   )
+  const wechatOfficialCallbackUrl = `${siteUrl}/api/oauth/wechat/official/callback`
 
   const formDefaults = useMemo(
     () => buildFormDefaults(props.defaultValues),
@@ -329,6 +350,14 @@ export function OAuthSection(props: OAuthSectionProps) {
     const changedKeys = (
       Object.keys(normalized) as Array<keyof FlatOAuthDefaults>
     ).filter((key) => normalized[key] !== baselineRef.current[key])
+
+    // Persist official-account credentials before its enable switch so the
+    // backend validation can evaluate the complete configuration.
+    changedKeys.sort((a, b) => {
+      if (a === 'WeChatOfficialEnabled') return 1
+      if (b === 'WeChatOfficialEnabled') return -1
+      return 0
+    })
 
     if (changedKeys.length === 0) {
       toast.info(t('No changes to save'))
@@ -992,6 +1021,169 @@ export function OAuthSection(props: OAuthSectionProps) {
               </TabsContent>
 
               <TabsContent value='wechat' className={oauthTabContentClassName}>
+                <OAuthSetupGuide
+                  title={t('Official WeChat account setup')}
+                  description={t(
+                    'Use these values in the WeChat Official Account developer settings. The callback URL must be configured as the server address for message callbacks.'
+                  )}
+                  rows={[
+                    {
+                      label: t('Server callback URL'),
+                      value: wechatOfficialCallbackUrl,
+                      copyLabel: t('Copy callback URL'),
+                    },
+                  ]}
+                >
+                  <a
+                    href='https://mp.weixin.qq.com/'
+                    target='_blank'
+                    rel='noreferrer'
+                    className='text-primary inline-flex w-fit items-center gap-1 underline underline-offset-3 hover:no-underline'
+                  >
+                    {t('Open WeChat Official Account platform')}
+                    <ExternalLink className='size-3' aria-hidden='true' />
+                  </a>
+                </OAuthSetupGuide>
+
+                <FormField
+                  control={form.control}
+                  name='WeChatOfficialEnabled'
+                  render={({ field }) => (
+                    <SettingsSwitchItem>
+                      <SettingsSwitchContent>
+                        <FormLabel>
+                          {t('Enable official WeChat login')}
+                        </FormLabel>
+                        <FormDescription>
+                          {t(
+                            'Allow users to scan the official account QR code and sign in without a verification-code service.'
+                          )}
+                        </FormDescription>
+                      </SettingsSwitchContent>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </SettingsSwitchItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='WeChatOfficialName'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('Official account name')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t('e.g. Your Official Account')}
+                          autoComplete='organization'
+                          value={field.value ?? ''}
+                          onChange={(event) =>
+                            field.onChange(event.target.value)
+                          }
+                          name={field.name}
+                          onBlur={field.onBlur}
+                          ref={field.ref}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='WeChatOfficialAppID'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('AppID')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t('Official Account AppID')}
+                          autoComplete='off'
+                          value={field.value ?? ''}
+                          onChange={(event) =>
+                            field.onChange(event.target.value)
+                          }
+                          name={field.name}
+                          onBlur={field.onBlur}
+                          ref={field.ref}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='WeChatOfficialToken'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('Official Account Token')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          type='password'
+                          placeholder={t(
+                            'Token configured in WeChat callbacks'
+                          )}
+                          autoComplete='new-password'
+                          value={field.value ?? ''}
+                          onChange={(event) =>
+                            field.onChange(event.target.value)
+                          }
+                          name={field.name}
+                          onBlur={field.onBlur}
+                          ref={field.ref}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {t(
+                          'Use the same token in the WeChat Official Account server configuration.'
+                        )}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='WeChatOfficialAppSecret'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('AppSecret')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          type='password'
+                          placeholder={t('Official Account AppSecret')}
+                          autoComplete='new-password'
+                          value={field.value ?? ''}
+                          onChange={(event) =>
+                            field.onChange(event.target.value)
+                          }
+                          name={field.name}
+                          onBlur={field.onBlur}
+                          ref={field.ref}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Alert className='lg:col-span-2'>
+                  <AlertDescription className='text-sm'>
+                    {t(
+                      'After saving, configure the callback URL, Token, and message encryption mode in the WeChat Official Account platform. The existing custom WeChat server settings below remain available separately.'
+                    )}{' '}
+                    {t('Choose plaintext mode for this integration.')}
+                  </AlertDescription>
+                </Alert>
+
                 <FormField
                   control={form.control}
                   name='WeChatAuthEnabled'

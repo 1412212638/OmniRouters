@@ -20,6 +20,7 @@ type OAuthProvidersProps = {
   disabled?: boolean
   className?: string
   onWeChatLogin?: () => void
+  onOfficialWeChatLogin?: () => void
   isWeChatLoading?: boolean
   showDivider?: boolean
   buttonClassName?: string
@@ -38,6 +39,7 @@ export function OAuthProviders({
   disabled = false,
   className,
   onWeChatLogin,
+  onOfficialWeChatLogin,
   isWeChatLoading = false,
   showDivider = true,
   buttonClassName,
@@ -82,6 +84,19 @@ export function OAuthProviders({
       key: 'wechat',
       label: t('Continue with WeChat'),
       onClick: onWeChatLogin,
+      icon: <IconWeChat className='h-4 w-4' />,
+      disabled: isWeChatLoading,
+    })
+  }
+
+  if (
+    (status?.wechat_official_login || status?.data?.wechat_official_login) &&
+    onOfficialWeChatLogin
+  ) {
+    providerButtons.push({
+      key: 'wechat-official',
+      label: t('Continue with official WeChat'),
+      onClick: onOfficialWeChatLogin,
       icon: <IconWeChat className='h-4 w-4' />,
       disabled: isWeChatLoading,
     })
