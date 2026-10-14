@@ -3773,5 +3773,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: Waffo Pancake does not accept every profile field for prefill, so name and street address remain editable on its hosted cashier; live Stripe/Waffo sandbox verification requires configured provider credentials.
 - Preserved: all other payment flows, protected project identifiers, and unrelated untracked worktree files.
 - Validation: targeted Oxlint and Oxfmt checks passed; all six locale JSON files parsed successfully; `git diff --check` passed. `go test ./model ./controller` was attempted earlier but package test compilation is blocked by unrelated existing undefined symbols; the Stripe unused import found in that run has been fixed. Go is not available in the current shell for a fresh backend build.
-- Commit/push: implementation commit `fd761e8a4` (`feat(wallet): save reusable invoice details`); GitHub push pending.
+- Commit/push: implementation commit `fd761e8a4` (`feat(wallet): save reusable invoice details`) and log commit `a4fe6c91a` are present on GitHub `main`; confirmed via the GitHub commits API.
 
