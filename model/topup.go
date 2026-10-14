@@ -12,19 +12,20 @@ import (
 )
 
 type TopUp struct {
-	Id              int     `json:"id"`
-	UserId          int     `json:"user_id" gorm:"index"`
-	Username        string  `json:"username,omitempty" gorm:"-"`
-	Amount          int64   `json:"amount"`
-	Money           float64 `json:"money"`
-	TradeNo         string  `json:"trade_no" gorm:"unique;type:varchar(255);index"`
-	PaymentMethod   string  `json:"payment_method" gorm:"type:varchar(50)"`
-	PaymentProvider string  `json:"payment_provider" gorm:"type:varchar(50);default:''"`
-	StripeInvoiceID  string  `json:"-" gorm:"type:varchar(255)"`
-	InvoiceAvailable bool    `json:"invoice_available" gorm:"-"`
-	CreateTime      int64   `json:"create_time"`
-	CompleteTime    int64   `json:"complete_time"`
-	Status          string  `json:"status"`
+	Id                     int     `json:"id"`
+	UserId                 int     `json:"user_id" gorm:"index"`
+	Username               string  `json:"username,omitempty" gorm:"-"`
+	Amount                 int64   `json:"amount"`
+	Money                  float64 `json:"money"`
+	TradeNo                string  `json:"trade_no" gorm:"unique;type:varchar(255);index"`
+	PaymentMethod          string  `json:"payment_method" gorm:"type:varchar(50)"`
+	PaymentProvider        string  `json:"payment_provider" gorm:"type:varchar(50);default:''"`
+	StripeInvoiceID        string  `json:"-" gorm:"type:varchar(255)"`
+	InvoiceProfileSnapshot string  `json:"-" gorm:"type:text;column:invoice_profile_snapshot"`
+	InvoiceAvailable       bool    `json:"invoice_available" gorm:"-"`
+	CreateTime             int64   `json:"create_time"`
+	CompleteTime           int64   `json:"complete_time"`
+	Status                 string  `json:"status"`
 }
 
 const (

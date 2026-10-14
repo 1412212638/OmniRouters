@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/setting"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/stretchr/testify/require"
@@ -25,6 +26,35 @@ func TestFormatWaffoPancakeAmount_UsesDisplayPriceString(t *testing.T) {
 			require.Equal(t, tc.expected, formatWaffoPancakeAmount(tc.amount))
 		})
 	}
+}
+
+func TestGetWaffoPancakeBillingDetailUsesSupportedCompanyFields(t *testing.T) {
+	profile := &model.InvoiceProfile{
+		Type:        "company",
+		CompanyName: "Example Ltd",
+		TaxID:       "GB123456789",
+		Email:       "billing@example.com",
+		Country:     "gb",
+		State:       "London",
+		Postcode:    "SW1A 1AA",
+		Address:     "10 Downing Street",
+	}
+	profileBytes, err := common.Marshal(profile)
+	require.NoError(t, err)
+
+	detail := getWaffoPancakeBillingDetail(&model.User{InvoiceProfile: string(profileBytes)})
+	require.NotNil(t, detail)
+	require.Equal(t, "GB", detail.Country)
+	require.True(t, detail.IsBusiness)
+	require.Equal(t, "London", detail.State)
+	require.Equal(t, "SW1A 1AA", detail.Postcode)
+	require.Equal(t, "Example Ltd", detail.BusinessName)
+	require.Equal(t, "GB123456789", detail.TaxID)
+
+	profile.Country = ""
+	profileBytes, err = common.Marshal(profile)
+	require.NoError(t, err)
+	require.Nil(t, getWaffoPancakeBillingDetail(&model.User{InvoiceProfile: string(profileBytes)}))
 }
 
 func TestGetWaffoPancakePayMoney(t *testing.T) {

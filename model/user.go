@@ -109,6 +109,7 @@ type User struct {
 	Setting              string                     `json:"setting" gorm:"type:text;column:setting"`
 	Remark               string                     `json:"remark,omitempty" gorm:"type:varchar(255)" validate:"max=255"`
 	StripeCustomer       string                     `json:"stripe_customer" gorm:"type:varchar(64);column:stripe_customer;index"`
+	InvoiceProfile       string                     `json:"-" gorm:"type:text;column:invoice_profile"`
 	CreatedAt            int64                      `json:"created_at" gorm:"autoCreateTime;column:created_at"`
 	LastLoginAt          int64                      `json:"last_login_at" gorm:"default:0;column:last_login_at"`
 	AdminPermissions     map[string]map[string]bool `json:"admin_permissions,omitempty" gorm:"-:all"`
@@ -466,6 +467,16 @@ func GetUserById(id int, selectAll bool) (*User, error) {
 		err = DB.Omit("password", "access_token").First(&user, "id = ?", id).Error
 	}
 	return &user, err
+}
+
+func SetUserStripeCustomer(userID int, customerID string) error {
+	if userID <= 0 {
+		return errors.New("id 为空！")
+	}
+	if err := DB.Model(&User{}).Where("id = ?", userID).Update("stripe_customer", customerID).Error; err != nil {
+		return err
+	}
+	return invalidateUserCache(userID)
 }
 
 func GetUsersByIds(ids []int) ([]User, error) {

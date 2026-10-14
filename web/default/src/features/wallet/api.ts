@@ -21,6 +21,7 @@ import type {
   WaffoPaymentResponse,
   WaffoPancakePaymentRequest,
   WaffoPancakePaymentResponse,
+  InvoiceProfile,
 } from './types'
 
 // ============================================================================
@@ -39,6 +40,25 @@ export function isApiSuccess(response: ApiResponse): boolean {
  */
 export async function getTopupInfo(): Promise<TopupInfoResponse> {
   const res = await api.get('/api/user/topup/info')
+  return res.data
+}
+
+export async function getInvoiceProfile(): Promise<
+  ApiResponse<InvoiceProfile | null>
+> {
+  const res = await api.get('/api/user/invoice-profile')
+  return res.data
+}
+
+export async function updateInvoiceProfile(
+  profile: InvoiceProfile
+): Promise<ApiResponse<InvoiceProfile>> {
+  const res = await api.put('/api/user/invoice-profile', profile)
+  return res.data
+}
+
+export async function deleteInvoiceProfile(): Promise<ApiResponse> {
+  const res = await api.delete('/api/user/invoice-profile')
   return res.data
 }
 

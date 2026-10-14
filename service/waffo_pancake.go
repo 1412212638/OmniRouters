@@ -17,6 +17,17 @@ type WaffoPancakePriceSnapshot struct {
 	TaxCategory string
 }
 
+// WaffoPancakeBillingDetail contains only fields supported by Pancake's
+// create-session API. The hosted cashier remains editable by the buyer.
+type WaffoPancakeBillingDetail struct {
+	Country      string
+	IsBusiness   bool
+	Postcode     string
+	State        string
+	BusinessName string
+	TaxID        string
+}
+
 // WaffoPancakeCreateSessionParams is the input to CreateWaffoPancakeCheckoutSession.
 // BuyerIdentity (merchant-controlled, stable per user) is what survives the
 // buyer editing email at checkout — see WaffoPancakeBuyerIdentityFromUserID.
@@ -25,6 +36,7 @@ type WaffoPancakeCreateSessionParams struct {
 	BuyerIdentity           string
 	PriceSnapshot           *WaffoPancakePriceSnapshot
 	BuyerEmail              string
+	BillingDetail           *WaffoPancakeBillingDetail
 	ExpiresInSeconds        *int
 	OrderMerchantExternalID string
 }
@@ -123,6 +135,17 @@ func CreateWaffoPancakeCheckoutSession(ctx context.Context, params *WaffoPancake
 			OrderMerchantExternalID: optionalString(params.OrderMerchantExternalID),
 		},
 		BuyerIdentity: params.BuyerIdentity,
+	}
+	if params.BillingDetail != nil {
+		billing := params.BillingDetail
+		sdkParams.BillingDetail = &pancake.BillingDetail{
+			Country:      billing.Country,
+			IsBusiness:   billing.IsBusiness,
+			Postcode:     optionalString(billing.Postcode),
+			State:        optionalString(billing.State),
+			TaxID:        optionalString(billing.TaxID),
+			BusinessName: optionalString(billing.BusinessName),
+		}
 	}
 	if params.PriceSnapshot != nil {
 		sdkParams.PriceSnapshot = &pancake.PriceInfo{
@@ -410,7 +433,7 @@ func SaveWaffoPancakeConfig(ctx context.Context, merchantID, privateKey, returnU
 		"WaffoPancakeReturnURL":  strings.TrimSpace(returnURL),
 		"WaffoPancakeStoreID":    storeID,
 		"WaffoPancakeProductID":  productID,
-		"WaffoPancakeUnitPrice": fmt.Sprintf("%g", unitPrice),
+		"WaffoPancakeUnitPrice":  fmt.Sprintf("%g", unitPrice),
 	}
 	if pk := strings.TrimSpace(privateKey); pk != "" {
 		values["WaffoPancakePrivateKey"] = pk

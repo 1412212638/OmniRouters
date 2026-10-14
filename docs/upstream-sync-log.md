@@ -3765,3 +3765,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: targeted Oxfmt/Oxlint checks and the production frontend build are required; Go tests are unaffected by this frontend-only change.
 - Commit/push: pending source commit and push.
 
+## 2026-10-14 - Save account invoice information for Stripe and Waffo Pancake
+
+- Local reason: users needed reusable personal or company billing details saved in their account and accessible from the wallet before requesting invoices.
+- Integrated: added authenticated GET/PUT/DELETE endpoints and a portable text-backed user profile; added the wallet editor and localized it in all six supported frontend languages; Stripe checkout now syncs the saved identity, email, and address to a reusable Stripe Customer and includes a company tax ID as an invoice custom field; Waffo Pancake checkout pre-fills the supported billing fields and buyer email. Payment orders retain a private snapshot of the profile used at checkout.
+- Already present: provider-hosted invoice links and the wallet billing history action for Stripe and Waffo Pancake were preserved.
+- Deferred: Waffo Pancake does not accept every profile field for prefill, so name and street address remain editable on its hosted cashier; live Stripe/Waffo sandbox verification requires configured provider credentials.
+- Preserved: all other payment flows, protected project identifiers, and unrelated untracked worktree files.
+- Validation: targeted Oxlint and Oxfmt checks passed; all six locale JSON files parsed successfully; `git diff --check` passed. `go test ./model ./controller` was attempted earlier but package test compilation is blocked by unrelated existing undefined symbols; the Stripe unused import found in that run has been fixed. Go is not available in the current shell for a fresh backend build.
+- Commit/push: source changes are uncommitted; push pending.
+

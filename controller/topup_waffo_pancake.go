@@ -111,10 +111,33 @@ func formatWaffoPancakeAmount(payMoney float64) string {
 }
 
 func getWaffoPancakeBuyerEmail(user *model.User) string {
+	if user != nil {
+		if profile := user.GetInvoiceProfile(); profile != nil && profile.Email != "" {
+			return profile.Email
+		}
+	}
 	if user != nil && strings.TrimSpace(user.Email) != "" {
 		return user.Email
 	}
 	return ""
+}
+
+func getWaffoPancakeBillingDetail(user *model.User) *service.WaffoPancakeBillingDetail {
+	if user == nil {
+		return nil
+	}
+	profile := user.GetInvoiceProfile()
+	if profile == nil || profile.Country == "" {
+		return nil
+	}
+	return &service.WaffoPancakeBillingDetail{
+		Country:      profile.Country,
+		IsBusiness:   profile.Type == "company",
+		Postcode:     profile.Postcode,
+		State:        profile.State,
+		BusinessName: profile.CompanyName,
+		TaxID:        profile.TaxID,
+	}
 }
 
 // The admin config endpoints below accept typed-but-not-yet-saved creds in
@@ -127,11 +150,11 @@ type waffoPancakeCredsRequest struct {
 }
 
 type saveWaffoPancakeRequest struct {
-	MerchantID string `json:"merchant_id"`
-	PrivateKey string `json:"private_key"`
-	ReturnURL  string `json:"return_url"`
-	StoreID    string `json:"store_id"`
-	ProductID  string `json:"product_id"`
+	MerchantID string  `json:"merchant_id"`
+	PrivateKey string  `json:"private_key"`
+	ReturnURL  string  `json:"return_url"`
+	StoreID    string  `json:"store_id"`
+	ProductID  string  `json:"product_id"`
 	UnitPrice  float64 `json:"unit_price"`
 }
 
@@ -405,14 +428,15 @@ func RequestWaffoPancakePay(c *gin.Context) {
 
 	tradeNo := fmt.Sprintf("WAFFO_PANCAKE-%d-%d-%s", id, time.Now().UnixMilli(), randstr.String(6))
 	topUp := &model.TopUp{
-		UserId:          id,
-		Amount:          normalizeWaffoPancakeTopUpAmount(req.Amount),
-		Money:           payMoney,
-		TradeNo:         tradeNo,
-		PaymentMethod:   model.PaymentMethodWaffoPancake,
-		PaymentProvider: model.PaymentProviderWaffoPancake,
-		CreateTime:      time.Now().Unix(),
-		Status:          common.TopUpStatusPending,
+		UserId:                 id,
+		Amount:                 normalizeWaffoPancakeTopUpAmount(req.Amount),
+		Money:                  payMoney,
+		TradeNo:                tradeNo,
+		PaymentMethod:          model.PaymentMethodWaffoPancake,
+		PaymentProvider:        model.PaymentProviderWaffoPancake,
+		InvoiceProfileSnapshot: marshalInvoiceProfileSnapshot(user.GetInvoiceProfile()),
+		CreateTime:             time.Now().Unix(),
+		Status:                 common.TopUpStatusPending,
 	}
 	if err := topUp.Insert(); err != nil {
 		logger.LogError(c.Request.Context(), fmt.Sprintf("Waffo Pancake 创建充值订单失败 user_id=%d trade_no=%s amount=%d error=%q", id, tradeNo, req.Amount, err.Error()))
@@ -429,6 +453,7 @@ func RequestWaffoPancakePay(c *gin.Context) {
 			TaxCategory: "saas",
 		},
 		BuyerEmail:              getWaffoPancakeBuyerEmail(user),
+		BillingDetail:           getWaffoPancakeBillingDetail(user),
 		ExpiresInSeconds:        &expiresInSeconds,
 		OrderMerchantExternalID: tradeNo,
 	})

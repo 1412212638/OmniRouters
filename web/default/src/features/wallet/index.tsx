@@ -12,6 +12,7 @@ import { BillingHistoryDialog } from './components/dialogs/billing-history-dialo
 import { CreemConfirmDialog } from './components/dialogs/creem-confirm-dialog'
 import { PaymentConfirmDialog } from './components/dialogs/payment-confirm-dialog'
 import { TransferDialog } from './components/dialogs/transfer-dialog'
+import { InvoiceProfileCard } from './components/invoice-profile-card'
 import { RechargeFormCard } from './components/recharge-form-card'
 import { SubscriptionPlansCard } from './components/subscription-plans-card'
 import { WalletStatsCard } from './components/wallet-stats-card'
@@ -251,6 +252,16 @@ export function Wallet(props: WalletProps) {
         <SectionPageLayout.Content>
           <div className='mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-5'>
             <WalletStatsCard user={user} loading={userLoading} />
+            <InvoiceProfileCard
+              profile={user?.invoice_profile}
+              onSaved={(invoiceProfile) =>
+                setUser((current) =>
+                  current
+                    ? { ...current, invoice_profile: invoiceProfile }
+                    : current
+                )
+              }
+            />
 
             <div
               className={

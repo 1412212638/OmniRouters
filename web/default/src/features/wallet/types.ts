@@ -245,6 +245,21 @@ export interface UserWalletData {
   aff_count: number
   /** User group */
   group: string
+  invoice_profile?: InvoiceProfile | null
+}
+
+export interface InvoiceProfile {
+  type: 'personal' | 'company'
+  name?: string
+  company_name?: string
+  tax_id?: string
+  email: string
+  country?: string
+  state?: string
+  city?: string
+  address?: string
+  postcode?: string
+  contact_name?: string
 }
 
 /**

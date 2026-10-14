@@ -21,7 +21,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/stripe/stripe-go/v81"
 	"github.com/stripe/stripe-go/v81/checkout/session"
-	"github.com/stripe/stripe-go/v81/invoice"
+	stripecustomer "github.com/stripe/stripe-go/v81/customer"
 	"github.com/stripe/stripe-go/v81/webhook"
 	"github.com/thanhpk/randstr"
 )
@@ -111,7 +111,28 @@ func (*StripeAdaptor) RequestPay(c *gin.Context, req *StripePayRequest) {
 	reference := fmt.Sprintf("new-api-ref-%d-%d-%s", user.Id, time.Now().UnixMilli(), randstr.String(4))
 	referenceId := "ref_" + common.Sha1([]byte(reference))
 
-	payLink, err := genStripeLink(referenceId, user.StripeCustomer, user.Email, req.Amount, req.SuccessURL, req.CancelURL)
+	invoiceProfile := user.GetInvoiceProfile()
+	stripeCustomer := user.StripeCustomer
+	stripeEmail := user.Email
+	if invoiceProfile != nil {
+		stripeCustomer, err = syncStripeInvoiceCustomer(stripeCustomer, stripeEmail, invoiceProfile)
+		if err != nil {
+			logger.LogError(c.Request.Context(), fmt.Sprintf("Stripe 同步发票客户资料失败 user_id=%d trade_no=%s error=%q", id, referenceId, err.Error()))
+			c.JSON(http.StatusOK, gin.H{"message": "error", "data": "同步发票信息失败"})
+			return
+		}
+		if user.StripeCustomer != stripeCustomer {
+			if err = model.SetUserStripeCustomer(user.Id, stripeCustomer); err != nil {
+				logger.LogError(c.Request.Context(), fmt.Sprintf("Stripe 保存发票客户失败 user_id=%d trade_no=%s error=%q", id, referenceId, err.Error()))
+				c.JSON(http.StatusOK, gin.H{"message": "error", "data": "保存发票信息失败"})
+				return
+			}
+		}
+		if invoiceProfile.Email != "" {
+			stripeEmail = invoiceProfile.Email
+		}
+	}
+	payLink, err := genStripeLink(referenceId, stripeCustomer, stripeEmail, req.Amount, req.SuccessURL, req.CancelURL, invoiceProfile)
 	if err != nil {
 		logger.LogError(c.Request.Context(), fmt.Sprintf("Stripe 创建 Checkout Session 失败 user_id=%d trade_no=%s amount=%d error=%q", id, referenceId, req.Amount, err.Error()))
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "拉起支付失败"})
@@ -119,14 +140,15 @@ func (*StripeAdaptor) RequestPay(c *gin.Context, req *StripePayRequest) {
 	}
 
 	topUp := &model.TopUp{
-		UserId:          id,
-		Amount:          req.Amount,
-		Money:           chargedMoney,
-		TradeNo:         referenceId,
-		PaymentMethod:   model.PaymentMethodStripe,
-		PaymentProvider: model.PaymentProviderStripe,
-		CreateTime:      time.Now().Unix(),
-		Status:          common.TopUpStatusPending,
+		UserId:                 id,
+		Amount:                 req.Amount,
+		Money:                  chargedMoney,
+		TradeNo:                referenceId,
+		PaymentMethod:          model.PaymentMethodStripe,
+		PaymentProvider:        model.PaymentProviderStripe,
+		InvoiceProfileSnapshot: marshalInvoiceProfileSnapshot(invoiceProfile),
+		CreateTime:             time.Now().Unix(),
+		Status:                 common.TopUpStatusPending,
 	}
 	err = topUp.Insert()
 	if err != nil {
@@ -374,12 +396,21 @@ func sessionExpired(ctx context.Context, event stripe.Event) {
 //   - cancelURL: custom URL to redirect when payment is canceled (empty for default)
 //
 // Returns the checkout session URL or an error if the session creation fails.
-func genStripeLink(referenceId string, customerId string, email string, amount int64, successURL string, cancelURL string) (string, error) {
+func genStripeLink(referenceId string, customerId string, email string, amount int64, successURL string, cancelURL string, invoiceProfiles ...*model.InvoiceProfile) (string, error) {
 	if !strings.HasPrefix(setting.StripeApiSecret, "sk_") && !strings.HasPrefix(setting.StripeApiSecret, "rk_") {
 		return "", fmt.Errorf("无效的Stripe API密钥")
 	}
 
 	stripe.Key = setting.StripeApiSecret
+	var invoiceProfile *model.InvoiceProfile
+	if len(invoiceProfiles) > 0 {
+		invoiceProfile = invoiceProfiles[0]
+	}
+	if invoiceProfile != nil {
+		if invoiceProfile.Email != "" {
+			email = invoiceProfile.Email
+		}
+	}
 
 	// Use custom URLs if provided, otherwise use defaults
 	if successURL == "" {
@@ -401,7 +432,15 @@ func genStripeLink(referenceId string, customerId string, email string, amount i
 		},
 		Mode:                stripe.String(string(stripe.CheckoutSessionModePayment)),
 		AllowPromotionCodes: stripe.Bool(setting.StripePromotionCodesEnabled),
-		InvoiceCreation: &stripe.CheckoutSessionInvoiceCreationParams{Enabled: stripe.Bool(true)},
+		InvoiceCreation:     &stripe.CheckoutSessionInvoiceCreationParams{Enabled: stripe.Bool(true)},
+	}
+	if invoiceProfile != nil && invoiceProfile.TaxID != "" {
+		params.InvoiceCreation.InvoiceData = &stripe.CheckoutSessionInvoiceCreationInvoiceDataParams{
+			CustomFields: []*stripe.CheckoutSessionInvoiceCreationInvoiceDataCustomFieldParams{{
+				Name:  stripe.String("Tax ID"),
+				Value: stripe.String(invoiceProfile.TaxID),
+			}},
+		}
 	}
 
 	if "" == customerId {
@@ -420,6 +459,52 @@ func genStripeLink(referenceId string, customerId string, email string, amount i
 	}
 
 	return result.URL, nil
+}
+
+func syncStripeInvoiceCustomer(customerID string, accountEmail string, profile *model.InvoiceProfile) (string, error) {
+	name := profile.Name
+	if profile.Type == "company" {
+		name = profile.CompanyName
+	}
+	email := profile.Email
+	if email == "" {
+		email = accountEmail
+	}
+	params := &stripe.CustomerParams{
+		Name:  stripe.String(name),
+		Email: stripe.String(email),
+		Address: &stripe.AddressParams{
+			Line1:      stripe.String(profile.Address),
+			City:       stripe.String(profile.City),
+			State:      stripe.String(profile.State),
+			PostalCode: stripe.String(profile.Postcode),
+			Country:    stripe.String(profile.Country),
+		},
+	}
+	if customerID != "" {
+		_, err := stripecustomer.Update(customerID, params)
+		return customerID, err
+	}
+	customer, err := stripecustomer.New(params)
+	if err != nil {
+		return "", err
+	}
+	if customer == nil || strings.TrimSpace(customer.ID) == "" {
+		return "", fmt.Errorf("Stripe returned an empty customer ID")
+	}
+	return customer.ID, nil
+}
+
+func marshalInvoiceProfileSnapshot(profile *model.InvoiceProfile) string {
+	if profile == nil {
+		return ""
+	}
+	data, err := common.Marshal(profile)
+	if err != nil {
+		common.SysError("failed to marshal invoice profile snapshot: " + err.Error())
+		return ""
+	}
+	return string(data)
 }
 
 func GetChargedAmount(count float64, user model.User) float64 {
