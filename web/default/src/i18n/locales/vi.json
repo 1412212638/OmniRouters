@@ -699,6 +699,8 @@
     "Billing group = premium (the token has a group, so use it)": "Nhóm tính phí = premium (token có nhóm nên dùng nhóm đó)",
     "Billing group = vip (the token has no group, so use the user group)": "Nhóm tính phí = vip (token không có nhóm nên dùng nhóm người dùng)",
     "Billing History": "Lịch sử thanh toán",
+    "View invoice": "Xem hóa đơn",
+    "Invoice is not available": "Hóa đơn hiện không khả dụng",
     "Billing Mode": "Chế độ thanh toán",
     "Billing Path": "Đường dẫn tính phí",
     "Billing Process": "Quá trình tính phí",

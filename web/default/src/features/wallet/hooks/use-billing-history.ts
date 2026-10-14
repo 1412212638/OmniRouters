@@ -7,6 +7,7 @@ import { useIsAdmin } from '@/hooks/use-admin'
 import {
   getUserBillingHistory,
   getAllBillingHistory,
+  getTopUpInvoice,
   completeOrder,
   isApiSuccess,
 } from '../api'
@@ -100,6 +101,34 @@ export function useBillingHistory(options: UseBillingHistoryOptions = {}) {
     [isAdmin, fetchBillingHistory]
   )
 
+  const handleOpenInvoice = useCallback(async (topUpId: number) => {
+    const invoiceWindow = window.open('about:blank', '_blank')
+    if (invoiceWindow) {
+      invoiceWindow.opener = null
+    }
+
+    try {
+      const response = await getTopUpInvoice(topUpId)
+      if (!isApiSuccess(response) || !response.data?.url) {
+        invoiceWindow?.close()
+        toast.error(response.message || i18next.t('Invoice is not available'))
+        return false
+      }
+      if (invoiceWindow) {
+        invoiceWindow.location.replace(response.data.url)
+      } else {
+        window.location.assign(response.data.url)
+      }
+      return true
+    } catch (error) {
+      invoiceWindow?.close()
+      // eslint-disable-next-line no-console
+      console.error('Failed to open invoice:', error)
+      toast.error(i18next.t('Invoice is not available'))
+      return false
+    }
+  }, [])
+
   /**
    * Change page
    */
@@ -141,6 +170,7 @@ export function useBillingHistory(options: UseBillingHistoryOptions = {}) {
     handlePageSizeChange,
     handleSearch,
     handleCompleteOrder,
+    handleOpenInvoice,
     refresh: fetchBillingHistory,
   }
 }

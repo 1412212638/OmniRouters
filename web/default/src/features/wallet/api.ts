@@ -207,6 +207,14 @@ export async function getAllBillingHistory(
   return res.data
 }
 
+/** Get a short-lived provider invoice or customer portal URL for one order. */
+export async function getTopUpInvoice(
+  topUpId: number
+): Promise<ApiResponse<{ url: string }>> {
+  const res = await api.get(`/api/user/topup/${topUpId}/invoice`)
+  return res.data
+}
+
 /**
  * Complete a pending order (admin only)
  */

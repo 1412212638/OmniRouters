@@ -1,4 +1,11 @@
-import { Search, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  Search,
+  Copy,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+} from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -26,6 +33,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { formatCurrencyFromUSD } from '@/lib/currency'
 import { formatNumber } from '@/lib/format'
@@ -60,6 +72,7 @@ export function BillingHistoryDialog({
     handlePageSizeChange,
     handleSearch,
     handleCompleteOrder,
+    handleOpenInvoice,
   } = useBillingHistory()
 
   const [confirmTradeNo, setConfirmTradeNo] = useState<string | null>(null)
@@ -195,6 +208,29 @@ export function BillingHistoryDialog({
                                 copyText={String(record.user_id)}
                               />
                             )}
+                            {record.invoice_available &&
+                              record.status === 'success' && (
+                                <Tooltip>
+                                  <TooltipTrigger
+                                    render={
+                                      <Button
+                                        variant='ghost'
+                                        size='sm'
+                                        className='h-5 w-5 p-0'
+                                        aria-label={t('View invoice')}
+                                        onClick={() =>
+                                          handleOpenInvoice(record.id)
+                                        }
+                                      />
+                                    }
+                                  >
+                                    <Download className='h-3 w-3' />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    {t('View invoice')}
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
                           </div>
                           <div className='text-muted-foreground text-xs'>
                             {formatTimestamp(record.create_time)}

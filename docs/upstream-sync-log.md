@@ -18,6 +18,16 @@
 - Validation: `git diff --check`, locale JSON parsing, Oxfmt checks, and the production frontend build passed. Frontend typecheck remains blocked by pre-existing repository errors outside this change; Go tests are added but could not be run in this workspace because the Go toolchain is unavailable.
 - Commit/push: pending source commit and push.
 
+## 2026-10-14 - Add Stripe and Waffo Pancake invoice access
+
+- Local reason: successful Stripe and Waffo Pancake top-ups needed a customer-facing invoice entry in billing history.
+- Integrated: Stripe Checkout now requests invoice creation and stores the resulting Invoice ID from the paid Checkout webhook; authenticated users can resolve the Stripe PDF (with hosted invoice fallback) for their own successful order. Waffo Pancake successful orders expose a server-side customer Portal link minted on demand with `purpose: "portal"`, where Pancake provides invoice viewing. Historical orders with an empty `payment_provider` use the existing payment-method fallback. Added owner/admin authorization, per-user rate limiting, no-store/referrer protections, popup-safe invoice navigation, an invoice action in billing history, and translations for all default frontend locales.
+- Already present: existing payment checkout flows, webhook crediting, stable Pancake buyer identity, and the ordinary Waffo gateway were preserved.
+- Deferred: no upstream commit was involved; Stripe/Pancake live credentials and a paid test order are required to verify provider responses; Go backend tests are unavailable because the local Go toolchain is not installed.
+- Preserved: protected project identifiers and unrelated untracked worktree files.
+- Validation: frontend production build, targeted Oxfmt, JSON locale parsing, and `git diff --check` passed. Targeted Oxlint reports only pre-existing issues in the edited billing-history file. Added a regression test for current and legacy provider detection; Go tests could not run because the Go toolchain is unavailable.
+- Commit/push: pending source commit and push.
+
 ## 2026-10-12 - Add temporary test-user creation script
 
 - Local reason: provide a repeatable way to create large batches of disposable ordinary users for internal load testing.

@@ -20,6 +20,8 @@ type TopUp struct {
 	TradeNo         string  `json:"trade_no" gorm:"unique;type:varchar(255);index"`
 	PaymentMethod   string  `json:"payment_method" gorm:"type:varchar(50)"`
 	PaymentProvider string  `json:"payment_provider" gorm:"type:varchar(50);default:''"`
+	StripeInvoiceID  string  `json:"-" gorm:"type:varchar(255)"`
+	InvoiceAvailable bool    `json:"invoice_available" gorm:"-"`
 	CreateTime      int64   `json:"create_time"`
 	CompleteTime    int64   `json:"complete_time"`
 	Status          string  `json:"status"`
@@ -175,6 +177,27 @@ func GetTopUpByTradeNo(tradeNo string) *TopUp {
 		return nil
 	}
 	return topUp
+}
+
+// SetStripeInvoiceID records the invoice created for a paid Stripe Checkout
+// session. The ID is kept server-side and is resolved to a fresh PDF URL only
+// after the authenticated owner requests it.
+func SetStripeInvoiceID(tradeNo string, invoiceID string) error {
+	if tradeNo == "" || invoiceID == "" {
+		return nil
+	}
+	return DB.Model(&TopUp{}).Where("trade_no = ? AND payment_provider = ?", tradeNo, PaymentProviderStripe).Update("stripe_invoice_id", invoiceID).Error
+}
+
+func markTopUpInvoiceAvailability(topUps []*TopUp) {
+	for _, topUp := range topUps {
+		if topUp == nil || topUp.Status != common.TopUpStatusSuccess {
+			continue
+		}
+		provider := topUp.EffectivePaymentProvider()
+		topUp.InvoiceAvailable = provider == PaymentProviderWaffoPancake ||
+			provider == PaymentProviderStripe && topUp.StripeInvoiceID != ""
+	}
 }
 
 func GetUserSuccessfulTopUpQuotaTotal(userId int) (int64, error) {
@@ -414,6 +437,7 @@ func attachTopUpUsernames(topups []*TopUp) error {
 		}
 		topUp.Username = usernamesByID[topUp.UserId]
 	}
+	markTopUpInvoiceAvailability(topups)
 	return nil
 }
 

@@ -274,6 +274,8 @@ export interface TopupRecord {
   complete_time?: number
   /** Payment status */
   status: TopupStatus
+  /** Whether a provider invoice action is available for this successful order */
+  invoice_available?: boolean
 }
 
 /**

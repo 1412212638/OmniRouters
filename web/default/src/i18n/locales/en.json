@@ -716,6 +716,8 @@
     "Billing group = premium (the token has a group, so use it)": "Billing group = premium (the token has a group, so use it)",
     "Billing group = vip (the token has no group, so use the user group)": "Billing group = vip (the token has no group, so use the user group)",
     "Billing History": "Billing History",
+    "View invoice": "View invoice",
+    "Invoice is not available": "Invoice is not available",
     "Billing Mode": "Billing Mode",
     "Billing Path": "Billing Path",
     "Billing Process": "Billing Process",

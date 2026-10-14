@@ -698,6 +698,8 @@
     "Billing group = premium (the token has a group, so use it)": "課金グループ = premium（トークンにグループがあるのでそれを使用）",
     "Billing group = vip (the token has no group, so use the user group)": "課金グループ = vip（トークンにグループがないのでユーザーグループを使用）",
     "Billing History": "請求履歴",
+    "View invoice": "請求書を表示",
+    "Invoice is not available": "請求書を利用できません",
     "Billing Mode": "課金モード",
     "Billing Path": "課金パス",
     "Billing Process": "課金プロセス",

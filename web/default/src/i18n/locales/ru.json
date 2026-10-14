@@ -698,6 +698,8 @@
     "Billing group = premium (the token has a group, so use it)": "Тарифная группа = premium (у токена есть группа, используем её)",
     "Billing group = vip (the token has no group, so use the user group)": "Тарифная группа = vip (у токена нет группы, используем группу пользователя)",
     "Billing History": "История биллинга",
+    "View invoice": "Открыть счёт",
+    "Invoice is not available": "Счёт недоступен",
     "Billing Mode": "Режим биллинга",
     "Billing Path": "Путь тарификации",
     "Billing Process": "Процесс тарификации",

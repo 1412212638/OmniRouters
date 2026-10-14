@@ -21,6 +21,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/stripe/stripe-go/v81"
 	"github.com/stripe/stripe-go/v81/checkout/session"
+	"github.com/stripe/stripe-go/v81/invoice"
 	"github.com/stripe/stripe-go/v81/webhook"
 	"github.com/thanhpk/randstr"
 )
@@ -297,6 +298,11 @@ func fulfillOrder(ctx context.Context, event stripe.Event, referenceId string, c
 	}
 
 	topUp := model.GetTopUpByTradeNo(referenceId)
+	if invoiceID := event.GetObjectValue("invoice"); topUp != nil && invoiceID != "" {
+		if err := model.SetStripeInvoiceID(referenceId, invoiceID); err != nil {
+			logger.LogWarn(ctx, fmt.Sprintf("Stripe 保存发票标识失败 trade_no=%s error=%q", referenceId, err.Error()))
+		}
+	}
 	shouldNotify := topUp != nil &&
 		topUp.EffectivePaymentProvider() == model.PaymentProviderStripe &&
 		topUp.Status == common.TopUpStatusPending
@@ -395,6 +401,7 @@ func genStripeLink(referenceId string, customerId string, email string, amount i
 		},
 		Mode:                stripe.String(string(stripe.CheckoutSessionModePayment)),
 		AllowPromotionCodes: stripe.Bool(setting.StripePromotionCodesEnabled),
+		InvoiceCreation: &stripe.CheckoutSessionInvoiceCreationParams{Enabled: stripe.Bool(true)},
 	}
 
 	if "" == customerId {
