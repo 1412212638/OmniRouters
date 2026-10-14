@@ -7,7 +7,7 @@
 - Preserved: invoice profiles remain stored in the database `users.invoice_profile` text column. Login and self-user payloads no longer include invoice data, and the frontend strips any legacy cached copy from localStorage. Existing payment providers and invoice snapshots remain unchanged.
 - Deferred: live production save verification requires deploying the updated backend and frontend; the Go toolchain is unavailable in this shell.
 - Validation: targeted Oxlint/Oxfmt, all six locale JSON files, the production frontend build, and `git diff --check` passed. Frontend typecheck is blocked by existing missing test dependencies and unrelated type errors; Go tests could not run because the Go toolchain is unavailable in this shell.
-- Commit/push: source commit `3528f1b5d` (`fix(wallet): persist invoice profile server-side`); source and log commits are being pushed together to `origin/main`.
+- Commit/push: source commit `3528f1b5d` (`fix(wallet): persist invoice profile server-side`) and log commit `a4c1beb90` are confirmed on `origin/main`.
 
 ## 2026-10-13 - Show official WeChat QR login as a dedicated sign-in view
 
