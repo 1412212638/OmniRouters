@@ -233,12 +233,10 @@ export function InvoiceProfileCard({
                 required
               />
               <Field
-                label={t('Country/Region (2-letter code)')}
+                label={t('Country/Region')}
                 value={form.country || ''}
-                onChange={(v) =>
-                  setField('country', v.toUpperCase().slice(0, 2))
-                }
-                placeholder='US'
+                onChange={(v) => setField('country', v)}
+                placeholder={t('CN / China / 中国')}
               />
               <Field
                 label={t('State/Province')}

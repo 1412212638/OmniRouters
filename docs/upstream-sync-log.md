@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-14 - Accept localized country names in invoice profiles
+
+- Local reason: invoice profile saves rejected a Chinese country name such as `中国`, even though the rest of the profile accepts Chinese text.
+- Changed: normalize common Chinese and English country/region names to ISO 3166-1 alpha-2 codes before validation and persistence; the wallet field now accepts names without truncating them and shows localized examples; added a regression test for a Chinese personal invoice profile.
+- Preserved: invoice profiles continue to store ISO country codes for Stripe and Waffo Pancake; unknown country values still fail validation, and other payment methods are unaffected.
+- Validation: targeted Oxlint for the changed wallet component, locale JSON parsing, and `git diff --check` passed. Backend tests could not run because the Go toolchain is unavailable in this environment.
+- Commit/push: not committed or pushed.
+
 ## 2026-10-14 - Show Waffo Pancake surcharge without double charging the quote
 
 - Local reason: Waffo Pancake's amount endpoint already returns the final checkout quote including its configured unit-price markup, but the confirmation dialog applied the visible method fee a second time.

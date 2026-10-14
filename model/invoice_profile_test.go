@@ -40,6 +40,18 @@ func TestInvoiceProfileValidateSupportsCompanyDetails(t *testing.T) {
 	require.Equal(t, "GB", profile.Country)
 }
 
+func TestInvoiceProfileValidateNormalizesLocalizedCountryNames(t *testing.T) {
+	profile := &InvoiceProfile{
+		Type:    "personal",
+		Name:    "郑中威",
+		Email:   "billing@example.com",
+		Country: "中国",
+	}
+
+	require.NoError(t, profile.Validate())
+	require.Equal(t, "CN", profile.Country)
+}
+
 func TestInvoiceProfileValidateCountsUnicodeCharacters(t *testing.T) {
 	profile := &InvoiceProfile{
 		Type:  "personal",

@@ -35,12 +35,42 @@ func (p *InvoiceProfile) Normalize() {
 	p.CompanyName = strings.TrimSpace(p.CompanyName)
 	p.TaxID = strings.TrimSpace(p.TaxID)
 	p.Email = NormalizeEmail(p.Email)
-	p.Country = strings.ToUpper(strings.TrimSpace(p.Country))
+	p.Country = normalizeInvoiceCountry(p.Country)
 	p.State = strings.TrimSpace(p.State)
 	p.City = strings.TrimSpace(p.City)
 	p.Address = strings.TrimSpace(p.Address)
 	p.Postcode = strings.TrimSpace(p.Postcode)
 	p.ContactName = strings.TrimSpace(p.ContactName)
+}
+
+func normalizeInvoiceCountry(country string) string {
+	country = strings.TrimSpace(country)
+	switch strings.ToLower(country) {
+	case "中国", "中国大陆", "中华人民共和国", "china", "pr china", "people's republic of china":
+		return "CN"
+	case "中国香港", "香港", "hong kong":
+		return "HK"
+	case "中国澳门", "澳门", "macau", "macao":
+		return "MO"
+	case "中国台湾", "台湾", "taiwan":
+		return "TW"
+	case "美国", "美利坚合众国", "united states", "united states of america", "usa":
+		return "US"
+	case "英国", "united kingdom", "great britain", "uk":
+		return "GB"
+	case "日本", "japan":
+		return "JP"
+	case "韩国", "南韩", "south korea", "republic of korea":
+		return "KR"
+	case "新加坡", "singapore":
+		return "SG"
+	case "加拿大", "canada":
+		return "CA"
+	case "澳大利亚", "澳洲", "australia":
+		return "AU"
+	default:
+		return strings.ToUpper(country)
+	}
 }
 
 func (p *InvoiceProfile) Validate() error {
