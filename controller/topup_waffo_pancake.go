@@ -44,16 +44,28 @@ func RequestWaffoPancakeAmount(c *gin.Context) {
 		return
 	}
 
-	payMoney := getWaffoPancakePayMoney(req.Amount, group)
-	if payMoney <= 0.01 {
+	baseAmount, payMoney := getWaffoPancakePriceQuote(req.Amount, group)
+	if payMoney.LessThanOrEqual(decimal.NewFromFloat(0.01)) {
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "充值金额过低"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "success", "data": fmt.Sprintf("%.2f", payMoney)})
+	baseAmount = baseAmount.Round(2)
+	payMoney = payMoney.Round(2)
+	c.JSON(http.StatusOK, gin.H{
+		"message":     "success",
+		"data":        payMoney.StringFixed(2),
+		"base_amount": baseAmount.StringFixed(2),
+		"fee_amount":  payMoney.Sub(baseAmount).StringFixed(2),
+	})
 }
 
 func getWaffoPancakePayMoney(amount int64, group string) float64 {
+	_, payMoney := getWaffoPancakePriceQuote(amount, group)
+	return payMoney.InexactFloat64()
+}
+
+func getWaffoPancakePriceQuote(amount int64, group string) (decimal.Decimal, decimal.Decimal) {
 	dAmount := decimal.NewFromInt(amount)
 	if operation_setting.GetQuotaDisplayType() == operation_setting.QuotaDisplayTypeTokens {
 		dAmount = dAmount.Div(decimal.NewFromFloat(common.QuotaPerUnit))
@@ -84,12 +96,12 @@ func getWaffoPancakePayMoney(amount int64, group string) float64 {
 		unitPrice = 1
 	}
 
-	payMoney := dAmount.
-		Mul(decimal.NewFromFloat(unitPrice)).
+	baseAmount := dAmount.
 		Mul(decimal.NewFromFloat(topupGroupRatio)).
 		Mul(decimal.NewFromFloat(discount))
+	payMoney := baseAmount.Mul(decimal.NewFromFloat(unitPrice))
 
-	return payMoney.InexactFloat64()
+	return baseAmount, payMoney
 }
 
 func normalizeWaffoPancakeTopUpAmount(amount int64) int64 {

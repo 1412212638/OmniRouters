@@ -1,5 +1,14 @@
 # Upstream Sync Log
 
+## 2026-10-14 - Show Waffo Pancake surcharge without double charging the quote
+
+- Local reason: Waffo Pancake's amount endpoint already returns the final checkout quote including its configured unit-price markup, but the confirmation dialog applied the visible method fee a second time.
+- Changed: the quote endpoint now also returns the rounded base amount and surcharge while preserving its existing `data` string contract; the wallet confirmation dialog uses that server-calculated breakdown and keeps the quoted checkout total unchanged. Added a regression test for a $10 base quote with a 5% markup.
+- Preserved: actual checkout pricing, payment order settlement, Stripe and other payment-method fee displays remain unchanged.
+- Deferred: provider checkout verification still requires the deployed image and configured Pancake credentials; Go regression tests could not run because the Go toolchain is unavailable in this shell.
+- Validation: targeted Oxlint for changed frontend files, production build, and `git diff --check` passed. Repository-wide lint and TypeScript checks remain blocked by existing errors in unrelated files (including missing test dependencies); no errors were reported in the changed wallet files.
+- Commit/push: committed as `fix: correct Waffo Pancake payment breakdown` and pushed to `origin/main`.
+
 ## 2026-10-14 - Fix invoice profile saving for Chinese input
 
 - Local reason: invoice profile saves could fail for Chinese names/addresses because the server counted UTF-8 bytes against character limits; the production site origins were also missing from the CORS allowlist for cross-origin deployments.

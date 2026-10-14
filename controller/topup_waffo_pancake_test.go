@@ -119,3 +119,37 @@ func TestGetWaffoPancakePayMoney(t *testing.T) {
 		})
 	}
 }
+
+func TestGetWaffoPancakePriceQuoteSeparatesMarkupFromBase(t *testing.T) {
+	originalUnitPrice := setting.WaffoPancakeUnitPrice
+	originalQuotaDisplayType := operation_setting.GetGeneralSetting().QuotaDisplayType
+	originalDiscounts := operation_setting.GetPaymentSetting().AmountDiscount
+	originalTopupGroupRatio := common.TopupGroupRatio2JSONString()
+	common.OptionMapRWMutex.Lock()
+	originalOptionPrice, hadOptionPrice := common.OptionMap["WaffoPancakeUnitPrice"]
+	common.OptionMap["WaffoPancakeUnitPrice"] = "1.05"
+	common.OptionMapRWMutex.Unlock()
+	t.Cleanup(func() {
+		setting.WaffoPancakeUnitPrice = originalUnitPrice
+		operation_setting.GetGeneralSetting().QuotaDisplayType = originalQuotaDisplayType
+		operation_setting.GetPaymentSetting().AmountDiscount = originalDiscounts
+		require.NoError(t, common.UpdateTopupGroupRatioByJSONString(originalTopupGroupRatio))
+		common.OptionMapRWMutex.Lock()
+		if hadOptionPrice {
+			common.OptionMap["WaffoPancakeUnitPrice"] = originalOptionPrice
+		} else {
+			delete(common.OptionMap, "WaffoPancakeUnitPrice")
+		}
+		common.OptionMapRWMutex.Unlock()
+	})
+
+	setting.WaffoPancakeUnitPrice = 1.05
+	operation_setting.GetGeneralSetting().QuotaDisplayType = operation_setting.QuotaDisplayTypeUSD
+	operation_setting.GetPaymentSetting().AmountDiscount = map[int]float64{}
+	require.NoError(t, common.UpdateTopupGroupRatioByJSONString(`{"default":1}`))
+
+	baseAmount, payAmount := getWaffoPancakePriceQuote(10, "default")
+	require.Equal(t, "10.00", baseAmount.Round(2).StringFixed(2))
+	require.Equal(t, "10.50", payAmount.Round(2).StringFixed(2))
+	require.Equal(t, "0.50", payAmount.Sub(baseAmount).Round(2).StringFixed(2))
+}

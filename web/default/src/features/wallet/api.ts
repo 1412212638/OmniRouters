@@ -20,6 +20,7 @@ import type {
   WaffoPaymentRequest,
   WaffoPaymentResponse,
   WaffoPancakePaymentRequest,
+  WaffoPancakeAmountResponse,
   WaffoPancakePaymentResponse,
   InvoiceProfile,
 } from './types'
@@ -154,7 +155,7 @@ export async function requestWaffoPayment(
  */
 export async function calculateWaffoPancakeAmount(
   request: AmountRequest
-): Promise<AmountResponse> {
+): Promise<WaffoPancakeAmountResponse> {
   const res = await api.post('/api/user/waffo-pancake/amount', request, {
     skipBusinessError: true,
   } as Record<string, unknown>)

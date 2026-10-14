@@ -18,9 +18,10 @@ import { DEFAULT_DISCOUNT_RATE } from '../../constants'
 import {
   formatPaymentQuote,
   getPaymentIcon,
+  isWaffoPancakePayment,
   normalizeTopupFeeRate,
 } from '../../lib'
-import type { PaymentMethod } from '../../types'
+import type { PaymentAmountBreakdown, PaymentMethod } from '../../types'
 
 interface PaymentConfirmDialogProps {
   open: boolean
@@ -33,6 +34,7 @@ interface PaymentConfirmDialogProps {
   processing: boolean
   discountRate?: number
   feeRate?: number
+  paymentBreakdown?: PaymentAmountBreakdown | null
   usdExchangeRate?: number
 }
 
@@ -47,19 +49,34 @@ export function PaymentConfirmDialog({
   processing,
   discountRate = DEFAULT_DISCOUNT_RATE,
   feeRate = 0,
+  paymentBreakdown,
   usdExchangeRate = 1,
 }: PaymentConfirmDialogProps) {
   const { t } = useTranslation()
   const formatTopupPaymentAmount = (amount: number) =>
     formatPaymentQuote(amount, paymentMethod?.type)
-  const hasDiscount = discountRate > 0 && discountRate < 1 && paymentAmount > 0
-  const originalAmount = hasDiscount ? paymentAmount / discountRate : 0
-  const discountAmount = hasDiscount ? originalAmount - paymentAmount : 0
+  const isPancake = isWaffoPancakePayment(paymentMethod?.type || '')
   const normalizedFeeRate = normalizeTopupFeeRate(feeRate)
-  const feeAmount = paymentAmount * normalizedFeeRate
-  const totalPaymentAmount = paymentAmount + feeAmount
-  const hasFeeRate = normalizedFeeRate > 0 && paymentAmount > 0
-  const feeRatePercent = (normalizedFeeRate * 100).toFixed(2)
+  let baseAmount = paymentAmount
+  if (isPancake && paymentBreakdown) {
+    baseAmount = paymentBreakdown.baseAmount
+  } else if (isPancake && normalizedFeeRate > 0) {
+    baseAmount = paymentAmount / (1 + normalizedFeeRate)
+  }
+  const feeAmount = isPancake
+    ? (paymentBreakdown?.feeAmount ?? paymentAmount - baseAmount)
+    : paymentAmount * normalizedFeeRate
+  const totalPaymentAmount = isPancake
+    ? paymentAmount
+    : paymentAmount + feeAmount
+  const hasFeeRate = feeAmount > 0 && paymentAmount > 0
+  const feeRatePercent = (
+    (isPancake && baseAmount > 0 ? feeAmount / baseAmount : normalizedFeeRate) *
+    100
+  ).toFixed(2)
+  const hasDiscount = discountRate > 0 && discountRate < 1 && baseAmount > 0
+  const originalAmount = hasDiscount ? baseAmount / discountRate : 0
+  const discountAmount = hasDiscount ? originalAmount - baseAmount : 0
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -93,7 +110,7 @@ export function PaymentConfirmDialog({
                 {t('Base amount')}
               </span>
               <span className='font-medium'>
-                {formatTopupPaymentAmount(paymentAmount)}
+                {formatTopupPaymentAmount(baseAmount)}
               </span>
             </div>
           )}

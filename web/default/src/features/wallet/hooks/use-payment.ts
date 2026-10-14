@@ -15,6 +15,7 @@ import {
   isWaffoPancakePayment,
   submitPaymentForm,
 } from '../lib'
+import type { ApiResponse, PaymentAmountBreakdown } from '../types'
 
 // ============================================================================
 // Payment Hook
@@ -22,6 +23,8 @@ import {
 
 export function usePayment() {
   const [amount, setAmount] = useState<number>(0)
+  const [amountBreakdown, setAmountBreakdown] =
+    useState<PaymentAmountBreakdown | null>(null)
   const [calculating, setCalculating] = useState(false)
   const [processing, setProcessing] = useState(false)
 
@@ -30,26 +33,49 @@ export function usePayment() {
     async (topupAmount: number, paymentType: string) => {
       try {
         setCalculating(true)
+        setAmountBreakdown(null)
 
         const isStripe = isStripePayment(paymentType)
         const isPancake = isWaffoPancakePayment(paymentType)
-        const response = isStripe
-          ? await calculateStripeAmount({ amount: topupAmount })
-          : isPancake
-            ? await calculateWaffoPancakeAmount({ amount: topupAmount })
-            : await calculateAmount({ amount: topupAmount })
+        let quoteResponse: ApiResponse<string> & {
+          base_amount?: string
+          fee_amount?: string
+        }
+        if (isStripe) {
+          quoteResponse = await calculateStripeAmount({ amount: topupAmount })
+        } else if (isPancake) {
+          quoteResponse = await calculateWaffoPancakeAmount({
+            amount: topupAmount,
+          })
+        } else {
+          quoteResponse = await calculateAmount({ amount: topupAmount })
+        }
 
-        if (isApiSuccess(response) && response.data) {
-          const calculatedAmount = parseFloat(response.data)
+        if (isApiSuccess(quoteResponse) && quoteResponse.data) {
+          const calculatedAmount = Number.parseFloat(quoteResponse.data)
           setAmount(calculatedAmount)
+          if (
+            isPancake &&
+            'base_amount' in quoteResponse &&
+            quoteResponse.base_amount != null &&
+            quoteResponse.fee_amount != null
+          ) {
+            const baseAmount = Number(quoteResponse.base_amount)
+            const feeAmount = Number(quoteResponse.fee_amount)
+            if (Number.isFinite(baseAmount) && Number.isFinite(feeAmount)) {
+              setAmountBreakdown({ baseAmount, feeAmount })
+            }
+          }
           return calculatedAmount
         }
 
         // Don't show error for calculation, just set to 0
         setAmount(0)
+        setAmountBreakdown(null)
         return 0
-      } catch (_error) {
+      } catch {
         setAmount(0)
+        setAmountBreakdown(null)
         return 0
       } finally {
         setCalculating(false)
@@ -100,7 +126,7 @@ export function usePayment() {
         }
 
         return false
-      } catch (_error) {
+      } catch {
         toast.error(i18next.t('Payment request failed'))
         return false
       } finally {
@@ -112,6 +138,7 @@ export function usePayment() {
 
   return {
     amount,
+    amountBreakdown,
     calculating,
     processing,
     calculatePaymentAmount,
