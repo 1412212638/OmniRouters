@@ -343,7 +343,10 @@ export function DynamicPricingBreakdown({
           </div>
           <div className='space-y-1.5 sm:hidden'>
             {tiers.map((tier, i) => {
-              const condSummary = formatConditionSummary(tier.conditions, t)
+              const condSummary =
+                formatConditionSummary(tier.conditions, t) ||
+                tier.conditionText ||
+                ''
               const isMatched =
                 matchedTierLabel != null &&
                 matchedTierLabel !== '' &&
@@ -443,7 +446,10 @@ export function DynamicPricingBreakdown({
                 ),
                 cellClassName: cn('align-top', compact ? 'py-2' : 'py-2.5'),
                 cell: (tier) => {
-                  const condSummary = formatConditionSummary(tier.conditions, t)
+                  const condSummary =
+                    formatConditionSummary(tier.conditions, t) ||
+                    tier.conditionText ||
+                    ''
                   const isMatched =
                     normalizedMatchedTierLabel !== '' &&
                     normalizeTierLabel(tier.label) ===

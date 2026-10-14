@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-14 - Show parameter-based numeric tier prices in the model square
+
+- Local reason: expressions such as `param("resolution") == "1K" ? tier("1K", 68000) : ...` were billed correctly but the model square treated them as unstructured because its display parser only recognized `fixed(...)` request-price leaves.
+- Changed: the frontend pricing adapter now recognizes non-negative numeric `tier` leaves as request prices, preserves supported `param`/`header` condition text for tier rows, and exposes the resulting request-price range on model cards and detail views.
+- Preserved: backend expression execution, actual billing, request parameter matching, fixed-price syntax, token pricing, and unsupported-expression fallback behavior.
+- Validation: parser smoke test returned four request tiers with prices `68000`, `75000`, `80000`, `80000`; production frontend build and `git diff --check` passed. Targeted lint still reports pre-existing errors in `dynamic-pricing-breakdown.tsx` unrelated to this change.
+- Commit/push: committed as `fix(pricing): display parameter-based tier prices` and pushed to `origin/main`.
+
 ## 2026-10-14 - Accept localized country names in invoice profiles
 
 - Local reason: invoice profile saves rejected a Chinese country name such as `中国`, even though the rest of the profile accepts Chinese text.

@@ -101,7 +101,8 @@ function nonnegativePriceLiteral(node: ExpressionNode): number | null {
 
 function tokenTier(
   node: ExpressionNode,
-  conditions: TokenTierCondition[]
+  conditions: TokenTierCondition[],
+  conditionText?: string
 ): TokenTier | null {
   if (
     node.kind !== 'call' ||
@@ -122,9 +123,24 @@ function tokenTier(
     return {
       label: node.args[0].value,
       conditions,
+      ...(conditionText ? { conditionText } : {}),
       prices,
       billingUnit: 'request',
       fixedPrice: body.args[0].value,
+    }
+  }
+  if (
+    body.kind === 'literal' &&
+    typeof body.value === 'number' &&
+    body.value >= 0
+  ) {
+    return {
+      label: node.args[0].value,
+      conditions,
+      ...(conditionText ? { conditionText } : {}),
+      prices,
+      billingUnit: 'request',
+      fixedPrice: body.value,
     }
   }
   for (const term of flattenBinary(node.args[1], '+')) {
@@ -181,8 +197,42 @@ function tokenTier(
   return { label: node.args[0].value, conditions, prices }
 }
 
+function isDisplayRequestCondition(node: ExpressionNode): boolean {
+  if (node.kind === 'binary' && ['&&', '||'].includes(node.operator)) {
+    return (
+      isDisplayRequestCondition(node.left) &&
+      isDisplayRequestCondition(node.right)
+    )
+  }
+  if (
+    node.kind !== 'binary' ||
+    !['==', '!='].includes(node.operator)
+  ) {
+    return false
+  }
+  const isRequestProbe = (part: ExpressionNode): boolean =>
+    part.kind === 'call' &&
+    (part.name === 'param' || part.name === 'header') &&
+    part.args.length === 1 &&
+    part.args[0].kind === 'literal' &&
+    typeof part.args[0].value === 'string'
+  const isLiteral = (part: ExpressionNode): boolean =>
+    part.kind === 'literal' &&
+    (typeof part.value === 'string' ||
+      typeof part.value === 'number' ||
+      typeof part.value === 'boolean' ||
+      part.value === null)
+  return (
+    (isRequestProbe(node.left) && isLiteral(node.right)) ||
+    (isLiteral(node.left) && isRequestProbe(node.right))
+  )
+}
+
 /** Legacy token summary contract: ordered linear chain, never a minimum or partial price extraction. */
-export function readTokenTierChain(node: ExpressionNode): TokenTier[] | null {
+export function readTokenTierChain(
+  node: ExpressionNode,
+  source?: string
+): TokenTier[] | null {
   if (
     node.kind === 'conditional' &&
     node.condition.kind === 'binary' &&
@@ -220,7 +270,7 @@ export function readTokenTierChain(node: ExpressionNode): TokenTier[] | null {
     ]) {
       if (factor.kind === 'variable' && factor.name === 'image_count') {
         return (
-          readTokenTierChain(pricing)?.map((tier) => ({
+          readTokenTierChain(pricing, source)?.map((tier) => ({
             ...tier,
             imageCount: true,
           })) ?? null
@@ -232,8 +282,12 @@ export function readTokenTierChain(node: ExpressionNode): TokenTier[] | null {
   let remaining = node
   while (remaining.kind === 'conditional') {
     const conditions = tokenConditions(remaining.condition)
-    if (!conditions) return null
-    const tier = tokenTier(remaining.yes, conditions)
+    const conditionText =
+      source && isDisplayRequestCondition(remaining.condition)
+        ? source.slice(remaining.condition.start, remaining.condition.end)
+        : undefined
+    if (!conditions && !conditionText) return null
+    const tier = tokenTier(remaining.yes, conditions ?? [], conditionText)
     if (!tier) return null
     tiers.push(tier)
     remaining = remaining.no
