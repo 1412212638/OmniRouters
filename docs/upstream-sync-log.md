@@ -26,7 +26,7 @@
 - Deferred: no upstream commit was involved; Stripe/Pancake live credentials and a paid test order are required to verify provider responses; Go backend tests are unavailable because the local Go toolchain is not installed.
 - Preserved: protected project identifiers and unrelated untracked worktree files.
 - Validation: frontend production build, targeted Oxfmt, JSON locale parsing, and `git diff --check` passed. Targeted Oxlint reports only pre-existing issues in the edited billing-history file. Added a regression test for current and legacy provider detection; Go tests could not run because the Go toolchain is unavailable.
-- Commit/push: pending source commit and push.
+- Commit/push: source commit `49d66e753` (`feat(wallet): expose payment invoices`); the push response reported `origin/main` already at this commit. Follow-up fetch/push verification was blocked by GitHub Schannel TLS handshake failures.
 
 ## 2026-10-12 - Add temporary test-user creation script
 
