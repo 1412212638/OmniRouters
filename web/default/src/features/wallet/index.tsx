@@ -6,6 +6,7 @@ import { useStatus } from '@/hooks/use-status'
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { getSelf } from '@/lib/api'
 
+import { getInvoiceProfile } from './api'
 import { AffiliateRewardsCard } from './components/affiliate-rewards-card'
 import { CorporateTransferCard } from './components/corporate-transfer-card'
 import { BillingHistoryDialog } from './components/dialogs/billing-history-dialog'
@@ -93,9 +94,17 @@ export function Wallet(props: WalletProps) {
   const fetchUser = useCallback(async () => {
     try {
       setUserLoading(true)
-      const response = await getSelf()
+      const [response, invoiceResponse] = await Promise.all([
+        getSelf(),
+        getInvoiceProfile().catch(() => null),
+      ])
       if (response.success && response.data) {
-        setUser(response.data as UserWalletData)
+        setUser({
+          ...(response.data as UserWalletData),
+          invoice_profile: invoiceResponse?.success
+            ? invoiceResponse.data
+            : null,
+        })
       }
     } catch (error) {
       // eslint-disable-next-line no-console

@@ -1,5 +1,14 @@
 # Upstream Sync Log
 
+## 2026-10-14 - Fix invoice profile saving for Chinese input
+
+- Local reason: invoice profile saves could fail for Chinese names/addresses because the server counted UTF-8 bytes against character limits; the production site origins were also missing from the CORS allowlist for cross-origin deployments.
+- Changed: invoice profile limits now count Unicode characters; added a database round-trip regression case with Chinese name, city, and address; allowed the production apex and `www` origins for credentialed API requests; removed the redundant wallet-card explanation and its unused translations. The wallet now reads invoice data from its dedicated authenticated endpoint instead of the cached self-user object.
+- Preserved: invoice profiles remain stored in the database `users.invoice_profile` text column. Login and self-user payloads no longer include invoice data, and the frontend strips any legacy cached copy from localStorage. Existing payment providers and invoice snapshots remain unchanged.
+- Deferred: live production save verification requires deploying the updated backend and frontend; the Go toolchain is unavailable in this shell.
+- Validation: targeted Oxlint/Oxfmt, all six locale JSON files, the production frontend build, and `git diff --check` passed. Frontend typecheck is blocked by existing missing test dependencies and unrelated type errors; Go tests could not run because the Go toolchain is unavailable in this shell.
+- Commit/push: pending.
+
 ## 2026-10-13 - Show official WeChat QR login as a dedicated sign-in view
 
 - Local reason: make official WeChat login consistent with email login by opening a focused view only after the user selects it.

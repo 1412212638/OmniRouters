@@ -5867,7 +5867,6 @@
     "Bind a supplier to make it available in the model marketplace.": "绑定供应商后，该供应商会显示为模型广场中的可用供应商。",
     "Select vendor (optional)": "选择供应商",
     "Invoice Information": "发票信息",
-    "Saved to your account and used for Stripe and Waffo Pancake invoices": "资料会保存在账号中，并用于 Stripe 和 Waffo Pancake 发票",
     "Clear invoice information": "清除发票信息",
     "Add information": "添加信息",
     "Company": "公司",

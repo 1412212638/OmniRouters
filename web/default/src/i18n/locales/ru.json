@@ -5784,7 +5784,6 @@
     "Bind a supplier to make it available on the model marketplace.": "Привяжите поставщика, чтобы сделать его доступным на витрине моделей.",
     "Select vendor (optional)": "Выбрать поставщика",
     "Invoice Information": "Платёжные данные",
-    "Saved to your account and used for Stripe and Waffo Pancake invoices": "Сохраняются в аккаунте и используются для счетов Stripe и Waffo Pancake",
     "Clear invoice information": "Очистить платёжные данные",
     "Add information": "Добавить данные",
     "Company": "Компания",

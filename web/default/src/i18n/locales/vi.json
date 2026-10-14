@@ -5787,7 +5787,6 @@
     "Bind a supplier to make it available in the model marketplace.": "Liên kết nhà cung cấp để hiển thị trong chợ mô hình.",
     "Select vendor (optional)": "Chọn nhà cung cấp",
     "Invoice Information": "Thông tin xuất hóa đơn",
-    "Saved to your account and used for Stripe and Waffo Pancake invoices": "Được lưu trong tài khoản và dùng cho hóa đơn Stripe và Waffo Pancake",
     "Clear invoice information": "Xóa thông tin hóa đơn",
     "Add information": "Thêm thông tin",
     "Company": "Doanh nghiệp",

@@ -5784,7 +5784,6 @@
     "Bind a supplier to make it available in the model marketplace.": "ベンダーを紐付けるとモデルマーケットプレイスで利用可能になります。",
     "Select vendor (optional)": "ベンダーを選択",
     "Invoice Information": "請求情報",
-    "Saved to your account and used for Stripe and Waffo Pancake invoices": "アカウントに保存され、Stripe と Waffo Pancake の請求書に使用されます",
     "Clear invoice information": "請求情報を削除",
     "Add information": "情報を追加",
     "Company": "法人",

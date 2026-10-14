@@ -10,6 +10,8 @@ func CORS() gin.HandlerFunc {
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{
 		"https://tokenplan.omnirouters.com",
+		"https://omnirouters.com.cn",
+		"https://www.omnirouters.com.cn",
 	}
 	config.AllowCredentials = true
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}

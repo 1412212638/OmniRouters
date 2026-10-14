@@ -35,6 +35,13 @@ export interface AuthUser {
   permissions?: UserPermissions
 }
 
+function removeInvoiceProfile(user: AuthUser | null): AuthUser | null {
+  if (!user) return null
+  const safeUser = { ...user } as AuthUser & { invoice_profile?: unknown }
+  delete safeUser.invoice_profile
+  return safeUser
+}
+
 interface AuthState {
   auth: {
     user: AuthUser | null
@@ -49,7 +56,15 @@ export const useAuthStore = create<AuthState>()((set) => {
     try {
       if (typeof window !== 'undefined') {
         const saved = window.localStorage.getItem('user')
-        return saved ? JSON.parse(saved) : null
+        if (!saved) return null
+        const user = JSON.parse(saved) as AuthUser & {
+          invoice_profile?: unknown
+        }
+        if (user && typeof user === 'object' && 'invoice_profile' in user) {
+          delete user.invoice_profile
+          window.localStorage.setItem('user', JSON.stringify(user))
+        }
+        return user
       }
     } catch {
       // Clear dirty data when parsing fails
@@ -65,15 +80,16 @@ export const useAuthStore = create<AuthState>()((set) => {
       user: initUser,
       setUser: (user) =>
         set((state) => {
+          const safeUser = removeInvoiceProfile(user)
           // Persist user to localStorage
           if (typeof window !== 'undefined') {
-            if (user) {
-              window.localStorage.setItem('user', JSON.stringify(user))
+            if (safeUser) {
+              window.localStorage.setItem('user', JSON.stringify(safeUser))
             } else {
               window.localStorage.removeItem('user')
             }
           }
-          return { ...state, auth: { ...state.auth, user } }
+          return { ...state, auth: { ...state.auth, user: safeUser } }
         }),
       reset: () =>
         set((state) => {

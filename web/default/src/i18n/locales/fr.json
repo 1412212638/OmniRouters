@@ -5784,7 +5784,6 @@
     "Bind a supplier to make it available in the model marketplace.": "Associez un fournisseur pour le rendre disponible dans la place de marché des modèles.",
     "Select vendor (optional)": "Sélectionner le fournisseur",
     "Invoice Information": "Informations de facturation",
-    "Saved to your account and used for Stripe and Waffo Pancake invoices": "Enregistrées dans votre compte et utilisées pour les factures Stripe et Waffo Pancake",
     "Clear invoice information": "Effacer les informations de facturation",
     "Add information": "Ajouter des informations",
     "Company": "Entreprise",

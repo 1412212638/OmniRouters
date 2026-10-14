@@ -46,7 +46,9 @@ export async function getTopupInfo(): Promise<TopupInfoResponse> {
 export async function getInvoiceProfile(): Promise<
   ApiResponse<InvoiceProfile | null>
 > {
-  const res = await api.get('/api/user/invoice-profile')
+  const res = await api.get('/api/user/invoice-profile', {
+    skipErrorHandler: true,
+  })
   return res.data
 }
 

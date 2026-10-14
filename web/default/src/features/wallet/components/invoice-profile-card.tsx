@@ -13,13 +13,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -115,11 +109,6 @@ export function InvoiceProfileCard({
             </div>
             <div className='space-y-1'>
               <CardTitle>{t('Invoice Information')}</CardTitle>
-              <CardDescription>
-                {t(
-                  'Saved to your account and used for Stripe and Waffo Pancake invoices'
-                )}
-              </CardDescription>
             </div>
           </div>
           <div className='flex shrink-0 gap-2'>

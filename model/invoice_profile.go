@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/mail"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/QuantumNous/new-api/common"
 )
@@ -66,7 +67,7 @@ func (p *InvoiceProfile) Validate() error {
 	if p.Country != "" && len(p.Country) != 2 {
 		return errors.New("country must use a two-letter ISO code")
 	}
-	if len(p.Email) > 320 || len(p.Name) > 200 || len(p.CompanyName) > 200 || len(p.TaxID) > 100 || len(p.Country) > 2 || len(p.State) > 100 || len(p.City) > 100 || len(p.Address) > 500 || len(p.Postcode) > 32 || len(p.ContactName) > 200 {
+	if utf8.RuneCountInString(p.Email) > 320 || utf8.RuneCountInString(p.Name) > 200 || utf8.RuneCountInString(p.CompanyName) > 200 || utf8.RuneCountInString(p.TaxID) > 100 || utf8.RuneCountInString(p.Country) > 2 || utf8.RuneCountInString(p.State) > 100 || utf8.RuneCountInString(p.City) > 100 || utf8.RuneCountInString(p.Address) > 500 || utf8.RuneCountInString(p.Postcode) > 32 || utf8.RuneCountInString(p.ContactName) > 200 {
 		return errors.New("invoice profile field is too long")
 	}
 	return nil

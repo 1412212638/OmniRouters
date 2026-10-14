@@ -1,6 +1,7 @@
 package model
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/QuantumNous/new-api/common"
@@ -39,6 +40,18 @@ func TestInvoiceProfileValidateSupportsCompanyDetails(t *testing.T) {
 	require.Equal(t, "GB", profile.Country)
 }
 
+func TestInvoiceProfileValidateCountsUnicodeCharacters(t *testing.T) {
+	profile := &InvoiceProfile{
+		Type:  "personal",
+		Name:  strings.Repeat("中", 200),
+		Email: "billing@example.com",
+	}
+	require.NoError(t, profile.Validate())
+
+	profile.Name += "中"
+	require.Error(t, profile.Validate())
+}
+
 func TestInvoiceProfileAndStripeCustomerPersist(t *testing.T) {
 	originalDB := DB
 	originalMainType := common.MainDatabaseType()
@@ -59,9 +72,11 @@ func TestInvoiceProfileAndStripeCustomerPersist(t *testing.T) {
 	user := &User{Username: "invoice-profile-test"}
 	require.NoError(t, DB.Create(user).Error)
 	profile := &InvoiceProfile{
-		Type:  "personal",
-		Name:  "Ada Lovelace",
-		Email: "ada@example.com",
+		Type:    "personal",
+		Name:    strings.Repeat("中", 100),
+		Email:   "ada@example.com",
+		City:    "北京市",
+		Address: "朝阳区建国路",
 	}
 	require.NoError(t, SetUserInvoiceProfile(user.Id, profile))
 	require.NoError(t, SetUserStripeCustomer(user.Id, "cus_invoice_profile"))
