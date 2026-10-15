@@ -1,11 +1,11 @@
 const MAX_INPUT_TOKENS = 65536;
-const MODELS = ["jev-1.13.0", "jev-latest", "jev-preview", "laya"];
+const MODELS = ["jev-1.13.0", "jev-1.14", "jev-latest", "jev-preview", "laya"];
 
 export const meta = {
   apiVersion: 1,
   key: "typesafe",
   name: "TypeSafe",
-  version: "1.1.1",
+  version: "1.1.2",
   author: { name: "OmniRouters" },
   models: MODELS,
   fetchMode: "per_task",

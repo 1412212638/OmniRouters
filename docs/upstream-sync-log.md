@@ -3827,3 +3827,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check` passed; the failing call site now matches the function signature.
 - Commit/push: pending source commit and push.
 
+## 2026-10-15 - Add TypeSafe jev-1.14 model
+
+- Local reason: TypeSafe upstream added the `jev-1.14` model, but the built-in plugin rejected it as unsupported before a channel request could be sent.
+- Integrated: added `jev-1.14` to the TypeSafe model declaration, bumped the built-in plugin version to `1.1.2`, and added decode/upstream mapping fixtures for the new model.
+- Already present: `jev-1.13.0`, `jev-latest`, `jev-preview`, `laya`, synchronous SystemOne handling, and channel-provided upstream model mappings remain unchanged.
+- Deferred: no separate `jev-1.14.0` alias was added because the requested model identifier is exactly `jev-1.14`.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: Node syntax check, fixture JSON parsing, focused `jev-1.14` decode/upstream mapping assertions, and `git diff --check` passed. Full Go-runtime fixture replay is unavailable because the Go toolchain is not installed locally.
+- Commit/push: pending source commit and push.
+

@@ -35,6 +35,82 @@
       }
     },
     {
+      "name": "decode jev-1.14",
+      "hook": "native",
+      "member": "decodeSystemOne",
+      "args": [
+        {
+          "body": {
+            "kind": "json",
+            "value": {
+              "model": "jev-1.14",
+              "state": "refund request",
+              "questions": {
+                "refund": {
+                  "type": "noul"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "kind": "submit",
+        "model": "jev-1.14",
+        "requestBody": {
+          "model": "jev-1.14",
+          "state": "refund request",
+          "questions": {
+            "refund": {
+              "type": "noul"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "map jev-1.14 vendor",
+      "hook": "buildSubmitRequest",
+      "args": [
+        {
+          "model": "jev-1.14",
+          "upstreamModel": "jev-1.14",
+          "requestBody": {
+            "model": "jev-1.14",
+            "state": "refund request",
+            "questions": {
+              "refund": {
+                "type": "noul"
+              }
+            }
+          },
+          "baseUrl": "https://upstream.example/v1/",
+          "apiKey": "fixture-key",
+          "upstream": {
+            "kind": "vendor"
+          }
+        }
+      ],
+      "expected": {
+        "url": "https://upstream.example/v1/systemone",
+        "method": "POST",
+        "headers": {
+          "Authorization": "Bearer fixture-key",
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        "body": {
+          "model": "jev-1.14",
+          "state": "refund request",
+          "questions": {
+            "refund": {
+              "type": "noul"
+            }
+          }
+        }
+      }
+    },
+    {
       "name": "map jev-1.13.0 vendor",
       "hook": "buildSubmitRequest",
       "args": [
