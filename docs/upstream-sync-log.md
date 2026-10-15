@@ -3817,3 +3817,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: targeted Oxlint and Oxfmt checks passed; all six locale JSON files parsed successfully; `git diff --check` passed. `go test ./model ./controller` was attempted earlier but package test compilation is blocked by unrelated existing undefined symbols; the Stripe unused import found in that run has been fixed. Go is not available in the current shell for a fresh backend build.
 - Commit/push: implementation commit `fd761e8a4` (`feat(wallet): save reusable invoice details`) and log commit `a4fe6c91a` are present on GitHub `main`; confirmed via the GitHub commits API.
 
+## 2026-10-15 - Fix official WeChat binding build error
+
+- Local reason: the GitHub Actions container build failed because `consumeWeChatOfficialState` returns two values while the binding handler assigned only one.
+- Integrated: the binding cleanup call now receives both return values, restoring backend compilation without changing the login or binding behavior.
+- Already present: the official WeChat login, QR polling, rate-limit isolation, and account-binding changes from `d73aaaf50` were preserved.
+- Deferred: Go tests could not run because the local shell does not have the Go toolchain; GitHub Actions remains the authoritative container build check.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: `git diff --check` passed; the failing call site now matches the function signature.
+- Commit/push: pending source commit and push.
+

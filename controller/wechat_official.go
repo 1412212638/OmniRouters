@@ -473,7 +473,7 @@ func WeChatOfficialBind(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
-	_ = consumeWeChatOfficialState(state.Code)
+	_, _ = consumeWeChatOfficialState(state.Code)
 	_ = recordSecurityEvent(c, &model.AuditLog{UserId: userID, Category: model.AuditCategorySecurity, Action: "wechat.bind", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey)})
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "微信绑定成功"})
 }
