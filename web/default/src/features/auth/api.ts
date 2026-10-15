@@ -1,10 +1,5 @@
 import { api, setDashboardAccessToken } from '@/lib/api'
 
-function persistAuthUser(data: any) {
-  if (data?.user?.id != null && typeof window !== 'undefined') {
-    window.localStorage.setItem('uid', String(data.user.id))
-  }
-}
 import type {
   LoginPayload,
   LoginResponse,
@@ -13,6 +8,14 @@ import type {
   RegisterPayload,
   ApiResponse,
 } from './types'
+
+function persistAuthUser(
+  data: { user?: { id?: number | string | null } } | null | undefined
+) {
+  if (data?.user?.id != null && typeof window !== 'undefined') {
+    window.localStorage.setItem('uid', String(data.user.id))
+  }
+}
 
 // ============================================================================
 // Authentication APIs
@@ -32,8 +35,9 @@ export async function login(payload: LoginPayload) {
       password: payload.password,
     }
   )
-  if (res.data?.data?.access_token)
+  if (res.data?.data?.access_token) {
     setDashboardAccessToken(res.data.data.access_token)
+  }
   persistAuthUser(res.data?.data)
   return res.data
 }
@@ -41,8 +45,9 @@ export async function login(payload: LoginPayload) {
 // Two-factor authentication login
 export async function login2fa(payload: TwoFAPayload) {
   const res = await api.post<Login2FAResponse>('/api/user/login/2fa', payload)
-  if (res.data?.data?.access_token)
+  if (res.data?.data?.access_token) {
     setDashboardAccessToken(res.data.data.access_token)
+  }
   persistAuthUser(res.data?.data)
   return res.data
 }
@@ -144,7 +149,10 @@ export async function pollWeChatOfficialLogin(code: string) {
     success: boolean
     message: string
     data?: { status?: 'pending' | 'ready' | 'consumed'; expires_at?: number }
-  }>('/api/oauth/wechat/official/poll', { params: { code } })
+  }>('/api/oauth/wechat/official/poll', {
+    params: { code },
+    skipErrorHandler: true,
+  })
   return res.data
 }
 
@@ -155,6 +163,36 @@ export async function loginWithWeChatOfficial(
   const res = await api.get('/api/oauth/wechat/official/login', {
     params: { code, aff: affCode },
   })
+  if (res.data?.data?.access_token) {
+    setDashboardAccessToken(res.data.data.access_token)
+  }
+  persistAuthUser(res.data?.data)
+  return res.data
+}
+
+export type WeChatOfficialBindQrResponse = WeChatOfficialQrResponse
+
+export async function createWeChatOfficialBindQr(): Promise<WeChatOfficialBindQrResponse> {
+  const res = await api.get<WeChatOfficialBindQrResponse>(
+    '/api/user/oauth/wechat/official/bind/qr'
+  )
+  return res.data
+}
+
+export async function pollWeChatOfficialBind(code: string) {
+  const res = await api.get<{
+    success: boolean
+    message: string
+    data?: { status?: 'pending' | 'ready' | 'consumed'; expires_at?: number }
+  }>('/api/user/oauth/wechat/official/bind/poll', {
+    params: { code },
+    skipErrorHandler: true,
+  })
+  return res.data
+}
+
+export async function bindWeChatOfficial(code: string): Promise<ApiResponse> {
+  const res = await api.post('/api/user/oauth/wechat/official/bind', { code })
   return res.data
 }
 

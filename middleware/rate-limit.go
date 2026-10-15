@@ -135,6 +135,24 @@ func ScopedCriticalRateLimit(scope string) gin.HandlerFunc {
 	return rateLimitFactory(common.CriticalRateLimitNum, common.CriticalRateLimitDuration, "CT:"+scope+":")
 }
 
+// WeChatOfficialPollRateLimit keeps QR status polling from consuming the
+// interactive login budget. A five-minute QR lifetime can require more than
+// the default critical-login allowance when the user takes time to scan.
+func WeChatOfficialPollRateLimit() gin.HandlerFunc {
+	if !common.CriticalRateLimitEnable {
+		return defNext
+	}
+	count := common.GetEnvOrDefault("WECHAT_OFFICIAL_POLL_RATE_LIMIT", 240)
+	duration := common.GetEnvOrDefault("WECHAT_OFFICIAL_POLL_RATE_LIMIT_DURATION", 10*60)
+	if count < 1 {
+		count = 240
+	}
+	if duration < 1 || duration > int(common.RateLimitKeyExpirationDuration.Seconds()) {
+		duration = 10 * 60
+	}
+	return rateLimitFactory(count, int64(duration), "CT:wechat_official_poll:")
+}
+
 func SessionRefreshRateLimit() gin.HandlerFunc {
 	if !common.CriticalRateLimitEnable {
 		return defNext

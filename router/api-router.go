@@ -54,7 +54,7 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/oauth/wechat/official/callback", controller.WeChatOfficialCallback)
 		apiRouter.POST("/oauth/wechat/official/callback", anonymousRequestBodyLimit, controller.WeChatOfficialCallback)
 		apiRouter.GET("/oauth/wechat/official/qr", middleware.ScopedCriticalRateLimit("login"), controller.WeChatOfficialQR)
-		apiRouter.GET("/oauth/wechat/official/poll", middleware.ScopedCriticalRateLimit("login"), controller.WeChatOfficialPoll)
+		apiRouter.GET("/oauth/wechat/official/poll", middleware.WeChatOfficialPollRateLimit(), controller.WeChatOfficialPoll)
 		apiRouter.GET("/oauth/wechat/official/login", middleware.ScopedCriticalRateLimit("login"), controller.WeChatOfficialLogin)
 		apiRouter.GET("/oauth/telegram/login", middleware.ScopedCriticalRateLimit("login"), controller.TelegramLogin)
 		apiRouter.GET("/oauth/telegram/bind", middleware.CriticalRateLimit(), controller.TelegramBind)
@@ -94,6 +94,9 @@ func SetApiRouter(router *gin.Engine) {
 			{
 				selfRoute.GET("/self/groups", controller.GetUserGroups)
 				selfRoute.GET("/self", controller.GetSelf)
+				selfRoute.GET("/oauth/wechat/official/bind/qr", middleware.CriticalRateLimit(), controller.WeChatOfficialBindQR)
+				selfRoute.GET("/oauth/wechat/official/bind/poll", middleware.WeChatOfficialPollRateLimit(), controller.WeChatOfficialBindPoll)
+				selfRoute.POST("/oauth/wechat/official/bind", middleware.CriticalRateLimit(), anonymousRequestBodyLimit, controller.WeChatOfficialBind)
 				selfRoute.GET("/models", controller.GetUserModels)
 				selfRoute.GET("/image-model-capabilities", controller.GetImageModelCapabilities)
 				selfRoute.PUT("/self", middleware.CriticalRateLimit(), controller.UpdateSelf)

@@ -47,26 +47,39 @@ func ClaimExternalIdentityWithTx(tx *gorm.DB, provider, subject string, userId i
 }
 
 // BindExternalIdentityWithTx claims a provider subject and updates the legacy
-// Telegram column in one transaction. The legacy check remains necessary for
+// provider column in one transaction. The legacy check remains necessary for
 // installations upgraded before external_identity_claims was introduced.
 func BindExternalIdentityWithTx(tx *gorm.DB, provider, subject string, userId int) error {
 	provider, subject = strings.TrimSpace(provider), strings.TrimSpace(subject)
 	if tx == nil || userId <= 0 || provider == "" || subject == "" {
 		return errors.New("external identity binding is invalid")
 	}
-	if provider != ExternalIdentityProviderTelegram {
+	if provider != ExternalIdentityProviderTelegram && provider != ExternalIdentityProviderWeChatOfficial {
 		return errors.New("unsupported external identity provider")
 	}
+	legacyColumn := "telegram_id"
+	if provider == ExternalIdentityProviderWeChatOfficial {
+		legacyColumn = "wechat_id"
+	}
 	var legacy User
-	if err := tx.Where("telegram_id = ?", subject).First(&legacy).Error; err == nil && legacy.Id != userId {
+	if err := tx.Where(legacyColumn+" = ?", subject).First(&legacy).Error; err == nil && legacy.Id != userId {
 		return ErrExternalIdentityAlreadyClaimed
 	} else if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
+	if provider == ExternalIdentityProviderWeChatOfficial {
+		var current User
+		if err := tx.Select(legacyColumn).Where("id = ?", userId).First(&current).Error; err != nil {
+			return err
+		}
+		if current.WeChatId != "" && current.WeChatId != subject {
+			return ErrExternalIdentityAlreadyClaimed
+		}
+	}
 	if err := ClaimExternalIdentityWithTx(tx, provider, subject, userId); err != nil {
 		return err
 	}
-	return tx.Model(&User{}).Where("id = ?", userId).Update("telegram_id", subject).Error
+	return tx.Model(&User{}).Where("id = ?", userId).Update(legacyColumn, subject).Error
 }
 
 // InitializeExternalIdentityClaims backfills legacy Telegram bindings before

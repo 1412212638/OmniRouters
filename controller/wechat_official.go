@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/middleware"
 	"github.com/QuantumNous/new-api/model"
 
 	"github.com/gin-gonic/gin"
@@ -33,6 +34,8 @@ const (
 type wechatOfficialLoginState struct {
 	Code      string `json:"code"`
 	OpenID    string `json:"openid,omitempty"`
+	Purpose   string `json:"purpose,omitempty"`
+	UserID    int    `json:"user_id,omitempty"`
 	ExpiresAt int64  `json:"expires_at"`
 	Consumed  bool   `json:"consumed,omitempty"`
 }
@@ -267,8 +270,15 @@ func WeChatOfficialQR(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "官方微信公众号登录未配置"})
 		return
 	}
-	code := common.GetRandomString(32)
-	state := wechatOfficialLoginState{Code: code, ExpiresAt: time.Now().Add(wechatOfficialStateTTL).Unix()}
+	createWeChatOfficialQR(c, wechatOfficialLoginState{
+		Code:      common.GetRandomString(32),
+		Purpose:   "login",
+		ExpiresAt: time.Now().Add(wechatOfficialStateTTL).Unix(),
+	})
+}
+
+func createWeChatOfficialQR(c *gin.Context, state wechatOfficialLoginState) {
+	code := state.Code
 	if err := saveWeChatOfficialState(state); err != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
 		return
@@ -293,7 +303,11 @@ func WeChatOfficialQR(c *gin.Context) {
 		} `json:"scene"`
 	} `json:"action_info"`
 	}{ExpireSeconds: int(wechatOfficialStateTTL.Seconds()), ActionName: "QR_STR_SCENE"}
-	payload.ActionInfo.Scene.SceneStr = "or_" + code
+	scenePrefix := "or_"
+	if state.Purpose == "bind" {
+		scenePrefix = "ob_"
+	}
+	payload.ActionInfo.Scene.SceneStr = scenePrefix + code
 	body, err := common.Marshal(payload)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
@@ -332,6 +346,28 @@ func WeChatOfficialQR(c *gin.Context) {
 	}})
 }
 
+func WeChatOfficialBindQR(c *gin.Context) {
+	if !wechatOfficialConfigured() {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "官方微信公众号登录未配置"})
+		return
+	}
+	if _, ok := middleware.GetSessionAuthIdentity(c); !ok {
+		c.JSON(http.StatusForbidden, gin.H{"success": false, "message": "a dashboard login session is required"})
+		return
+	}
+	userID := c.GetInt("id")
+	if userID <= 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "请先登录"})
+		return
+	}
+	createWeChatOfficialQR(c, wechatOfficialLoginState{
+		Code:      common.GetRandomString(32),
+		Purpose:   "bind",
+		UserID:    userID,
+		ExpiresAt: time.Now().Add(wechatOfficialStateTTL).Unix(),
+	})
+}
+
 func WeChatOfficialPoll(c *gin.Context) {
 	if !wechatOfficialConfigured() {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "官方微信公众号登录未配置"})
@@ -340,6 +376,10 @@ func WeChatOfficialPoll(c *gin.Context) {
 	state, err := loadWeChatOfficialState(c.Query("code"))
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if state.Purpose == "bind" {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "微信登录状态无效"})
 		return
 	}
 	consumed := false
@@ -357,6 +397,87 @@ func WeChatOfficialPoll(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{"status": status, "expires_at": state.ExpiresAt}})
 }
 
+func WeChatOfficialBindPoll(c *gin.Context) {
+	if !wechatOfficialConfigured() {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "官方微信公众号登录未配置"})
+		return
+	}
+	if _, ok := middleware.GetSessionAuthIdentity(c); !ok {
+		c.JSON(http.StatusForbidden, gin.H{"success": false, "message": "a dashboard login session is required"})
+		return
+	}
+	state, err := loadWeChatOfficialState(c.Query("code"))
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if state.Purpose != "bind" || state.UserID <= 0 || state.UserID != c.GetInt("id") {
+		c.JSON(http.StatusForbidden, gin.H{"success": false, "message": "微信绑定状态无效"})
+		return
+	}
+	status := "pending"
+	if common.RedisEnabled && common.RDB != nil {
+		if common.RDB.Exists(context.Background(), wechatOfficialClaimKey+state.Code).Val() > 0 {
+			status = "consumed"
+		} else if state.OpenID != "" {
+			status = "ready"
+		}
+	} else if state.Consumed {
+		status = "consumed"
+	} else if state.OpenID != "" {
+		status = "ready"
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{"status": status, "expires_at": state.ExpiresAt}})
+}
+
+type wechatOfficialBindRequest struct {
+	Code string `json:"code"`
+}
+
+func WeChatOfficialBind(c *gin.Context) {
+	if _, ok := middleware.GetSessionAuthIdentity(c); !ok {
+		c.JSON(http.StatusForbidden, gin.H{"success": false, "message": "a dashboard login session is required"})
+		return
+	}
+	var req wechatOfficialBindRequest
+	if err := common.DecodeJson(c.Request.Body, &req); err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "无效的请求"})
+		return
+	}
+	state, err := loadWeChatOfficialState(req.Code)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	userID := c.GetInt("id")
+	if state.Purpose != "bind" || state.UserID <= 0 || state.UserID != userID || state.OpenID == "" {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "请先使用微信扫码"})
+		return
+	}
+	consumed := state.Consumed
+	if common.RedisEnabled && common.RDB != nil {
+		consumed = common.RDB.Exists(context.Background(), wechatOfficialClaimKey+state.Code).Val() > 0
+	}
+	if consumed {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "微信登录二维码已使用"})
+		return
+	}
+	wechatID := "official:" + common.WeChatOfficialAppID + ":" + state.OpenID
+	if err := model.DB.Transaction(func(tx *gorm.DB) error {
+		return model.BindExternalIdentityWithTx(tx, model.ExternalIdentityProviderWeChatOfficial, wechatID, userID)
+	}); err != nil {
+		if errors.Is(err, model.ErrExternalIdentityAlreadyClaimed) {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "该微信账号已被绑定"})
+			return
+		}
+		common.ApiError(c, err)
+		return
+	}
+	_ = consumeWeChatOfficialState(state.Code)
+	_ = recordSecurityEvent(c, &model.AuditLog{UserId: userID, Category: model.AuditCategorySecurity, Action: "wechat.bind", Ip: c.ClientIP(), Success: true, RequestId: c.GetString(common.RequestIdKey)})
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "微信绑定成功"})
+}
+
 // WeChatOfficialLogin exchanges a ready browser state for the normal gateway
 // login session. Registration uses the same affiliate-code handling as legacy
 // WeChat login.
@@ -366,6 +487,10 @@ func WeChatOfficialLogin(c *gin.Context) {
 		return
 	}
 	state, err := loadWeChatOfficialState(c.Query("code"))
+	if err == nil && state.Purpose != "" && state.Purpose != "login" {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "微信登录状态无效"})
+		return
+	}
 	if err != nil || state.OpenID == "" {
 		if err == nil {
 			err = errors.New("请先使用微信扫码")
@@ -418,10 +543,17 @@ func WeChatOfficialCallback(c *gin.Context) {
 		c.String(http.StatusOK, "success")
 		return
 	}
-	scene := strings.TrimPrefix(strings.TrimPrefix(strings.TrimSpace(message.EventKey), "qrscene_"), "or_")
+	eventKey := strings.TrimPrefix(strings.TrimSpace(message.EventKey), "qrscene_")
+	scene, purpose := "", ""
+	switch {
+	case strings.HasPrefix(eventKey, "or_"):
+		scene, purpose = strings.TrimPrefix(eventKey, "or_"), "login"
+	case strings.HasPrefix(eventKey, "ob_"):
+		scene, purpose = strings.TrimPrefix(eventKey, "ob_"), "bind"
+	}
 	validLoginScan := strings.EqualFold(message.Event, "SCAN") || strings.EqualFold(message.Event, "subscribe")
-	isLoginScene := strings.HasPrefix(strings.TrimSpace(message.EventKey), "or_") || strings.HasPrefix(strings.TrimSpace(message.EventKey), "qrscene_or_")
-	if validLoginScan && isLoginScene {
+	isWeChatScene := purpose != ""
+	if validLoginScan && isWeChatScene {
 		if message.FromUserName != "" {
 			if _, err := claimWeChatOfficialScan(scene, message.FromUserName); err != nil {
 				c.String(http.StatusInternalServerError, "success")
@@ -431,7 +563,7 @@ func WeChatOfficialCallback(c *gin.Context) {
 	}
 	// Only acknowledge the login QR scan with a user-visible reply. Ordinary
 	// account messages and unrelated QR events are acknowledged with "success".
-	if validLoginScan && isLoginScene && message.FromUserName != "" {
+	if validLoginScan && isWeChatScene && message.FromUserName != "" {
 		response := struct {
 			XMLName      xml.Name `xml:"xml"`
 			ToUserName   string   `xml:"ToUserName"`
@@ -439,7 +571,7 @@ func WeChatOfficialCallback(c *gin.Context) {
 			CreateTime   int64    `xml:"CreateTime"`
 			MsgType      string   `xml:"MsgType"`
 			Content      string   `xml:"Content"`
-		}{ToUserName: message.FromUserName, FromUserName: message.ToUserName, CreateTime: time.Now().Unix(), MsgType: "text", Content: fmt.Sprintf("扫码成功。你正在登录 %s，请确认这是你本人打开的网页后返回完成登录。", common.SystemName)}
+		}{ToUserName: message.FromUserName, FromUserName: message.ToUserName, CreateTime: time.Now().Unix(), MsgType: "text", Content: fmt.Sprintf("扫码成功。你正在%s %s，请确认这是你本人打开的网页后返回完成%s。", map[string]string{"bind": "绑定微信号至", "login": "登录"}[purpose], common.SystemName, map[string]string{"bind": "绑定", "login": "登录"}[purpose])}
 		c.XML(http.StatusOK, response)
 		return
 	}

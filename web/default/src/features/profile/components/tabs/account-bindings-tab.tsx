@@ -130,6 +130,12 @@ export function AccountBindingsTab({
     return () => window.removeEventListener('storage', handleStorage)
   }, [onUpdate])
 
+  const getBindingActionLabel = (binding: BindingItem) => {
+    if (binding.isBound && binding.id === 'email') return t('Change')
+    if (binding.isBound) return t('Bound')
+    return t('Bind')
+  }
+
   // Memoize bindings to prevent unnecessary recalculations
   const bindings: BindingItem[] = useMemo(() => {
     if (!profile || !status) return []
@@ -148,11 +154,15 @@ export function AccountBindingsTab({
         id: 'wechat',
         label: t('WeChat'),
         icon: SiWechat as React.ComponentType<{ className?: string }>,
-        value: undefined,
+        value: profile.wechat_id,
         isBound: Boolean(
           (profile as unknown as Record<string, unknown>).wechat_id
         ),
-        isEnabled: status?.wechat_login || false,
+        isEnabled:
+          Boolean(status?.wechat_login) ||
+          Boolean(
+            status?.wechat_official_login ?? status?.data?.wechat_official_login
+          ),
         onBind: () => dialogs.open('wechat'),
       },
       {
@@ -280,11 +290,7 @@ export function AccountBindingsTab({
               onClick={binding.onBind}
               disabled={binding.isBound && binding.id !== 'email'}
             >
-              {binding.isBound
-                ? binding.id === 'email'
-                  ? t('Change')
-                  : t('Bound')
-                : t('Bind')}
+              {getBindingActionLabel(binding)}
             </Button>
           </div>
         ))}
@@ -384,6 +390,9 @@ export function AccountBindingsTab({
       {/* WeChat Bind Dialog */}
       <WeChatBindDialog
         open={dialogs.isOpen('wechat')}
+        officialEnabled={Boolean(
+          status?.wechat_official_login ?? status?.data?.wechat_official_login
+        )}
         onOpenChange={(open) =>
           open ? dialogs.open('wechat') : dialogs.close('wechat')
         }

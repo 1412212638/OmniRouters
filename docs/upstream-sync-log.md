@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-15 - Complete official WeChat login and binding flow
+
+- Local reason: official-account scans were recorded by the callback but the browser stopped polling after the shared login limiter returned HTTP 429, and the login response did not persist its dashboard access token. The profile also hid the official WeChat binding entry and the existing dialog was only a placeholder.
+- Changed: fixed the sign-in QR copy to always say WeChat, persisted the official-login access token and user id, isolated QR polling into a dedicated configurable limiter with retry handling, and separated login/binding QR scene purposes. Added browser-session-only official WeChat binding QR, polling, and commit endpoints with identity-claim and legacy-column collision checks; replaced the placeholder profile dialog and exposed the binding card when official WeChat is enabled.
+- Preserved: legacy external WeChat login and binding routes, affiliate registration handling, existing official-account callback handshake, protected project identifiers, and unrelated worktree files.
+- Validation: targeted Oxlint and Oxfmt checks passed; production frontend build passed; `git diff --check` passed. Go formatting/tests were unavailable because the Go toolchain is not installed in this shell. Live verification still requires a configured official account, Redis/database, and deployed callback URL.
+- Commit/push: pending source commit and push.
+
 ## 2026-10-14 - Show parameter-based numeric tier prices in the model square
 
 - Local reason: expressions such as `param("resolution") == "1K" ? tier("1K", 68000) : ...` were billed correctly but the model square treated them as unstructured because its display parser only recognized `fixed(...)` request-price leaves.

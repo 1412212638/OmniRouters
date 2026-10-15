@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -18,7 +19,6 @@ export function WeChatOfficialLoginView({
 }: WeChatOfficialLoginViewProps) {
   const { t } = useTranslation()
   const [imageUrl, setImageUrl] = useState('')
-  const [accountName, setAccountName] = useState('')
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
   const onSuccessRef = useRef(onSuccess)
@@ -42,7 +42,6 @@ export function WeChatOfficialLoginView({
           )
         }
         setImageUrl(response.data.image_url)
-        setAccountName(response.data.name || '')
         setErrorMessage('')
 
         const qrCode = response.data.code
@@ -72,6 +71,15 @@ export function WeChatOfficialLoginView({
             }
             timer = setTimeout(poll, 1800)
           } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 429) {
+              const retryAfter = Number(error.response.headers?.['retry-after'])
+              const delay =
+                Number.isFinite(retryAfter) && retryAfter > 0
+                  ? retryAfter * 1000
+                  : 5000
+              timer = setTimeout(poll, delay)
+              return
+            }
             if (!cancelled) {
               const message =
                 error instanceof Error ? error.message : t('Login failed')
@@ -103,11 +111,7 @@ export function WeChatOfficialLoginView({
   return (
     <div className='grid justify-items-center gap-4 text-center'>
       <p className='text-muted-foreground text-sm'>
-        {accountName
-          ? t('Scan the QR code with {{name}} to continue.', {
-              name: accountName,
-            })
-          : t('Scan the QR code with WeChat to continue.')}
+        {t('Scan the QR code with WeChat to continue.')}
       </p>
       <div className='bg-background flex size-52 items-center justify-center rounded-lg border'>
         {imageUrl ? (
