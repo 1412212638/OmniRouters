@@ -3996,5 +3996,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Integrated: catalog price rows now carry cache read and cache write values for both tiered-expression and legacy token pricing. Cache write falls back to the one-hour cache-create tier when that is the available expression field. For dynamic expressions, the green state is derived from the cache-to-input unit-price ratio (the expression equivalent of `cache_ratio`); legacy fields continue to use their explicit ratio values. The visible card renders the cache write row alongside input, output, and cache read.
 - Preserved: billing calculations, detail drawer pricing, backend pricing payloads, and all unrelated worktree changes remain unchanged.
 - Validation: `bun run build` in `web/default`, `bunx oxfmt --check src/features/pricing/index.tsx`, and `git diff --check` passed; targeted Oxlint still reports only the file's pre-existing warnings.
-- Commit/push: source commit `fb5a04009` was pushed to GitHub `origin/main`; this log update is pending commit and push.
+- Commit/push: source commit `fb5a04009` and log commit `b843b2904` were pushed to GitHub `origin/main`.
 
