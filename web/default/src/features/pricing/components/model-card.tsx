@@ -112,7 +112,8 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       ['cacheReadPrice', 'cacheCreatePrice', 'cacheCreate1hPrice'].includes(
         entry.field
       ) &&
-      entry.value < inputEntry.value
+      inputEntry.value > 0 &&
+      entry.value / inputEntry.value < 1
     const cacheEntries = [
       ...cacheReadEntries,
       ...(cacheWriteEntry ? [cacheWriteEntry] : []),

@@ -3990,3 +3990,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bun run build` in `web/default`, targeted `oxfmt --check`, and `git diff --check` passed. Go tests/gofmt require CI because Go is unavailable in the local shell.
 - Commit/push: pending local commit; GitHub push not requested in this round.
 
+## 2026-10-17 - Complete cache pricing rows on model plaza cards
+
+- Local reason: the model plaza uses `CatalogModelCard` in `web/default/src/features/pricing/index.tsx`; the earlier cache-row change targeted a different card component, so cache write was omitted and discounted cache read was not highlighted in the visible catalogue.
+- Integrated: catalog price rows now carry cache read and cache write values for both tiered-expression and legacy token pricing. Cache write falls back to the one-hour cache-create tier when that is the available expression field. For dynamic expressions, the green state is derived from the cache-to-input unit-price ratio (the expression equivalent of `cache_ratio`); legacy fields continue to use their explicit ratio values. The visible card renders the cache write row alongside input, output, and cache read.
+- Preserved: billing calculations, detail drawer pricing, backend pricing payloads, and all unrelated worktree changes remain unchanged.
+- Validation: `bun run build` in `web/default`, `bunx oxfmt --check src/features/pricing/index.tsx`, and `git diff --check` passed; targeted Oxlint still reports only the file's pre-existing warnings.
+- Commit/push: pending local commit; GitHub push not requested in this round.
+
