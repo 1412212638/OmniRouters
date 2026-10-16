@@ -292,7 +292,7 @@ func GetTokenUsage(c *gin.Context) {
 			userUsedQuota, quotaErr = model.GetUserUsedQuota(token.UserId)
 		}
 		if quotaErr != nil {
-			common.SysError(common.LogText("failed to get user quota: %s", quotaErr.Error()))
+			common.SysError(fmt.Sprintf("failed to get user quota: %s", quotaErr.Error()))
 			common.ApiErrorI18n(c, i18n.MsgTokenGetInfoFailed)
 			return
 		}

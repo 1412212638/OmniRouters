@@ -3880,3 +3880,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check` passed and repository search confirms no remaining `ApiErrorStatus` call. Go build and gofmt require CI because the local shell has no Go toolchain.
 - Commit/push: local commit `8d7d77202` (`fix: use existing token IP error response`); GitHub push not yet performed.
 
+## 2026-10-16 - Fix image build compiler failure in token quota logging
+
+- Local reason: the image build reported `controller/token.go` calling the nonexistent `common.LogText` helper.
+- Integrated: replaced it with the existing `fmt.Sprintf` formatting already supported by the file.
+- Preserved: quota lookup, error handling, and log message content remain unchanged.
+- Validation: repository search confirms no remaining `common.LogText` reference and `git diff --check` passes. Go build and gofmt require CI because the local shell has no Go toolchain.
+- Commit/push: source fix commit pending; GitHub push not yet performed.
+
