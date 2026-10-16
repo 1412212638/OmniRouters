@@ -187,7 +187,7 @@ type RelayInfo struct {
 	convOptions *convmeta.Options
 	// responsesToolState is written by request conversion and read by the
 	// matching response conversion (see ResponsesToolState).
-	responsesToolState *convmeta.ResponsesToolState
+	responsesToolState             *convmeta.ResponsesToolState
 	conversionDiagnostics          []types.ConversionDiagnostic
 	conversionDiagnosticKeys       map[conversionDiagnosticKey]struct{}
 	conversionDiagnosticsTruncated bool

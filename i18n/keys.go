@@ -40,6 +40,7 @@ const (
 	MsgAuthUserIdMismatch        = "auth.user_id_mismatch"
 	MsgAuthUserBanned            = "auth.user_banned"
 	MsgAuthInsufficientPrivilege = "auth.insufficient_privilege"
+	MsgAuthTokenIPNotAllowed     = "auth.token_ip_not_allowed"
 )
 
 // Token related messages

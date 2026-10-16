@@ -3,11 +3,10 @@ package openai
 import (
 	"testing"
 
-	"github.com/QuantumNous/new-api/constant"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/stretchr/testify/require"
 	"github.com/samber/lo"
+	"github.com/stretchr/testify/require"
 )
 
 func TestConvertOpenAIRequestUsesModelSpecificGPT6Capabilities(t *testing.T) {
@@ -28,7 +27,6 @@ func TestConvertOpenAIRequestUsesModelSpecificGPT6Capabilities(t *testing.T) {
 				Temperature: lo.ToPtr(0.7), TopP: lo.ToPtr(0.8), LogProbs: lo.ToPtr(true),
 			}
 			info := &relaycommon.RelayInfo{
-				ChannelType:      constant.ChannelTypeOpenAI,
 				OriginModelName:  tt.model,
 				ChannelMeta:      &relaycommon.ChannelMeta{UpstreamModelName: tt.model},
 			}
