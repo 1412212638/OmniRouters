@@ -586,14 +586,21 @@ func WaffoPancakeWebhook(c *gin.Context) {
 	LockOrder(tradeNo)
 	defer UnlockOrder(tradeNo)
 
-	if err := model.RechargeWaffoPancake(tradeNo); err != nil {
+	alreadyDone, err := model.RechargeWaffoPancakeWithResult(tradeNo, c.ClientIP())
+	if err != nil {
 		logger.LogError(c.Request.Context(), fmt.Sprintf("Waffo Pancake 充值处理失败 trade_no=%s event_id=%s order_id=%s client_ip=%s error=%q", tradeNo, event.ID, event.Data.OrderID, c.ClientIP(), err.Error()))
 		c.String(http.StatusInternalServerError, "retry")
 		return
 	}
 
 	if topUp := model.GetTopUpByTradeNo(tradeNo); topUp != nil {
+		if !alreadyDone {
+			service.TryNotifyTopUpSuccess(topUp, int(model.CalculateTopUpCreditedQuota(topUp)))
+		}
 		service.CheckMemberTierUpgradeAfterTopUp(topUp.UserId)
+	}
+	if alreadyDone {
+		logger.LogInfo(c.Request.Context(), fmt.Sprintf("Waffo Pancake 重复回调幂等忽略 trade_no=%s event_id=%s order_id=%s client_ip=%s", tradeNo, event.ID, event.Data.OrderID, c.ClientIP()))
 	}
 	logger.LogInfo(c.Request.Context(), fmt.Sprintf("Waffo Pancake 充值成功 trade_no=%s event_id=%s order_id=%s client_ip=%s", tradeNo, event.ID, event.Data.OrderID, c.ClientIP()))
 	c.String(http.StatusOK, "OK")

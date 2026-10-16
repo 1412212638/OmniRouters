@@ -824,9 +824,21 @@ func RechargeWaffo(tradeNo string, callerIp string) (err error) {
 	return nil
 }
 
-func RechargeWaffoPancake(tradeNo string) (err error) {
+// RechargeWaffoPancake preserves the original single-argument API for callers
+// that do not have a webhook client IP. Webhook handlers should use
+// RechargeWaffoPancakeWithResult so the top-up audit record includes it and
+// duplicate callbacks can be identified without sending duplicate notices.
+func RechargeWaffoPancake(tradeNo string) error {
+	_, err := RechargeWaffoPancakeWithResult(tradeNo, "")
+	return err
+}
+
+// RechargeWaffoPancakeWithResult atomically credits a Waffo Pancake order.
+// alreadyDone is true when the order was already completed, allowing callers
+// to keep webhook notifications idempotent across retries and instances.
+func RechargeWaffoPancakeWithResult(tradeNo string, callerIp string) (alreadyDone bool, err error) {
 	if tradeNo == "" {
-		return errors.New("未提供支付单号")
+		return false, errors.New("未提供支付单号")
 	}
 
 	var quotaToAdd int
@@ -848,6 +860,7 @@ func RechargeWaffoPancake(tradeNo string) (err error) {
 		}
 
 		if topUp.Status == common.TopUpStatusSuccess {
+			alreadyDone = true
 			return nil
 		}
 
@@ -876,13 +889,16 @@ func RechargeWaffoPancake(tradeNo string) (err error) {
 
 	if err != nil {
 		common.SysError("waffo pancake topup failed: " + err.Error())
-		return errors.New("充值失败，请稍后重试")
+		return false, errors.New("充值失败，请稍后重试")
+	}
+	if alreadyDone {
+		return true, nil
 	}
 	syncCreditUserQuotaCache(topUp.UserId, quotaToAdd, "waffo pancake topup")
 
 	if quotaToAdd > 0 {
-		RecordLog(topUp.UserId, LogTypeTopup, fmt.Sprintf("Waffo Pancake充值成功，充值额度: %v，支付金额: %.2f", logger.FormatQuota(quotaToAdd), topUp.Money))
+		RecordTopupLog(topUp.UserId, fmt.Sprintf("Waffo Pancake充值成功，充值额度: %v，支付金额: %.2f", logger.FormatQuota(quotaToAdd), topUp.Money), callerIp, topUp.PaymentMethod, PaymentProviderWaffoPancake)
 	}
 
-	return nil
+	return false, nil
 }

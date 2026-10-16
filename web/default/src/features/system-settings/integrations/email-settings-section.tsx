@@ -232,7 +232,7 @@ const templateGroups: TemplateGroup[] = [
     tab: 'Top-up',
     title: 'Top-up Success Notification',
     description:
-      'Used after Epay and Stripe normal top-ups are successfully credited.',
+      'Used after Epay, Stripe, and Waffo Pancake top-ups are successfully credited.',
     subjectKey: 'TopUpSuccessSubjectTemplate',
     contentKey: 'TopUpSuccessContentTemplate',
     variables: [
@@ -632,7 +632,7 @@ export function EmailSettingsSection({
                 <div className='space-y-0.5'>
                   <FormLabel>{t('Enable top-up success email')}</FormLabel>
                   <FormDescription>
-                    {t('Only sent for Epay and Stripe normal top-ups')}
+                    {t('Only sent for Epay, Stripe, and Waffo Pancake top-ups')}
                   </FormDescription>
                 </div>
                 <FormControl>

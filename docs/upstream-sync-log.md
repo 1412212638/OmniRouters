@@ -3950,3 +3950,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bun run build` in `web/default` passed; targeted Oxfmt completed; targeted Oxlint reports only pre-existing pricing-file warnings; `git diff --check` passed. Added model and controller regression tests for summary probing and internal-field removal; they require CI Go tooling to execute.
 - Commit/push: source commits `57c48384b` (`feat(pricing): sanitize public pricing response`) and `c4856065b` (`fix(pricing): preserve admin pricing metadata`), plus log commit `dba82ec36`, are pushed to `origin/main`.
 
+## 2026-10-17 - Fix Waffo Pancake top-up audit logs and success notifications
+
+- Local reason: Waffo Pancake top-ups were written with the generic log helper, so their detail view lacked the normal top-up audit fields; the success-email webhook path also did not include Waffo Pancake.
+- Integrated: Waffo Pancake webhook processing now records server IP, callback IP, payment method, callback payment provider, node name, and version through `RecordTopupLog`. The payment handler reports whether the order was already completed, so Waffo Pancake success emails are sent only for the first successful credit and duplicate webhooks remain idempotent. The email settings copy now lists Waffo Pancake alongside Epay and Stripe, with updated English and Chinese locale keys.
+- Preserved: existing quota crediting, referral cashback, invoice handling, member-tier checks, webhook signature and environment validation, and all other payment methods remain unchanged. The legacy single-argument `RechargeWaffoPancake` wrapper remains available for non-webhook callers.
+- Validation: `git diff --check`, frontend locale JSON parsing, and `bun run build` in `web/default` passed. The targeted Go regression test was added but Go tooling is unavailable in the current shell; CI Go tests remain required.
+- Commit/push: pending local commit and GitHub push.
+

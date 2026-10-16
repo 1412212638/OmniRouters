@@ -103,6 +103,27 @@ func TestRechargeWaffoPancake_RejectsMismatchedPaymentMethod(t *testing.T) {
 	assert.Equal(t, 0, getUserQuotaForPaymentGuardTest(t, 101))
 }
 
+func TestRechargeWaffoPancakeReportsDuplicateCompletion(t *testing.T) {
+	truncateTables(t)
+
+	oldQuotaPerUnit := common.QuotaPerUnit
+	common.QuotaPerUnit = 500000
+	t.Cleanup(func() { common.QuotaPerUnit = oldQuotaPerUnit })
+
+	user := insertUserForPaymentGuardTest(t, 102, 0)
+	insertTopUpForPaymentGuardTest(t, "waffo-pancake-once", user.Id, PaymentMethodWaffoPancake, PaymentProviderWaffoPancake)
+
+	alreadyDone, err := RechargeWaffoPancakeWithResult("waffo-pancake-once", "198.51.100.8")
+	require.NoError(t, err)
+	assert.False(t, alreadyDone)
+	assert.Equal(t, 2*500000, getUserQuotaForPaymentGuardTest(t, user.Id))
+
+	alreadyDone, err = RechargeWaffoPancakeWithResult("waffo-pancake-once", "198.51.100.8")
+	require.NoError(t, err)
+	assert.True(t, alreadyDone)
+	assert.Equal(t, 2*500000, getUserQuotaForPaymentGuardTest(t, user.Id))
+}
+
 func TestUpdatePendingTopUpStatus_RejectsMismatchedPaymentMethod(t *testing.T) {
 	testCases := []struct {
 		name                    string
