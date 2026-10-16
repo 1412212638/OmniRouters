@@ -532,7 +532,9 @@ function ModelHeader(props: { model: PricingModel }) {
     model.quota_type === QUOTA_TYPE_VALUES.TOKEN || isSoraPricing
       ? t('Token-based')
       : t('Per Request')
-  const showDynamicPricingBadge = isSoraPricing || isDynamicPricingModel(model)
+  const showDynamicPricingBadge =
+    isSoraPricing ||
+    (model.billing_mode === 'tiered_expr' && Boolean(model.billing_expr))
 
   return (
     <header className='pb-4'>
@@ -651,9 +653,7 @@ function PriceSection(props: {
           <SectionTitle>{t('Base Price')}</SectionTitle>
           <div className='rounded-lg border border-amber-200/70 bg-amber-50/70 p-3 dark:border-amber-500/20 dark:bg-amber-500/10'>
             <div className='text-sm font-medium text-amber-800 dark:text-amber-200'>
-              {props.model.billing_summary
-                ? t('Dynamic Pricing')
-                : t('Special billing expression')}
+              {t('Special billing expression')}
             </div>
             <p className='text-muted-foreground mt-1 text-xs'>
               {t('Unable to parse structured pricing')}
@@ -1004,38 +1004,27 @@ function GroupPricingSection(props: {
         )
       }
 
-      let publicPricingNote = t(
-        'Group prices cannot be expanded because this expression is not a standard tiered pricing expression.'
-      )
-      if (props.model.billing_summary?.has_request_rules) {
-        publicPricingNote = t('Request-based')
-      } else if (props.model.billing_summary?.has_usage_pricing) {
-        publicPricingNote = t('Usage based')
-      }
-
       return (
         <section>
           <SectionTitle>{t('Pricing by Group')}</SectionTitle>
           <AutoGroupChain model={props.model} autoGroups={props.autoGroups} />
           <div className='rounded-lg border border-amber-200/70 bg-amber-50/70 p-3 dark:border-amber-500/20 dark:bg-amber-500/10'>
             <div className='text-sm font-medium text-amber-800 dark:text-amber-200'>
-              {props.model.billing_summary
-                ? t('Dynamic Pricing')
-                : t('Special billing expression')}
+              {t('Special billing expression')}
             </div>
             <p className='text-muted-foreground mt-1 text-xs'>
-              {publicPricingNote}
+              {t(
+                'Group prices cannot be expanded because this expression is not a standard tiered pricing expression.'
+              )}
             </p>
-            {props.model.billing_expr && (
-              <div className='mt-3'>
-                <div className='text-muted-foreground mb-1 text-[10px] font-medium tracking-wider uppercase'>
-                  {t('Raw expression')}
-                </div>
-                <code className='text-muted-foreground bg-background/80 block max-h-28 overflow-auto rounded-md border px-2 py-1.5 font-mono text-xs break-all'>
-                  {props.model.billing_expr}
-                </code>
+            <div className='mt-3'>
+              <div className='text-muted-foreground mb-1 text-[10px] font-medium tracking-wider uppercase'>
+                {t('Raw expression')}
               </div>
-            )}
+              <code className='text-muted-foreground bg-background/80 block max-h-28 overflow-auto rounded-md border px-2 py-1.5 font-mono text-xs break-all'>
+                {props.model.billing_expr}
+              </code>
+            </div>
           </div>
         </section>
       )
@@ -1307,16 +1296,9 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
   const { t } = useTranslation()
   const showRechargePrice = props.showRechargePrice ?? false
 
-  const isDynamic = isDynamicPricingModel(props.model)
-  const dynamicSummary = isDynamic
-    ? getDynamicPricingSummary(props.model, {
-        tokenUnit: props.tokenUnit,
-        showRechargePrice,
-        priceRate: props.priceRate,
-        usdExchangeRate: props.usdExchangeRate,
-        groupRatioMultiplier: 1,
-      })
-    : null
+  const isDynamic =
+    props.model.billing_mode === 'tiered_expr' &&
+    Boolean(props.model.billing_expr)
 
   return (
     <div className='@container/details space-y-4'>
@@ -1352,15 +1334,9 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
               showRechargePrice={showRechargePrice}
               groupModelRatioExpiry={props.groupModelRatioExpiry}
             />
-            {isDynamic &&
-              !props.model.billing_usage_schema &&
-              (props.model.billing_expr ||
-                dynamicSummary?.requestRuleGroups.length) && (
-                <DynamicPricingBreakdown
-                  billingExpr={props.model.billing_expr}
-                  publicRules={dynamicSummary?.requestRuleGroups}
-                />
-              )}
+            {isDynamic && !props.model.billing_usage_schema && (
+              <DynamicPricingBreakdown billingExpr={props.model.billing_expr} />
+            )}
             <TaskPricingSection
               model={props.model}
               priceRate={props.priceRate}

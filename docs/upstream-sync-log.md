@@ -3966,3 +3966,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bun run build` in `web/default` passed; the new pricing files no longer add errors to `bun run typecheck` (the command remains blocked by existing missing test dependencies and unrelated type errors); targeted Oxlint reports only pre-existing pricing-file warnings; `git diff --check` passed. Go tests and gofmt were unavailable because Go is not installed in the local shell.
 - Commit/push: local commit `eba4cd7d4` (`fix(pricing): restore safe dynamic rule display`); GitHub push not requested in this round.
 
+## 2026-10-17 - Restore original public pricing parsing and limit filtering to visible groups
+
+- Local reason: the public pricing hardening exposed a derived `billing_summary`, which caused image, video, task-plugin, and other non-standard expressions to lose their original frontend parsing and appear as the same generic dynamic-pricing state.
+- Integrated: restored the original pricing payload and frontend expression parsing. `/api/pricing` now filters only user-inaccessible groups, group ratios, model-group ratios, model-group expiry data, and enabled-group lists; it no longer replaces billing expressions with a public summary. Removed the temporary public-summary model, tests, types, and rendering branches.
+- Preserved: server-side billing evaluation, model-specific image/video/task pricing, supplier metadata, auto groups, administrator pricing metadata, and all unrelated local worktree changes remain unchanged.
+- Validation: `bun run build` in `web/default`, targeted `oxfmt --check`, and `git diff --check` passed. Go tests/gofmt require CI because Go is unavailable in the local shell.
+- Commit/push: pending local commit; GitHub push not requested in this round.
+

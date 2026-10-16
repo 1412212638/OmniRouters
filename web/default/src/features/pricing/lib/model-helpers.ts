@@ -108,11 +108,9 @@ export function isFreePricingModel(
   if (
     model.billing_mode === 'tiered_expr' ||
     model.billing_expr?.trim() ||
-    model.billing_summary ||
     model.sora_per_request_pricing?.enabled
-  ) {
+  )
     return false
-  }
   if (isTokenBasedModel(model)) {
     return (
       model.model_ratio === 0 &&

@@ -1,13 +1,11 @@
 package controller
 
 import (
-	"net/http"
 	"sort"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 
 	"github.com/gin-gonic/gin"
@@ -35,21 +33,6 @@ func filterPricingByUsableGroups(pricing []model.Pricing, usableGroup map[string
 		}
 	}
 	return filtered
-}
-
-func publicUsableGroups(userID int, userGroup string, extraGroups []string) map[string]string {
-	if userID > 0 {
-		return service.GetUserUsableGroupsWithExtras(userGroup, extraGroups)
-	}
-
-	// The public catalogue has one deliberately boring default view. It must
-	// not reveal VIP, internal, or test groups just because they are configured
-	// globally on the server.
-	groups := map[string]string{}
-	if desc, ok := setting.GetUserUsableGroupsCopy()["default"]; ok && ratio_setting.ContainsGroupRatio("default") {
-		groups["default"] = desc
-	}
-	return groups
 }
 
 func visiblePricingGroups(groups []string, usableGroup map[string]string) []string {
@@ -100,34 +83,15 @@ func filterVisibleModelRatios(ratios map[string]map[string]float64, usableGroup 
 	return filtered
 }
 
-func publicPricingPayload(item model.Pricing, usableGroup map[string]string) (map[string]any, error) {
-	raw, err := common.Marshal(item)
-	if err != nil {
-		return nil, err
+func filterVisibleModelRatioExpiry(expiry map[string]map[string]int64, usableGroup map[string]string) map[string]map[string]int64 {
+	filtered := make(map[string]map[string]int64)
+	for group, models := range expiry {
+		if _, ok := usableGroup[group]; !ok {
+			continue
+		}
+		filtered[group] = models
 	}
-	payload := make(map[string]any)
-	if err := common.Unmarshal(raw, &payload); err != nil {
-		return nil, err
-	}
-
-	payload["enable_groups"] = visiblePricingGroups(item.EnableGroup, usableGroup)
-	if len(item.ModelGroupRatio) > 0 {
-		payload["model_group_ratio"] = filterVisibleGroupRatios(item.ModelGroupRatio, usableGroup)
-	} else {
-		delete(payload, "model_group_ratio")
-	}
-
-	// These fields are executable or administrator-only configuration. The
-	// public page receives only a derived, non-executable price summary.
-	delete(payload, "owner_by")
-	delete(payload, "billing_expr")
-	delete(payload, "billing_usage_schema")
-	delete(payload, "billing_usage_examples")
-	delete(payload, "billing_plugin_variants")
-	if summary := model.BuildPublicBillingSummary(item.BillingExpr); summary != nil {
-		payload["billing_summary"] = summary
-	}
-	return payload, nil
+	return filtered
 }
 
 func GetPricing(c *gin.Context) {
@@ -156,47 +120,11 @@ func GetPricing(c *gin.Context) {
 		}
 	}
 
-	// The model-pricing settings screen uses this endpoint as its authenticated
-	// source of editor metadata. Keep that trusted admin path intact; only the
-	// public catalogue response below is reduced to display-safe fields.
-	if userID > 0 && c.GetInt("role") >= common.RoleAdminUser {
-		usableGroup = service.GetUserUsableGroupsWithExtras(group, extraGroups)
-		pricing = filterPricingByUsableGroups(pricing, usableGroup)
-		modelGroupRatios := ratio_setting.GetGroupModelRatioForUser(userID)
-		for i := range pricing {
-			resolved := make(map[string]float64, len(groupRatio))
-			for g, base := range groupRatio {
-				resolved[g] = base
-				if _, ok := modelGroupRatios[g][pricing[i].ModelName]; ok {
-					resolved[g] = modelGroupRatios[g][pricing[i].ModelName]
-				}
-			}
-			pricing[i].ModelGroupRatio = resolved
-		}
-		for group := range ratio_setting.GetGroupRatioCopy() {
-			if _, ok := usableGroup[group]; !ok {
-				delete(groupRatio, group)
-			}
-		}
-		c.JSON(200, gin.H{
-			"success":                 true,
-			"data":                    pricing,
-			"vendors":                 model.GetVendors(),
-			"group_ratio":             groupRatio,
-			"group_model_ratio":       modelGroupRatios,
-			"group_model_ratio_expiry": ratio_setting.GetGroupModelRatioExpiry(),
-			"usable_group":             usableGroup,
-			"supported_endpoint":       model.GetSupportedEndpointMap(),
-			"auto_groups":              service.GetUserAutoGroupWithExtras(group, extraGroups),
-			"pricing_version":           "group-model-ratio-v1",
-		})
-		return
-	}
-
-	usableGroup = publicUsableGroups(userID, group, extraGroups)
+	usableGroup = service.GetUserUsableGroupsWithExtras(group, extraGroups)
 	pricing = filterPricingByUsableGroups(pricing, usableGroup)
 	groupRatio = filterVisibleGroupRatios(groupRatio, usableGroup)
 	modelGroupRatios := filterVisibleModelRatios(ratio_setting.GetGroupModelRatioForUser(userID), usableGroup)
+	modelGroupRatioExpiry := filterVisibleModelRatioExpiry(ratio_setting.GetGroupModelRatioExpiry(), usableGroup)
 	for i := range pricing {
 		pricing[i].EnableGroup = visiblePricingGroups(pricing[i].EnableGroup, usableGroup)
 		resolved := make(map[string]float64, len(groupRatio))
@@ -209,46 +137,17 @@ func GetPricing(c *gin.Context) {
 		pricing[i].ModelGroupRatio = resolved
 	}
 
-	publicPricing := make([]map[string]any, 0, len(pricing))
-	visibleVendorIDs := make(map[int]struct{})
-	for _, item := range pricing {
-		payload, err := publicPricingPayload(item, usableGroup)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": err.Error()})
-			return
-		}
-		publicPricing = append(publicPricing, payload)
-		if item.VendorID > 0 {
-			visibleVendorIDs[item.VendorID] = struct{}{}
-		}
-		for _, vendor := range item.AvailableVendors {
-			visibleVendorIDs[vendor.ID] = struct{}{}
-		}
-	}
-
-	publicVendors := make([]model.PricingVendor, 0)
-	for _, vendor := range model.GetVendors() {
-		if _, ok := visibleVendorIDs[vendor.ID]; ok {
-			publicVendors = append(publicVendors, vendor)
-		}
-	}
-	filteredAutoGroups := make([]string, 0)
-	for _, autoGroup := range service.GetUserAutoGroupWithExtras(group, extraGroups) {
-		if _, ok := usableGroup[autoGroup]; ok {
-			filteredAutoGroups = append(filteredAutoGroups, autoGroup)
-		}
-	}
-
 	c.JSON(200, gin.H{
-		"success":            true,
-		"data":               publicPricing,
-		"vendors":            publicVendors,
-		"group_ratio":        groupRatio,
-		"group_model_ratio":  modelGroupRatios,
-		"usable_group":       usableGroup,
-		"supported_endpoint": model.GetSupportedEndpointMap(),
-		"auto_groups":        filteredAutoGroups,
-		"pricing_version":    "group-model-ratio-v1",
+		"success":                 true,
+		"data":                    pricing,
+		"vendors":                 model.GetVendors(),
+		"group_ratio":             groupRatio,
+		"group_model_ratio":       modelGroupRatios,
+		"group_model_ratio_expiry": modelGroupRatioExpiry,
+		"usable_group":             usableGroup,
+		"supported_endpoint":       model.GetSupportedEndpointMap(),
+		"auto_groups":              service.GetUserAutoGroupWithExtras(group, extraGroups),
+		"pricing_version":           "group-model-ratio-v1",
 	})
 }
 

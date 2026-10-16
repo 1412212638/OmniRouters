@@ -1,12 +1,7 @@
 import { formatBillingCurrencyFromUSD } from '@/lib/currency'
 
 import { TOKEN_UNIT_DIVISORS } from '../constants'
-import type {
-  PricingModel,
-  PricingUsableGroup,
-  PublicBillingSummary,
-  TokenUnit,
-} from '../types'
+import type { PricingModel, PricingUsableGroup, TokenUnit } from '../types'
 import {
   BILLING_PRICING_VARS,
   parseTiersFromExpr,
@@ -68,7 +63,6 @@ export type DynamicPricingSummary = {
   secondaryEntries: DynamicPriceEntry[]
   primaryRanges: DynamicPriceRange[]
   requestPriceRange: string | null
-  requestRuleGroups: RequestRuleGroup[]
 }
 
 const PRIMARY_DYNAMIC_FIELDS = new Set(['inputPrice', 'outputPrice'])
@@ -82,134 +76,7 @@ function isPrimaryDynamicField(field: string): boolean {
 }
 
 export function isDynamicPricingModel(model: PricingModel): boolean {
-  return (
-    model.billing_mode === 'tiered_expr' &&
-    Boolean(model.billing_expr || model.billing_summary)
-  )
-}
-
-function publicBillingEntries(
-  summary: PublicBillingSummary,
-  options: DynamicPriceOptions
-): DynamicPriceEntry[] {
-  const fields: Array<{
-    key: string
-    field: string
-    label: string
-    value?: number
-  }> = [
-    {
-      key: 'inputPrice',
-      field: 'inputPrice',
-      label: 'Input',
-      value: summary.input_price,
-    },
-    {
-      key: 'outputPrice',
-      field: 'outputPrice',
-      label: 'Output',
-      value: summary.output_price,
-    },
-    {
-      key: 'cacheReadPrice',
-      field: 'cacheReadPrice',
-      label: 'Cache Read',
-      value: summary.cache_read_price,
-    },
-    {
-      key: 'cacheCreatePrice',
-      field: 'cacheCreatePrice',
-      label: 'Cache Write',
-      value: summary.cache_create_price,
-    },
-    {
-      key: 'imagePrice',
-      field: 'imagePrice',
-      label: 'Image In',
-      value: summary.image_input_price,
-    },
-    {
-      key: 'imageOutputPrice',
-      field: 'imageOutputPrice',
-      label: 'Image Out',
-      value: summary.image_output_price,
-    },
-    {
-      key: 'audioInputPrice',
-      field: 'audioInputPrice',
-      label: 'Audio In',
-      value: summary.audio_input_price,
-    },
-    {
-      key: 'audioOutputPrice',
-      field: 'audioOutputPrice',
-      label: 'Audio Out',
-      value: summary.audio_output_price,
-    },
-  ]
-  const entries: DynamicPriceEntry[] = fields.flatMap((field) => {
-    if (
-      typeof field.value !== 'number' ||
-      !Number.isFinite(field.value) ||
-      field.value <= 0
-    ) {
-      return []
-    }
-    return [
-      {
-        key: field.key,
-        field: field.field,
-        label: field.label,
-        shortLabel: field.label,
-        value: field.value,
-        formatted: formatDynamicUnitPrice(field.value, options),
-        displayUnit: 'token' as const,
-      },
-    ]
-  })
-  if (typeof summary.request_price === 'number' && summary.request_price > 0) {
-    const groupRatio = options.groupRatioMultiplier ?? 1
-    const priceRate = options.priceRate ?? 1
-    const usdExchangeRate = options.usdExchangeRate ?? 1
-    const display = applyRechargeRate(
-      summary.request_price * groupRatio,
-      options.showRechargePrice ?? false,
-      priceRate,
-      usdExchangeRate
-    )
-    entries.push({
-      key: 'fixedPrice',
-      field: 'fixedPrice',
-      label: 'Fixed price',
-      shortLabel: 'Fixed price',
-      value: summary.request_price * 1_000_000,
-      formatted: formatBillingCurrencyFromUSD(display, {
-        digitsLarge: 4,
-        digitsSmall: 6,
-        abbreviate: false,
-      }),
-      displayUnit: 'request',
-    })
-  }
-  return entries
-}
-
-function publicRequestRuleGroups(
-  summary: PublicBillingSummary
-): RequestRuleGroup[] {
-  return (summary.rules ?? []).map((rule) => ({
-    multiplier: String(rule.multiplier),
-    hasOtherConditions: Boolean(rule.has_other_conditions),
-    conditions: (rule.conditions ?? []).map((condition) => ({
-      source: 'time' as const,
-      timeFunc: condition.time_func,
-      timezone: condition.timezone,
-      mode: condition.mode,
-      value: condition.value ?? '',
-      rangeStart: condition.range_start ?? '',
-      rangeEnd: condition.range_end ?? '',
-    })),
-  }))
+  return model.billing_mode === 'tiered_expr' && Boolean(model.billing_expr)
 }
 
 export function hasTaskUsageSchema(model: PricingModel): boolean {
@@ -347,7 +214,6 @@ export function formatDynamicUnitPrice(
 
 export function getDynamicPricingTiers(model: PricingModel): ParsedTier[] {
   if (!isDynamicPricingModel(model)) return []
-  if (!model.billing_expr) return []
   const { billingExpr } = splitBillingExprAndRequestRules(
     model.billing_expr || ''
   )
@@ -356,9 +222,6 @@ export function getDynamicPricingTiers(model: PricingModel): ParsedTier[] {
 
 export function hasDynamicRequestRules(model: PricingModel): boolean {
   if (!isDynamicPricingModel(model)) return false
-  if (!model.billing_expr) {
-    return Boolean(model.billing_summary?.has_request_rules)
-  }
   const { requestRuleExpr } = splitBillingExprAndRequestRules(
     model.billing_expr || ''
   )
@@ -530,30 +393,13 @@ export function getDynamicCatalogPriceRanges(
 ): DynamicPriceRange[] | null {
   if (!isDynamicPricingModel(model)) return null
 
-  let tiers: ParsedTier[] = []
-  if (model.billing_expr) {
-    tiers = getDynamicPricingTiers(model)
-  } else if (model.billing_summary) {
-    tiers = [
-      {
-        label: 'base',
-        conditions: [],
-        inputPrice: model.billing_summary.input_price,
-        outputPrice: model.billing_summary.output_price,
-      } as ParsedTier,
-    ]
-  }
+  const tiers = getDynamicPricingTiers(model)
   if (tiers.length !== 1) return null
 
-  let groups: RequestRuleGroup[] | null = null
-  if (model.billing_expr) {
-    const { requestRuleExpr } = splitBillingExprAndRequestRules(
-      model.billing_expr
-    )
-    groups = tryParseRequestRuleExpr(requestRuleExpr)
-  } else if (model.billing_summary) {
-    groups = publicRequestRuleGroups(model.billing_summary)
-  }
+  const { requestRuleExpr } = splitBillingExprAndRequestRules(
+    model.billing_expr || ''
+  )
+  const groups = tryParseRequestRuleExpr(requestRuleExpr || '')
   if (!groups || groups.length === 0) return null
 
   const multipliers = groups.map((group) => Number(group.multiplier))
@@ -565,10 +411,8 @@ export function getDynamicCatalogPriceRanges(
     return null
   }
 
-  const allTimeRules = groups.every(
-    (group) =>
-      !group.hasOtherConditions &&
-      group.conditions.every((condition) => condition.source === 'time')
+  const allTimeRules = groups.every((group) =>
+    group.conditions.every((condition) => condition.source === 'time')
   )
   const disjoint =
     allTimeRules &&
@@ -644,31 +488,6 @@ export function getDynamicPricingSummary(
 ): DynamicPricingSummary | null {
   if (!isDynamicPricingModel(model)) return null
 
-  if (!model.billing_expr && model.billing_summary) {
-    const entries = publicBillingEntries(model.billing_summary, options)
-    const primaryEntries = entries.filter((entry) =>
-      isPrimaryDynamicField(entry.field)
-    )
-    return {
-      tiers: [],
-      tier: null,
-      tierCount: model.billing_summary.tier_count ?? 0,
-      hasRequestRules: Boolean(model.billing_summary.has_request_rules),
-      isSpecialExpression: false,
-      rawExpression: '',
-      entries,
-      primaryEntries,
-      secondaryEntries: entries.filter(
-        (entry) => !isPrimaryDynamicField(entry.field)
-      ),
-      primaryRanges: [],
-      requestPriceRange:
-        entries.find((entry) => entry.field === 'fixedPrice')?.formatted ??
-        null,
-      requestRuleGroups: publicRequestRuleGroups(model.billing_summary),
-    }
-  }
-
   const tiers = getDynamicPricingTiers(model)
   const tier = tiers[0] || null
   const taskTiers = model.billing_usage_schema
@@ -706,7 +525,6 @@ export function getDynamicPricingSummary(
       ? []
       : getDynamicPrimaryPriceRanges(tiers, options),
     requestPriceRange: getDynamicRequestPriceRange(tiers, options),
-    requestRuleGroups: [],
   }
 }
 

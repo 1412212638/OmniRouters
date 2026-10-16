@@ -29,38 +29,6 @@ export type SoraPerRequestPricing = {
   audio_generation_surcharge?: number
 }
 
-export type PublicBillingSummary = {
-  mode: 'token' | 'request' | 'usage' | 'dynamic'
-  input_price?: number
-  output_price?: number
-  cache_read_price?: number
-  cache_create_price?: number
-  image_input_price?: number
-  image_output_price?: number
-  audio_input_price?: number
-  audio_output_price?: number
-  request_price?: number
-  has_request_rules?: boolean
-  has_usage_pricing?: boolean
-  tier_count?: number
-  rules?: PublicBillingRule[]
-}
-
-export type PublicBillingRuleCondition = {
-  time_func: 'hour' | 'minute' | 'weekday' | 'month' | 'day'
-  timezone: string
-  mode: 'eq' | 'gt' | 'gte' | 'lt' | 'lte' | 'range'
-  value?: string
-  range_start?: string
-  range_end?: string
-}
-
-export type PublicBillingRule = {
-  multiplier: number
-  conditions?: PublicBillingRuleCondition[]
-  has_other_conditions?: boolean
-}
-
 export type PricingModel = {
   billing_plugin_variants?: BillingPluginVariant[]
   id: number
@@ -90,10 +58,8 @@ export type PricingModel = {
   model_group_ratio?: Record<string, number>
   /** Billing mode (e.g. "tiered_expr") used to flag dynamic pricing */
   billing_mode?: string
-  /** Raw expression is only present on trusted internal/admin responses. */
+  /** Raw expression describing dynamic / tiered billing */
   billing_expr?: string
-  /** Non-executable pricing summary returned by the public catalogue. */
-  billing_summary?: PublicBillingSummary
   billing_usage_schema?: BillingUsageSchema
   billing_usage_examples?: BillingUsageExample[]
   /** Optional Sora-specific per-request pricing configuration */
@@ -152,7 +118,7 @@ export type PricingData = {
   vendors: PricingVendor[]
   group_ratio: Record<string, number>
   group_model_ratio: Record<string, Record<string, number>>
-  group_model_ratio_expiry?: Record<string, Record<string, number>>
+  group_model_ratio_expiry: Record<string, Record<string, number>>
   usable_group: PricingUsableGroup
   supported_endpoint: Record<string, string>
   auto_groups: string[]
