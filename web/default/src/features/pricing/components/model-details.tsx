@@ -1308,6 +1308,15 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
   const showRechargePrice = props.showRechargePrice ?? false
 
   const isDynamic = isDynamicPricingModel(props.model)
+  const dynamicSummary = isDynamic
+    ? getDynamicPricingSummary(props.model, {
+        tokenUnit: props.tokenUnit,
+        showRechargePrice,
+        priceRate: props.priceRate,
+        usdExchangeRate: props.usdExchangeRate,
+        groupRatioMultiplier: 1,
+      })
+    : null
 
   return (
     <div className='@container/details space-y-4'>
@@ -1344,10 +1353,12 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
               groupModelRatioExpiry={props.groupModelRatioExpiry}
             />
             {isDynamic &&
-              props.model.billing_expr &&
-              !props.model.billing_usage_schema && (
+              !props.model.billing_usage_schema &&
+              (props.model.billing_expr ||
+                dynamicSummary?.requestRuleGroups.length) && (
                 <DynamicPricingBreakdown
                   billingExpr={props.model.billing_expr}
+                  publicRules={dynamicSummary?.requestRuleGroups}
                 />
               )}
             <TaskPricingSection

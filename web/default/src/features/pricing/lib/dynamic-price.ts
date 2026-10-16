@@ -68,6 +68,7 @@ export type DynamicPricingSummary = {
   secondaryEntries: DynamicPriceEntry[]
   primaryRanges: DynamicPriceRange[]
   requestPriceRange: string | null
+  requestRuleGroups: RequestRuleGroup[]
 }
 
 const PRIMARY_DYNAMIC_FIELDS = new Set(['inputPrice', 'outputPrice'])
@@ -146,7 +147,7 @@ function publicBillingEntries(
       value: summary.audio_output_price,
     },
   ]
-  const entries = fields.flatMap((field) => {
+  const entries: DynamicPriceEntry[] = fields.flatMap((field) => {
     if (
       typeof field.value !== 'number' ||
       !Number.isFinite(field.value) ||
@@ -191,6 +192,24 @@ function publicBillingEntries(
     })
   }
   return entries
+}
+
+function publicRequestRuleGroups(
+  summary: PublicBillingSummary
+): RequestRuleGroup[] {
+  return (summary.rules ?? []).map((rule) => ({
+    multiplier: String(rule.multiplier),
+    hasOtherConditions: Boolean(rule.has_other_conditions),
+    conditions: (rule.conditions ?? []).map((condition) => ({
+      source: 'time' as const,
+      timeFunc: condition.time_func,
+      timezone: condition.timezone,
+      mode: condition.mode,
+      value: condition.value ?? '',
+      rangeStart: condition.range_start ?? '',
+      rangeEnd: condition.range_end ?? '',
+    })),
+  }))
 }
 
 export function hasTaskUsageSchema(model: PricingModel): boolean {
@@ -510,15 +529,31 @@ export function getDynamicCatalogPriceRanges(
   options: DynamicPriceOptions
 ): DynamicPriceRange[] | null {
   if (!isDynamicPricingModel(model)) return null
-  if (!model.billing_expr) return null
 
-  const tiers = getDynamicPricingTiers(model)
+  let tiers: ParsedTier[] = []
+  if (model.billing_expr) {
+    tiers = getDynamicPricingTiers(model)
+  } else if (model.billing_summary) {
+    tiers = [
+      {
+        label: 'base',
+        conditions: [],
+        inputPrice: model.billing_summary.input_price,
+        outputPrice: model.billing_summary.output_price,
+      } as ParsedTier,
+    ]
+  }
   if (tiers.length !== 1) return null
 
-  const { requestRuleExpr } = splitBillingExprAndRequestRules(
-    model.billing_expr || ''
-  )
-  const groups = tryParseRequestRuleExpr(requestRuleExpr || '')
+  let groups: RequestRuleGroup[] | null = null
+  if (model.billing_expr) {
+    const { requestRuleExpr } = splitBillingExprAndRequestRules(
+      model.billing_expr
+    )
+    groups = tryParseRequestRuleExpr(requestRuleExpr)
+  } else if (model.billing_summary) {
+    groups = publicRequestRuleGroups(model.billing_summary)
+  }
   if (!groups || groups.length === 0) return null
 
   const multipliers = groups.map((group) => Number(group.multiplier))
@@ -530,8 +565,10 @@ export function getDynamicCatalogPriceRanges(
     return null
   }
 
-  const allTimeRules = groups.every((group) =>
-    group.conditions.every((condition) => condition.source === 'time')
+  const allTimeRules = groups.every(
+    (group) =>
+      !group.hasOtherConditions &&
+      group.conditions.every((condition) => condition.source === 'time')
   )
   const disjoint =
     allTimeRules &&
@@ -628,6 +665,7 @@ export function getDynamicPricingSummary(
       requestPriceRange:
         entries.find((entry) => entry.field === 'fixedPrice')?.formatted ??
         null,
+      requestRuleGroups: publicRequestRuleGroups(model.billing_summary),
     }
   }
 
@@ -668,6 +706,7 @@ export function getDynamicPricingSummary(
       ? []
       : getDynamicPrimaryPriceRanges(tiers, options),
     requestPriceRange: getDynamicRequestPriceRange(tiers, options),
+    requestRuleGroups: [],
   }
 }
 

@@ -244,6 +244,7 @@ export type RequestRuleGroup = {
   multiplier: string
   conditionText?: string
   matched?: boolean
+  hasOtherConditions?: boolean
 }
 
 export type RequestRuleTrace = {

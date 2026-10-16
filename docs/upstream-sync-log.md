@@ -3958,3 +3958,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check`, frontend locale JSON parsing, and `bun run build` in `web/default` passed. The targeted Go regression test was added but Go tooling is unavailable in the current shell; CI Go tests remain required.
 - Commit/push: source commit `9e6beb4ac` (`fix(payment): audit and notify Waffo Pancake topups`) and log commit `8b495e543` are pushed to `origin/main`.
 
+## 2026-10-17 - Restore safe public display of dynamic time pricing
+
+- Local reason: the public pricing hardening removed executable `billing_expr` data, but the frontend then lost the display-safe DeepSeek time rules and showed only a generic dynamic-pricing marker.
+- Integrated: public pricing summaries now include sanitized time-function conditions, time zones, multipliers, and an opaque marker for non-time conditions. Matched probe multipliers are removed before publishing base rates so the frontend can derive correct ranges such as input `1-2` and output `4-8`. The default frontend consumes these summaries for model cards and detail breakdowns without receiving expressions, parameter paths, headers, or plugin fields.
+- Preserved: administrator pricing responses retain the original editor metadata; server-side billing evaluation is unchanged; request and usage conditions remain opaque to public users.
+- Validation: `bun run build` in `web/default` passed; the new pricing files no longer add errors to `bun run typecheck` (the command remains blocked by existing missing test dependencies and unrelated type errors); targeted Oxlint reports only pre-existing pricing-file warnings; `git diff --check` passed. Go tests and gofmt were unavailable because Go is not installed in the local shell.
+- Commit/push: local commit `eba4cd7d4` (`fix(pricing): restore safe dynamic rule display`); GitHub push not requested in this round.
+

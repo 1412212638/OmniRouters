@@ -48,7 +48,9 @@ import {
 } from '../lib/billing-expr'
 
 type DynamicPricingBreakdownProps = {
-  billingExpr: string | null | undefined
+  billingExpr?: string | null
+  /** Safe request-rule metadata returned by the public pricing endpoint. */
+  publicRules?: RequestRuleGroup[]
   /**
    * Label of the tier that fired for the current request. When provided,
    * the corresponding row is highlighted and tagged as "Matched". Used by
@@ -165,6 +167,7 @@ function describeCondition(
       [MATCH_EQ]: '=',
       [MATCH_GTE]: '≥',
       [MATCH_LT]: '<',
+      lte: '≤',
     }
     return `${fn} ${opMap[cond.mode] || '='} ${cond.value} (${tz})`
   }
@@ -219,11 +222,16 @@ function describeGroup(
     )
   }
 
+  if (group.hasOtherConditions) {
+    parts.push(t('All other conditions'))
+  }
+
   return parts.join(' · ')
 }
 
 export function DynamicPricingBreakdown({
   billingExpr,
+  publicRules,
   matchedTierLabel,
   requestRules,
   hideCacheColumns = false,
@@ -247,6 +255,9 @@ export function DynamicPricingBreakdown({
   }, [currency])
 
   const { tiers, ruleGroups } = useMemo(() => {
+    if (!expr && publicRules?.length) {
+      return { tiers: [], ruleGroups: publicRules }
+    }
     const split = splitBillingExprAndRequestRules(expr)
     const parsedTiers = parseTiersFromExpr(split.billingExpr)
     const parsedRules = tryParseRequestRuleExpr(split.requestRuleExpr || '')
@@ -254,7 +265,7 @@ export function DynamicPricingBreakdown({
       tiers: parsedTiers,
       ruleGroups: parsedRules || [],
     }
-  }, [expr])
+  }, [expr, publicRules])
 
   const hasTiers = tiers.length > 0
   const hasRules = ruleGroups.length > 0
@@ -263,9 +274,9 @@ export function DynamicPricingBreakdown({
     matchedTierLabel ?? undefined
   )
 
-  if (!expr) return null
+  if (!expr && !hasRules) return null
 
-  if (!hasTiers) {
+  if (!hasTiers && !hasRules && expr) {
     return (
       <section className={cn('min-w-0', !compact && 'py-4')}>
         {!compact && (

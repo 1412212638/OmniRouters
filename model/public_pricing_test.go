@@ -46,7 +46,7 @@ func TestBuildPublicBillingSummaryRequestPrice(t *testing.T) {
 }
 
 func TestBuildPublicBillingSummaryHidesRequestRules(t *testing.T) {
-	expression := `tier("base", p * 2.5 + c * 15) ||| when(param("resolution") == "4K") * 2`
+	expression := `tier("base", p * 2.5 + c * 15) * (param("resolution") == "4K" ? 2 : 1)`
 	summary := BuildPublicBillingSummary(expression)
 	if summary == nil {
 		t.Fatal("expected public billing summary")
@@ -60,6 +60,37 @@ func TestBuildPublicBillingSummaryHidesRequestRules(t *testing.T) {
 	}
 	if strings.Contains(string(encoded), "resolution") || strings.Contains(string(encoded), "4K") {
 		t.Fatalf("public summary leaked request rule: %s", encoded)
+	}
+	if len(summary.Rules) != 1 || !summary.Rules[0].HasOtherConditions {
+		t.Fatalf("summary rules = %+v, want one opaque request rule", summary.Rules)
+	}
+}
+
+func TestBuildPublicBillingSummaryIncludesSafeTimeRules(t *testing.T) {
+	expression := `tier("base", p * 1 + c * 4) * (weekday("Asia/Shanghai") >= 1 && weekday("Asia/Shanghai") < 6 && hour("Asia/Shanghai") >= 9 && hour("Asia/Shanghai") < 12 ? 2 : 1)`
+	summary := BuildPublicBillingSummary(expression)
+	if summary == nil || len(summary.Rules) != 1 {
+		t.Fatalf("summary rules = %+v, want one safe rule", summary)
+	}
+	rule := summary.Rules[0]
+	if rule.Multiplier != 2 || len(rule.Conditions) != 2 {
+		t.Fatalf("rule = %+v, want weekday/hour ranges with 2x", rule)
+	}
+	if summary.InputPrice == nil || *summary.InputPrice != 1 {
+		t.Fatalf("input price = %v, want base price 1", summary.InputPrice)
+	}
+	if summary.OutputPrice == nil || *summary.OutputPrice != 4 {
+		t.Fatalf("output price = %v, want base price 4", summary.OutputPrice)
+	}
+	if rule.Conditions[0].Mode != "range" || rule.Conditions[0].RangeStart != "1" || rule.Conditions[0].RangeEnd != "6" {
+		t.Fatalf("weekday condition = %+v", rule.Conditions[0])
+	}
+	encoded, err := common.Marshal(summary)
+	if err != nil {
+		t.Fatalf("marshal summary: %v", err)
+	}
+	if strings.Contains(string(encoded), "tier(\"") || strings.Contains(string(encoded), "weekday(\"") {
+		t.Fatalf("public summary leaked expression source: %s", encoded)
 	}
 }
 

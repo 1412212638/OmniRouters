@@ -43,6 +43,22 @@ export type PublicBillingSummary = {
   has_request_rules?: boolean
   has_usage_pricing?: boolean
   tier_count?: number
+  rules?: PublicBillingRule[]
+}
+
+export type PublicBillingRuleCondition = {
+  time_func: 'hour' | 'minute' | 'weekday' | 'month' | 'day'
+  timezone: string
+  mode: 'eq' | 'gt' | 'gte' | 'lt' | 'lte' | 'range'
+  value?: string
+  range_start?: string
+  range_end?: string
+}
+
+export type PublicBillingRule = {
+  multiplier: number
+  conditions?: PublicBillingRuleCondition[]
+  has_other_conditions?: boolean
 }
 
 export type PricingModel = {
