@@ -55,7 +55,6 @@ const PROTOCOLS: Protocol[] = [
     label: 'OpenAI Compatible',
     description: 'OpenAI-compatible APIs',
     endpoints: [
-      { id: 'models', method: 'GET', path: '/v1/models', label: 'List Models' },
       {
         id: 'chat-completions',
         method: 'POST',
@@ -122,6 +121,7 @@ const PROTOCOLS: Protocol[] = [
         path: '/v1/moderations',
         label: 'Create Moderation',
       },
+      { id: 'models', method: 'GET', path: '/v1/models', label: 'List Models' },
     ],
   },
   {
@@ -144,12 +144,6 @@ const PROTOCOLS: Protocol[] = [
     description: 'Gemini-compatible APIs',
     endpoints: [
       {
-        id: 'models',
-        method: 'GET',
-        path: '/v1beta/models',
-        label: 'List Models',
-      },
-      {
         id: 'generate-content',
         method: 'POST',
         path: '/v1beta/models/{model}:generateContent',
@@ -160,6 +154,12 @@ const PROTOCOLS: Protocol[] = [
         method: 'POST',
         path: '/v1beta/models/{model}:streamGenerateContent',
         label: 'Stream Generate Content',
+      },
+      {
+        id: 'models',
+        method: 'GET',
+        path: '/v1beta/models',
+        label: 'List Models',
       },
     ],
   },
@@ -217,7 +217,14 @@ export function ApiEndpointsDrawer({
     typeof status?.docs_link === 'string' && status.docs_link.trim()
       ? status.docs_link
       : '/docs'
-  const [selectedEndpointKey, setSelectedEndpointKey] = useState(
+  const [selectedEndpointIds, setSelectedEndpointIds] = useState<
+    Record<string, string>
+  >(() =>
+    Object.fromEntries(
+      PROTOCOLS.map((protocol) => [protocol.id, protocol.endpoints[0].id])
+    )
+  )
+  const [activeEndpointKey, setActiveEndpointKey] = useState(
     `${PROTOCOLS[0].id}:${PROTOCOLS[0].endpoints[0].id}`
   )
   const [nodeUrl, setNodeUrl] = useState('')
@@ -242,16 +249,21 @@ export function ApiEndpointsDrawer({
       : []
   }, [configuredNodes, status, t])
 
-  const [selectedProtocolId, selectedEndpointId] =
-    selectedEndpointKey.split(':')
+  const [selectedProtocolId] = activeEndpointKey.split(':')
   const selectedProtocol =
     PROTOCOLS.find((protocol) => protocol.id === selectedProtocolId) ??
     PROTOCOLS[0]
-  const selectedEndpoint =
-    selectedProtocol.endpoints.find(
-      (endpoint) => endpoint.id === selectedEndpointId
-    ) ?? selectedProtocol.endpoints[0]
   const selectedNode = nodes.find((node) => node.url === nodeUrl) ?? nodes[0]
+
+  function getProtocolEndpoint(protocol: Protocol): Endpoint {
+    const endpointId = selectedEndpointIds[protocol.id]
+    return (
+      protocol.endpoints.find((endpoint) => endpoint.id === endpointId) ??
+      protocol.endpoints[0]
+    )
+  }
+
+  const selectedEndpoint = getProtocolEndpoint(selectedProtocol)
 
   function getProtocolPrefix(protocol: Protocol): string {
     return protocol.id === 'gemini' ? '/v1beta' : '/v1'
@@ -275,7 +287,11 @@ export function ApiEndpointsDrawer({
   const selectedUrl = `${selectedBaseUrl}${getDisplayPath(selectedProtocol, selectedEndpoint.path)}`
 
   function selectEndpoint(protocol: Protocol, endpoint: Endpoint) {
-    setSelectedEndpointKey(`${protocol.id}:${endpoint.id}`)
+    setSelectedEndpointIds((current) => ({
+      ...current,
+      [protocol.id]: endpoint.id,
+    }))
+    setActiveEndpointKey(`${protocol.id}:${endpoint.id}`)
     setPingStatus(getDefaultPingStatus())
   }
 
@@ -367,10 +383,8 @@ export function ApiEndpointsDrawer({
 
             {PROTOCOLS.map((protocol) => {
               const protocolBaseUrl = getProtocolBaseUrl(protocol)
-              const isSelectedProtocol = protocol.id === selectedProtocol.id
-              const protocolApiUrl = isSelectedProtocol
-                ? selectedUrl
-                : protocolBaseUrl
+              const protocolEndpoint = getProtocolEndpoint(protocol)
+              const protocolApiUrl = `${protocolBaseUrl}${getDisplayPath(protocol, protocolEndpoint.path)}`
               return (
                 <section
                   key={protocol.id}
@@ -403,16 +417,8 @@ export function ApiEndpointsDrawer({
                         size='sm'
                         className='size-7 shrink-0 p-0'
                         iconClassName='size-3.5'
-                        tooltip={t(
-                          isSelectedProtocol
-                            ? 'Copy endpoint URL'
-                            : 'Copy base URL'
-                        )}
-                        aria-label={t(
-                          isSelectedProtocol
-                            ? 'Copy endpoint URL'
-                            : 'Copy base URL'
-                        )}
+                        tooltip={t('Copy endpoint URL')}
+                        aria-label={t('Copy endpoint URL')}
                       />
                     </div>
                   </div>
@@ -423,8 +429,8 @@ export function ApiEndpointsDrawer({
                     </div>
                     <div className='grid gap-1 sm:grid-cols-2'>
                       {protocol.endpoints.map((endpoint) => {
-                        const endpointKey = `${protocol.id}:${endpoint.id}`
-                        const isSelected = endpointKey === selectedEndpointKey
+                        const isSelected =
+                          endpoint.id === protocolEndpoint.id
                         return (
                           <button
                             key={endpoint.id}

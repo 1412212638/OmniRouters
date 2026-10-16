@@ -16,6 +16,14 @@
 - Validation: targeted Oxlint and Oxfmt checks passed; production frontend build passed; `git diff --check` passed. Go formatting/tests were unavailable because the Go toolchain is not installed in this shell. Live verification still requires a configured official account, Redis/database, and deployed callback URL.
 - Commit/push: pending source commit and push.
 
+## 2026-10-16 - Default each protocol card to its first endpoint
+
+- Local reason: endpoint selection was global, so only one protocol card could appear selected and the model-list routes appeared before the primary request routes.
+- Integrated: each protocol card now maintains its own selected endpoint and defaults to its first listed route; the selected route controls that card's API address and copy action. OpenAI and Gemini model-list endpoints are listed last, while the active endpoint used by latency and open actions still follows the most recently clicked route.
+- Preserved: service-node selection, endpoint highlighting, dynamic addresses, all protocol routes, and unrelated worktree changes.
+- Validation: targeted Oxlint passed; `bun run build` in `web/default` passed; all seven locale JSON files parsed successfully; `git diff --check` passed.
+- Commit/push: pending source commit and push.
+
 ## 2026-10-14 - Show parameter-based numeric tier prices in the model square
 
 - Local reason: expressions such as `param("resolution") == "1K" ? tier("1K", 68000) : ...` were billed correctly but the model square treated them as unstructured because its display parser only recognized `fixed(...)` request-price leaves.
