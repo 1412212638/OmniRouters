@@ -262,6 +262,7 @@
     "Add auto group": "添加自动分组",
     "Add Auto group": "添加 Auto 分组",
     "Auto group order": "Auto 分组顺序",
+    "Choose and order the groups this API key will try.": "选择并排列此 API 密钥将尝试的分组。",
     "{{count}} / {{max}} groups selected": "已选择 {{count}} / {{max}} 个分组",
     "Drag {{group}} to reorder": "拖动 {{group}} 以重新排序",
     "Inherit global Auto order": "继承全局 Auto 顺序",

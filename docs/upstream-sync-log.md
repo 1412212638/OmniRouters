@@ -3888,3 +3888,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: repository search confirms no remaining `common.LogText` reference and `git diff --check` passes. Go build and gofmt require CI because the local shell has no Go toolchain.
 - Commit/push: local commit `4f0660cd9` (`fix: use fmt for token quota error logging`); GitHub push not yet performed.
 
+## 2026-10-16 - Complete API key Auto group translations
+
+- Local reason: the API key create/edit drawer rendered newly added Auto group labels in Chinese on the English locale, while the same keys were missing from French, Japanese, Russian, Vietnamese, and Traditional Chinese locales.
+- Integrated: corrected the English values and added translations for the Auto group order, description, selection count, reorder actions, restore/add controls, empty states, and validation text in all seven frontend locales.
+- Preserved: API key form behavior, payload mapping, and Auto group ordering logic are unchanged.
+- Validation: 14 API key/Auto group tests passed; frontend production build passed; all seven locale JSON files parsed; all required translation keys are present; Oxfmt and `git diff --check` passed.
+- Commit/push: local source commit pending; GitHub push not performed in this round.
+
