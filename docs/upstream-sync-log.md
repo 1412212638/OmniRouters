@@ -3862,5 +3862,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Already present: Claude cache-only and explicit-zero usage billing, local rate-limit reservation behavior, dynamic billing, plugin billing, existing wallet/Friends Hub/Image Playground/Command Menu changes, and protected project identifiers were preserved.
 - Deferred/skipped: upstream-only relaykit tool-use estimation fields, dependency-only updates, dashboard label styling, and unrelated generated or untracked worktree artifacts were not imported.
 - Validation: `bun run build` passed in `web/default`; focused Bun tests for Playground reasoning and API key form mapping passed (11 tests); all seven locale JSON files parsed; `git diff --check` passed. Go tests and `gofmt` could not run because the local shell has no Go toolchain. CI remains required for backend compilation and cross-database tests.
-- Commit/push: local commit `698d8ab22` (`feat(upstream): sync token quota, relay and console fixes`); GitHub push intentionally not performed in this round.
+- Commit/push: local source commit `9238cfe58` (`feat(upstream): sync token quota, relay and console fixes`); GitHub push intentionally not performed in this round.
 
