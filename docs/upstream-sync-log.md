@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-16 - Sync dynamic pricing and model plaza fixes
+
+- Upstream commits: `fc08b76f0`, `3827fd830`, `c9f7b6208`, and `9948b1ef1`.
+- Integrated: usage-log previews now prefer the recorded billing tier when a structured expression cannot be reconstructed; dynamic model cards expose cache-read prices; classic pricing filters sort token models by input/output price and request models/tasks by their effective request price; the default catalog now offers the same input/output/per-request sorting and includes cache-read values in dynamic price rows; model pricing conversion accepts endpoint metadata as either a route map or a declared endpoint array, with whitespace normalization and regression coverage.
+- Preserved: existing peak/off-peak range display, detailed pricing drawers, raw-expression fallback, task usage tables, provider-specific billing semantics, legacy price sort query compatibility, protected project identifiers, and unrelated worktree files.
+- Validation: `bun run build` passed; targeted Oxfmt and `git diff --check` passed; all default locale JSON files parsed successfully. `bun run typecheck` remains blocked by pre-existing missing test dependencies and unrelated type errors. Go tests could not run because the Go toolchain is unavailable in this environment.
+- Result: local implementation is ready for review; source commit and push status are pending.
+
 ## 2026-10-15 - Complete official WeChat login and binding flow
 
 - Local reason: official-account scans were recorded by the callback but the browser stopped polling after the shared login limiter returned HTTP 429, and the login response did not persist its dashboard access token. The profile also hid the official WeChat binding entry and the existing dialog was only a placeholder.

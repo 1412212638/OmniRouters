@@ -205,11 +205,14 @@ function buildTypeDetailSegments(
         text:
           matchedRequestRules.length > 0
             ? `${t('Dynamic Pricing')} · ${t('Matched')} ${matchedMultiplierText}`
-            : `${t('Dynamic Pricing')} · ${t(
-                isBaseTierFallback
-                  ? 'Base tier / off-peak fallback'
-                  : 'No matching results'
-              )}`,
+            : `${t('Dynamic Pricing')} · ${
+                matchedTier ||
+                t(
+                  isBaseTierFallback
+                    ? 'Base tier / off-peak fallback'
+                    : 'Special billing expression'
+                )
+              }`,
         muted: true,
       })
     }

@@ -89,6 +89,10 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
 
   let priceSummary: ReactNode
   if (dynamicSummary) {
+    const cacheReadEntries = dynamicSummary.secondaryEntries.filter(
+      (entry) =>
+        entry.field === 'cacheReadPrice' && entry.displayUnit === 'token'
+    )
     if (dynamicSummary.isSpecialExpression) {
       priceSummary = (
         <span className='min-w-0'>
@@ -109,22 +113,27 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           </span>
         </span>
       )
-    } else if (dynamicSummary.primaryEntries.length > 0) {
+    } else if (
+      dynamicSummary.primaryEntries.length > 0 ||
+      cacheReadEntries.length > 0
+    ) {
       priceSummary = (
         <>
-          {dynamicSummary.primaryEntries.map((entry) => (
-            <span
-              key={entry.key}
-              className='text-muted-foreground whitespace-nowrap'
-            >
-              {t(entry.shortLabel)}{' '}
-              <span className='text-foreground font-mono font-semibold'>
-                {entry.formatted}
+          {[dynamicSummary.primaryEntries, cacheReadEntries]
+            .flat()
+            .map((entry) => (
+              <span
+                key={entry.key}
+                className='text-muted-foreground whitespace-nowrap'
+              >
+                {t(entry.shortLabel)}{' '}
+                <span className='text-foreground font-mono font-semibold'>
+                  {entry.formatted}
+                </span>
+                {entry.displayUnit === 'token' && `/${tokenUnitLabel}`}
+                {entry.displayUnit === 'custom' && `/${entry.unit}`}
               </span>
-              {entry.displayUnit === 'token' && `/${tokenUnitLabel}`}
-              {entry.displayUnit === 'custom' && `/${entry.unit}`}
-            </span>
-          ))}
+            ))}
         </>
       )
     } else if (dynamicSummary.secondaryEntries.length > 0) {

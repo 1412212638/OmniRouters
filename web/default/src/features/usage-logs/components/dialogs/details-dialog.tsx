@@ -221,9 +221,11 @@ function BillingBreakdown(props: {
       const isBaseTierFallback = hasOnlyUnmatchedRequestRules
       rows.push({
         label: t('Matched Tier'),
-        value: isBaseTierFallback
-          ? t('Base tier / off-peak fallback')
-          : matchedTier || t('No matching results'),
+        value:
+          matchedTier ||
+          (isBaseTierFallback
+            ? t('Base tier / off-peak fallback')
+            : t('Special billing expression')),
       })
     }
   } else if (isPerCall) {

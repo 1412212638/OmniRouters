@@ -4,8 +4,16 @@ import {
   QUOTA_TYPES,
   QUOTA_TYPE_VALUES,
   ENDPOINT_TYPES,
+  type SortOption,
 } from '../constants'
 import type { PricingModel } from '../types'
+import {
+  getCardExamplePrice,
+  getDynamicPricingSummary,
+  isUnconfiguredTaskUsageModel,
+} from './dynamic-price'
+import { isTokenBasedModel } from './model-helpers'
+import { calculateTokenPrice } from './price'
 
 // ----------------------------------------------------------------------------
 // Filter Utilities
@@ -87,11 +95,53 @@ export function filterByEndpointType(
   )
 }
 
-/**
- * Get model price for sorting
- */
-function getModelPrice(model: PricingModel): number {
-  return model.quota_type === 0 ? model.model_ratio : model.model_price || 0
+type SortPriceKind = 'input' | 'output' | 'request'
+
+const PRICE_SORTS: Partial<
+  Record<SortOption, { kind: SortPriceKind; dir: 1 | -1 }>
+> = {
+  [SORT_OPTIONS.INPUT_PRICE_LOW]: { kind: 'input', dir: 1 },
+  [SORT_OPTIONS.INPUT_PRICE_HIGH]: { kind: 'input', dir: -1 },
+  [SORT_OPTIONS.OUTPUT_PRICE_LOW]: { kind: 'output', dir: 1 },
+  [SORT_OPTIONS.OUTPUT_PRICE_HIGH]: { kind: 'output', dir: -1 },
+  [SORT_OPTIONS.REQUEST_PRICE_LOW]: { kind: 'request', dir: 1 },
+  [SORT_OPTIONS.REQUEST_PRICE_HIGH]: { kind: 'request', dir: -1 },
+}
+
+/** Return the base price represented by a model card for one sort dimension. */
+function getSortPrice(
+  model: PricingModel,
+  kind: SortPriceKind
+): number | undefined {
+  if (kind === 'request') {
+    const example = getCardExamplePrice(model, { tokenUnit: 'M' })
+    if (example) return example.total
+  }
+
+  const summary = getDynamicPricingSummary(model, { tokenUnit: 'M' })
+  if (kind === 'request') {
+    if (summary) {
+      const entry = summary.entries.find(
+        (entry) => entry.field === 'fixedPrice' || entry.field === 'modelPrice'
+      )
+      return entry?.value
+    }
+    return isTokenBasedModel(model) ? undefined : model.model_price
+  }
+
+  if (summary) {
+    const field = kind === 'input' ? 'inputPrice' : 'outputPrice'
+    return summary.entries.find(
+      (entry) =>
+        entry.field === field &&
+        (entry.displayUnit === 'token' || entry.unit === 'token')
+    )?.value
+  }
+
+  if (!isTokenBasedModel(model) || isUnconfiguredTaskUsageModel(model)) {
+    return undefined
+  }
+  return calculateTokenPrice(model, kind, 1)
 }
 
 /**
@@ -103,17 +153,29 @@ export function sortModels(
 ): PricingModel[] {
   const sorted = [...models]
 
+  const priceSort = PRICE_SORTS[sortBy as SortOption]
+  if (priceSort) {
+    const prices = new Map(
+      sorted.map((model) => [model, getSortPrice(model, priceSort.kind)])
+    )
+    sorted.sort((left, right) => {
+      const leftPrice = prices.get(left)
+      const rightPrice = prices.get(right)
+      if (leftPrice === undefined || rightPrice === undefined) {
+        return (
+          Number(leftPrice === undefined) - Number(rightPrice === undefined)
+        )
+      }
+      return priceSort.dir * (leftPrice - rightPrice)
+    })
+    return sorted
+  }
+
   switch (sortBy) {
     case SORT_OPTIONS.NAME:
       sorted.sort((a, b) =>
         (a.model_name || '').localeCompare(b.model_name || '')
       )
-      break
-    case SORT_OPTIONS.PRICE_LOW:
-      sorted.sort((a, b) => getModelPrice(a) - getModelPrice(b))
-      break
-    case SORT_OPTIONS.PRICE_HIGH:
-      sorted.sort((a, b) => getModelPrice(b) - getModelPrice(a))
       break
   }
 

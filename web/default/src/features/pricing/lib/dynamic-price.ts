@@ -12,6 +12,8 @@ import {
   type RequestRuleGroup,
 } from './billing-expr'
 import { getDisplayGroupRatio } from './model-helpers'
+import { withPluginPricing } from './plugin-pricing'
+import { evaluateTaskUsageExamples } from './task-expr'
 import { getTaskPricingDisplayTiers } from './task-matrix-display'
 
 export type DynamicPriceOptions = {
@@ -32,6 +34,12 @@ export type DynamicPriceEntry = {
   variable?: BillingVar
   displayUnit: 'token' | 'request' | 'custom'
   unit?: string
+}
+
+export type CardExamplePrice = {
+  label: string
+  total: number
+  formatted: string
 }
 
 export type DynamicPriceRange = {
@@ -69,6 +77,29 @@ function isPrimaryDynamicField(field: string): boolean {
 
 export function isDynamicPricingModel(model: PricingModel): boolean {
   return model.billing_mode === 'tiered_expr' && Boolean(model.billing_expr)
+}
+
+export function hasTaskUsageSchema(model: PricingModel): boolean {
+  return Object.keys(model.billing_usage_schema ?? {}).length > 0
+}
+
+export function isTaskUsagePricingModel(model: PricingModel): boolean {
+  return model.billing_mode === 'tiered_expr' && hasTaskUsageSchema(model)
+}
+
+export function isUnconfiguredTaskUsageModel(model: PricingModel): boolean {
+  if (model.billing_plugin_variants?.length) {
+    return model.billing_plugin_variants.every((variant) =>
+      variant.billing_mode === 'ratio'
+        ? isUnconfiguredTaskUsageModel(withPluginPricing(model, variant))
+        : !variant.billing_expr
+    )
+  }
+  return (
+    model.quota_type !== 1 &&
+    hasTaskUsageSchema(model) &&
+    !isDynamicPricingModel(model)
+  )
 }
 
 export function getDynamicDisplayGroupRatio(
@@ -494,5 +525,37 @@ export function getDynamicPricingSummary(
       ? []
       : getDynamicPrimaryPriceRanges(tiers, options),
     requestPriceRange: getDynamicRequestPriceRange(tiers, options),
+  }
+}
+
+/**
+ * Return a deterministic request-price sample for task models. The sample is
+ * used only for sorting; the displayed card still shows the full price rows.
+ */
+export function getCardExamplePrice(
+  model: PricingModel,
+  options: DynamicPriceOptions
+): CardExamplePrice | null {
+  if (model.billing_plugin_variants?.length) {
+    const variant = model.billing_plugin_variants.find(
+      (provider) => provider.billing_expr
+    )
+    return variant
+      ? getCardExamplePrice(withPluginPricing(model, variant), options)
+      : null
+  }
+  if (!isTaskUsagePricingModel(model)) return null
+  const examples = evaluateTaskUsageExamples(
+    model.billing_expr,
+    model.billing_usage_schema,
+    model.billing_usage_examples
+  )
+  const firstExample = examples[0]
+  if (!firstExample || !Number.isFinite(firstExample.total)) return null
+
+  return {
+    label: firstExample.label,
+    total: firstExample.total,
+    formatted: formatTaskUnitPrice(firstExample.total, 'request', options),
   }
 }

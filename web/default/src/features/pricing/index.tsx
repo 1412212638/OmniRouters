@@ -84,6 +84,7 @@ import {
 } from './constants'
 import { usePricingData } from './hooks/use-pricing-data'
 import {
+  getCardExamplePrice,
   getDynamicCatalogPriceRanges,
   getDynamicDisplayGroupRatio,
   getDynamicPricingSummary,
@@ -97,6 +98,7 @@ import {
 import {
   formatPrice,
   formatRequestPrice,
+  calculateTokenPrice,
   getSoraPricingDisplay,
   stripTrailingZeros,
 } from './lib/price'
@@ -122,6 +124,13 @@ type CatalogPriceFilter = 'all' | 'discount' | 'free'
 type CatalogSort =
   | 'newest'
   | 'name-asc'
+  | 'input-price-asc'
+  | 'input-price-desc'
+  | 'output-price-asc'
+  | 'output-price-desc'
+  | 'request-price-asc'
+  | 'request-price-desc'
+  // Keep the old query values readable for bookmarked model-square URLs.
   | 'price-asc'
   | 'price-desc'
   | 'latency-asc'
@@ -254,15 +263,46 @@ function sortByCreatedTime(a: PricingModel, b: PricingModel): number {
 function getCatalogSortPrice(
   model: PricingModel,
   selectedGroup: string,
-  usableGroup: PricingUsableGroup
+  usableGroup: PricingUsableGroup,
+  kind: 'input' | 'output' | 'request'
 ): number | null {
-  if (model.billing_mode === 'tiered_expr' && model.billing_expr) return null
-
   const ratio = getDisplayGroupRatio(model, selectedGroup, usableGroup)
-  const basePrice = isTokenBasedModel(model)
-    ? Number(model.model_ratio) * 2
-    : Number(model.model_price)
-  const price = basePrice * ratio
+  const dynamicSummary = getDynamicPricingSummary(model, {
+    tokenUnit: 'M',
+    groupRatioMultiplier: ratio,
+  })
+
+  if (kind === 'request') {
+    const example = getCardExamplePrice(model, {
+      tokenUnit: 'M',
+      groupRatioMultiplier: ratio,
+    })
+    if (example) return example.total * ratio
+    const requestEntry = dynamicSummary?.entries.find(
+      (entry) => entry.field === 'fixedPrice' || entry.field === 'modelPrice'
+    )
+    if (requestEntry) {
+      return requestEntry.value * ratio
+    }
+    if (isTokenBasedModel(model)) return null
+    return Number.isFinite(Number(model.model_price))
+      ? Number(model.model_price) * ratio
+      : null
+  }
+
+  if (dynamicSummary) {
+    const field = kind === 'input' ? 'inputPrice' : 'outputPrice'
+    const entry = dynamicSummary.entries.find(
+      (candidate) =>
+        candidate.field === field &&
+        (candidate.displayUnit === 'token' || candidate.unit === 'token')
+    )
+    if (entry) return entry.value * ratio
+    return null
+  }
+
+  if (!isTokenBasedModel(model)) return null
+  const price = calculateTokenPrice(model, kind, ratio)
 
   return Number.isFinite(price) && price >= 0 ? price : null
 }
@@ -777,6 +817,8 @@ type CatalogPriceSummary =
       outputValue: string
       inputUnit: string
       outputUnit: string
+      cacheValue?: string
+      cacheUnit?: string
     }
   | {
       kind: 'single'
@@ -865,6 +907,10 @@ function usePriceRows(props: {
       outputValue: outputRange?.formatted || '-',
       inputUnit: tokenUnitLabel,
       outputUnit: tokenUnitLabel,
+      cacheValue: dynamicSummary.entries.find(
+        (entry) => entry.field === 'cacheReadPrice'
+      )?.formatted,
+      cacheUnit: tokenUnitLabel,
     }
   }
 
@@ -880,7 +926,24 @@ function usePriceRows(props: {
         (entry) => entry.field === 'outputPrice'
       ) ||
       dynamicSummary.primaryEntries[1] ||
-      dynamicSummary.secondaryEntries[1]
+      dynamicSummary.secondaryEntries.find(
+        (entry) => entry.field !== 'cacheReadPrice'
+      )
+    const cacheEntry = dynamicSummary.entries.find(
+      (entry) => entry.field === 'cacheReadPrice'
+    )
+    const hasTokenPrimary = dynamicSummary.entries.some(
+      (entry) => entry.field === 'inputPrice' || entry.field === 'outputPrice'
+    )
+
+    if (!hasTokenPrimary && cacheEntry) {
+      return {
+        kind: 'single',
+        label: t('Cache Read'),
+        value: cacheEntry.formatted,
+        unit: tokenUnitLabel,
+      }
+    }
 
     return {
       kind: 'paired',
@@ -898,6 +961,9 @@ function usePriceRows(props: {
           : outputEntry?.displayUnit === 'custom'
             ? outputEntry.unit || ''
             : tokenUnitLabel,
+      cacheValue: cacheEntry?.formatted,
+      cacheUnit:
+        cacheEntry?.displayUnit === 'token' ? tokenUnitLabel : undefined,
     }
   }
 
@@ -1169,6 +1235,18 @@ function CatalogModelCard(props: {
             {priceRows.outputUnit && (
               <span className='text-muted-foreground ml-1 text-xs'>
                 /{priceRows.outputUnit}
+              </span>
+            )}
+          </InfoLine>
+        )}
+        {priceRows.kind === 'paired' && priceRows.cacheValue && (
+          <InfoLine label={`${t('Cache Read')}:`} valueClassName='truncate'>
+            <span className='font-mono font-medium'>
+              {priceRows.cacheValue}
+            </span>
+            {priceRows.cacheUnit && (
+              <span className='text-muted-foreground ml-1 text-xs'>
+                /{priceRows.cacheUnit}
               </span>
             )}
           </InfoLine>
@@ -1500,11 +1578,25 @@ function CatalogPricing() {
           result = getCatalogModelTitle(left).localeCompare(
             getCatalogModelTitle(right)
           )
-        } else if (sortBy === 'price-asc' || sortBy === 'price-desc') {
+        } else if (
+          sortBy === 'price-asc' ||
+          sortBy === 'price-desc' ||
+          sortBy === 'input-price-asc' ||
+          sortBy === 'input-price-desc' ||
+          sortBy === 'output-price-asc' ||
+          sortBy === 'output-price-desc' ||
+          sortBy === 'request-price-asc' ||
+          sortBy === 'request-price-desc'
+        ) {
+          let sortKind: 'input' | 'output' | 'request' = 'input'
+          if (sortBy.startsWith('output')) sortKind = 'output'
+          if (sortBy.startsWith('request')) sortKind = 'request'
+          const sortDirection =
+            sortBy.endsWith('desc') || sortBy === 'price-desc' ? 'desc' : 'asc'
           result = compareNullableNumbers(
-            getCatalogSortPrice(left, groupFilter, usableGroup),
-            getCatalogSortPrice(right, groupFilter, usableGroup),
-            sortBy === 'price-asc' ? 'asc' : 'desc'
+            getCatalogSortPrice(left, groupFilter, usableGroup, sortKind),
+            getCatalogSortPrice(right, groupFilter, usableGroup, sortKind),
+            sortDirection
           )
         } else if (sortBy === 'latency-asc') {
           const leftLatency = perfMap.get(left.model_name)?.avg_latency_ms
@@ -1762,8 +1854,20 @@ function CatalogPricing() {
                       <ZenMuxSortIcon data-icon='inline-start' />
                       {sortBy === 'newest' && t('Latest')}
                       {sortBy === 'name-asc' && t('Name (A-Z)')}
-                      {sortBy === 'price-asc' && t('Price ↑')}
-                      {sortBy === 'price-desc' && t('Price ↓')}
+                      {(sortBy === 'price-asc' ||
+                        sortBy === 'input-price-asc') &&
+                        t('Input Price: Low to High')}
+                      {(sortBy === 'price-desc' ||
+                        sortBy === 'input-price-desc') &&
+                        t('Input Price: High to Low')}
+                      {sortBy === 'output-price-asc' &&
+                        t('Output Price: Low to High')}
+                      {sortBy === 'output-price-desc' &&
+                        t('Output Price: High to Low')}
+                      {sortBy === 'request-price-asc' &&
+                        t('Per-request Price: Low to High')}
+                      {sortBy === 'request-price-desc' &&
+                        t('Per-request Price: High to Low')}
                       {sortBy === 'latency-asc' && t('Latency ↑')}
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align='end' className='min-w-36'>
@@ -1780,11 +1884,23 @@ function CatalogPricing() {
                           <DropdownMenuRadioItem value='name-asc'>
                             {t('Name (A-Z)')}
                           </DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value='price-asc'>
-                            {t('Price ↑')}
+                          <DropdownMenuRadioItem value='input-price-asc'>
+                            {t('Input Price: Low to High')}
                           </DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value='price-desc'>
-                            {t('Price ↓')}
+                          <DropdownMenuRadioItem value='input-price-desc'>
+                            {t('Input Price: High to Low')}
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value='output-price-asc'>
+                            {t('Output Price: Low to High')}
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value='output-price-desc'>
+                            {t('Output Price: High to Low')}
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value='request-price-asc'>
+                            {t('Per-request Price: Low to High')}
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value='request-price-desc'>
+                            {t('Per-request Price: High to Low')}
                           </DropdownMenuRadioItem>
                           <DropdownMenuRadioItem value='latency-asc'>
                             {t('Latency ↑')}
