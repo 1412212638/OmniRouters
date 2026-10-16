@@ -3940,3 +3940,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: targeted Oxlint passed; `bun run build` in `web/default` passed; locale JSON files remain valid; `git diff --check` passed.
 - Commit/push: pending source commit and push.
 
+## 2026-10-17 - Restrict public pricing data to display-safe fields
+
+- Local reason: the public `/api/pricing` response exposed executable billing expressions, task-plugin schemas and examples, hidden group configuration, group-model expiry data, and unrelated supplier records even though the pricing page is intentionally public.
+- Integrated: anonymous requests now receive only the default public group; authenticated requests receive only their usable groups. Model group ratios, enabled groups, auto groups, and suppliers are filtered to the visible catalogue. Executable billing expressions and administrator-only billing metadata are removed from the response and replaced with a derived `billing_summary` containing only display rates and coarse request/usage markers. The default frontend renders this summary without attempting to parse or show the private expression.
+- Already present: public model names, base price fields, visible supplier metadata, supported endpoints, dynamic pricing cards, and the actual server-side billing expression execution path remain available. Existing internal/admin responses are unchanged.
+- Deferred: task-plugin pricing breakdowns cannot show plugin-specific conditions on the public page without exposing their schema; the public summary marks usage-based pricing instead. A Go test run was not possible because the local shell has no Go toolchain.
+- Preserved: all unrelated Friends Hub, Image Playground, Wallet, endpoint drawer, locale, script, generated, and upstream-sync changes; protected project identifiers remain unchanged.
+- Validation: `bun run build` in `web/default` passed; targeted Oxfmt completed; targeted Oxlint reports only pre-existing pricing-file warnings; `git diff --check` passed. Added model and controller regression tests for summary probing and internal-field removal; they require CI Go tooling to execute.
+- Commit/push: source commit `57c48384b` (`feat(pricing): sanitize public pricing response`); log update commit and GitHub push are being completed in this round.
+
