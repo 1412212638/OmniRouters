@@ -3956,5 +3956,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Integrated: Waffo Pancake webhook processing now records server IP, callback IP, payment method, callback payment provider, node name, and version through `RecordTopupLog`. The payment handler reports whether the order was already completed, so Waffo Pancake success emails are sent only for the first successful credit and duplicate webhooks remain idempotent. The email settings copy now lists Waffo Pancake alongside Epay and Stripe, with updated English and Chinese locale keys.
 - Preserved: existing quota crediting, referral cashback, invoice handling, member-tier checks, webhook signature and environment validation, and all other payment methods remain unchanged. The legacy single-argument `RechargeWaffoPancake` wrapper remains available for non-webhook callers.
 - Validation: `git diff --check`, frontend locale JSON parsing, and `bun run build` in `web/default` passed. The targeted Go regression test was added but Go tooling is unavailable in the current shell; CI Go tests remain required.
-- Commit/push: source commit `9e6beb4ac` (`fix(payment): audit and notify Waffo Pancake topups`); GitHub push pending.
+- Commit/push: source commit `9e6beb4ac` (`fix(payment): audit and notify Waffo Pancake topups`) and log commit `8b495e543` are pushed to `origin/main`.
 
