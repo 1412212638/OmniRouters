@@ -6,7 +6,7 @@
 - Changed: model cards now show input, output, cache-read, and cache-write prices when available; cache-write display falls back to the 1-hour cache price when no generic cache-write price exists, and discounted cache prices use the existing green emphasis.
 - Preserved: billing expressions, model-detail pricing tables, pricing columns, non-cache price formatting, protected project identifiers, and unrelated worktree files.
 - Validation: targeted Oxfmt, frontend production build, and `git diff --check` are required; no backend code or billing behavior changed.
-- Commit/push: pending.
+- Commit/push: source commit `520b278dd` (`fix(pricing): complete cache pricing display`); pushed to `origin/main`.
 
 ## 2026-10-17 - Restore peak/off-peak usage-log labels
 
@@ -14,7 +14,7 @@
 - Changed: compact usage-log rows and detail billing summaries now prioritize matched request-rule multipliers, show `Base tier / off-peak fallback` only when request rules exist and all are unmatched, and retain the recorded tier for ambiguous logs.
 - Preserved: billing calculations, request-rule traces, detailed pricing tables, flat-expression handling, protected project identifiers, and unrelated worktree files.
 - Validation: targeted frontend formatting, production build, and `git diff --check` are required; no backend code or billing behavior changed.
-- Commit/push: pending.
+- Commit/push: source commit `520b278dd` (`fix(pricing): complete cache pricing display`); pushed to `origin/main`.
 
 ## 2026-10-16 - Sync dynamic pricing and model plaza fixes
 
