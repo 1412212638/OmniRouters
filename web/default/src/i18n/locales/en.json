@@ -5939,6 +5939,9 @@
     "Create a Message": "Create a Message",
     "Generate Content": "Generate Content",
     "Stream Generate Content": "Stream Generate Content",
-    "View Docs": "View Docs"
+    "View Docs": "View Docs",
+    "API Access Points": "API Access Points",
+    "Supported API protocols and endpoints": "Supported API protocols and endpoints",
+    "Selected Endpoint": "Selected Endpoint"
   }
 }

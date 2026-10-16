@@ -5870,6 +5870,9 @@
     "Create a Message": "メッセージを作成",
     "Generate Content": "コンテンツを生成",
     "Stream Generate Content": "ストリームでコンテンツを生成",
-    "View Docs": "ドキュメントを表示"
+    "View Docs": "ドキュメントを表示",
+    "API Access Points": "API 接続ポイント",
+    "Supported API protocols and endpoints": "対応する API プロトコルとエンドポイント",
+    "Selected Endpoint": "選択したエンドポイント"
   }
 }

@@ -5873,6 +5873,9 @@
     "Create a Message": "Tạo tin nhắn",
     "Generate Content": "Tạo nội dung",
     "Stream Generate Content": "Tạo nội dung dạng luồng",
-    "View Docs": "Xem tài liệu"
+    "View Docs": "Xem tài liệu",
+    "API Access Points": "Điểm truy cập API",
+    "Supported API protocols and endpoints": "Giao thức và endpoint API được hỗ trợ",
+    "Selected Endpoint": "Endpoint đã chọn"
   }
 }

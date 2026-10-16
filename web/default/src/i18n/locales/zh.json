@@ -5939,6 +5939,9 @@
     "Create a Message": "创建消息",
     "Generate Content": "生成内容",
     "Stream Generate Content": "流式生成内容",
-    "View Docs": "查看文档"
+    "View Docs": "查看文档",
+    "API Access Points": "API 接入点",
+    "Supported API protocols and endpoints": "支持的 API 协议和端点",
+    "Selected Endpoint": "当前端点"
   }
 }

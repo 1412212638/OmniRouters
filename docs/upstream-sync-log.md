@@ -3906,3 +3906,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: frontend production build passed; targeted Oxlint passed; all seven locale JSON files parsed; `git diff --check` passed. Full frontend typecheck remains blocked by pre-existing missing test dependencies and unrelated type errors.
 - Commit/push: source commit `934ec93fe` (`feat(keys): add endpoint selector drawer`) and log update commit `eadb87ae9` are pushed to GitHub `main`.
 
+## 2026-10-16 - Redesign API key endpoint drawer as protocol cards
+
+- Local reason: the endpoint drawer needed to present the available integrations in a scannable layout matching the API reference style, instead of hiding protocol and endpoint choices behind selectors.
+- Integrated: replaced the protocol/endpoint selector layout with protocol cards that show each protocol description, Base URL, copy action, and a responsive two-column endpoint list; clicking an endpoint updates the selected full URL, highlights the endpoint, and keeps copy, latency, open, and documentation actions available. The service-node selector remains available when multiple configured nodes exist, and the Decision Model `POST /v1/systemone` endpoint remains included.
+- Already present: API Info node fallback, OpenAI-compatible, Anthropic, Gemini, and TypeSafe endpoint definitions, API key authorization guidance, and all existing endpoint actions remain functional.
+- Deferred: protocol cards continue to use the gateway's static route contract; authenticated endpoint probing and dynamic plugin discovery remain outside this drawer.
+- Preserved: protected project identifiers and unrelated worktree changes, including Friends Hub, Image Playground, pricing, Wallet, logs, scripts, and generated locale artifacts.
+- Validation: `bun run build` in `web/default` passed; the seven locale JSON files parsed successfully; targeted Oxlint and `git diff --check` passed.
+- Commit/push: local commit `f761f8672` (`feat(keys): redesign endpoint drawer cards`); GitHub push not performed in this round.
+

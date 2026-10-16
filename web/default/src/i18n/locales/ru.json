@@ -5870,6 +5870,9 @@
     "Create a Message": "Создать сообщение",
     "Generate Content": "Создать контент",
     "Stream Generate Content": "Потоковая генерация контента",
-    "View Docs": "Открыть документацию"
+    "View Docs": "Открыть документацию",
+    "API Access Points": "Точки доступа API",
+    "Supported API protocols and endpoints": "Поддерживаемые протоколы и конечные точки API",
+    "Selected Endpoint": "Выбранная конечная точка"
   }
 }
