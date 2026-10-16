@@ -3870,5 +3870,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Integrated: added the IP allowlist error key and English, Simplified Chinese, and Traditional Chinese translations; removed the invalid test field/import; aligned the `RelayInfo` fields to gofmt output.
 - Preserved: no runtime behavior beyond making the existing IP allowlist error translatable; no unrelated worktree artifacts were staged.
 - Validation: `git diff --check` passed and source references were checked with `rg`. Go tests and `gofmt` could not run locally because the Go toolchain is unavailable; GitHub Actions must verify backend compilation and formatting.
-- Commit/push: local commit pending; GitHub push not yet performed.
+- Commit/push: source fix committed as `74858e383` (`fix: resolve upstream regression CI failures`); this log entry was recorded in `b27bd6d62`; GitHub push not yet performed.
 
