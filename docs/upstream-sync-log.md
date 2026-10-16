@@ -3894,5 +3894,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Integrated: corrected the English values and added translations for the Auto group order, description, selection count, reorder actions, restore/add controls, empty states, and validation text in all seven frontend locales.
 - Preserved: API key form behavior, payload mapping, and Auto group ordering logic are unchanged.
 - Validation: 14 API key/Auto group tests passed; frontend production build passed; all seven locale JSON files parsed; all required translation keys are present; Oxfmt and `git diff --check` passed.
-- Commit/push: local source commit pending; GitHub push not performed in this round.
+- Commit/push: local commit `3f8460000` (`fix(i18n): localize API key auto group editor`); GitHub push not performed in this round.
 
