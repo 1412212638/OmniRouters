@@ -100,6 +100,7 @@ func TestAddTokenEmptyAutoGroupsInheritGlobalAuto(t *testing.T) {
 			require.NoError(t, model.DB.Where("name = ?", request["name"]).First(&token).Error)
 			assert.Empty(t, token.AutoGroups)
 			assert.True(t, token.CrossGroupRetry)
+			assert.True(t, token.AllowUserQuotaQuery, "new API keys allow owner quota queries by default")
 			payload, err := common.Marshal(buildMaskedTokenResponse(&token))
 			require.NoError(t, err)
 			var responseData map[string]any

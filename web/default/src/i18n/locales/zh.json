@@ -405,6 +405,8 @@
     "Allocated Memory": "已分配内存",
     "Allow accountFilter parameter": "允许 accountFilter 参数",
     "Allow balance redemption": "允许余额兑换",
+    "Allow querying owner quota": "允许查询所属用户额度",
+    "Include the owning account balance in the token usage endpoint": "在令牌用量接口中返回所属账号余额",
     "Allow Claude beta query passthrough": "允许 Claude beta 查询透传",
     "Allow clients to query configured ratios via `/api/ratio`.": "允许客户端通过 `/api/ratio` 查询配置的比例。",
     "Allow HTTP image requests": "允许 HTTP 图像请求",

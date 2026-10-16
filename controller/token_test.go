@@ -345,6 +345,9 @@ func runTokenMigrationCompatibilityTest(t *testing.T, db *gorm.DB, dialect strin
 	if !db.Migrator().HasColumn(&model.Token{}, "auto_groups") {
 		t.Fatal("expected migration to add auto_groups column")
 	}
+	if !db.Migrator().HasColumn(&model.Token{}, "allow_user_quota_query") {
+		t.Fatal("expected migration to add allow_user_quota_query column")
+	}
 	if got := getTokenAutoGroupsColumnType(t, db, dialect); got != "text" {
 		t.Fatalf("expected migrated auto_groups column type text, got %q", got)
 	}
@@ -543,6 +546,36 @@ func TestUpdateTokenMasksKeyInResponse(t *testing.T) {
 	if strings.Contains(recorder.Body.String(), token.Key) {
 		t.Fatalf("update response leaked raw token key: %s", recorder.Body.String())
 	}
+}
+
+func TestGetTokenUsageExposesOwnerQuotaOnlyWhenEnabled(t *testing.T) {
+	db := setupTokenControllerTestDB(t)
+	require.NoError(t, db.AutoMigrate(&model.User{}))
+	user := &model.User{Id: 77, Username: "quota-owner", Password: "test-password", Quota: 900, UsedQuota: 100}
+	require.NoError(t, db.Create(user).Error)
+	token := seedToken(t, db, user.Id, "usage-token", "usage-token-key")
+	token.AllowUserQuotaQuery = false
+	require.NoError(t, db.Model(token).Update("allow_user_quota_query", false).Error)
+
+	requestUsage := func() map[string]any {
+		ctx, recorder := gin.CreateTestContext(httptest.NewRecorder())
+		ctx.Request = httptest.NewRequest(http.MethodGet, "/api/usage/token/", nil)
+		ctx.Request.Header.Set("Authorization", "Bearer sk-"+token.Key)
+		GetTokenUsage(ctx)
+		var response map[string]any
+		require.NoError(t, common.Unmarshal(recorder.Body.Bytes(), &response))
+		return response
+	}
+	response := requestUsage()
+	data := response["data"].(map[string]any)
+	assert.NotContains(t, data, "user_quota")
+
+	require.NoError(t, db.Model(token).Update("allow_user_quota_query", true).Error)
+	response = requestUsage()
+	data = response["data"].(map[string]any)
+	userQuota := data["user_quota"].(map[string]any)
+	assert.Equal(t, float64(900), userQuota["total_available"])
+	assert.Equal(t, float64(100), userQuota["total_used"])
 }
 
 func TestGetTokenKeyRequiresOwnershipAndReturnsFullKey(t *testing.T) {

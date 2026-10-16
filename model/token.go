@@ -30,6 +30,9 @@ type Token struct {
 	CrossGroupRetry    bool           `json:"cross_group_retry"` // 跨分组重试，仅auto分组有效
 	AutoGroups         string         `json:"-" gorm:"type:text"`
 	DeletedAt          gorm.DeletedAt `gorm:"index"`
+	// New tokens may expose the owning user's quota through /api/usage/token/.
+	// Existing rows remain disabled when this column is added by AutoMigrate.
+	AllowUserQuotaQuery bool           `json:"allow_user_quota_query"`
 }
 
 func (token *Token) GetAutoGroups() ([]string, error) {
@@ -313,7 +316,8 @@ func (token *Token) Update() (err error) {
 		common.SysLog("failed to invalidate token cache before update: " + cacheErr.Error())
 	}
 	return DB.Model(token).Select("name", "status", "expired_time", "remain_quota", "unlimited_quota",
-		"model_limits_enabled", "model_limits", "allow_ips", "group", "cross_group_retry", "auto_groups").Updates(token).Error
+		"model_limits_enabled", "model_limits", "allow_ips", "group", "cross_group_retry", "auto_groups",
+		"allow_user_quota_query").Updates(token).Error
 }
 
 func (token *Token) SelectUpdate() (err error) {

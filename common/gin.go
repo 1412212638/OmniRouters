@@ -19,6 +19,8 @@ import (
 
 const KeyRequestBody = "key_request_body"
 const KeyBodyStorage = "key_body_storage"
+const keyBodyReadError = "key_body_read_error"
+const keyUpstreamAddresses = "key_upstream_addresses"
 
 var ErrRequestBodyTooLarge = errors.New("request body too large")
 
@@ -57,6 +59,15 @@ func GetRequestBody(c *gin.Context) (io.Seeker, error) {
 		}
 	}
 
+	// Preserve the original read error for every later consumer. The request
+	// body is closed after the first failed read, so a second read would
+	// otherwise hide the useful cause behind "invalid Read on closed Body".
+	if readErr, exists := c.Get(keyBodyReadError); exists {
+		if err, ok := readErr.(error); ok {
+			return nil, err
+		}
+	}
+
 	maxMB := constant.MaxRequestBodyMB
 	if maxMB <= 0 {
 		maxMB = 128 // 默认 128MB
@@ -71,8 +82,9 @@ func GetRequestBody(c *gin.Context) (io.Seeker, error) {
 
 	if err != nil {
 		if IsRequestBodyTooLargeError(err) {
-			return nil, errors.Wrap(ErrRequestBodyTooLarge, fmt.Sprintf("request body exceeds %d MB", maxMB))
+			err = errors.Wrap(ErrRequestBodyTooLarge, fmt.Sprintf("request body exceeds %d MB", maxMB))
 		}
+		c.Set(keyBodyReadError, err)
 		return nil, err
 	}
 
@@ -161,6 +173,82 @@ func GetContextKey(c *gin.Context, key constant.ContextKey) (any, bool) {
 
 func GetContextKeyString(c *gin.Context, key constant.ContextKey) string {
 	return c.GetString(string(key))
+}
+
+// RecordUpstreamAddress keeps only an origin for error redaction. Credentials,
+// paths, and query parameters are intentionally excluded from request context.
+func RecordUpstreamAddress(c *gin.Context, rawURL string) {
+	if c == nil {
+		return
+	}
+	rawURL = strings.TrimSpace(rawURL)
+	if rawURL == "" {
+		return
+	}
+	if !strings.Contains(rawURL, "://") {
+		rawURL = "https://" + rawURL
+	}
+	u, err := url.Parse(rawURL)
+	if err != nil || u.Host == "" {
+		return
+	}
+	u.User = nil
+	u.Path = ""
+	u.RawPath = ""
+	u.RawQuery = ""
+	u.Fragment = ""
+	origin := u.Scheme + "://" + u.Host
+	addresses, _ := c.Get(keyUpstreamAddresses)
+	list, _ := addresses.([]string)
+	for _, address := range list {
+		if address == origin {
+			return
+		}
+	}
+	c.Set(keyUpstreamAddresses, append(list, origin))
+}
+
+func GetUpstreamAddresses(c *gin.Context) []string {
+	if c == nil {
+		return nil
+	}
+	addresses, _ := c.Get(keyUpstreamAddresses)
+	list, _ := addresses.([]string)
+	return append([]string(nil), list...)
+}
+
+func SameUpstreamOrigin(left, right string) bool {
+	parse := func(raw string) (*url.URL, error) {
+		raw = strings.TrimSpace(raw)
+		if !strings.Contains(raw, "://") {
+			raw = "https://" + raw
+		}
+		return url.Parse(raw)
+	}
+	leftURL, leftErr := parse(left)
+	rightURL, rightErr := parse(right)
+	if leftErr != nil || rightErr != nil || leftURL.Hostname() == "" || rightURL.Hostname() == "" {
+		return false
+	}
+	if !strings.EqualFold(leftURL.Scheme, rightURL.Scheme) ||
+		!strings.EqualFold(strings.TrimSuffix(leftURL.Hostname(), "."), strings.TrimSuffix(rightURL.Hostname(), ".")) {
+		return false
+	}
+	return effectiveURLPort(leftURL) == effectiveURLPort(rightURL)
+}
+
+func effectiveURLPort(u *url.URL) string {
+	if port := u.Port(); port != "" {
+		return port
+	}
+	switch strings.ToLower(u.Scheme) {
+	case "http":
+		return "80"
+	case "https":
+		return "443"
+	default:
+		return ""
+	}
 }
 
 func GetContextKeyInt(c *gin.Context, key constant.ContextKey) int {

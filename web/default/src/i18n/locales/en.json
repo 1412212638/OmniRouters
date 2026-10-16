@@ -405,6 +405,8 @@
     "Allocated Memory": "Allocated Memory",
     "Allow accountFilter parameter": "Allow accountFilter parameter",
     "Allow balance redemption": "Allow balance redemption",
+    "Allow querying owner quota": "Allow querying owner quota",
+    "Include the owning account balance in the token usage endpoint": "Include the owning account balance in the token usage endpoint",
     "Allow Claude beta query passthrough": "Allow Claude beta query passthrough",
     "Allow clients to query configured ratios via `/api/ratio`.": "Allow clients to query configured ratios via `/api/ratio`.",
     "Allow HTTP image requests": "Allow HTTP image requests",

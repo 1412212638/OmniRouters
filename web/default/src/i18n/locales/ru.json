@@ -387,6 +387,8 @@
     "Allocated Memory": "Выделенная память",
     "Allow accountFilter parameter": "Разрешить параметр accountFilter",
     "Allow balance redemption": "Разрешить оплату балансом",
+    "Allow querying owner quota": "Разрешить просмотр квоты владельца",
+    "Include the owning account balance in the token usage endpoint": "Включать баланс аккаунта владельца в API использования токена",
     "Allow Claude beta query passthrough": "Разрешить проброс бета-запросов Claude",
     "Allow clients to query configured ratios via `/api/ratio`.": "Разрешить клиентам запрашивать настроенные соотношения через `/api/ratio`.",
     "Allow HTTP image requests": "Разрешить HTTP-запросы изображений",

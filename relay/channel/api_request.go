@@ -13,6 +13,7 @@ import (
 
 	common2 "github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/logger"
+	upstreamconstant "github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relay/constant"
 	"github.com/QuantumNous/new-api/relay/helper"
@@ -371,6 +372,12 @@ func DoWssRequest(a Adaptor, c *gin.Context, info *common.RelayInfo, requestBody
 	if err != nil {
 		return nil, fmt.Errorf("get request url failed: %w", err)
 	}
+	if info != nil && info.ChannelMeta != nil && info.ChannelMeta.ChannelType == upstreamconstant.ChannelTypeAdvancedCustom {
+		common2.RecordUpstreamAddress(c, fullRequestURL)
+	}
+	if info != nil {
+		common2.RecordUpstreamAddress(c, info.ChannelSetting.Proxy)
+	}
 	targetHeader := http.Header{}
 	err = a.SetupRequestHeader(c, &targetHeader, info)
 	if err != nil {
@@ -386,6 +393,11 @@ func DoWssRequest(a Adaptor, c *gin.Context, info *common.RelayInfo, requestBody
 		targetHeader.Set(key, value)
 	}
 	targetHeader.Set("Content-Type", c.Request.Header.Get("Content-Type"))
+	if request, requestErr := http.NewRequest(http.MethodGet, fullRequestURL, nil); requestErr == nil {
+		if proxyURL, proxyErr := http.ProxyFromEnvironment(request); proxyErr == nil && proxyURL != nil {
+			common2.RecordUpstreamAddress(c, proxyURL.String())
+		}
+	}
 	targetConn, _, err := websocket.DefaultDialer.Dial(fullRequestURL, targetHeader)
 	if err != nil {
 		return nil, fmt.Errorf("dial failed to %s: %w", common.SanitizeURLForLog(fullRequestURL), err)
@@ -482,6 +494,17 @@ func keepUpstreamRedirectResponse(_ *http.Request, _ []*http.Request) error {
 }
 
 func doRequest(c *gin.Context, req *http.Request, info *common.RelayInfo) (*http.Response, error) {
+	if req != nil && req.URL != nil && info != nil && info.ChannelMeta != nil && info.ChannelMeta.ChannelType == upstreamconstant.ChannelTypeAdvancedCustom {
+		common2.RecordUpstreamAddress(c, req.URL.String())
+	}
+	if info != nil {
+		common2.RecordUpstreamAddress(c, info.ChannelSetting.Proxy)
+	}
+	if req != nil {
+		if proxyURL, proxyErr := http.ProxyFromEnvironment(req); proxyErr == nil && proxyURL != nil {
+			common2.RecordUpstreamAddress(c, proxyURL.String())
+		}
+	}
 	client, err := service.GetHttpClientWithProxySettings(info.ChannelSetting.Proxy, info.ChannelSetting)
 	if err != nil {
 		return nil, fmt.Errorf("new proxy http client failed: %w", err)

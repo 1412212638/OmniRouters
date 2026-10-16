@@ -3,8 +3,10 @@ package common
 import (
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -35,3 +37,33 @@ func TestNewReplayableBodyReaderKeepsStorageLifecycleWithCaller(t *testing.T) {
 	_, err = body.NewReader()
 	require.ErrorIs(t, err, ErrStorageClosed)
 }
+
+func TestGetRequestBodyReturnsOriginalReadErrorToLaterReaders(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	ctx.Request = httptest.NewRequest(http.MethodPost, "/v1/chat/completions", io.NopCloser(&errorReader{err: io.ErrUnexpectedEOF}))
+
+	_, firstErr := GetRequestBody(ctx)
+	_, secondErr := GetRequestBody(ctx)
+
+	require.ErrorIs(t, firstErr, io.ErrUnexpectedEOF)
+	require.ErrorIs(t, secondErr, io.ErrUnexpectedEOF)
+	assert.EqualError(t, secondErr, firstErr.Error())
+}
+
+func TestUpstreamAddressRecordingKeepsOnlyDeduplicatedOrigins(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	RecordUpstreamAddress(ctx, "https://user:secret@private.example/v1/chat?key=secret")
+	RecordUpstreamAddress(ctx, "https://private.example/another/path")
+
+	assert.Equal(t, []string{"https://private.example"}, GetUpstreamAddresses(ctx))
+	assert.True(t, SameUpstreamOrigin("https://api.example/v1", "https://api.example/other"))
+	assert.False(t, SameUpstreamOrigin("https://api.example:8443", "https://api.example"))
+}
+
+type errorReader struct {
+	err error
+}
+
+func (r *errorReader) Read([]byte) (int, error) { return 0, r.err }

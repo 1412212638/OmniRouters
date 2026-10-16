@@ -387,6 +387,8 @@
     "Allocated Memory": "Mémoire allouée",
     "Allow accountFilter parameter": "Autoriser le paramètre accountFilter",
     "Allow balance redemption": "Autoriser le paiement avec le solde",
+    "Allow querying owner quota": "Autoriser la consultation du quota du compte propriétaire",
+    "Include the owning account balance in the token usage endpoint": "Inclure le solde du compte propriétaire dans l’API d’utilisation du jeton",
     "Allow Claude beta query passthrough": "Autoriser le passage des requêtes bêta Claude",
     "Allow clients to query configured ratios via `/api/ratio`.": "Autoriser les clients à interroger les ratios configurés via `/api/ratio`.",
     "Allow HTTP image requests": "Autoriser les requêtes d'images HTTP",

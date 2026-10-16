@@ -1,6 +1,7 @@
 package kitutil
 
 import (
+	"net"
 	"net/url"
 	"regexp"
 	"strings"
@@ -65,7 +66,10 @@ func maskHostForPlainDomain(domain string) string {
 // openai.com -> ***.com
 // www.openai.com -> ***.***.com
 // api.openai.com -> ***.***.com
-func MaskSensitiveInfo(str string) string {
+func MaskSensitiveInfo(str string, upstreamURLs ...string) string {
+	if len(upstreamURLs) > 0 {
+		return maskConfiguredUpstream(str, upstreamURLs)
+	}
 	// Mask URLs
 	str = maskURLPattern.ReplaceAllStringFunc(str, func(urlStr string) string {
 		u, err := url.Parse(urlStr)
@@ -131,4 +135,85 @@ func MaskSensitiveInfo(str string) string {
 	str = maskApiKeyPattern.ReplaceAllString(str, "${1}api_key:***${3}")
 
 	return str
+}
+
+func maskConfiguredUpstream(str string, upstreamURLs []string) string {
+	hosts := make(map[string]struct{}, len(upstreamURLs))
+	for _, raw := range upstreamURLs {
+		raw = strings.TrimSpace(raw)
+		if raw == "" {
+			continue
+		}
+		if !strings.Contains(raw, "://") {
+			raw = "https://" + raw
+		}
+		parsed, err := url.Parse(raw)
+		if err == nil && parsed.Hostname() != "" {
+			hosts[strings.ToLower(strings.TrimSuffix(parsed.Hostname(), "."))] = struct{}{}
+		}
+	}
+	str = maskApiKeyPattern.ReplaceAllString(str, "${1}api_key:***${3}")
+	str = maskURLPattern.ReplaceAllStringFunc(str, func(raw string) string {
+		u, err := url.Parse(raw)
+		if err != nil {
+			return raw
+		}
+		if _, configured := hosts[strings.ToLower(strings.TrimSuffix(u.Hostname(), "."))]; configured {
+			maskedHost := maskHostForURL(u.Hostname())
+			if port := u.Port(); port != "" {
+				maskedHost += ":" + port
+			}
+			path := ""
+			if u.Path != "" && u.Path != "/" {
+				parts := strings.Split(strings.Trim(u.Path, "/"), "/")
+				for index := range parts {
+					parts[index] = "***"
+				}
+				path = "/" + strings.Join(parts, "/")
+			} else if u.Path == "/" {
+				path = "/"
+			}
+			query := ""
+			if u.RawQuery != "" {
+				query = "?***"
+			}
+			return u.Scheme + "://" + maskedHost + path + query
+		}
+		// Keep public provider addresses readable, but do not expose credentials
+		// embedded in URL userinfo or query values.
+		if u.User != nil {
+			u.User = url.User("***")
+		}
+		if u.RawQuery != "" {
+			values, parseErr := url.ParseQuery(u.RawQuery)
+			if parseErr != nil {
+				u.RawQuery = "***"
+			} else {
+				for key := range values {
+					values[key] = []string{"***"}
+				}
+				u.RawQuery = values.Encode()
+			}
+		}
+		return u.String()
+	})
+	// An upstream hostname may be printed without a URL scheme in DNS errors.
+	for host := range hosts {
+		pattern := regexp.MustCompile(`(?i)\b` + regexp.QuoteMeta(host) + `\b`)
+		str = pattern.ReplaceAllStringFunc(str, maskHostForPlainDomain)
+	}
+	str = maskBracketedConfiguredIPv6(str)
+	str = maskIPPattern.ReplaceAllString(str, "***.***.***.***")
+	return str
+}
+
+func maskBracketedConfiguredIPv6(str string) string {
+	pattern := regexp.MustCompile(`\[([0-9A-Fa-f:.]*:[0-9A-Fa-f:.]*)(%[^\]\s]*)?\]`)
+	return pattern.ReplaceAllStringFunc(str, func(match string) string {
+		parts := pattern.FindStringSubmatch(match)
+		if len(parts) < 2 || net.ParseIP(parts[1]) == nil {
+			return match
+		}
+		return "[***]"
+	})
 }

@@ -387,6 +387,8 @@
     "Allocated Memory": "割り当て済みメモリ",
     "Allow accountFilter parameter": "accountFilter パラメータを許可",
     "Allow balance redemption": "残高での交換を許可",
+    "Allow querying owner quota": "所有ユーザーのクォータ照会を許可",
+    "Include the owning account balance in the token usage endpoint": "トークン使用量 API に所有アカウントの残高を含める",
     "Allow Claude beta query passthrough": "Claude ベータクエリのパススルーを許可",
     "Allow clients to query configured ratios via `/api/ratio`.": "クライアントが `/api/ratio` 経由で設定された比率を照会できるようにします。",
     "Allow HTTP image requests": "HTTP画像リクエストを許可",

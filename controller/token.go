@@ -35,6 +35,25 @@ func (input *tokenAutoGroupsInput) UnmarshalJSON(data []byte) error {
 type tokenRequest struct {
 	model.Token
 	AutoGroups tokenAutoGroupsInput `json:"auto_groups"`
+	// Pointer distinguishes an omitted update field from an explicit false.
+	AllowUserQuotaQuery *bool `json:"-"`
+}
+
+func (request *tokenRequest) UnmarshalJSON(data []byte) error {
+	type tokenRequestAlias tokenRequest
+	var parsed tokenRequestAlias
+	if err := common.Unmarshal(data, &parsed); err != nil {
+		return err
+	}
+	var optional struct {
+		AllowUserQuotaQuery *bool `json:"allow_user_quota_query"`
+	}
+	if err := common.Unmarshal(data, &optional); err != nil {
+		return err
+	}
+	*request = tokenRequest(parsed)
+	request.AllowUserQuotaQuery = optional.AllowUserQuotaQuery
+	return nil
 }
 
 type tokenResponse struct {
@@ -255,20 +274,38 @@ func GetTokenUsage(c *gin.Context) {
 		expiredAt = 0
 	}
 
+	data := gin.H{
+		"object":               "token_usage",
+		"name":                 token.Name,
+		"total_granted":        token.RemainQuota + token.UsedQuota,
+		"total_used":           token.UsedQuota,
+		"total_available":      token.RemainQuota,
+		"unlimited_quota":      token.UnlimitedQuota,
+		"model_limits":         token.GetModelLimitsMap(),
+		"model_limits_enabled": token.ModelLimitsEnabled,
+		"expires_at":           expiredAt,
+	}
+	if token.AllowUserQuotaQuery {
+		userQuota, quotaErr := model.GetUserQuota(token.UserId, false)
+		userUsedQuota := 0
+		if quotaErr == nil {
+			userUsedQuota, quotaErr = model.GetUserUsedQuota(token.UserId)
+		}
+		if quotaErr != nil {
+			common.SysError(common.LogText("failed to get user quota: %s", quotaErr.Error()))
+			common.ApiErrorI18n(c, i18n.MsgTokenGetInfoFailed)
+			return
+		}
+		data["user_quota"] = gin.H{
+			"total_available": userQuota,
+			"total_used":      userUsedQuota,
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"code":    true,
 		"message": "ok",
-		"data": gin.H{
-			"object":               "token_usage",
-			"name":                 token.Name,
-			"total_granted":        token.RemainQuota + token.UsedQuota,
-			"total_used":           token.UsedQuota,
-			"total_available":      token.RemainQuota,
-			"unlimited_quota":      token.UnlimitedQuota,
-			"model_limits":         token.GetModelLimitsMap(),
-			"model_limits_enabled": token.ModelLimitsEnabled,
-			"expires_at":           expiredAt,
-		},
+		"data":    data,
 	})
 }
 
@@ -339,6 +376,7 @@ func AddToken(c *gin.Context) {
 		Group:              token.Group,
 		CrossGroupRetry:    token.CrossGroupRetry,
 		AutoGroups:         token.AutoGroups,
+		AllowUserQuotaQuery: request.AllowUserQuotaQuery == nil || *request.AllowUserQuotaQuery,
 	}
 	err = cleanToken.Insert()
 	if err != nil {
@@ -416,6 +454,9 @@ func UpdateToken(c *gin.Context) {
 		cleanToken.ModelLimitsEnabled = token.ModelLimitsEnabled
 		cleanToken.ModelLimits = token.ModelLimits
 		cleanToken.AllowIps = token.AllowIps
+		if request.AllowUserQuotaQuery != nil {
+			cleanToken.AllowUserQuotaQuery = *request.AllowUserQuotaQuery
+		}
 		cleanToken.Group = token.Group
 		cleanToken.CrossGroupRetry = token.CrossGroupRetry
 		if token.Group != "auto" {
