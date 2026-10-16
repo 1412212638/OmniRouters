@@ -156,6 +156,43 @@ func GetPricing(c *gin.Context) {
 		}
 	}
 
+	// The model-pricing settings screen uses this endpoint as its authenticated
+	// source of editor metadata. Keep that trusted admin path intact; only the
+	// public catalogue response below is reduced to display-safe fields.
+	if userID > 0 && c.GetInt("role") >= common.RoleAdminUser {
+		usableGroup = service.GetUserUsableGroupsWithExtras(group, extraGroups)
+		pricing = filterPricingByUsableGroups(pricing, usableGroup)
+		modelGroupRatios := ratio_setting.GetGroupModelRatioForUser(userID)
+		for i := range pricing {
+			resolved := make(map[string]float64, len(groupRatio))
+			for g, base := range groupRatio {
+				resolved[g] = base
+				if _, ok := modelGroupRatios[g][pricing[i].ModelName]; ok {
+					resolved[g] = modelGroupRatios[g][pricing[i].ModelName]
+				}
+			}
+			pricing[i].ModelGroupRatio = resolved
+		}
+		for group := range ratio_setting.GetGroupRatioCopy() {
+			if _, ok := usableGroup[group]; !ok {
+				delete(groupRatio, group)
+			}
+		}
+		c.JSON(200, gin.H{
+			"success":                 true,
+			"data":                    pricing,
+			"vendors":                 model.GetVendors(),
+			"group_ratio":             groupRatio,
+			"group_model_ratio":       modelGroupRatios,
+			"group_model_ratio_expiry": ratio_setting.GetGroupModelRatioExpiry(),
+			"usable_group":             usableGroup,
+			"supported_endpoint":       model.GetSupportedEndpointMap(),
+			"auto_groups":              service.GetUserAutoGroupWithExtras(group, extraGroups),
+			"pricing_version":           "group-model-ratio-v1",
+		})
+		return
+	}
+
 	usableGroup = publicUsableGroups(userID, group, extraGroups)
 	pricing = filterPricingByUsableGroups(pricing, usableGroup)
 	groupRatio = filterVisibleGroupRatios(groupRatio, usableGroup)
