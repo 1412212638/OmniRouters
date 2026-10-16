@@ -3886,5 +3886,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Integrated: replaced it with the existing `fmt.Sprintf` formatting already supported by the file.
 - Preserved: quota lookup, error handling, and log message content remain unchanged.
 - Validation: repository search confirms no remaining `common.LogText` reference and `git diff --check` passes. Go build and gofmt require CI because the local shell has no Go toolchain.
-- Commit/push: source fix commit pending; GitHub push not yet performed.
+- Commit/push: local commit `4f0660cd9` (`fix: use fmt for token quota error logging`); GitHub push not yet performed.
 
