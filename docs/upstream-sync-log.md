@@ -3845,5 +3845,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: upstream-only relaykit tool-use estimation fields were not copied because the local Claude response type does not expose them; local tool surcharge accounting remains the source of truth. The upstream frontend test suite for the newer `web/src` tree was not copied verbatim because this repository uses the customized `web/default` editor.
 - Preserved: protected project identifiers, existing payment/auth/wallet/Friends Hub changes, and unrelated untracked worktree files.
 - Validation: `bun run build` in `web/default` passed; targeted Oxfmt and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test dependencies and unrelated model/settings, redemption-code, and wallet type errors; it reported no error in the changed parameter override editor. Targeted Oxlint still reports pre-existing style violations in that customized editor. Go tests could not run because the Go toolchain is unavailable in the current shell.
-- Commit/push: local commit `29855ac21` (`feat(upstream): sync rate limit billing and override updates`); not pushed yet.
+- Commit/push: local commit `9bae123e4` (`feat(upstream): sync rate limit billing and override updates`); not pushed yet.
 
