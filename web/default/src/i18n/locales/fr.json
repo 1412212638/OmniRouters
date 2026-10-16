@@ -5873,6 +5873,7 @@
     "View Docs": "Voir la documentation",
     "API Access Points": "Points d’accès API",
     "Supported API protocols and endpoints": "Protocoles et points de terminaison API pris en charge",
-    "Selected Endpoint": "Point de terminaison sélectionné"
+    "Selected Endpoint": "Point de terminaison sélectionné",
+    "API Address": "Adresse API"
   }
 }

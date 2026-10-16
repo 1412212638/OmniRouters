@@ -5873,6 +5873,7 @@
     "View Docs": "ドキュメントを表示",
     "API Access Points": "API 接続ポイント",
     "Supported API protocols and endpoints": "対応する API プロトコルとエンドポイント",
-    "Selected Endpoint": "選択したエンドポイント"
+    "Selected Endpoint": "選択したエンドポイント",
+    "API Address": "API アドレス"
   }
 }

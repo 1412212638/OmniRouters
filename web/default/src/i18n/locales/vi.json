@@ -5876,6 +5876,7 @@
     "View Docs": "Xem tài liệu",
     "API Access Points": "Điểm truy cập API",
     "Supported API protocols and endpoints": "Giao thức và endpoint API được hỗ trợ",
-    "Selected Endpoint": "Endpoint đã chọn"
+    "Selected Endpoint": "Endpoint đã chọn",
+    "API Address": "Địa chỉ API"
   }
 }

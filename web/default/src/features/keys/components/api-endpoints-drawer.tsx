@@ -353,27 +353,12 @@ export function ApiEndpointsDrawer({
               </div>
             )}
 
-            <div className='bg-muted/20 rounded-xl border px-4 py-3'>
-              <div className='text-muted-foreground mb-2 text-xs'>
-                {t('Selected Endpoint')}
-              </div>
-              <div className='flex items-center gap-2'>
-                <code className='min-w-0 flex-1 text-xs break-all'>
-                  {selectedUrl}
-                </code>
-                <CopyButton
-                  value={selectedUrl}
-                  size='sm'
-                  className='size-7 shrink-0 p-0'
-                  iconClassName='size-3.5'
-                  tooltip={t('Copy endpoint URL')}
-                  aria-label={t('Copy endpoint URL')}
-                />
-              </div>
-            </div>
-
             {PROTOCOLS.map((protocol) => {
               const protocolBaseUrl = getProtocolBaseUrl(protocol)
+              const isSelectedProtocol = protocol.id === selectedProtocol.id
+              const protocolApiUrl = isSelectedProtocol
+                ? selectedUrl
+                : protocolBaseUrl
               return (
                 <section
                   key={protocol.id}
@@ -395,19 +380,27 @@ export function ApiEndpointsDrawer({
 
                   <div className='space-y-2'>
                     <div className='text-muted-foreground text-xs'>
-                      {t('Base URL')}
+                      {t('API Address')}
                     </div>
                     <div className='bg-muted/30 flex items-center gap-2 rounded-lg border px-3 py-2'>
                       <code className='min-w-0 flex-1 text-xs break-all'>
-                        {protocolBaseUrl}
+                        {protocolApiUrl}
                       </code>
                       <CopyButton
-                        value={protocolBaseUrl}
+                        value={protocolApiUrl}
                         size='sm'
                         className='size-7 shrink-0 p-0'
                         iconClassName='size-3.5'
-                        tooltip={t('Copy base URL')}
-                        aria-label={t('Copy base URL')}
+                        tooltip={t(
+                          isSelectedProtocol
+                            ? 'Copy endpoint URL'
+                            : 'Copy base URL'
+                        )}
+                        aria-label={t(
+                          isSelectedProtocol
+                            ? 'Copy endpoint URL'
+                            : 'Copy base URL'
+                        )}
                       />
                     </div>
                   </div>

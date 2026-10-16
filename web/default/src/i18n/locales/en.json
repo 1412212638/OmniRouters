@@ -5942,6 +5942,7 @@
     "View Docs": "View Docs",
     "API Access Points": "API Access Points",
     "Supported API protocols and endpoints": "Supported API protocols and endpoints",
-    "Selected Endpoint": "Selected Endpoint"
+    "Selected Endpoint": "Selected Endpoint",
+    "API Address": "API Address"
   }
 }

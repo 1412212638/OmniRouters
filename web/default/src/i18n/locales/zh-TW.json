@@ -5607,6 +5607,7 @@
     "View Docs": "查看文件",
     "API Access Points": "API 接入點",
     "Supported API protocols and endpoints": "支援的 API 協定與端點",
-    "Selected Endpoint": "目前端點"
+    "Selected Endpoint": "目前端點",
+    "API Address": "API 位址"
   }
 }

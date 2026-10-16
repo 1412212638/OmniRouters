@@ -5873,6 +5873,7 @@
     "View Docs": "Открыть документацию",
     "API Access Points": "Точки доступа API",
     "Supported API protocols and endpoints": "Поддерживаемые протоколы и конечные точки API",
-    "Selected Endpoint": "Выбранная конечная точка"
+    "Selected Endpoint": "Выбранная конечная точка",
+    "API Address": "Адрес API"
   }
 }

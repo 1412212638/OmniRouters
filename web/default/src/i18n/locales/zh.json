@@ -5942,6 +5942,7 @@
     "View Docs": "查看文档",
     "API Access Points": "API 接入点",
     "Supported API protocols and endpoints": "支持的 API 协议和端点",
-    "Selected Endpoint": "当前端点"
+    "Selected Endpoint": "当前端点",
+    "API Address": "API 地址"
   }
 }

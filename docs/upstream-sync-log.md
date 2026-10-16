@@ -3916,3 +3916,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bun run build` in `web/default` passed; the seven locale JSON files parsed successfully; targeted Oxlint and `git diff --check` passed.
 - Commit/push: local commit `f761f8672` (`feat(keys): redesign endpoint drawer cards`); GitHub push not performed in this round.
 
+## 2026-10-16 - Show the selected endpoint inside its protocol card
+
+- Local reason: the drawer repeated the selected endpoint in a top summary block, forcing users to scroll back up after choosing an endpoint.
+- Integrated: removed the duplicate top summary and made each protocol card's API Address dynamic; the active protocol card now shows and copies the selected full endpoint URL, while other cards continue to show their base URL. Endpoint actions continue to use the same selected URL.
+- Preserved: endpoint selection, highlighting, multi-node selection, latency checks, open/documentation actions, all four protocol groups, and unrelated worktree changes.
+- Validation: `bun run build` in `web/default` passed; targeted Oxlint passed; all seven locale JSON files parsed successfully; `git diff --check` passed.
+- Commit/push: local commit `a004799d0` (`feat(keys): show dynamic endpoint address`); GitHub push not performed in this round.
+
