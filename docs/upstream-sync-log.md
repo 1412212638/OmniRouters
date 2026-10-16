@@ -3904,5 +3904,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: protocol availability is presented from the gateway's static route contract; the drawer does not make authenticated test requests or dynamically inspect plugin declarations.
 - Preserved: protected project identifiers, unrelated local worktree changes, and all existing API key behavior.
 - Validation: frontend production build passed; targeted Oxlint passed; all seven locale JSON files parsed; `git diff --check` passed. Full frontend typecheck remains blocked by pre-existing missing test dependencies and unrelated type errors.
-- Commit/push: source changes are currently uncommitted and not pushed.
+- Commit/push: source commit `934ec93fe` (`feat(keys): add endpoint selector drawer`) is ready to push; the log status will be finalized after the GitHub push.
 
