@@ -120,6 +120,7 @@ const CONDITION_MODE_OPTIONS = [
   { label: 'Prefix', value: 'prefix' },
   { label: 'Suffix', value: 'suffix' },
   { label: 'Contains', value: 'contains' },
+  { label: 'Regex', value: 'regex' },
   { label: 'Greater Than', value: 'gt' },
   { label: 'Greater Than or Equal', value: 'gte' },
   { label: 'Less Than', value: 'lt' },
@@ -451,6 +452,14 @@ const parseLooseValue = (valueText: string): unknown => {
   } catch {
     return raw
   }
+}
+
+const parseConditionValue = (
+  condition: Pick<ParamOverrideCondition, 'mode' | 'value_text'>
+): unknown => {
+  // Regex patterns are always strings, even when they resemble JSON values.
+  if (condition.mode === 'regex') return condition.value_text
+  return parseLooseValue(condition.value_text)
 }
 
 const verifyJSON = (text: string): boolean => {
@@ -844,7 +853,9 @@ const buildPruneObjectsValueText = (draft: PruneObjectsDraft): string => {
         mode: CONDITION_MODE_VALUES.has(rule.mode) ? rule.mode : 'full',
       }
       const valueRaw = String(rule.value_text || '').trim()
-      if (valueRaw !== '') conditionPayload.value = parseLooseValue(valueRaw)
+      if (rule.mode === 'regex' || valueRaw !== '') {
+        conditionPayload.value = parseConditionValue(rule)
+      }
       if (rule.invert) conditionPayload.invert = true
       if (rule.pass_missing_key) conditionPayload.pass_missing_key = true
       return conditionPayload
@@ -887,7 +898,7 @@ const buildConditionPayload = (
   const payload: Record<string, unknown> = {
     path,
     mode: condition.mode || 'full',
-    value: parseLooseValue(condition.value_text),
+    value: parseConditionValue(condition),
   }
   if (condition.invert) payload.invert = true
   if (condition.pass_missing_key) payload.pass_missing_key = true
@@ -1256,7 +1267,7 @@ export function ParamOverrideEditorDialog(
         conditions: source.conditions.map((c) => ({
           path: c.path,
           mode: c.mode,
-          value: parseLooseValue(c.value_text),
+          value: parseConditionValue(c),
           invert: c.invert,
           pass_missing_key: c.pass_missing_key,
         })),
@@ -2574,7 +2585,7 @@ function ConditionEditor(conditionEditorProps: ConditionEditorProps) {
                       { value_text: e.target.value }
                     )
                   }
-                  placeholder='gpt'
+                  placeholder={condition.mode === 'regex' ? '^gpt-' : 'gpt'}
                   className='h-8 text-xs'
                 />
               </div>
@@ -3094,7 +3105,11 @@ function PruneObjectsEditor(pruneObjectsEditorProps: PruneObjectsEditorProps) {
                               { value_text: e.target.value }
                             )
                           }
-                          placeholder='redacted_thinking'
+                          placeholder={
+                            rule.mode === 'regex'
+                              ? '^redacted_'
+                              : 'redacted_thinking'
+                          }
                           className='h-7 text-xs'
                         />
                       </div>

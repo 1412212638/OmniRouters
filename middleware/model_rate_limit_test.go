@@ -30,7 +30,7 @@ func modelLimitBackend(t *testing.T, backend string, total, success int) (int, g
 	t.Helper()
 	user := 8200000 + int(modelRateLimitTestUsers.Add(1))
 	if backend == "memory" {
-		return user, memoryRateLimitHandler(60, total, success)
+		return user, memoryRateLimitHandler(strconv.Itoa(user), 60, total, success)
 	}
 	addr := os.Getenv("TEST_REDIS_ADDR")
 	if addr == "" {
@@ -47,7 +47,7 @@ func modelLimitBackend(t *testing.T, backend string, total, success int) (int, g
 	totalKey := "rateLimit:" + strconv.Itoa(user)
 	require.NoError(t, client.Del(ctx, key, totalKey).Err())
 	t.Cleanup(func() { _ = client.Del(context.Background(), key, totalKey).Err() })
-	return user, redisRateLimitHandler(60, total, success)
+	return user, redisRateLimitHandler(strconv.Itoa(user), 60, total, success)
 }
 
 func TestModelRateLimitProtocolFailureReleasesSuccessLimit(t *testing.T) {

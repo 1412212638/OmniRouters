@@ -36,6 +36,28 @@ func TestApplyParamOverrideTrimPrefix(t *testing.T) {
 	assertJSONEqual(t, `{"model":"gpt-4","temperature":0.7}`, string(out))
 }
 
+func TestApplyParamOverrideConditionRegex(t *testing.T) {
+	override := map[string]interface{}{
+		"operations": []interface{}{map[string]interface{}{
+			"path": "matched",
+			"mode": "set",
+			"value": true,
+			"conditions": []interface{}{map[string]interface{}{
+				"path":  "model",
+				"mode":  "regex",
+				"value": `^gpt-`,
+			}},
+		}},
+	}
+	out, err := ApplyParamOverride([]byte(`{"model":"gpt-4o"}`), override, nil)
+	require.NoError(t, err)
+	assertJSONEqual(t, `{"model":"gpt-4o","matched":true}`, string(out))
+
+	override["operations"].([]interface{})[0].(map[string]interface{})["conditions"].([]interface{})[0].(map[string]interface{})["value"] = "["
+	_, err = ApplyParamOverride([]byte(`{"model":"gpt-4o"}`), override, nil)
+	require.ErrorContains(t, err, "invalid regex pattern")
+}
+
 func TestApplyParamOverrideTrimSuffix(t *testing.T) {
 	// trim_suffix example:
 	// {"operations":[{"path":"model","mode":"trim_suffix","value":"-latest"}]}
