@@ -88,6 +88,7 @@ import {
   getDynamicCatalogPriceRanges,
   getDynamicDisplayGroupRatio,
   getDynamicPricingSummary,
+  isDynamicPricingModel,
 } from './lib/dynamic-price'
 import {
   getAvailableGroups,
@@ -842,18 +843,17 @@ function usePriceRows(props: {
   }
   const isTokenBased = isTokenBasedModel(pricingModel)
   const tokenUnitLabel = props.tokenUnit === 'K' ? '1K tokens' : '1M tokens'
-  const dynamicSummary =
-    pricingModel.billing_mode === 'tiered_expr' && pricingModel.billing_expr
-      ? getDynamicPricingSummary(pricingModel, {
-          tokenUnit: props.tokenUnit,
-          priceRate: props.priceRate,
-          usdExchangeRate: props.usdExchangeRate,
-          groupRatioMultiplier: getDynamicDisplayGroupRatio(
-            pricingModel,
-            props.selectedGroup
-          ),
-        })
-      : null
+  const dynamicSummary = isDynamicPricingModel(pricingModel)
+    ? getDynamicPricingSummary(pricingModel, {
+        tokenUnit: props.tokenUnit,
+        priceRate: props.priceRate,
+        usdExchangeRate: props.usdExchangeRate,
+        groupRatioMultiplier: getDynamicDisplayGroupRatio(
+          pricingModel,
+          props.selectedGroup
+        ),
+      })
+    : null
   const catalogPriceRanges = dynamicSummary?.hasRequestRules
     ? getDynamicCatalogPriceRanges(pricingModel, {
         tokenUnit: props.tokenUnit,
