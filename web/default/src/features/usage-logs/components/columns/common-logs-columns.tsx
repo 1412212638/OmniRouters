@@ -196,7 +196,6 @@ function buildTypeDetailSegments(
         Array.isArray(other.request_rules) &&
         other.request_rules.length > 0 &&
         other.request_rules.every((rule) => rule.matched !== true)
-      const matchedTier = other.matched_tier?.trim()
       const isBaseTierFallback = hasOnlyUnmatchedRequestRules
       const matchedMultiplierText = matchedRequestRules
         .map((rule) => `${rule.multiplier}x`)
@@ -205,14 +204,11 @@ function buildTypeDetailSegments(
         text:
           matchedRequestRules.length > 0
             ? `${t('Dynamic Pricing')} · ${t('Matched')} ${matchedMultiplierText}`
-            : `${t('Dynamic Pricing')} · ${
-                matchedTier ||
-                t(
-                  isBaseTierFallback
-                    ? 'Base tier / off-peak fallback'
-                    : 'Special billing expression'
-                )
-              }`,
+            : `${t('Dynamic Pricing')} · ${t(
+                isBaseTierFallback
+                  ? 'Base tier / off-peak fallback'
+                  : 'No matching results'
+              )}`,
         muted: true,
       })
     }

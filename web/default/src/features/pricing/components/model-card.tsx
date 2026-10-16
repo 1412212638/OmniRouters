@@ -52,7 +52,9 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   const isDynamicPricing =
     props.model.billing_mode === 'tiered_expr' &&
     Boolean(props.model.billing_expr)
-  const hasCachedPrice = isTokenBased && props.model.cache_ratio != null
+  const hasCacheReadPrice = isTokenBased && props.model.cache_ratio != null
+  const hasCacheWritePrice =
+    isTokenBased && props.model.create_cache_ratio != null
   const dynamicSummary = isDynamicPricing
     ? getDynamicPricingSummary(props.model, {
         tokenUnit,
@@ -93,6 +95,28 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       (entry) =>
         entry.field === 'cacheReadPrice' && entry.displayUnit === 'token'
     )
+    const cacheWriteEntry =
+      dynamicSummary.secondaryEntries.find(
+        (entry) =>
+          entry.field === 'cacheCreatePrice' && entry.displayUnit === 'token'
+      ) ||
+      dynamicSummary.secondaryEntries.find(
+        (entry) =>
+          entry.field === 'cacheCreate1hPrice' && entry.displayUnit === 'token'
+      )
+    const inputEntry = dynamicSummary.primaryEntries.find(
+      (entry) => entry.field === 'inputPrice'
+    )
+    const isDiscountedCacheEntry = (entry: (typeof cacheReadEntries)[number]) =>
+      inputEntry != null &&
+      ['cacheReadPrice', 'cacheCreatePrice', 'cacheCreate1hPrice'].includes(
+        entry.field
+      ) &&
+      entry.value < inputEntry.value
+    const cacheEntries = [
+      ...cacheReadEntries,
+      ...(cacheWriteEntry ? [cacheWriteEntry] : []),
+    ]
     if (dynamicSummary.isSpecialExpression) {
       priceSummary = (
         <span className='min-w-0'>
@@ -115,25 +139,30 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       )
     } else if (
       dynamicSummary.primaryEntries.length > 0 ||
-      cacheReadEntries.length > 0
+      cacheEntries.length > 0
     ) {
       priceSummary = (
         <>
-          {[dynamicSummary.primaryEntries, cacheReadEntries]
-            .flat()
-            .map((entry) => (
+          {[dynamicSummary.primaryEntries, cacheEntries].flat().map((entry) => (
+            <span
+              key={entry.key}
+              className='text-muted-foreground whitespace-nowrap'
+            >
+              {t(entry.shortLabel)}{' '}
               <span
-                key={entry.key}
-                className='text-muted-foreground whitespace-nowrap'
+                className={cn(
+                  'font-mono font-semibold',
+                  isDiscountedCacheEntry(entry)
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-foreground'
+                )}
               >
-                {t(entry.shortLabel)}{' '}
-                <span className='text-foreground font-mono font-semibold'>
-                  {entry.formatted}
-                </span>
-                {entry.displayUnit === 'token' && `/${tokenUnitLabel}`}
-                {entry.displayUnit === 'custom' && `/${entry.unit}`}
+                {entry.formatted}
               </span>
-            ))}
+              {entry.displayUnit === 'token' && `/${tokenUnitLabel}`}
+              {entry.displayUnit === 'custom' && `/${entry.unit}`}
+            </span>
+          ))}
         </>
       )
     } else if (dynamicSummary.secondaryEntries.length > 0) {
@@ -211,13 +240,43 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           </span>
           /{tokenUnitLabel}
         </span>
-        {hasCachedPrice && (
+        {hasCacheReadPrice && (
           <span className='text-muted-foreground/60 whitespace-nowrap'>
-            {t('Cached')}{' '}
-            <span className='font-mono'>
+            {t('Cache Read')}{' '}
+            <span
+              className={cn(
+                'font-mono',
+                Number(props.model.cache_ratio) < 1
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-foreground'
+              )}
+            >
               {formatPrice(
                 props.model,
                 'cache',
+                tokenUnit,
+                showRechargePrice,
+                priceRate,
+                usdExchangeRate,
+                props.selectedGroup
+              )}
+            </span>
+          </span>
+        )}
+        {hasCacheWritePrice && (
+          <span className='text-muted-foreground/60 whitespace-nowrap'>
+            {t('Cache Write')}{' '}
+            <span
+              className={cn(
+                'font-mono',
+                Number(props.model.create_cache_ratio) < 1
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-foreground'
+              )}
+            >
+              {formatPrice(
+                props.model,
+                'create_cache',
                 tokenUnit,
                 showRechargePrice,
                 priceRate,

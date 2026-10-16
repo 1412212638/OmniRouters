@@ -1,5 +1,21 @@
 # Upstream Sync Log
 
+## 2026-10-17 - Complete model-card cache pricing display
+
+- Local reason: model plaza cards showed dynamic cache-read prices without discount styling and omitted cache-write prices, leaving cache-aware models with an incomplete compact price summary.
+- Changed: model cards now show input, output, cache-read, and cache-write prices when available; cache-write display falls back to the 1-hour cache price when no generic cache-write price exists, and discounted cache prices use the existing green emphasis.
+- Preserved: billing expressions, model-detail pricing tables, pricing columns, non-cache price formatting, protected project identifiers, and unrelated worktree files.
+- Validation: targeted Oxfmt, frontend production build, and `git diff --check` are required; no backend code or billing behavior changed.
+- Commit/push: pending.
+
+## 2026-10-17 - Restore peak/off-peak usage-log labels
+
+- Local reason: the latest pricing UI sync used the recorded `base` tier before checking request-rule traces, so DeepSeek-style peak/off-peak logs displayed `Dynamic Pricing · base` instead of the prior peak match or off-peak fallback label.
+- Changed: compact usage-log rows and detail billing summaries now prioritize matched request-rule multipliers, show `Base tier / off-peak fallback` only when request rules exist and all are unmatched, and retain the recorded tier for ambiguous logs.
+- Preserved: billing calculations, request-rule traces, detailed pricing tables, flat-expression handling, protected project identifiers, and unrelated worktree files.
+- Validation: targeted frontend formatting, production build, and `git diff --check` are required; no backend code or billing behavior changed.
+- Commit/push: pending.
+
 ## 2026-10-16 - Sync dynamic pricing and model plaza fixes
 
 - Upstream commits: `fc08b76f0`, `3827fd830`, `c9f7b6208`, and `9948b1ef1`.
