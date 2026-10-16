@@ -3924,3 +3924,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bun run build` in `web/default` passed; targeted Oxlint passed; all seven locale JSON files parsed successfully; `git diff --check` passed.
 - Commit/push: local commit `a004799d0` (`feat(keys): show dynamic endpoint address`); GitHub push not performed in this round.
 
+## 2026-10-16 - Fix service node selector text truncation
+
+- Local reason: the service node selector used the node URL as its visible value, so long URLs were clipped in the trigger and made the node choice hard to identify.
+- Integrated: the selector now shows the configured node name, keeps the full URL available in the hover title and dropdown option, and preserves URL-based selection and endpoint generation.
+- Preserved: multi-node selection, node colors, dynamic API addresses, endpoint actions, and unrelated worktree changes.
+- Validation: targeted Oxlint passed; `bun run build` in `web/default` passed; locale JSON files remain valid; `git diff --check` passed.
+- Commit/push: pending source commit and push.
+

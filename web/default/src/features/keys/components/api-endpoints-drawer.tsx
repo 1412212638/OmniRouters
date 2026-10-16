@@ -331,8 +331,15 @@ export function ApiEndpointsDrawer({
                     setPingStatus(getDefaultPingStatus())
                   }}
                 >
-                  <SelectTrigger className='w-40 shrink-0'>
-                    <SelectValue placeholder={t('Select Server Node')} />
+                  <SelectTrigger
+                    className='w-44 min-w-0 shrink-0'
+                    title={selectedNode?.url}
+                  >
+                    <SelectValue placeholder={t('Select Server Node')}>
+                      <span className='min-w-0 truncate'>
+                        {selectedNode?.route || selectedNode?.url}
+                      </span>
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {nodes.map((node) => (
@@ -344,7 +351,12 @@ export function ApiEndpointsDrawer({
                               getBgColorClass(node.color)
                             )}
                           />
-                          <span className='truncate'>{node.route}</span>
+                          <span className='min-w-0'>
+                            <span className='block truncate'>{node.route}</span>
+                            <span className='text-muted-foreground block truncate text-xs'>
+                              {node.url}
+                            </span>
+                          </span>
                         </span>
                       </SelectItem>
                     ))}
