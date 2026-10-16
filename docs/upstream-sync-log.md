@@ -3872,3 +3872,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check` passed and source references were checked with `rg`. Go tests and `gofmt` could not run locally because the Go toolchain is unavailable; GitHub Actions must verify backend compilation and formatting.
 - Commit/push: source fix committed as `74858e383` (`fix: resolve upstream regression CI failures`); this log entry was recorded in `b27bd6d62`; GitHub push not yet performed.
 
+## 2026-10-16 - Fix image build compiler failure in token IP rejection
+
+- Local reason: the image build failed because `middleware/auth.go` called a nonexistent `common.ApiErrorStatus` helper.
+- Integrated: use the existing Gin JSON response path with HTTP 403 and abort the request after a token IP allowlist mismatch.
+- Preserved: the translated error message and token read-only authorization behavior remain unchanged.
+- Validation: `git diff --check` passed and repository search confirms no remaining `ApiErrorStatus` call. Go build and gofmt require CI because the local shell has no Go toolchain.
+- Commit/push: source fix commit pending; GitHub push not yet performed.
+
