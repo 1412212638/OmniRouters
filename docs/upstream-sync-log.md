@@ -3864,3 +3864,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bun run build` passed in `web/default`; focused Bun tests for Playground reasoning and API key form mapping passed (11 tests); all seven locale JSON files parsed; `git diff --check` passed. Go tests and `gofmt` could not run because the local shell has no Go toolchain. CI remains required for backend compilation and cross-database tests.
 - Commit/push: local source commit `9238cfe58` (`feat(upstream): sync token quota, relay and console fixes`); GitHub push intentionally not performed in this round.
 
+## 2026-10-16 - Fix regression CI compile and formatting failures
+
+- Local reason: the regression workflow reported an undefined `MsgAuthTokenIPNotAllowed`, an OpenAI test initializer using the removed `RelayInfo.ChannelType` field, and an unformatted `relay/common/relay_info.go` field block.
+- Integrated: added the IP allowlist error key and English, Simplified Chinese, and Traditional Chinese translations; removed the invalid test field/import; aligned the `RelayInfo` fields to gofmt output.
+- Preserved: no runtime behavior beyond making the existing IP allowlist error translatable; no unrelated worktree artifacts were staged.
+- Validation: `git diff --check` passed and source references were checked with `rg`. Go tests and `gofmt` could not run locally because the Go toolchain is unavailable; GitHub Actions must verify backend compilation and formatting.
+- Commit/push: local commit pending; GitHub push not yet performed.
+
