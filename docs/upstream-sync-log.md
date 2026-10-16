@@ -3878,5 +3878,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Integrated: use the existing Gin JSON response path with HTTP 403 and abort the request after a token IP allowlist mismatch.
 - Preserved: the translated error message and token read-only authorization behavior remain unchanged.
 - Validation: `git diff --check` passed and repository search confirms no remaining `ApiErrorStatus` call. Go build and gofmt require CI because the local shell has no Go toolchain.
-- Commit/push: source fix commit pending; GitHub push not yet performed.
+- Commit/push: local commit `8d7d77202` (`fix: use existing token IP error response`); GitHub push not yet performed.
 
