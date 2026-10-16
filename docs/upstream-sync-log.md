@@ -3948,5 +3948,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Deferred: task-plugin pricing breakdowns cannot show plugin-specific conditions on the public page without exposing their schema; the public summary marks usage-based pricing instead. A Go test run was not possible because the local shell has no Go toolchain.
 - Preserved: all unrelated Friends Hub, Image Playground, Wallet, endpoint drawer, locale, script, generated, and upstream-sync changes; protected project identifiers remain unchanged.
 - Validation: `bun run build` in `web/default` passed; targeted Oxfmt completed; targeted Oxlint reports only pre-existing pricing-file warnings; `git diff --check` passed. Added model and controller regression tests for summary probing and internal-field removal; they require CI Go tooling to execute.
-- Commit/push: source commit `57c48384b` (`feat(pricing): sanitize public pricing response`); log update commit and GitHub push are being completed in this round.
+- Commit/push: source commit `57c48384b` (`feat(pricing): sanitize public pricing response`) and log commit `dba82ec36` are pushed to `origin/main`.
 
