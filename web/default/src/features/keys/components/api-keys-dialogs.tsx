@@ -1,3 +1,4 @@
+import { ApiEndpointsDrawer } from './api-endpoints-drawer'
 import { ApiKeysDeleteDialog } from './api-keys-delete-dialog'
 import { ApiKeysMutateDrawer } from './api-keys-mutate-drawer'
 import { useApiKeys } from './api-keys-provider'
@@ -18,6 +19,10 @@ export function ApiKeysDialogs() {
         open={open === 'cc-switch'}
         onOpenChange={(isOpen) => !isOpen && setOpen(null)}
         tokenKey={resolvedKey}
+      />
+      <ApiEndpointsDrawer
+        open={open === 'endpoints'}
+        onOpenChange={(isOpen) => !isOpen && setOpen(null)}
       />
     </>
   )

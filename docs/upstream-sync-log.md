@@ -3896,3 +3896,13 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: 14 API key/Auto group tests passed; frontend production build passed; all seven locale JSON files parsed; all required translation keys are present; Oxfmt and `git diff --check` passed.
 - Commit/push: local commit `3f8460000` (`fix(i18n): localize API key auto group editor`); GitHub push not performed in this round.
 
+## 2026-10-16 - Add API key endpoint selector
+
+- Local reason: API key users needed a direct way to choose a configured service node, protocol, and endpoint when integrating with the gateway.
+- Integrated: added a View Endpoints action beside Create API Key; the right-side drawer reuses configured API Info nodes, supports OpenAI-compatible, Anthropic, Gemini, and Decision Model (`POST /v1/systemone`) protocols, generates the selected full URL, and provides copy, latency check, documentation, and open actions. Added translations for all seven frontend locales.
+- Already present: existing API Info node configuration, dashboard latency checks, API key creation/editing, and TypeSafe plugin routing remain unchanged.
+- Deferred: protocol availability is presented from the gateway's static route contract; the drawer does not make authenticated test requests or dynamically inspect plugin declarations.
+- Preserved: protected project identifiers, unrelated local worktree changes, and all existing API key behavior.
+- Validation: frontend production build passed; targeted Oxlint passed; all seven locale JSON files parsed; `git diff --check` passed. Full frontend typecheck remains blocked by pre-existing missing test dependencies and unrelated type errors.
+- Commit/push: source changes are currently uncommitted and not pushed.
+
