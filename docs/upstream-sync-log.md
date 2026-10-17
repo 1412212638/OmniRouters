@@ -4004,5 +4004,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Integrated: cache read and cache write rows in the visible `CatalogModelCard` now use the same `hasDiscount` state as input/output. Removed separate cache-ratio and cache-to-input color decisions; cache price values and billing are unchanged.
 - Preserved: price formatting, expression parsing, cache write fallback, detail views, backend billing, and unrelated worktree changes.
 - Validation: `bun run build` in `web/default`, `bunx oxfmt --check src/features/pricing/index.tsx`, and `git diff --check` passed. No billing or backend code changed.
-- Commit/push: pending local commit; GitHub push not requested in this round.
+- Commit/push: source commit `d24cfab10` was pushed to GitHub `origin/main`; this log update is pending commit and push.
 
