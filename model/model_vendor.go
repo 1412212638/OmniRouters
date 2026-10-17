@@ -43,6 +43,25 @@ func GetModelVendorIDsMap(modelIDs []int) (map[int][]int, error) {
 	return result, nil
 }
 
+func DeleteModelVendorBindingsByVendorID(vendorID int) error {
+	return DB.Where("vendor_id = ?", vendorID).Delete(&ModelVendor{}).Error
+}
+
+func GetEnabledVendorIDs(vendorIDs []int) (map[int]struct{}, error) {
+	enabled := make(map[int]struct{}, len(vendorIDs))
+	if len(vendorIDs) == 0 {
+		return enabled, nil
+	}
+	var vendors []Vendor
+	if err := DB.Select("id").Where("id IN ? AND status = ?", vendorIDs, 1).Find(&vendors).Error; err != nil {
+		return nil, err
+	}
+	for _, vendor := range vendors {
+		enabled[vendor.Id] = struct{}{}
+	}
+	return enabled, nil
+}
+
 // MigrateLegacyModelVendors backfills the many-to-many table from the legacy
 // single vendor_id column. It is safe to run repeatedly.
 func MigrateLegacyModelVendors() error {

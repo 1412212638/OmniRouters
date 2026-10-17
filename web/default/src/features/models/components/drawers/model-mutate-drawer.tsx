@@ -359,7 +359,7 @@ export function ModelMutateDrawer({
   })
 
   const vendors = useMemo(
-    () => vendorsData?.data?.items || [],
+    () => (vendorsData?.data?.items || []).filter((vendor) => vendor.status === 1),
     [vendorsData?.data?.items]
   )
 

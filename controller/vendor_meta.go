@@ -7,6 +7,7 @@ import (
 	"github.com/QuantumNous/new-api/model"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // GetAllVendors 获取供应商列表（分页）
@@ -78,6 +79,7 @@ func CreateVendorMeta(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
+	model.InvalidatePricingCache()
 	common.ApiSuccess(c, &v)
 }
 
@@ -101,9 +103,17 @@ func UpdateVendorMeta(c *gin.Context) {
 		return
 	}
 
+	var previous model.Vendor
+	if err := model.DB.First(&previous, v.Id).Error; err != nil {
+		common.ApiError(c, err)
+		return
+	}
 	if err := v.Update(); err != nil {
 		common.ApiError(c, err)
 		return
+	}
+	if previous.Status != v.Status || previous.Name != v.Name || previous.Icon != v.Icon || previous.Description != v.Description {
+		model.RefreshPricing()
 	}
 	common.ApiSuccess(c, &v)
 }
@@ -116,9 +126,18 @@ func DeleteVendorMeta(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
-	if err := model.DB.Delete(&model.Vendor{}, id).Error; err != nil {
+	err = model.DB.Transaction(func(tx *gorm.DB) error {
+		if tx.Migrator().HasTable(&model.ModelVendor{}) {
+			if err := tx.Where("vendor_id = ?", id).Delete(&model.ModelVendor{}).Error; err != nil {
+				return err
+			}
+		}
+		return tx.Delete(&model.Vendor{}, id).Error
+	})
+	if err != nil {
 		common.ApiError(c, err)
 		return
 	}
+	model.RefreshPricing()
 	common.ApiSuccess(c, nil)
 }

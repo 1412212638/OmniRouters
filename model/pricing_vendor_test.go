@@ -34,4 +34,32 @@ func TestBuildAvailableVendorIDsUsesLegacyVendorWhenUnconfigured(t *testing.T) {
 	}
 }
 
+func TestFilterAvailableVendorIDsSkipsDisabledVendors(t *testing.T) {
+	available := map[string][]int{
+		"glm-5.3": {2, 7, 9, 7},
+		"deepseek-v4.1-flash": {9},
+	}
+	enabled := map[int]struct{}{2: {}, 9: {}}
+
+	got := filterAvailableVendorIDs(available, enabled)
+	want := map[string][]int{
+		"glm-5.3":             {2, 9},
+		"deepseek-v4.1-flash": {9},
+	}
+	for name, expected := range want {
+		actual := got[name]
+		if len(actual) != len(expected) {
+			t.Fatalf("unexpected vendors for %s: %#v", name, actual)
+		}
+		for i, id := range expected {
+			if actual[i] != id {
+				t.Fatalf("unexpected vendors for %s: %#v", name, actual)
+			}
+		}
+	}
+	if _, exists := got["disabled-model"]; exists {
+		t.Fatal("disabled-only model should not be added")
+	}
+}
+
 func intPointer(value int) *int { return &value }

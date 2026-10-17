@@ -56,3 +56,53 @@ func TestSetModelVendorIDsDeduplicatesAndReplaces(t *testing.T) {
 		t.Fatalf("unexpected replaced vendors: %#v", got)
 	}
 }
+
+func TestGetEnabledVendorIDsAndDeleteBindings(t *testing.T) {
+	originalDB := DB
+	originalMainType := common.MainDatabaseType()
+	originalLogType := common.LogDatabaseType()
+	t.Cleanup(func() {
+		DB = originalDB
+		common.SetDatabaseTypes(originalMainType, originalLogType)
+	})
+	common.SetDatabaseTypes(common.DatabaseTypeSQLite, common.DatabaseTypeSQLite)
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	DB = db
+	if err := DB.AutoMigrate(&Model{}, &Vendor{}, &ModelVendor{}); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	vendors := []Vendor{{Name: "Enabled", Status: 1}, {Name: "Disabled", Status: 0}}
+	if err := DB.Create(&vendors).Error; err != nil {
+		t.Fatalf("create vendors: %v", err)
+	}
+	m := Model{ModelName: "test-model", Status: 1}
+	if err := DB.Create(&m).Error; err != nil {
+		t.Fatalf("create model: %v", err)
+	}
+	if err := DB.Create(&[]ModelVendor{{ModelID: m.Id, VendorID: vendors[0].Id}, {ModelID: m.Id, VendorID: vendors[1].Id}}).Error; err != nil {
+		t.Fatalf("create bindings: %v", err)
+	}
+	enabled, err := GetEnabledVendorIDs([]int{vendors[0].Id, vendors[1].Id})
+	if err != nil {
+		t.Fatalf("get enabled vendors: %v", err)
+	}
+	if _, ok := enabled[vendors[0].Id]; !ok {
+		t.Fatal("enabled vendor was filtered out")
+	}
+	if _, ok := enabled[vendors[1].Id]; ok {
+		t.Fatal("disabled vendor was returned")
+	}
+	if err := DeleteModelVendorBindingsByVendorID(vendors[1].Id); err != nil {
+		t.Fatalf("delete vendor bindings: %v", err)
+	}
+	var count int64
+	if err := DB.Model(&ModelVendor{}).Where("vendor_id = ?", vendors[1].Id).Count(&count).Error; err != nil {
+		t.Fatalf("count bindings: %v", err)
+	}
+	if count != 0 {
+		t.Fatalf("expected deleted bindings, got %d", count)
+	}
+}

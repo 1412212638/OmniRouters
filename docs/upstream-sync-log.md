@@ -4006,3 +4006,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bun run build` in `web/default`, `bunx oxfmt --check src/features/pricing/index.tsx`, and `git diff --check` passed. No billing or backend code changed.
 - Commit/push: source commit `d24cfab10` was pushed to GitHub `origin/main`; this log update is pending commit and push.
 
+## 2026-10-17 - Hide deleted and disabled vendors from model displays
+
+- Local reason: deleted or disabled vendors remained visible in model plaza cards and in the administrator model editor because pricing and model metadata did not apply vendor status filtering consistently.
+- Integrated: pricing data now exposes only enabled vendors and clears the legacy primary vendor fallback when none are available. Administrator model metadata and the vendor selector filter disabled vendors. Vendor deletion removes model-vendor bindings in the same transaction as the vendor soft delete; vendor create/update/delete paths refresh pricing data, and the frontend invalidates the pricing query after deletion.
+- Preserved: disabled vendors remain stored with their historical bindings so re-enabling restores configuration; channel and billing behavior is unchanged; all unrelated local worktree changes remain untouched.
+- Validation: added SQLite-backed regression coverage for enabled-vendor filtering and model-vendor binding cleanup, plus a pure filtering test. Go tests and gofmt could not run because Go is unavailable in the local shell; frontend validation was not rerun because this change has no frontend build logic beyond query invalidation. `git diff --check` remains required before commit.
+- Commit/push: local changes are pending commit and push.
+

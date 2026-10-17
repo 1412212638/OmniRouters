@@ -240,6 +240,18 @@ func buildAvailableVendorIDs(metaMap map[string]*Model, modelVendorIDs map[int][
 	return availableVendorIDs
 }
 
+func filterAvailableVendorIDs(vendorIDs map[string][]int, enabledVendorIDs map[int]struct{}) map[string][]int {
+	filtered := make(map[string][]int, len(vendorIDs))
+	for modelName, ids := range vendorIDs {
+		for _, id := range ids {
+			if _, enabled := enabledVendorIDs[id]; enabled {
+				filtered[modelName] = append(filtered[modelName], id)
+			}
+		}
+	}
+	return filtered
+}
+
 func updatePricing() {
 	// Reuse hourly platform usage aggregates once per pricing cache refresh.
 	usageByModel := make(map[string]int64)
@@ -272,8 +284,12 @@ func updatePricing() {
 	var vendors []Vendor
 	_ = DB.Find(&vendors).Error
 	vendorMap := make(map[int]*Vendor)
+	enabledVendorIDs := make(map[int]struct{}, len(vendors))
 	for i := range vendors {
 		vendorMap[vendors[i].Id] = &vendors[i]
+		if vendors[i].Status == 1 {
+			enabledVendorIDs[vendors[i].Id] = struct{}{}
+		}
 	}
 
 	// 初始化默认供应商映射
@@ -290,10 +306,14 @@ func updatePricing() {
 		modelVendorIDs, _ = GetModelVendorIDsMap(metaIDs)
 	}
 	availableVendorIDs := buildAvailableVendorIDs(metaMap, modelVendorIDs, enableAbilities)
+	availableVendorIDs = filterAvailableVendorIDs(availableVendorIDs, enabledVendorIDs)
 
 	// 构建对前端友好的供应商列表
 	vendorsList = make([]PricingVendor, 0, len(vendorMap))
 	for _, v := range vendorMap {
+		if v.Status != 1 {
+			continue
+		}
 		vendorsList = append(vendorsList, PricingVendor{
 			ID:          v.Id,
 			Name:        v.Name,
@@ -441,6 +461,10 @@ func updatePricing() {
 			pricing.VendorID = primary.ID
 			pricing.VendorName = primary.Name
 			pricing.VendorIcon = primary.Icon
+		} else {
+			pricing.VendorID = 0
+			pricing.VendorName = ""
+			pricing.VendorIcon = ""
 		}
 		modelPrice, findPrice := ratio_setting.GetModelPrice(model, false)
 		if findPrice {
