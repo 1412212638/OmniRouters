@@ -3925,6 +3925,8 @@
     "Routing & Overrides": "ルーティングと上書き",
     "Routing Reliability": "ルーティング信頼性",
     "Routing Strategy": "ルーティング戦略",
+    "Price priority": "価格優先",
+    "Price priority: try the group with the lowest effective multiplier first.": "価格優先：実効倍率が最も低いグループを優先します。",
     "Rows are user groups, columns are billing groups. Empty cells fall back to the base ratio shown in gray.": "行はユーザーグループ、列は課金グループです。空のセルはグレー表示の基本倍率にフォールバックします。",
     "Rows per page": "ページあたりの行数",
     "RPM": "RPM",

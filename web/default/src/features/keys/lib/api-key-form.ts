@@ -26,6 +26,7 @@ export function getApiKeyFormSchema(t: TFunction, maxAutoGroups = 5) {
       auto_groups_mode: z.enum(['inherit', 'custom']),
       auto_groups: z.array(z.string()),
       cross_group_retry: z.boolean().optional(),
+      auto_route_strategy: z.enum(['', 'price']),
       allow_user_quota_query: z.boolean(),
       tokenCount: z.number().min(1).optional(),
     })
@@ -97,6 +98,7 @@ export const API_KEY_FORM_DEFAULT_VALUES: ApiKeyFormValues = {
   auto_groups_mode: 'inherit',
   auto_groups: [],
   cross_group_retry: true,
+  auto_route_strategy: '',
   allow_user_quota_query: true,
   tokenCount: 1,
 }
@@ -110,6 +112,7 @@ export function getApiKeyFormDefaultValues(
     auto_groups_mode: 'inherit',
     auto_groups: [],
     cross_group_retry: defaultUseAutoGroup,
+    auto_route_strategy: '',
   }
 }
 
@@ -141,6 +144,7 @@ export function transformFormDataToPayload(
         ? data.auto_groups
         : [],
     cross_group_retry: data.group === 'auto' ? !!data.cross_group_retry : false,
+    auto_route_strategy: data.group === 'auto' ? data.auto_route_strategy : '',
     allow_user_quota_query: data.allow_user_quota_query,
   }
 }
@@ -178,6 +182,7 @@ export function transformApiKeyToFormDefaults(
     auto_groups_mode: autoGroupsMode,
     auto_groups: autoGroups,
     cross_group_retry: !!apiKey.cross_group_retry,
+    auto_route_strategy: apiKey.auto_route_strategy === 'price' ? 'price' : '',
     allow_user_quota_query: !!apiKey.allow_user_quota_query,
     tokenCount: 1,
   }

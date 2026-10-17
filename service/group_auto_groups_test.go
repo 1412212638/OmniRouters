@@ -91,3 +91,20 @@ func TestGetRequestAutoGroupsSubscriptionRestrictionIsOptional(t *testing.T) {
 	common.SetContextKey(ctx, constant.ContextKeySubscriptionAllowedGroups, []string{})
 	assert.Equal(t, []string{"vip", "default", "svip"}, GetRequestAutoGroups(ctx, "default"))
 }
+
+func TestSortAutoGroupsByPriceUsesEffectiveGroupRatio(t *testing.T) {
+	configureRequestAutoGroupsTest(t)
+	ctx := newRequestAutoGroupsContext()
+	common.SetContextKey(ctx, constant.ContextKeyTokenAutoRouteStrategy, "price")
+
+	groups := SortAutoGroupsByPrice(ctx, "default", "deepseek-v4.1-flash", []string{"vip", "default", "svip"})
+
+	// vip and default both have a multiplier of 1; svip is also 1, so the
+	// original order must remain stable when no model-specific rule differs.
+	assert.Equal(t, []string{"vip", "default", "svip"}, groups)
+	require.NoError(t, ratio_setting.UpdateGroupRatioByJSONString(`{"default":0.8,"vip":1.2,"svip":1}`))
+	assert.Equal(t, []string{"default", "svip", "vip"}, SortAutoGroupsByPrice(ctx, "default", "deepseek-v4.1-flash", []string{"vip", "default", "svip"}))
+
+	common.SetContextKey(ctx, constant.ContextKeyTokenAutoRouteStrategy, "")
+	assert.Equal(t, []string{"vip", "default", "svip"}, SortAutoGroupsByPrice(ctx, "default", "deepseek-v4.1-flash", []string{"vip", "default", "svip"}))
+}

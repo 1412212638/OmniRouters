@@ -3983,6 +3983,8 @@
     "Routing & Overrides": "路由與覆蓋",
     "Routing Reliability": "路由可靠性",
     "Routing Strategy": "路由策略",
+    "Price priority": "價格優先",
+    "Price priority: try the group with the lowest effective multiplier first.": "價格優先：優先使用實際生效倍率最低的分組。",
     "Rows are user groups, columns are billing groups. Empty cells fall back to the base ratio shown in gray.": "行為用戶分組，列為收費分組。空白單元格回退到灰色顯示的基礎倍率。",
     "Rows per page": "每頁行數",
     "RPM": "RPM",

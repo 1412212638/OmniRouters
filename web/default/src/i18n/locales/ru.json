@@ -3925,6 +3925,8 @@
     "Routing & Overrides": "Маршрутизация и переопределения",
     "Routing Reliability": "Надежность маршрутизации",
     "Routing Strategy": "Стратегия маршрутизации",
+    "Price priority": "Приоритет цены",
+    "Price priority: try the group with the lowest effective multiplier first.": "Приоритет цены: сначала используется группа с самым низким действующим множителем.",
     "Rows are user groups, columns are billing groups. Empty cells fall back to the base ratio shown in gray.": "Строки — группы пользователей, столбцы — тарифные группы. Пустые ячейки используют базовый коэффициент, показанный серым.",
     "Rows per page": "Строк на страницу",
     "RPM": "RPM",

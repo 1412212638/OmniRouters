@@ -42,6 +42,7 @@ func TestTokenUpdateSynchronouslyNarrowsPreheatedAutoGroupsCache(t *testing.T) {
 		UnlimitedQuota:  true,
 		Group:           "auto",
 		CrossGroupRetry: true,
+		AutoRouteStrategy: "price",
 		AutoGroups:      `["default","vip"]`,
 	}
 	require.NoError(t, token.Insert())
@@ -50,6 +51,7 @@ func TestTokenUpdateSynchronouslyNarrowsPreheatedAutoGroupsCache(t *testing.T) {
 	preheated, err := cacheGetTokenByKey(token.Key)
 	require.NoError(t, err)
 	assert.JSONEq(t, `["default","vip"]`, preheated.AutoGroups)
+	assert.Equal(t, "price", preheated.AutoRouteStrategy)
 
 	require.NoError(t, token.SetAutoGroups([]string{"vip"}))
 	require.NoError(t, token.Update())

@@ -4014,3 +4014,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: added SQLite-backed regression coverage for enabled-vendor filtering and model-vendor binding cleanup, plus a pure filtering test. Go tests and gofmt could not run because Go is unavailable in the local shell; frontend validation was not rerun because this change has no frontend build logic beyond query invalidation. `git diff --check` remains required before commit.
 - Commit/push: local changes are pending commit and push.
 
+## 2026-10-17 - Add price-priority routing for Auto API keys
+
+- Local reason: Auto group order always followed the configured list, even when the same model had different effective group or model-specific multipliers in those groups.
+- Integrated: API keys now persist an optional `price` Auto route strategy, including in Redis token snapshots. When enabled, Auto candidates are stably sorted by the effective user-group multiplier multiplied by the selected group's model multiplier; ties retain the configured Auto order. Channel affinity selection uses the same ordering. The key editor exposes this as the mutually exclusive-ready `Routing Strategy` switch with the `Price priority` option; non-Auto keys clear the strategy.
+- Preserved: the default strategy remains the existing configured order, cross-group retry behavior is unchanged, billing still uses the group actually selected, and dynamic expression/task pricing is not guessed during routing.
+- Validation: added a service regression test for stable price ordering and fallback behavior. `git diff --check` and frontend build/type checks are pending; Go tests and gofmt require a Go toolchain that is unavailable in this shell.
+- Commit/push: local changes are pending commit and push.
+

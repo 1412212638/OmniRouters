@@ -3925,6 +3925,8 @@
     "Routing & Overrides": "Routage et surcharges",
     "Routing Reliability": "Fiabilité du routage",
     "Routing Strategy": "Stratégie de routage",
+    "Price priority": "Priorité au prix",
+    "Price priority: try the group with the lowest effective multiplier first.": "Priorité au prix : essayer d'abord le groupe au multiplicateur effectif le plus faible.",
     "Rows are user groups, columns are billing groups. Empty cells fall back to the base ratio shown in gray.": "Les lignes sont les groupes d’utilisateurs, les colonnes les groupes de facturation. Les cellules vides utilisent le taux de base affiché en gris.",
     "Rows per page": "Lignes par page",
     "RPM": "RPM",

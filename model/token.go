@@ -28,6 +28,7 @@ type Token struct {
 	UsedQuota          int            `json:"used_quota" gorm:"default:0"` // used quota
 	Group              string         `json:"group" gorm:"default:''"`
 	CrossGroupRetry    bool           `json:"cross_group_retry"` // 跨分组重试，仅auto分组有效
+	AutoRouteStrategy  string         `json:"auto_route_strategy" gorm:"size:32;default:''"` // Auto 路由策略
 	AutoGroups         string         `json:"-" gorm:"type:text"`
 	DeletedAt          gorm.DeletedAt `gorm:"index"`
 	// New tokens may expose the owning user's quota through /api/usage/token/.
@@ -316,7 +317,7 @@ func (token *Token) Update() (err error) {
 		common.SysLog("failed to invalidate token cache before update: " + cacheErr.Error())
 	}
 	return DB.Model(token).Select("name", "status", "expired_time", "remain_quota", "unlimited_quota",
-		"model_limits_enabled", "model_limits", "allow_ips", "group", "cross_group_retry", "auto_groups",
+		"model_limits_enabled", "model_limits", "allow_ips", "group", "cross_group_retry", "auto_route_strategy", "auto_groups",
 		"allow_user_quota_query").Updates(token).Error
 }
 

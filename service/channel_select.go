@@ -116,6 +116,7 @@ func CacheGetRandomSatisfiedChannel(param *RetryParam) (*model.Channel, string, 
 
 	if param.TokenGroup == "auto" {
 		autoGroups := GetRequestAutoGroups(param.Ctx, userGroup)
+		autoGroups = SortAutoGroupsByPrice(param.Ctx, userGroup, param.ModelName, autoGroups)
 		if len(autoGroups) == 0 {
 			return nil, selectGroup, errors.New("auto groups is not enabled")
 		}

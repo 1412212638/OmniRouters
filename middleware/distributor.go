@@ -135,6 +135,7 @@ func Distribute() func(c *gin.Context) {
 						if usingGroup == "auto" {
 							userGroup := common.GetContextKeyString(c, constant.ContextKeyUserGroup)
 							autoGroups := service.GetRequestAutoGroups(c, userGroup)
+							autoGroups = service.SortAutoGroupsByPrice(c, userGroup, modelRequest.Model, autoGroups)
 							for _, g := range autoGroups {
 								if model.IsChannelEnabledForGroupModel(g, modelRequest.Model, preferred.Id) {
 									selectGroup = g

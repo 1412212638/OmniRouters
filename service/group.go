@@ -1,6 +1,7 @@
 package service
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
@@ -146,6 +147,30 @@ func GetRequestAutoGroups(c *gin.Context, userGroup string) []string {
 	}
 	filtered := filterUserTokenAutoGroups(userGroup, groups, getUserExtraGroupsFromContext(c))
 	return filterSubscriptionAllowedGroups(c, filtered)
+}
+
+// SortAutoGroupsByPrice orders Auto candidates for one model by the effective
+// group multiplier. It is kept separate from GetRequestAutoGroups because the
+// latter is also used by model-list and pricing endpoints without a model.
+func SortAutoGroupsByPrice(c *gin.Context, userGroup, modelName string, groups []string) []string {
+	if len(groups) < 2 || modelName == "" || c == nil ||
+		common.GetContextKeyString(c, constant.ContextKeyTokenAutoRouteStrategy) != "price" {
+		return groups
+	}
+	userID := common.GetContextKeyInt(c, constant.ContextKeyUserId)
+	ordered := append([]string(nil), groups...)
+	prices := make(map[string]float64, len(ordered))
+	for _, group := range ordered {
+		price := GetUserGroupRatio(userGroup, group)
+		if modelRatio, matched, _ := ratio_setting.ResolveGroupModelRatio(group, modelName, userID); matched {
+			price *= modelRatio
+		}
+		prices[group] = price
+	}
+	sort.SliceStable(ordered, func(i, j int) bool {
+		return prices[ordered[i]] < prices[ordered[j]]
+	})
+	return ordered
 }
 
 func filterSubscriptionAllowedGroups(c *gin.Context, groups []string) []string {

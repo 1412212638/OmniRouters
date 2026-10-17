@@ -411,6 +411,9 @@ export function ApiKeysMutateDrawer({
                             })
                             return
                           }
+                          form.setValue('auto_route_strategy', '', {
+                            shouldDirty: true,
+                          })
                           form.setValue('cross_group_retry', false, {
                             shouldDirty: true,
                           })
@@ -422,6 +425,35 @@ export function ApiKeysMutateDrawer({
                   </FormItem>
                 )}
               />
+
+              {selectedGroup === 'auto' && (
+                <FormField
+                  control={form.control}
+                  name='auto_route_strategy'
+                  render={({ field }) => (
+                    <FormItem className={sideDrawerSwitchItemClassName()}>
+                      <div className='flex flex-col gap-0.5'>
+                        <FormLabel className='text-sm'>
+                          {t('Routing Strategy')}
+                        </FormLabel>
+                        <FormDescription className='line-clamp-2 text-xs sm:line-clamp-none'>
+                          {t(
+                            'Price priority: try the group with the lowest effective multiplier first.'
+                          )}
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value === 'price'}
+                          onCheckedChange={(checked) =>
+                            field.onChange(checked ? 'price' : '')
+                          }
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              )}
 
               {selectedGroup === 'auto' && (
                 <FormField

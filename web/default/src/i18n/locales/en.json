@@ -3933,6 +3933,8 @@
     "Routing & Overrides": "Routing & Overrides",
     "Routing Reliability": "Routing Reliability",
     "Routing Strategy": "Routing Strategy",
+    "Price priority": "Price priority",
+    "Price priority: try the group with the lowest effective multiplier first.": "Price priority: try the group with the lowest effective multiplier first.",
     "Rows are user groups, columns are billing groups. Empty cells fall back to the base ratio shown in gray.": "Rows are user groups, columns are billing groups. Empty cells fall back to the base ratio shown in gray.",
     "Rows per page": "Rows per page",
     "RPM": "RPM",

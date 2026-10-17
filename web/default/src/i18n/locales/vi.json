@@ -3926,6 +3926,8 @@
     "Routing & Overrides": "Định tuyến & ghi đè",
     "Routing Reliability": "Độ tin cậy định tuyến",
     "Routing Strategy": "Chiến lược định tuyến",
+    "Price priority": "Ưu tiên giá",
+    "Price priority: try the group with the lowest effective multiplier first.": "Ưu tiên giá: ưu tiên nhóm có hệ số hiệu dụng thấp nhất.",
     "Rows are user groups, columns are billing groups. Empty cells fall back to the base ratio shown in gray.": "Hàng là nhóm người dùng, cột là nhóm tính phí. Ô trống sẽ dùng hệ số cơ bản hiển thị màu xám.",
     "Rows per page": "Số hàng trên trang",
     "RPM": "RPM",

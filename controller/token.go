@@ -39,6 +39,20 @@ type tokenRequest struct {
 	AllowUserQuotaQuery *bool `json:"-"`
 }
 
+const autoRouteStrategyPrice = "price"
+
+func validateAutoRouteStrategy(c *gin.Context, token *model.Token) bool {
+	if token.Group != "auto" {
+		token.AutoRouteStrategy = ""
+		return true
+	}
+	if token.AutoRouteStrategy != "" && token.AutoRouteStrategy != autoRouteStrategyPrice {
+		common.ApiErrorMsg(c, "无效的 Auto 路由策略")
+		return false
+	}
+	return true
+}
+
 func (request *tokenRequest) UnmarshalJSON(data []byte) error {
 	type tokenRequestAlias tokenRequest
 	var parsed tokenRequestAlias
@@ -347,6 +361,9 @@ func AddToken(c *gin.Context) {
 		})
 		return
 	}
+	if !validateAutoRouteStrategy(c, &token) {
+		return
+	}
 	if token.Group == "auto" {
 		if !setTokenAutoGroups(c, &token, request.AutoGroups.Groups) {
 			return
@@ -375,6 +392,7 @@ func AddToken(c *gin.Context) {
 		AllowIps:           token.AllowIps,
 		Group:              token.Group,
 		CrossGroupRetry:    token.CrossGroupRetry,
+		AutoRouteStrategy:  token.AutoRouteStrategy,
 		AutoGroups:         token.AutoGroups,
 		AllowUserQuotaQuery: request.AllowUserQuotaQuery == nil || *request.AllowUserQuotaQuery,
 	}
@@ -458,6 +476,10 @@ func UpdateToken(c *gin.Context) {
 			cleanToken.AllowUserQuotaQuery = *request.AllowUserQuotaQuery
 		}
 		cleanToken.Group = token.Group
+		cleanToken.AutoRouteStrategy = token.AutoRouteStrategy
+		if !validateAutoRouteStrategy(c, cleanToken) {
+			return
+		}
 		cleanToken.CrossGroupRetry = token.CrossGroupRetry
 		if token.Group != "auto" {
 			cleanToken.CrossGroupRetry = false
