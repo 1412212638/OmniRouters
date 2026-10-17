@@ -821,8 +821,6 @@ type CatalogPriceSummary =
       cacheUnit?: string
       cacheWriteValue?: string
       cacheWriteUnit?: string
-      cacheDiscounted?: boolean
-      cacheWriteDiscounted?: boolean
     }
   | {
       kind: 'single'
@@ -830,25 +828,6 @@ type CatalogPriceSummary =
       value: string
       unit?: string
     }
-
-function isDiscountedCachePrice(
-  cacheValue: number | undefined,
-  inputValue: number | undefined
-): boolean {
-  if (
-    cacheValue == null ||
-    inputValue == null ||
-    !Number.isFinite(cacheValue) ||
-    !Number.isFinite(inputValue) ||
-    inputValue <= 0
-  ) {
-    return false
-  }
-
-  // Dynamic expressions expose cache prices as absolute token prices. The
-  // ratio against the input price is the equivalent of cache_ratio.
-  return cacheValue / inputValue < 1
-}
 
 function usePriceRows(props: {
   model: PricingModel
@@ -933,10 +912,6 @@ function usePriceRows(props: {
       dynamicSummary.entries.find(
         (entry) => entry.field === 'cacheCreate1hPrice'
       )
-    const inputEntry = dynamicSummary.entries.find(
-      (entry) => entry.field === 'inputPrice'
-    )
-
     return {
       kind: 'paired',
       inputValue: inputRange?.formatted || t('Dynamic Pricing'),
@@ -947,14 +922,6 @@ function usePriceRows(props: {
       cacheUnit: tokenUnitLabel,
       cacheWriteValue: cacheWriteEntry?.formatted,
       cacheWriteUnit: tokenUnitLabel,
-      cacheDiscounted: isDiscountedCachePrice(
-        cacheEntry?.value,
-        inputEntry?.value
-      ),
-      cacheWriteDiscounted: isDiscountedCachePrice(
-        cacheWriteEntry?.value,
-        inputEntry?.value
-      ),
     }
   }
 
@@ -1018,14 +985,6 @@ function usePriceRows(props: {
       cacheWriteValue: cacheWriteEntry?.formatted,
       cacheWriteUnit:
         cacheWriteEntry?.displayUnit === 'token' ? tokenUnitLabel : undefined,
-      cacheDiscounted: isDiscountedCachePrice(
-        cacheEntry?.value,
-        inputEntry?.value
-      ),
-      cacheWriteDiscounted: isDiscountedCachePrice(
-        cacheWriteEntry?.value,
-        inputEntry?.value
-      ),
     }
   }
 
@@ -1103,11 +1062,6 @@ function usePriceRows(props: {
         : undefined,
     cacheWriteUnit:
       props.model.create_cache_ratio != null ? tokenUnitLabel : undefined,
-    cacheDiscounted:
-      props.model.cache_ratio != null && props.model.cache_ratio < 1,
-    cacheWriteDiscounted:
-      props.model.create_cache_ratio != null &&
-      props.model.create_cache_ratio < 1,
   }
 }
 
@@ -1338,8 +1292,7 @@ function CatalogModelCard(props: {
             <span
               className={cn(
                 'font-mono font-medium',
-                priceRows.cacheDiscounted &&
-                  'text-emerald-600 dark:text-emerald-400'
+                hasDiscount && 'text-emerald-600 dark:text-emerald-400'
               )}
             >
               {priceRows.cacheValue}
@@ -1356,8 +1309,7 @@ function CatalogModelCard(props: {
             <span
               className={cn(
                 'font-mono font-medium',
-                priceRows.cacheWriteDiscounted &&
-                  'text-emerald-600 dark:text-emerald-400'
+                hasDiscount && 'text-emerald-600 dark:text-emerald-400'
               )}
             >
               {priceRows.cacheWriteValue}

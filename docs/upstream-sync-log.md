@@ -3998,3 +3998,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bun run build` in `web/default`, `bunx oxfmt --check src/features/pricing/index.tsx`, and `git diff --check` passed; targeted Oxlint still reports only the file's pre-existing warnings.
 - Commit/push: source commit `fb5a04009` and log commit `b843b2904` were pushed to GitHub `origin/main`.
 
+## 2026-10-17 - Match cache price color to model discount state
+
+- Local reason: cache read/write prices were colored green from their own cache ratio or from comparison with input price, while input/output prices use the selected model/group discount state. This made normal-price models appear to have discounted cache pricing.
+- Integrated: cache read and cache write rows in the visible `CatalogModelCard` now use the same `hasDiscount` state as input/output. Removed separate cache-ratio and cache-to-input color decisions; cache price values and billing are unchanged.
+- Preserved: price formatting, expression parsing, cache write fallback, detail views, backend billing, and unrelated worktree changes.
+- Validation: `bun run build` in `web/default`, `bunx oxfmt --check src/features/pricing/index.tsx`, and `git diff --check` passed. No billing or backend code changed.
+- Commit/push: pending local commit; GitHub push not requested in this round.
+
