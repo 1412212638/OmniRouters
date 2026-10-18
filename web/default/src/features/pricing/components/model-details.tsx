@@ -294,16 +294,20 @@ type DynamicPricingTier = ReturnType<typeof getDynamicPricingTiers>[number]
 type DynamicFormattedPricesByTier = Map<DynamicPricingTier, Map<string, string>>
 
 function getSimpleTaskPricingModel(model: PricingModel): PricingModel | null {
-  if (model.billing_plugin_variants?.length !== 1) return null
-  const variant = model.billing_plugin_variants[0]
-  const schema = variant.billing_usage_schema
-  const fields = Object.keys(schema)
+  const variant =
+    model.billing_plugin_variants?.length === 1
+      ? model.billing_plugin_variants[0]
+      : undefined
+  const schema = variant?.billing_usage_schema ?? model.billing_usage_schema
+  const billingMode = variant?.billing_mode ?? model.billing_mode
+  const billingExpr = variant?.billing_expr ?? model.billing_expr
+  if (!schema || billingMode !== 'tiered_expr' || !billingExpr) return null
+
+  const fields = Object.keys(schema).filter((field) =>
+    ['input_tokens', 'output_tokens'].includes(field)
+  )
   if (
-    variant.billing_mode !== 'tiered_expr' ||
-    fields.length !== 2 ||
-    !fields.every((field) =>
-      ['input_tokens', 'output_tokens'].includes(field)
-    ) ||
+    fields.length === 0 ||
     !fields.every(
       (field) =>
         schema[field]?.type === 'number' && schema[field]?.unit === 'token'
@@ -312,13 +316,65 @@ function getSimpleTaskPricingModel(model: PricingModel): PricingModel | null {
     return null
   }
 
-  return {
+  const simpleModel = {
     ...model,
     billing_plugin_variants: undefined,
-    billing_mode: variant.billing_mode,
-    billing_expr: variant.billing_expr,
+    billing_mode: billingMode,
+    billing_expr: billingExpr,
     billing_usage_schema: schema,
   }
+  return getTaskPriceEntries(simpleModel, { tokenUnit: 'M' }).length > 0
+    ? simpleModel
+    : null
+}
+
+function getSimpleTaskPricingFields(model: PricingModel): string[] {
+  const entries = getTaskPriceEntries(model, {
+    tokenUnit: 'M',
+  })
+  return ['input_tokens', 'output_tokens'].filter((field) =>
+    entries.some((entry) => entry.field === field)
+  )
+}
+
+function getTaskPricingSignature(model: PricingModel): string {
+  const schema = model.billing_usage_schema ?? {}
+  const fields = Object.keys(schema)
+    .sort()
+    .map((field) => [field, schema[field]])
+  return JSON.stringify([model.billing_mode, model.billing_expr, fields])
+}
+
+function getTaskPricingSections(model: PricingModel, taskPricingTitle: string) {
+  const rawSections = [
+    ...(model.billing_usage_schema
+      ? [{ key: 'model', model, title: taskPricingTitle }]
+      : []),
+    ...(model.billing_plugin_variants ?? []).map((variant) => ({
+      key: variant.plugin_key,
+      model: {
+        ...model,
+        billing_plugin_variants: undefined,
+        billing_mode: variant.billing_mode,
+        billing_expr: variant.billing_expr,
+        billing_usage_schema: variant.billing_usage_schema,
+        billing_usage_examples: variant.billing_usage_examples,
+      },
+      title: `${variant.plugin_name} ${taskPricingTitle}`,
+    })),
+  ]
+  const uniqueSections = rawSections.filter(
+    (section, index) =>
+      rawSections.findIndex(
+        (candidate) =>
+          getTaskPricingSignature(candidate.model) ===
+          getTaskPricingSignature(section.model)
+      ) === index
+  )
+  return uniqueSections.filter(
+    (section) =>
+      getTaskPriceEntries(section.model, { tokenUnit: 'M' }).length > 0
+  )
 }
 
 function getDynamicPriceFields(
@@ -434,29 +490,7 @@ function GroupTaskPricing(props: {
   usdExchangeRate: number
 }) {
   const { t } = useTranslation()
-  const sections = [
-    ...(props.model.billing_usage_schema
-      ? [
-          {
-            key: 'model',
-            model: props.model,
-            title: t('Task pricing'),
-          },
-        ]
-      : []),
-    ...(props.model.billing_plugin_variants ?? []).map((variant) => ({
-      key: variant.plugin_key,
-      model: {
-        ...props.model,
-        billing_plugin_variants: undefined,
-        billing_mode: variant.billing_mode,
-        billing_expr: variant.billing_expr,
-        billing_usage_schema: variant.billing_usage_schema,
-        billing_usage_examples: variant.billing_usage_examples,
-      },
-      title: `${variant.plugin_name} ${t('Task pricing')}`,
-    })),
-  ]
+  const sections = getTaskPricingSections(props.model, t('Task pricing'))
 
   if (sections.length === 0) return null
 
@@ -1086,6 +1120,9 @@ function GroupPricingSection(props: {
     const entry = entries.find((item) => item.field === field)
     return entry?.formatted ?? '-'
   }
+  const simpleTaskPricingFields = simpleTaskPricingModel
+    ? getSimpleTaskPricingFields(simpleTaskPricingModel)
+    : []
 
   return (
     <section>
@@ -1180,42 +1217,23 @@ function GroupPricingSection(props: {
                 })),
               ]
             : simpleTaskPricingModel
-              ? [
-                  {
-                    id: 'input',
-                    header: t('Input'),
-                    className: `${thClass} text-right`,
-                    cellClassName: 'py-2.5 text-right font-mono',
-                    cell: (group: string) => (
-                      <span
-                        className={
-                          getRuleInfo(group).multiplier < 1
-                            ? 'text-success'
-                            : undefined
-                        }
-                      >
-                        {renderSimpleTaskPrice(group, 'input_tokens')}
-                      </span>
-                    ),
-                  },
-                  {
-                    id: 'output',
-                    header: t('Output'),
-                    className: `${thClass} text-right`,
-                    cellClassName: 'py-2.5 text-right font-mono',
-                    cell: (group: string) => (
-                      <span
-                        className={
-                          getRuleInfo(group).multiplier < 1
-                            ? 'text-success'
-                            : undefined
-                        }
-                      >
-                        {renderSimpleTaskPrice(group, 'output_tokens')}
-                      </span>
-                    ),
-                  },
-                ]
+              ? simpleTaskPricingFields.map((field) => ({
+                  id: field,
+                  header: t(field === 'input_tokens' ? 'Input' : 'Output'),
+                  className: `${thClass} text-right`,
+                  cellClassName: 'py-2.5 text-right font-mono',
+                  cell: (group: string) => (
+                    <span
+                      className={
+                        getRuleInfo(group).multiplier < 1
+                          ? 'text-success'
+                          : undefined
+                      }
+                    >
+                      {renderSimpleTaskPrice(group, field)}
+                    </span>
+                  ),
+                }))
               : [
                   {
                     id: 'price',
@@ -1243,8 +1261,7 @@ function GroupPricingSection(props: {
         ]}
       />
       {!simpleTaskPricingModel &&
-        (props.model.billing_usage_schema ||
-          (props.model.billing_plugin_variants?.length ?? 0) > 0) && (
+        getTaskPricingSections(props.model, t('Task pricing')).length > 0 && (
           <div className='mt-3 space-y-3'>
             {availableGroups.map((group) => {
               const ruleInfo = getRuleInfo(group)

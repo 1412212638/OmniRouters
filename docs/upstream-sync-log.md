@@ -4199,3 +4199,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bunx oxfmt --check`, `bun run build` in `web/default`, `git diff --check`, and local browser verification of `/pricing/jev-1.14` passed. Backend tests were not applicable because no backend code changed.
 - Commit/push: local source changes are pending commit; GitHub push was not requested.
 
+# 2026-10-19 - Match live plugin pricing schemas in the model square
+
+- Local reason: live TypeSafe pricing metadata declares only `input_tokens`, while the local preview fixture had both input and output fields. The model square therefore left JEV models in a task-pricing card, rendered duplicate plugin sections, and could show an empty or zero-valued ordinary price table.
+- Changed: simple token task pricing now accepts the fields actually declared by the billing schema and only renders input/output columns that have parsed prices; top-level and plugin task sections with the same billing definition are de-duplicated. No output price is synthesized when the upstream schema does not declare one.
+- Preserved: task schemas with non-token fields, unsupported expressions, provider-specific billing differences, group multipliers, and raw task-pricing fallback behavior.
+- Validation: targeted Oxfmt, `bun run build`, and `git diff --check` passed. Repository-wide lint remains blocked by pre-existing errors in unrelated files; live provider data still requires deployment for end-to-end verification.
+- Commit/push: pending.
+
