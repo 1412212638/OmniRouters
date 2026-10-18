@@ -294,14 +294,19 @@ type DynamicPricingTier = ReturnType<typeof getDynamicPricingTiers>[number]
 type DynamicFormattedPricesByTier = Map<DynamicPricingTier, Map<string, string>>
 
 function getSimpleTaskPricingModel(model: PricingModel): PricingModel | null {
-  const variant =
-    model.billing_plugin_variants?.length === 1
-      ? model.billing_plugin_variants[0]
-      : undefined
+  const variant = model.billing_plugin_variants?.find((candidate) =>
+    Boolean(candidate.billing_expr?.trim())
+  )
   const schema = variant?.billing_usage_schema ?? model.billing_usage_schema
-  const billingMode = variant?.billing_mode ?? model.billing_mode
-  const billingExpr = variant?.billing_expr ?? model.billing_expr
-  if (!schema || billingMode !== 'tiered_expr' || !billingExpr) return null
+  const billingExpr =
+    variant?.billing_expr?.trim() || model.billing_expr?.trim()
+  const billingMode =
+    variant?.billing_mode === 'tiered_expr' ||
+    model.billing_mode === 'tiered_expr' ||
+    Boolean(billingExpr)
+      ? 'tiered_expr'
+      : undefined
+  if (!schema || !billingMode || !billingExpr) return null
 
   const fields = Object.keys(schema).filter((field) =>
     ['input_tokens', 'output_tokens'].includes(field)

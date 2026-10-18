@@ -4207,3 +4207,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: targeted Oxfmt, `bun run build`, and `git diff --check` passed. Repository-wide lint remains blocked by pre-existing errors in unrelated files; live provider data still requires deployment for end-to-end verification.
 - Commit/push: pending.
 
+- Follow-up: production TypeSafe responses may expose a plugin variant with an omitted or `ratio` billing mode while still carrying a usable token expression. The simple token-table adapter now selects any variant with a non-empty expression and falls back to the model expression, so JEV uses the ordinary input/output layout instead of the task card.
+
