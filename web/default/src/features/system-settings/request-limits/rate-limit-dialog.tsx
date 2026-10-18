@@ -19,13 +19,17 @@ import { Input } from '@/components/ui/input'
 
 const rateLimitDialogSchema = z.object({
   groupName: z.string().min(1, 'Group name is required'),
-  maxRequests: z
+  rpm: z
     .number()
     .min(0, 'Must be ≥ 0')
     .max(2147483647, 'Must be ≤ 2,147,483,647'),
-  maxSuccess: z
+  tpm: z
     .number()
-    .min(1, 'Must be ≥ 1')
+    .min(0, 'Must be ≥ 0')
+    .max(2147483647, 'Must be ≤ 2,147,483,647'),
+  rpd: z
+    .number()
+    .min(0, 'Must be ≥ 0')
     .max(2147483647, 'Must be ≤ 2,147,483,647'),
 })
 
@@ -35,8 +39,9 @@ const RATE_LIMIT_FORM_ID = 'rate-limit-form'
 
 export type RateLimitEntryData = {
   groupName: string
-  maxRequests: number
-  maxSuccess: number
+  rpm: number
+  tpm: number
+  rpd: number
 }
 
 type RateLimitDialogProps = {
@@ -59,8 +64,9 @@ export function RateLimitDialog({
     resolver: zodResolver(rateLimitDialogSchema),
     defaultValues: {
       groupName: '',
-      maxRequests: 0,
-      maxSuccess: 1,
+      rpm: 0,
+      tpm: 0,
+      rpd: 0,
     },
   })
 
@@ -70,8 +76,9 @@ export function RateLimitDialog({
     } else {
       form.reset({
         groupName: '',
-        maxRequests: 0,
-        maxSuccess: 1,
+        rpm: 0,
+        tpm: 0,
+        rpd: 0,
       })
     }
   }, [editData, form, open])
@@ -141,10 +148,10 @@ export function RateLimitDialog({
 
           <FormField
             control={form.control}
-            name='maxRequests'
+            name='rpm'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('Max Requests (including failures)')}</FormLabel>
+                <FormLabel>RPM</FormLabel>
                 <FormControl>
                   <div className='flex items-center gap-2'>
                     <Input
@@ -158,12 +165,12 @@ export function RateLimitDialog({
                       }
                     />
                     <span className='text-muted-foreground text-sm'>
-                      {t('times')}
+                      {t('requests/minute')}
                     </span>
                   </div>
                 </FormControl>
                 <FormDescription>
-                  {t('Total requests allowed per period. 0 = unlimited.')}
+                  {t('Requests per minute. 0 = unlimited.')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -172,29 +179,59 @@ export function RateLimitDialog({
 
           <FormField
             control={form.control}
-            name='maxSuccess'
+            name='tpm'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('Max Successful Requests')}</FormLabel>
+                <FormLabel>TPM</FormLabel>
                 <FormControl>
                   <div className='flex items-center gap-2'>
                     <Input
                       type='number'
-                      min={1}
+                      min={0}
                       max={2147483647}
                       step={1}
                       {...field}
                       onChange={(e) =>
-                        field.onChange(parseInt(e.target.value) || 1)
+                        field.onChange(parseInt(e.target.value) || 0)
                       }
                     />
                     <span className='text-muted-foreground text-sm'>
-                      {t('times')}
+                      {t('tokens/minute')}
                     </span>
                   </div>
                 </FormControl>
                 <FormDescription>
-                  {t('Only successful requests count toward this limit.')}
+                  {t('Tokens per minute. 0 = unlimited.')}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name='rpd'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>RPD</FormLabel>
+                <FormControl>
+                  <div className='flex items-center gap-2'>
+                    <Input
+                      type='number'
+                      min={0}
+                      max={2147483647}
+                      step={1}
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
+                    />
+                    <span className='text-muted-foreground text-sm'>
+                      {t('requests/day')}
+                    </span>
+                  </div>
+                </FormControl>
+                <FormDescription>
+                  {t('Requests per day. 0 = unlimited.')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>

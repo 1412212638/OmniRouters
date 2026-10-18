@@ -400,6 +400,15 @@ func usageSemanticFromUsage(relayInfo *relaycommon.RelayInfo, usage *dto.Usage) 
 }
 
 func PostTextConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, usage *dto.Usage, extraContent []string) {
+	if usage != nil {
+		tokens := usage.TotalTokens
+		if tokens <= 0 {
+			tokens = usage.PromptTokens + usage.CompletionTokens
+		}
+		if tokens > 0 {
+			common.SetContextKey(ctx, constant.ContextKeyRateLimitTokens, tokens)
+		}
+	}
 	originUsage := usage
 	markStreamUsageSource(ctx, relayInfo, usage)
 	billingUsage := effectiveBillingUsage(usage)

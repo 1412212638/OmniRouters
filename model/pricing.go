@@ -11,6 +11,7 @@ import (
 	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/pkg/jsplugin"
 	"github.com/QuantumNous/new-api/relaykit/dto"
+	"github.com/QuantumNous/new-api/setting"
 	"github.com/QuantumNous/new-api/setting/billing_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/QuantumNous/new-api/types"
@@ -63,6 +64,7 @@ type Pricing struct {
 	PricingVersion         string                               `json:"pricing_version,omitempty"`
 	ModelGroupRatio        map[string]float64                    `json:"model_group_ratio,omitempty"`
 	SoraPerRequestPricing  *billing_setting.SoraPerRequestPricing `json:"sora_per_request_pricing,omitempty"`
+	RateLimits             map[string]setting.ModelRateLimit      `json:"rate_limits,omitempty"`
 }
 
 type PricingVendor struct {

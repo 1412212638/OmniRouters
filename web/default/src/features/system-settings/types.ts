@@ -403,9 +403,9 @@ export type OperationsSettings = {
 
 export type SecuritySettings = {
   ModelRequestRateLimitEnabled: boolean
-  ModelRequestRateLimitCount: number
-  ModelRequestRateLimitSuccessCount: number
-  ModelRequestRateLimitDurationMinutes: number
+  ModelRequestRateLimitRPM: number
+  ModelRequestRateLimitTPM: number
+  ModelRequestRateLimitRPD: number
   ModelRequestRateLimitGroup: string
   CheckSensitiveEnabled: boolean
   CheckSensitiveOnPromptEnabled: boolean

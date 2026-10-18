@@ -1,6 +1,7 @@
 import { ArrowRight01Icon, SearchIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { ChevronDown } from 'lucide-react'
 /*
 Copyright (C) 2023-2026 QuantumNous
@@ -74,7 +75,6 @@ import { getLobeIcon } from '@/lib/lobe-icon'
 import { cn } from '@/lib/utils'
 
 import { ClassicPricing } from './classic-pricing'
-import { ModelDetailsDrawer } from './components'
 import { ModelSquareCarousel } from './components/model-square-carousel'
 import {
   DEFAULT_PRICING_PAGE_SIZE,
@@ -1493,9 +1493,7 @@ function CatalogPricing() {
   const { t } = useTranslation()
   const { status } = useStatus()
   const showUsageMetrics = status?.model_square_show_usage_metrics === true
-  const [selectedModelName, setSelectedModelName] = useState<string | null>(
-    null
-  )
+  const navigate = useNavigate()
   const [searchInput, setSearchInput] = useState('')
   const [inputFilter, setInputFilter] = useState<string>(FILTER_ALL)
   const [contextLengthFilter, setContextLengthFilter] = useState(0)
@@ -1517,17 +1515,24 @@ function CatalogPricing() {
   })
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
+  const handleModelClick = useCallback(
+    (modelName: string) => {
+      if (!modelName) return
+      navigate({
+        to: '/pricing/$modelId',
+        params: { modelId: modelName },
+      })
+    },
+    [navigate]
+  )
+
   const {
     models,
     vendors,
-    groupRatio,
     usableGroup,
-    endpointMap,
-    autoGroups,
     isLoading,
     priceRate,
     usdExchangeRate,
-    groupModelRatioExpiry,
   } = usePricingData()
 
   const contextLengths = useMemo(
@@ -1742,14 +1747,6 @@ function CatalogPricing() {
   }, [filterKey, filteredModels.length])
 
   const visibleModels = filteredModels.slice(0, visibleCount)
-  const selectedModel = useMemo(
-    () =>
-      selectedModelName
-        ? models.find((model) => model.model_name === selectedModelName) || null
-        : null,
-    [models, selectedModelName]
-  )
-
   const hasActiveFilters =
     Boolean(searchQuery) ||
     inputFilter !== FILTER_ALL ||
@@ -2036,9 +2033,7 @@ function CatalogPricing() {
                       usdExchangeRate={usdExchangeRate}
                       selectedGroup={groupFilter}
                       usableGroup={usableGroup}
-                      onOpen={() =>
-                        setSelectedModelName(model.model_name || '')
-                      }
+                      onOpen={() => handleModelClick(model.model_name || '')}
                       showUsageMetrics={showUsageMetrics}
                     />
                   ))}
@@ -2058,30 +2053,6 @@ function CatalogPricing() {
             )}
           </main>
         </div>
-
-        {selectedModel && (
-          <ModelDetailsDrawer
-            open={Boolean(selectedModel)}
-            onOpenChange={(open) => {
-              if (!open) setSelectedModelName(null)
-            }}
-            model={selectedModel}
-            groupRatio={groupRatio || {}}
-            usableGroup={usableGroup || {}}
-            endpointMap={
-              (endpointMap as Record<
-                string,
-                { path?: string; method?: string }
-              >) || {}
-            }
-            autoGroups={autoGroups || []}
-            priceRate={priceRate ?? 1}
-            usdExchangeRate={usdExchangeRate ?? 1}
-            tokenUnit={TOKEN_UNIT}
-            showRechargePrice={false}
-            groupModelRatioExpiry={groupModelRatioExpiry}
-          />
-        )}
       </PageTransition>
     </PublicLayout>
   )

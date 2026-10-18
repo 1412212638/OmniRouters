@@ -4022,3 +4022,35 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: added a service regression test for stable price ordering and fallback behavior. `git diff --check` and frontend build/type checks are pending; Go tests and gofmt require a Go toolchain that is unavailable in this shell.
 - Commit/push: local changes are pending commit and push.
 
+## 2026-10-18 - Open model details as standalone pricing pages
+
+- Local reason: the Model Square opened model details in a side drawer even though the application already had a full-page model detail route.
+- Integrated: catalog and classic card/table clicks now navigate to `/pricing/$modelId`; the duplicate drawer rendering was removed from both list views, and the existing full-page detail page is reused.
+- Preserved: the existing model detail sections, pricing data, filters, navigation behavior, and unrelated worktree changes.
+- Validation: targeted Oxfmt checks, `bun run build` in `web/default`, mock-data browser verification of card navigation, detail rendering, detail-page return, browser-history return, and `git diff --check` passed. The live backend preview returned 504 for `/api/pricing` because no backend was running locally; a mock API preview was used for the interaction check.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-18 - Remove supported-parameters table from model API details
+
+- Local reason: the API tab exposed a long generated supported-parameters table that was not needed in the model detail view.
+- Integrated: removed the supported-parameters section and its unused rendering helpers; code samples, authentication guidance, and rate-limit information remain available.
+- Preserved: endpoint selection, copyable request examples, model/API data, translations, and unrelated worktree changes.
+- Validation: targeted Oxfmt check, `bun run build` in `web/default`, mock-data browser verification of the API tab, and `git diff --check` passed. The live backend preview still depends on a running backend; the mock API preview was used for the interaction check.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-18 - Consolidate model capability and modality details
+
+- Local reason: the standalone model page showed the same input/output modality information in both the quick-stat `Modalities` block and the `Capabilities / Supported modalities` section.
+- Integrated: removed the duplicate modality summary. The capability section shows only the input/output modality cards and capability pills, while the quick-stat grid keeps context, maximum output, knowledge cutoff, and release metadata.
+- Preserved: model capability data, modality translations, pricing, API/performance tabs, the existing standalone route, and unrelated worktree changes.
+- Validation: targeted Oxfmt check, `bun run build` in `web/default`, mock-data browser verification, and `git diff --check` passed. The live backend preview still depends on a running backend; the mock API preview was used for the interaction check.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-18 - Link model detail rate limits to real RPM/TPM/RPD settings
+
+- Local reason: the standalone model API detail page displayed deterministic mock rate limits, while the administrator setting only exposed a shared request window and successful-request count.
+- Integrated: added independent RPM, TPM, and RPD settings with zero meaning unlimited; group settings now accept `{ "rpm": ..., "tpm": ..., "rpd": ... }` and continue reading the legacy two-item array format during migration. `/api/pricing` now includes visible group limits, and the model detail page renders those values or `Unlimited` instead of generated mock data. The new middleware applies one-minute RPM, one-day RPD, and token-window TPM limits per user/token subject and group; TPM records gateway usage after the response and checks the existing window before dispatch. Saving the new settings clears legacy window options.
+- Preserved: disabled rate limiting remains unlimited in public pricing, existing legacy options remain readable until the new settings are saved, group visibility filtering and model-level pricing behavior remain unchanged, and all unrelated worktree changes remain untouched.
+- Validation: frontend `bun run build`, targeted Oxfmt checks, JSON locale validation, and `git diff --check` passed. Go tests and gofmt could not run because Go is unavailable in the local shell; CI backend compilation and tests remain required.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+

@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   CalendarClock,
   Code2,
-  FileText,
   HeartPulse,
   Info,
   Layers,
@@ -271,8 +270,6 @@ function ModalityLabels(props: { items: string[] }) {
 function ModelBackendQuickStats(props: { model: PricingModel }) {
   const { t } = useTranslation()
   const model = props.model
-  const inputModalities = normalizeCatalogItems(model.input_modalities)
-  const outputModalities = normalizeCatalogItems(model.output_modalities)
   const contextLength = model.context_length ?? 0
   const maxOutput = model.max_output_tokens ?? 0
   const knowledgeCutoff = formatCatalogYearMonth(model.knowledge_cutoff)
@@ -305,23 +302,6 @@ function ModelBackendQuickStats(props: { model: PricingModel }) {
       value:
         model.max_output_tokens_display || formatCatalogTokenCount(maxOutput),
       hint: t('Maximum tokens per response'),
-    })
-  }
-
-  if (inputModalities.length > 0 || outputModalities.length > 0) {
-    stats.push({
-      key: 'modalities',
-      icon: FileText,
-      label: t('Modalities'),
-      value: (
-        <span className='inline-flex items-center gap-1'>
-          <ModalityLabels items={inputModalities} />
-          {inputModalities.length > 0 && outputModalities.length > 0 && (
-            <span className='text-muted-foreground/40'>→</span>
-          )}
-          <ModalityLabels items={outputModalities} />
-        </span>
-      ),
     })
   }
 
@@ -392,8 +372,8 @@ function ModelBackendSignalsSection(props: { model: PricingModel }) {
       <SectionTitle>
         {t('Capabilities')} / {t('Supported modalities')}
       </SectionTitle>
-      <div className='grid gap-3 rounded-xl border p-3 @2xl/details:grid-cols-[minmax(0,1.5fr)_minmax(260px,1fr)]'>
-        {capabilities.length > 0 ? (
+      <div className='space-y-3 rounded-xl border p-3'>
+        {capabilities.length > 0 && (
           <CatalogPillList
             items={capabilities.map((capability) =>
               t(
@@ -402,8 +382,6 @@ function ModelBackendSignalsSection(props: { model: PricingModel }) {
               )
             )}
           />
-        ) : (
-          <div />
         )}
         {(inputModalities.length > 0 || outputModalities.length > 0) && (
           <div className='grid gap-2 sm:grid-cols-2'>

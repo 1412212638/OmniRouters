@@ -37,10 +37,27 @@ const isValidJSON = (value: string | undefined) => {
       return false
     }
     for (const [, val] of Object.entries(parsed)) {
-      if (!Array.isArray(val) || val.length !== 2) return false
-      if (typeof val[0] !== 'number' || typeof val[1] !== 'number') return false
-      if (val[0] < 0 || val[1] < 1) return false
-      if (val[0] > 2147483647 || val[1] > 2147483647) return false
+      if (Array.isArray(val)) {
+        if (
+          val.length !== 2 ||
+          typeof val[0] !== 'number' ||
+          typeof val[1] !== 'number'
+        )
+          return false
+        if (val[0] < 0 || val[1] < 0) return false
+        if (val[0] > 2147483647 || val[1] > 2147483647) return false
+        continue
+      }
+      if (!val || typeof val !== 'object') return false
+      const value = val as Record<string, unknown>
+      for (const key of ['rpm', 'tpm', 'rpd']) {
+        if (
+          typeof value[key] !== 'number' ||
+          value[key] < 0 ||
+          value[key] > 2147483647
+        )
+          return false
+      }
     }
     return true
   } catch {
@@ -51,9 +68,9 @@ const isValidJSON = (value: string | undefined) => {
 const createRateLimitSchema = (t: (key: string) => string) =>
   z.object({
     ModelRequestRateLimitEnabled: z.boolean(),
-    ModelRequestRateLimitDurationMinutes: z.number().min(0),
-    ModelRequestRateLimitCount: z.number().min(0).max(100000000),
-    ModelRequestRateLimitSuccessCount: z.number().min(1).max(100000000),
+    ModelRequestRateLimitRPM: z.number().min(0).max(2147483647),
+    ModelRequestRateLimitTPM: z.number().min(0).max(2147483647),
+    ModelRequestRateLimitRPD: z.number().min(0).max(2147483647),
     ModelRequestRateLimitGroup: z
       .string()
       .optional()
@@ -94,6 +111,24 @@ export function RateLimitSection({ defaultValues }: RateLimitSectionProps) {
     for (const [key, value] of updates) {
       await updateOption.mutateAsync({ key, value: value ?? '' })
     }
+    if (
+      updates.some(([key]) =>
+        [
+          'ModelRequestRateLimitRPM',
+          'ModelRequestRateLimitTPM',
+          'ModelRequestRateLimitRPD',
+        ].includes(key)
+      )
+    ) {
+      // Clear the legacy window options once the new independent windows are saved.
+      for (const key of [
+        'ModelRequestRateLimitCount',
+        'ModelRequestRateLimitSuccessCount',
+        'ModelRequestRateLimitDurationMinutes',
+      ]) {
+        await updateOption.mutateAsync({ key, value: '0' })
+      }
+    }
   }
 
   return (
@@ -131,10 +166,10 @@ export function RateLimitSection({ defaultValues }: RateLimitSectionProps) {
           <div className='grid gap-4 md:grid-cols-3'>
             <FormField
               control={form.control}
-              name='ModelRequestRateLimitDurationMinutes'
+              name='ModelRequestRateLimitRPM'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('Limit period')}</FormLabel>
+                  <FormLabel>RPM</FormLabel>
                   <FormControl>
                     <div className='flex items-center gap-2'>
                       <Input
@@ -147,12 +182,12 @@ export function RateLimitSection({ defaultValues }: RateLimitSectionProps) {
                         }
                       />
                       <span className='text-muted-foreground text-sm'>
-                        {t('minutes')}
+                        {t('requests/minute')}
                       </span>
                     </div>
                   </FormControl>
                   <FormDescription>
-                    {t('Time window for rate limiting')}
+                    {t('Requests per minute. 0 = unlimited')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -161,10 +196,10 @@ export function RateLimitSection({ defaultValues }: RateLimitSectionProps) {
 
             <FormField
               control={form.control}
-              name='ModelRequestRateLimitCount'
+              name='ModelRequestRateLimitTPM'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('Max requests per period')}</FormLabel>
+                  <FormLabel>TPM</FormLabel>
                   <FormControl>
                     <div className='flex items-center gap-2'>
                       <Input
@@ -178,12 +213,12 @@ export function RateLimitSection({ defaultValues }: RateLimitSectionProps) {
                         }
                       />
                       <span className='text-muted-foreground text-sm'>
-                        {t('times')}
+                        {t('tokens/minute')}
                       </span>
                     </div>
                   </FormControl>
                   <FormDescription>
-                    {t('Including failed requests, 0 = unlimited')}
+                    {t('Tokens per minute. 0 = unlimited')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -192,10 +227,10 @@ export function RateLimitSection({ defaultValues }: RateLimitSectionProps) {
 
             <FormField
               control={form.control}
-              name='ModelRequestRateLimitSuccessCount'
+              name='ModelRequestRateLimitRPD'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('Max successful requests')}</FormLabel>
+                  <FormLabel>RPD</FormLabel>
                   <FormControl>
                     <div className='flex items-center gap-2'>
                       <Input
@@ -209,12 +244,12 @@ export function RateLimitSection({ defaultValues }: RateLimitSectionProps) {
                         }
                       />
                       <span className='text-muted-foreground text-sm'>
-                        {t('times')}
+                        {t('requests/day')}
                       </span>
                     </div>
                   </FormControl>
                   <FormDescription>
-                    {t('Only successful requests')}
+                    {t('Requests per day. 0 = unlimited')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -275,7 +310,7 @@ export function RateLimitSection({ defaultValues }: RateLimitSectionProps) {
                       <ul className='list-inside list-disc space-y-0.5 pl-2'>
                         <li>
                           {t('JSON object:')}{' '}
-                          {`{"groupName": [maxRequests, maxSuccess]}`}
+                          {`{"groupName": {"rpm": 60, "tpm": 100000, "rpd": 1000}}`}
                         </li>
                         <li>
                           {t('Example:')}{' '}
@@ -283,7 +318,7 @@ export function RateLimitSection({ defaultValues }: RateLimitSectionProps) {
                         </li>
                         <li>
                           {t(
-                            'maxRequests ≥ 0, maxSuccess ≥ 1, both ≤ 2,147,483,647'
+                            'rpm, tpm, and rpd must be between 0 and 2,147,483,647'
                           )}
                         </li>
                         <li>

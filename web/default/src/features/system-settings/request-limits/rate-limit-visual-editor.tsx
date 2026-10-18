@@ -18,6 +18,34 @@ type RateLimitVisualEditorProps = {
 
 type RateLimitEntry = RateLimitEntryData
 
+function parseRateLimitValue(
+  groupName: string,
+  limits: unknown
+): RateLimitEntry | null {
+  if (limits && typeof limits === 'object' && !Array.isArray(limits)) {
+    const value = limits as Record<string, unknown>
+    return {
+      groupName,
+      rpm: typeof value.rpm === 'number' ? value.rpm : 0,
+      tpm: typeof value.tpm === 'number' ? value.tpm : 0,
+      rpd: typeof value.rpd === 'number' ? value.rpd : 0,
+    }
+  }
+  if (
+    Array.isArray(limits) &&
+    limits.length === 2 &&
+    limits.every((item) => typeof item === 'number')
+  ) {
+    return {
+      groupName,
+      rpm: limits[0] as number,
+      tpm: 0,
+      rpd: limits[1] as number,
+    }
+  }
+  return null
+}
+
 export function RateLimitVisualEditor({
   value,
   onChange,
@@ -38,21 +66,7 @@ export function RateLimitVisualEditor({
     })
 
     return Object.entries(parsed)
-      .map(([groupName, limits]) => {
-        if (
-          Array.isArray(limits) &&
-          limits.length === 2 &&
-          typeof limits[0] === 'number' &&
-          typeof limits[1] === 'number'
-        ) {
-          return {
-            groupName,
-            maxRequests: limits[0],
-            maxSuccess: limits[1],
-          }
-        }
-        return null
-      })
+      .map(([groupName, limits]) => parseRateLimitValue(groupName, limits))
       .filter((item): item is RateLimitEntry => item !== null)
   }, [value])
 
@@ -75,7 +89,11 @@ export function RateLimitVisualEditor({
       delete parsed[editData.groupName]
     }
 
-    parsed[data.groupName] = [data.maxRequests, data.maxSuccess]
+    parsed[data.groupName] = {
+      rpm: data.rpm,
+      tpm: data.tpm,
+      rpd: data.rpd,
+    }
 
     onChange(JSON.stringify(parsed, null, 2))
   }
@@ -138,26 +156,35 @@ export function RateLimitVisualEditor({
             cell: (limit) => limit.groupName,
           },
           {
-            id: 'max-requests',
-            header: t('Max Requests (incl. failures)'),
+            id: 'rpm',
+            header: 'RPM',
             className: 'text-right',
             cellClassName: 'text-right',
             cell: (limit) => (
               <span className='font-mono'>
-                {limit.maxRequests === 0
-                  ? t('Unlimited')
-                  : limit.maxRequests.toLocaleString()}
+                {limit.rpm === 0 ? t('Unlimited') : limit.rpm.toLocaleString()}
               </span>
             ),
           },
           {
-            id: 'max-success',
-            header: t('Max Success'),
+            id: 'tpm',
+            header: 'TPM',
             className: 'text-right',
             cellClassName: 'text-right',
             cell: (limit) => (
               <span className='font-mono'>
-                {limit.maxSuccess.toLocaleString()}
+                {limit.tpm === 0 ? t('Unlimited') : limit.tpm.toLocaleString()}
+              </span>
+            ),
+          },
+          {
+            id: 'rpd',
+            header: 'RPD',
+            className: 'text-right',
+            cellClassName: 'text-right',
+            cell: (limit) => (
+              <span className='font-mono'>
+                {limit.rpd === 0 ? t('Unlimited') : limit.rpd.toLocaleString()}
               </span>
             ),
           },

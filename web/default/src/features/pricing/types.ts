@@ -9,6 +9,12 @@ export type PricingVendor = {
   description?: string
 }
 
+export type PricingRateLimit = {
+  rpm?: number
+  tpm?: number
+  rpd?: number
+}
+
 export type PricingUsableGroupValue =
   | string
   | {
@@ -40,6 +46,7 @@ export type PricingModel = {
   vendor_icon?: string
   vendor_description?: string
   available_vendors?: PricingVendor[]
+  rate_limits?: Record<string, PricingRateLimit>
   created_time?: number
   quota_type: number
   model_ratio: number

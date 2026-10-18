@@ -8,9 +8,9 @@ import {
 
 const defaultSecuritySettings: SecuritySettings = {
   ModelRequestRateLimitEnabled: false,
-  ModelRequestRateLimitCount: 0,
-  ModelRequestRateLimitSuccessCount: 1000,
-  ModelRequestRateLimitDurationMinutes: 1,
+  ModelRequestRateLimitRPM: 0,
+  ModelRequestRateLimitTPM: 0,
+  ModelRequestRateLimitRPD: 0,
   ModelRequestRateLimitGroup: '',
   CheckSensitiveEnabled: false,
   CheckSensitiveOnPromptEnabled: false,

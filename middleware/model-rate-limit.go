@@ -6,6 +6,8 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
@@ -22,6 +24,155 @@ const (
 	ModelRequestRateLimitCountMark        = "MRRL"
 	ModelRequestRateLimitSuccessCountMark = "MRRLS"
 )
+
+var modelRateLimitCounters = struct {
+	sync.Mutex
+	values map[string]int64
+}{values: make(map[string]int64)}
+
+func newRateLimitConfigured(group string) bool {
+	if _, found := setting.GetModelRateLimit(group); found {
+		return true
+	}
+	global := setting.EffectiveGlobalRateLimit()
+	if global.RPM > 0 || global.TPM > 0 || global.RPD > 0 {
+		return true
+	}
+	// A saved v2 configuration with all three values set to zero is an
+	// explicit unlimited configuration. Fresh legacy installations still use
+	// the old success-count default until the new settings are saved.
+	return setting.ModelRequestRateLimitCount == 0 && setting.ModelRequestRateLimitSuccessCount == 0
+}
+
+func checkFixedWindowMemory(key string, limit int, window time.Duration, amount int64) bool {
+	if limit <= 0 {
+		return true
+	}
+	bucket := time.Now().Unix() / int64(window.Seconds())
+	key += ":" + strconv.FormatInt(bucket, 10)
+	modelRateLimitCounters.Lock()
+	defer modelRateLimitCounters.Unlock()
+	current := modelRateLimitCounters.values[key]
+	if amount == 0 {
+		return current < int64(limit)
+	}
+	if current+amount > int64(limit) {
+		return false
+	}
+	modelRateLimitCounters.values[key] = current + amount
+	return true
+}
+
+func checkFixedWindowRedis(ctx context.Context, rdb *redis.Client, key string, limit int, window time.Duration, amount int64) (bool, error) {
+	if limit <= 0 {
+		return true, nil
+	}
+	bucket := time.Now().Unix() / int64(window.Seconds())
+	key += ":" + strconv.FormatInt(bucket, 10)
+	if amount == 0 {
+		value, err := rdb.Get(ctx, key).Int64()
+		if err == redis.Nil {
+			return true, nil
+		}
+		return value < int64(limit), err
+	}
+	value, err := rdb.IncrBy(ctx, key, amount).Result()
+	if err != nil {
+		return false, err
+	}
+	if value == amount {
+		if err := rdb.Expire(ctx, key, window+time.Minute).Err(); err != nil {
+			return false, err
+		}
+	}
+	if value <= int64(limit) {
+		return true, nil
+	}
+	_ = rdb.DecrBy(ctx, key, amount).Err()
+	return false, nil
+}
+
+func recordFixedWindowMemory(key string, window time.Duration, amount int64) {
+	if amount <= 0 {
+		return
+	}
+	bucket := time.Now().Unix() / int64(window.Seconds())
+	key += ":" + strconv.FormatInt(bucket, 10)
+	modelRateLimitCounters.Lock()
+	modelRateLimitCounters.values[key] += amount
+	modelRateLimitCounters.Unlock()
+}
+
+func recordFixedWindowRedis(ctx context.Context, rdb *redis.Client, key string, window time.Duration, amount int64) error {
+	if amount <= 0 {
+		return nil
+	}
+	bucket := time.Now().Unix() / int64(window.Seconds())
+	key += ":" + strconv.FormatInt(bucket, 10)
+	value, err := rdb.IncrBy(ctx, key, amount).Result()
+	if err != nil {
+		return err
+	}
+	if value == amount {
+		return rdb.Expire(ctx, key, window+time.Minute).Err()
+	}
+	return nil
+}
+
+func newRateLimitHandler(c *gin.Context, subject string, limits setting.ModelRateLimit) {
+	ctx := context.Background()
+	checks := []struct {
+		name   string
+		limit  int
+		window time.Duration
+	}{
+		{"rpm", limits.RPM, time.Minute},
+		{"tpm", limits.TPM, time.Minute},
+		{"rpd", limits.RPD, 24 * time.Hour},
+	}
+	for _, check := range checks {
+		key := "rateLimit:v2:" + check.name + ":" + subject
+		amount := int64(1)
+		if check.name == "tpm" {
+			// Token usage is known after the upstream response. Check the current
+			// window before dispatch, then record actual usage below.
+			amount = 0
+		}
+		allowed := true
+		var err error
+		if common.RedisEnabled {
+			allowed, err = checkFixedWindowRedis(ctx, common.RDB, key, check.limit, check.window, check.amount)
+		} else {
+			allowed = checkFixedWindowMemory(key, check.limit, check.window, check.amount)
+		}
+		if err != nil {
+			abortWithOpenAiMessage(c, http.StatusInternalServerError, "rate_limit_check_failed")
+			return
+		}
+		if !allowed {
+			abortWithOpenAiMessage(c, http.StatusTooManyRequests, fmt.Sprintf("您已达到%s限制", strings.ToUpper(check.name)))
+			return
+		}
+	}
+	c.Next()
+	if limits.TPM > 0 {
+		tokens := int64(common.GetContextKeyInt(c, constant.ContextKeyRateLimitTokens))
+		if tokens <= 0 {
+			tokens = int64(common.GetContextKeyInt(c, constant.ContextKeyEstimatedTokens))
+		}
+		if tokens > int64(limits.TPM) {
+			tokens = int64(limits.TPM)
+		}
+		if tokens > 0 {
+			key := "rateLimit:v2:tpm:" + subject
+			if common.RedisEnabled {
+				_ = recordFixedWindowRedis(ctx, common.RDB, key, time.Minute, tokens)
+			} else {
+				recordFixedWindowMemory(key, time.Minute, tokens)
+			}
+		}
+	}
+}
 
 // 检查Redis中的请求限制
 func checkRedisRateLimit(ctx context.Context, rdb *redis.Client, key string, maxCount int, duration int64) (bool, error) {
@@ -196,6 +347,15 @@ func ModelRequestRateLimit() func(c *gin.Context) {
 			totalMaxCount = groupTotalCount
 			successMaxCount = groupSuccessCount
 			subject += ":" + group
+		}
+
+		if newRateLimitConfigured(group) {
+			limits := setting.EffectiveGlobalRateLimit()
+			if groupLimits, ok := setting.GetModelRateLimit(group); ok {
+				limits = groupLimits
+			}
+			newRateLimitHandler(c, subject, limits)
+			return
 		}
 
 		// 根据存储类型选择并执行限流处理器

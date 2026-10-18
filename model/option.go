@@ -167,6 +167,9 @@ func InitOptionMap() {
 	common.OptionMap["ModelRequestRateLimitCount"] = strconv.Itoa(setting.ModelRequestRateLimitCount)
 	common.OptionMap["ModelRequestRateLimitDurationMinutes"] = strconv.Itoa(setting.ModelRequestRateLimitDurationMinutes)
 	common.OptionMap["ModelRequestRateLimitSuccessCount"] = strconv.Itoa(setting.ModelRequestRateLimitSuccessCount)
+	common.OptionMap["ModelRequestRateLimitRPM"] = strconv.Itoa(setting.ModelRequestRateLimitRPM)
+	common.OptionMap["ModelRequestRateLimitTPM"] = strconv.Itoa(setting.ModelRequestRateLimitTPM)
+	common.OptionMap["ModelRequestRateLimitRPD"] = strconv.Itoa(setting.ModelRequestRateLimitRPD)
 	common.OptionMap["ModelRequestRateLimitGroup"] = setting.ModelRequestRateLimitGroup2JSONString()
 	common.OptionMap["ModelRatio"] = ratio_setting.ModelRatio2JSONString()
 	common.OptionMap["ModelPrice"] = ratio_setting.ModelPrice2JSONString()
@@ -647,6 +650,12 @@ func updateOptionMap(key string, value string) (err error) {
 		setting.ModelRequestRateLimitDurationMinutes, _ = strconv.Atoi(value)
 	case "ModelRequestRateLimitSuccessCount":
 		setting.ModelRequestRateLimitSuccessCount, _ = strconv.Atoi(value)
+	case "ModelRequestRateLimitRPM":
+		setting.ModelRequestRateLimitRPM, _ = strconv.Atoi(value)
+	case "ModelRequestRateLimitTPM":
+		setting.ModelRequestRateLimitTPM, _ = strconv.Atoi(value)
+	case "ModelRequestRateLimitRPD":
+		setting.ModelRequestRateLimitRPD, _ = strconv.Atoi(value)
 	case "ModelRequestRateLimitGroup":
 		err = setting.UpdateModelRequestRateLimitGroupByJSONString(value)
 	case "RetryTimes":

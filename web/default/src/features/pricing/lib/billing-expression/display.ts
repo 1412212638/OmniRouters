@@ -204,10 +204,7 @@ function isDisplayRequestCondition(node: ExpressionNode): boolean {
       isDisplayRequestCondition(node.right)
     )
   }
-  if (
-    node.kind !== 'binary' ||
-    !['==', '!='].includes(node.operator)
-  ) {
+  if (node.kind !== 'binary' || !['==', '!='].includes(node.operator)) {
     return false
   }
   const isRequestProbe = (part: ExpressionNode): boolean =>

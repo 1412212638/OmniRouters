@@ -396,6 +396,16 @@ func UpdateOption(c *gin.Context) {
 			})
 			return
 		}
+	case "ModelRequestRateLimitRPM", "ModelRequestRateLimitTPM", "ModelRequestRateLimitRPD":
+		value, parseErr := strconv.Atoi(option.Value.(string))
+		if parseErr != nil {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "rate limit must be a non-negative integer"})
+			return
+		}
+		if err := setting.CheckModelRequestRateLimitValue(value); err != nil {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
+			return
+		}
 	case "AutomaticDisableStatusCodes":
 		_, err = operation_setting.ParseHTTPStatusCodeRanges(option.Value.(string))
 		if err != nil {

@@ -6,6 +6,7 @@ import (
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/service"
+	"github.com/QuantumNous/new-api/setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 
 	"github.com/gin-gonic/gin"
@@ -135,6 +136,7 @@ func GetPricing(c *gin.Context) {
 			}
 		}
 		pricing[i].ModelGroupRatio = resolved
+		pricing[i].RateLimits = setting.GetModelRateLimits(pricing[i].EnableGroup)
 	}
 
 	c.JSON(200, gin.H{
