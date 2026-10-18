@@ -4054,3 +4054,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: frontend `bun run build`, targeted Oxfmt checks, JSON locale validation, and `git diff --check` passed. Go tests and gofmt could not run because Go is unavailable in the local shell; CI backend compilation and tests remain required.
 - Commit/push: local source changes are pending commit; GitHub push was not requested.
 
+## 2026-10-18 - Fix CI build for model rate-limit middleware
+
+- Local reason: the first GitHub Actions image build failed because the rate-limit middleware passed a nonexistent `check.amount` field to the fixed-window helpers.
+- Integrated: use the loop-local request amount for RPM/RPD checks and the zero-amount TPM pre-check, matching the intended runtime behavior.
+- Preserved: rate-limit windows, Redis and in-memory storage, TPM post-response accounting, and all unrelated worktree changes remain unchanged.
+- Validation: `git diff --check` passed; local Go validation remains unavailable because the Go toolchain is not installed. GitHub Actions is required to verify the Docker build and backend compilation.
+- Commit/push: fix is pending commit and push.
+

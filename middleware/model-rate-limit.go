@@ -141,9 +141,9 @@ func newRateLimitHandler(c *gin.Context, subject string, limits setting.ModelRat
 		allowed := true
 		var err error
 		if common.RedisEnabled {
-			allowed, err = checkFixedWindowRedis(ctx, common.RDB, key, check.limit, check.window, check.amount)
+			allowed, err = checkFixedWindowRedis(ctx, common.RDB, key, check.limit, check.window, amount)
 		} else {
-			allowed = checkFixedWindowMemory(key, check.limit, check.window, check.amount)
+			allowed = checkFixedWindowMemory(key, check.limit, check.window, amount)
 		}
 		if err != nil {
 			abortWithOpenAiMessage(c, http.StatusInternalServerError, "rate_limit_check_failed")
