@@ -49,7 +49,9 @@ function parseCustomParameters(raw: string | undefined) {
   }
 }
 
-export function validateImageCustomParameters(raw: string | undefined): string | null {
+export function validateImageCustomParameters(
+  raw: string | undefined
+): string | null {
   if (!raw?.trim()) return null
   try {
     const value = JSON.parse(raw) as unknown
@@ -66,9 +68,7 @@ export function validateImageCustomParameters(raw: string | undefined): string |
       return undefined
     }
     const protectedKey = findProtectedKey(value)
-    return protectedKey
-      ? `${protectedKey} is controlled by Studio`
-      : null
+    return protectedKey ? `${protectedKey} is controlled by Studio` : null
   } catch {
     return 'Custom JSON parameters must be valid JSON'
   }
@@ -80,7 +80,10 @@ export function resolveImageRequestEndpoint(
   profile: ImageRequestProfile
 ): 'generations' | 'edits' | 'gemini' {
   const lowerModel = model.toLowerCase()
-  if (lowerModel.startsWith('gemini-') || lowerModel.startsWith('nano-banana')) {
+  if (
+    lowerModel.startsWith('gemini-') ||
+    lowerModel.startsWith('nano-banana')
+  ) {
     return 'gemini'
   }
   if (profile.mode === 'custom') return profile.endpoint
@@ -236,7 +239,17 @@ function geminiImageRequest(request: ImageRequestPayload) {
   }
   for (const [key, value] of Object.entries(request)) {
     if (
-      !['model', 'group', 'prompt', 'image', 'image_url', 'input', 'size', 'quality', 'n'].includes(key)
+      ![
+        'model',
+        'group',
+        'prompt',
+        'image',
+        'image_url',
+        'input',
+        'size',
+        'quality',
+        'n',
+      ].includes(key)
     ) {
       result[key] = value
     }
@@ -255,9 +268,17 @@ export function imageRequestJson(
   const copy = { ...request }
   delete copy.group
   if (typeof copy.image === 'string') copy.image = '<reference image omitted>'
-  if (typeof copy.image_url === 'string') copy.image_url = '<reference image omitted>'
-  if (referenceField === 'input.image' && copy.input && typeof copy.input === 'object') {
-    copy.input = { ...(copy.input as Record<string, unknown>), image: '<reference image omitted>' }
+  if (typeof copy.image_url === 'string')
+    copy.image_url = '<reference image omitted>'
+  if (
+    referenceField === 'input.image' &&
+    copy.input &&
+    typeof copy.input === 'object'
+  ) {
+    copy.input = {
+      ...(copy.input as Record<string, unknown>),
+      image: '<reference image omitted>',
+    }
   }
   return JSON.stringify(copy, null, 2)
 }

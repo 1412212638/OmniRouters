@@ -69,6 +69,11 @@ type DynamicPricingBreakdownProps = {
    * icon header and uses the dialog's small text sizes. Defaults to false.
    */
   compact?: boolean
+  /**
+   * Render only request-condition multipliers when the tier table is already
+   * shown by the surrounding group pricing table. Defaults to true.
+   */
+  showTierTable?: boolean
 }
 
 const VAR_LABELS: Record<string, string> = {
@@ -222,12 +227,185 @@ function describeGroup(
   return parts.join(' · ')
 }
 
+export type DynamicPricingRuleOption = {
+  value: string
+  label: string
+  multiplier: number
+}
+
+function describeTimeRulePart(
+  condition: Extract<RequestCondition, { source: 'time' }>,
+  language: string
+): string {
+  if (condition.mode === MATCH_RANGE) {
+    if (condition.timeFunc === 'weekday') {
+      const weekday = formatWeekdayRange(
+        condition.rangeStart,
+        condition.rangeEnd,
+        language
+      )
+      return language.toLowerCase().startsWith('zh')
+        ? weekday.replace('–', '至')
+        : weekday
+    }
+    if (condition.timeFunc === 'hour') {
+      return `${condition.rangeStart}:00 - ${condition.rangeEnd}:00`
+    }
+    return `${condition.rangeStart} - ${condition.rangeEnd}`
+  }
+
+  const opMap: Record<string, string> = {
+    [MATCH_EQ]: '=',
+    [MATCH_GTE]: '≥',
+    [MATCH_LT]: '<',
+  }
+  return `${condition.timeFunc} ${opMap[condition.mode] || '='} ${condition.value}`
+}
+
+function getRuleOptionDescription(
+  group: RequestRuleGroup,
+  language: string,
+  t: (key: string) => string
+): { label: string; timezones: string[]; timeOnly: boolean } {
+  const timeConditions = (group.conditions || []).filter(
+    (condition): condition is Extract<RequestCondition, { source: 'time' }> =>
+      condition.source === SOURCE_TIME
+  )
+  const otherConditions = (group.conditions || []).filter(
+    (condition) => condition.source !== SOURCE_TIME
+  )
+  if (timeConditions.length === 0 || otherConditions.length > 0) {
+    return {
+      label: describeGroup(group, t, language),
+      timezones: [],
+      timeOnly: false,
+    }
+  }
+
+  return {
+    label: timeConditions
+      .map((condition) => describeTimeRulePart(condition, language))
+      .join(' '),
+    timezones: Array.from(
+      new Set(timeConditions.map((condition) => condition.timezone || 'UTC'))
+    ),
+    timeOnly: true,
+  }
+}
+
+function formatRuleOptionLabel(
+  labels: string[],
+  timezones: string[],
+  timeOnly: boolean,
+  language: string,
+  t: (key: string) => string
+): string {
+  const isChinese = language.toLowerCase().startsWith('zh')
+  const separator = isChinese ? '，' : ', '
+  if (!timeOnly) {
+    return `${t('Busy hours')} (${labels.join(separator)})`
+  }
+
+  const timeRangeLabels = labels.map((label) =>
+    label.match(/^(.*?)(\d{1,2}:\d{2} - \d{1,2}:\d{2})$/)
+  )
+  const sharedPrefix = timeRangeLabels[0]?.[1]
+  const canMergeTimeRanges =
+    Boolean(sharedPrefix) &&
+    timeRangeLabels.every((match) =>
+      Boolean(match && match[1] === sharedPrefix)
+    )
+  const detail = canMergeTimeRanges
+    ? `${sharedPrefix}${timeRangeLabels
+        .map((match) => match?.[2])
+        .join(separator)}`
+    : labels.join(separator)
+
+  const timezone = timezones[0] || 'UTC'
+  const timezoneLabel =
+    timezone === 'Asia/Shanghai'
+      ? isChinese
+        ? language.toLowerCase().startsWith('zh-tw')
+          ? '北京時間'
+          : '北京时间'
+        : 'China Standard Time'
+      : timezone
+  const open = isChinese ? '（' : ' ('
+  const close = isChinese ? '）' : ')'
+  return `${t('Busy hours')}${open}${timezoneLabel}${detail}${close}`
+}
+
+/**
+ * Builds the display-only choices used by the public model detail page.
+ * The idle choice represents the expression's base tier; selecting a request
+ * rule only changes the displayed prices and never changes billing behavior.
+ */
+export function getDynamicPricingRuleOptions(
+  billingExpr: string | null | undefined,
+  t: (key: string) => string,
+  language: string
+): DynamicPricingRuleOption[] {
+  const split = splitBillingExprAndRequestRules(billingExpr || '')
+  const groups = tryParseRequestRuleExpr(split.requestRuleExpr || '')
+  if (!groups || groups.length === 0) return []
+
+  const groupedRules = new Map<
+    string,
+    {
+      multiplier: number
+      labels: string[]
+      timezones: string[]
+      timeOnly: boolean
+    }
+  >()
+  groups.forEach((group, index) => {
+    const multiplier = Number(group.multiplier)
+    if (!Number.isFinite(multiplier) || multiplier < 0) return
+    const description = getRuleOptionDescription(group, language, t)
+    const key = description.timeOnly
+      ? `${multiplier}|${description.timezones.join(',')}`
+      : `${multiplier}|rule-${index}`
+    const current = groupedRules.get(key)
+    if (current) {
+      current.labels.push(description.label)
+      return
+    }
+    groupedRules.set(key, {
+      multiplier,
+      labels: [description.label],
+      timezones: description.timezones,
+      timeOnly: description.timeOnly,
+    })
+  })
+
+  return [
+    {
+      value: 'idle',
+      label: t('Off-peak'),
+      multiplier: 1,
+    },
+    ...Array.from(groupedRules.values()).map((rule, index) => ({
+      value: `rule-${index}`,
+      label:
+        formatRuleOptionLabel(
+          rule.labels,
+          rule.timezones,
+          rule.timeOnly,
+          language,
+          t
+        ) || `${t('Peak')} ${index + 1}`,
+      multiplier: rule.multiplier,
+    })),
+  ]
+}
+
 export function DynamicPricingBreakdown({
   billingExpr,
   matchedTierLabel,
   requestRules,
   hideCacheColumns = false,
   compact = false,
+  showTierTable = true,
 }: DynamicPricingBreakdownProps) {
   const { t, i18n } = useTranslation()
   const expr = billingExpr || ''
@@ -262,6 +440,8 @@ export function DynamicPricingBreakdown({
   const normalizedMatchedTierLabel = normalizeTierLabel(
     matchedTierLabel ?? undefined
   )
+
+  if (!showTierTable && !hasRules) return null
 
   if (!expr) return null
 
@@ -330,7 +510,7 @@ export function DynamicPricingBreakdown({
         </div>
       )}
 
-      {hasTiers && (
+      {showTierTable && hasTiers && (
         <div className={cn(compact ? cn(hasRules && 'mb-2') : 'mb-3 sm:mb-4')}>
           <div
             className={

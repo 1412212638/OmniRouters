@@ -4062,3 +4062,140 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check` passed; local Go validation remains unavailable because the Go toolchain is not installed. GitHub Actions is required to verify the Docker build and backend compilation.
 - Commit/push: fix is pending commit and push.
 
+## 2026-10-19 - Expand local pricing mock catalog
+
+- Local reason: the local preview needed representative model-square data so the standalone model pages could be reviewed without a production backend.
+- Integrated: expanded `web/default/mock/server.mjs` with additional vendors, model metadata, available vendor bindings, group multipliers, RPM/TPM/RPD limits, and complete catalog response fields. The mock catalog now covers chat, reasoning, embedding, image, and video models with 35 entries including deterministic variants.
+- Preserved: mock-only behavior, production API responses, real pricing calculations, and unrelated worktree changes remain unchanged.
+- Validation: `node --check mock/server.mjs`, mock API verification (35 models and 9 vendors), browser verification of populated model cards, a rich `gpt-4.1` detail page, API code samples, and RPM/TPM/RPD limits, `git diff --check`, and `bun run build` passed.
+- Commit/push: local preview changes are pending commit and push.
+
+## 2026-10-19 - Move model metadata into the detail header
+
+- Local reason: the standalone model page kept context, max output, knowledge cutoff, release metadata, and modality/capability blocks separated below the header, while the intended catalog layout presents the key model facts directly below the description.
+- Integrated: replaced the old standalone quick-stat and capability sections with two compact metadata cards under the model description: icon-based input/output modalities, and context/max-output limits. Removed release-date and price summary fields because those values are not part of the maintained model metadata and the full pricing table remains below.
+- Preserved: the pricing tables, API/performance tabs, backend model metadata, modality accessibility labels, and unrelated worktree changes remain unchanged.
+- Validation: `bun run build` in `web/default`, local mock browser verification of `/pricing/gpt-4.1`, and `git diff --check` passed. The live backend preview still depends on a running backend; mock data was used for the visual check.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Simplify model metadata card labels
+
+- Local reason: the combined context/max-output card repeated its two field labels in a redundant card-level heading.
+- Integrated: removed the redundant card-level heading while retaining the individual context and maximum-output labels.
+- Preserved: the two-card layout, modality icons, values, accessibility labels, and all pricing/detail behavior remain unchanged.
+- Validation: `bunx oxfmt --check` and `git diff --check` passed; local browser verification remains on `/pricing/gpt-4.1`.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Align model metadata cards
+
+- Local reason: removing the combined heading left the context/max-output content vertically tighter than the modality card.
+- Integrated: added a matching metric-row height and vertical alignment so the two cards share the same visual rhythm without restoring the removed heading.
+- Preserved: labels, modality icons, values, accessibility text, and all other model detail behavior remain unchanged.
+- Validation: `bun run build`, `bunx oxfmt --check`, local browser screenshot verification, and `git diff --check` passed.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Add spacing between metadata labels and values
+
+- Local reason: the context and maximum-output values sat too close to their labels, making their vertical position look unlike the modality icons beside them.
+- Integrated: added a small value offset beneath both right-card labels so the numeric row aligns with the visual center of the modality icon row.
+- Preserved: the two-card layout, labels, values, modality icons, and all other model detail behavior remain unchanged.
+- Validation: targeted formatting and `git diff --check` passed; the existing local preview remains available for visual verification.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Fine-tune metadata value alignment
+
+- Local reason: the context and maximum-output values still sat slightly high compared with the modality icon row.
+- Integrated: increased the value offset beneath both right-card labels by one spacing step.
+- Preserved: card dimensions, labels, modality icons, and all other model detail behavior remain unchanged.
+- Validation: targeted formatting and `git diff --check` passed; local browser verification follows the adjustment.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Remove overview performance summary
+
+- Local reason: the overview page's TPS, average latency, and success-rate row was not needed in the compact model detail layout and duplicated the dedicated performance tab.
+- Integrated: removed the overview performance summary and its query/formatting helpers while retaining the performance tab and detailed performance view.
+- Preserved: model metadata cards, pricing, API details, performance tab behavior, and backend data remain unchanged.
+- Validation: `bunx oxfmt --check src/features/pricing/components/model-details.tsx`, `bun run build`, local browser verification of `/pricing/gpt-4.1`, and `git diff --check` passed.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Remove redundant model metadata section
+
+- Local reason: the standalone detail page repeated provider, type, group, endpoint, tag, and parameter metadata in a separate bottom section after the header already presents the key model facts.
+- Integrated: removed the redundant bottom model metadata section and its unused display helpers.
+- Preserved: model description, modality icons, context/max-output values, pricing, performance, API tabs, and backend data remain unchanged.
+- Validation: `bun run build`, targeted `bunx oxfmt --check`, local browser verification, and `git diff --check` passed.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Consolidate model pricing into group pricing
+
+- Local reason: the standalone model page repeated base pricing above the group pricing section, while video resolution prices, task plugin prices, and conditional peak/off-peak multipliers needed to stay visible after the duplicate section was removed.
+- Integrated: removed the overview base-price block; standard prices remain in the group table, video resolution and audio surcharge prices render inside each group, task/plugin pricing renders inside each group, and dynamic request-condition multipliers render beneath the matching group tier table.
+- Preserved: existing billing calculations, group ratios, expiry display, pricing units, API/performance tabs, and the raw-expression fallback remain unchanged.
+- Mock data: added `deepseek-v4-flash` with weekday/time peak rules and `type-safe-demo` with TypeSafe and Quality Check task plugin variants for local preview validation.
+- Validation: `node --check mock/server.mjs`, `bunx oxfmt --check`, `bun run build`, `git diff --check`, and browser checks for normal, video, peak/off-peak, and task-plugin model detail pages passed.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Add selectable dynamic pricing periods
+
+- Local reason: dynamic model details showed request-condition multipliers as a separate list, while the displayed tier prices stayed at the off-peak base even when a peak condition was selected for review.
+- Integrated: dynamic group pricing now exposes a per-group billing-period selector with an off-peak base option and one option for each parsed request rule. Selecting a rule applies its multiplier to the displayed input, output, cache-read, cache-write, and other tier prices. The duplicate conditional-multiplier list was removed from the model detail page; usage-log detail rendering keeps its existing matched-rule breakdown.
+- Preserved: this is display-only and does not change server-side expression evaluation or billing, and standard, video, task-plugin, and special-expression pricing paths remain unchanged. Added localized labels for the new selector.
+- Validation: targeted Oxfmt checks, `bun run build` in `web/default`, mock browser verification of the default and peak prices for `deepseek-v4-flash-mock-09`, and `git diff --check` are complete. Backend tests were not applicable because no backend code changed.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-19 - Make dynamic pricing period selection global
+
+- Local reason: the first selectable dynamic-pricing implementation repeated the period selector inside every group card, and the overview card retained a redundant top-level pricing heading.
+- Integrated: moved the single billing-period selector beside `Pricing by Group`, shared its selected multiplier across every dynamic group, removed the per-group selectors, and removed the redundant `Pricing` heading above the section.
+- Preserved: idle/peak display-only behavior, actual server-side billing, non-dynamic pricing, video pricing, task-plugin pricing, and usage-log condition details remain unchanged.
+- Validation: targeted formatting, `bun run build` in `web/default`, mock browser verification of the global selector and synchronized peak prices, and `git diff --check` are complete. Backend tests were not applicable because no backend code changed.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-19 - Reuse the global selector for video resolutions
+
+- Local reason: video models use resolution tiers such as 720p and 1080p rather than peak/off-peak request conditions, but their detail page still expanded every resolution below each group.
+- Integrated: the shared selector now accepts model-specific condition options. Dynamic token models keep the billing-period selector, while per-request video models expose a global resolution selector and show only the selected resolution price inside every group. The audio-generation surcharge remains visible as a separate fixed request charge.
+- Preserved: video group ratios, recharge-price formatting, task-plugin pricing, dynamic expression billing, and all server-side billing behavior remain unchanged.
+- Validation: targeted formatting, `bun run build` in `web/default`, mock browser verification of the video selector and selected-resolution display, and `git diff --check` completed successfully. Backend tests are not applicable because no backend code changed.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-19 - Present video pricing as a group table
+
+- Local reason: video model pricing needed to keep the global resolution selector while matching the compact group-pricing table layout used by the reference design.
+- Integrated: replaced the per-group video pricing cards with one table containing group, ratio, expiration time, the selected resolution price, and the audio-generation surcharge when configured. The resolution selector remains global and updates the resolution column header and values.
+- Preserved: server-side billing, resolution-tier calculations, audio surcharge calculations, recharge-price formatting, group expiry display, and all non-video pricing paths remain unchanged.
+- Validation: `bunx oxfmt --check src/features/pricing/components/model-details.tsx`, `bun run build` in `web/default`, and `git diff --check` passed. Backend tests were not applicable because no backend code changed.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-19 - Rename the video pricing column
+
+- Local reason: the video pricing table column should describe the priced content as video output rather than repeat the selected resolution in its heading.
+- Integrated: renamed the video price column to the localized `Video output` label while keeping the resolution selector and selected-resolution price behavior unchanged.
+- Preserved: table structure, resolution switching, audio surcharge, group pricing, and all non-video pricing paths remain unchanged.
+- Validation: targeted formatting, `bun run build` in `web/default`, and `git diff --check` completed successfully. Backend tests were not applicable because no backend code changed.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-19 - Reuse resolution pricing for image expressions
+
+- Local reason: image-generation models using `param("resolution")` tier expressions should present the same compact selectable pricing layout as video models.
+- Integrated: detected image-generation expressions with fixed resolution tiers, added a global resolution selector, and rendered a group table with ratio, expiration time, and a localized `Image output` price shown per image. Added a local `seedream-4.0` mock using 1K/2K/4K tiers for preview verification.
+- Preserved: expression evaluation and billing remain server-side, fallback tiers remain supported, video pricing keeps its `Video output` label, and ordinary dynamic/text models keep their existing tier tables and billing-period selector.
+- Validation: `bunx oxfmt --check`, `node --check mock/server.mjs`, `bun run build` in `web/default`, `git diff --check`, and local browser verification of `seedream-4.0` passed. Backend tests were not applicable because no backend code changed.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-19 - Add a JEV 1.14 mock model
+
+- Local reason: the local model catalog needed a representative JEV model to review the TypeSafe plugin pricing flow.
+- Integrated: added `jev-1.14` to the mock catalog with Alibaba Cloud, Tencent Cloud, and OpenRouter vendor bindings, OpenAI-compatible endpoint metadata, model limits, and a TypeSafe usage-based plugin variant with a validation example.
+- Preserved: production model data, server-side plugin billing, existing `type-safe-demo`, and all unrelated mock catalog entries remain unchanged.
+- Validation: `node --check mock/server.mjs`, `git diff --check`, and local browser verification of `/pricing/jev-1.14` passed. The detail page showed group prices and TypeSafe task pricing for both available groups.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-19 - Display simple TypeSafe pricing as input/output columns
+
+- Local reason: JEV models with one simple TypeSafe token-pricing variant duplicated the same information in a separate task card instead of matching the ordinary text-model price table.
+- Integrated: simple single-variant plugins containing only `input_tokens` and `output_tokens` now render those prices directly as `Input` and `Output` columns, with group multipliers applied and the shared `1M tokens` unit note. The redundant task card is hidden for this narrow shape; complex or multi-variant plugins retain their detailed task sections.
+- Preserved: TypeSafe billing expressions, server-side settlement, group pricing, cache columns for token models, and all other model pricing layouts remain unchanged.
+- Validation: `bunx oxfmt --check`, `bun run build` in `web/default`, `git diff --check`, and local browser verification of `/pricing/jev-1.14` passed. Backend tests were not applicable because no backend code changed.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+

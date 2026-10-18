@@ -147,7 +147,7 @@ function taskFieldLabel(field: string): string {
   return field
 }
 
-function getTaskPriceEntries(
+export function getTaskPriceEntries(
   model: PricingModel,
   options: DynamicPriceOptions,
   taskTiers?: ReturnType<typeof getTaskPricingDisplayTiers>

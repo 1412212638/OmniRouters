@@ -704,6 +704,8 @@
     "View invoice": "查看發票",
     "Invoice is not available": "發票暫不可用",
     "Billing Mode": "收費模式",
+    "Billing period": "計費時段",
+    "Busy hours": "尖峰時段",
     "Billing Path": "收費路徑",
     "Billing Process": "收費過程",
     "Billing rule: each call is billed as the token group (falling back to the user group when the token has none). The base ratio always comes from that billing group, not from the user group. To give a user group a special price on another billing group, add an entry in the override matrix.": "收費規則：每次呼叫按令牌分組收費（令牌未設定分組時回退到用戶分組）。基礎倍率始終取該收費分組的倍率，而不是用戶分組的倍率。若要讓某用戶分組在使用其他收費分組時享受特殊價格，請在覆蓋矩陣中添加條目。",
@@ -2374,6 +2376,8 @@
     "Image not available": "圖片不可用",
     "Image Out": "圖像輸出",
     "Image output price": "圖像輸出價格",
+    "Image output": "圖片輸出",
+    "Image unit": "張",
     "Image Preview": "圖片預覽",
     "Image ratio": "圖片倍率",
     "Image to Video": "圖生影片",
@@ -3146,6 +3150,7 @@
     "of": "條，共",
     "of 3:": "共 3 個：",
     "off": "關閉",
+    "Off-peak": "離峰",
     "Official": "官方",
     "Official Claude Messages": "官方 Claude Messages",
     "Official documentation": "官方說明",
@@ -5610,6 +5615,8 @@
     "API Access Points": "API 接入點",
     "Supported API protocols and endpoints": "支援的 API 協定與端點",
     "Selected Endpoint": "目前端點",
-    "API Address": "API 位址"
+    "API Address": "API 位址",
+    "Resolution": "解析度",
+    "Video output": "影片輸出"
   }
 }

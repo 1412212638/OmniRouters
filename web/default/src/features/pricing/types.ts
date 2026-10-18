@@ -127,7 +127,7 @@ export type PricingData = {
   group_model_ratio: Record<string, Record<string, number>>
   group_model_ratio_expiry: Record<string, Record<string, number>>
   usable_group: PricingUsableGroup
-  supported_endpoint: Record<string, string>
+  supported_endpoint: Record<string, { path?: string; method?: string }>
   auto_groups: string[]
 }
 

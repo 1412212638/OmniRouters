@@ -1,5 +1,5 @@
-import { Share2 } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { Share2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { CopyButton } from '@/components/copy-button'

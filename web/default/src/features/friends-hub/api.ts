@@ -6,9 +6,15 @@ import type {
   RewardsListResponse,
 } from './types'
 
-type ApiResponse<T = unknown> = { success?: boolean; message?: string; data?: T }
+type ApiResponse<T = unknown> = {
+  success?: boolean
+  message?: string
+  data?: T
+}
 
-export async function getFriendsSummary(): Promise<ApiResponse<FriendsSummary>> {
+export async function getFriendsSummary(): Promise<
+  ApiResponse<FriendsSummary>
+> {
   const response = await api.get('/api/user/friends/summary')
   return response.data
 }
@@ -34,7 +40,8 @@ export async function getFriendRewards(
 }
 
 export async function transferFriendRewards(amount?: number) {
-  const response = await api.post('/api/user/friends/cashback/transfer',
+  const response = await api.post(
+    '/api/user/friends/cashback/transfer',
     amount == null ? undefined : { quota: amount }
   )
   return response.data as ApiResponse

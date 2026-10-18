@@ -18,11 +18,7 @@ export type ImageRequestPayload = {
 
 export type ImageRequestMode = 'auto' | 'generations' | 'edits' | 'custom'
 export type ImageRequestEndpoint = 'generations' | 'edits' | 'gemini'
-export type ImageReferenceField =
-  | 'none'
-  | 'image'
-  | 'image_url'
-  | 'input.image'
+export type ImageReferenceField = 'none' | 'image' | 'image_url' | 'input.image'
 
 export type ImageRequestProfile = {
   mode: ImageRequestMode
@@ -121,14 +117,10 @@ export async function generateImages(
   signal?: AbortSignal,
   endpoint = IMAGE_PLAYGROUND_ENDPOINTS.GENERATIONS
 ): Promise<ImageGenerationResponse> {
-  const response = await api.post(
-    endpoint,
-    payload,
-    {
-      signal,
-      skipErrorHandler: true,
-    } as Record<string, unknown>
-  )
+  const response = await api.post(endpoint, payload, {
+    signal,
+    skipErrorHandler: true,
+  } as Record<string, unknown>)
   return response.data
 }
 
@@ -192,14 +184,10 @@ export async function editGeminiImage(
     )
     reader.readAsDataURL(referenceBlob)
   })
-  const response = await api.post(
-    endpoint,
-    { ...payload, image: imageData },
-    {
-      signal,
-      skipErrorHandler: true,
-    } as Record<string, unknown>
-  )
+  const response = await api.post(endpoint, { ...payload, image: imageData }, {
+    signal,
+    skipErrorHandler: true,
+  } as Record<string, unknown>)
   return response.data
 }
 
