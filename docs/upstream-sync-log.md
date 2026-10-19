@@ -9,6 +9,14 @@
 - Validation: `bun run build` in `web/default` and `git diff --check` passed. Go tests and `gofmt` could not run because Go is not installed or available on PATH in this environment; backend compilation and runtime behavior remain unverified locally.
 - Resulting local commit: `0045da654` (`feat(upstream): sync five selected updates`); pushed to `origin/main`. Publication status is recorded in follow-up commit `42556c83d`.
 
+## 2026-10-20 - Fix Alpha Search relay-info build failure
+
+- Local reason: GitHub Actions failed while compiling `relay/common` because the upstream-sync branch referenced an undefined `GenRelayInfoAlphaSearch` constructor.
+- Changed: construct Alpha Search relay info through the shared base initializer, set its relay format, retain path-derived relay mode, and add a regression test for those fields.
+- Preserved: the existing Alpha Search request forwarding, billing, retry behavior, and all unrelated local functionality.
+- Validation: `git diff --check` passed. Local Go tests and `gofmt` could not run because Go is not installed or available on PATH; GitHub Actions is the available backend compile check.
+- Commit/push: pending.
+
 ## 2026-10-17 - Complete model-card cache pricing display
 
 - Local reason: model plaza cards showed dynamic cache-read prices without discount styling and omitted cache-write prices, leaving cache-aware models with an incomplete compact price summary.

@@ -1,12 +1,30 @@
 package common
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
+
+	"github.com/QuantumNous/new-api/relay/constant"
+	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/relaykit/relayconvert/convmeta"
 	"github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestGenRelayInfoAlphaSearch(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	c, _ := gin.CreateTestContext(httptest.NewRecorder())
+	c.Request = httptest.NewRequest(http.MethodPost, "/v1/alpha/search", nil)
+
+	info, err := GenRelayInfo(c, types.RelayFormatOpenAIAlphaSearch, &dto.AlphaSearchRequest{Model: "gpt-5.1"}, nil)
+	require.NoError(t, err)
+	assert.Equal(t, types.RelayFormatOpenAIAlphaSearch, info.RelayFormat)
+	assert.Equal(t, constant.RelayModeAlphaSearch, info.RelayMode)
+	assert.Equal(t, []types.RelayFormat{types.RelayFormatOpenAIAlphaSearch}, info.RequestConversionChain)
+}
 
 func TestRelayInfoGetFinalRequestRelayFormatPrefersExplicitFinal(t *testing.T) {
 	info := &RelayInfo{RelayFormat: types.RelayFormatOpenAI, RequestConversionChain: []types.RelayFormat{types.RelayFormatOpenAI, types.RelayFormatClaude}, FinalRequestRelayFormat: types.RelayFormatOpenAIResponses}
