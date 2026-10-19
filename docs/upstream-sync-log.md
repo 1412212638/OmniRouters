@@ -4264,3 +4264,51 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bun run build`, `bunx oxfmt --check web/default/src/features/pricing/components/model-details.tsx`, and `git diff --check` passed. No live production API/config was accessed; visual confirmation is limited to the supplied screenshots and equivalent local pricing fixture.
 - Commit and push: pending.
 
+## 2026-10-20 - Separate web tool endpoints in the API access drawer
+
+- Local reason: `/v1/tools/search` and `/v1/tools/fetch` are DeepSeek-style web tool endpoints rather than standard OpenAI-compatible endpoints, so grouping them under OpenAI Compatible was misleading.
+- Integrated: moved both endpoints into a dedicated localized `Web Tools` protocol card. Their POST paths, server-node selection, URL generation, and endpoint selection behavior are unchanged.
+- Preserved: OpenAI-compatible endpoint contents, backend routing and billing behavior, and all other protocol cards.
+- Validation: `bunx oxfmt --check` for the changed frontend files, locale JSON parsing, `bun run build` in `web/default`, and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test-package declarations and unrelated type errors; no backend changes were made.
+- Commit and push: pending.
+
+## 2026-10-20 - Expose built-in web tool prices in the model plaza
+
+- Local reason: Search/Fetch and other built-in tool calls can add a per-call surcharge, but the public model plaza only showed token or task prices.
+- Integrated: added `tool_prices` to the public pricing payload, rendered tool fees on model cards and a per-group `$/1K calls` table on model details, and added local fixtures for OpenAI, Anthropic, Gemini, and DeepSeek examples. Independent `deepseek-search` and `deepseek-fetch` models are excluded from the extra-tool table to avoid double display.
+- Preserved: existing billing and settlement calculations, group multipliers, model pricing, endpoint routing, and custom tool configuration behavior. This change only publishes and formats existing tool prices.
+- Validation: `bun run build` passed; targeted `bunx oxfmt --check` and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test dependencies and unrelated type errors. Local mock API and frontend preview are running at `http://localhost:3000` and `http://localhost:8080`.
+- Commit and push: pending.
+
+## 2026-10-20 - Add web tool endpoints to the API access drawer
+
+- Local reason: the API key endpoint drawer did not expose the platform's `/v1/tools/search` and `/v1/tools/fetch` entry points, even though they are available through the gateway.
+- Integrated: added both POST endpoints to the OpenAI-compatible endpoint list before the existing model-list endpoint, with localized labels for all supported frontend languages. Existing endpoint selection, URL generation, default selection, and server-node handling are unchanged.
+- Preserved: backend routing and billing behavior, all existing protocol endpoints, and the model-list endpoint's final position.
+- Validation: `bunx oxfmt --check` for the changed frontend files, locale JSON parsing, `bun run build` in `web/default`, and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test-package declarations and unrelated type errors; no backend changes were made.
+- Commit and push: pending.
+
+## 2026-10-20 - Integrate tool prices into group pricing tables
+
+- Local reason: tool fees were shown in a separate detail section, while the model plaza already presents input, output, and cache prices as one pricing surface.
+- Integrated: removed the duplicate tool-pricing section and appended only configured tool columns after cache-related columns in each group pricing table. Tool columns follow a stable order (`Web Search Preview`, `Web Search`, `File Search`, provider search tools, and `Image Generation`), apply the active group multiplier and recharge-price display, show `/1K calls`, and use the same green discount styling as input/output prices.
+- Preserved: public `tool_prices` metadata, model-card tool summaries, task/plugin billing, image/video pricing, server-side billing, and independent DeepSeek Search/Fetch model handling. Dynamic tier rows retain their existing tier prices; configured tool columns are appended to those tables using the group multiplier only because tool fees are group-level values rather than tier values.
+- Validation: local GPT-4.1 and Gemini detail pages showed the merged columns and group-adjusted values; `bun run build`, targeted `bunx oxfmt --check`, and `git diff --check` passed. `bun run typecheck` remains blocked by existing missing test dependencies and unrelated repository type errors.
+- Commit and push: pending; GitHub push was not requested.
+
+## 2026-10-20 - Localize discount expiry and web tool labels
+
+- Local reason: the group pricing table should identify the displayed timestamp as the discount expiry, and newly exposed tool columns still fell back to English in several supported locales.
+- Changed: renamed the group-table column to localized `Discount expiration time` and completed translations for tool fees, call units, DeepSeek Search/Fetch, Google Search variants, Web Search Preview, and the related explanatory labels across English, Simplified Chinese, Traditional Chinese, French, Japanese, Russian, and Vietnamese.
+- Preserved: pricing calculations, tool ordering, group multipliers, discount styling, model-card layout, and backend billing behavior.
+- Validation: locale files were checked for the new keys, targeted Oxfmt, `bun run build`, and `git diff --check` passed. The repository's existing case-colliding locale keys still prevent PowerShell's default `ConvertFrom-Json` parser from validating the whole files; no new JSON syntax errors were introduced.
+- Commit and push: pending; GitHub push was not requested.
+
+## 2026-10-20 - Localize system announcement timeline dates
+
+- Local reason: the notification popover's timeline rendered every left-side date with a fixed `en-US` locale, so the date did not follow the selected interface language.
+- Changed: pass the active i18next language through `toIntlLocale` and use it when formatting timeline dates; invalid publication dates now omit the date label instead of rendering `Invalid Date`.
+- Preserved: the existing Notice/Timeline tabs, translated labels and empty states, announcement ordering, expand/collapse behavior, and legacy plain-text notice support.
+- Validation: targeted Oxfmt, `bun run build` in `web/default`, and `git diff --check` passed. Local preview verification is pending for a populated announcement timeline; no mock announcement data was added.
+- Commit and push: pending; GitHub push was not requested.
+

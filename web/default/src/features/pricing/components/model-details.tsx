@@ -15,7 +15,10 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { CopyButton } from '@/components/copy-button'
-import { StaticDataTable } from '@/components/data-table'
+import {
+  StaticDataTable,
+  type StaticDataTableColumn,
+} from '@/components/data-table'
 import { sideDrawerContentClassName } from '@/components/drawer-layout'
 import { GroupBadge } from '@/components/group-badge'
 import { PublicLayout } from '@/components/layout'
@@ -55,9 +58,11 @@ import {
   isSoraPerRequestPricingModel,
   stripTrailingZeros,
 } from '../lib/price'
+import { formatToolPrice, getPricingToolPrices } from '../lib/tool-price'
 import type {
   PriceType,
   PricingModel,
+  PricingToolPrice,
   PricingUsableGroup,
   TokenUnit,
 } from '../types'
@@ -579,6 +584,38 @@ function PricingByGroupHeader(props: {
   )
 }
 
+function getToolPricingColumns<TData>(props: {
+  tools: PricingToolPrice[]
+  thClass: string
+  translate: (key: string) => string
+  getGroupMultiplier: (row: TData) => number
+  showRechargePrice: boolean
+  priceRate: number
+  usdExchangeRate: number
+}): StaticDataTableColumn<TData>[] {
+  return props.tools.map((tool) => ({
+    id: `tool-${tool.name}`,
+    header: props.translate(tool.label),
+    className: `${props.thClass} text-right`,
+    cellClassName: 'py-2.5 text-right font-mono',
+    cell: (row: TData) => {
+      const ratio = props.getGroupMultiplier(row)
+      return (
+        <span className={ratio < 1 ? 'text-success' : undefined}>
+          {formatToolPrice(tool.price_per_1k, ratio, {
+            showRechargePrice: props.showRechargePrice,
+            priceRate: props.priceRate,
+            usdExchangeRate: props.usdExchangeRate,
+          })}
+          <span className='text-muted-foreground/60 ml-1 text-xs font-normal'>
+            /{props.translate('1K calls')}
+          </span>
+        </span>
+      )
+    },
+  }))
+}
+
 function DynamicGroupPricingCard(props: {
   model: PricingModel
   group: string
@@ -593,6 +630,16 @@ function DynamicGroupPricingCard(props: {
   selectedRuleMultiplier: number
 }) {
   const { t } = useTranslation()
+  const toolPricingColumns = getToolPricingColumns({
+    tools: getPricingToolPrices(props.model),
+    thClass:
+      'text-muted-foreground py-2 text-[10px] font-medium tracking-wider uppercase',
+    translate: t,
+    getGroupMultiplier: () => props.groupRatio,
+    showRechargePrice: props.showRechargePrice,
+    priceRate: props.priceRate,
+    usdExchangeRate: props.usdExchangeRate,
+  })
   const formattedPricesByTier = useMemo(
     () =>
       getDynamicFormattedPricesByTier(props.dynamicTiers, {
@@ -646,6 +693,7 @@ function DynamicGroupPricingCard(props: {
             cell: (tier: (typeof props.dynamicTiers)[number]) =>
               formattedPricesByTier.get(tier)?.get(fieldEntry.field) ?? '-',
           })),
+          ...toolPricingColumns,
         ]}
       />
       {props.model.billing_plugin_variants?.length ? (
@@ -776,6 +824,15 @@ function GroupPricingSection(props: {
 
   const thClass =
     'text-muted-foreground py-2 text-[10px] font-medium tracking-wider uppercase'
+  const toolPricingColumns = getToolPricingColumns({
+    tools: getPricingToolPrices(props.model),
+    thClass,
+    translate: t,
+    getGroupMultiplier: (group) => getRuleInfo(group).multiplier,
+    showRechargePrice,
+    priceRate: props.priceRate,
+    usdExchangeRate: props.usdExchangeRate,
+  })
 
   if (isSoraPricing) {
     const hasAudioGenerationSurcharge = availableGroups.some((group) =>
@@ -821,7 +878,7 @@ function GroupPricingSection(props: {
             },
             {
               id: 'expiresAt',
-              header: t('Expiration time'),
+              header: t('Discount expiration time'),
               className: thClass,
               cellClassName: 'text-muted-foreground py-2.5 text-xs',
               cell: (group) => {
@@ -890,6 +947,7 @@ function GroupPricingSection(props: {
                   },
                 ]
               : []),
+            ...toolPricingColumns,
           ]}
         />
       </section>
@@ -935,7 +993,7 @@ function GroupPricingSection(props: {
             },
             {
               id: 'expiresAt',
-              header: t('Expiration time'),
+              header: t('Discount expiration time'),
               className: thClass,
               cellClassName: 'text-muted-foreground py-2.5 text-xs',
               cell: (group) => {
@@ -974,6 +1032,7 @@ function GroupPricingSection(props: {
                 )
               },
             },
+            ...toolPricingColumns,
           ]}
         />
       </section>
@@ -1169,7 +1228,7 @@ function GroupPricingSection(props: {
           },
           {
             id: 'expiresAt',
-            header: t('Expiration time'),
+            header: t('Discount expiration time'),
             className: thClass,
             cellClassName: 'text-muted-foreground py-2.5 text-xs',
             cell: (group) => {
@@ -1178,23 +1237,26 @@ function GroupPricingSection(props: {
             },
           },
           ...(simpleTaskPricingModel
-            ? simpleTaskPricingFields.map((field) => ({
-                id: field,
-                header: t(field === 'input_tokens' ? 'Input' : 'Output'),
-                className: `${thClass} text-right`,
-                cellClassName: 'py-2.5 text-right font-mono',
-                cell: (group: string) => (
-                  <span
-                    className={
-                      getRuleInfo(group).multiplier < 1
-                        ? 'text-success'
-                        : undefined
-                    }
-                  >
-                    {renderSimpleTaskPrice(group, field)}
-                  </span>
-                ),
-              }))
+            ? [
+                ...simpleTaskPricingFields.map((field) => ({
+                  id: field,
+                  header: t(field === 'input_tokens' ? 'Input' : 'Output'),
+                  className: `${thClass} text-right`,
+                  cellClassName: 'py-2.5 text-right font-mono',
+                  cell: (group: string) => (
+                    <span
+                      className={
+                        getRuleInfo(group).multiplier < 1
+                          ? 'text-success'
+                          : undefined
+                      }
+                    >
+                      {renderSimpleTaskPrice(group, field)}
+                    </span>
+                  ),
+                })),
+                ...toolPricingColumns,
+              ]
             : isTokenBased
               ? [
                   {
@@ -1248,6 +1310,7 @@ function GroupPricingSection(props: {
                       </span>
                     ),
                   })),
+                  ...toolPricingColumns,
                 ]
               : [
                   {
@@ -1272,6 +1335,7 @@ function GroupPricingSection(props: {
                       </span>
                     ),
                   },
+                  ...toolPricingColumns,
                 ]),
         ]}
       />

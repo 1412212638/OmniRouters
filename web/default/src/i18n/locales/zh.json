@@ -5958,6 +5958,21 @@
     "API Access Points": "API 接入点",
     "Supported API protocols and endpoints": "支持的 API 协议和端点",
     "Selected Endpoint": "当前端点",
-    "API Address": "API 地址"
+    "API Address": "API 地址",
+    "Web Tools": "网页工具",
+    "Web search and page fetch": "网页搜索和页面抓取",
+    "Search the Web": "网页搜索",
+    "Fetch a Web Page": "网页抓取",
+    "Tool call pricing": "工具调用价格",
+    "Tool fees": "工具费用",
+    "Tool": "工具",
+    "1K calls": "1K 次",
+    "Additional fees apply only when the tool is used.": "仅在实际使用工具时收取附加费用。",
+    "DeepSeek Fetch": "DeepSeek 抓取",
+    "DeepSeek Search": "DeepSeek 搜索",
+    "Google Search": "Google 搜索",
+    "Google Search Grounded Prompt": "Google 搜索增强",
+    "Web Search Preview": "网页搜索预览",
+    "Discount expiration time": "折扣到期时间"
   }
 }

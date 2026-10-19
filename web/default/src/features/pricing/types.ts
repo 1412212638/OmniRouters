@@ -15,6 +15,12 @@ export type PricingRateLimit = {
   rpd?: number
 }
 
+export type PricingToolPrice = {
+  name: string
+  label: string
+  price_per_1k: number
+}
+
 export type PricingUsableGroupValue =
   | string
   | {
@@ -47,6 +53,7 @@ export type PricingModel = {
   vendor_description?: string
   available_vendors?: PricingVendor[]
   rate_limits?: Record<string, PricingRateLimit>
+  tool_prices?: PricingToolPrice[]
   created_time?: number
   quota_type: number
   model_ratio: number

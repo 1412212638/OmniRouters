@@ -13,6 +13,7 @@ import (
 	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/setting"
 	"github.com/QuantumNous/new-api/setting/billing_setting"
+	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/QuantumNous/new-api/types"
 )
@@ -65,6 +66,7 @@ type Pricing struct {
 	ModelGroupRatio        map[string]float64                    `json:"model_group_ratio,omitempty"`
 	SoraPerRequestPricing  *billing_setting.SoraPerRequestPricing `json:"sora_per_request_pricing,omitempty"`
 	RateLimits             map[string]setting.ModelRateLimit      `json:"rate_limits,omitempty"`
+	ToolPrices             []PricingToolPrice                    `json:"tool_prices,omitempty"`
 }
 
 type PricingVendor struct {
@@ -72,6 +74,73 @@ type PricingVendor struct {
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
 	Icon        string `json:"icon,omitempty"`
+}
+
+// PricingToolPrice is a public, built-in tool surcharge. Prices are stored in
+// USD per 1K successful calls and are resolved against the model name before
+// being returned by the public pricing endpoint.
+type PricingToolPrice struct {
+	Name  string  `json:"name"`
+	Label string  `json:"label"`
+	Price float64 `json:"price_per_1k"`
+}
+
+var publicPricingTools = []struct {
+	name  string
+	label string
+}{
+	{name: "web_search_preview", label: "Web Search Preview"},
+	{name: "web_search", label: "Web Search"},
+	{name: "file_search", label: "File Search"},
+	{name: "google_search", label: "Google Search"},
+	{name: "google_search_grounded_prompt", label: "Google Search Grounded Prompt"},
+	{name: "image_generation", label: "Image Generation"},
+	{name: "deepseek_search", label: "DeepSeek Search"},
+	{name: "deepseek_fetch", label: "DeepSeek Fetch"},
+}
+
+func pricingToolEnabled(toolName, modelName string, endpoints []constant.EndpointType) bool {
+	if modelName == constant.DeepSeekSearchModel || modelName == constant.DeepSeekFetchModel {
+		return false
+	}
+	hasEndpoint := func(want constant.EndpointType) bool {
+		for _, endpoint := range endpoints {
+			if endpoint == want {
+				return true
+			}
+		}
+		return false
+	}
+	switch toolName {
+	case "web_search_preview", "file_search":
+		return hasEndpoint(constant.EndpointTypeOpenAIResponse)
+	case "image_generation":
+		return hasEndpoint(constant.EndpointTypeOpenAIResponse)
+	case "web_search":
+		return hasEndpoint(constant.EndpointTypeOpenAI) || hasEndpoint(constant.EndpointTypeAnthropic)
+	case "google_search", "google_search_grounded_prompt":
+		return hasEndpoint(constant.EndpointTypeGemini)
+	case "deepseek_search", "deepseek_fetch":
+		return strings.HasPrefix(strings.ToLower(modelName), "deepseek-") &&
+			(hasEndpoint(constant.EndpointTypeOpenAI) || hasEndpoint(constant.EndpointTypeOpenAIResponse))
+	default:
+		return false
+	}
+}
+
+func getPublicPricingToolPrices(modelName string, endpoints []constant.EndpointType) []PricingToolPrice {
+	prices := make([]PricingToolPrice, 0, len(publicPricingTools))
+	for _, tool := range publicPricingTools {
+		if !pricingToolEnabled(tool.name, modelName, endpoints) {
+			continue
+		}
+		prices = append(prices, PricingToolPrice{
+			Name:  tool.name,
+			Label: tool.label,
+			Price: operation_setting.GetToolPriceForModel(tool.name, modelName),
+		})
+	}
+	return prices
 }
 
 var (
@@ -427,6 +496,7 @@ func updatePricing() {
 			ModelName:              model,
 			EnableGroup:            groups.Items(),
 			SupportedEndpointTypes: modelSupportEndpointTypes[model],
+			ToolPrices:             getPublicPricingToolPrices(model, modelSupportEndpointTypes[model]),
 		}
 
 		// 补充模型元数据（描述、标签、供应商、状态）

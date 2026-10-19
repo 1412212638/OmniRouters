@@ -5617,6 +5617,21 @@
     "Selected Endpoint": "目前端點",
     "API Address": "API 位址",
     "Resolution": "解析度",
-    "Video output": "影片輸出"
+    "Video output": "影片輸出",
+    "Web Tools": "網頁工具",
+    "Web search and page fetch": "網頁搜尋與頁面擷取",
+    "Search the Web": "網頁搜尋",
+    "Fetch a Web Page": "擷取網頁",
+    "Tool call pricing": "工具呼叫價格",
+    "Tool fees": "工具費用",
+    "Tool": "工具",
+    "1K calls": "1K 次",
+    "Additional fees apply only when the tool is used.": "僅在使用工具時收取附加費用。",
+    "DeepSeek Fetch": "DeepSeek 擷取",
+    "DeepSeek Search": "DeepSeek 搜尋",
+    "Google Search": "Google 搜尋",
+    "Google Search Grounded Prompt": "Google 搜尋增強",
+    "Web Search Preview": "網頁搜尋預覽",
+    "Discount expiration time": "折扣到期時間"
   }
 }

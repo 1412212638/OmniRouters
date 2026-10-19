@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { toIntlLocale } from '@/i18n/languages'
 import { getAnnouncementColorClass } from '@/lib/colors'
 import { cn } from '@/lib/utils'
 
@@ -177,10 +178,12 @@ function NoticeContent({
   notice,
   loading,
   t,
+  locale,
 }: {
   notice: string
   loading: boolean
   t: TFunction
+  locale?: string
 }) {
   if (loading) {
     return (
@@ -213,6 +216,7 @@ function NoticeContent({
               new Date(a.publishDate ?? 0).getTime()
           )}
           loading={false}
+          locale={locale}
           t={t}
         />
       )
@@ -247,10 +251,12 @@ function AnnouncementsContent({
   announcements,
   loading,
   t,
+  locale,
 }: {
   announcements: AnnouncementItem[]
   loading: boolean
   t: TFunction
+  locale?: string
 }) {
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(
     () => new Set(announcements.map(getAnnouncementRenderKey))
@@ -279,12 +285,13 @@ function AnnouncementsContent({
           const publishDate = item.publishDate
             ? new Date(item.publishDate)
             : null
-          const dateLabel = publishDate
-            ? publishDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: '2-digit',
-              })
-            : undefined
+          const dateLabel =
+            publishDate && !Number.isNaN(publishDate.getTime())
+              ? publishDate.toLocaleDateString(locale, {
+                  month: 'short',
+                  day: '2-digit',
+                })
+              : undefined
           const expanded = expandedKeys.has(announcementKey)
 
           return (
@@ -326,7 +333,7 @@ export function NotificationPopover({
   loading,
   className,
 }: NotificationPopoverProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger
@@ -378,13 +385,19 @@ export function NotificationPopover({
           </TabsList>
 
           <TabsContent value='notice' className='mt-2'>
-            <NoticeContent notice={notice} loading={loading} t={t} />
+            <NoticeContent
+              notice={notice}
+              loading={loading}
+              locale={toIntlLocale(i18n.resolvedLanguage || i18n.language)}
+              t={t}
+            />
           </TabsContent>
 
           <TabsContent value='announcements' className='mt-2'>
             <AnnouncementsContent
               announcements={announcements}
               loading={loading}
+              locale={toIntlLocale(i18n.resolvedLanguage || i18n.language)}
               t={t}
             />
           </TabsContent>

@@ -5883,6 +5883,21 @@
     "API Access Points": "Points d’accès API",
     "Supported API protocols and endpoints": "Protocoles et points de terminaison API pris en charge",
     "Selected Endpoint": "Point de terminaison sélectionné",
-    "API Address": "Adresse API"
+    "API Address": "Adresse API",
+    "Web Tools": "Outils Web",
+    "Web search and page fetch": "Recherche Web et récupération de pages",
+    "Search the Web": "Rechercher sur le Web",
+    "Fetch a Web Page": "Récupérer une page Web",
+    "Tool call pricing": "Tarification des appels d’outils",
+    "Tool fees": "Frais d’outils",
+    "Tool": "Outil",
+    "1K calls": "1K appels",
+    "Additional fees apply only when the tool is used.": "Des frais supplémentaires s’appliquent uniquement lorsque l’outil est utilisé.",
+    "DeepSeek Fetch": "Récupération DeepSeek",
+    "DeepSeek Search": "Recherche DeepSeek",
+    "Google Search": "Recherche Google",
+    "Google Search Grounded Prompt": "Recherche Google avec ancrage",
+    "Web Search Preview": "Aperçu de la recherche web",
+    "Discount expiration time": "Expiration de la remise"
   }
 }

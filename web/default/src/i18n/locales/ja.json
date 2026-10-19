@@ -5883,6 +5883,21 @@
     "API Access Points": "API 接続ポイント",
     "Supported API protocols and endpoints": "対応する API プロトコルとエンドポイント",
     "Selected Endpoint": "選択したエンドポイント",
-    "API Address": "API アドレス"
+    "API Address": "API アドレス",
+    "Web Tools": "ウェブツール",
+    "Web search and page fetch": "ウェブ検索とページ取得",
+    "Search the Web": "ウェブを検索",
+    "Fetch a Web Page": "ウェブページを取得",
+    "Tool call pricing": "ツール呼び出し料金",
+    "Tool fees": "ツール料金",
+    "Tool": "ツール",
+    "1K calls": "1K 回",
+    "Additional fees apply only when the tool is used.": "追加料金はツール使用時のみ発生します。",
+    "DeepSeek Fetch": "DeepSeek 取得",
+    "DeepSeek Search": "DeepSeek 検索",
+    "Google Search": "Google 検索",
+    "Google Search Grounded Prompt": "Google 検索（グラウンディングプロンプト）",
+    "Web Search Preview": "Web 検索プレビュー",
+    "Discount expiration time": "割引有効期限"
   }
 }

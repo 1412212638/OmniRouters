@@ -5886,6 +5886,21 @@
     "API Access Points": "Điểm truy cập API",
     "Supported API protocols and endpoints": "Giao thức và endpoint API được hỗ trợ",
     "Selected Endpoint": "Endpoint đã chọn",
-    "API Address": "Địa chỉ API"
+    "API Address": "Địa chỉ API",
+    "Web Tools": "Công cụ web",
+    "Web search and page fetch": "Tìm kiếm web và lấy trang",
+    "Search the Web": "Tìm kiếm trên web",
+    "Fetch a Web Page": "Lấy trang web",
+    "Tool call pricing": "Giá gọi công cụ",
+    "Tool fees": "Phí công cụ",
+    "Tool": "Công cụ",
+    "1K calls": "1K lượt gọi",
+    "Additional fees apply only when the tool is used.": "Chỉ tính phí bổ sung khi sử dụng công cụ.",
+    "DeepSeek Fetch": "Truy xuất DeepSeek",
+    "DeepSeek Search": "Tìm kiếm DeepSeek",
+    "Google Search": "Tìm kiếm Google",
+    "Google Search Grounded Prompt": "Tìm kiếm Google có căn cứ",
+    "Web Search Preview": "Xem trước tìm kiếm web",
+    "Discount expiration time": "Thời hạn giảm giá"
   }
 }

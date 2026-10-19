@@ -242,6 +242,11 @@ const models = [
     enable_groups: ['default', 'premium'],
     tags: 'chat,tools,vision,reasoning',
     supported_endpoint_types: ['openai', 'openai-response'],
+    tool_prices: [
+      { name: 'web_search_preview', label: 'Web Search Preview', price_per_1k: 25 },
+      { name: 'file_search', label: 'File Search', price_per_1k: 2.5 },
+      { name: 'image_generation', label: 'Image Generation', price_per_1k: 150 },
+    ],
   },
   {
     id: 2,
@@ -255,6 +260,10 @@ const models = [
     enable_groups: ['default', 'premium', 'research'],
     tags: 'chat,fast,tools',
     supported_endpoint_types: ['openai', 'openai-response'],
+    tool_prices: [
+      { name: 'web_search_preview', label: 'Web Search Preview', price_per_1k: 25 },
+      { name: 'file_search', label: 'File Search', price_per_1k: 2.5 },
+    ],
   },
   {
     id: 3,
@@ -271,6 +280,10 @@ const models = [
     billing_expr:
       'tier(p, 0, 100000, 10) + tier(c, 0, 100000, 40) * if(reasoning_tokens > 0, 1.2, 1)',
     pricing_version: 'mock-2026-06',
+    tool_prices: [
+      { name: 'web_search_preview', label: 'Web Search Preview', price_per_1k: 10 },
+      { name: 'file_search', label: 'File Search', price_per_1k: 2.5 },
+    ],
   },
   {
     id: 4,
@@ -286,6 +299,9 @@ const models = [
     enable_groups: ['default', 'premium'],
     tags: 'chat,coding,long-context,tools',
     supported_endpoint_types: ['anthropic'],
+    tool_prices: [
+      { name: 'web_search', label: 'Web Search', price_per_1k: 10 },
+    ],
   },
   {
     id: 5,
@@ -301,6 +317,9 @@ const models = [
     enable_groups: ['premium'],
     tags: 'reasoning,coding,long-context',
     supported_endpoint_types: ['anthropic'],
+    tool_prices: [
+      { name: 'web_search', label: 'Web Search', price_per_1k: 10 },
+    ],
   },
   {
     id: 6,
@@ -314,6 +333,14 @@ const models = [
     enable_groups: ['default', 'premium', 'research'],
     tags: 'chat,vision,long-context,reasoning',
     supported_endpoint_types: ['gemini'],
+    tool_prices: [
+      { name: 'google_search', label: 'Google Search', price_per_1k: 0 },
+      {
+        name: 'google_search_grounded_prompt',
+        label: 'Google Search Grounded Prompt',
+        price_per_1k: 35,
+      },
+    ],
   },
   {
     id: 7,
@@ -328,6 +355,14 @@ const models = [
     enable_groups: ['default', 'premium', 'research'],
     tags: 'chat,fast,vision',
     supported_endpoint_types: ['gemini'],
+    tool_prices: [
+      { name: 'google_search', label: 'Google Search', price_per_1k: 0 },
+      {
+        name: 'google_search_grounded_prompt',
+        label: 'Google Search Grounded Prompt',
+        price_per_1k: 35,
+      },
+    ],
   },
   {
     id: 8,
@@ -342,6 +377,10 @@ const models = [
     enable_groups: ['default', 'research'],
     tags: 'reasoning,coding,math',
     supported_endpoint_types: ['openai'],
+    tool_prices: [
+      { name: 'deepseek_search', label: 'DeepSeek Search', price_per_1k: 0.75 },
+      { name: 'deepseek_fetch', label: 'DeepSeek Fetch', price_per_1k: 0.75 },
+    ],
   },
   {
     id: 12,
@@ -360,6 +399,10 @@ const models = [
     billing_expr:
       '(tier("base", p * 0.15 + c * 0.6 + cr * 0.003)) * (weekday("Asia/Shanghai") >= 1 && weekday("Asia/Shanghai") < 6 && hour("Asia/Shanghai") >= 9 && hour("Asia/Shanghai") < 12 ? 2 : 1) * (weekday("Asia/Shanghai") >= 1 && weekday("Asia/Shanghai") < 6 && hour("Asia/Shanghai") >= 14 && hour("Asia/Shanghai") < 18 ? 2 : 1)',
     pricing_version: 'mock-2026-06',
+    tool_prices: [
+      { name: 'deepseek_search', label: 'DeepSeek Search', price_per_1k: 0.75 },
+      { name: 'deepseek_fetch', label: 'DeepSeek Fetch', price_per_1k: 0.75 },
+    ],
   },
   {
     id: 9,

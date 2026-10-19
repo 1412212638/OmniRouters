@@ -5883,6 +5883,21 @@
     "API Access Points": "Точки доступа API",
     "Supported API protocols and endpoints": "Поддерживаемые протоколы и конечные точки API",
     "Selected Endpoint": "Выбранная конечная точка",
-    "API Address": "Адрес API"
+    "API Address": "Адрес API",
+    "Web Tools": "Веб-инструменты",
+    "Web search and page fetch": "Веб-поиск и получение страниц",
+    "Search the Web": "Поиск в интернете",
+    "Fetch a Web Page": "Получить веб-страницу",
+    "Tool call pricing": "Стоимость вызова инструментов",
+    "Tool fees": "Плата за инструменты",
+    "Tool": "Инструмент",
+    "1K calls": "1K вызовов",
+    "Additional fees apply only when the tool is used.": "Дополнительная плата взимается только при использовании инструмента.",
+    "DeepSeek Fetch": "Получение DeepSeek",
+    "DeepSeek Search": "Поиск DeepSeek",
+    "Google Search": "Поиск Google",
+    "Google Search Grounded Prompt": "Поиск Google с обоснованием",
+    "Web Search Preview": "Предпросмотр веб-поиска",
+    "Discount expiration time": "Срок действия скидки"
   }
 }

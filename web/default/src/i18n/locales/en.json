@@ -5958,6 +5958,21 @@
     "API Access Points": "API Access Points",
     "Supported API protocols and endpoints": "Supported API protocols and endpoints",
     "Selected Endpoint": "Selected Endpoint",
-    "API Address": "API Address"
+    "API Address": "API Address",
+    "Web Tools": "Web Tools",
+    "Web search and page fetch": "Web search and page fetch",
+    "Search the Web": "Search the Web",
+    "Fetch a Web Page": "Fetch a Web Page",
+    "Tool call pricing": "Tool call pricing",
+    "Tool fees": "Tool fees",
+    "Tool": "Tool",
+    "1K calls": "1K calls",
+    "Additional fees apply only when the tool is used.": "Additional fees apply only when the tool is used.",
+    "DeepSeek Fetch": "DeepSeek Fetch",
+    "DeepSeek Search": "DeepSeek Search",
+    "Google Search": "Google Search",
+    "Google Search Grounded Prompt": "Google Search Grounded Prompt",
+    "Web Search Preview": "Web Search Preview",
+    "Discount expiration time": "Discount expiration time"
   }
 }

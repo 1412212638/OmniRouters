@@ -125,6 +125,25 @@ const PROTOCOLS: Protocol[] = [
     ],
   },
   {
+    id: 'web-tools',
+    label: 'Web Tools',
+    description: 'Web search and page fetch',
+    endpoints: [
+      {
+        id: 'tools-search',
+        method: 'POST',
+        path: '/v1/tools/search',
+        label: 'Search the Web',
+      },
+      {
+        id: 'tools-fetch',
+        method: 'POST',
+        path: '/v1/tools/fetch',
+        label: 'Fetch a Web Page',
+      },
+    ],
+  },
+  {
     id: 'anthropic',
     label: 'Anthropic',
     description: 'Anthropic Messages',
@@ -429,8 +448,7 @@ export function ApiEndpointsDrawer({
                     </div>
                     <div className='grid gap-1 sm:grid-cols-2'>
                       {protocol.endpoints.map((endpoint) => {
-                        const isSelected =
-                          endpoint.id === protocolEndpoint.id
+                        const isSelected = endpoint.id === protocolEndpoint.id
                         return (
                           <button
                             key={endpoint.id}

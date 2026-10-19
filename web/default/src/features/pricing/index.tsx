@@ -102,6 +102,7 @@ import {
   getSoraPricingDisplay,
   stripTrailingZeros,
 } from './lib/price'
+import { getToolPriceSummary } from './lib/tool-price'
 import type {
   Modality,
   PricingModel,
@@ -1112,6 +1113,10 @@ function CatalogModelCard(props: {
     isFree || (displayGroupRatio >= 0 && displayGroupRatio < 1)
   const discountFold = Number((displayGroupRatio * 10).toFixed(1))
   const discountPercent = Number(((1 - displayGroupRatio) * 100).toFixed(1))
+  const toolPriceSummary = getToolPriceSummary(props.model, displayGroupRatio, {
+    priceRate: props.priceRate,
+    usdExchangeRate: props.usdExchangeRate,
+  })
   const availableVendors = props.model.available_vendors?.length
     ? props.model.available_vendors
     : [
@@ -1338,6 +1343,19 @@ function CatalogModelCard(props: {
                 </span>
               )}
             </InfoLine>
+          </div>
+        )}
+        {toolPriceSummary.length > 0 && (
+          <div className='text-muted-foreground min-w-0 sm:col-span-2'>
+            <div className='flex min-w-0 items-baseline gap-1 text-sm'>
+              <span className='shrink-0'>{t('Tool fees')}:</span>
+              <span className='truncate font-mono text-xs'>
+                {toolPriceSummary.join(' · ')}
+                {props.model.tool_prices && props.model.tool_prices.length > 2
+                  ? ` · +${props.model.tool_prices.length - 2}`
+                  : ''}
+              </span>
+            </div>
           </div>
         )}
       </div>
