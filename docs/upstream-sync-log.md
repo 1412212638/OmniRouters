@@ -7,7 +7,7 @@
 - Already present: local stream keepalive infrastructure and parts of DeepSeek V4 suffix support were reused. The local reasoning/tool billing and response error handling were retained while adding provider-specific behavior.
 - Deferred or intentionally skipped: upstream commit `058c8231b` (audit-log index) was excluded by request. Upstream-only `web/src` changes and its direct Claude-to-Responses converter were not copied; the local frontend uses `web/default`, and Claude conversion remains on the existing multi-hop path.
 - Validation: `bun run build` in `web/default` and `git diff --check` passed. Go tests and `gofmt` could not run because Go is not installed or available on PATH in this environment; backend compilation and runtime behavior remain unverified locally.
-- Resulting local commit: `0045da654` (`feat(upstream): sync five selected updates`); GitHub push is pending.
+- Resulting local commit: `0045da654` (`feat(upstream): sync five selected updates`); pushed to `origin/main`. Publication status is recorded in follow-up commit `42556c83d`.
 
 ## 2026-10-17 - Complete model-card cache pricing display
 
