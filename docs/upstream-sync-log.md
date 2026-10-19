@@ -25,6 +25,14 @@
 - Validation: `git diff --check` passed. Local Go tests and `gofmt` could not run because Go is not installed or available on PATH; GitHub Actions is the backend compile check.
 - Commit/push: source commit `fb19632cd` (`fix(claude): add server tool usage counters`) pushed to `origin/main`.
 
+## 2026-10-20 - Fix Claude token-count handler build failure
+
+- Local reason: GitHub Actions found that the new Claude token-count handler called a nonexistent service function.
+- Changed: use the existing `service.EstimateRequestToken` entry point with the validated Claude request metadata.
+- Preserved: token counting configuration, Claude request validation, and the no-upstream/no-billing behavior of the handler.
+- Validation: `git diff --check` passed. Local Go tests and `gofmt` could not run because Go is not installed or available on PATH; GitHub Actions is the backend compile check.
+- Commit/push: pending.
+
 ## 2026-10-17 - Complete model-card cache pricing display
 
 - Local reason: model plaza cards showed dynamic cache-read prices without discount styling and omitted cache-write prices, leaving cache-aware models with an incomplete compact price summary.

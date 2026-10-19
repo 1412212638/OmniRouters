@@ -328,7 +328,7 @@ func CountClaudeTokens(c *gin.Context) {
 	}
 
 	info := relaycommon.GenRelayInfoClaude(c, request)
-	inputTokens, err := service.CountRequestToken(c, request.GetTokenCountMeta(), info)
+	inputTokens, err := service.EstimateRequestToken(c, request.GetTokenCountMeta(), info)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"type": "error",
