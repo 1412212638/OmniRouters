@@ -23,7 +23,7 @@
 - Changed: added Anthropic's `web_fetch_requests`, `code_execution_requests`, and `tool_search_requests` fields and preserved their cumulative values when usage snapshots are merged; added a merge regression test.
 - Preserved: existing web-search usage merging, Claude response conversion, and provider-specific billing behavior.
 - Validation: `git diff --check` passed. Local Go tests and `gofmt` could not run because Go is not installed or available on PATH; GitHub Actions is the backend compile check.
-- Commit/push: pending.
+- Commit/push: source commit `fb19632cd` (`fix(claude): add server tool usage counters`) pushed to `origin/main`.
 
 ## 2026-10-17 - Complete model-card cache pricing display
 
