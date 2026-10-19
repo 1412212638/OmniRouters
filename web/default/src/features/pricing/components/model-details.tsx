@@ -294,14 +294,19 @@ type DynamicPricingTier = ReturnType<typeof getDynamicPricingTiers>[number]
 type DynamicFormattedPricesByTier = Map<DynamicPricingTier, Map<string, string>>
 
 function getSimpleTaskPricingModel(model: PricingModel): PricingModel | null {
+  const variants = model.billing_plugin_variants ?? []
+  const mergedSchema = Object.assign(
+    {},
+    ...variants.map((variant) => variant.billing_usage_schema),
+    model.billing_usage_schema
+  )
   const candidates = [
-    {
-      billingExpr: model.billing_expr,
-      schema: model.billing_usage_schema,
-    },
-    ...(model.billing_plugin_variants ?? []).map((variant) => ({
+    // Prefer the model-level expression, but allow its usage schema to come
+    // from plugin variants when the API splits expression metadata by source.
+    { billingExpr: model.billing_expr, schema: mergedSchema },
+    ...variants.map((variant) => ({
       billingExpr: variant.billing_expr,
-      schema: variant.billing_usage_schema,
+      schema: Object.assign({}, mergedSchema, variant.billing_usage_schema),
     })),
   ]
 
@@ -1172,78 +1177,78 @@ function GroupPricingSection(props: {
               return expiry ? new Date(expiry * 1000).toLocaleString() : '-'
             },
           },
-          ...(isTokenBased
-            ? [
-                {
-                  id: 'input',
-                  header: t('Input'),
-                  className: `${thClass} text-right`,
-                  cellClassName: 'py-2.5 text-right font-mono',
-                  cell: (group: string) => (
-                    <span
-                      className={
-                        getRuleInfo(group).multiplier < 1
-                          ? 'text-success'
-                          : undefined
-                      }
-                    >
-                      {renderGroupPrice(group, 'input')}
-                    </span>
-                  ),
-                },
-                {
-                  id: 'output',
-                  header: t('Output'),
-                  className: `${thClass} text-right`,
-                  cellClassName: 'py-2.5 text-right font-mono',
-                  cell: (group: string) => (
-                    <span
-                      className={
-                        getRuleInfo(group).multiplier < 1
-                          ? 'text-success'
-                          : undefined
-                      }
-                    >
-                      {renderGroupPrice(group, 'output')}
-                    </span>
-                  ),
-                },
-                ...extraPriceTypes.map((ep) => ({
-                  id: ep.type,
-                  header: ep.label,
-                  className: `${thClass} text-right`,
-                  cellClassName: 'py-2.5 text-right font-mono',
-                  cell: (group: string) => (
-                    <span
-                      className={
-                        getRuleInfo(group).multiplier < 1
-                          ? 'text-success'
-                          : undefined
-                      }
-                    >
-                      {renderGroupPrice(group, ep.type)}
-                    </span>
-                  ),
-                })),
-              ]
-            : simpleTaskPricingModel
-              ? simpleTaskPricingFields.map((field) => ({
-                  id: field,
-                  header: t(field === 'input_tokens' ? 'Input' : 'Output'),
-                  className: `${thClass} text-right`,
-                  cellClassName: 'py-2.5 text-right font-mono',
-                  cell: (group: string) => (
-                    <span
-                      className={
-                        getRuleInfo(group).multiplier < 1
-                          ? 'text-success'
-                          : undefined
-                      }
-                    >
-                      {renderSimpleTaskPrice(group, field)}
-                    </span>
-                  ),
-                }))
+          ...(simpleTaskPricingModel
+            ? simpleTaskPricingFields.map((field) => ({
+                id: field,
+                header: t(field === 'input_tokens' ? 'Input' : 'Output'),
+                className: `${thClass} text-right`,
+                cellClassName: 'py-2.5 text-right font-mono',
+                cell: (group: string) => (
+                  <span
+                    className={
+                      getRuleInfo(group).multiplier < 1
+                        ? 'text-success'
+                        : undefined
+                    }
+                  >
+                    {renderSimpleTaskPrice(group, field)}
+                  </span>
+                ),
+              }))
+            : isTokenBased
+              ? [
+                  {
+                    id: 'input',
+                    header: t('Input'),
+                    className: `${thClass} text-right`,
+                    cellClassName: 'py-2.5 text-right font-mono',
+                    cell: (group: string) => (
+                      <span
+                        className={
+                          getRuleInfo(group).multiplier < 1
+                            ? 'text-success'
+                            : undefined
+                        }
+                      >
+                        {renderGroupPrice(group, 'input')}
+                      </span>
+                    ),
+                  },
+                  {
+                    id: 'output',
+                    header: t('Output'),
+                    className: `${thClass} text-right`,
+                    cellClassName: 'py-2.5 text-right font-mono',
+                    cell: (group: string) => (
+                      <span
+                        className={
+                          getRuleInfo(group).multiplier < 1
+                            ? 'text-success'
+                            : undefined
+                        }
+                      >
+                        {renderGroupPrice(group, 'output')}
+                      </span>
+                    ),
+                  },
+                  ...extraPriceTypes.map((ep) => ({
+                    id: ep.type,
+                    header: ep.label,
+                    className: `${thClass} text-right`,
+                    cellClassName: 'py-2.5 text-right font-mono',
+                    cell: (group: string) => (
+                      <span
+                        className={
+                          getRuleInfo(group).multiplier < 1
+                            ? 'text-success'
+                            : undefined
+                        }
+                      >
+                        {renderGroupPrice(group, ep.type)}
+                      </span>
+                    ),
+                  })),
+                ]
               : [
                   {
                     id: 'price',

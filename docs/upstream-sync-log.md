@@ -4217,3 +4217,17 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 
 - Follow-up: local pricing fixtures now use the documented scaled token-expression form and include a model-level JEV expression (`0.042 / 1M input tokens`) so the detail-page path is exercised against the same shape as the production configuration.
 
+- Follow-up: detail-page task pricing now pairs a model-level expression with a plugin-provided usage schema when the backend exposes those metadata fields separately. This prevents fallback to legacy model ratios while the marketplace card already shows the expression price.
+
+- Follow-up: task usage fields can be split across multiple plugin variants, so detail pricing now merges model and plugin schemas before parsing the model-level expression; individual plugin expressions retain their own fields with model metadata as fallback.
+
+- Follow-up: model details now prioritize a recognized task-token expression over legacy token-ratio columns. This keeps detail-page prices consistent with marketplace cards for models such as JEV whose expression declares only input-token pricing.
+
+## 2026-10-19 - Fix task token price in model details
+
+- Local reason: the model card rendered JEV's task usage expression, but the details table prioritized the legacy token-ratio branch whenever `quota_type` marked the model token-based. The expression's input price was therefore replaced by legacy input/output prices.
+- Changed: detail pricing now uses recognized task-token expression fields before legacy ratio columns, preserving the configured group multiplier and omitting output when the expression has no output-token price. When usage schema fields are split across plugin variants, the model-level expression is parsed against the merged schema.
+- Preserved: model-card pricing, backend billing and settlement, plugin-specific task tables, legacy ratio pricing for models without a recognized simple task-token expression, and unrelated project data.
+- Validation: `bun run build`, `bunx oxfmt --check web/default/src/features/pricing/components/model-details.tsx`, and `git diff --check` passed. No live production API/config was accessed; visual confirmation is limited to the supplied screenshots and equivalent local pricing fixture.
+- Commit and push: pending.
+
