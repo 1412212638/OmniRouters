@@ -299,9 +299,9 @@ export function readConditionalTaskPricing(
       for (const field of fields) {
         const definition = schema[field]
         if (definition.type !== 'number' || !definition.unit) continue
-        unitPrices[field] =
-          (branch.prices[field] ?? 0) *
-          (definition.unit === 'token' ? 1_000_000 : 1)
+        // Keep token prices in USD per million tokens, matching the
+        // canonical tier parser and the public model-card display.
+        unitPrices[field] = branch.prices[field] ?? 0
       }
       if (
         !Object.keys(unitPrices).length ||

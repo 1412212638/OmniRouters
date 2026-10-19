@@ -4209,3 +4209,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 
 - Follow-up: production TypeSafe responses may expose a plugin variant with an omitted or `ratio` billing mode while still carrying a usable token expression. The simple token-table adapter now selects any variant with a non-empty expression and falls back to the model expression, so JEV uses the ordinary input/output layout instead of the task card.
 
+- Follow-up: the detail view still entered the generic dynamic-expression branch before the simple token table, and task token coefficients were divided by one million twice during formatting. Simple token expressions now use the ordinary group table, model-level pricing is preferred over plugin metadata when both exist, and parsed token coefficients display as their configured USD/1M value.
+
+- Follow-up: task token prices are stored as USD/1M; the simple detail table now also applies the selected 1K/1M display unit divisor, so both marketplace cards and detail pages remain consistent when the unit filter changes.
+
+- Follow-up: the conditional task-display fallback had a second token-unit convention and produced values such as `$0.000001 / token`. Its parsed token coefficients now use the same USD/1M convention as canonical expressions, and the generic task table labels that unit explicitly.
+
+- Follow-up: local pricing fixtures now use the documented scaled token-expression form and include a model-level JEV expression (`0.042 / 1M input tokens`) so the detail-page path is exercised against the same shape as the production configuration.
+

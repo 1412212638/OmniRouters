@@ -125,7 +125,24 @@ function formatTaskUnitPrice(
   unit: string | undefined,
   options: DynamicPriceOptions
 ): string {
-  if (unit === 'token') return formatDynamicUnitPrice(value, options)
+  // Task expressions store token coefficients as USD per million tokens
+  // (`u("input_tokens") * price / 1000000`). The parser already removes the
+  // division when it returns `unitPrices`, so do not divide by the token unit
+  // a second time here.
+  if (unit === 'token') {
+    const groupRatio = options.groupRatioMultiplier ?? 1
+    const priceRate = options.priceRate ?? 1
+    const usdExchangeRate = options.usdExchangeRate ?? 1
+    return formatBillingCurrencyFromUSD(
+      applyRechargeRate(
+        (value / TOKEN_UNIT_DIVISORS[options.tokenUnit]) * groupRatio,
+        options.showRechargePrice ?? false,
+        priceRate,
+        usdExchangeRate
+      ),
+      { digitsLarge: 4, digitsSmall: 6, abbreviate: false }
+    )
+  }
   const groupRatio = options.groupRatioMultiplier ?? 1
   const priceRate = options.priceRate ?? 1
   const usdExchangeRate = options.usdExchangeRate ?? 1

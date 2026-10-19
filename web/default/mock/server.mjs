@@ -431,7 +431,7 @@ const models = [
         plugin_name: 'TypeSafe',
         billing_mode: 'tiered_expr',
         billing_expr:
-          'tier("default", u("input_tokens") * 0.00001 + u("output_tokens") * 0.00002)',
+          'tier("default", u("input_tokens") * 10 / 1000000 + u("output_tokens") * 20 / 1000000)',
         billing_usage_schema: {
           input_tokens: {
             type: 'number',
@@ -456,7 +456,7 @@ const models = [
         plugin_name: 'Quality Check',
         billing_mode: 'tiered_expr',
         billing_expr:
-          'tier("default", u("input_tokens") * 0.000006 + u("output_tokens") * 0.000012)',
+          'tier("default", u("input_tokens") * 6 / 1000000 + u("output_tokens") * 12 / 1000000)',
         billing_usage_schema: {
           input_tokens: {
             type: 'number',
@@ -491,13 +491,23 @@ const models = [
     enable_groups: ['default', 'premium'],
     tags: 'task,plugin,structured-output,jev',
     supported_endpoint_types: ['openai'],
+    billing_mode: 'tiered_expr',
+    billing_expr:
+      'tier("base", u("input_tokens") * 0.042 / 1000000)',
+    billing_usage_schema: {
+      input_tokens: {
+        type: 'number',
+        unit: 'token',
+        description: 'Input tokens',
+      },
+    },
     billing_plugin_variants: [
       {
         plugin_key: 'type-safe',
         plugin_name: 'TypeSafe',
         billing_mode: 'tiered_expr',
         billing_expr:
-          'tier("default", u("input_tokens") * 0.00001 + u("output_tokens") * 0.00002)',
+          'tier("default", u("input_tokens") * 10 / 1000000 + u("output_tokens") * 20 / 1000000)',
         billing_usage_schema: {
           input_tokens: {
             type: 'number',

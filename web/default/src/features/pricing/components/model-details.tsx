@@ -294,43 +294,48 @@ type DynamicPricingTier = ReturnType<typeof getDynamicPricingTiers>[number]
 type DynamicFormattedPricesByTier = Map<DynamicPricingTier, Map<string, string>>
 
 function getSimpleTaskPricingModel(model: PricingModel): PricingModel | null {
-  const variant = model.billing_plugin_variants?.find((candidate) =>
-    Boolean(candidate.billing_expr?.trim())
-  )
-  const schema = variant?.billing_usage_schema ?? model.billing_usage_schema
-  const billingExpr =
-    variant?.billing_expr?.trim() || model.billing_expr?.trim()
-  const billingMode =
-    variant?.billing_mode === 'tiered_expr' ||
-    model.billing_mode === 'tiered_expr' ||
-    Boolean(billingExpr)
-      ? 'tiered_expr'
-      : undefined
-  if (!schema || !billingMode || !billingExpr) return null
+  const candidates = [
+    {
+      billingExpr: model.billing_expr,
+      schema: model.billing_usage_schema,
+    },
+    ...(model.billing_plugin_variants ?? []).map((variant) => ({
+      billingExpr: variant.billing_expr,
+      schema: variant.billing_usage_schema,
+    })),
+  ]
 
-  const fields = Object.keys(schema).filter((field) =>
-    ['input_tokens', 'output_tokens'].includes(field)
-  )
-  if (
-    fields.length === 0 ||
-    !fields.every(
-      (field) =>
-        schema[field]?.type === 'number' && schema[field]?.unit === 'token'
+  for (const candidate of candidates) {
+    const schema = candidate.schema
+    const billingExpr = candidate.billingExpr?.trim()
+    if (!schema || !billingExpr) continue
+
+    const fields = Object.keys(schema).filter((field) =>
+      ['input_tokens', 'output_tokens'].includes(field)
     )
-  ) {
-    return null
+    if (
+      fields.length === 0 ||
+      !fields.every(
+        (field) =>
+          schema[field]?.type === 'number' && schema[field]?.unit === 'token'
+      )
+    ) {
+      continue
+    }
+
+    const simpleModel = {
+      ...model,
+      billing_plugin_variants: undefined,
+      billing_mode: 'tiered_expr' as const,
+      billing_expr: billingExpr,
+      billing_usage_schema: schema,
+    }
+    if (getTaskPriceEntries(simpleModel, { tokenUnit: 'M' }).length > 0) {
+      return simpleModel
+    }
   }
 
-  const simpleModel = {
-    ...model,
-    billing_plugin_variants: undefined,
-    billing_mode: billingMode,
-    billing_expr: billingExpr,
-    billing_usage_schema: schema,
-  }
-  return getTaskPriceEntries(simpleModel, { tokenUnit: 'M' }).length > 0
-    ? simpleModel
-    : null
+  return null
 }
 
 function getSimpleTaskPricingFields(model: PricingModel): string[] {
@@ -970,7 +975,7 @@ function GroupPricingSection(props: {
     )
   }
 
-  if (isDynamicPricingModel(props.model)) {
+  if (isDynamicPricingModel(props.model) && !simpleTaskPricingModel) {
     const dynamicTiers = dynamicPricingTiers
 
     if (dynamicTiers.length === 0) {

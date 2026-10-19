@@ -13,8 +13,6 @@ import {
 } from '../lib/task-price-display'
 import type { BillingUsageSchema, PricingModel } from '../types'
 
-const TOKEN_SCALE = 1_000_000
-
 type TaskPricingSectionProps = {
   model: PricingModel
   priceRate: number
@@ -25,10 +23,9 @@ type TaskPricingSectionProps = {
 
 function formatTaskPrice(
   value: number,
-  unit: string | undefined,
   props: Pick<TaskPricingSectionProps, 'priceRate' | 'usdExchangeRate'>
 ) {
-  const usd = unit === 'token' ? value / TOKEN_SCALE : value
+  const usd = value
   const display = (usd * props.priceRate) / props.usdExchangeRate
   return formatBillingCurrencyFromUSD(display, {
     digitsLarge: 4,
@@ -114,7 +111,7 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
             cellClassName: 'px-3 py-2 text-right font-mono',
             cell: (tier) =>
               tier.constant > 0
-                ? formatTaskPrice(tier.constant * ratio, undefined, props)
+                ? formatTaskPrice(tier.constant * ratio, props)
                 : '-',
           },
           ...numberFields.map(([field, definition]) => ({
@@ -125,7 +122,7 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
             cell: (tier: (typeof tiers)[number]) => {
               const value = Number(tier.unitPrices[field] || 0)
               return value > 0
-                ? `${formatTaskPrice(value * ratio, definition.unit, props)} / ${definition.unit}`
+                ? `${formatTaskPrice(value * ratio, props)} / ${definition.unit === 'token' ? '1M tokens' : definition.unit}`
                 : '-'
             },
           })),
