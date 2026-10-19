@@ -15,7 +15,7 @@
 - Changed: construct Alpha Search relay info through the shared base initializer, set its relay format, retain path-derived relay mode, and add a regression test for those fields.
 - Preserved: the existing Alpha Search request forwarding, billing, retry behavior, and all unrelated local functionality.
 - Validation: `git diff --check` passed. Local Go tests and `gofmt` could not run because Go is not installed or available on PATH; GitHub Actions is the available backend compile check.
-- Commit/push: pending.
+- Commit/push: source commit `cf691245f` (`fix(relay): initialize alpha search relay info`) pushed to `origin/main`.
 
 ## 2026-10-17 - Complete model-card cache pricing display
 
