@@ -182,6 +182,31 @@ type RelayInfo struct {
 	FinalRequestRelayFormat types.RelayFormat
 
 	StreamStatus *StreamStatus
+	// VendorToolUsage reads the upstream's own billed tool counts from a raw
+	// response body (non-stream) or the raw terminal stream frame. The channel
+	// adaptor's Init sets it for upstreams whose usage extension names a billed
+	// count; it stays nil for everyone else. Keys are tool-price keys. A zero
+	// value suppresses the protocol items counted under that key, so a vendor
+	// count can supersede web_search_call items billed under a different key.
+	VendorToolUsage func(raw []byte) map[string]int
+	// WebSearchBillingKey overrides the tool-price key of hosted web search:
+	// usage.server_tool_use.web_search_requests and web_search_tool_result
+	// blocks in the Claude handler, and web_search_call items counted by
+	// CountBillableToolCall. Set by a channel adaptor whose upstream bills
+	// search under its own price list; empty keeps the protocol defaults.
+	WebSearchBillingKey string
+	// WebFetchBillingKey overrides the tool-price key of
+	// usage.server_tool_use.web_fetch_requests in the Claude handler, for an
+	// upstream that bills page fetches under its own price list; empty keeps
+	// the protocol default web_fetch.
+	WebFetchBillingKey string
+	// requestInferredToolKey is the tool-price key RecordRequestInferredToolCall
+	// billed for the current channel attempt.
+	requestInferredToolKey string
+	// PerformanceOutputTokens is captured by settlement and sampled once at
+	// the request boundary, independently of billing success or failure.
+	PerformanceOutputTokens      int64
+	PerformanceBusinessRejection bool
 
 	// convOptions caches the converter settings snapshot (see ConvOptions).
 	convOptions *convmeta.Options
@@ -286,6 +311,11 @@ func (info *RelayInfo) InitChannelMeta(c *gin.Context) {
 	// Channel identity feeds the converter options snapshot (e.g.
 	// OpenRouterDialect); drop the cache so a cross-channel retry rebuilds it.
 	info.convOptions = nil
+	// The adaptor Init of this attempt sets the vendor billing hooks again.
+	info.VendorToolUsage = nil
+	info.WebSearchBillingKey = ""
+	info.WebFetchBillingKey = ""
+	info.requestInferredToolKey = ""
 
 	// reset some fields based on channel meta
 	// 重置某些字段，例如模型名称等
@@ -642,6 +672,14 @@ func GenRelayInfo(c *gin.Context, relayFormat types.RelayFormat, request dto.Req
 			return GenRelayInfoResponsesCompaction(c, request), nil
 		}
 		return nil, errors.New("request is not a OpenAIResponsesCompactionRequest")
+	case types.RelayFormatOpenAIAlphaSearch:
+		if request, ok := request.(*dto.AlphaSearchRequest); ok {
+			return GenRelayInfoAlphaSearch(c, request), nil
+		}
+		return nil, errors.New("request is not a AlphaSearchRequest")
+	case types.RelayFormatDeepSeekTools:
+		info = genBaseRelayInfo(c, request)
+		info.RelayFormat = types.RelayFormatDeepSeekTools
 	case types.RelayFormatTask:
 		info = genBaseRelayInfo(c, nil)
 		info.TaskRelayInfo = &TaskRelayInfo{}

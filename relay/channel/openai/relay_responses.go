@@ -64,6 +64,7 @@ func OaiResponsesHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http
 			info.CountBillableToolCall(dto.BuildInCallFunctionCall, output.Name)
 		}
 	}
+	info.ApplyVendorToolUsage(responseBody)
 
 	imageCounter := &relaycommon.ImageGenerationCallCounter{}
 	if !relaycommon.IsNonBillableResponsesStatus(responsesResponse.Status) {
@@ -107,6 +108,7 @@ func OaiResponsesStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp
 		switch streamResponse.Type {
 		case "response.completed", "response.done":
 			if streamResponse.Response != nil {
+				info.ApplyVendorToolUsage(common.StringToByteSlice(data))
 				if streamResponse.Response.Usage != nil {
 					incomingUsage := &dto.Usage{
 						PromptTokens:     streamResponse.Response.Usage.InputTokens,

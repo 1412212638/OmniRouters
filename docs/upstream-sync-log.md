@@ -1,5 +1,14 @@
 # Upstream Sync Log
 
+## 2026-10-20 - Integrate five upstream updates
+
+- Upstream commits: `ca2cae676`, `55bb6b903`, `25372e30b`, `6cf0d90b5`, `ff3684658`.
+- Integrated: Responses reasoning items now serialize an empty `summary` array; notification rate limits use one TTL window rather than calendar-hour keys and reject non-positive durations; Claude streaming sends keepalives during request preparation and retries, then hands off to stream scanning; DeepSeek V4.1 Flash suffixes, `@effort`/`@thinking`, Search/Fetch endpoints, routing, request billing and Claude/Responses tool billing are supported; Chat-to-Responses preserves image detail, including through the local Claude-to-Chat-to-Responses conversion chain.
+- Already present: local stream keepalive infrastructure and parts of DeepSeek V4 suffix support were reused. The local reasoning/tool billing and response error handling were retained while adding provider-specific behavior.
+- Deferred or intentionally skipped: upstream commit `058c8231b` (audit-log index) was excluded by request. Upstream-only `web/src` changes and its direct Claude-to-Responses converter were not copied; the local frontend uses `web/default`, and Claude conversion remains on the existing multi-hop path.
+- Validation: `bun run build` in `web/default` and `git diff --check` passed. Go tests and `gofmt` could not run because Go is not installed or available on PATH in this environment; backend compilation and runtime behavior remain unverified locally.
+- Resulting local commit and push: pending; GitHub push was not requested.
+
 ## 2026-10-17 - Complete model-card cache pricing display
 
 - Local reason: model plaza cards showed dynamic cache-read prices without discount styling and omitted cache-write prices, leaving cache-aware models with an incomplete compact price summary.

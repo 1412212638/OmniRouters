@@ -61,3 +61,11 @@ func TestGeminiGenerateContentImageModelsExposeImageEndpoint(t *testing.T) {
 		assert.Contains(t, common.GetEndpointTypesByChannelType(constant.ChannelTypeOpenAI, name), constant.EndpointTypeImageGeneration)
 	}
 }
+
+func TestDeepSeekToolRoutingNamesReportTheirEndpoint(t *testing.T) {
+	for _, channelType := range []int{constant.ChannelTypeDeepSeek, constant.ChannelTypeNewAPI} {
+		assert.Equal(t, []constant.EndpointType{constant.EndpointTypeDeepSeekToolsSearch}, common.GetEndpointTypesByChannelType(channelType, constant.DeepSeekSearchModel))
+		assert.Equal(t, []constant.EndpointType{constant.EndpointTypeDeepSeekToolsFetch}, common.GetEndpointTypesByChannelType(channelType, constant.DeepSeekFetchModel))
+	}
+	assert.Equal(t, []constant.EndpointType{constant.EndpointTypeOpenAI}, common.GetEndpointTypesByChannelType(constant.ChannelTypeDeepSeek, "deepseek-flash"))
+}

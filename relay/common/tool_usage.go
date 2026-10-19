@@ -1,6 +1,7 @@
 package common
 
 import (
+	"cmp"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -36,7 +37,7 @@ func (info *RelayInfo) CountBillableToolCall(itemType string, functionName strin
 
 	switch itemType {
 	case dto.BuildInCallWebSearchCall:
-		info.incrementBillableToolCall(resolveWebSearchToolName(info.ResponsesUsageInfo.BuiltInTools))
+		info.incrementBillableToolCall(cmp.Or(info.WebSearchBillingKey, resolveWebSearchToolName(info.ResponsesUsageInfo.BuiltInTools)))
 	case dto.BuildInCallFileSearchCall:
 		info.incrementBillableToolCall(dto.BuildInToolFileSearch)
 	case dto.BuildInCallFunctionCall, dto.BuildInCallToolUse:
@@ -71,6 +72,32 @@ func (info *RelayInfo) incrementBillableToolCall(name string) {
 	info.ResponsesUsageInfo.BuiltInTools[name] = &BuildInToolInfo{
 		ToolName:  name,
 		CallCount: 1,
+	}
+}
+
+func (info *RelayInfo) SetBillableToolCount(name string, count int) {
+	if info == nil || name == "" || count < 0 {
+		return
+	}
+	if info.ResponsesUsageInfo == nil {
+		info.ResponsesUsageInfo = &ResponsesUsageInfo{BuiltInTools: make(map[string]*BuildInToolInfo)}
+	}
+	if info.ResponsesUsageInfo.BuiltInTools == nil {
+		info.ResponsesUsageInfo.BuiltInTools = make(map[string]*BuildInToolInfo)
+	}
+	if existing, ok := info.ResponsesUsageInfo.BuiltInTools[name]; ok && existing != nil {
+		existing.CallCount = count
+		return
+	}
+	info.ResponsesUsageInfo.BuiltInTools[name] = &BuildInToolInfo{ToolName: name, CallCount: count}
+}
+
+func (info *RelayInfo) ApplyVendorToolUsage(raw []byte) {
+	if info == nil || info.VendorToolUsage == nil || len(raw) == 0 {
+		return
+	}
+	for name, count := range info.VendorToolUsage(raw) {
+		info.SetBillableToolCount(name, count)
 	}
 }
 

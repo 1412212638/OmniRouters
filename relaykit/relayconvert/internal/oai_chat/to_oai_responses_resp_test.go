@@ -196,6 +196,18 @@ func TestChatCompletionsStreamToResponsesReopensItemsAfterMidStreamFinish(t *tes
 	assert.Equal(t, "resp_1_reasoning_1", output[3].ID)
 	assert.Equal(t, "round 2", output[3].Summary[0].Text)
 	assert.Equal(t, "resp_1_msg_1", output[4].ID)
+
+	// The Responses schema requires summary on every reasoning item, including
+	// the one announced before any summary text exists.
+	for _, event := range events {
+		if event.Type != responsesEventOutputItemAdded || event.Payload.Item == nil || event.Payload.Item.Type != responsesOutputTypeReasoning {
+			continue
+		}
+		itemAdded, err := kitutil.Marshal(event.Payload)
+		require.NoError(t, err)
+		assert.Contains(t, string(itemAdded), `"summary":[]`)
+		break
+	}
 }
 
 func execCustomToolState() *convmeta.ResponsesToolState {

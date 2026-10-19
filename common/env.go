@@ -18,6 +18,15 @@ func GetEnvOrDefault(env string, defaultValue int) int {
 	return num
 }
 
+func GetPositiveEnvOrDefault(env string, defaultValue int) int {
+	value := GetEnvOrDefault(env, defaultValue)
+	if value > 0 {
+		return value
+	}
+	SysError(fmt.Sprintf("%s must be positive, using default value: %d", env, defaultValue))
+	return defaultValue
+}
+
 func GetEnvOrDefaultString(env string, defaultValue string) string {
 	if env == "" || os.Getenv(env) == "" {
 		return defaultValue
