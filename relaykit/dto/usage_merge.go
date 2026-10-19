@@ -177,6 +177,15 @@ func mergeClaudeUsageNonZero(current *ClaudeUsage, incoming *ClaudeUsage) *Claud
 		if incoming.ServerToolUse.WebSearchRequests > 0 {
 			merged.ServerToolUse.WebSearchRequests = incoming.ServerToolUse.WebSearchRequests
 		}
+		if incoming.ServerToolUse.WebFetchRequests > 0 {
+			merged.ServerToolUse.WebFetchRequests = incoming.ServerToolUse.WebFetchRequests
+		}
+		if incoming.ServerToolUse.CodeExecutionRequests > 0 {
+			merged.ServerToolUse.CodeExecutionRequests = incoming.ServerToolUse.CodeExecutionRequests
+		}
+		if incoming.ServerToolUse.ToolSearchRequests > 0 {
+			merged.ServerToolUse.ToolSearchRequests = incoming.ServerToolUse.ToolSearchRequests
+		}
 	}
 	return merged
 }

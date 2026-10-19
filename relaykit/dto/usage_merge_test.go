@@ -27,6 +27,24 @@ func TestMergeClaudeUsageCacheCreationReplacesWholeObject(t *testing.T) {
 	assert.Equal(t, 0, merged.CacheCreation.Ephemeral1hInputTokens)
 }
 
+func TestMergeClaudeUsageServerToolUseKeepsLatestCounts(t *testing.T) {
+	t.Parallel()
+
+	merged := mergeClaudeUsageNonZero(
+		&ClaudeUsage{ServerToolUse: &ClaudeServerToolUse{
+			WebSearchRequests: 1, WebFetchRequests: 2, CodeExecutionRequests: 3, ToolSearchRequests: 4,
+		}},
+		&ClaudeUsage{ServerToolUse: &ClaudeServerToolUse{
+			WebSearchRequests: 5, WebFetchRequests: 6, CodeExecutionRequests: 7, ToolSearchRequests: 8,
+		}},
+	)
+
+	require.NotNil(t, merged.ServerToolUse)
+	assert.Equal(t, &ClaudeServerToolUse{
+		WebSearchRequests: 5, WebFetchRequests: 6, CodeExecutionRequests: 7, ToolSearchRequests: 8,
+	}, merged.ServerToolUse)
+}
+
 func TestMergeGeminiUsageMetadataCandidatesAndThoughtsReplacedAsPair(t *testing.T) {
 	t.Parallel()
 

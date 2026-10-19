@@ -17,6 +17,14 @@
 - Validation: `git diff --check` passed. Local Go tests and `gofmt` could not run because Go is not installed or available on PATH; GitHub Actions is the available backend compile check.
 - Commit/push: source commit `cf691245f` (`fix(relay): initialize alpha search relay info`) pushed to `origin/main`.
 
+## 2026-10-20 - Add Claude server tool usage fields
+
+- Local reason: GitHub Actions exposed missing Claude DTO fields referenced by the DeepSeek Search/Fetch billing integration.
+- Changed: added Anthropic's `web_fetch_requests`, `code_execution_requests`, and `tool_search_requests` fields and preserved their cumulative values when usage snapshots are merged; added a merge regression test.
+- Preserved: existing web-search usage merging, Claude response conversion, and provider-specific billing behavior.
+- Validation: `git diff --check` passed. Local Go tests and `gofmt` could not run because Go is not installed or available on PATH; GitHub Actions is the backend compile check.
+- Commit/push: pending.
+
 ## 2026-10-17 - Complete model-card cache pricing display
 
 - Local reason: model plaza cards showed dynamic cache-read prices without discount styling and omitted cache-write prices, leaving cache-aware models with an incomplete compact price summary.
