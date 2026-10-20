@@ -4331,10 +4331,18 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 ## 2026-10-20 - Preserve fixed request prices in model details
 
 - Local reason: dynamic detail pricing divided `fixed(amount)` by one million, incorrectly treating its USD-per-request amount as a USD-per-million-token coefficient.
-- Changed: fixed request prices are now formatted directly after the group multiplier and optional recharge conversion. Added a regression test for `tier("request", fixed(0.005))`.
+- Changed: fixed request prices are formatted directly after the group multiplier and optional recharge conversion in model detail rows. Added a regression test for `tier("request", fixed(0.005))`.
 - Preserved: token coefficient scaling, group discounts, recharge display conversion, expression billing, and settlement behavior.
 - Validation: targeted Oxfmt, the fixed-request-price regression test, `bun run build` in `web/default`, and `git diff --check` passed.
 - Commit and push: implemented in `0a3fe4dc9`, pushed to `origin/main` on 2026-10-20.
+
+## 2026-10-20 - Preserve fixed request prices on catalog cards
+
+- Local reason: catalog cards use a separate request-price range formatter which still divided fixed per-request prices by one million after the detail view fix.
+- Changed: removed token scaling from card request-price ranges and extended the fixed-price regression test to cover the model-card summary data.
+- Preserved: token price scaling, group multipliers, recharge conversion, and task pricing.
+- Validation: targeted Oxfmt, the fixed-price detail and catalog-summary regression test, `bun run build` in `web/default`, and `git diff --check` passed.
+- Commit and push: pending.
 
 ## 2026-10-20 - Correct DeepSeek Search and Fetch API examples
 

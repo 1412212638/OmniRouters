@@ -2,7 +2,10 @@ import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
 import { parseTiersFromExpr } from './billing-expr'
-import { getDynamicPriceEntries } from './dynamic-price'
+import {
+  getDynamicPriceEntries,
+  getDynamicPricingSummary,
+} from './dynamic-price'
 
 describe('dynamic fixed request prices', () => {
   test('displays fixed prices as USD per request without token scaling', () => {
@@ -15,5 +18,13 @@ describe('dynamic fixed request prices', () => {
     assert.equal(entry?.displayUnit, 'request')
     assert.equal(entry?.value, 0.005)
     assert.equal(entry?.formatted, '$0.005')
+
+    const model = {
+      billing_mode: 'tiered_expr',
+      billing_expr: 'tier("request", fixed(0.005))',
+    }
+    const summary = getDynamicPricingSummary(model, { tokenUnit: 'M' })
+
+    assert.equal(summary?.requestPriceRange, '$0.005')
   })
 })

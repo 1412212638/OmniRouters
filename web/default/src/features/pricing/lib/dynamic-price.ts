@@ -487,7 +487,7 @@ function getDynamicRequestPriceRange(
   const formatted = (value: number) =>
     formatBillingCurrencyFromUSD(
       applyRechargeRate(
-        (value * groupRatio) / 1_000_000,
+        value * groupRatio,
         options.showRechargePrice ?? false,
         priceRate,
         usdExchangeRate
