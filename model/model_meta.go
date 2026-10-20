@@ -58,6 +58,9 @@ type Model struct {
 	Tags                      string         `json:"tags,omitempty" gorm:"type:varchar(255)"`
 	VendorID                  int            `json:"vendor_id,omitempty" gorm:"index"`
 	VendorIDs                 []int          `json:"vendor_ids,omitempty" gorm:"-"`
+	DeveloperID               int            `json:"developer_id,omitempty" gorm:"index"`
+	DeveloperName             string         `json:"developer_name,omitempty" gorm:"-"`
+	DeveloperIcon             string         `json:"developer_icon,omitempty" gorm:"-"`
 	Endpoints                 string         `json:"endpoints,omitempty" gorm:"type:text"`
 	InputModalities            StringList     `json:"input_modalities,omitempty" gorm:"type:text"`
 	OutputModalities           StringList     `json:"output_modalities,omitempty" gorm:"type:text"`
@@ -129,6 +132,7 @@ func (mi *Model) Update() error {
 		"icon":                          mi.Icon,
 		"tags":                          mi.Tags,
 		"vendor_id":                     mi.VendorID,
+		"developer_id":                  mi.DeveloperID,
 		"endpoints":                     mi.Endpoints,
 		"input_modalities":              mi.InputModalities,
 		"output_modalities":             mi.OutputModalities,

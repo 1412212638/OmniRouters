@@ -57,6 +57,61 @@ func TestSetModelVendorIDsDeduplicatesAndReplaces(t *testing.T) {
 	}
 }
 
+func TestModelDeveloperIsPersistedIndependentlyFromSuppliers(t *testing.T) {
+	originalDB := DB
+	originalMainType := common.MainDatabaseType()
+	originalLogType := common.LogDatabaseType()
+	t.Cleanup(func() {
+		DB = originalDB
+		common.SetDatabaseTypes(originalMainType, originalLogType)
+	})
+	common.SetDatabaseTypes(common.DatabaseTypeSQLite, common.DatabaseTypeSQLite)
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	DB = db
+	if err := DB.AutoMigrate(&Model{}, &Vendor{}, &ModelVendor{}); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	vendors := []Vendor{{Name: "MiniMax", Status: 1}, {Name: "TencentCloud", Status: 1}}
+	if err := DB.Create(&vendors).Error; err != nil {
+		t.Fatalf("create vendors: %v", err)
+	}
+	meta := &Model{
+		ModelName:   "minimax-m3.1-flash",
+		DeveloperID: vendors[0].Id,
+		VendorID:    vendors[1].Id,
+		VendorIDs:   []int{vendors[1].Id},
+		Status:      1,
+		SyncOfficial: 1,
+	}
+	if err := meta.Insert(); err != nil {
+		t.Fatalf("insert model: %v", err)
+	}
+	meta.DeveloperID = 0
+	if err := meta.Update(); err != nil {
+		t.Fatalf("clear developer: %v", err)
+	}
+	var reloaded Model
+	if err := DB.First(&reloaded, meta.Id).Error; err != nil {
+		t.Fatalf("reload model: %v", err)
+	}
+	if reloaded.DeveloperID != 0 {
+		t.Fatalf("expected developer to be cleared, got %d", reloaded.DeveloperID)
+	}
+	if reloaded.VendorID != vendors[1].Id {
+		t.Fatalf("developer update changed primary supplier: got %d", reloaded.VendorID)
+	}
+	supplierIDs, err := GetModelVendorIDs(meta.Id)
+	if err != nil {
+		t.Fatalf("get supplier bindings: %v", err)
+	}
+	if len(supplierIDs) != 1 || supplierIDs[0] != vendors[1].Id {
+		t.Fatalf("developer update changed supplier bindings: %#v", supplierIDs)
+	}
+}
+
 func TestGetEnabledVendorIDsAndDeleteBindings(t *testing.T) {
 	originalDB := DB
 	originalMainType := common.MainDatabaseType()

@@ -4352,3 +4352,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed. Targeted Oxlint reports pre-existing issues in this file; repository-wide `bun run lint` also fails on numerous pre-existing errors outside this change.
 - Commit and push: implemented in `0a3fe4dc9`, pushed to `origin/main` on 2026-10-20.
 
+## 2026-10-20 - Add independent model developer metadata
+
+- Local reason: a model may be developed by one company while being served through a different channel supplier, so using the supplier for the public model prefix and icon was inaccurate.
+- Changed: added a persisted developer vendor reference to model metadata, exposed developer name/icon in pricing responses, added an unrestricted developer selector above channel suppliers in the model editor, and made public model names/icons prefer the developer while retaining channel suppliers separately.
+- Preserved: legacy supplier bindings, supplier filtering, channel availability, custom model icons, and models without a developer selection.
+- Validation: `bun test src/features/pricing/lib/dynamic-price.test.ts`, targeted Oxfmt, `bun run build` in `web/default`, and `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable in the current environment.
+- Commit and push: pending.
+

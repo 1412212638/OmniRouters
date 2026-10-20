@@ -93,6 +93,23 @@ export function replaceModelInPath(path: string, modelName: string): string {
 }
 
 /**
+ * Prefix a model name with its configured developer for public catalog views.
+ * Channel suppliers remain separate metadata and do not affect this label.
+ */
+export function getDisplayedModelName(model: PricingModel): string {
+  const modelName = model.model_name || ''
+  const identityName = (model.developer_name || model.vendor_name)?.trim()
+  if (!identityName) return modelName
+
+  const normalizedIdentity = identityName.toLowerCase()
+  if (modelName.toLowerCase().startsWith(`${normalizedIdentity}/`)) {
+    return modelName
+  }
+
+  return `${normalizedIdentity}/${modelName}`
+}
+
+/**
  * Check if model is token-based pricing
  */
 export function isTokenBasedModel(model: PricingModel): boolean {

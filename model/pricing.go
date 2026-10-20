@@ -41,6 +41,7 @@ type Pricing struct {
 	Icon                   string                               `json:"icon,omitempty"`
 	Tags                   string                               `json:"tags,omitempty"`
 	VendorID               int                                  `json:"vendor_id,omitempty"`
+	DeveloperID            int                                  `json:"developer_id,omitempty"`
 	QuotaType              int                                  `json:"quota_type"`
 	ModelRatio             float64                              `json:"model_ratio"`
 	ModelPrice             float64                              `json:"model_price"`
@@ -57,6 +58,8 @@ type Pricing struct {
 	OutputModalities       []string                             `json:"output_modalities,omitempty"`
 	VendorName             string                               `json:"vendor_name,omitempty"`
 	VendorIcon             string                               `json:"vendor_icon,omitempty"`
+	DeveloperName          string                               `json:"developer_name,omitempty"`
+	DeveloperIcon          string                               `json:"developer_icon,omitempty"`
 	AvailableVendors       []PricingVendor                     `json:"available_vendors,omitempty"`
 	BillingMode            string                               `json:"billing_mode,omitempty"`
 	BillingExpr            string                               `json:"billing_expr,omitempty"`
@@ -513,6 +516,11 @@ func updatePricing() {
 			pricing.Icon = meta.Icon
 			pricing.Tags = meta.Tags
 			pricing.VendorID = meta.VendorID
+			pricing.DeveloperID = meta.DeveloperID
+			if developer, exists := vendorMap[meta.DeveloperID]; exists && developer.Status == 1 {
+				pricing.DeveloperName = developer.Name
+				pricing.DeveloperIcon = developer.Icon
+			}
 			pricing.CreatedTime = meta.CreatedTime
 			pricing.InputModalities = []string(meta.InputModalities)
 			pricing.ContextLength = meta.ContextLength

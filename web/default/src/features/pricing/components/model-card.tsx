@@ -13,7 +13,7 @@ import {
   getDynamicPricingSummary,
 } from '../lib/dynamic-price'
 import { parseTags } from '../lib/filters'
-import { isTokenBasedModel } from '../lib/model-helpers'
+import { getDisplayedModelName, isTokenBasedModel } from '../lib/model-helpers'
 import {
   formatPrice,
   formatRequestPrice,
@@ -46,7 +46,8 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   const tags = parseTags(props.model.tags)
   const groups = props.model.enable_groups || []
   const endpoints = props.model.supported_endpoint_types || []
-  const modelIconKey = props.model.icon || props.model.vendor_icon
+  const modelIconKey =
+    props.model.icon || props.model.developer_icon || props.model.vendor_icon
   const modelIcon = modelIconKey ? getLobeIcon(modelIconKey, 28) : null
   const initial = props.model.model_name?.charAt(0).toUpperCase() || '?'
   const isDynamicPricing =
@@ -326,7 +327,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           <div className='min-w-0'>
             <div className='flex min-w-0 flex-wrap items-center gap-1.5'>
               <h3 className='text-foreground max-w-full truncate font-mono text-[15px] leading-tight font-bold'>
-                {props.model.model_name}
+                {getDisplayedModelName(props.model)}
               </h3>
             </div>
             <div className='mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs sm:mt-1 sm:gap-x-3'>

@@ -193,12 +193,31 @@ func enrichModels(models []*model.Model) {
 			modelNames = append(modelNames, m.ModelName)
 		}
 	}
+	developerIDs := make([]int, 0, len(models))
+	for _, m := range models {
+		if m != nil && m.DeveloperID > 0 {
+			developerIDs = append(developerIDs, m.DeveloperID)
+		}
+	}
+	developerMap := make(map[int]model.Vendor)
+	if len(developerIDs) > 0 {
+		var developers []model.Vendor
+		if err := model.DB.Where("id IN ? AND status = ?", developerIDs, 1).Find(&developers).Error; err == nil {
+			for _, developer := range developers {
+				developerMap[developer.Id] = developer
+			}
+		}
+	}
 	vendorIDsByModel, _ := model.GetModelVendorIDsMap(modelIDs)
 	channelVendorIDsByModel, _ := model.GetEnabledChannelVendorIDsByModelsMap(modelNames)
 	allVendorIDs := make([]int, 0)
 	for _, m := range models {
 		if m == nil {
 			continue
+		}
+		if developer, ok := developerMap[m.DeveloperID]; ok {
+			m.DeveloperName = developer.Name
+			m.DeveloperIcon = developer.Icon
 		}
 		ids := vendorIDsByModel[m.Id]
 		if len(ids) == 0 && m.VendorID > 0 {

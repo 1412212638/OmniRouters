@@ -42,6 +42,7 @@ export interface Model {
   tags?: string
   vendor_id?: number
   vendor_ids?: number[]
+  developer_id?: number
   endpoints?: string
   input_modalities?: ModelModality[]
   output_modalities?: ModelModality[]

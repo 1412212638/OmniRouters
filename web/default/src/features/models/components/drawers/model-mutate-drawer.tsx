@@ -111,6 +111,7 @@ const extendedModelFormSchema = z.object({
   tags: z.array(z.string()),
   vendor_id: z.number().optional(),
   vendor_ids: z.array(z.number()),
+  developer_id: z.number().optional(),
   endpoints: z.string(),
   input_modalities: z.array(z.enum(MODEL_MODALITIES)),
   output_modalities: z.array(z.enum(MODEL_MODALITIES)),
@@ -359,7 +360,8 @@ export function ModelMutateDrawer({
   })
 
   const vendors = useMemo(
-    () => (vendorsData?.data?.items || []).filter((vendor) => vendor.status === 1),
+    () =>
+      (vendorsData?.data?.items || []).filter((vendor) => vendor.status === 1),
     [vendorsData?.data?.items]
   )
 
@@ -375,8 +377,8 @@ export function ModelMutateDrawer({
     enabled: open && isEditing,
   })
 
-  // Existing models only need suppliers configured on the model or exposed by
-  // one of its enabled channels. New models keep the full supplier list.
+  // Existing models keep the channel supplier selector scoped to suppliers
+  // that can actually serve the model. Developer selection is independent.
   const selectableVendors = useMemo(() => {
     if (!isEditing || !modelData?.data?.vendor_ids) {
       return vendors
@@ -472,6 +474,7 @@ export function ModelMutateDrawer({
       tags: [],
       vendor_id: undefined,
       vendor_ids: [],
+      developer_id: undefined,
       endpoints: '',
       input_modalities: [],
       output_modalities: [],
@@ -553,6 +556,7 @@ export function ModelMutateDrawer({
         vendor_id: model.vendor_id,
         vendor_ids:
           model.vendor_ids || (model.vendor_id ? [model.vendor_id] : []),
+        developer_id: model.developer_id,
         endpoints: model.endpoints || '',
         input_modalities: normalizeSelectedModalities(model.input_modalities),
         output_modalities: normalizeSelectedModalities(model.output_modalities),
@@ -594,6 +598,7 @@ export function ModelMutateDrawer({
         tags: [],
         vendor_id: undefined,
         vendor_ids: [],
+        developer_id: undefined,
         endpoints: '',
         input_modalities: [],
         output_modalities: [],
@@ -992,6 +997,39 @@ export function ModelMutateDrawer({
                     <FormDescription className='text-xs'>
                       {t(
                         'Icon URL or identifier (e.g. https://example.com/icon.svg, github)'
+                      )}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='developer_id'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Developer')}</FormLabel>
+                    <FormControl>
+                      <MultiSelect
+                        options={vendors.map((vendor) => ({
+                          value: String(vendor.id),
+                          label: vendor.name,
+                        }))}
+                        selected={field.value ? [String(field.value)] : []}
+                        onChange={(values: string[]) => {
+                          const id = Number(values.at(-1))
+                          field.onChange(
+                            Number.isInteger(id) && id > 0 ? id : undefined
+                          )
+                        }}
+                        placeholder={t('Select developer')}
+                        emptyText={t('No developers found')}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {t(
+                        'Choose the original developer; this is independent of channel suppliers.'
                       )}
                     </FormDescription>
                     <FormMessage />

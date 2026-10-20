@@ -92,6 +92,7 @@ import {
 import {
   getAvailableGroups,
   getDisplayGroupRatio,
+  getDisplayedModelName,
   isFreePricingModel,
   isTokenBasedModel,
 } from './lib/model-helpers'
@@ -245,6 +246,7 @@ function getSearchText(model: PricingModel): string {
     model.model_name,
     model.description,
     model.vendor_name,
+    model.developer_name,
     model.tags,
     ...(model.supported_endpoint_types || []),
     ...normalizeModalities(model.input_modalities),
@@ -317,20 +319,6 @@ function compareNullableNumbers(
   if (left === null) return 1
   if (right === null) return -1
   return direction === 'asc' ? left - right : right - left
-}
-
-function getCatalogModelTitle(model: PricingModel): string {
-  const modelName = model.model_name || ''
-  const vendorName = model.vendor_name?.trim()
-  if (!vendorName) return modelName
-
-  const normalizedVendor = vendorName.toLowerCase()
-  const normalizedModelName = modelName.toLowerCase()
-  if (normalizedModelName.startsWith(`${normalizedVendor}/`)) {
-    return modelName
-  }
-
-  return `${normalizedVendor}/${modelName}`
 }
 
 function buildModalityOptions(
@@ -1091,10 +1079,11 @@ function CatalogModelCard(props: {
 }) {
   const { t } = useTranslation()
   const { copyToClipboard } = useCopyToClipboard()
-  const modelIconKey = props.model.icon || props.model.vendor_icon
+  const modelIconKey =
+    props.model.icon || props.model.developer_icon || props.model.vendor_icon
   const modelIcon = modelIconKey ? getLobeIcon(modelIconKey, 30) : null
   const initial = props.model.model_name?.charAt(0).toUpperCase() || '?'
-  const modelTitle = getCatalogModelTitle(props.model)
+  const modelTitle = getDisplayedModelName(props.model)
   const priceRows = usePriceRows({
     model: props.model,
     tokenUnit: TOKEN_UNIT,
@@ -1668,8 +1657,8 @@ function CatalogPricing() {
         let result = 0
 
         if (sortBy === 'name-asc') {
-          result = getCatalogModelTitle(left).localeCompare(
-            getCatalogModelTitle(right)
+          result = getDisplayedModelName(left).localeCompare(
+            getDisplayedModelName(right)
           )
         } else if (
           sortBy === 'price-asc' ||

@@ -51,6 +51,9 @@ export type PricingModel = {
   vendor_name?: string
   vendor_icon?: string
   vendor_description?: string
+  developer_id?: number
+  developer_name?: string
+  developer_icon?: string
   available_vendors?: PricingVendor[]
   rate_limits?: Record<string, PricingRateLimit>
   tool_prices?: PricingToolPrice[]

@@ -50,7 +50,11 @@ import {
   getTaskPriceEntries,
   isDynamicPricingModel,
 } from '../lib/dynamic-price'
-import { getAvailableGroups, isTokenBasedModel } from '../lib/model-helpers'
+import {
+  getAvailableGroups,
+  getDisplayedModelName,
+  isTokenBasedModel,
+} from '../lib/model-helpers'
 import {
   formatFixedPrice,
   formatGroupPrice,
@@ -205,7 +209,7 @@ function ModelHeaderMeta(props: { model: PricingModel }) {
 function ModelHeader(props: { model: PricingModel }) {
   const { t } = useTranslation()
   const model = props.model
-  const modelIconKey = model.icon || model.vendor_icon
+  const modelIconKey = model.icon || model.developer_icon || model.vendor_icon
   const modelIcon = modelIconKey ? getLobeIcon(modelIconKey, 20) : null
   const description = model.description || model.vendor_description || null
   const isSpecialExpression =
@@ -225,7 +229,7 @@ function ModelHeader(props: { model: PricingModel }) {
       <div className='flex flex-wrap items-center gap-2.5'>
         {modelIcon}
         <h1 className='font-mono text-xl font-bold tracking-tight sm:text-2xl'>
-          {model.model_name}
+          {getDisplayedModelName(model)}
         </h1>
         <CopyButton
           value={model.model_name || ''}
@@ -237,8 +241,10 @@ function ModelHeader(props: { model: PricingModel }) {
         />
       </div>
       <div className='mt-1 flex flex-wrap items-center gap-1.5 text-xs'>
-        {model.vendor_name && (
-          <span className='text-muted-foreground'>{model.vendor_name}</span>
+        {(model.developer_name || model.vendor_name) && (
+          <span className='text-muted-foreground'>
+            {model.developer_name || model.vendor_name}
+          </span>
         )}
         <span className='text-muted-foreground/30'>·</span>
         <span className='text-muted-foreground/70'>{billingLabel}</span>
