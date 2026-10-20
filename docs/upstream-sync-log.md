@@ -4262,7 +4262,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: detail pricing now uses recognized task-token expression fields before legacy ratio columns, preserving the configured group multiplier and omitting output when the expression has no output-token price. When usage schema fields are split across plugin variants, the model-level expression is parsed against the merged schema.
 - Preserved: model-card pricing, backend billing and settlement, plugin-specific task tables, legacy ratio pricing for models without a recognized simple task-token expression, and unrelated project data.
 - Validation: `bun run build`, `bunx oxfmt --check web/default/src/features/pricing/components/model-details.tsx`, and `git diff --check` passed. No live production API/config was accessed; visual confirmation is limited to the supplied screenshots and equivalent local pricing fixture.
-- Commit and push: pending.
+- Commit and push: implemented in `f55ecd17d`, pushed to `origin/main` on 2026-10-20.
 
 ## 2026-10-20 - Separate web tool endpoints in the API access drawer
 
