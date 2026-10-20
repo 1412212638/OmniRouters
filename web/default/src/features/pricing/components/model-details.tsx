@@ -433,24 +433,34 @@ function getDynamicFormattedPricesByTier(
   )
 }
 
-function GroupPricingHeader(props: {
-  group: string
-  multiplier: number
-  expiry?: number
-}) {
+function GroupPricingHeader(props: { group: string }) {
+  return (
+    <div className='bg-muted/20 border-b px-3 py-2'>
+      <GroupBadge group={props.group} size='sm' />
+    </div>
+  )
+}
+
+function GroupPricingMeta(props: { multiplier: number; expiry?: number }) {
   const { t } = useTranslation()
+  const expiry = props.expiry
+    ? new Date(props.expiry * 1000).toLocaleString()
+    : '-'
 
   return (
-    <div className='bg-muted/20 flex items-center justify-between gap-3 border-b px-3 py-2'>
-      <GroupBadge group={props.group} size='sm' />
-      <span className='text-muted-foreground flex items-center gap-3 font-mono text-xs'>
-        {props.multiplier}x
-        {props.expiry && (
-          <span className='font-sans'>
-            {t('Expires at')} {new Date(props.expiry * 1000).toLocaleString()}
-          </span>
-        )}
-      </span>
+    <div className='text-muted-foreground grid w-fit min-w-[220px] grid-cols-[auto_auto] gap-x-5 gap-y-0.5 text-xs'>
+      <span>{t('Ratio')}</span>
+      <span>{t('Discount expiration time')}</span>
+      <span className='font-mono'>{props.multiplier}x</span>
+      <span className='font-mono'>{expiry}</span>
+    </div>
+  )
+}
+
+function GroupPricingFooter(props: { multiplier: number; expiry?: number }) {
+  return (
+    <div className='border-t px-3 py-2'>
+      <GroupPricingMeta multiplier={props.multiplier} expiry={props.expiry} />
     </div>
   )
 }
@@ -668,11 +678,7 @@ function DynamicGroupPricingCard(props: {
 
   return (
     <div className='overflow-hidden rounded-lg border'>
-      <GroupPricingHeader
-        group={props.group}
-        multiplier={props.ruleInfo.multiplier}
-        expiry={props.ruleInfo.expiry}
-      />
+      <GroupPricingHeader group={props.group} />
       <StaticDataTable
         className='rounded-none border-0'
         tableClassName='text-sm'
@@ -689,6 +695,25 @@ function DynamicGroupPricingCard(props: {
               'text-muted-foreground py-2 text-[10px] font-medium tracking-wider uppercase',
             cellClassName: 'text-muted-foreground py-2.5',
             cell: (tier) => tier.label || t('Default'),
+          },
+          {
+            id: 'ratio',
+            header: t('Ratio'),
+            className:
+              'text-muted-foreground py-2 text-right text-[10px] font-medium tracking-wider uppercase',
+            cellClassName: 'text-muted-foreground py-2.5 text-right font-mono',
+            cell: () => `${props.ruleInfo.multiplier}x`,
+          },
+          {
+            id: 'expiresAt',
+            header: t('Discount expiration time'),
+            className:
+              'text-muted-foreground py-2 text-right text-[10px] font-medium tracking-wider uppercase',
+            cellClassName: 'text-muted-foreground py-2.5 text-right text-xs',
+            cell: () =>
+              props.ruleInfo.expiry
+                ? new Date(props.ruleInfo.expiry * 1000).toLocaleString()
+                : '-',
           },
           ...props.priceFields.map((fieldEntry) => ({
             id: fieldEntry.field,
@@ -1074,16 +1099,16 @@ function GroupPricingSection(props: {
                     key={group}
                     className='overflow-hidden rounded-lg border'
                   >
-                    <GroupPricingHeader
-                      group={group}
-                      multiplier={ruleInfo.multiplier}
-                      expiry={ruleInfo.expiry}
-                    />
+                    <GroupPricingHeader group={group} />
                     <GroupTaskPricing
                       model={props.model}
                       groupRatio={effectiveGroupRatio[group] ?? 1}
                       priceRate={props.priceRate}
                       usdExchangeRate={props.usdExchangeRate}
+                    />
+                    <GroupPricingFooter
+                      multiplier={ruleInfo.multiplier}
+                      expiry={ruleInfo.expiry}
                     />
                   </div>
                 )
@@ -1102,11 +1127,7 @@ function GroupPricingSection(props: {
               const ruleInfo = getRuleInfo(group)
               return (
                 <div key={group} className='overflow-hidden rounded-lg border'>
-                  <GroupPricingHeader
-                    group={group}
-                    multiplier={ruleInfo.multiplier}
-                    expiry={ruleInfo.expiry}
-                  />
+                  <GroupPricingHeader group={group} />
                   <div className='border-amber-200/70 bg-amber-50/70 p-3 dark:border-amber-500/20 dark:bg-amber-500/10'>
                     <div className='text-sm font-medium text-amber-800 dark:text-amber-200'>
                       {t('Special billing expression')}
@@ -1125,6 +1146,10 @@ function GroupPricingSection(props: {
                       </code>
                     </div>
                   </div>
+                  <GroupPricingFooter
+                    multiplier={ruleInfo.multiplier}
+                    expiry={ruleInfo.expiry}
+                  />
                 </div>
               )
             })}
@@ -1236,10 +1261,7 @@ function GroupPricingSection(props: {
             header: t('Ratio'),
             className: thClass,
             cellClassName: 'text-muted-foreground py-2.5 font-mono',
-            cell: (group) => {
-              const info = getRuleInfo(group)
-              return `${info.multiplier}x`
-            },
+            cell: (group) => `${getRuleInfo(group).multiplier}x`,
           },
           {
             id: 'expiresAt',
@@ -1364,16 +1386,16 @@ function GroupPricingSection(props: {
                   key={`tasks-${group}`}
                   className='overflow-hidden rounded-lg border'
                 >
-                  <GroupPricingHeader
-                    group={group}
-                    multiplier={ruleInfo.multiplier}
-                    expiry={ruleInfo.expiry}
-                  />
+                  <GroupPricingHeader group={group} />
                   <GroupTaskPricing
                     model={props.model}
                     groupRatio={effectiveGroupRatio[group] ?? 1}
                     priceRate={props.priceRate}
                     usdExchangeRate={props.usdExchangeRate}
+                  />
+                  <GroupPricingFooter
+                    multiplier={ruleInfo.multiplier}
+                    expiry={ruleInfo.expiry}
                   />
                 </div>
               )
@@ -1514,6 +1536,7 @@ export function ModelDetails() {
   const {
     models,
     groupRatio,
+    groupModelRatioExpiry,
     usableGroup,
     endpointMap,
     autoGroups,
@@ -1599,6 +1622,7 @@ export function ModelDetails() {
           usdExchangeRate={usdExchangeRate ?? 1}
           tokenUnit={tokenUnit}
           showRechargePrice={search.rechargePrice ?? false}
+          groupModelRatioExpiry={groupModelRatioExpiry}
           endpointMap={
             (endpointMap as Record<
               string,

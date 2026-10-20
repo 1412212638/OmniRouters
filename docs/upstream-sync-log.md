@@ -3719,7 +3719,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Already present: desktop two-column proportions, mobile hero hiding, theme handling, and authentication behavior were preserved.
 - Deferred: none.
 - Preserved: OAuth callback layout, registration consent behavior, invitation-code handling, protected project identifiers, and unrelated untracked worktree files.
-- Validation: pending.
+- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed. Local preview confirms the Authentication button routes to `/keys?create=true`; the token dialog could not be observed end-to-end because the preview is signed out.
 - Commit/push: pending source commit and push.
 
 ## 2026-10-02 - Compact invitation-code copy
@@ -3729,7 +3729,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Already present: invitation-code persistence, registration attribution, OAuth/WeChat new-user handling, and existing legacy translation keys were preserved.
 - Deferred: none.
 - Preserved: authentication flows, legal consent behavior, protected project identifiers, and unrelated untracked worktree files.
-- Validation: pending.
+- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed.
 - Commit/push: pending source commit and push.
 
 ## 2026-10-02 - Align registration terms footer
@@ -4359,4 +4359,54 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: legacy supplier bindings, supplier filtering, channel availability, custom model icons, and models without a developer selection.
 - Validation: `bun test src/features/pricing/lib/dynamic-price.test.ts`, targeted Oxfmt, `bun run build` in `web/default`, and `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable in the current environment.
 - Commit and push: pending.
+
+## 2026-10-20 - Refresh model API call examples
+
+- Local reason: align model detail API examples with the reference layout and make streaming versus non-streaming requests explicit.
+- Changed: moved authentication guidance above the code samples; reorganized the sample toolbar with readable endpoint names, language tabs, a streaming mode switch, and a copy-code action; updated OpenAI and Anthropic samples to generate streaming and non-streaming request bodies and SDK examples; changed cURL API-key placeholders to `<YOUR_API_KEY>`. Corrected the shared CodeMirror gutter spacing so line 1 aligns with the first code line.
+- Preserved: existing endpoint availability, API paths, model names, and non-chat samples for embeddings, image generation, Gemini, and web tools.
+- Validation: frontend production build, Oxfmt, and `git diff --check` passed. Verified the first code line and gutter number align in local browser preview. Full TypeScript checking remains blocked by existing missing test dependencies and unrelated errors in other files.
+- Commit and push: pending.
+
+## 2026-10-20 - Link API authentication guidance to token creation
+
+- Local reason: users reading the model API authentication instructions had to leave the model page and locate the token creation action themselves.
+- Changed: added a localized Create API Key button in the Authentication section. It opens the existing token page with a one-time `create=true` search parameter, automatically opens the existing creation dialog, and removes the parameter from the URL.
+- Preserved: the existing token page and dialog flow, token creation behavior, and all API example content.
+- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed. Local preview confirms the Authentication button routes to `/keys?create=true`; the token dialog could not be observed end-to-end because the preview is signed out.
+- Commit and push: pending; GitHub push was not requested.
+
+## 2026-10-20 - Keep model plaza filters off the mobile first screen
+
+- Local reason: the desktop model filters collapsed into a tall stack above the catalog on phones, pushing the model list far below the first screen.
+- Changed: the left filter rail is now desktop-only. Mobile visitors start at the Models heading and existing search, price, sort, and modality controls; advanced input type, context length, vendor, and group filters remain available from a compact filter button that opens a side sheet.
+- Preserved: all existing filter state and matching behavior, the desktop sticky rail, catalog cards, and model navigation.
+- Validation: tested at a 375px mobile viewport; the model list starts immediately below the compact header, modality chips stay on one horizontal row with overflow scrolling, and the filter sheet still exposes input type, context length, vendor, and group controls. `bun run build`, targeted Oxfmt, and `git diff --check` passed.
+- Commit and push: pending; GitHub push was not requested.
+
+## 2026-10-20 - Remove tool fees from model cards
+
+- Local reason: tool fee summaries added extra content to model plaza cards that the user does not want displayed.
+- Changed: removed the tool fee summary from model cards.
+- Preserved: tool pricing on model detail pages, public pricing metadata, and backend tool billing.
+- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed.
+- Commit and push: pending; GitHub push was not requested.
+
+## 2026-10-20 - Anchor model context metrics at card bottom
+
+- Local reason: context length and maximum output shifted upward on cards with fewer pricing rows, leaving inconsistent vertical alignment across the catalog.
+- Changed: anchored the context and maximum-output row to the bottom of the card content, directly above provider availability, and tightened the gap to the provider information.
+- Preserved: card pricing, descriptions, provider information, and responsive grid behavior.
+- Validation: visual behavior follows the card's existing flex-column layout; no build run for this small spacing adjustment, per user preference.
+- Commit and push: pending; GitHub push was not requested.
+
+## 2026-10-20 - Unify group pricing metadata on model details
+
+- Local reason: model details used separate layouts for token-based and expression-based pricing, and the standalone model page did not pass configured model-ratio expiration data to the pricing section.
+- Changed: passed group/model discount expiration data into standalone model details and displayed group ratio plus discount expiration together with each group across token, expression, image-resolution, and video-resolution pricing views.
+- Preserved: price calculations, discount expiry behavior, task and tool pricing, and the administration settings schema.
+- Validation: targeted source inspection confirms each pricing branch uses the shared metadata display and the standalone page passes expiry data. No production build run per user preference.
+- Commit and push: pending; GitHub push was not requested.
+
+- Follow-up: moved ratio and discount-expiry labels into table headers for tabular pricing, with values in each group's row; expression pricing tables show them as columns before input/output prices, with values in each tier row.
 

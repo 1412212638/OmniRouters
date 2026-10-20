@@ -2,7 +2,7 @@ import { ArrowRight01Icon, SearchIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Filter } from 'lucide-react'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -58,6 +58,12 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Slider } from '@/components/ui/slider'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -103,7 +109,6 @@ import {
   getSoraPricingDisplay,
   stripTrailingZeros,
 } from './lib/price'
-import { getToolPriceSummary } from './lib/tool-price'
 import type {
   Modality,
   PricingModel,
@@ -672,14 +677,14 @@ function TopModalityTabs(props: {
   const { t } = useTranslation()
 
   return (
-    <div className='flex min-w-0 flex-wrap items-center gap-2'>
+    <div className='flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto pb-1'>
       <Button
         type='button'
         variant='ghost'
         size='sm'
         onClick={() => props.onChange(FILTER_ALL)}
         className={cn(
-          "h-9 gap-2 rounded-md border px-3.5 text-sm font-normal shadow-none [&_svg:not([class*='size-'])]:size-4",
+          "h-9 shrink-0 gap-2 rounded-md border px-3.5 text-sm font-normal whitespace-nowrap shadow-none [&_svg:not([class*='size-'])]:size-4",
           props.value === FILTER_ALL
             ? 'border-border bg-white text-neutral-950 shadow-[0_2px_4px_rgba(0,0,0,0.05)] hover:bg-white dark:border-white/15 dark:bg-neutral-800 dark:text-neutral-50 dark:shadow-none dark:hover:bg-neutral-800'
             : 'border-border bg-neutral-100 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-700 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100'
@@ -704,7 +709,7 @@ function TopModalityTabs(props: {
             size='sm'
             onClick={() => props.onChange(option.value)}
             className={cn(
-              "h-9 gap-2 rounded-md border px-3.5 text-sm font-normal shadow-none [&_svg:not([class*='size-'])]:size-4",
+              "h-9 shrink-0 gap-2 rounded-md border px-3.5 text-sm font-normal whitespace-nowrap shadow-none [&_svg:not([class*='size-'])]:size-4",
               active
                 ? 'border-border bg-white text-neutral-950 shadow-[0_2px_4px_rgba(0,0,0,0.05)] hover:bg-white dark:border-white/15 dark:bg-neutral-800 dark:text-neutral-50 dark:shadow-none dark:hover:bg-neutral-800'
                 : 'border-border bg-neutral-100 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-700 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100'
@@ -1102,10 +1107,6 @@ function CatalogModelCard(props: {
     isFree || (displayGroupRatio >= 0 && displayGroupRatio < 1)
   const discountFold = Number((displayGroupRatio * 10).toFixed(1))
   const discountPercent = Number(((1 - displayGroupRatio) * 100).toFixed(1))
-  const toolPriceSummary = getToolPriceSummary(props.model, displayGroupRatio, {
-    priceRate: props.priceRate,
-    usdExchangeRate: props.usdExchangeRate,
-  })
   const availableVendors = props.model.available_vendors?.length
     ? props.model.available_vendors
     : [
@@ -1334,22 +1335,9 @@ function CatalogModelCard(props: {
             </InfoLine>
           </div>
         )}
-        {toolPriceSummary.length > 0 && (
-          <div className='text-muted-foreground min-w-0 sm:col-span-2'>
-            <div className='flex min-w-0 items-baseline gap-1 text-sm'>
-              <span className='shrink-0'>{t('Tool fees')}:</span>
-              <span className='truncate font-mono text-xs'>
-                {toolPriceSummary.join(' · ')}
-                {props.model.tool_prices && props.model.tool_prices.length > 2
-                  ? ` · +${props.model.tool_prices.length - 2}`
-                  : ''}
-              </span>
-            </div>
-          </div>
-        )}
       </div>
 
-      <div className='mt-2.5 grid gap-x-3 gap-y-2.5 sm:grid-cols-2'>
+      <div className='mt-auto grid gap-x-3 gap-y-2.5 pt-2.5 sm:grid-cols-2'>
         <InfoLine label={`${t('Context')}:`}>
           {props.model.context_length_display ||
             formatCardTokens(props.model.context_length)}
@@ -1360,7 +1348,7 @@ function CatalogModelCard(props: {
         </InfoLine>
       </div>
 
-      <div className='mt-auto grid gap-4 pt-5 sm:grid-cols-[minmax(0,1fr)_minmax(158px,50%)]'>
+      <div className='mt-2.5 grid gap-4 pt-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(158px,50%)]'>
         <div className='min-w-0 space-y-2'>
           <div className='text-muted-foreground text-sm'>
             {t('Available from {{count}} providers', {
@@ -1508,6 +1496,7 @@ function CatalogPricing() {
   const [vendorFilter, setVendorFilter] = useState<string>(FILTER_ALL)
   const [groupFilter, setGroupFilter] = useState<string>(FILTER_ALL)
   const [priceFilter, setPriceFilter] = useState<CatalogPriceFilter>('all')
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [sortBy, setSortBy] = useState<CatalogSort>('newest')
   const [sidebarSectionOpen, setSidebarSectionOpen] = useState<
     Record<SidebarSectionId, boolean>
@@ -1795,7 +1784,7 @@ function CatalogPricing() {
     <PublicLayout showMainContainer={false}>
       <PageTransition className='bg-background text-foreground min-h-svh pt-16'>
         <div className='grid min-h-[calc(100svh-4rem)] lg:grid-cols-[248px_minmax(0,1fr)]'>
-          <aside className='bg-background/95 border-b p-4 lg:sticky lg:top-16 lg:h-[calc(100svh-4rem)] lg:overflow-y-auto lg:border-r lg:border-b-0'>
+          <aside className='bg-background/95 hidden border-b p-4 lg:sticky lg:top-16 lg:block lg:h-[calc(100svh-4rem)] lg:overflow-y-auto lg:border-r lg:border-b-0'>
             <div className='space-y-7'>
               <FilterSection
                 title={t('Input Types')}
@@ -1983,6 +1972,21 @@ function CatalogPricing() {
                       </DropdownMenuGroup>
                     </DropdownMenuContent>
                   </DropdownMenu>
+
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='icon-sm'
+                    aria-label={t('Filter')}
+                    title={t('Filter')}
+                    className='relative h-8 w-8 shrink-0 rounded-[6px] lg:hidden'
+                    onClick={() => setMobileFiltersOpen(true)}
+                  >
+                    <Filter className='size-3.5' />
+                    {hasActiveFilters && (
+                      <span className='bg-primary absolute -top-1 -right-1 size-2 rounded-full' />
+                    )}
+                  </Button>
                 </div>
               </div>
 
@@ -1995,6 +1999,75 @@ function CatalogPricing() {
                 />
               </div>
             </header>
+
+            <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+              <SheetContent
+                side='right'
+                className='w-[min(90vw,360px)] overflow-y-auto sm:max-w-md'
+              >
+                <SheetHeader className='border-b px-4 pt-4 pb-3'>
+                  <SheetTitle>{t('Filter')}</SheetTitle>
+                </SheetHeader>
+                <div className='px-4 py-5'>
+                  <div className='flex flex-col gap-7'>
+                    <FilterSection
+                      title={t('Input Types')}
+                      options={inputOptions}
+                      value={inputFilter}
+                      onChange={setInputFilter}
+                      allLabel={t('All')}
+                      allCount={models.length}
+                      open={sidebarSectionOpen.input}
+                      onOpenChange={(open) =>
+                        setSidebarSectionExpanded('input', open)
+                      }
+                    />
+                    <ContextLengthFilter
+                      lengths={contextLengths}
+                      value={contextLengthFilter}
+                      onChange={setContextLengthFilter}
+                      onReset={() => setContextLengthFilter(0)}
+                    />
+                    <FilterSection
+                      title={t('Vendor')}
+                      options={vendorOptions}
+                      value={vendorFilter}
+                      onChange={setVendorFilter}
+                      allLabel={t('All')}
+                      allCount={vendorOptions.length}
+                      open={sidebarSectionOpen.vendor}
+                      onOpenChange={(open) =>
+                        setSidebarSectionExpanded('vendor', open)
+                      }
+                      previewCount={FILTER_PREVIEW_COUNT}
+                    />
+                    <FilterSection
+                      title={t('Group')}
+                      options={groupOptions}
+                      value={groupFilter}
+                      onChange={setGroupFilter}
+                      allLabel={t('All')}
+                      allCount={groupOptions.length}
+                      open={sidebarSectionOpen.group}
+                      onOpenChange={(open) =>
+                        setSidebarSectionExpanded('group', open)
+                      }
+                      previewCount={FILTER_PREVIEW_COUNT}
+                    />
+                    {hasActiveFilters && (
+                      <Button
+                        type='button'
+                        variant='outline'
+                        size='sm'
+                        onClick={clearFilters}
+                      >
+                        {t('Clear all filters')}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
 
             {filteredModels.length === 0 ? (
               <div className='flex min-h-[420px] flex-col items-center justify-center px-6 text-center'>

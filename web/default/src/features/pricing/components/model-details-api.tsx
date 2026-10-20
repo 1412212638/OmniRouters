@@ -1,16 +1,23 @@
-import { ChevronRight, Gauge, KeyRound, ScrollText, Zap } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import {
+  ChevronRight,
+  Copy,
+  Gauge,
+  KeyRound,
+  ScrollText,
+  Zap,
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { BundledLanguage } from 'shiki/bundle/web'
 
-import {
-  CodeBlock,
-  CodeBlockCopyButton,
-} from '@/components/ai-elements/code-block'
+import { CodeBlock } from '@/components/ai-elements/code-block'
+import { CopyButton } from '@/components/copy-button'
 import {
   StaticDataTable,
   staticDataTableClassNames as tableStyles,
 } from '@/components/data-table'
+import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useStatus } from '@/hooks/use-status'
 
@@ -48,6 +55,7 @@ type SampleContext = {
   modelName: string
   endpointType: string
   endpointPath: string
+  streaming: boolean
 }
 
 function buildChatSample(lang: Lang, ctx: SampleContext): string {
@@ -59,12 +67,21 @@ function buildChatSample(lang: Lang, ctx: SampleContext): string {
   const userMessage = 'Explain quantum entanglement in one paragraph.'
 
   const bodyJson = isResponses
-    ? JSON.stringify({ model: ctx.modelName, input: userMessage }, null, 2)
+    ? JSON.stringify(
+        {
+          model: ctx.modelName,
+          input: userMessage,
+          ...(ctx.streaming ? { stream: true } : {}),
+        },
+        null,
+        2
+      )
     : JSON.stringify(
         {
           model: ctx.modelName,
           messages: [{ role: 'user', content: userMessage }],
           ...(isReasoning ? {} : { temperature: 0.7 }),
+          ...(ctx.streaming ? { stream: true } : {}),
         },
         null,
         2
@@ -75,7 +92,7 @@ function buildChatSample(lang: Lang, ctx: SampleContext): string {
   if (lang === 'curl') {
     return [
       `curl ${url} \\`,
-      `  -H "Authorization: Bearer $${ctx.apiKeyEnv}" \\`,
+      `  -H "Authorization: Bearer <YOUR_API_KEY>" \\`,
       `  -H "Content-Type: application/json" \\`,
       `  -d '${bodyJson.replace(/\n/g, '\n     ')}'`,
     ].join('\n')
@@ -91,8 +108,8 @@ function buildChatSample(lang: Lang, ctx: SampleContext): string {
       ')',
       '',
       isResponses
-        ? `response = client.${fnCall}(\n    model="${ctx.modelName}",\n    input="${userMessage}",\n)\n\nprint(response.output_text)`
-        : `completion = client.${fnCall}(\n    model="${ctx.modelName}",\n    messages=[\n        {"role": "user", "content": "${userMessage}"}\n    ],\n)\n\nprint(completion.choices[0].message.content)`,
+        ? `response = client.${fnCall}(\n    model="${ctx.modelName}",\n    input="${userMessage}",${ctx.streaming ? '\n    stream=True,' : ''}\n)\n\n${ctx.streaming ? 'for event in response:\n    print(event, end="", flush=True)' : 'print(response.output_text)'}`
+        : `completion = client.${fnCall}(\n    model="${ctx.modelName}",\n    messages=[\n        {"role": "user", "content": "${userMessage}"}\n    ],${ctx.streaming ? '\n    stream=True,' : ''}\n)\n\n${ctx.streaming ? 'for chunk in completion:\n    content = chunk.choices[0].delta.content or ""\n    print(content, end="", flush=True)' : 'print(completion.choices[0].message.content)'}`,
     ].join('\n')
   }
 
@@ -106,8 +123,8 @@ function buildChatSample(lang: Lang, ctx: SampleContext): string {
       `})`,
       '',
       isResponses
-        ? `const response = await client.${fnCall}({\n  model: '${ctx.modelName}',\n  input: '${userMessage}',\n})\n\nconsole.log(response.output_text)`
-        : `const completion = await client.${fnCall}({\n  model: '${ctx.modelName}',\n  messages: [{ role: 'user', content: '${userMessage}' }],\n})\n\nconsole.log(completion.choices[0].message.content)`,
+        ? `const response = await client.${fnCall}({\n  model: '${ctx.modelName}',\n  input: '${userMessage}',${ctx.streaming ? '\n  stream: true,' : ''}\n})\n\n${ctx.streaming ? 'for await (const event of response) {\n  process.stdout.write(JSON.stringify(event))\n}' : 'console.log(response.output_text)'}`
+        : `const completion = await client.${fnCall}({\n  model: '${ctx.modelName}',\n  messages: [{ role: 'user', content: '${userMessage}' }],${ctx.streaming ? '\n  stream: true,' : ''}\n})\n\n${ctx.streaming ? 'for await (const chunk of completion) {\n  process.stdout.write(chunk.choices[0]?.delta?.content ?? "")\n}' : 'console.log(completion.choices[0].message.content)'}`,
     ].join('\n')
   }
 
@@ -121,8 +138,17 @@ function buildChatSample(lang: Lang, ctx: SampleContext): string {
     `  body: JSON.stringify(${bodyJson}),`,
     `})`,
     '',
-    `const data = await response.json()`,
-    `console.log(data)`,
+    ...(ctx.streaming
+      ? [
+          `const reader = response.body?.getReader()`,
+          `const decoder = new TextDecoder()`,
+          `while (reader) {`,
+          `  const { value, done } = await reader.read()`,
+          `  if (done) break`,
+          `  process.stdout.write(decoder.decode(value, { stream: true }))`,
+          `}`,
+        ]
+      : [`const data = await response.json()`, `console.log(data)`]),
   ].join('\n')
 }
 
@@ -136,13 +162,14 @@ function buildAnthropicSample(lang: Lang, ctx: SampleContext): string {
         model: ctx.modelName,
         max_tokens: 1024,
         messages: [{ role: 'user', content: userMessage }],
+        ...(ctx.streaming ? { stream: true } : {}),
       },
       null,
       2
     )
     return [
       `curl ${url} \\`,
-      `  -H "x-api-key: $${ctx.apiKeyEnv}" \\`,
+      `  -H "x-api-key: <YOUR_API_KEY>" \\`,
       `  -H "anthropic-version: 2023-06-01" \\`,
       `  -H "Content-Type: application/json" \\`,
       `  -d '${body.replace(/\n/g, '\n     ')}'`,
@@ -157,13 +184,24 @@ function buildAnthropicSample(lang: Lang, ctx: SampleContext): string {
       `    api_key="<YOUR_API_KEY>",`,
       ')',
       '',
-      `message = client.messages.create(`,
-      `    model="${ctx.modelName}",`,
-      `    max_tokens=1024,`,
-      `    messages=[{"role": "user", "content": "${userMessage}"}],`,
-      ')',
-      '',
-      'print(message.content[0].text)',
+      ...(ctx.streaming
+        ? [
+            `with client.messages.stream(`,
+            `    model="${ctx.modelName}",`,
+            `    max_tokens=1024,`,
+            `    messages=[{"role": "user", "content": "${userMessage}"}],`,
+            `) as stream:`,
+            `    for text in stream.text_stream:`,
+            `        print(text, end="", flush=True)`,
+          ]
+        : [
+            `message = client.messages.create(`,
+            `    model="${ctx.modelName}",`,
+            `    max_tokens=1024,`,
+            `    messages=[{"role": "user", "content": "${userMessage}"}],`,
+            `)`,
+            `print(message.content[0].text)`,
+          ]),
     ].join('\n')
   }
   if (lang === 'typescript') {
@@ -175,13 +213,19 @@ function buildAnthropicSample(lang: Lang, ctx: SampleContext): string {
       `  apiKey: process.env.${ctx.apiKeyEnv},`,
       `})`,
       '',
-      `const message = await client.messages.create({`,
+      `const message = await client.messages.${ctx.streaming ? 'stream' : 'create'}({`,
       `  model: '${ctx.modelName}',`,
       `  max_tokens: 1024,`,
       `  messages: [{ role: 'user', content: '${userMessage}' }],`,
       `})`,
       '',
-      `console.log(message.content[0].text)`,
+      ...(ctx.streaming
+        ? [
+            `for await (const event of message) {`,
+            `  if (event.type === 'content_block_delta') process.stdout.write(event.delta.text)`,
+            `}`,
+          ]
+        : [`console.log(message.content[0].text)`]),
     ].join('\n')
   }
   return [
@@ -196,16 +240,29 @@ function buildAnthropicSample(lang: Lang, ctx: SampleContext): string {
     `    model: '${ctx.modelName}',`,
     `    max_tokens: 1024,`,
     `    messages: [{ role: 'user', content: '${userMessage}' }],`,
+    ...(ctx.streaming ? [`    stream: true,`] : []),
     `  }),`,
     `})`,
     '',
-    `const data = await response.json()`,
-    `console.log(data.content[0].text)`,
+    ...(ctx.streaming
+      ? [
+          `const reader = response.body?.getReader()`,
+          `const decoder = new TextDecoder()`,
+          `while (reader) {`,
+          `  const { value, done } = await reader.read()`,
+          `  if (done) break`,
+          `  process.stdout.write(decoder.decode(value, { stream: true }))`,
+          `}`,
+        ]
+      : [
+          `const data = await response.json()`,
+          `console.log(data.content[0].text)`,
+        ]),
   ].join('\n')
 }
 
 function buildGeminiSample(lang: Lang, ctx: SampleContext): string {
-  const url = `${ctx.baseUrl}${ctx.endpointPath}?key=$${ctx.apiKeyEnv}`
+  const url = `${ctx.baseUrl}${ctx.endpointPath}?key=<YOUR_API_KEY>`
   const userMessage = 'Explain quantum entanglement in one paragraph.'
 
   if (lang === 'curl') {
@@ -265,7 +322,7 @@ function buildEmbeddingSample(lang: Lang, ctx: SampleContext): string {
     const body = JSON.stringify({ model: ctx.modelName, input: text }, null, 2)
     return [
       `curl ${url} \\`,
-      `  -H "Authorization: Bearer $${ctx.apiKeyEnv}" \\`,
+      `  -H "Authorization: Bearer <YOUR_API_KEY>" \\`,
       `  -H "Content-Type: application/json" \\`,
       `  -d '${body.replace(/\n/g, '\n     ')}'`,
     ].join('\n')
@@ -331,7 +388,7 @@ function buildImageSample(lang: Lang, ctx: SampleContext): string {
     )
     return [
       `curl ${url} \\`,
-      `  -H "Authorization: Bearer $${ctx.apiKeyEnv}" \\`,
+      `  -H "Authorization: Bearer <YOUR_API_KEY>" \\`,
       `  -H "Content-Type: application/json" \\`,
       `  -d '${body.replace(/\n/g, '\n     ')}'`,
     ].join('\n')
@@ -402,7 +459,7 @@ function buildDeepSeekToolsSample(lang: Lang, ctx: SampleContext): string {
   if (lang === 'curl') {
     return [
       `curl '${url}' \\`,
-      `  -H 'Authorization: Bearer $${ctx.apiKeyEnv}' \\`,
+      `  -H 'Authorization: Bearer <YOUR_API_KEY>' \\`,
       `  -H 'Content-Type: application/json' \\`,
       `  -d '${bodyJson.replace(/\n/g, '\n     ')}'`,
     ].join('\n')
@@ -513,6 +570,7 @@ function CodeSamplesSection(props: {
     endpoints[0]?.type ?? ''
   )
   const [lang, setLang] = useState<Lang>('curl')
+  const [streaming, setStreaming] = useState(true)
 
   const activeEndpoint = useMemo(() => {
     return endpoints.find((e) => e.type === endpointType) ?? endpoints[0]
@@ -528,48 +586,101 @@ function CodeSamplesSection(props: {
     modelName: props.model.model_name || '',
     endpointType: activeEndpoint.type,
     endpointPath: activeEndpoint.path,
+    streaming,
   })
+
+  const supportsStreaming = ['openai', 'openai-response', 'anthropic'].includes(
+    activeEndpoint.type
+  )
+  const endpointLabels: Record<string, string> = {
+    openai: 'OpenAI-Completions API',
+    'openai-response': 'OpenAI-Responses API',
+    anthropic: 'Anthropic-Messages API',
+    gemini: 'Gemini API',
+    embeddings: 'Embeddings API',
+    'jina-rerank': 'Jina-Rerank API',
+    'image-generation': 'Image Generation API',
+    'deepseek-tools-search': 'Web Search API',
+    'deepseek-tools-fetch': 'Web Fetch API',
+  }
 
   return (
     <section>
       <SectionTitle icon={ScrollText}>{t('Code samples')}</SectionTitle>
 
-      <div className='flex flex-wrap items-center gap-2'>
+      <div className='border-border/70 overflow-hidden rounded-lg border'>
         {endpoints.length > 1 && (
-          <Tabs value={endpointType} onValueChange={setEndpointType}>
-            <TabsList className='bg-muted/40 h-8 p-0.5'>
-              {endpoints.map((ep) => (
+          <div className='bg-background flex min-h-11 items-center border-b px-3'>
+            <Tabs value={endpointType} onValueChange={setEndpointType}>
+              <TabsList variant='line' className='h-11 gap-4 rounded-none p-0'>
+                {endpoints.map((ep) => (
+                  <TabsTrigger
+                    key={ep.type}
+                    value={ep.type}
+                    className='h-11 rounded-none px-0 text-xs after:bottom-0 after:h-px'
+                  >
+                    {endpointLabels[ep.type] ?? ep.type}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
+
+        <div className='bg-background flex min-h-11 flex-wrap items-center gap-3 border-b px-3'>
+          <Tabs value={lang} onValueChange={(v) => setLang(v as Lang)}>
+            <TabsList variant='line' className='h-11 gap-4 rounded-none p-0'>
+              {(Object.keys(LANG_LABELS) as Lang[]).map((l) => (
                 <TabsTrigger
-                  key={ep.type}
-                  value={ep.type}
-                  className='h-7 px-2.5 text-xs'
+                  key={l}
+                  value={l}
+                  className='h-11 rounded-none px-0 text-xs after:bottom-0 after:h-px'
                 >
-                  {ep.type}
+                  {LANG_LABELS[l]}
                 </TabsTrigger>
               ))}
             </TabsList>
           </Tabs>
-        )}
 
-        <Tabs
-          value={lang}
-          onValueChange={(v) => setLang(v as Lang)}
-          className='ml-auto'
-        >
-          <TabsList className='bg-muted/40 h-8 p-0.5'>
-            {(Object.keys(LANG_LABELS) as Lang[]).map((l) => (
-              <TabsTrigger key={l} value={l} className='h-7 px-2.5 text-xs'>
-                {LANG_LABELS[l]}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      </div>
+          <div className='ml-auto flex items-center gap-1.5'>
+            {supportsStreaming && (
+              <Tabs
+                value={streaming ? 'stream' : 'non-stream'}
+                onValueChange={(value) => setStreaming(value === 'stream')}
+              >
+                <TabsList className='bg-muted/30 h-7 rounded-md border p-0.5'>
+                  <TabsTrigger value='stream' className='h-6 px-2 text-[11px]'>
+                    {t('Streaming')}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value='non-stream'
+                    className='h-6 px-2 text-[11px]'
+                  >
+                    {t('Non-stream')}
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+            <CopyButton
+              value={code}
+              className='h-7 gap-1.5 px-2 text-xs'
+              size='sm'
+              variant='outline'
+              tooltip={t('Copy code')}
+              successTooltip={t('Copied!')}
+            >
+              {t('Copy code')}
+            </CopyButton>
+          </div>
+        </div>
 
-      <div className='mt-3'>
-        <CodeBlock code={code} language={LANG_HIGHLIGHT[lang]}>
-          <CodeBlockCopyButton />
-        </CodeBlock>
+        <CodeBlock
+          code={code}
+          language={LANG_HIGHLIGHT[lang]}
+          className='bg-muted/30 my-0 rounded-none border-0 shadow-none'
+          enableCollapse={false}
+          showLineNumbers
+        />
       </div>
 
       <p className='text-muted-foreground mt-2 text-xs'>
@@ -686,6 +797,15 @@ function AuthSection() {
               'Generate tokens from the Tokens page; you can scope them to specific models, groups, IPs, and rate-limits.'
             )}
           </p>
+          <Button
+            size='sm'
+            variant='outline'
+            className='w-fit min-w-[112px] shrink-0 gap-1.5 whitespace-nowrap'
+            render={<Link to='/keys' search={{ create: true }} />}
+          >
+            <KeyRound className='size-3.5 shrink-0' />
+            {t('Create API Key')}
+          </Button>
         </div>
       </div>
     </section>
@@ -702,8 +822,8 @@ export function ModelDetailsApi(props: {
 }) {
   return (
     <div className='space-y-6'>
-      <CodeSamplesSection model={props.model} endpointMap={props.endpointMap} />
       <AuthSection />
+      <CodeSamplesSection model={props.model} endpointMap={props.endpointMap} />
       <RateLimitsSection model={props.model} />
     </div>
   )
