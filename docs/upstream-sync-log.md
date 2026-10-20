@@ -4334,7 +4334,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: fixed request prices are now formatted directly after the group multiplier and optional recharge conversion. Added a regression test for `tier("request", fixed(0.005))`.
 - Preserved: token coefficient scaling, group discounts, recharge display conversion, expression billing, and settlement behavior.
 - Validation: targeted Oxfmt, the fixed-request-price regression test, `bun run build` in `web/default`, and `git diff --check` passed.
-- Commit and push: pending; GitHub push was not requested.
+- Commit and push: implemented in `0a3fe4dc9`, pushed to `origin/main` on 2026-10-20.
 
 ## 2026-10-20 - Correct DeepSeek Search and Fetch API examples
 
@@ -4342,5 +4342,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: added endpoint-specific examples for DeepSeek Search (`query`, optional `count`) and Fetch (`url`) in cURL, Python, TypeScript, and JavaScript.
 - Preserved: existing examples and request handling for OpenAI, Anthropic, Gemini, embeddings, and image-generation endpoints.
 - Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed. Targeted Oxlint reports pre-existing issues in this file; repository-wide `bun run lint` also fails on numerous pre-existing errors outside this change.
-- Commit and push: pending; GitHub push was not requested.
+- Commit and push: implemented in `0a3fe4dc9`, pushed to `origin/main` on 2026-10-20.
 
