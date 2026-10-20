@@ -690,8 +690,17 @@ function DynamicGroupPricingCard(props: {
             className:
               'text-muted-foreground py-2 text-right text-[10px] font-medium tracking-wider uppercase',
             cellClassName: 'py-2.5 text-right font-mono',
-            cell: (tier: (typeof props.dynamicTiers)[number]) =>
-              formattedPricesByTier.get(tier)?.get(fieldEntry.field) ?? '-',
+            cell: (tier: (typeof props.dynamicTiers)[number]) => (
+              <span
+                className={
+                  props.groupRatio * props.selectedRuleMultiplier < 1
+                    ? 'text-success'
+                    : undefined
+                }
+              >
+                {formattedPricesByTier.get(tier)?.get(fieldEntry.field) ?? '-'}
+              </span>
+            ),
           })),
           ...toolPricingColumns,
         ]}

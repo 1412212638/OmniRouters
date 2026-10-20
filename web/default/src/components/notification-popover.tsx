@@ -107,13 +107,13 @@ function TimelineEntry({
 
   return (
     <div className='flex gap-3'>
-      <div className='relative flex w-12 shrink-0 justify-center pt-0.5'>
+      <div className='relative flex w-14 shrink-0 justify-center pt-0.5'>
         <span
           aria-hidden='true'
           className='border-border/70 absolute inset-y-0 left-1/2 border-l border-dashed'
         />
         {date ? (
-          <time className='bg-popover text-muted-foreground relative h-fit rounded-full border px-1.5 py-0.5 text-[10px] font-medium'>
+          <time className='bg-popover text-muted-foreground relative z-10 h-fit px-1 text-[10px] leading-5 font-medium whitespace-nowrap'>
             {date}
           </time>
         ) : (

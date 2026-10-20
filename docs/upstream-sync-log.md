@@ -4312,3 +4312,19 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: targeted Oxfmt, `bun run build` in `web/default`, and `git diff --check` passed. Local preview verification is pending for a populated announcement timeline; no mock announcement data was added.
 - Commit and push: pending; GitHub push was not requested.
 
+## 2026-10-20 - Keep announcement timeline dates on one line
+
+- Local reason: localized dates such as `9月12日` could wrap inside the narrow, pill-shaped date label in the notification timeline.
+- Changed: widened the date column slightly, forced the date label to stay on one line, and replaced the bordered rounded pill with a lightweight text label.
+- Preserved: timeline connectors, announcement ordering, translated date formatting, expand/collapse behavior, and all Notice/Timeline content.
+- Validation: targeted Oxfmt, `bun run build` in `web/default`, and `git diff --check` passed; the local mock still has no populated announcement data for a visual date sample.
+- Commit and push: pending; GitHub push was not requested.
+
+## 2026-10-20 - Apply discount color to dynamic pricing cells
+
+- Local reason: tool prices in a dynamic-pricing group used the green discount color, while input/output/cache cells with the same discounted displayed price remained uncolored.
+- Changed: dynamic pricing table cells now use the success color when the effective displayed multiplier (group ratio times the selected pricing-condition multiplier) is below 1.
+- Preserved: price calculation and formatting, tool-price color logic, non-discounted styling, dynamic condition selection, and all billing behavior.
+- Validation: targeted Oxfmt, `bun run build` in `web/default`, and `git diff --check` passed.
+- Commit and push: pending; GitHub push was not requested.
+
