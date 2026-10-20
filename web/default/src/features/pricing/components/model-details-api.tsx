@@ -391,11 +391,78 @@ function buildImageSample(lang: Lang, ctx: SampleContext): string {
   ].join('\n')
 }
 
+function buildDeepSeekToolsSample(lang: Lang, ctx: SampleContext): string {
+  const url = `${ctx.baseUrl}${ctx.endpointPath}`
+  const isSearch = ctx.endpointType === 'deepseek-tools-search'
+  const body = isSearch
+    ? { query: 'latest AI news', count: 5 }
+    : { url: 'https://example.com/' }
+  const bodyJson = JSON.stringify(body, null, 2)
+
+  if (lang === 'curl') {
+    return [
+      `curl '${url}' \\`,
+      `  -H 'Authorization: Bearer $${ctx.apiKeyEnv}' \\`,
+      `  -H 'Content-Type: application/json' \\`,
+      `  -d '${bodyJson.replace(/\n/g, '\n     ')}'`,
+    ].join('\n')
+  }
+
+  if (lang === 'python') {
+    return [
+      'import os',
+      'import requests',
+      '',
+      `response = requests.post(`,
+      `    "${url}",`,
+      `    headers={"Authorization": f"Bearer {os.environ['${ctx.apiKeyEnv}']}"},`,
+      `    json=${JSON.stringify(body)},`,
+      ')',
+      'response.raise_for_status()',
+      'print(response.json())',
+    ].join('\n')
+  }
+
+  if (lang === 'typescript') {
+    return [
+      `const response = await fetch('${url}', {`,
+      `  method: 'POST',`,
+      `  headers: {`,
+      `    Authorization: \`Bearer \${process.env.${ctx.apiKeyEnv}}\`,`,
+      `    'Content-Type': 'application/json',`,
+      `  },`,
+      `  body: JSON.stringify(${JSON.stringify(body)}),`,
+      `})`,
+      `if (!response.ok) throw new Error(await response.text())`,
+      `console.log(await response.json())`,
+    ].join('\n')
+  }
+
+  return [
+    `const response = await fetch('${url}', {`,
+    `  method: 'POST',`,
+    `  headers: {`,
+    `    Authorization: \`Bearer \${process.env.${ctx.apiKeyEnv}}\`,`,
+    `    'Content-Type': 'application/json',`,
+    `  },`,
+    `  body: JSON.stringify(${JSON.stringify(body)}),`,
+    `})`,
+    `if (!response.ok) throw new Error(await response.text())`,
+    `console.log(await response.json())`,
+  ].join('\n')
+}
+
 function buildSample(
   lang: Lang,
   endpointType: string,
   ctx: SampleContext
 ): string {
+  if (
+    endpointType === 'deepseek-tools-search' ||
+    endpointType === 'deepseek-tools-fetch'
+  ) {
+    return buildDeepSeekToolsSample(lang, ctx)
+  }
   if (endpointType === 'anthropic') return buildAnthropicSample(lang, ctx)
   if (endpointType === 'gemini') return buildGeminiSample(lang, ctx)
   if (endpointType === 'embeddings' || endpointType === 'jina-rerank')

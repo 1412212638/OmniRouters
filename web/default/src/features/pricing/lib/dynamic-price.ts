@@ -283,7 +283,7 @@ export function getDynamicPriceEntries(
     const priceRate = options.priceRate ?? 1
     const usdExchangeRate = options.usdExchangeRate ?? 1
     const fixedPriceUSD = applyRechargeRate(
-      (fixedPrice * groupRatio) / 1_000_000,
+      fixedPrice * groupRatio,
       options.showRechargePrice ?? false,
       priceRate,
       usdExchangeRate
