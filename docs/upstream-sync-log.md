@@ -4410,3 +4410,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 
 - Follow-up: moved ratio and discount-expiry labels into table headers for tabular pricing, with values in each group's row; expression pricing tables show them as columns before input/output prices, with values in each tier row.
 
+## 2026-10-22 - Upgrade Go toolchain for CVE-2026-111943
+
+- Upstream commit: `7d8b91268` (`fix: upgrade Go to 1.26.10 for CVE-2026-111943 (#7942)`).
+- Changed: upgraded `go.mod`, `Dockerfile`, and `Dockerfile.dev` to Go 1.26.10; changed Electron and release workflows to read the Go version from `go.mod`.
+- Preserved: the existing frontend build stages, classic frontend packaging, workflow action versions, dependency set, and all application behavior.
+- Validation: checked all five affected files and ran `git diff --check`; Go tests/build were unavailable because the Go executable is not installed in this environment.
+- Result: local commit and GitHub push pending.
+
