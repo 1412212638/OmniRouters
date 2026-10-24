@@ -420,7 +420,11 @@ func genStripeLink(referenceId string, customerId string, email string, payAmoun
 	if configuredPrice.Product == nil {
 		return "", fmt.Errorf("configured Stripe price has no product")
 	}
-	unitAmount, err := stripeAmountInMinorUnits(payAmount, string(configuredPrice.Currency))
+	chargeAmount, err := stripeAmountInPriceCurrency(payAmount, string(configuredPrice.Currency))
+	if err != nil {
+		return "", err
+	}
+	unitAmount, err := stripeAmountInMinorUnits(chargeAmount, string(configuredPrice.Currency))
 	if err != nil {
 		return "", err
 	}
@@ -591,6 +595,22 @@ func getStripePayMoneyWithFee(amount float64, group string, feeRate float64) flo
 	originalAmount := baseAmount.Div(decimal.NewFromFloat(discount))
 	feeAmount := originalAmount.Mul(decimal.NewFromFloat(feeRate))
 	return baseAmount.Add(feeAmount).InexactFloat64()
+}
+
+func stripeAmountInPriceCurrency(localAmount float64, currency string) (float64, error) {
+	if localAmount <= 0 || math.IsNaN(localAmount) || math.IsInf(localAmount, 0) {
+		return 0, fmt.Errorf("invalid Stripe payment amount")
+	}
+	if strings.EqualFold(currency, "usd") {
+		exchangeRate := operation_setting.USDExchangeRate
+		if exchangeRate <= 0 || math.IsNaN(exchangeRate) || math.IsInf(exchangeRate, 0) {
+			return 0, fmt.Errorf("invalid USD exchange rate for Stripe payment")
+		}
+		return decimal.NewFromFloat(localAmount).
+			Div(decimal.NewFromFloat(exchangeRate)).
+			InexactFloat64(), nil
+	}
+	return localAmount, nil
 }
 
 func stripeAmountInMinorUnits(amount float64, currency string) (int64, error) {

@@ -147,7 +147,9 @@ export function RechargeFormCard({
   const hasWaffoPaymentMethods =
     Array.isArray(waffoPayMethods) && waffoPayMethods.length > 0
   const minTopup = getMinTopupAmount(topupInfo)
-  const feeRate = normalizeTopupFeeRate(selectedFeeRate ?? topupInfo?.fee_rate)
+  const feeRate = paymentType
+    ? normalizeTopupFeeRate(selectedFeeRate ?? topupInfo?.fee_rate)
+    : 0
   const discountRate = topupInfo?.discount?.[topupAmount] || 1
   const originalPaymentAmount =
     discountRate > 0 ? paymentAmount / discountRate : paymentAmount

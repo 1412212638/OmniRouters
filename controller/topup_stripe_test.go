@@ -63,3 +63,23 @@ func TestStripeAmountInMinorUnits(t *testing.T) {
 		require.Error(t, err)
 	}
 }
+
+func TestStripeAmountInPriceCurrency(t *testing.T) {
+	originalExchangeRate := operation_setting.USDExchangeRate
+	t.Cleanup(func() {
+		operation_setting.USDExchangeRate = originalExchangeRate
+	})
+	operation_setting.USDExchangeRate = 7.2
+
+	amount, err := stripeAmountInPriceCurrency(7416, "usd")
+	require.NoError(t, err)
+	require.InDelta(t, 1030, amount, 0.000001)
+
+	amount, err = stripeAmountInPriceCurrency(7416, "cny")
+	require.NoError(t, err)
+	require.Equal(t, float64(7416), amount)
+
+	operation_setting.USDExchangeRate = 0
+	_, err = stripeAmountInPriceCurrency(7416, "usd")
+	require.Error(t, err)
+}

@@ -1,5 +1,29 @@
 # Upstream Sync Log
 
+## 2026-10-24 - Respect explicit model endpoint selections
+
+- Local reason: the model plaza merged channel-inferred protocols into the model's explicitly configured endpoints, so an OpenAI-compatible channel added an OpenAI sample to a model configured only for the Decision Model endpoint.
+- Changed: when valid model endpoint configuration exists, use its declared endpoint types as the model's public supported endpoint set; retain channel-based inference for models without valid explicit endpoint configuration. Added regression tests for explicit override, fallback, and stable ordering.
+- Preserved: channel routing/adaptors, endpoint paths and methods, and inference for models without an endpoint declaration.
+- Validation: `git diff --check` passed. Go is unavailable in this environment, so the focused model tests could not run.
+- Commit and push: pending.
+
+## 2026-10-24 - Wait for payment method selection before applying fees
+
+- Local reason: the wallet initialized its quote using the first configured payment method, so its fee appeared in the total before the user selected a method.
+- Changed: initialize and update unselected quotes without a payment method or fee; apply the matching quote and fee only after explicit selection.
+- Preserved: per-method/global fee fallback after selection, payment confirmation flow, and all payment provider calculations.
+- Validation: `git diff --check` passed. Frontend build/tests were not run for this narrow state/quote change.
+- Commit and push: pending.
+
+## 2026-10-24 - Convert Stripe local-currency quotes before Checkout
+
+- Local reason: Stripe top-up quotes are calculated in the configured local currency, but Checkout was receiving that raw amount while the configured Stripe Price used USD, causing a 7,416 local-currency quote to be charged as US$7,416 instead of US$1,030.
+- Changed: convert the local quote into USD using the configured USD exchange rate when the Stripe Price currency is USD; keep non-USD Price amounts in the existing local-currency unit. Reject invalid exchange rates and cover both paths with regression tests.
+- Preserved: displayed quote calculation, fee/discount math, configured Stripe product/currency, and non-USD charging behavior.
+- Validation: `git diff --check` passed. Added conversion regression tests, but Go is unavailable in this environment so backend tests could not run.
+- Commit and push: pending.
+
 ## 2026-10-24 - Improve wallet copy across locales
 
 - Local reason: wallet labels such as `quota`, `handling fee`, and `invoice information` were understandable but less natural for international users and inconsistent with common payment terminology.

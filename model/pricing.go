@@ -271,6 +271,30 @@ func appendPricingEndpoint(endpoints []string, endpoint string) []string {
 	return append(endpoints, endpoint)
 }
 
+func resolvePricingEndpointTypes(inferred []string, configured string) []string {
+	if strings.TrimSpace(configured) == "" {
+		return inferred
+	}
+
+	var raw map[string]any
+	if err := common.Unmarshal([]byte(configured), &raw); err != nil {
+		return inferred
+	}
+
+	declared := make([]string, 0, len(raw))
+	for endpoint, value := range raw {
+		switch value.(type) {
+		case string, map[string]any:
+			declared = appendPricingEndpoint(declared, endpoint)
+		}
+	}
+	if len(declared) == 0 {
+		return inferred
+	}
+	sort.Strings(declared)
+	return declared
+}
+
 // buildAvailableVendorIDs combines the explicitly configured model suppliers
 // with suppliers bound to currently enabled channels. Model configuration keeps
 // its submitted order; channel suppliers are appended in ability query order.
@@ -416,24 +440,15 @@ func updatePricing() {
 		modelSupportEndpointsStr[ability.Model] = endpoints
 	}
 
-	// 再补充模型自定义端点：若配置有效则追加到已有推断，不再裁剪渠道真实能力
+	// Explicit model endpoint configuration defines the public endpoint set.
 	for modelName, meta := range metaMap {
-		if strings.TrimSpace(meta.Endpoints) == "" {
+		if meta == nil {
 			continue
 		}
-		var raw map[string]any
-		if err := common.Unmarshal([]byte(meta.Endpoints), &raw); err == nil {
-			endpoints := modelSupportEndpointsStr[modelName]
-			for k, v := range raw {
-				switch v.(type) {
-				case string, map[string]any:
-					endpoints = appendPricingEndpoint(endpoints, k)
-				}
-			}
-			if len(endpoints) > 0 {
-				modelSupportEndpointsStr[modelName] = endpoints
-			}
-		}
+		modelSupportEndpointsStr[modelName] = resolvePricingEndpointTypes(
+			modelSupportEndpointsStr[modelName],
+			meta.Endpoints,
+		)
 	}
 
 	modelSupportEndpointTypes = make(map[string][]constant.EndpointType)

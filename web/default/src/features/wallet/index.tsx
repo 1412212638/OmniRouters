@@ -28,7 +28,6 @@ import {
   useWaffoPancakePayment,
 } from './hooks'
 import {
-  getDefaultPaymentType,
   getMinTopupAmount,
   isWaffoPancakePayment,
 } from './lib'
@@ -134,16 +133,15 @@ export function Wallet(props: WalletProps) {
       const minTopup = getMinTopupAmount(topupInfo)
       setTopupAmount(minTopup)
 
-      // Calculate initial payment amount with default payment type
-      const defaultPaymentType = getDefaultPaymentType(topupInfo)
-      calculatePaymentAmount(minTopup, defaultPaymentType)
+      // Show the base quote until the user chooses a payment method.
+      calculatePaymentAmount(minTopup, '')
     }
   }, [topupInfo, calculatePaymentAmount])
 
-  // Get current payment type (selected or default)
+  // Payment-specific quotes and fees apply only after an explicit selection.
   const getCurrentPaymentType = useCallback(() => {
-    return selectedPaymentMethod?.type || getDefaultPaymentType(topupInfo)
-  }, [selectedPaymentMethod, topupInfo])
+    return selectedPaymentMethod?.type || ''
+  }, [selectedPaymentMethod])
 
   // Handle preset selection
   const handleSelectPreset = (preset: PresetAmount) => {
@@ -356,7 +354,11 @@ export function Wallet(props: WalletProps) {
         calculating={calculating}
         processing={processing || pancakeProcessing}
         discountRate={getDiscountRate()}
-        feeRate={selectedPaymentMethod?.fee_rate ?? topupInfo?.fee_rate}
+        feeRate={
+          selectedPaymentMethod
+            ? (selectedPaymentMethod.fee_rate ?? topupInfo?.fee_rate)
+            : 0
+        }
         usdExchangeRate={effectiveUsdExchangeRate}
       />
 
