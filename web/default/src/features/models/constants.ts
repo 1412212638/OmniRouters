@@ -149,6 +149,9 @@ export const ENDPOINT_TEMPLATES: Record<
   'jina-rerank': { path: '/rerank', method: 'POST' },
   'image-generation': { path: '/v1/images/generations', method: 'POST' },
   embeddings: { path: '/v1/embeddings', method: 'POST' },
+  decision: { path: '/v1/systemone', method: 'POST' },
+  'deepseek-search': { path: '/v1/tools/search', method: 'POST' },
+  'deepseek-fetch': { path: '/v1/tools/fetch', method: 'POST' },
 }
 
 // ============================================================================

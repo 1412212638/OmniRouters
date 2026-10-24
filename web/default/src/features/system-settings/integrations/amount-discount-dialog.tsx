@@ -98,7 +98,7 @@ export function AmountDiscountDialog({
       onOpenChange={onOpenChange}
       title={isEditMode ? t('Edit discount tier') : t('Add discount tier')}
       description={t(
-        'Set a discount rate for a specific recharge amount threshold.'
+        'Set a discount rate for an exact recharge amount.'
       )}
       contentClassName='sm:max-w-[500px]'
       contentHeight='auto'
@@ -147,7 +147,7 @@ export function AmountDiscountDialog({
                   {isEditMode
                     ? t('Amount cannot be changed when editing.')
                     : t(
-                        'Minimum recharge amount to qualify for this discount.'
+                        'Recharge amount must match this value to receive the discount.'
                       )}
                 </FormDescription>
                 <FormMessage />
@@ -175,14 +175,15 @@ export function AmountDiscountDialog({
                   />
                 </FormControl>
                 <FormDescription>
-                  {t('Final price multiplier (0.95 = 5% discount')}
+                  {t('Final price multiplier')}
                   {discountPercentage > 0 && (
                     <span className='ml-1 font-medium text-green-600 dark:text-green-400'>
-                      = {discountPercentage}
-                      {t('% off')}
+                      ({discountRate.toFixed(2)} ={' '}
+                      {t('{{percent}}% discount', {
+                        percent: discountPercentage,
+                      })})
                     </span>
                   )}
-                  )
                 </FormDescription>
                 <FormMessage />
               </FormItem>

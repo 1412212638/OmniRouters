@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -181,6 +182,47 @@ func getPayMoney(amount int64, group string) float64 {
 	return payMoney.InexactFloat64()
 }
 
+func getPayMoneyWithFee(amount int64, group string, feeRate float64) float64 {
+	baseAmount := decimal.NewFromFloat(getPayMoney(amount, group))
+	if feeRate <= 0 || feeRate > 1 || math.IsNaN(feeRate) || math.IsInf(feeRate, 0) {
+		return baseAmount.InexactFloat64()
+	}
+
+	discount := 1.0
+	if ds, ok := operation_setting.GetPaymentSetting().AmountDiscount[int(amount)]; ok && ds > 0 {
+		discount = ds
+	}
+	originalAmount := baseAmount.Div(decimal.NewFromFloat(discount))
+	feeAmount := originalAmount.Mul(decimal.NewFromFloat(feeRate))
+	return baseAmount.Add(feeAmount).InexactFloat64()
+}
+
+func getPaymentMethodFeeRate(paymentMethod string) float64 {
+	if paymentMethod != "" {
+		for _, method := range operation_setting.PayMethods {
+			if method["type"] != paymentMethod {
+				continue
+			}
+			if rawRate, ok := method["fee_rate"]; ok {
+				if rawRate == "" {
+					break
+				}
+				feeRate, err := strconv.ParseFloat(rawRate, 64)
+				if err != nil || feeRate < 0 || feeRate > 1 || math.IsNaN(feeRate) || math.IsInf(feeRate, 0) {
+					return 0
+				}
+				return feeRate
+			}
+		}
+	}
+
+	feeRate := operation_setting.GetPaymentSetting().FeeRate
+	if feeRate < 0 || feeRate > 1 || math.IsNaN(feeRate) || math.IsInf(feeRate, 0) {
+		return 0
+	}
+	return feeRate
+}
+
 func getMinTopup() int64 {
 	minTopup := operation_setting.MinTopUp
 	if operation_setting.GetQuotaDisplayType() == operation_setting.QuotaDisplayTypeTokens {
@@ -287,19 +329,19 @@ func RequestEpay(c *gin.Context) {
 		return
 	}
 
+	if !operation_setting.ContainsPayMethod(req.PaymentMethod) {
+		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "支付方式不存在"})
+		return
+	}
+
 	group, err := model.GetUserGroup(id, true)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "获取用户分组失败"})
 		return
 	}
-	payMoney := getPayMoney(req.Amount, group)
+	payMoney := getPayMoneyWithFee(req.Amount, group, getPaymentMethodFeeRate(req.PaymentMethod))
 	if payMoney < 0.01 {
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "充值金额过低"})
-		return
-	}
-
-	if !operation_setting.ContainsPayMethod(req.PaymentMethod) {
-		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "支付方式不存在"})
 		return
 	}
 

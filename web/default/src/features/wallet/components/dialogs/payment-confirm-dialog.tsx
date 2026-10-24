@@ -60,22 +60,25 @@ export function PaymentConfirmDialog({
   let baseAmount = paymentAmount
   if (isPancake && paymentBreakdown) {
     baseAmount = paymentBreakdown.baseAmount
-  } else if (isPancake && normalizedFeeRate > 0) {
-    baseAmount = paymentAmount / (1 + normalizedFeeRate)
+  } else if (isPancake && normalizedFeeRate > 0 && discountRate > 0) {
+    baseAmount =
+      (paymentAmount * discountRate) / (discountRate + normalizedFeeRate)
   }
+  const originalAmount = discountRate > 0 ? baseAmount / discountRate : baseAmount
   const feeAmount = isPancake
     ? (paymentBreakdown?.feeAmount ?? paymentAmount - baseAmount)
-    : paymentAmount * normalizedFeeRate
+    : originalAmount * normalizedFeeRate
   const totalPaymentAmount = isPancake
     ? paymentAmount
-    : paymentAmount + feeAmount
+    : baseAmount + feeAmount
   const hasFeeRate = feeAmount > 0 && paymentAmount > 0
   const feeRatePercent = (
-    (isPancake && baseAmount > 0 ? feeAmount / baseAmount : normalizedFeeRate) *
-    100
+    (isPancake && originalAmount > 0
+      ? feeAmount / originalAmount
+      : normalizedFeeRate) * 100
   ).toFixed(2)
   const hasDiscount = discountRate > 0 && discountRate < 1 && baseAmount > 0
-  const originalAmount = hasDiscount ? baseAmount / discountRate : 0
+  const hasNetPaymentDiscount = hasDiscount && totalPaymentAmount < originalAmount
   const discountAmount = hasDiscount ? originalAmount - baseAmount : 0
 
   return (
@@ -126,7 +129,7 @@ export function PaymentConfirmDialog({
                 <span className='text-2xl font-semibold'>
                   {formatTopupPaymentAmount(totalPaymentAmount)}
                 </span>
-                {hasDiscount && (
+                {hasNetPaymentDiscount && (
                   <span className='text-muted-foreground text-sm line-through'>
                     {formatTopupPaymentAmount(originalAmount)}
                   </span>

@@ -96,10 +96,12 @@ func getWaffoPancakePriceQuote(amount int64, group string) (decimal.Decimal, dec
 		unitPrice = 1
 	}
 
-	baseAmount := dAmount.
-		Mul(decimal.NewFromFloat(topupGroupRatio)).
-		Mul(decimal.NewFromFloat(discount))
-	payMoney := baseAmount.Mul(decimal.NewFromFloat(unitPrice))
+	originalAmount := dAmount.Mul(decimal.NewFromFloat(topupGroupRatio))
+	baseAmount := originalAmount.Mul(decimal.NewFromFloat(discount))
+	// Apply the markup to the undiscounted amount so discounts and fees offset evenly.
+	feeRate := decimal.NewFromFloat(unitPrice).Sub(decimal.NewFromInt(1))
+	feeAmount := originalAmount.Mul(feeRate)
+	payMoney := baseAmount.Add(feeAmount)
 
 	return baseAmount, payMoney
 }

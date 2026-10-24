@@ -20,7 +20,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import * as z from 'zod'
@@ -495,6 +495,23 @@ export function ModelMutateDrawer({
     },
   })
 
+  const endpointsValue = useWatch({
+    control: form.control,
+    name: 'endpoints',
+  })
+  const selectedEndpointTemplates = useMemo(() => {
+    const parsed = safeJsonParse<unknown>(endpointsValue, {
+      fallback: {},
+      silent: true,
+    })
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return []
+    }
+    return Object.keys(ENDPOINT_TEMPLATES).filter((key) =>
+      Object.prototype.hasOwnProperty.call(parsed, key)
+    )
+  }, [endpointsValue])
+
   const validateNumber = (value: string) => {
     if (value === '') return true
     return !Number.isNaN(Number.parseFloat(value))
@@ -865,12 +882,39 @@ export function ModelMutateDrawer({
     ]
   )
 
-  const handleFillEndpointTemplate = (templateKey: string) => {
-    const template = ENDPOINT_TEMPLATES[templateKey]
-    if (template) {
-      const templateJson = JSON.stringify({ [templateKey]: template }, null, 2)
-      form.setValue('endpoints', templateJson)
+  const handleFillEndpointTemplates = (templateKeys: string[]) => {
+    const parsed = safeJsonParse<unknown>(form.getValues('endpoints'), {
+      fallback: {},
+      silent: true,
+    })
+    const endpoints: Record<string, unknown> =
+      parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+        ? { ...(parsed as Record<string, unknown>) }
+        : {}
+    const selected = new Set(templateKeys)
+    const previouslySelected = new Set(
+      Object.keys(ENDPOINT_TEMPLATES).filter((key) =>
+        Object.prototype.hasOwnProperty.call(endpoints, key)
+      )
+    )
+
+    for (const key of Object.keys(ENDPOINT_TEMPLATES)) {
+      if (selected.has(key)) {
+        if (!previouslySelected.has(key)) {
+          endpoints[key] = ENDPOINT_TEMPLATES[key]
+        }
+      } else {
+        delete endpoints[key]
+      }
     }
+
+    form.setValue(
+      'endpoints',
+      Object.keys(endpoints).length > 0
+        ? JSON.stringify(endpoints, null, 2)
+        : '',
+      { shouldDirty: true, shouldValidate: true }
+    )
   }
 
   return (
@@ -1274,28 +1318,23 @@ export function ModelMutateDrawer({
             <SideDrawerSection>
               <div className='flex items-center justify-between'>
                 <h3 className='text-sm font-semibold'>{t('Endpoints')}</h3>
-                <Select<string>
-                  items={Object.keys(ENDPOINT_TEMPLATES).map((key) => ({
+                <MultiSelect
+                  options={Object.keys(ENDPOINT_TEMPLATES).map((key) => ({
                     value: key,
-                    label: key,
+                    label:
+                      key === 'decision'
+                        ? t('Decision Model')
+                        : key === 'deepseek-search'
+                          ? t('DeepSeek Search')
+                          : key === 'deepseek-fetch'
+                            ? t('DeepSeek Fetch')
+                            : key,
                   }))}
-                  onValueChange={(v) =>
-                    v !== null && handleFillEndpointTemplate(v)
-                  }
-                >
-                  <SelectTrigger size='sm' className='w-[200px]'>
-                    <SelectValue placeholder={t('Load template...')} />
-                  </SelectTrigger>
-                  <SelectContent alignItemWithTrigger={false}>
-                    <SelectGroup>
-                      {Object.keys(ENDPOINT_TEMPLATES).map((key) => (
-                        <SelectItem key={key} value={key}>
-                          {key}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                  selected={selectedEndpointTemplates}
+                  onChange={handleFillEndpointTemplates}
+                  placeholder={t('Load template...')}
+                  className='min-w-[200px] max-w-full sm:w-[320px]'
+                />
               </div>
 
               <FormField

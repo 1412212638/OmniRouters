@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -22,6 +23,7 @@ import (
 	"github.com/stripe/stripe-go/v81"
 	"github.com/stripe/stripe-go/v81/checkout/session"
 	stripecustomer "github.com/stripe/stripe-go/v81/customer"
+	"github.com/stripe/stripe-go/v81/price"
 	"github.com/stripe/stripe-go/v81/webhook"
 	"github.com/thanhpk/randstr"
 )
@@ -132,7 +134,16 @@ func (*StripeAdaptor) RequestPay(c *gin.Context, req *StripePayRequest) {
 			stripeEmail = invoiceProfile.Email
 		}
 	}
-	payLink, err := genStripeLink(referenceId, stripeCustomer, stripeEmail, req.Amount, req.SuccessURL, req.CancelURL, invoiceProfile)
+	payAmount := getStripePayMoneyWithFee(
+		float64(req.Amount),
+		user.Group,
+		getPaymentMethodFeeRate(model.PaymentMethodStripe),
+	)
+	if payAmount <= 0.01 {
+		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "充值金额过低"})
+		return
+	}
+	payLink, err := genStripeLink(referenceId, stripeCustomer, stripeEmail, payAmount, req.SuccessURL, req.CancelURL, invoiceProfile)
 	if err != nil {
 		logger.LogError(c.Request.Context(), fmt.Sprintf("Stripe 创建 Checkout Session 失败 user_id=%d trade_no=%s amount=%d error=%q", id, referenceId, req.Amount, err.Error()))
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "拉起支付失败"})
@@ -391,17 +402,28 @@ func sessionExpired(ctx context.Context, event stripe.Event) {
 //   - referenceId: unique reference identifier for the transaction
 //   - customerId: existing Stripe customer ID (empty string if new customer)
 //   - email: customer email address for new customer creation
-//   - amount: quantity of units to purchase
+//   - payAmount: total amount to charge in the configured Stripe Price currency
 //   - successURL: custom URL to redirect after successful payment (empty for default)
 //   - cancelURL: custom URL to redirect when payment is canceled (empty for default)
 //
 // Returns the checkout session URL or an error if the session creation fails.
-func genStripeLink(referenceId string, customerId string, email string, amount int64, successURL string, cancelURL string, invoiceProfiles ...*model.InvoiceProfile) (string, error) {
+func genStripeLink(referenceId string, customerId string, email string, payAmount float64, successURL string, cancelURL string, invoiceProfiles ...*model.InvoiceProfile) (string, error) {
 	if !strings.HasPrefix(setting.StripeApiSecret, "sk_") && !strings.HasPrefix(setting.StripeApiSecret, "rk_") {
 		return "", fmt.Errorf("无效的Stripe API密钥")
 	}
 
 	stripe.Key = setting.StripeApiSecret
+	configuredPrice, err := price.Get(setting.StripePriceId, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to load configured Stripe price: %w", err)
+	}
+	if configuredPrice.Product == nil {
+		return "", fmt.Errorf("configured Stripe price has no product")
+	}
+	unitAmount, err := stripeAmountInMinorUnits(payAmount, string(configuredPrice.Currency))
+	if err != nil {
+		return "", err
+	}
 	var invoiceProfile *model.InvoiceProfile
 	if len(invoiceProfiles) > 0 {
 		invoiceProfile = invoiceProfiles[0]
@@ -419,6 +441,10 @@ func genStripeLink(referenceId string, customerId string, email string, amount i
 	if cancelURL == "" {
 		cancelURL = paymentReturnPath("/console/topup")
 	}
+	var taxBehavior *string
+	if configuredPrice.TaxBehavior == stripe.PriceTaxBehaviorInclusive || configuredPrice.TaxBehavior == stripe.PriceTaxBehaviorExclusive {
+		taxBehavior = stripe.String(string(configuredPrice.TaxBehavior))
+	}
 
 	params := &stripe.CheckoutSessionParams{
 		ClientReferenceID: stripe.String(referenceId),
@@ -426,8 +452,13 @@ func genStripeLink(referenceId string, customerId string, email string, amount i
 		CancelURL:         stripe.String(cancelURL),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
-				Price:    stripe.String(setting.StripePriceId),
-				Quantity: stripe.Int64(amount),
+				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
+					Currency:    stripe.String(string(configuredPrice.Currency)),
+					Product:     stripe.String(configuredPrice.Product.ID),
+					TaxBehavior: taxBehavior,
+					UnitAmount:  stripe.Int64(unitAmount),
+				},
+				Quantity: stripe.Int64(1),
 			},
 		},
 		Mode:                stripe.String(string(stripe.CheckoutSessionModePayment)),
@@ -545,6 +576,45 @@ func getStripePayMoney(amount float64, group string) float64 {
 	}
 	payMoney := amount * setting.StripeUnitPrice * topupGroupRatio * discount
 	return payMoney
+}
+
+func getStripePayMoneyWithFee(amount float64, group string, feeRate float64) float64 {
+	baseAmount := decimal.NewFromFloat(getStripePayMoney(amount, group))
+	if feeRate <= 0 || feeRate > 1 || math.IsNaN(feeRate) || math.IsInf(feeRate, 0) {
+		return baseAmount.InexactFloat64()
+	}
+
+	discount := 1.0
+	if ds, ok := operation_setting.GetPaymentSetting().AmountDiscount[int(amount)]; ok && ds > 0 {
+		discount = ds
+	}
+	originalAmount := baseAmount.Div(decimal.NewFromFloat(discount))
+	feeAmount := originalAmount.Mul(decimal.NewFromFloat(feeRate))
+	return baseAmount.Add(feeAmount).InexactFloat64()
+}
+
+func stripeAmountInMinorUnits(amount float64, currency string) (int64, error) {
+	if amount <= 0 || math.IsNaN(amount) || math.IsInf(amount, 0) {
+		return 0, fmt.Errorf("invalid Stripe payment amount")
+	}
+
+	minorUnitExponent := 2
+	switch strings.ToLower(currency) {
+	case "bif", "clp", "djf", "gnf", "jpy", "kmf", "krw", "mga", "pyg", "rwf", "ugx", "vnd", "vuv", "xaf", "xof", "xpf":
+		minorUnitExponent = 0
+	case "bhd", "jod", "kwd", "omr", "tnd":
+		minorUnitExponent = 3
+	}
+
+	minorUnitFactor := decimal.NewFromInt(1)
+	for i := 0; i < minorUnitExponent; i++ {
+		minorUnitFactor = minorUnitFactor.Mul(decimal.NewFromInt(10))
+	}
+	minorAmount := decimal.NewFromFloat(amount).Mul(minorUnitFactor).Round(0)
+	if !minorAmount.IsPositive() || minorAmount.GreaterThan(decimal.NewFromInt(math.MaxInt64)) {
+		return 0, fmt.Errorf("Stripe payment amount is out of range")
+	}
+	return minorAmount.IntPart(), nil
 }
 
 func getStripeMinTopup() int64 {

@@ -37,13 +37,13 @@ import { formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 import {
-  getDiscountLabel,
   getPaymentIcon,
   getMinTopupAmount,
   calculatePresetPricing,
   formatTopupPaymentAmount,
   formatPaymentQuote,
   normalizeTopupFeeRate,
+  isWaffoPancakePayment,
 } from '../lib'
 import type {
   PaymentMethod,
@@ -148,9 +148,13 @@ export function RechargeFormCard({
     Array.isArray(waffoPayMethods) && waffoPayMethods.length > 0
   const minTopup = getMinTopupAmount(topupInfo)
   const feeRate = normalizeTopupFeeRate(selectedFeeRate ?? topupInfo?.fee_rate)
-  const hasFeeRate = feeRate > 0
-  const feeRatePercent = (feeRate * 100).toFixed(2)
-  const paymentFeeAmount = paymentAmount * feeRate
+  const discountRate = topupInfo?.discount?.[topupAmount] || 1
+  const originalPaymentAmount =
+    discountRate > 0 ? paymentAmount / discountRate : paymentAmount
+  const paymentFeeAmount = isWaffoPancakePayment(paymentType || '')
+    ? 0
+    : originalPaymentAmount * feeRate
+  const amountToPay = paymentAmount + paymentFeeAmount
 
   if (loading) {
     return (
@@ -267,7 +271,9 @@ export function RechargeFormCard({
                             </div>
                             {hasDiscount && (
                               <div className='text-xs font-medium text-green-600'>
-                                {getDiscountLabel(discount)}
+                                {t('Recharge discount badge', {
+                                  percent: Math.round((1 - discount) * 100),
+                                })}
                               </div>
                             )}
                           </div>
@@ -276,7 +282,7 @@ export function RechargeFormCard({
                             {hasDiscount && savedAmount > 0 && (
                               <span className='text-green-600'>
                                 {' '}
-                                - {t('Save')}{' '}
+                                - {t('You save')}{' '}
                                 {formatTopupPaymentAmount(savedAmount)}
                               </span>
                             )}
@@ -314,7 +320,7 @@ export function RechargeFormCard({
                         <Skeleton className='h-5 w-16' />
                       ) : (
                         <span className='text-sm font-semibold'>
-                          {formatPaymentQuote(paymentAmount, paymentType)}
+                          {formatPaymentQuote(amountToPay, paymentType)}
                         </span>
                       )}
                     </div>

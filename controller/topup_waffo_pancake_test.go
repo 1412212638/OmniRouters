@@ -93,14 +93,14 @@ func TestGetWaffoPancakePayMoney(t *testing.T) {
 			amount:           10,
 			group:            "vip",
 			quotaDisplayType: operation_setting.QuotaDisplayTypeUSD,
-			expected:         24,
+			expected:         27.6,
 		},
 		{
 			name:             "tokens display converts quota to display units before pricing",
 			amount:           int64(common.QuotaPerUnit * 3),
 			group:            "vip",
 			quotaDisplayType: operation_setting.QuotaDisplayTypeTokens,
-			expected:         4.5,
+			expected:         7.2,
 		},
 		{
 			name:             "non-positive discount falls back to no discount",
@@ -151,5 +151,11 @@ func TestGetWaffoPancakePriceQuoteSeparatesMarkupFromBase(t *testing.T) {
 	baseAmount, payAmount := getWaffoPancakePriceQuote(10, "default")
 	require.Equal(t, "10.00", baseAmount.Round(2).StringFixed(2))
 	require.Equal(t, "10.50", payAmount.Round(2).StringFixed(2))
+	require.Equal(t, "0.50", payAmount.Sub(baseAmount).Round(2).StringFixed(2))
+
+	operation_setting.GetPaymentSetting().AmountDiscount = map[int]float64{10: 0.95}
+	baseAmount, payAmount = getWaffoPancakePriceQuote(10, "default")
+	require.Equal(t, "9.50", baseAmount.Round(2).StringFixed(2))
+	require.Equal(t, "10.00", payAmount.Round(2).StringFixed(2))
 	require.Equal(t, "0.50", payAmount.Sub(baseAmount).Round(2).StringFixed(2))
 }

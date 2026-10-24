@@ -509,11 +509,60 @@ function buildDeepSeekToolsSample(lang: Lang, ctx: SampleContext): string {
   ].join('\n')
 }
 
+function buildDecisionModelSample(lang: Lang, ctx: SampleContext): string {
+  const url = `${ctx.baseUrl}${ctx.endpointPath}`
+  const body = {
+    model: ctx.modelName,
+    state: 'refund request',
+    questions: {
+      refund: { type: 'noul' },
+    },
+  }
+  const bodyJson = JSON.stringify(body, null, 2)
+
+  if (lang === 'curl') {
+    return [
+      `curl '${url}' \\`,
+      `  -H 'Authorization: Bearer <YOUR_API_KEY>' \\`,
+      `  -H 'Content-Type: application/json' \\`,
+      `  -d '${bodyJson.replace(/\n/g, '\n     ')}'`,
+    ].join('\n')
+  }
+
+  if (lang === 'python') {
+    return [
+      'import requests',
+      '',
+      `response = requests.post(`,
+      `    '${url}',`,
+      `    headers={'Authorization': 'Bearer <YOUR_API_KEY>'},`,
+      `    json=${JSON.stringify(body)},`,
+      ')',
+      'response.raise_for_status()',
+      'print(response.json())',
+    ].join('\n')
+  }
+
+  return [
+    `const response = await fetch('${url}', {`,
+    `  method: 'POST',`,
+    `  headers: {`,
+    `    Authorization: \`Bearer \${process.env.${ctx.apiKeyEnv}}\`,`,
+    `    'Content-Type': 'application/json',`,
+    `  },`,
+    `  body: JSON.stringify(${JSON.stringify(body)}),`,
+    `})`,
+    `if (!response.ok) throw new Error(await response.text())`,
+    `console.log(await response.json())`,
+  ].join('\n')
+}
+
 function buildSample(
   lang: Lang,
   endpointType: string,
   ctx: SampleContext
 ): string {
+  if (endpointType === 'decision') return buildDecisionModelSample(lang, ctx)
   if (
     endpointType === 'deepseek-tools-search' ||
     endpointType === 'deepseek-tools-fetch'
@@ -600,6 +649,7 @@ function CodeSamplesSection(props: {
     embeddings: 'Embeddings API',
     'jina-rerank': 'Jina-Rerank API',
     'image-generation': 'Image Generation API',
+    decision: 'Decision Model API',
     'deepseek-tools-search': 'Web Search API',
     'deepseek-tools-fetch': 'Web Fetch API',
   }

@@ -92,12 +92,9 @@ var publicPricingTools = []struct {
 	name  string
 	label string
 }{
-	{name: "web_search_preview", label: "Web Search Preview"},
 	{name: "web_search", label: "Web Search"},
-	{name: "file_search", label: "File Search"},
 	{name: "google_search", label: "Google Search"},
 	{name: "google_search_grounded_prompt", label: "Google Search Grounded Prompt"},
-	{name: "image_generation", label: "Image Generation"},
 	{name: "deepseek_search", label: "DeepSeek Search"},
 	{name: "deepseek_fetch", label: "DeepSeek Fetch"},
 }
@@ -115,10 +112,6 @@ func pricingToolEnabled(toolName, modelName string, endpoints []constant.Endpoin
 		return false
 	}
 	switch toolName {
-	case "web_search_preview", "file_search":
-		return hasEndpoint(constant.EndpointTypeOpenAIResponse)
-	case "image_generation":
-		return hasEndpoint(constant.EndpointTypeOpenAIResponse)
 	case "web_search":
 		return hasEndpoint(constant.EndpointTypeOpenAI) || hasEndpoint(constant.EndpointTypeAnthropic)
 	case "google_search", "google_search_grounded_prompt":

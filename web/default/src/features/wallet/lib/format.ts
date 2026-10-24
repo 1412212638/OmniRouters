@@ -4,8 +4,6 @@ import {
   type CurrencyFormatOptions,
 } from '@/lib/currency'
 
-import { DEFAULT_DISCOUNT_RATE } from '../constants'
-
 // ============================================================================
 // Wallet-specific Formatting Functions
 // ============================================================================
@@ -81,17 +79,6 @@ export function formatPaymentQuote(
     return Number.isFinite(amount) ? `$${amount.toFixed(2)}` : '-'
   }
   return formatTopupPaymentAmount(amount)
-}
-
-/**
- * Get discount label for display (e.g., "20% OFF")
- */
-export function getDiscountLabel(discount: number): string {
-  if (discount >= DEFAULT_DISCOUNT_RATE) {
-    return ''
-  }
-  const off = Math.round((1 - discount) * 100)
-  return `${off}% OFF`
 }
 
 /**

@@ -1,5 +1,69 @@
 # Upstream Sync Log
 
+## 2026-10-24 - Improve wallet copy across locales
+
+- Local reason: wallet labels such as `quota`, `handling fee`, and `invoice information` were understandable but less natural for international users and inconsistent with common payment terminology.
+- Changed: use clearer balance, spending, payment-fee, billing-information, redemption-code, and referral wording across the wallet/profile components and all supported default-frontend locales; backend-configured payment method names remain unchanged.
+- Preserved: payment method configuration, billing calculations, and all wallet behavior.
+- Validation: `git diff --check` passed. Locale JSON parsing/build checks were not run because frontend dependencies are unavailable.
+- Commit and push: pending.
+
+## 2026-10-24 - Make model endpoint templates multi-select
+
+- Local reason: the model editor's endpoint template picker allowed only one template and replaced the full endpoint configuration, making it difficult to define models exposed through multiple API protocols.
+- Changed: endpoint templates can now be selected together; additions merge into the existing JSON, deselection removes only the corresponding template entry, and existing values for selected templates are preserved. Added Decision Model (`POST /v1/systemone`) and DeepSeek Search/Fetch (`POST /v1/tools/search`, `POST /v1/tools/fetch`) templates, with existing locale labels reused.
+- Preserved: custom endpoint entries and user-edited template values remain intact while selecting or removing templates.
+- Validation: `git diff --check` passed. Frontend typecheck/format checks were unavailable because `web/default/node_modules` is not installed.
+- Commit and push: pending.
+
+## 2026-10-24 - Hide Responses built-in tool prices from model details
+
+- Local reason: `openai-response` endpoint availability was incorrectly treated as proof that every model supports Web Search Preview, File Search, and Image Generation, so the model plaza displayed fees for tools some upstream models do not support.
+- Changed: removed those three Responses built-in tools from the public pricing tool list; added regression coverage for their omission and for unchanged Chat/Anthropic web search, Gemini Search, and DeepSeek Search/Fetch display rules.
+- Preserved: Responses endpoint support and request forwarding, all tool billing configuration and runtime billing, and all other public tool display rules.
+- Validation: `git diff --check` passed. The focused Go regression test could not run because Go is unavailable in this environment.
+- Commit and push: pending.
+
+## 2026-10-24 - Add a dedicated decision model API example
+
+- Local reason: decision models exposed through the `POST /v1/systemone` endpoint previously reused a generic API example that did not show the required `state` and `questions` request fields.
+- Changed: added a Decision Model API sample for curl, Python, and JavaScript/TypeScript with the TypeSafe-compatible request body and `/v1/systemone` endpoint label.
+- Preserved: all existing API examples, endpoint selection behavior, and the TypeSafe plugin request contract.
+- Validation: `git diff --check` passed. Frontend typecheck/build was not run because `web/default/node_modules` is not installed.
+- Commit and push: pending.
+
+## 2026-10-24 - Clarify amount-based recharge discount guidance
+
+- Local reason: the discount dialog described exact amount matching as a minimum threshold and rendered a 5% discount as `5折`, which means 50% off in Chinese.
+- Changed: show the current multiplier and localized percentage discount (for example, `0.95 = 5% 折扣`); clarify in all frontend locales that the configured recharge amount must match exactly.
+- Preserved: discount calculation and payment behavior.
+- Validation: `git diff --check` and locale JSON parsing passed. Frontend build was not run for this small copy-only change.
+- Commit and push: pending.
+
+## 2026-10-24 - Use savings wording on recharge cards
+
+- Local reason: recharge cards reused the generic `Save` button label for the discount amount, which rendered as `保存` in Chinese and was confusing.
+- Changed: use the contextual `You save` label for the savings amount and translate it as `立省` in Simplified and Traditional Chinese.
+- Preserved: discount amounts, payment calculations, and other generic Save button labels.
+- Validation: `git diff --check` and locale JSON parsing passed. Frontend build was not run for this small copy-only change.
+- Commit and push: pending.
+
+## 2026-10-24 - Localize recharge discount badges
+
+- Local reason: recharge preset cards formatted the discount badge as hard-coded English `5% OFF`, even when the rest of the wallet UI was translated.
+- Changed: render the recharge discount badge through localized translations across all supported frontend locales; savings text uses the contextual `You save` translation.
+- Preserved: discount percentage calculations, pricing display, and payment behavior.
+- Validation: `git diff --check` and locale JSON parsing passed. Frontend build was not run for this small presentation change.
+- Commit and push: pending.
+
+## 2026-10-24 - Calculate top-up fees from the undiscounted amount
+
+- Local reason: handling fees were calculated from the discounted base, so a 5% discount followed by a 5% fee on a 1,000 top-up yielded a 997.50 payment instead of offsetting to 1,000.
+- Changed: calculate Epay, Stripe, and Waffo Pancake fees from the undiscounted amount; Stripe Checkout now charges a dynamic total in the configured Price currency while retaining its product and tax behavior, and applies currency-specific minor-unit conversion. Use the same fee basis in the wallet summary and confirmation dialog, and suppress the crossed-out price when the fee fully offsets the discount.
+- Preserved: credited top-up amount, discount calculation, zero-fee payment behavior, and payment provider-specific fee configuration.
+- Validation: `git diff --check` passed. Added controller tests for Stripe fee calculation and zero-, two-, and three-decimal currencies, but Go is unavailable in this environment, so backend tests could not run. Frontend typecheck reported existing errors in unrelated modules and missing test-library packages; the wallet files changed here reported no type errors.
+- Commit and push: pending.
+
 ## 2026-10-20 - Integrate five upstream updates
 
 - Upstream commits: `ca2cae676`, `55bb6b903`, `25372e30b`, `6cf0d90b5`, `ff3684658`.
