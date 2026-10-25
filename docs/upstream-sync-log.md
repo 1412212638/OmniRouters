@@ -6,7 +6,7 @@
 - Changed: revised `docs/seo-geo-feasibility-report-2026-10-25.md` from a pre-deployment feasibility plan into a post-deployment assessment; recorded the deployed version header `main-20261025-30133ae`, successful public checks for `robots.txt`, `sitemap.xml`, homepage, pricing, and both long-tail pages, and moved the recommendation from technical repair to 4–8 weeks of indexing, query, paid-funnel, and margin attribution monitoring.
 - Preserved: the $10 minimum top-up, no registration credit, historical GA4/registration/API/recharge baseline, the decision to defer an unsupported competitor page, and the requirement to judge SEO/GEO by attributable paid use and margin.
 - Validation: refreshed the report against live HTTP responses; sitemap XML parsed with 8 URLs; page metadata and no-JavaScript fallbacks were checked; `git diff --check` passed. Search Console/Bing indexing status and source-to-recharge attribution remain unavailable and are explicitly marked as pending.
-- Commit and push: pending.
+- Commit and push: `dbca99ff4` pushed to `origin/main` on 2026-10-25. The push response raced with the remote ref update; GitHub was verified at this commit before finalizing this log entry.
 
 ## 2026-10-25 - Publish two high-intent API long-tail pages
 
