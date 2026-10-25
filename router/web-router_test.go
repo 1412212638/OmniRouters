@@ -212,6 +212,42 @@ func TestServeRobotsUsesForwardedPublicOrigin(t *testing.T) {
 	}
 }
 
+func TestServeFaviconRedirectsToConfiguredLogo(t *testing.T) {
+	router := gin.New()
+	registerSEORoutes(router)
+	restore := setIndexPageBranding("OmniRouters", "https://cdn.example.test/brand.png")
+	defer restore()
+
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "https://omnirouters.com/favicon.ico", nil)
+	router.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusFound {
+		t.Fatalf("expected favicon redirect status 302, got %d", recorder.Code)
+	}
+	if got := recorder.Header().Get("Location"); got != "https://cdn.example.test/brand.png" {
+		t.Fatalf("expected configured logo redirect, got %q", got)
+	}
+}
+
+func TestServeFaviconFallsBackToDefaultLogo(t *testing.T) {
+	router := gin.New()
+	registerSEORoutes(router)
+	restore := setIndexPageBranding("OmniRouters", "")
+	defer restore()
+
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "https://omnirouters.com/favicon.ico", nil)
+	router.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusFound {
+		t.Fatalf("expected favicon redirect status 302, got %d", recorder.Code)
+	}
+	if got := recorder.Header().Get("Location"); got != "/logo.png" {
+		t.Fatalf("expected default logo redirect, got %q", got)
+	}
+}
+
 func TestServeSitemapContainsOnlyPublicCanonicalURLs(t *testing.T) {
 	router := gin.New()
 	registerSEORoutes(router)

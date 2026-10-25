@@ -8,6 +8,14 @@
 - Validation: refreshed the report against live HTTP responses; sitemap XML parsed with 8 URLs; page metadata and no-JavaScript fallbacks were checked; `git diff --check` passed. Search Console/Bing indexing status and source-to-recharge attribution remain unavailable and are explicitly marked as pending.
 - Commit and push: `dbca99ff4` pushed to `origin/main` on 2026-10-25. The push response raced with the remote ref update; GitHub was verified at this commit before finalizing this log entry.
 
+## 2026-10-25 - Use configured logo for favicon requests
+
+- Local reason: direct text routes such as `/robots.txt` do not contain HTML favicon metadata, so browsers requested the static default `/favicon.ico` and showed the New API logo despite a configured site logo.
+- Changed: added a dynamic `/favicon.ico` route that redirects to the configured `Logo` URL and falls back to `/logo.png` when no logo is configured; added router regression tests for both paths.
+- Preserved: page metadata/logo replacement, default fallback behavior, static frontend assets, and classic/default theme rendering.
+- Validation: targeted source inspection and `git diff --check` passed. Go tests could not run because Go is unavailable in this environment.
+- Commit and push: pending.
+
 ## 2026-10-25 - Publish two high-intent API long-tail pages
 
 - Local reason: the operator approved starting long-tail SEO implementation after reviewing the SEO/GEO feasibility report; the first pages target developers with an existing API integration need rather than free-credit traffic.

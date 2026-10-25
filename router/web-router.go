@@ -194,6 +194,19 @@ type sitemapURL struct {
 func registerSEORoutes(router *gin.Engine) {
 	router.GET("/robots.txt", serveRobots)
 	router.GET("/sitemap.xml", serveSitemap)
+	router.GET("/favicon.ico", serveFavicon)
+}
+
+func serveFavicon(c *gin.Context) {
+	common.OptionMapRWMutex.RLock()
+	logo := strings.TrimSpace(common.Logo)
+	common.OptionMapRWMutex.RUnlock()
+	if logo == "" {
+		logo = "/logo.png"
+	}
+
+	c.Header("Cache-Control", "no-cache")
+	c.Redirect(http.StatusFound, logo)
 }
 
 func serveRobots(c *gin.Context) {
