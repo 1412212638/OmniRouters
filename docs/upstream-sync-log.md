@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-25 - Reassess SEO/GEO report after public deployment
+
+- Local reason: the operator confirmed the production site was updated and requested a fresh evaluation using the deployed result.
+- Changed: revised `docs/seo-geo-feasibility-report-2026-10-25.md` from a pre-deployment feasibility plan into a post-deployment assessment; recorded the deployed version header `main-20261025-30133ae`, successful public checks for `robots.txt`, `sitemap.xml`, homepage, pricing, and both long-tail pages, and moved the recommendation from technical repair to 4–8 weeks of indexing, query, paid-funnel, and margin attribution monitoring.
+- Preserved: the $10 minimum top-up, no registration credit, historical GA4/registration/API/recharge baseline, the decision to defer an unsupported competitor page, and the requirement to judge SEO/GEO by attributable paid use and margin.
+- Validation: refreshed the report against live HTTP responses; sitemap XML parsed with 8 URLs; page metadata and no-JavaScript fallbacks were checked; `git diff --check` passed. Search Console/Bing indexing status and source-to-recharge attribution remain unavailable and are explicitly marked as pending.
+- Commit and push: pending.
+
 ## 2026-10-25 - Publish two high-intent API long-tail pages
 
 - Local reason: the operator approved starting long-tail SEO implementation after reviewing the SEO/GEO feasibility report; the first pages target developers with an existing API integration need rather than free-credit traffic.
