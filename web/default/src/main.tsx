@@ -102,11 +102,40 @@ const rootElement = document.getElementById('root')!
   try {
     if (typeof window === 'undefined' || typeof document === 'undefined') return
     const apply = (name: string) => {
-      document.title = name
+      const publicPageMeta: Record<
+        string,
+        { title: string; description: string }
+      > = {
+        '/openai-compatible-api': {
+          title: `OpenAI-Compatible API for Multiple Models | ${name}`,
+          description: `Use the OpenAI SDK with a compatible API endpoint to access supported AI models through ${name}. Check model availability and pricing before you send requests.`,
+        },
+        '/multi-provider-ai-api': {
+          title: `Multi-Provider AI API Gateway | ${name}`,
+          description: `Access supported OpenAI-compatible, Anthropic-compatible, and Gemini-compatible AI endpoints through one account. Compare available models and usage pricing on ${name}.`,
+        },
+      }
+      const routeMeta = publicPageMeta[window.location.pathname]
+      const title = routeMeta?.title ?? name
+      document.title = title
       const metaTitle = document.querySelector(
         'meta[name="title"]'
       ) as HTMLMetaElement | null
-      if (metaTitle) metaTitle.setAttribute('content', name)
+      if (metaTitle) metaTitle.setAttribute('content', title)
+      const description = document.querySelector(
+        'meta[name="description"]'
+      ) as HTMLMetaElement | null
+      if (description && routeMeta) {
+        description.setAttribute('content', routeMeta.description)
+      }
+    }
+    if (
+      window.location.pathname === '/openai-compatible-api' ||
+      window.location.pathname === '/multi-provider-ai-api'
+    ) {
+      const titleParts = document.title.split('|')
+      const inferredBrand = titleParts[titleParts.length - 1]?.trim()
+      apply(inferredBrand || 'OmniRouters')
     }
     // Cache-first
     try {

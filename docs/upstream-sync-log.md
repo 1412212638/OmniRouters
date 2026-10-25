@@ -1,5 +1,37 @@
 # Upstream Sync Log
 
+## 2026-10-25 - Publish two high-intent API long-tail pages
+
+- Local reason: the operator approved starting long-tail SEO implementation after reviewing the SEO/GEO feasibility report; the first pages target developers with an existing API integration need rather than free-credit traffic.
+- Changed: added `/openai-compatible-api` with OpenAI SDK/Python guidance, endpoint and model compatibility boundaries, pricing requirements, FAQ, and copyable code; added `/multi-provider-ai-api` with OpenAI/Anthropic/Gemini endpoint guidance, model-specific routing boundaries, pricing requirements, FAQ, and cURL example; registered both routes, generated the TanStack route tree, added route-specific server metadata, sitemap entries, and no-JavaScript HTML fallbacks; preserved route-specific client titles when system branding loads.
+- Preserved: the $10 minimum top-up, no registration credit, live model catalog as the availability source of truth, protected new-api and QuantumNous attribution, existing public/private route behavior, and the decision to defer an unsupported competitor page.
+- Validation: `git diff --check` passed; targeted Oxlint passed for all new/changed SEO page files except the pre-existing non-null assertion in `src/main.tsx`; `bun run build` passed; full `bun run typecheck` and repository lint remain blocked by pre-existing unrelated errors; local browser preview verified both page content, code examples, FAQ, links, and responsive public layout. Go tests remain unavailable because Go is not installed in this environment.
+- Commit and push: pending.
+
+## 2026-10-25 - Serve crawlable SEO endpoints and page metadata
+
+- Local reason: the public reverse-proxied site returned the SPA HTML shell for `/robots.txt` and `/sitemap.xml`, and public routes did not have route-specific canonical metadata in the initial HTML.
+- Changed: registered plain-text `robots.txt` and XML `sitemap.xml` handlers; listed only public canonical routes in the sitemap; added route-aware title, description, robots, canonical, and Open Graph URL metadata; gave the homepage an AI API gateway title and description; added a small public `noscript` content fallback; marked account, admin, API, and error routes `noindex, nofollow`.
+- Preserved: the React SPA routing and embedded theme assets, private route behavior, reverse-proxy forwarded host/protocol handling, and protected project identities.
+- Validation: added router tests for forwarded-origin robots/sitemap responses, public canonical metadata, private noindex metadata, and the no-JavaScript fallback. `git diff --check` passed. Go tests could not run because Go is unavailable in this environment; production deployment and public `curl` checks remain pending.
+- Commit and push: pending.
+
+## 2026-10-25 - Add keyword and long-tail SEO strategy
+
+- Local reason: the operator asked whether the homepage keyword set was too small, whether broad terms have meaningful traffic, and whether long-tail keywords should be used.
+- Changed: added a keyword-strategy section to `docs/seo-geo-feasibility-report-2026-10-25.md`; separated broad topic terms, commercial long-tail terms, and task-oriented terms; excluded free-credit keywords that conflict with the $10 minimum top-up and no-registration-credit policy; defined three candidate landing pages and paid-funnel validation criteria.
+- Preserved: the existing $10 minimum recharge, no registration credit, and requirement to validate SEO/GEO by attributable recharge, paid API use, and margin.
+- Validation: targeted text review completed. Search result observations are directional only; exact monthly volume and conversion require Search Console and a keyword tool. No production data or containers were changed.
+- Commit and push: pending.
+
+## 2026-10-25 - Update SEO/GEO feasibility report with real recharge baseline
+
+- Local reason: the operator confirmed approximately $115 in real recharge revenue from 2026-10-01 through 2026-10-25, while the earlier report only had API consumption data and GA4 revenue of zero.
+- Changed: added the real recharge baseline and approximate daily average to `docs/seo-geo-feasibility-report-2026-10-25.md`; clarified that recharge, consumed quota, balance, upstream cost, payment fees, refunds, and SEO attribution are separate accounting facts; updated the conclusion and Docker Compose first-step reconciliation.
+- Preserved: the $10 minimum top-up and no registration credit policy; the recommendation to defer large SEO/GEO spending until paid cohorts and margin are attributable.
+- Validation: `git diff --check` and targeted text review passed. No production data or containers were changed.
+- Commit and push: pending.
+
 ## 2026-10-24 - Respect explicit model endpoint selections
 
 - Local reason: the model plaza merged channel-inferred protocols into the model's explicitly configured endpoints, so an OpenAI-compatible channel added an OpenAI sample to a model configured only for the Decision Model endpoint.

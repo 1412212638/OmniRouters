@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UserAgreementRouteImport } from './routes/user-agreement'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as OpenaiCompatibleApiRouteImport } from './routes/openai-compatible-api'
+import { Route as MultiProviderAiApiRouteImport } from './routes/multi-provider-ai-api'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as authRouteRouteImport } from './routes/(auth)/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -85,6 +87,16 @@ const UserAgreementRoute = UserAgreementRouteImport.update({
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   id: '/privacy-policy',
   path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpenaiCompatibleApiRoute = OpenaiCompatibleApiRouteImport.update({
+  id: '/openai-compatible-api',
+  path: '/openai-compatible-api',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MultiProviderAiApiRoute = MultiProviderAiApiRouteImport.update({
+  id: '/multi-provider-ai-api',
+  path: '/multi-provider-ai-api',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -451,6 +463,8 @@ const AuthenticatedSystemSettingsAuthSectionRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/multi-provider-ai-api': typeof MultiProviderAiApiRoute
+  '/openai-compatible-api': typeof OpenaiCompatibleApiRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/user-agreement': typeof UserAgreementRoute
   '/system-settings': typeof AuthenticatedSystemSettingsRouteRouteWithChildren
@@ -518,6 +532,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/multi-provider-ai-api': typeof MultiProviderAiApiRoute
+  '/openai-compatible-api': typeof OpenaiCompatibleApiRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/user-agreement': typeof UserAgreementRoute
   '/forgot-password': typeof authForgotPasswordRoute
@@ -587,6 +603,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/(auth)': typeof authRouteRouteWithChildren
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/multi-provider-ai-api': typeof MultiProviderAiApiRoute
+  '/openai-compatible-api': typeof OpenaiCompatibleApiRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/user-agreement': typeof UserAgreementRoute
   '/_authenticated/system-settings': typeof AuthenticatedSystemSettingsRouteRouteWithChildren
@@ -656,6 +674,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/multi-provider-ai-api'
+    | '/openai-compatible-api'
     | '/privacy-policy'
     | '/user-agreement'
     | '/system-settings'
@@ -723,6 +743,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/multi-provider-ai-api'
+    | '/openai-compatible-api'
     | '/privacy-policy'
     | '/user-agreement'
     | '/forgot-password'
@@ -791,6 +813,8 @@ export interface FileRouteTypes {
     | '/'
     | '/(auth)'
     | '/_authenticated'
+    | '/multi-provider-ai-api'
+    | '/openai-compatible-api'
     | '/privacy-policy'
     | '/user-agreement'
     | '/_authenticated/system-settings'
@@ -861,6 +885,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   authRouteRoute: typeof authRouteRouteWithChildren
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  MultiProviderAiApiRoute: typeof MultiProviderAiApiRoute
+  OpenaiCompatibleApiRoute: typeof OpenaiCompatibleApiRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   UserAgreementRoute: typeof UserAgreementRoute
   errors401Route: typeof errors401Route
@@ -892,6 +918,20 @@ declare module '@tanstack/react-router' {
       path: '/privacy-policy'
       fullPath: '/privacy-policy'
       preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/openai-compatible-api': {
+      id: '/openai-compatible-api'
+      path: '/openai-compatible-api'
+      fullPath: '/openai-compatible-api'
+      preLoaderRoute: typeof OpenaiCompatibleApiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/multi-provider-ai-api': {
+      id: '/multi-provider-ai-api'
+      path: '/multi-provider-ai-api'
+      fullPath: '/multi-provider-ai-api'
+      preLoaderRoute: typeof MultiProviderAiApiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -1503,6 +1543,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   authRouteRoute: authRouteRouteWithChildren,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  MultiProviderAiApiRoute: MultiProviderAiApiRoute,
+  OpenaiCompatibleApiRoute: OpenaiCompatibleApiRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   UserAgreementRoute: UserAgreementRoute,
   errors401Route: errors401Route,

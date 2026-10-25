@@ -49,7 +49,7 @@ func TestBuildBrandedIndexPageMakesRelativeLogoAbsoluteForShareMetadata(t *testi
 }
 
 func TestBuildBrandedIndexPagePrefersEnglishDescription(t *testing.T) {
-	c := newIndexPageTestContext("https://omnirouters.com/")
+	c := newIndexPageTestContext("https://omnirouters.com/share")
 	restore := setIndexPageBranding("OmniRouters", "/logo.png")
 	defer restore()
 
@@ -63,6 +63,126 @@ func TestBuildBrandedIndexPagePrefersEnglishDescription(t *testing.T) {
 
 	assertContains(t, result, `<meta property="og:description" content="A unified AI model hub for aggregation &amp; distribution." />`)
 	assertContains(t, result, `<meta name="twitter:description" content="A unified AI model hub for aggregation &amp; distribution." />`)
+}
+
+func TestBuildBrandedIndexPageAddsCanonicalAndPublicPageSEO(t *testing.T) {
+	c := newIndexPageTestContext("http://127.0.0.1/pricing?source=ad")
+	c.Request.Header.Set("X-Forwarded-Proto", "https")
+	c.Request.Header.Set("X-Forwarded-Host", "omnirouters.com")
+	restore := setIndexPageBranding("OmniRouters", "/logo.png")
+	defer restore()
+
+	result := string(buildBrandedIndexPage(c, []byte(`<!doctype html><html><head><title>New API</title></head><body></body></html>`)))
+
+	assertContains(t, result, "<title>AI Model Pricing | OmniRouters</title>")
+	assertContains(t, result, `<meta name="robots" content="index, follow" />`)
+	assertContains(t, result, `<link rel="canonical" href="https://omnirouters.com/pricing" />`)
+	assertContains(t, result, `<meta property="og:url" content="https://omnirouters.com/pricing" />`)
+	assertContains(t, result, `<noscript data-seo-fallback="true"><main><h1>OmniRouters</h1>`)
+}
+
+func TestBuildBrandedIndexPageUsesHomepageSearchMetadata(t *testing.T) {
+	c := newIndexPageTestContext("https://omnirouters.com/")
+	restore := setIndexPageBranding("OmniRouters", "/logo.png")
+	defer restore()
+
+	result := string(buildBrandedIndexPage(c, []byte(`<!doctype html><html><head><title>New API</title><meta name="description" content="Generic description" /></head><body></body></html>`)))
+
+	assertContains(t, result, "<title>Unified AI API Gateway | OmniRouters</title>")
+	assertContains(t, result, `<meta name="description" content="Access multiple AI providers through one unified API. Compare models and pricing, route requests, and manage usage with OmniRouters." />`)
+	assertContains(t, result, `<meta property="og:title" content="Unified AI API Gateway | OmniRouters" />`)
+}
+
+func TestBuildBrandedIndexPageUsesLongTailPageSEO(t *testing.T) {
+	c := newIndexPageTestContext("https://omnirouters.com/openai-compatible-api")
+	restore := setIndexPageBranding("OmniRouters", "/logo.png")
+	defer restore()
+
+	result := string(buildBrandedIndexPage(c, []byte(`<!doctype html><html><head></head><body></body></html>`)))
+
+	assertContains(t, result, "<title>OpenAI-Compatible API for Multiple Models | OmniRouters</title>")
+	assertContains(t, result, `<meta name="robots" content="index, follow" />`)
+	assertContains(t, result, `<link rel="canonical" href="https://omnirouters.com/openai-compatible-api" />`)
+	assertContains(t, result, "Use the OpenAI SDK with multiple AI models")
+	assertContains(t, result, "https://omnirouters.com/v1")
+}
+
+func TestBuildBrandedIndexPageUsesMultiProviderLongTailFallback(t *testing.T) {
+	c := newIndexPageTestContext("https://omnirouters.com/multi-provider-ai-api")
+	restore := setIndexPageBranding("OmniRouters", "/logo.png")
+	defer restore()
+
+	result := string(buildBrandedIndexPage(c, []byte(`<!doctype html><html><head></head><body></body></html>`)))
+
+	assertContains(t, result, "<title>Multi-Provider AI API Gateway | OmniRouters</title>")
+	assertContains(t, result, "One API gateway for multiple AI providers")
+	assertContains(t, result, "POST /v1/messages")
+}
+
+func TestBuildBrandedIndexPageMarksPrivatePagesNoindex(t *testing.T) {
+	c := newIndexPageTestContext("https://omnirouters.com/console/topup")
+	restore := setIndexPageBranding("OmniRouters", "/logo.png")
+	defer restore()
+
+	result := string(buildBrandedIndexPage(c, []byte(`<!doctype html><html><head></head><body></body></html>`)))
+
+	assertContains(t, result, `<meta name="robots" content="noindex, nofollow" />`)
+}
+
+func TestBuildBrandedIndexPageNoindexesUnknownRoutes(t *testing.T) {
+	c := newIndexPageTestContext("https://omnirouters.com/not-a-real-page")
+	restore := setIndexPageBranding("OmniRouters", "/logo.png")
+	defer restore()
+
+	result := string(buildBrandedIndexPage(c, []byte(`<!doctype html><html><head></head><body></body></html>`)))
+
+	assertContains(t, result, `<meta name="robots" content="noindex, nofollow" />`)
+}
+
+func TestServeRobotsUsesForwardedPublicOrigin(t *testing.T) {
+	router := gin.New()
+	registerSEORoutes(router)
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/robots.txt", nil)
+	request.Header.Set("X-Forwarded-Proto", "https")
+	request.Header.Set("X-Forwarded-Host", "omnirouters.com")
+	router.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected robots status 200, got %d", recorder.Code)
+	}
+	if got := recorder.Header().Get("Content-Type"); !strings.HasPrefix(got, "text/plain") {
+		t.Fatalf("expected text/plain content type, got %q", got)
+	}
+	assertContains(t, recorder.Body.String(), "User-agent: *\n")
+	assertContains(t, recorder.Body.String(), "Sitemap: https://omnirouters.com/sitemap.xml\n")
+	if strings.Contains(recorder.Body.String(), "Disallow: /console") {
+		t.Fatalf("robots should allow private pages to be crawled so their noindex metadata can be seen")
+	}
+}
+
+func TestServeSitemapContainsOnlyPublicCanonicalURLs(t *testing.T) {
+	router := gin.New()
+	registerSEORoutes(router)
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/sitemap.xml", nil)
+	request.Header.Set("X-Forwarded-Proto", "https")
+	request.Header.Set("X-Forwarded-Host", "omnirouters.com")
+	router.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected sitemap status 200, got %d", recorder.Code)
+	}
+	if got := recorder.Header().Get("Content-Type"); !strings.HasPrefix(got, "application/xml") {
+		t.Fatalf("expected application/xml content type, got %q", got)
+	}
+	assertContains(t, recorder.Body.String(), "<loc>https://omnirouters.com/</loc>")
+	assertContains(t, recorder.Body.String(), "<loc>https://omnirouters.com/pricing</loc>")
+	assertContains(t, recorder.Body.String(), "<loc>https://omnirouters.com/openai-compatible-api</loc>")
+	assertContains(t, recorder.Body.String(), "<loc>https://omnirouters.com/multi-provider-ai-api</loc>")
+	if strings.Contains(recorder.Body.String(), "/console") || strings.Contains(recorder.Body.String(), "/keys") {
+		t.Fatalf("sitemap contains a private route: %s", recorder.Body.String())
+	}
 }
 
 func newIndexPageTestContext(target string) *gin.Context {

@@ -19,6 +19,7 @@ func SetRouter(router *gin.Engine, assets ThemeAssets) {
 	SetVideoRouter(router)
 	SetTaskRouter(router)
 	SetTaskPluginProtocolRouter(router)
+	registerSEORoutes(router)
 	frontendBaseUrl := os.Getenv("FRONTEND_BASE_URL")
 	if common.IsMasterNode && frontendBaseUrl != "" {
 		frontendBaseUrl = ""

@@ -2,6 +2,7 @@ package router
 
 import (
 	"embed"
+	"encoding/xml"
 	htmlpkg "html"
 	"net/http"
 	"regexp"
@@ -69,14 +70,24 @@ func buildBrandedIndexPage(c *gin.Context, page []byte) []byte {
 		description = "A unified AI model hub for aggregation & distribution."
 	}
 
-	absoluteLogo := absoluteWebURL(c, logo)
-	pageURL := currentWebURL(c)
+	pageSEO := getPageSEO(c, systemName, description)
+	if pageSEO.description != "" {
+		description = pageSEO.description
+	}
 
-	document = replaceTitle(document, systemName)
+	absoluteLogo := absoluteWebURL(c, logo)
+	pageURL := canonicalWebURL(c)
+
+	document = replaceTitle(document, pageSEO.title)
 	document = upsertLinkRel(document, "icon", logo)
 	document = upsertLinkRel(document, "apple-touch-icon", logo)
-	document = upsertMetaName(document, "title", systemName)
-	document = upsertMetaProperty(document, "og:title", systemName)
+	document = upsertMetaName(document, "title", pageSEO.title)
+	document = upsertMetaName(document, "description", description)
+	document = upsertMetaName(document, "robots", pageSEO.robots)
+	if pageURL != "" {
+		document = upsertLinkRel(document, "canonical", pageURL)
+	}
+	document = upsertMetaProperty(document, "og:title", pageSEO.title)
 	document = upsertMetaProperty(document, "og:description", description)
 	document = upsertMetaProperty(document, "og:image", absoluteLogo)
 	document = upsertMetaProperty(document, "og:type", "website")
@@ -84,11 +95,139 @@ func buildBrandedIndexPage(c *gin.Context, page []byte) []byte {
 		document = upsertMetaProperty(document, "og:url", pageURL)
 	}
 	document = upsertMetaName(document, "twitter:card", "summary")
-	document = upsertMetaName(document, "twitter:title", systemName)
+	document = upsertMetaName(document, "twitter:title", pageSEO.title)
 	document = upsertMetaName(document, "twitter:description", description)
 	document = upsertMetaName(document, "twitter:image", absoluteLogo)
+	if pageSEO.robots == "index, follow" {
+		path := "/"
+		if c != nil && c.Request != nil && c.Request.URL != nil {
+			path = strings.TrimSuffix(c.Request.URL.Path, "/")
+			if path == "" {
+				path = "/"
+			}
+		}
+		document = upsertPublicNoScriptContent(document, systemName, pageSEO.description, path)
+	}
 
 	return []byte(document)
+}
+
+type pageSEO struct {
+	title       string
+	description string
+	robots      string
+}
+
+func getPageSEO(c *gin.Context, systemName string, defaultDescription string) pageSEO {
+	path := "/"
+	if c != nil && c.Request != nil && c.Request.URL != nil && c.Request.URL.Path != "" {
+		path = strings.TrimSuffix(c.Request.URL.Path, "/")
+		if path == "" {
+			path = "/"
+		}
+	}
+
+	result := pageSEO{
+		title:       systemName,
+		description: defaultDescription,
+		robots:      "noindex, nofollow",
+	}
+
+	switch {
+	case path == "/":
+		result.title = "Unified AI API Gateway | " + systemName
+		result.description = "Access multiple AI providers through one unified API. Compare models and pricing, route requests, and manage usage with " + systemName + "."
+		result.robots = "index, follow"
+	case path == "/pricing" || strings.HasPrefix(path, "/pricing/"):
+		result.title = "AI Model Pricing | " + systemName
+		result.description = "Compare supported AI models, endpoints, and usage pricing on " + systemName + "."
+		result.robots = "index, follow"
+	case path == "/docs" || strings.HasPrefix(path, "/docs/"):
+		result.title = "Developer API Documentation | " + systemName
+		result.description = "Connect to multiple AI providers through a unified API. Read the " + systemName + " developer documentation."
+		result.robots = "index, follow"
+	case path == "/about":
+		result.title = "About " + systemName
+		result.description = "Learn about " + systemName + ", a unified AI API gateway for model access and routing."
+		result.robots = "index, follow"
+	case path == "/openai-compatible-api":
+		result.title = "OpenAI-Compatible API for Multiple Models | " + systemName
+		result.description = "Use the OpenAI SDK with a compatible API endpoint to access supported AI models through " + systemName + ". Check model availability and pricing before you send requests."
+		result.robots = "index, follow"
+	case path == "/multi-provider-ai-api":
+		result.title = "Multi-Provider AI API Gateway | " + systemName
+		result.description = "Access supported OpenAI-compatible, Anthropic-compatible, and Gemini-compatible AI endpoints through one account. Compare available models and usage pricing on " + systemName + "."
+		result.robots = "index, follow"
+	case path == "/rankings":
+		result.title = "AI Model Rankings | " + systemName
+		result.description = "Compare AI model performance and availability across providers on " + systemName + "."
+		result.robots = "index, follow"
+	case path == "/user-agreement":
+		result.title = "User Agreement | " + systemName
+		result.robots = "index, follow"
+	case path == "/privacy-policy":
+		result.title = "Privacy Policy | " + systemName
+		result.robots = "index, follow"
+	}
+
+	return result
+}
+
+type sitemapURLSet struct {
+	XMLName xml.Name    `xml:"urlset"`
+	XMLNS   string      `xml:"xmlns,attr"`
+	URLs    []sitemapURL `xml:"url"`
+}
+
+type sitemapURL struct {
+	Loc string `xml:"loc"`
+}
+
+func registerSEORoutes(router *gin.Engine) {
+	router.GET("/robots.txt", serveRobots)
+	router.GET("/sitemap.xml", serveSitemap)
+}
+
+func serveRobots(c *gin.Context) {
+	lines := []string{
+		"User-agent: *",
+		"Allow: /",
+		"Disallow: /api/",
+		"Disallow: /v1/",
+	}
+	if sitemapURL := absoluteWebURL(c, "/sitemap.xml"); sitemapURL != "" {
+		lines = append(lines, "Sitemap: "+sitemapURL)
+	}
+
+	c.Header("Cache-Control", "public, max-age=3600")
+	c.Data(http.StatusOK, "text/plain; charset=utf-8", []byte(strings.Join(lines, "\n")+"\n"))
+}
+
+func serveSitemap(c *gin.Context) {
+	origin := webOrigin(c)
+	if origin == "" {
+		c.String(http.StatusInternalServerError, "site origin is unavailable")
+		return
+	}
+
+	paths := []string{"/", "/pricing", "/rankings", "/about", "/openai-compatible-api", "/multi-provider-ai-api", "/user-agreement", "/privacy-policy"}
+	urls := make([]sitemapURL, 0, len(paths))
+	for _, path := range paths {
+		urls = append(urls, sitemapURL{Loc: origin + path})
+	}
+
+	data, err := xml.Marshal(sitemapURLSet{
+		XMLNS: "http://www.sitemaps.org/schemas/sitemap/0.9",
+		URLs:  urls,
+	})
+	if err != nil {
+		c.String(http.StatusInternalServerError, "failed to build sitemap")
+		return
+	}
+
+	body := append([]byte(xml.Header), data...)
+	c.Header("Cache-Control", "public, max-age=3600")
+	c.Data(http.StatusOK, "application/xml; charset=utf-8", body)
 }
 
 func replaceTitle(document string, title string) string {
@@ -171,6 +310,43 @@ func insertBeforeHeadClose(document string, tag string) string {
 	return document[:index] + "    " + tag + "\n" + document[index:]
 }
 
+func upsertPublicNoScriptContent(document string, systemName string, description string, path string) string {
+	content := publicNoScriptBody(systemName, description, path)
+	content = `<noscript>` + content + `</noscript>`
+	noscriptRE := regexp.MustCompile(`(?is)<noscript\s+data-seo-fallback=["'][^"']*["'][^>]*>.*?</noscript>`)
+	if noscriptRE.MatchString(document) {
+		return noscriptRE.ReplaceAllStringFunc(document, func(string) string { return content })
+	}
+	content = strings.Replace(content, "<noscript>", `<noscript data-seo-fallback="true">`, 1)
+	return insertBeforeBodyClose(document, content)
+}
+
+func publicNoScriptBody(systemName string, description string, path string) string {
+	name := htmlpkg.EscapeString(systemName)
+	pricingLink := `<a href="/pricing">AI model pricing</a>`
+	openAILink := `<a href="/openai-compatible-api">OpenAI-compatible API guide</a>`
+	multiProviderLink := `<a href="/multi-provider-ai-api">Multi-provider AI API guide</a>`
+
+	switch path {
+	case "/openai-compatible-api":
+		code := "from openai import OpenAI\n\nclient = OpenAI(\n    base_url=\"https://omnirouters.com/v1\",\n    api_key=\"YOUR_API_KEY\",\n)\n\nresponse = client.chat.completions.create(\n    model=\"YOUR_ENABLED_MODEL\",\n    messages=[{\"role\": \"user\", \"content\": \"Hello\"}],\n)"
+		return `<main><h1>Use the OpenAI SDK with multiple AI models</h1><p>Point an OpenAI SDK client at the ` + name + ` API endpoint and select an enabled model from the model catalog. The OpenAI-compatible chat endpoint is <code>POST /v1/chat/completions</code>; model IDs and supported features vary.</p><h2>Python quick start</h2><pre><code>` + htmlpkg.EscapeString(code) + `</code></pre><p>Create an API key in your account and replace the example model ID with one listed in the catalog. Check current pricing and model availability before sending production traffic.</p><p>New accounts do not receive free credit and the minimum top-up is $10.</p><nav>` + pricingLink + ` | ` + multiProviderLink + `</nav></main>`
+	case "/multi-provider-ai-api":
+		return `<main><h1>One API gateway for multiple AI providers</h1><p>` + name + ` provides access to supported models through a single account and API key. Use the model catalog as the source of truth for current availability, pricing, and compatible endpoints.</p><h2>Choose a compatible API format</h2><ul><li>OpenAI-compatible chat: <code>POST /v1/chat/completions</code></li><li>Anthropic-compatible messages: <code>POST /v1/messages</code>, for compatible models</li><li>Gemini-compatible generate content: <code>/v1beta/models/{model}:generateContent</code>, for compatible models</li></ul><p>API format compatibility does not mean every model supports every endpoint or request parameter. Match the endpoint and capabilities shown for the model you plan to use.</p><p>New accounts do not receive free credit and the minimum top-up is $10. Usage is charged according to the selected model's current pricing.</p><nav>` + pricingLink + ` | ` + openAILink + `</nav></main>`
+	default:
+		return `<main><h1>` + name + `</h1><p>` + htmlpkg.EscapeString(description) + `</p><nav>` + pricingLink + ` | ` + openAILink + ` | ` + multiProviderLink + ` | <a href="/about">About</a> | <a href="/user-agreement">User agreement</a> | <a href="/privacy-policy">Privacy policy</a></nav></main>`
+	}
+}
+
+func insertBeforeBodyClose(document string, tag string) string {
+	lowerDocument := strings.ToLower(document)
+	index := strings.Index(lowerDocument, "</body>")
+	if index < 0 {
+		return document + "\n" + tag
+	}
+	return document[:index] + "    " + tag + "\n" + document[index:]
+}
+
 func absoluteWebURL(c *gin.Context, value string) string {
 	value = strings.TrimSpace(value)
 	if value == "" {
@@ -204,6 +380,30 @@ func currentWebURL(c *gin.Context) string {
 		return ""
 	}
 	return requestScheme(c) + "://" + host + c.Request.URL.RequestURI()
+}
+
+func canonicalWebURL(c *gin.Context) string {
+	if c == nil || c.Request == nil || c.Request.URL == nil {
+		return ""
+	}
+	origin := webOrigin(c)
+	if origin == "" {
+		return ""
+	}
+	path := c.Request.URL.Path
+	path = strings.TrimSuffix(path, "/")
+	if path == "" {
+		path = "/"
+	}
+	return origin + path
+}
+
+func webOrigin(c *gin.Context) string {
+	host := requestHost(c)
+	if host == "" {
+		return ""
+	}
+	return requestScheme(c) + "://" + host
 }
 
 func requestScheme(c *gin.Context) string {
