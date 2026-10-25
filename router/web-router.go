@@ -32,6 +32,7 @@ func SetWebRouter(router *gin.Engine, assets ThemeAssets) {
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 	router.Use(middleware.GlobalWebRateLimit())
 	router.Use(middleware.Cache())
+	router.Use(dynamicFaviconMiddleware())
 	router.Use(static.Serve("/", themeFS))
 	router.NoRoute(func(c *gin.Context) {
 		c.Set(middleware.RouteTagKey, "web")
@@ -46,6 +47,17 @@ func SetWebRouter(router *gin.Engine, assets ThemeAssets) {
 		}
 		c.Data(http.StatusOK, "text/html; charset=utf-8", buildBrandedIndexPage(c, assets.DefaultIndexPage))
 	})
+}
+
+func dynamicFaviconMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.Request != nil && c.Request.URL != nil && c.Request.URL.Path == "/favicon.ico" {
+			serveFavicon(c)
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
 }
 
 func buildBrandedIndexPage(c *gin.Context, page []byte) []byte {

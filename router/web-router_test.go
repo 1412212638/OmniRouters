@@ -248,6 +248,27 @@ func TestServeFaviconFallsBackToDefaultLogo(t *testing.T) {
 	}
 }
 
+func TestDynamicFaviconMiddlewareRunsBeforeStaticAssets(t *testing.T) {
+	router := gin.New()
+	router.Use(dynamicFaviconMiddleware())
+	router.Use(func(c *gin.Context) {
+		c.String(http.StatusOK, "default static favicon")
+	})
+	restore := setIndexPageBranding("OmniRouters", "https://cdn.example.test/brand.png")
+	defer restore()
+
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "https://omnirouters.com/favicon.ico", nil)
+	router.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusFound {
+		t.Fatalf("expected dynamic favicon middleware to respond before static assets, got %d", recorder.Code)
+	}
+	if got := recorder.Header().Get("Location"); got != "https://cdn.example.test/brand.png" {
+		t.Fatalf("expected configured logo redirect before static assets, got %q", got)
+	}
+}
+
 func TestServeSitemapContainsOnlyPublicCanonicalURLs(t *testing.T) {
 	router := gin.New()
 	registerSEORoutes(router)

@@ -10,11 +10,11 @@
 
 ## 2026-10-25 - Use configured logo for favicon requests
 
-- Local reason: direct text routes such as `/robots.txt` do not contain HTML favicon metadata, so browsers requested the static default `/favicon.ico` and showed the New API logo despite a configured site logo.
-- Changed: added a dynamic `/favicon.ico` route that redirects to the configured `Logo` URL and falls back to `/logo.png` when no logo is configured; added router regression tests for both paths.
+- Local reason: direct text routes such as `/robots.txt` do not contain HTML favicon metadata, so browsers requested the static default `/favicon.ico` and showed the New API logo despite a configured site logo. Live verification showed the static file middleware took precedence over the initially added route.
+- Changed: added a dynamic favicon middleware before static asset serving. It redirects `/favicon.ico` to the configured `Logo` URL and falls back to `/logo.png` when no logo is configured; added router regression tests for the redirect, fallback, and middleware ordering.
 - Preserved: page metadata/logo replacement, default fallback behavior, static frontend assets, and classic/default theme rendering.
-- Validation: targeted source inspection and `git diff --check` passed. Go tests could not run because Go is unavailable in this environment.
-- Commit and push: `8b2c41bf4` pushed to `origin/main` on 2026-10-25.
+- Validation: live browser confirmed the deployed `/favicon.ico` still served the default 48×48 image before this follow-up. `git diff --check` passed. Go tests could not run because Go is unavailable in this environment.
+- Commit and push: `8b2c41bf4` contains the first route attempt. Middleware ordering correction and updated test coverage are pending.
 
 ## 2026-10-25 - Publish two high-intent API long-tail pages
 
