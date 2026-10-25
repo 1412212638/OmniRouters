@@ -14,7 +14,7 @@
 - Changed: added a dynamic favicon middleware before static asset serving. It redirects `/favicon.ico` to the configured `Logo` URL and falls back to `/logo.png` when no logo is configured; added router regression tests for the redirect, fallback, and middleware ordering.
 - Preserved: page metadata/logo replacement, default fallback behavior, static frontend assets, and classic/default theme rendering.
 - Validation: live browser confirmed the deployed `/favicon.ico` still served the default 48×48 image before this follow-up. `git diff --check` passed. Go tests could not run because Go is unavailable in this environment.
-- Commit and push: `8b2c41bf4` contains the first route attempt. Middleware ordering correction and updated test coverage are pending.
+- Commit and push: the first route attempt was `8b2c41bf4`; middleware ordering correction and updated test coverage were pushed in `3576004fc` to `origin/main` on 2026-10-25. The server must be redeployed before the live behavior changes.
 
 ## 2026-10-25 - Publish two high-intent API long-tail pages
 
