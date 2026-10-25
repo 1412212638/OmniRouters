@@ -13,11 +13,13 @@ import { CopyButton } from '@/components/copy-button'
 import { PublicLayout } from '@/components/layout'
 import { Footer } from '@/components/layout/components/footer'
 import { Button } from '@/components/ui/button'
+import type { PublicBillingInfo } from '@/features/auth/types'
+import { useStatus } from '@/hooks/use-status'
 
 const OPENAI_PYTHON_EXAMPLE = `from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://omnirouters.com/v1",
+    base_url="__API_ORIGIN__/v1",
     api_key="YOUR_API_KEY",
 )
 
@@ -30,13 +32,53 @@ completion = client.chat.completions.create(
 
 print(completion.choices[0].message.content)`
 
-const MULTI_PROVIDER_CURL_EXAMPLE = `curl https://omnirouters.com/v1/chat/completions \\
+const MULTI_PROVIDER_CURL_EXAMPLE = `curl __API_ORIGIN__/v1/chat/completions \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "YOUR_ENABLED_MODEL",
     "messages": [{"role": "user", "content": "Hello"}]
   }'`
+
+function getApiBaseUrl() {
+  return typeof window === 'undefined' ? '/v1' : `${window.location.origin}/v1`
+}
+
+function withSiteOrigin(example: string) {
+  const origin = typeof window === 'undefined' ? '' : window.location.origin
+  return example.replaceAll('__API_ORIGIN__', origin)
+}
+
+function formatMinimumTopup(billing: PublicBillingInfo) {
+  const amount = new Intl.NumberFormat().format(billing.minimum_topup ?? 0)
+  if (billing.currency_display_type === 'TOKENS') return `${amount} tokens`
+  return `${billing.currency_symbol ?? ''}${amount}`
+}
+
+function getBillingFacts(billing?: PublicBillingInfo) {
+  if (!billing) return []
+
+  const facts: string[] = []
+  if (billing.registration_credit_enabled !== undefined) {
+    facts.push(
+      billing.registration_credit_enabled
+        ? 'Registration includes default initial credit'
+        : 'No default registration credit'
+    )
+  }
+  if (billing.minimum_topup_enabled && (billing.minimum_topup ?? 0) > 0) {
+    facts.push(`Minimum top-up: ${formatMinimumTopup(billing)}`)
+  }
+  return facts
+}
+
+function getBillingDetails(billing?: PublicBillingInfo) {
+  const facts = getBillingFacts(billing)
+  if (facts.length === 0) {
+    return "Review the account page for current registration and recharge terms. Usage is charged according to each model's current price."
+  }
+  return `${facts.join('. ')}. Usage is charged according to each model’s current price.`
+}
 
 function PageFrame({ children }: { children: ReactNode }) {
   return (
@@ -105,13 +147,17 @@ function PageHero({
   description,
   codeLabel,
   code,
+  billing,
 }: {
   eyebrow: string
   title: string
   description: string
   codeLabel: string
   code: string
+  billing?: PublicBillingInfo
 }) {
+  const billingFacts = getBillingFacts(billing)
+
   return (
     <section className='border-border/70 border-b'>
       <div className='mx-auto grid w-full max-w-6xl items-center gap-9 px-4 pt-24 pb-12 sm:px-6 sm:pt-28 sm:pb-16 lg:grid-cols-[1fr_1.05fr] lg:gap-14'>
@@ -129,12 +175,17 @@ function PageHero({
               Browse model pricing
             </ActionLink>
           </div>
-          <p className='text-muted-foreground mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm'>
-            <CircleDollarSign className='size-4 shrink-0 text-emerald-600 dark:text-emerald-400' />
-            <span>$10 minimum top-up</span>
-            <span aria-hidden='true'>·</span>
-            <span>No registration credit</span>
-          </p>
+          {billingFacts.length > 0 && (
+            <p className='text-muted-foreground mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm'>
+              <CircleDollarSign className='size-4 shrink-0 text-emerald-600 dark:text-emerald-400' />
+              {billingFacts.map((fact, index) => (
+                <span key={fact} className='inline-flex items-center gap-2'>
+                  {index > 0 && <span aria-hidden='true'>·</span>}
+                  <span>{fact}</span>
+                </span>
+              ))}
+            </p>
+          )}
         </div>
         <CodePanel label={codeLabel} code={code} />
       </div>
@@ -211,6 +262,14 @@ function PageCta({
 }
 
 export function OpenAICompatibleApiPage() {
+  const { status } = useStatus()
+  const billing = status?.public_billing
+  const apiBaseUrl = getApiBaseUrl()
+  const systemName =
+    typeof status?.system_name === 'string'
+      ? status.system_name
+      : 'this service'
+
   return (
     <PageFrame>
       <main>
@@ -219,7 +278,8 @@ export function OpenAICompatibleApiPage() {
           title='Use the OpenAI SDK with multiple AI models'
           description='Keep the OpenAI client and chat-completions workflow you already know. Set a compatible base URL, use your API key, and choose an enabled model from the live catalog.'
           codeLabel='Python · OpenAI SDK'
-          code={OPENAI_PYTHON_EXAMPLE}
+          code={withSiteOrigin(OPENAI_PYTHON_EXAMPLE)}
+          billing={billing}
         />
 
         <section className='mx-auto max-w-6xl px-4 py-11 sm:px-6 sm:py-14'>
@@ -242,8 +302,7 @@ export function OpenAICompatibleApiPage() {
               },
               {
                 title: 'Set the base URL',
-                description:
-                  'Use https://omnirouters.com/v1 as the base URL for OpenAI-compatible endpoints.',
+                description: `Use ${apiBaseUrl} as the base URL for OpenAI-compatible endpoints.`,
               },
               {
                 title: 'Choose an enabled model',
@@ -315,11 +374,9 @@ export function OpenAICompatibleApiPage() {
           <div className='grid gap-6 md:grid-cols-2'>
             <div className='border-border/70 border-t pt-4'>
               <CircleDollarSign className='mb-3 size-5 text-emerald-600 dark:text-emerald-400' />
-              <h3 className='font-semibold'>A $10 minimum top-up</h3>
+              <h3 className='font-semibold'>Account and recharge details</h3>
               <p className='text-muted-foreground mt-2 text-sm leading-6'>
-                Registration does not include free balance. The minimum recharge
-                is $10; usage is deducted according to the selected model's
-                current price.
+                {getBillingDetails(billing)}
               </p>
             </div>
             <div className='border-border/70 border-t pt-4'>
@@ -358,8 +415,7 @@ export function OpenAICompatibleApiPage() {
             items={[
               {
                 question: 'Can I keep using the OpenAI Python SDK?',
-                answer:
-                  'Yes. Set base_url to https://omnirouters.com/v1, provide your OmniRouters API key, and use a model ID currently listed in the catalog.',
+                answer: `Yes. Set base_url to ${apiBaseUrl}, provide your ${systemName} API key, and use a model ID currently listed in the catalog.`,
               },
               {
                 question:
@@ -381,6 +437,9 @@ export function OpenAICompatibleApiPage() {
 }
 
 export function MultiProviderAiApiPage() {
+  const { status } = useStatus()
+  const billing = status?.public_billing
+
   return (
     <PageFrame>
       <main>
@@ -389,7 +448,8 @@ export function MultiProviderAiApiPage() {
           title='One API gateway for multiple AI providers'
           description='Access supported models through one account and API key. Choose the compatible API format and exact model ID shown in the current catalog; endpoint support is model-specific.'
           codeLabel='cURL · OpenAI-compatible chat'
-          code={MULTI_PROVIDER_CURL_EXAMPLE}
+          code={withSiteOrigin(MULTI_PROVIDER_CURL_EXAMPLE)}
+          billing={billing}
         />
 
         <section className='mx-auto max-w-6xl px-4 py-11 sm:px-6 sm:py-14'>
@@ -507,10 +567,8 @@ export function MultiProviderAiApiPage() {
               See the cost before you route production traffic
             </h2>
             <p className='text-muted-foreground mt-3 text-sm leading-6'>
-              Each model has its own current usage price. New accounts receive
-              no registration credit, and the minimum top-up is $10 because of
-              payment-channel costs. Compare prices and supported endpoints in
-              the catalog before choosing a model.
+              {getBillingDetails(billing)} Compare prices and supported
+              endpoints in the catalog before choosing a model.
             </p>
           </div>
           <div className='flex flex-wrap items-center gap-x-6 gap-y-2 text-sm'>

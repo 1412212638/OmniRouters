@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 
 import { getStatus } from '@/lib/api'
 import { installBuildMetadata } from '@/lib/build-metadata'
+import { DEFAULT_SYSTEM_NAME } from '@/lib/constants'
 import { applyFaviconToDom } from '@/lib/dom-utils'
 import '@/lib/dayjs'
 import { handleServerError } from '@/lib/handle-server-error'
@@ -135,7 +136,7 @@ const rootElement = document.getElementById('root')!
     ) {
       const titleParts = document.title.split('|')
       const inferredBrand = titleParts[titleParts.length - 1]?.trim()
-      apply(inferredBrand || 'OmniRouters')
+      apply(inferredBrand || DEFAULT_SYSTEM_NAME)
     }
     // Cache-first
     try {

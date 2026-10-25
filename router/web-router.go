@@ -6,6 +6,7 @@ import (
 	htmlpkg "html"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
@@ -106,7 +107,14 @@ func buildBrandedIndexPage(c *gin.Context, page []byte) []byte {
 				path = "/"
 			}
 		}
-		document = upsertPublicNoScriptContent(document, systemName, pageSEO.description, path)
+		document = upsertPublicNoScriptContent(
+			document,
+			systemName,
+			pageSEO.description,
+			path,
+			webOrigin(c),
+			controller.GetPublicBillingInfo(),
+		)
 	}
 
 	return []byte(document)
@@ -310,8 +318,8 @@ func insertBeforeHeadClose(document string, tag string) string {
 	return document[:index] + "    " + tag + "\n" + document[index:]
 }
 
-func upsertPublicNoScriptContent(document string, systemName string, description string, path string) string {
-	content := publicNoScriptBody(systemName, description, path)
+func upsertPublicNoScriptContent(document string, systemName string, description string, path string, origin string, billing controller.PublicBillingInfo) string {
+	content := publicNoScriptBody(systemName, description, path, origin, billing)
 	content = `<noscript>` + content + `</noscript>`
 	noscriptRE := regexp.MustCompile(`(?is)<noscript\s+data-seo-fallback=["'][^"']*["'][^>]*>.*?</noscript>`)
 	if noscriptRE.MatchString(document) {
@@ -321,21 +329,44 @@ func upsertPublicNoScriptContent(document string, systemName string, description
 	return insertBeforeBodyClose(document, content)
 }
 
-func publicNoScriptBody(systemName string, description string, path string) string {
+func publicNoScriptBody(systemName string, description string, path string, origin string, billing controller.PublicBillingInfo) string {
 	name := htmlpkg.EscapeString(systemName)
+	apiBaseURL := strings.TrimRight(origin, "/") + "/v1"
+	if origin == "" {
+		apiBaseURL = "/v1"
+	}
+	billingCopy := publicBillingCopy(billing)
 	pricingLink := `<a href="/pricing">AI model pricing</a>`
 	openAILink := `<a href="/openai-compatible-api">OpenAI-compatible API guide</a>`
 	multiProviderLink := `<a href="/multi-provider-ai-api">Multi-provider AI API guide</a>`
 
 	switch path {
 	case "/openai-compatible-api":
-		code := "from openai import OpenAI\n\nclient = OpenAI(\n    base_url=\"https://omnirouters.com/v1\",\n    api_key=\"YOUR_API_KEY\",\n)\n\nresponse = client.chat.completions.create(\n    model=\"YOUR_ENABLED_MODEL\",\n    messages=[{\"role\": \"user\", \"content\": \"Hello\"}],\n)"
-		return `<main><h1>Use the OpenAI SDK with multiple AI models</h1><p>Point an OpenAI SDK client at the ` + name + ` API endpoint and select an enabled model from the model catalog. The OpenAI-compatible chat endpoint is <code>POST /v1/chat/completions</code>; model IDs and supported features vary.</p><h2>Python quick start</h2><pre><code>` + htmlpkg.EscapeString(code) + `</code></pre><p>Create an API key in your account and replace the example model ID with one listed in the catalog. Check current pricing and model availability before sending production traffic.</p><p>New accounts do not receive free credit and the minimum top-up is $10.</p><nav>` + pricingLink + ` | ` + multiProviderLink + `</nav></main>`
+		code := "from openai import OpenAI\n\nclient = OpenAI(\n    base_url=\"" + apiBaseURL + "\",\n    api_key=\"YOUR_API_KEY\",\n)\n\nresponse = client.chat.completions.create(\n    model=\"YOUR_ENABLED_MODEL\",\n    messages=[{\"role\": \"user\", \"content\": \"Hello\"}],\n)"
+		return `<main><h1>Use the OpenAI SDK with multiple AI models</h1><p>Point an OpenAI SDK client at the ` + name + ` API endpoint and select an enabled model from the model catalog. The OpenAI-compatible chat endpoint is <code>POST /v1/chat/completions</code>; model IDs and supported features vary.</p><h2>Python quick start</h2><pre><code>` + htmlpkg.EscapeString(code) + `</code></pre><p>Create an API key in your account and replace the example model ID with one listed in the catalog. Check current pricing and model availability before sending production traffic.</p>` + billingCopy + `<nav>` + pricingLink + ` | ` + multiProviderLink + `</nav></main>`
 	case "/multi-provider-ai-api":
-		return `<main><h1>One API gateway for multiple AI providers</h1><p>` + name + ` provides access to supported models through a single account and API key. Use the model catalog as the source of truth for current availability, pricing, and compatible endpoints.</p><h2>Choose a compatible API format</h2><ul><li>OpenAI-compatible chat: <code>POST /v1/chat/completions</code></li><li>Anthropic-compatible messages: <code>POST /v1/messages</code>, for compatible models</li><li>Gemini-compatible generate content: <code>/v1beta/models/{model}:generateContent</code>, for compatible models</li></ul><p>API format compatibility does not mean every model supports every endpoint or request parameter. Match the endpoint and capabilities shown for the model you plan to use.</p><p>New accounts do not receive free credit and the minimum top-up is $10. Usage is charged according to the selected model's current pricing.</p><nav>` + pricingLink + ` | ` + openAILink + `</nav></main>`
+		return `<main><h1>One API gateway for multiple AI providers</h1><p>` + name + ` provides access to supported models through a single account and API key. Use the model catalog as the source of truth for current availability, pricing, and compatible endpoints.</p><h2>Choose a compatible API format</h2><ul><li>OpenAI-compatible chat: <code>POST /v1/chat/completions</code></li><li>Anthropic-compatible messages: <code>POST /v1/messages</code>, for compatible models</li><li>Gemini-compatible generate content: <code>/v1beta/models/{model}:generateContent</code>, for compatible models</li></ul><p>API format compatibility does not mean every model supports every endpoint or request parameter. Match the endpoint and capabilities shown for the model you plan to use.</p>` + billingCopy + `<p>Usage is charged according to the selected model's current pricing.</p><nav>` + pricingLink + ` | ` + openAILink + `</nav></main>`
 	default:
 		return `<main><h1>` + name + `</h1><p>` + htmlpkg.EscapeString(description) + `</p><nav>` + pricingLink + ` | ` + openAILink + ` | ` + multiProviderLink + ` | <a href="/about">About</a> | <a href="/user-agreement">User agreement</a> | <a href="/privacy-policy">Privacy policy</a></nav></main>`
 	}
+}
+
+func publicBillingCopy(billing controller.PublicBillingInfo) string {
+	parts := make([]string, 0, 2)
+	if billing.RegistrationCreditEnabled {
+		parts = append(parts, "Registration includes a default initial account balance.")
+	} else {
+		parts = append(parts, "New accounts start without a default free balance.")
+	}
+	if billing.MinimumTopupEnabled && billing.MinimumTopup > 0 {
+		amount := strconv.FormatFloat(billing.MinimumTopup, 'f', -1, 64)
+		if billing.CurrencyDisplayType == "TOKENS" {
+			parts = append(parts, "The minimum top-up is "+amount+" tokens.")
+		} else {
+			parts = append(parts, "The minimum top-up is "+billing.CurrencySymbol+amount+".")
+		}
+	}
+	return `<p>` + htmlpkg.EscapeString(strings.Join(parts, " ")) + `</p>`
 }
 
 func insertBeforeBodyClose(document string, tag string) string {

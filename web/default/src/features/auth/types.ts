@@ -126,6 +126,7 @@ export interface SystemStatus {
     model_square_carousel?: ModelSquareCarouselItem[]
     model_square_show_usage_metrics?: boolean
     custom_oauth_providers?: CustomOAuthProviderInfo[]
+    public_billing?: PublicBillingInfo
     [key: string]: unknown
   }
   // Allow direct access to common properties
@@ -176,7 +177,16 @@ export interface SystemStatus {
   model_square_carousel?: ModelSquareCarouselItem[]
   model_square_show_usage_metrics?: boolean
   custom_oauth_providers?: CustomOAuthProviderInfo[]
+  public_billing?: PublicBillingInfo
   [key: string]: unknown
+}
+
+export interface PublicBillingInfo {
+  currency_display_type?: string
+  currency_symbol?: string
+  minimum_topup?: number
+  minimum_topup_enabled?: boolean
+  registration_credit_enabled?: boolean
 }
 
 export interface ModelSquareCarouselItem {

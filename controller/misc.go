@@ -21,6 +21,39 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type PublicBillingInfo struct {
+	CurrencyDisplayType       string  `json:"currency_display_type"`
+	CurrencySymbol            string  `json:"currency_symbol"`
+	MinimumTopup              float64 `json:"minimum_topup"`
+	MinimumTopupEnabled       bool    `json:"minimum_topup_enabled"`
+	RegistrationCreditEnabled bool    `json:"registration_credit_enabled"`
+}
+
+func GetPublicBillingInfo() PublicBillingInfo {
+	quotaDisplayType := operation_setting.GetQuotaDisplayType()
+	info := PublicBillingInfo{
+		CurrencyDisplayType:       quotaDisplayType,
+		CurrencySymbol:            operation_setting.GetCurrencySymbol(),
+		RegistrationCreditEnabled: common.QuotaForNewUser > 0,
+	}
+
+	switch {
+	case isEpayTopUpEnabled():
+		info.MinimumTopup = float64(operation_setting.MinTopUp)
+	case isStripeTopUpEnabled():
+		info.MinimumTopup = float64(setting.StripeMinTopUp)
+	case isWaffoTopUpEnabled():
+		info.MinimumTopup = float64(setting.WaffoMinTopUp)
+	case isWaffoPancakeTopUpEnabled():
+		info.MinimumTopup = float64(setting.WaffoPancakeMinTopUp)
+	}
+	if info.MinimumTopup < 0 {
+		info.MinimumTopup = 0
+	}
+	info.MinimumTopupEnabled = info.MinimumTopup > 0
+	return info
+}
+
 func TestStatus(c *gin.Context) {
 	err := model.PingDB()
 	if err != nil {
@@ -48,6 +81,7 @@ func GetStatus(c *gin.Context) {
 	defer common.OptionMapRWMutex.RUnlock()
 
 	legalSetting := system_setting.GetLegalSettings()
+	publicBilling := GetPublicBillingInfo()
 
 	data := gin.H{
 		"version":                     common.Version,
@@ -100,6 +134,7 @@ func GetStatus(c *gin.Context) {
 		"usd_exchange_rate": operation_setting.USDExchangeRate,
 		"price":             operation_setting.Price,
 		"stripe_unit_price": setting.StripeUnitPrice,
+		"public_billing":    publicBilling,
 
 		// 面板启用开关
 		"api_info_enabled":      cs.ApiInfoEnabled,

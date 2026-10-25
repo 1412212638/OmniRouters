@@ -4546,3 +4546,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: checked all five affected files and ran `git diff --check`; Go tests/build were unavailable because the Go executable is not installed in this environment.
 - Result: CVE changes committed as `e715a5a94` and pushed to `origin/main`; this log entry is included in the follow-up documentation commit.
 
+## 2026-10-25 - Make SEO landing pages site-aware
+
+- Local reason: SEO landing pages hardcoded the overseas domain, USD minimum top-up, and registration-credit policy, which made them inaccurate on other deployments.
+- Changed: API examples and canonical URLs now follow the current site origin; `/api/status` publishes a limited read-only billing summary for the configured display currency, active primary top-up minimum, and registration credit; React pages and no-script SEO fallback render those values without exposing payment credentials.
+- Preserved: provider routing, payment validation, existing billing configuration, SEO page paths and content structure, and protected project/author identity metadata.
+- Validation: `bun run build`, targeted Oxfmt, targeted Oxlint for the SEO pages/status types, and `git diff --check` passed. `go test ./router` could not run because Go is unavailable in this environment. Oxlint including `main.tsx` reported existing non-null assertion and array-index rule violations there.
+- Commit and push: pending.
+

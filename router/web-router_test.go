@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/controller"
 	"github.com/gin-gonic/gin"
 )
 
@@ -94,7 +95,7 @@ func TestBuildBrandedIndexPageUsesHomepageSearchMetadata(t *testing.T) {
 }
 
 func TestBuildBrandedIndexPageUsesLongTailPageSEO(t *testing.T) {
-	c := newIndexPageTestContext("https://omnirouters.com/openai-compatible-api")
+	c := newIndexPageTestContext("https://api.other.test/openai-compatible-api")
 	restore := setIndexPageBranding("OmniRouters", "/logo.png")
 	defer restore()
 
@@ -102,9 +103,59 @@ func TestBuildBrandedIndexPageUsesLongTailPageSEO(t *testing.T) {
 
 	assertContains(t, result, "<title>OpenAI-Compatible API for Multiple Models | OmniRouters</title>")
 	assertContains(t, result, `<meta name="robots" content="index, follow" />`)
-	assertContains(t, result, `<link rel="canonical" href="https://omnirouters.com/openai-compatible-api" />`)
+	assertContains(t, result, `<link rel="canonical" href="https://api.other.test/openai-compatible-api" />`)
 	assertContains(t, result, "Use the OpenAI SDK with multiple AI models")
-	assertContains(t, result, "https://omnirouters.com/v1")
+	assertContains(t, result, "https://api.other.test/v1")
+	if strings.Contains(result, "$10") {
+		t.Fatalf("SEO fallback should not assume a USD minimum top-up: %s", result)
+	}
+}
+
+func TestPublicNoScriptBodyUsesConfiguredBillingAndSiteOrigin(t *testing.T) {
+	billing := controller.PublicBillingInfo{
+		CurrencyDisplayType:       "CNY",
+		CurrencySymbol:            "¥",
+		MinimumTopup:              10,
+		MinimumTopupEnabled:       true,
+		RegistrationCreditEnabled: true,
+	}
+
+	body := publicNoScriptBody(
+		"Domestic Site",
+		"Description",
+		"/openai-compatible-api",
+		"https://cn.example.test",
+		billing,
+	)
+
+	assertContains(t, body, `base_url=&#34;https://cn.example.test/v1&#34;`)
+	assertContains(t, body, "Registration includes a default initial account balance.")
+	assertContains(t, body, "The minimum top-up is ¥10.")
+	if strings.Contains(body, "$10") {
+		t.Fatalf("CNY billing copy should not contain a USD amount: %s", body)
+	}
+}
+
+func TestPublicNoScriptBodyOmitsDisabledMinimumTopup(t *testing.T) {
+	billing := controller.PublicBillingInfo{
+		CurrencyDisplayType:       "CNY",
+		CurrencySymbol:            "¥",
+		MinimumTopupEnabled:       false,
+		RegistrationCreditEnabled: false,
+	}
+
+	body := publicNoScriptBody(
+		"Domestic Site",
+		"Description",
+		"/multi-provider-ai-api",
+		"https://cn.example.test",
+		billing,
+	)
+
+	assertContains(t, body, "New accounts start without a default free balance.")
+	if strings.Contains(body, "minimum top-up") || strings.Contains(body, "$10") {
+		t.Fatalf("SEO fallback should omit a disabled minimum top-up: %s", body)
+	}
 }
 
 func TestBuildBrandedIndexPageUsesMultiProviderLongTailFallback(t *testing.T) {
