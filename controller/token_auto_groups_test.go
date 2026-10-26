@@ -53,6 +53,49 @@ func setupTokenAutoGroupsControllerTest(t *testing.T) *model.User {
 	return user
 }
 
+func TestSubscriptionTokenResponseIncludesSharedPlanAndQuota(t *testing.T) {
+	db := setupTokenControllerTestDB(t)
+	require.NoError(t, db.AutoMigrate(&model.SubscriptionPlan{}, &model.UserSubscription{}))
+
+	plan := &model.SubscriptionPlan{Title: "Token Pro", BillingMode: model.SubscriptionBillingModeToken}
+	require.NoError(t, db.Create(plan).Error)
+
+	activeSubscription := &model.UserSubscription{
+		Id: 9101, UserId: 101, PlanId: plan.Id, BillingMode: model.SubscriptionBillingModeToken,
+		AmountTotal: 10000, AmountUsed: 2750, StartTime: common.GetTimestamp() - 3600,
+		EndTime: common.GetTimestamp() + 86400, Status: "active", NextResetTime: common.GetTimestamp() + 3600,
+	}
+	foreignSubscription := &model.UserSubscription{
+		Id: 9102, UserId: 202, PlanId: plan.Id, BillingMode: model.SubscriptionBillingModeToken,
+		AmountTotal: 5000, AmountUsed: 1000, EndTime: common.GetTimestamp() + 86400, Status: "active",
+	}
+	require.NoError(t, db.Create(activeSubscription).Error)
+	require.NoError(t, db.Create(foreignSubscription).Error)
+
+	ownedToken := &model.Token{
+		UserId: 101, KeyType: model.TokenKeyTypeSubscription, UserSubscriptionId: activeSubscription.Id,
+		Status: common.TokenStatusEnabled,
+	}
+	foreignToken := &model.Token{
+		UserId: 101, KeyType: model.TokenKeyTypeSubscription, UserSubscriptionId: foreignSubscription.Id,
+		Status: common.TokenStatusEnabled,
+	}
+	subscriptions := buildTokenSubscriptionMap([]*model.Token{ownedToken, foreignToken})
+
+	ownedResponse := buildMaskedTokenResponse(ownedToken, subscriptions)
+	require.NotNil(t, ownedResponse.Subscription)
+	assert.Equal(t, "Token Pro", ownedResponse.Subscription.PlanTitle)
+	assert.Equal(t, int64(10000), ownedResponse.Subscription.AmountTotal)
+	assert.Equal(t, int64(2750), ownedResponse.Subscription.AmountUsed)
+	assert.Equal(t, int64(7250), ownedResponse.Subscription.AmountRemaining)
+	assert.Equal(t, activeSubscription.EndTime, ownedResponse.Subscription.EndTime)
+	assert.Equal(t, "enabled", ownedResponse.EffectiveStatus)
+
+	foreignResponse := buildMaskedTokenResponse(foreignToken, subscriptions)
+	assert.Nil(t, foreignResponse.Subscription)
+	assert.Equal(t, "subscription_unavailable", foreignResponse.EffectiveStatus)
+}
+
 func baseAutoTokenRequest(name string) map[string]any {
 	return map[string]any{
 		"name":              name,

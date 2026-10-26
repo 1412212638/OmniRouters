@@ -4,7 +4,7 @@ import { ExternalContentFrame } from '@/components/external-content-frame'
 import { PublicLayout } from '@/components/layout'
 import { Footer } from '@/components/layout/components/footer'
 import { RichContent } from '@/components/rich-content'
-import { isLikelyHtml } from '@/lib/content-format'
+import { isCompleteHtmlDocument, isLikelyHtml } from '@/lib/content-format'
 import { useAuthStore } from '@/stores/auth-store'
 
 import { CTA, Features, Hero, HowItWorks, Stats } from './components'
@@ -41,6 +41,20 @@ export function Home() {
     }
 
     const contentIsHtml = isLikelyHtml(content)
+    const contentIsCompleteDocument = isCompleteHtmlDocument(content)
+
+    if (contentIsCompleteDocument) {
+      return (
+        <PublicLayout showMainContainer={false}>
+          <ExternalContentFrame
+            srcDoc={content}
+            className='h-screen w-full border-none'
+            title={t('Custom Home Page')}
+            sandbox='allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-scripts allow-top-navigation-by-user-activation'
+          />
+        </PublicLayout>
+      )
+    }
 
     if (contentIsHtml) {
       return (

@@ -23,6 +23,7 @@ import { useTranslation } from 'react-i18next'
 import { BadgeCell } from '@/components/data-table'
 import { StatusBadge } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
 import {
   Popover,
   PopoverContent,
@@ -34,10 +35,170 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { copyToClipboard } from '@/lib/copy-to-clipboard'
-import { formatQuota } from '@/lib/format'
+import {
+  formatCompactNumber,
+  formatQuota,
+  formatTimestampToDate,
+} from '@/lib/format'
+import { cn } from '@/lib/utils'
 
+import {
+  API_KEY_STATUS,
+  API_KEY_STATUSES,
+  SUBSCRIPTION_KEY_STATUSES,
+} from '../constants'
 import { type ApiKey } from '../types'
 import { useApiKeys } from './api-keys-provider'
+
+export function ApiKeyStatusCell({ apiKey }: { apiKey: ApiKey }) {
+  const { t } = useTranslation()
+  const subscriptionStatus =
+    apiKey.key_type === 'subscription' && apiKey.status === API_KEY_STATUS.ENABLED
+      ? SUBSCRIPTION_KEY_STATUSES[apiKey.effective_status]
+      : undefined
+  if (subscriptionStatus) {
+    return (
+      <StatusBadge
+        label={t(subscriptionStatus.label)}
+        variant={subscriptionStatus.variant}
+        copyable={false}
+        className='-ml-1.5'
+      />
+    )
+  }
+  const statusConfig = API_KEY_STATUSES[apiKey.status]
+  if (!statusConfig) return null
+  return (
+    <StatusBadge
+      label={t(statusConfig.label)}
+      variant={statusConfig.variant}
+      copyable={false}
+      className='-ml-1.5'
+    />
+  )
+}
+
+export function ApiKeyTypeCell({ apiKey }: { apiKey: ApiKey }) {
+  const { t } = useTranslation()
+  if (apiKey.key_type === 'subscription') {
+    return (
+      <div className='min-w-0 space-y-0.5'>
+        <StatusBadge
+          label={t('Subscription key')}
+          variant='info'
+          copyable={false}
+          className='-ml-1.5'
+        />
+        <div className='text-muted-foreground max-w-[180px] truncate text-xs'>
+          {apiKey.subscription?.plan_title ||
+            (apiKey.subscription
+              ? `${t('Plan')} #${apiKey.subscription.plan_id}`
+              : t('Subscription unavailable'))}
+        </div>
+      </div>
+    )
+  }
+  const label =
+    apiKey.key_type === 'campaign' ? t('Campaign key') : t('General key')
+  return (
+    <StatusBadge
+      label={label}
+      variant='neutral'
+      copyable={false}
+      className='-ml-1.5'
+    />
+  )
+}
+
+function formatSubscriptionAmount(
+  value: number,
+  billingMode: string,
+  tokenLabel: string
+): string {
+  return billingMode === 'token'
+    ? `${formatCompactNumber(value)} ${tokenLabel}`
+    : formatQuota(value)
+}
+
+export function ApiKeyQuotaCell({ apiKey }: { apiKey: ApiKey }) {
+  const { t } = useTranslation()
+  const subscription = apiKey.subscription
+  if (apiKey.key_type !== 'subscription' || !subscription) {
+    if (apiKey.unlimited_quota) {
+      return <UnlimitedQuotaBadge used={apiKey.used_quota} />
+    }
+    return null
+  }
+
+  const total = subscription.amount_total
+  const used = Math.max(0, subscription.amount_used)
+  const remaining = Math.max(0, subscription.amount_remaining)
+  const isUnlimited = total <= 0
+  const percentage = !isUnlimited && total > 0 ? (remaining / total) * 100 : 0
+  const formatAmount = (value: number) =>
+    formatSubscriptionAmount(value, subscription.billing_mode, t('tokens'))
+
+  if (isUnlimited) {
+    return (
+      <Popover>
+        <PopoverTrigger
+          render={
+            <button
+              type='button'
+              className='focus-visible:ring-ring/50 -ml-1.5 cursor-help rounded-4xl focus-visible:ring-[3px] focus-visible:outline-none'
+              aria-label={`${t('Unlimited')}; ${t('Used:')} ${formatAmount(used)}`}
+            />
+          }
+        >
+          <StatusBadge
+            label={t('Unlimited')}
+            variant='neutral'
+            copyable={false}
+          />
+        </PopoverTrigger>
+        <PopoverContent className='w-auto p-2' side='top'>
+          <div className='space-y-1 text-xs'>
+            <div>{t('Shared subscription quota')}</div>
+            <div>{t('Used:')} {formatAmount(used)}</div>
+          </div>
+        </PopoverContent>
+      </Popover>
+    )
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger render={<div className='w-[150px] space-y-1' />}>
+        <div className='flex justify-between text-xs'>
+          <span className='font-medium tabular-nums'>{formatAmount(remaining)}</span>
+          <span className='text-muted-foreground tabular-nums'>{formatAmount(total)}</span>
+        </div>
+        <Progress
+          value={percentage}
+          className={cn(
+            'h-1.5',
+            percentage <= 10
+              ? '[&_[data-slot=progress-indicator]]:bg-rose-500'
+              : percentage <= 30
+                ? '[&_[data-slot=progress-indicator]]:bg-amber-500'
+                : '[&_[data-slot=progress-indicator]]:bg-emerald-500'
+          )}
+        />
+      </TooltipTrigger>
+      <TooltipContent>
+        <div className='space-y-1 text-xs'>
+          <div>{t('Shared subscription quota')}</div>
+          <div>{t('Used:')} {formatAmount(used)}</div>
+          <div>{t('Remaining:')} {formatAmount(remaining)} ({percentage.toFixed(1)}%)</div>
+          <div>{t('Total:')} {formatAmount(total)}</div>
+          {subscription.next_reset_time > 0 && (
+            <div>{t('Next reset:')} {formatTimestampToDate(subscription.next_reset_time)}</div>
+          )}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  )
+}
 
 export function ApiKeyCell({ apiKey }: { apiKey: ApiKey }) {
   const { t } = useTranslation()

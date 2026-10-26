@@ -79,7 +79,7 @@ func TestBuildBrandedIndexPageAddsCanonicalAndPublicPageSEO(t *testing.T) {
 	assertContains(t, result, `<meta name="robots" content="index, follow" />`)
 	assertContains(t, result, `<link rel="canonical" href="https://omnirouters.com/pricing" />`)
 	assertContains(t, result, `<meta property="og:url" content="https://omnirouters.com/pricing" />`)
-	assertContains(t, result, `<noscript data-seo-fallback="true"><main><h1>OmniRouters</h1>`)
+	assertContains(t, result, `<main data-seo-fallback="true"><h1>OmniRouters`)
 }
 
 func TestBuildBrandedIndexPageUsesHomepageSearchMetadata(t *testing.T) {
@@ -158,6 +158,35 @@ func TestPublicNoScriptBodyOmitsDisabledMinimumTopup(t *testing.T) {
 	}
 }
 
+func TestPublicSEOBodyIncludesSanitizedConfiguredAboutContent(t *testing.T) {
+	common.OptionMapRWMutex.Lock()
+	previous, existed := common.OptionMap["About"]
+	common.OptionMap["About"] = `<h1>OmniRouters</h1><p>Unified model access.</p><script>alert('ignored')</script>`
+	common.OptionMapRWMutex.Unlock()
+	defer func() {
+		common.OptionMapRWMutex.Lock()
+		if existed {
+			common.OptionMap["About"] = previous
+		} else {
+			delete(common.OptionMap, "About")
+		}
+		common.OptionMapRWMutex.Unlock()
+	}()
+
+	body := publicNoScriptBody(
+		"OmniRouters",
+		"A unified AI API gateway.",
+		"/about",
+		"https://omnirouters.com",
+		controller.PublicBillingInfo{},
+	)
+
+	assertContains(t, body, "Unified model access.")
+	if strings.Contains(body, "alert") || strings.Contains(body, "<script") {
+		t.Fatalf("configured SEO content should not include executable markup: %s", body)
+	}
+}
+
 func TestBuildBrandedIndexPageUsesMultiProviderLongTailFallback(t *testing.T) {
 	c := newIndexPageTestContext("https://omnirouters.com/multi-provider-ai-api")
 	restore := setIndexPageBranding("OmniRouters", "/logo.png")
@@ -190,6 +219,26 @@ func TestBuildBrandedIndexPageNoindexesUnknownRoutes(t *testing.T) {
 	assertContains(t, result, `<meta name="robots" content="noindex, nofollow" />`)
 }
 
+func TestUnknownWebRoutesAreNotKnown(t *testing.T) {
+	if isKnownWebRoute("/this-page-does-not-exist") || isKnownWebRoute("/pricing-not-real") {
+		t.Fatal("unknown web route should not be treated as a frontend route")
+	}
+	if !isKnownWebRoute("/pricing") || !isKnownWebRoute("/console/topup") {
+		t.Fatal("known frontend routes should remain available to the SPA")
+	}
+}
+
+func TestBuildBrandedIndexPageAddsStructuredData(t *testing.T) {
+	c := newIndexPageTestContext("https://omnirouters.com/openai-compatible-api")
+	restore := setIndexPageBranding("OmniRouters", "https://cdn.example.test/logo.png")
+	defer restore()
+
+	result := string(buildBrandedIndexPage(c, []byte(`<!doctype html><html><head></head><body></body></html>`)))
+	assertContains(t, result, `"@type":"Organization"`)
+	assertContains(t, result, `"@type":"WebSite"`)
+	assertContains(t, result, `"@type":"FAQPage"`)
+}
+
 func TestServeRobotsUsesForwardedPublicOrigin(t *testing.T) {
 	router := gin.New()
 	registerSEORoutes(router)
@@ -209,6 +258,28 @@ func TestServeRobotsUsesForwardedPublicOrigin(t *testing.T) {
 	assertContains(t, recorder.Body.String(), "Sitemap: https://omnirouters.com/sitemap.xml\n")
 	if strings.Contains(recorder.Body.String(), "Disallow: /console") {
 		t.Fatalf("robots should allow private pages to be crawled so their noindex metadata can be seen")
+	}
+}
+
+func TestServeLLMsUsesForwardedPublicOrigin(t *testing.T) {
+	router := gin.New()
+	registerSEORoutes(router)
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/llms.txt", nil)
+	request.Header.Set("X-Forwarded-Proto", "https")
+	request.Header.Set("X-Forwarded-Host", "omnirouters.com")
+	router.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected llms status 200, got %d", recorder.Code)
+	}
+	if got := recorder.Header().Get("Content-Type"); !strings.HasPrefix(got, "text/plain") {
+		t.Fatalf("expected text/plain content type, got %q", got)
+	}
+	assertContains(t, recorder.Body.String(), "# OmniRouters\n")
+	assertContains(t, recorder.Body.String(), "- Model pricing: https://omnirouters.com/pricing\n")
+	if strings.Contains(recorder.Body.String(), "<!doctype html>") {
+		t.Fatalf("llms endpoint should not return the SPA shell")
 	}
 }
 
@@ -290,6 +361,32 @@ func TestServeSitemapContainsOnlyPublicCanonicalURLs(t *testing.T) {
 	assertContains(t, recorder.Body.String(), "<loc>https://omnirouters.com/multi-provider-ai-api</loc>")
 	if strings.Contains(recorder.Body.String(), "/console") || strings.Contains(recorder.Body.String(), "/keys") {
 		t.Fatalf("sitemap contains a private route: %s", recorder.Body.String())
+	}
+}
+
+func TestServeSitemapOmitsDisabledRankings(t *testing.T) {
+	common.OptionMapRWMutex.Lock()
+	previous, existed := common.OptionMap["HeaderNavModules"]
+	common.OptionMap["HeaderNavModules"] = `{"rankings":{"enabled":false}}`
+	common.OptionMapRWMutex.Unlock()
+	defer func() {
+		common.OptionMapRWMutex.Lock()
+		if existed {
+			common.OptionMap["HeaderNavModules"] = previous
+		} else {
+			delete(common.OptionMap, "HeaderNavModules")
+		}
+		common.OptionMapRWMutex.Unlock()
+	}()
+
+	router := gin.New()
+	registerSEORoutes(router)
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "https://omnirouters.com/sitemap.xml", nil)
+	router.ServeHTTP(recorder, request)
+
+	if strings.Contains(recorder.Body.String(), "/rankings") {
+		t.Fatalf("sitemap should omit disabled rankings: %s", recorder.Body.String())
 	}
 }
 

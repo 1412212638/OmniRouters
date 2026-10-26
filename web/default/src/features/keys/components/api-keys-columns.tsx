@@ -14,11 +14,13 @@ import { getUserGroups } from '@/lib/api'
 import { formatQuota, formatTimestampToDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-import { API_KEY_STATUSES } from '../constants'
 import { type ApiKey } from '../types'
 import { ApiKeyGroupCell } from './api-key-group-cell'
 import {
   ApiKeyCell,
+  ApiKeyQuotaCell,
+  ApiKeyStatusCell,
+  ApiKeyTypeCell,
   IpRestrictionsCell,
   ModelLimitsCell,
   UnlimitedQuotaBadge,
@@ -92,21 +94,18 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
     {
       accessorKey: 'status',
       header: t('Status'),
-      cell: ({ row }) => {
-        const statusConfig = API_KEY_STATUSES[row.getValue('status') as number]
-        if (!statusConfig) return null
-        return (
-          <StatusBadge
-            label={t(statusConfig.label)}
-            variant={statusConfig.variant}
-            copyable={false}
-            className='-ml-1.5'
-          />
-        )
-      },
+      cell: ({ row }) => <ApiKeyStatusCell apiKey={row.original} />,
       filterFn: (row, id, value) => value.includes(String(row.getValue(id))),
       size: 120,
       meta: { mobileBadge: true },
+    },
+    {
+      id: 'key_type',
+      accessorKey: 'key_type',
+      header: t('Type'),
+      cell: ({ row }) => <ApiKeyTypeCell apiKey={row.original} />,
+      size: 170,
+      meta: { mobileHidden: true },
     },
     {
       id: 'key',
@@ -122,6 +121,9 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
       header: t('Quota'),
       cell: ({ row }) => {
         const apiKey = row.original
+        if (apiKey.key_type === 'subscription') {
+          return <ApiKeyQuotaCell apiKey={apiKey} />
+        }
         if (apiKey.unlimited_quota) {
           return <UnlimitedQuotaBadge used={apiKey.used_quota} />
         }
@@ -234,7 +236,11 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
       accessorKey: 'expired_time',
       header: t('Expires'),
       cell: ({ row }) => {
-        const expiredTime = row.getValue('expired_time') as number
+        const apiKey = row.original
+        const expiredTime =
+          apiKey.key_type === 'subscription' && apiKey.subscription
+            ? apiKey.subscription.end_time
+            : (row.getValue('expired_time') as number)
         if (expiredTime === -1) {
           return (
             <StatusBadge

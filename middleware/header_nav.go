@@ -122,6 +122,13 @@ func HeaderNavModuleAuth(module string) gin.HandlerFunc {
 	}
 }
 
+// IsHeaderNavModuleEnabled reports whether a configurable public module is
+// enabled. It is shared by web metadata endpoints such as the sitemap so
+// disabled pages are not advertised to crawlers.
+func IsHeaderNavModuleEnabled(module string) bool {
+	return getHeaderNavAccess(module).Enabled
+}
+
 func HeaderNavModulePublicOrUserAuth(module string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		access := getHeaderNavAccess(module)

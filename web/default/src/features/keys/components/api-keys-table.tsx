@@ -12,7 +12,6 @@ import {
   useDebouncedColumnFilter,
   useDataTable,
 } from '@/components/data-table'
-import { StatusBadge } from '@/components/status-badge'
 import {
   Empty,
   EmptyDescription,
@@ -23,18 +22,23 @@ import {
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useTableUrlState } from '@/hooks/use-table-url-state'
-import { formatQuota } from '@/lib/format'
+import { formatQuota, formatTimestampToDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 import { getApiKeys, searchApiKeys } from '../api'
 import {
   API_KEY_STATUS,
   API_KEY_STATUS_OPTIONS,
-  API_KEY_STATUSES,
   ERROR_MESSAGES,
 } from '../constants'
 import { type ApiKey } from '../types'
-import { ApiKeyCell, UnlimitedQuotaBadge } from './api-keys-cells'
+import {
+  ApiKeyCell,
+  ApiKeyQuotaCell,
+  ApiKeyStatusCell,
+  ApiKeyTypeCell,
+  UnlimitedQuotaBadge,
+} from './api-keys-cells'
 import { useApiKeysColumns } from './api-keys-columns'
 import { useApiKeys } from './api-keys-provider'
 import { DataTableBulkActions } from './data-table-bulk-actions'
@@ -105,7 +109,6 @@ function ApiKeysMobileList({
     <div className='divide-border overflow-hidden rounded-lg border'>
       {rows.map((row) => {
         const apiKey = row.original
-        const statusConfig = API_KEY_STATUSES[apiKey.status]
         const total = apiKey.used_quota + apiKey.remain_quota
 
         return (
@@ -121,17 +124,10 @@ function ApiKeysMobileList({
                 <div className='truncate text-sm font-semibold'>
                   {apiKey.name}
                 </div>
-                <div className='text-muted-foreground text-[11px]'>
-                  {t('API Key')}
-                </div>
+                <div className='text-muted-foreground text-[11px]'>{t('API Key')}</div>
+                <ApiKeyTypeCell apiKey={apiKey} />
               </div>
-              {statusConfig && (
-                <StatusBadge
-                  label={t(statusConfig.label)}
-                  variant={statusConfig.variant}
-                  copyable={false}
-                />
-              )}
+              <ApiKeyStatusCell apiKey={apiKey} />
             </div>
 
             <div className='flex min-w-0 items-center justify-between gap-2'>
@@ -141,9 +137,22 @@ function ApiKeysMobileList({
               <DataTableRowActions row={row} />
             </div>
 
+            {apiKey.key_type === 'subscription' && (
+              <div className='flex items-center justify-between gap-2 text-xs'>
+                <span className='text-muted-foreground'>{t('Expires')}</span>
+                <span className='font-mono tabular-nums'>
+                  {formatTimestampToDate(
+                    apiKey.subscription?.end_time ?? apiKey.expired_time
+                  )}
+                </span>
+              </div>
+            )}
+
             <div className='flex items-center justify-between gap-2 text-xs'>
               <span className='text-muted-foreground'>{t('Quota')}</span>
-              {apiKey.unlimited_quota ? (
+              {apiKey.key_type === 'subscription' ? (
+                <ApiKeyQuotaCell apiKey={apiKey} />
+              ) : apiKey.unlimited_quota ? (
                 <UnlimitedQuotaBadge used={apiKey.used_quota} />
               ) : (
                 <span className='font-medium tabular-nums'>

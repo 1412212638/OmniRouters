@@ -46,9 +46,9 @@ func ValidateSubscriptionRequest(info *relaycommon.RelayInfo) error {
 		relayconstant.RelayModeResponsesCompact,
 		relayconstant.RelayModeToolsSearch,
 		relayconstant.RelayModeToolsFetch:
-		// Text LLM requests and standalone web tools are allowed.
+		// Supported model request protocols and standalone web tools are allowed.
 	default:
-		return fmt.Errorf("subscription key only supports text LLM requests")
+		return fmt.Errorf("subscription key does not support this request type")
 	}
 	if IsStandaloneToolRequest(info) {
 		return nil

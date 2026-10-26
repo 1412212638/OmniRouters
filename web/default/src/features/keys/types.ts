@@ -4,6 +4,20 @@ import { z } from 'zod'
 // API Key Schema & Types
 // ============================================================================
 
+const apiKeySubscriptionSchema = z.object({
+  id: z.number(),
+  plan_id: z.number(),
+  plan_title: z.string().default(''),
+  billing_mode: z.string().default('quota'),
+  status: z.string(),
+  start_time: z.number(),
+  end_time: z.number(),
+  amount_total: z.number(),
+  amount_used: z.number(),
+  amount_remaining: z.number(),
+  next_reset_time: z.number(),
+})
+
 export const apiKeySchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -32,6 +46,8 @@ export const apiKeySchema = z.object({
   allow_user_quota_query: z.boolean().optional().default(false),
   key_type: z.string().optional().default('general'),
   user_subscription_id: z.number().optional().default(0),
+  subscription: apiKeySubscriptionSchema.nullish(),
+  effective_status: z.string().optional().default(''),
 })
 
 export type ApiKey = z.infer<typeof apiKeySchema>

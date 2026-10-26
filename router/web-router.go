@@ -12,6 +12,8 @@ import (
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/controller"
 	"github.com/QuantumNous/new-api/middleware"
+	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/service"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
@@ -38,6 +40,16 @@ func SetWebRouter(router *gin.Engine, assets ThemeAssets) {
 		c.Set(middleware.RouteTagKey, "web")
 		if strings.HasPrefix(c.Request.RequestURI, "/v1") || strings.HasPrefix(c.Request.RequestURI, "/api") || strings.HasPrefix(c.Request.RequestURI, "/assets") {
 			controller.RelayNotFound(c)
+			return
+		}
+		if !isKnownWebRoute(c.Request.URL.Path) {
+			c.Header("Cache-Control", "no-cache")
+			c.Status(http.StatusNotFound)
+			if common.GetTheme() == "classic" {
+				c.Data(http.StatusNotFound, "text/html; charset=utf-8", buildNotFoundIndexPage(c, assets.ClassicIndexPage))
+				return
+			}
+			c.Data(http.StatusNotFound, "text/html; charset=utf-8", buildNotFoundIndexPage(c, assets.DefaultIndexPage))
 			return
 		}
 		c.Header("Cache-Control", "no-cache")
@@ -112,6 +124,9 @@ func buildBrandedIndexPage(c *gin.Context, page []byte) []byte {
 	document = upsertMetaName(document, "twitter:description", description)
 	document = upsertMetaName(document, "twitter:image", absoluteLogo)
 	if pageSEO.robots == "index, follow" {
+		document = upsertJSONLD(document, buildStructuredData(c, systemName, absoluteLogo, pageURL))
+	}
+	if pageSEO.robots == "index, follow" {
 		path := "/"
 		if c != nil && c.Request != nil && c.Request.URL != nil {
 			path = strings.TrimSuffix(c.Request.URL.Path, "/")
@@ -130,6 +145,139 @@ func buildBrandedIndexPage(c *gin.Context, page []byte) []byte {
 	}
 
 	return []byte(document)
+}
+
+func buildNotFoundIndexPage(c *gin.Context, page []byte) []byte {
+	document := buildBrandedIndexPage(c, page)
+	return upsertNotFoundNoScriptContent(document)
+}
+
+func upsertNotFoundNoScriptContent(document []byte) []byte {
+	documentString := string(document)
+	content := `<main data-seo-fallback="true"><h1>Page not found</h1><p>The page you requested does not exist.</p><nav><a href="/">Home</a> | <a href="/pricing">AI model pricing</a> | <a href="/openai-compatible-api">OpenAI-compatible API guide</a></nav></main>`
+	seoRE := regexp.MustCompile(`(?is)<(?:noscript|main)\s+data-seo-fallback=["'][^"']*["'][^>]*>.*?</(?:noscript|main)>`)
+	if seoRE.MatchString(documentString) {
+		return []byte(seoRE.ReplaceAllStringFunc(documentString, func(string) string { return content }))
+	}
+	return []byte(insertBeforeBodyClose(documentString, content))
+}
+
+func buildStructuredData(c *gin.Context, systemName string, logo string, pageURL string) string {
+	origin := webOrigin(c)
+	if origin == "" {
+		origin = strings.TrimSuffix(pageURL, "/")
+		if slash := strings.Index(origin, "/"); slash >= 0 {
+			origin = origin[:slash]
+		}
+	}
+
+	items := []map[string]any{
+		{
+			"@type": "Organization",
+			"@id":   origin + "#organization",
+			"name":  systemName,
+			"url":   origin,
+			"logo":  logo,
+		},
+		{
+			"@type": "WebSite",
+			"@id":   origin + "#website",
+			"url":   origin,
+			"name":  systemName,
+			"publisher": map[string]string{
+				"@id": origin + "#organization",
+			},
+		},
+	}
+
+	path := "/"
+	if c != nil && c.Request != nil && c.Request.URL != nil {
+		path = strings.TrimSuffix(c.Request.URL.Path, "/")
+		if path == "" {
+			path = "/"
+		}
+	}
+	if path == "/openai-compatible-api" {
+		items = append(items, faqStructuredData(origin, pageURL, []map[string]string{
+			{"question": "Can I keep using the OpenAI Python SDK?", "answer": "Yes. Set base_url to the service API endpoint, provide an API key, and use a model ID currently listed in the catalog."},
+			{"question": "Does every model support the same OpenAI parameters?", "answer": "No. The compatible request format is shared, but model capabilities and optional parameters depend on the selected model and upstream."},
+		})...)
+	}
+	if path == "/multi-provider-ai-api" {
+		items = append(items, faqStructuredData(origin, pageURL, []map[string]string{
+			{"question": "Is one request format supported by every provider?", "answer": "No. Use the compatible endpoint type listed for the model. OpenAI, Anthropic, and Gemini formats have different request and response shapes."},
+			{"question": "How do I compare models before choosing one?", "answer": "Open the model pricing page to compare current usage prices, endpoint support, and the exact model ID. Availability can change, so verify it before switching traffic."},
+		})...)
+	}
+
+	data, err := common.Marshal(map[string]any{
+		"@context": "https://schema.org",
+		"@graph":   items,
+	})
+	if err != nil {
+		return ""
+	}
+	return string(data)
+}
+
+func faqStructuredData(origin string, pageURL string, entries []map[string]string) []map[string]any {
+	entities := make([]map[string]any, 0, len(entries))
+	for _, entry := range entries {
+		entities = append(entities, map[string]any{
+			"@type": "Question",
+			"name":  entry["question"],
+			"acceptedAnswer": map[string]string{
+				"@type": "Answer",
+				"text":  entry["answer"],
+			},
+		})
+	}
+	return []map[string]any{{
+		"@type":      "FAQPage",
+		"@id":        pageURL + "#faq",
+		"url":        pageURL,
+		"mainEntity": entities,
+		"isPartOf": map[string]string{
+			"@id": origin + "#website",
+		},
+	}}
+}
+
+func upsertJSONLD(document string, content string) string {
+	if strings.TrimSpace(content) == "" {
+		return document
+	}
+	tag := `<script type="application/ld+json">` + content + `</script>`
+	jsonLDRE := regexp.MustCompile(`(?is)<script\s+type=["']application/ld\+json["'][^>]*>.*?</script>`)
+	if jsonLDRE.MatchString(document) {
+		return jsonLDRE.ReplaceAllString(document, tag)
+	}
+	return insertBeforeHeadClose(document, tag)
+}
+
+func isKnownWebRoute(path string) bool {
+	path = strings.TrimSuffix(path, "/")
+	if path == "" {
+		path = "/"
+	}
+
+	switch path {
+	case "/", "/setup", "/forbidden", "/login", "/register", "/sign-in", "/sign-up", "/reset", "/otp", "/oauth", "/forgot-password", "/about", "/user-agreement", "/privacy-policy", "/pricing", "/rankings", "/openai-compatible-api", "/multi-provider-ai-api", "/console", "/console/models", "/console/deployment", "/console/subscription", "/console/channel", "/console/token", "/console/playground", "/console/redemption", "/console/user", "/console/personal", "/console/topup", "/console/log", "/console/midjourney", "/console/task", "/chat2link", "/401", "/403", "/404", "/500", "/503":
+		return true
+	}
+
+	for _, prefix := range []string{
+		"/oauth", "/user/reset", "/console", "/pricing", "/chat", "/errors",
+		"/dashboard", "/wallet", "/users", "/usage-logs", "/tickets", "/task-plugins",
+		"/system-settings", "/models", "/member-tiers", "/keys", "/image-playground",
+		"/friends-hub", "/email-settings", "/channels", "/audit-logs", "/admin-tickets",
+		"/subscriptions", "/profile", "/playground", "/system-info",
+	} {
+		if path == prefix || strings.HasPrefix(path, prefix+"/") {
+			return true
+		}
+	}
+	return false
 }
 
 type pageSEO struct {
@@ -206,6 +354,7 @@ type sitemapURL struct {
 func registerSEORoutes(router *gin.Engine) {
 	router.GET("/robots.txt", serveRobots)
 	router.GET("/sitemap.xml", serveSitemap)
+	router.GET("/llms.txt", serveLLMs)
 	router.GET("/favicon.ico", serveFavicon)
 }
 
@@ -236,6 +385,35 @@ func serveRobots(c *gin.Context) {
 	c.Data(http.StatusOK, "text/plain; charset=utf-8", []byte(strings.Join(lines, "\n")+"\n"))
 }
 
+func serveLLMs(c *gin.Context) {
+	common.OptionMapRWMutex.RLock()
+	systemName := strings.TrimSpace(common.SystemName)
+	common.OptionMapRWMutex.RUnlock()
+	if systemName == "" {
+		systemName = "OmniRouters"
+	}
+
+	origin := webOrigin(c)
+	lines := []string{
+		"# " + systemName,
+		"",
+		"> " + systemName + " is a unified AI API gateway for accessing supported models through compatible API endpoints.",
+		"",
+		"## Public resources",
+		"- Model pricing: " + origin + "/pricing",
+		"- OpenAI-compatible API guide: " + origin + "/openai-compatible-api",
+		"- Multi-provider API guide: " + origin + "/multi-provider-ai-api",
+		"- About: " + origin + "/about",
+		"- Sitemap: " + origin + "/sitemap.xml",
+		"",
+		"## Citation guidance",
+		"Use the model pricing page for current model availability, endpoint support, and usage pricing. Availability and pricing can change.",
+	}
+
+	c.Header("Cache-Control", "public, max-age=3600")
+	c.Data(http.StatusOK, "text/plain; charset=utf-8", []byte(strings.Join(lines, "\n")+"\n"))
+}
+
 func serveSitemap(c *gin.Context) {
 	origin := webOrigin(c)
 	if origin == "" {
@@ -243,7 +421,10 @@ func serveSitemap(c *gin.Context) {
 		return
 	}
 
-	paths := []string{"/", "/pricing", "/rankings", "/about", "/openai-compatible-api", "/multi-provider-ai-api", "/user-agreement", "/privacy-policy"}
+	paths := []string{"/", "/pricing", "/about", "/openai-compatible-api", "/multi-provider-ai-api", "/user-agreement", "/privacy-policy"}
+	if middleware.IsHeaderNavModuleEnabled("rankings") {
+		paths = append(paths, "/rankings")
+	}
 	urls := make([]sitemapURL, 0, len(paths))
 	for _, path := range paths {
 		urls = append(urls, sitemapURL{Loc: origin + path})
@@ -345,12 +526,11 @@ func insertBeforeHeadClose(document string, tag string) string {
 
 func upsertPublicNoScriptContent(document string, systemName string, description string, path string, origin string, billing controller.PublicBillingInfo) string {
 	content := publicNoScriptBody(systemName, description, path, origin, billing)
-	content = `<noscript>` + content + `</noscript>`
-	noscriptRE := regexp.MustCompile(`(?is)<noscript\s+data-seo-fallback=["'][^"']*["'][^>]*>.*?</noscript>`)
-	if noscriptRE.MatchString(document) {
-		return noscriptRE.ReplaceAllStringFunc(document, func(string) string { return content })
+	content = strings.Replace(content, "<main>", `<main data-seo-fallback="true">`, 1)
+	seoRE := regexp.MustCompile(`(?is)<(?:noscript|main)\s+data-seo-fallback=["'][^"']*["'][^>]*>.*?</(?:noscript|main)>`)
+	if seoRE.MatchString(document) {
+		return seoRE.ReplaceAllStringFunc(document, func(string) string { return content })
 	}
-	content = strings.Replace(content, "<noscript>", `<noscript data-seo-fallback="true">`, 1)
 	return insertBeforeBodyClose(document, content)
 }
 
@@ -366,6 +546,14 @@ func publicNoScriptBody(systemName string, description string, path string, orig
 	multiProviderLink := `<a href="/multi-provider-ai-api">Multi-provider AI API guide</a>`
 
 	switch path {
+	case "/":
+		return publicHomeBody(name, description, pricingLink, openAILink, multiProviderLink, billingCopy)
+	case "/about":
+		return publicAboutBody(name, description, origin, pricingLink, openAILink, multiProviderLink)
+	case "/pricing":
+		return publicPricingBody(name, pricingLink, openAILink, multiProviderLink)
+	case "/rankings":
+		return publicRankingsBody(name, pricingLink, openAILink, multiProviderLink)
 	case "/openai-compatible-api":
 		code := "from openai import OpenAI\n\nclient = OpenAI(\n    base_url=\"" + apiBaseURL + "\",\n    api_key=\"YOUR_API_KEY\",\n)\n\nresponse = client.chat.completions.create(\n    model=\"YOUR_ENABLED_MODEL\",\n    messages=[{\"role\": \"user\", \"content\": \"Hello\"}],\n)"
 		return `<main><h1>Use the OpenAI SDK with multiple AI models</h1><p>Point an OpenAI SDK client at the ` + name + ` API endpoint and select an enabled model from the model catalog. The OpenAI-compatible chat endpoint is <code>POST /v1/chat/completions</code>; model IDs and supported features vary.</p><h2>Python quick start</h2><pre><code>` + htmlpkg.EscapeString(code) + `</code></pre><p>Create an API key in your account and replace the example model ID with one listed in the catalog. Check current pricing and model availability before sending production traffic.</p>` + billingCopy + `<nav>` + pricingLink + ` | ` + multiProviderLink + `</nav></main>`
@@ -374,6 +562,106 @@ func publicNoScriptBody(systemName string, description string, path string, orig
 	default:
 		return `<main><h1>` + name + `</h1><p>` + htmlpkg.EscapeString(description) + `</p><nav>` + pricingLink + ` | ` + openAILink + ` | ` + multiProviderLink + ` | <a href="/about">About</a> | <a href="/user-agreement">User agreement</a> | <a href="/privacy-policy">Privacy policy</a></nav></main>`
 	}
+}
+
+func publicHomeBody(name string, description string, pricingLink string, openAILink string, multiProviderLink string, billingCopy string) string {
+	custom := ""
+	if content := configuredPublicSummary("HomePageContent"); content != "" {
+		custom = `<section><h2>About this service</h2><p>` + content + `</p></section>`
+	}
+	return `<main><h1>` + name + ` — Unified AI API Gateway</h1><p>` + htmlpkg.EscapeString(description) + `</p><p>` + name + ` provides one API gateway for supported AI models, intelligent routing, transparent usage pricing, and a unified developer workflow.</p>` + custom + billingCopy + `<h2>Public resources</h2><nav>` + pricingLink + ` | ` + openAILink + ` | ` + multiProviderLink + ` | <a href="/about">About</a> | <a href="/rankings">AI model rankings</a></nav></main>`
+}
+
+func publicAboutBody(name string, description string, origin string, pricingLink string, openAILink string, multiProviderLink string) string {
+	content := configuredPublicSummary("About")
+	if content == "" {
+		content = htmlpkg.EscapeString(description)
+	}
+	return `<main><h1>About ` + name + `</h1><p>` + content + `</p><p>` + name + ` is an AI API gateway for connecting applications to supported models through compatible endpoints and a single account.</p><nav>` + pricingLink + ` | ` + openAILink + ` | ` + multiProviderLink + ` | <a href="` + htmlpkg.EscapeString(strings.TrimRight(origin, "/")) + `/">Home</a></nav></main>`
+}
+
+func publicPricingBody(name string, pricingLink string, openAILink string, multiProviderLink string) string {
+	if model.DB == nil {
+		return `<main><h1>AI Model Pricing | ` + name + `</h1><p>Compare supported AI models, providers, compatible endpoints, and usage pricing on ` + name + `.</p><nav>` + pricingLink + ` | ` + openAILink + ` | ` + multiProviderLink + `</nav></main>`
+	}
+	items := model.GetPricing()
+	list := make([]string, 0, minInt(len(items), 24))
+	for _, item := range items {
+		modelName := htmlpkg.EscapeString(strings.TrimSpace(item.ModelName))
+		if modelName == "" {
+			continue
+		}
+		vendor := strings.TrimSpace(item.VendorName)
+		if vendor == "" {
+			vendor = strings.TrimSpace(item.OwnerBy)
+		}
+		label := modelName
+		if vendor != "" {
+			label += " — " + htmlpkg.EscapeString(vendor)
+		}
+		list = append(list, `<li>`+label+`</li>`)
+		if len(list) >= 24 {
+			break
+		}
+	}
+	if len(list) == 0 {
+		list = append(list, `<li>Model availability is updated from the configured provider catalog.</li>`)
+	}
+	return `<main><h1>AI Model Pricing | ` + name + `</h1><p>Compare supported AI models, providers, compatible endpoints, and usage pricing on ` + name + `.</p><h2>Available models</h2><ul>` + strings.Join(list, "") + `</ul><nav>` + pricingLink + ` | ` + openAILink + ` | ` + multiProviderLink + `</nav></main>`
+}
+
+func publicRankingsBody(name string, pricingLink string, openAILink string, multiProviderLink string) string {
+	if model.DB == nil {
+		return `<main><h1>AI Model Rankings | ` + name + `</h1><p>Compare recent model and provider usage rankings on ` + name + `. Ranking data is temporarily unavailable.</p><nav>` + pricingLink + ` | ` + openAILink + ` | ` + multiProviderLink + `</nav></main>`
+	}
+	snapshot, err := service.GetRankingsSnapshot("week")
+	if err != nil || snapshot == nil {
+		return `<main><h1>AI Model Rankings | ` + name + `</h1><p>Compare recent model and provider usage rankings on ` + name + `. Ranking data is temporarily unavailable.</p><nav>` + pricingLink + ` | ` + openAILink + ` | ` + multiProviderLink + `</nav></main>`
+	}
+	list := make([]string, 0, len(snapshot.Models))
+	for _, item := range snapshot.Models {
+		if len(list) >= 20 {
+			break
+		}
+		list = append(list, `<li><strong>#`+strconv.Itoa(item.Rank)+` `+htmlpkg.EscapeString(item.ModelName)+`</strong> — `+htmlpkg.EscapeString(item.Vendor)+`</li>`)
+	}
+	if len(list) == 0 {
+		list = append(list, `<li>No ranking data is available for the selected period.</li>`)
+	}
+	return `<main><h1>AI Model Rankings | ` + name + `</h1><p>Compare recent AI model usage and provider performance based on the latest weekly ranking snapshot.</p><h2>Top models this week</h2><ol>` + strings.Join(list, "") + `</ol><nav>` + pricingLink + ` | ` + openAILink + ` | ` + multiProviderLink + `</nav></main>`
+}
+
+func configuredPublicSummary(key string) string {
+	common.OptionMapRWMutex.RLock()
+	content := strings.TrimSpace(common.OptionMap[key])
+	common.OptionMapRWMutex.RUnlock()
+	if content == "" || isHTTPPublicURL(content) {
+		return ""
+	}
+
+	for _, tag := range []string{"script", "style", "iframe", "object", "embed", "head", "meta", "link", "noscript"} {
+		tagRE := regexp.MustCompile(`(?is)<` + tag + `\b[^>]*>.*?</` + tag + `\s*>`)
+		content = tagRE.ReplaceAllString(content, " ")
+	}
+	content = regexp.MustCompile(`(?is)<[^>]+>`).ReplaceAllString(content, " ")
+	content = htmlpkg.UnescapeString(content)
+	content = strings.Join(strings.Fields(content), " ")
+	if len([]rune(content)) > 2400 {
+		content = string([]rune(content)[:2400]) + "..."
+	}
+	return htmlpkg.EscapeString(content)
+}
+
+func isHTTPPublicURL(value string) bool {
+	value = strings.ToLower(strings.TrimSpace(value))
+	return strings.HasPrefix(value, "http://") || strings.HasPrefix(value, "https://")
+}
+
+func minInt(left int, right int) int {
+	if left < right {
+		return left
+	}
+	return right
 }
 
 func publicBillingCopy(billing controller.PublicBillingInfo) string {

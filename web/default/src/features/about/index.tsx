@@ -6,7 +6,11 @@ import { ExternalContentFrame } from '@/components/external-content-frame'
 import { PublicLayout } from '@/components/layout'
 import { RichContent } from '@/components/rich-content'
 import { Skeleton } from '@/components/ui/skeleton'
-import { isHttpUrl, isLikelyHtml } from '@/lib/content-format'
+import {
+  isCompleteHtmlDocument,
+  isHttpUrl,
+  isLikelyHtml,
+} from '@/lib/content-format'
 
 import { getAboutContent } from './api'
 
@@ -106,6 +110,8 @@ export function About() {
   const hasContent = rawContent.length > 0
   const isUrl = hasContent && isHttpUrl(rawContent)
   const contentIsHtml = hasContent && isLikelyHtml(rawContent)
+  const contentIsCompleteDocument =
+    hasContent && isCompleteHtmlDocument(rawContent)
 
   if (isLoading) {
     return (
@@ -136,6 +142,19 @@ export function About() {
           className='h-[calc(100vh-3.5rem)] w-full border-0'
           title={t('About')}
           sandbox='allow-forms allow-popups allow-popups-to-escape-sandbox allow-scripts'
+        />
+      </PublicLayout>
+    )
+  }
+
+  if (contentIsCompleteDocument) {
+    return (
+      <PublicLayout showMainContainer={false}>
+        <ExternalContentFrame
+          srcDoc={rawContent}
+          className='h-[calc(100vh-3.5rem)] w-full border-0'
+          title={t('About')}
+          sandbox='allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-scripts'
         />
       </PublicLayout>
     )

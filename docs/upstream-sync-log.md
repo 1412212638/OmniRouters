@@ -1,9 +1,42 @@
 # Upstream Sync Log
 
+## 2026-10-27 - Replace default frontend logo assets
+
+- Local reason: the operator supplied the OmniRouters transparent logo and requested replacing the remaining default New API logo asset.
+- Changed: replaced the default and classic theme `public/logo.png` assets with `omnirouters-logo-transparent.png`, and generated PNG-backed ICO favicons from the same transparent source for both themes.
+- Preserved: runtime-configured logo URLs, external COS HTML, email templates, and unrelated upstream compatibility references.
+- Validation: confirmed both theme PNG assets and both ICO assets were generated from the supplied source; no build or broad test run was performed for this binary-only asset change.
+- Commit and push: pending.
+
+## 2026-10-27 - Add 404, llms.txt, dynamic sitemap, and JSON-LD metadata
+
+- Local reason: the operator requested the next SEO/GEO fixes after reviewing the external site audit.
+- Changed: unknown frontend paths now return HTTP 404 with a no-JavaScript error fallback; added a dynamic plain-text `/llms.txt`; removed disabled `/rankings` from the sitemap using the existing module setting; added Organization and WebSite JSON-LD to indexable pages and FAQPage JSON-LD to the two API guide pages.
+- Preserved: SPA handling for known frontend routes, dynamic site origin/system name/logo, public billing copy, existing robots rules, and all private/API route behavior.
+- Validation: targeted router regression tests added and `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable in this environment.
+- Commit and push: pending.
+
+## 2026-10-27 - Remove upstream attribution from the default frontend footer
+
+- Local reason: the operator confirmed OmniRouters is maintained as an independent project and authorized removing visible upstream project attribution from its generated site footer.
+- Changed: removed the generated New API attribution block from the standard and custom default-theme footers, changed the footer branding fallback to OmniRouters, and deleted the attribution's unused translations across all seven supported locales.
+- Preserved: OmniRouters copyright text, configured footer HTML, user agreement/privacy links, source-file license and copyright notices, and existing integration references outside the generated footer.
+- Limitation: the configured homepage and About pages load external HTML from COS; those independently hosted documents are not in this repository and their embedded footer text is unchanged by this source change.
+- Validation: `git diff --check`, Node JSON parsing for all seven frontend locale files, and `bun run build` passed. Go tests/build were not run because this change is frontend-only and the Go toolchain is unavailable in this environment.
+- Commit and push: pending.
+
+## 2026-10-27 - Show subscription metadata on API keys
+
+- Local reason: subscription Key rows needed to identify their type and bound plan, show subscription expiry and shared allowance, and remain understandable after the subscription expires; the token-plan model picker also needed to include all active models with search support.
+- Changed: removed the frontend/backend text-modality restriction from token-plan model selection; loaded all active models across paginated responses; added searchable multi-select input and localized labels; enriched masked Key responses with batched subscription plan/status/expiry/quota/reset metadata; added type, effective subscription status, plan, shared quota, and mobile Key-list display.
+- Preserved: general and campaign Key behavior, existing Key expiry and status handling, subscription binding isolation, wallet/tool billing, and existing quota display for non-subscription Keys.
+- Validation: `git diff --check`, JSON parsing for all seven frontend locale files, and `bun run build` passed. Go tests/build were unavailable because the Go toolchain is not installed in this environment; backend code was reviewed manually for GORM compatibility and response behavior.
+- Commit and push: pending.
+
 ## 2026-10-27 - Add token-based subscription keys
 
-- Local reason: subscription plans needed a token-based allowance for selected text LLMs, with dedicated keys that share the purchased subscription and tool fees charged separately from the wallet.
-- Changed: added quota/token billing modes and allowed text-model snapshots to plans and user subscriptions; added subscription-key creation and key-type metadata; restricted subscription keys to text LLM protocols and selected models; added raw input/output token pre-consume and settlement with wallet-funded Search/Fetch and built-in tool surcharges; added database migration fields, admin configuration, user key creation UI, token allowance display, and localized labels.
+- Local reason: subscription plans needed a token-based allowance with dedicated keys that share the purchased subscription and tool fees charged separately from the wallet.
+- Changed: added quota/token billing modes and allowed model snapshots to plans and user subscriptions; added subscription-key creation and key-type metadata; restricted subscription keys to supported model request protocols and selected models; added raw input/output token pre-consume and settlement with wallet-funded Search/Fetch and built-in tool surcharges; added database migration fields, admin configuration, user key creation UI, token allowance display, localized labels, and Key-list type/subscription status, plan, expiry, shared-quota, and reset information.
 - Preserved: legacy quota-based subscriptions and general API keys, existing wallet and channel quota accounting, model routing, standalone tool pricing, SQLite/MySQL/PostgreSQL schema compatibility, and existing uncommitted usage-log UI changes.
 - Validation: JSON parsing for all seven frontend locale files, `git diff --check`, and `bun run build` passed. Go tests/build were unavailable because the Go toolchain is not installed in this environment; Go code was reviewed manually for type/import and cross-database usage.
 - Commit: `04d43aca6` (`feat(subscription): add token-based subscription keys`). Documentation follow-up: `3f5e4f66f`. Push: confirmed at `origin/main` on 2026-10-27.
@@ -4576,5 +4609,21 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: API examples and canonical URLs now follow the current site origin; `/api/status` publishes a limited read-only billing summary for the configured display currency, active primary top-up minimum, and registration credit; React pages and no-script SEO fallback render those values without exposing payment credentials.
 - Preserved: provider routing, payment validation, existing billing configuration, SEO page paths and content structure, and protected project/author identity metadata.
 - Validation: `bun run build`, targeted Oxfmt, targeted Oxlint for the SEO pages/status types, and `git diff --check` passed. `go test ./router` could not run because Go is unavailable in this environment. Oxlint including `main.tsx` reported existing non-null assertion and array-index rule violations there.
+- Commit and push: pending.
+
+## 2026-10-27 - Render complete custom HTML documents in a sandbox
+
+- Local reason: complete HTML pasted into the homepage or About setting was rendered as a sanitized fragment, so its head, scripts, global CSS, language switch, and theme switch could not work.
+- Changed: detect complete `<!doctype html>`/`<html><head>` documents and render them through the existing sandboxed content frame with `srcDoc`; keep HTML fragments on the existing DOMPurify and Shadow DOM path. Parent theme and language context continue to be delivered through the existing postMessage bridge.
+- Preserved: fragment sanitization, iframe URL support, parent application isolation, and the no-`allow-same-origin` sandbox boundary for pasted documents.
+- Validation: source inspection and `git diff --check`; frontend production build not run yet.
+- Commit and push: pending.
+
+## 2026-10-27 - Add server-rendered public SEO content
+
+- Local reason: public route HTML contained only the React root while homepage, About, pricing, and rankings page content loaded after JavaScript, leaving crawlers without page content.
+- Changed: the Go web fallback now writes crawlable route-specific HTML into the main document for `/`, `/about`, `/pricing`, and `/rankings`, including configured static content summaries, current public model names, and the cached weekly ranking snapshot; both default and classic frontends remove the fallback before mounting their interactive page.
+- Preserved: existing SPA routes, custom HTML sandbox rendering, external content isolation, and dynamic branding/SEO metadata. Remote COS HTML is summarized as escaped text and is never executed during server rendering.
+- Validation: `git diff --check`; frontend production build not run after this follow-up. Go tests were not run because the Go toolchain is unavailable in this environment.
 - Commit and push: pending.
 

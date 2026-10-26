@@ -72,7 +72,26 @@ func (request *tokenRequest) UnmarshalJSON(data []byte) error {
 
 type tokenResponse struct {
 	*model.Token
-	AutoGroups []string `json:"auto_groups"`
+	AutoGroups        []string                   `json:"auto_groups"`
+	Subscription      *tokenSubscriptionResponse `json:"subscription,omitempty"`
+	EffectiveStatus   string                     `json:"effective_status,omitempty"`
+}
+
+// tokenSubscriptionResponse is the read-only subscription snapshot displayed
+// alongside a subscription key. It deliberately omits the user's private
+// subscription routing and model-entitlement details.
+type tokenSubscriptionResponse struct {
+	Id              int    `json:"id"`
+	PlanId          int    `json:"plan_id"`
+	PlanTitle       string `json:"plan_title"`
+	BillingMode     string `json:"billing_mode"`
+	Status          string `json:"status"`
+	StartTime       int64  `json:"start_time"`
+	EndTime         int64  `json:"end_time"`
+	AmountTotal     int64  `json:"amount_total"`
+	AmountUsed      int64  `json:"amount_used"`
+	AmountRemaining int64  `json:"amount_remaining"`
+	NextResetTime   int64  `json:"next_reset_time"`
 }
 
 func maxTokenQuota() int {
@@ -85,9 +104,13 @@ func maxTokenQuota() int {
 	return quota
 }
 
-func buildMaskedTokenResponse(token *model.Token) *tokenResponse {
+func buildMaskedTokenResponse(token *model.Token, subscriptionMaps ...map[int]*tokenSubscriptionResponse) *tokenResponse {
 	if token == nil {
 		return nil
+	}
+	var subscriptions map[int]*tokenSubscriptionResponse
+	if len(subscriptionMaps) > 0 {
+		subscriptions = subscriptionMaps[0]
 	}
 	maskedToken := *token
 	maskedToken.Key = token.GetMaskedKey()
@@ -99,13 +122,98 @@ func buildMaskedTokenResponse(token *model.Token) *tokenResponse {
 	if len(autoGroups) == 0 {
 		autoGroups = nil
 	}
-	return &tokenResponse{Token: &maskedToken, AutoGroups: autoGroups}
+	response := &tokenResponse{Token: &maskedToken, AutoGroups: autoGroups}
+	if token.KeyType == model.TokenKeyTypeSubscription {
+		response.Subscription = subscriptions[token.UserSubscriptionId]
+		if response.Subscription == nil {
+			response.EffectiveStatus = "subscription_unavailable"
+		} else {
+			response.EffectiveStatus = "enabled"
+			if response.Subscription.Status == "cancelled" {
+				response.EffectiveStatus = "subscription_cancelled"
+			} else if response.Subscription.Status == "expired" ||
+				(response.Subscription.EndTime > 0 && response.Subscription.EndTime <= common.GetTimestamp()) {
+				response.EffectiveStatus = "subscription_expired"
+			}
+		}
+	}
+	return response
+}
+
+func buildTokenSubscriptionMap(tokens []*model.Token) map[int]*tokenSubscriptionResponse {
+	ids := make([]int, 0)
+	seen := make(map[int]struct{})
+	owners := make(map[int]int)
+	for _, token := range tokens {
+		if token == nil || token.KeyType != model.TokenKeyTypeSubscription || token.UserSubscriptionId <= 0 {
+			continue
+		}
+		if _, ok := seen[token.UserSubscriptionId]; ok {
+			continue
+		}
+		seen[token.UserSubscriptionId] = struct{}{}
+		owners[token.UserSubscriptionId] = token.UserId
+		ids = append(ids, token.UserSubscriptionId)
+	}
+	result := make(map[int]*tokenSubscriptionResponse, len(ids))
+	if len(ids) == 0 {
+		return result
+	}
+	var subscriptions []model.UserSubscription
+	if err := model.DB.Where("id IN ?", ids).Find(&subscriptions).Error; err != nil {
+		common.SysError("failed to load token subscriptions: " + err.Error())
+		return result
+	}
+	planIds := make([]int, 0, len(subscriptions))
+	seenPlans := make(map[int]struct{})
+	for _, subscription := range subscriptions {
+		if subscription.PlanId > 0 {
+			if _, ok := seenPlans[subscription.PlanId]; !ok {
+				seenPlans[subscription.PlanId] = struct{}{}
+				planIds = append(planIds, subscription.PlanId)
+			}
+		}
+	}
+	var plans []model.SubscriptionPlan
+	if len(planIds) > 0 {
+		if err := model.DB.Where("id IN ?", planIds).Find(&plans).Error; err != nil {
+			common.SysError("failed to load token subscription plans: " + err.Error())
+		}
+	}
+	planTitles := make(map[int]string, len(plans))
+	for _, plan := range plans {
+		planTitles[plan.Id] = plan.Title
+	}
+	for _, subscription := range subscriptions {
+		if owner, ok := owners[subscription.Id]; !ok || owner != subscription.UserId {
+			continue
+		}
+		remaining := subscription.AmountTotal - subscription.AmountUsed
+		if remaining < 0 {
+			remaining = 0
+		}
+		result[subscription.Id] = &tokenSubscriptionResponse{
+			Id:              subscription.Id,
+			PlanId:          subscription.PlanId,
+			PlanTitle:       planTitles[subscription.PlanId],
+			BillingMode:     subscription.BillingMode,
+			Status:          subscription.Status,
+			StartTime:       subscription.StartTime,
+			EndTime:         subscription.EndTime,
+			AmountTotal:     subscription.AmountTotal,
+			AmountUsed:      subscription.AmountUsed,
+			AmountRemaining: remaining,
+			NextResetTime:   subscription.NextResetTime,
+		}
+	}
+	return result
 }
 
 func buildMaskedTokenResponses(tokens []*model.Token) []*tokenResponse {
+	subscriptions := buildTokenSubscriptionMap(tokens)
 	maskedTokens := make([]*tokenResponse, 0, len(tokens))
 	for _, token := range tokens {
-		maskedTokens = append(maskedTokens, buildMaskedTokenResponse(token))
+		maskedTokens = append(maskedTokens, buildMaskedTokenResponse(token, subscriptions))
 	}
 	return maskedTokens
 }
@@ -203,7 +311,7 @@ func GetToken(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
-	common.ApiSuccess(c, buildMaskedTokenResponse(token))
+	common.ApiSuccess(c, buildMaskedTokenResponse(token, buildTokenSubscriptionMap([]*model.Token{token})))
 }
 
 func GetTokenAutoGroups(c *gin.Context) {
@@ -468,7 +576,7 @@ func UpdateToken(c *gin.Context) {
 			common.ApiError(c, err)
 			return
 		}
-		common.ApiSuccess(c, buildMaskedTokenResponse(cleanToken))
+		common.ApiSuccess(c, buildMaskedTokenResponse(cleanToken, buildTokenSubscriptionMap([]*model.Token{cleanToken})))
 		return
 	}
 	if statusOnly != "" {
@@ -508,7 +616,7 @@ func UpdateToken(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
-		"data":    buildMaskedTokenResponse(cleanToken),
+		"data":    buildMaskedTokenResponse(cleanToken, buildTokenSubscriptionMap([]*model.Token{cleanToken})),
 	})
 }
 

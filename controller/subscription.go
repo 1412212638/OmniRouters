@@ -105,12 +105,6 @@ func normalizeSubscriptionPlanModels(billingMode string, models model.StringList
 		if err := model.DB.Where("model_name = ? AND status = ?", name, 1).First(&meta).Error; err != nil {
 			return nil, fmt.Errorf("token subscription model does not exist: %s", name)
 		}
-		for _, modality := range append([]string(meta.InputModalities), []string(meta.OutputModalities)...) {
-			modality = strings.ToLower(strings.TrimSpace(modality))
-			if modality != "" && modality != "text" {
-				return nil, fmt.Errorf("token subscription only supports text LLM models: %s", name)
-			}
-		}
 		result = append(result, name)
 	}
 	if len(result) == 0 {

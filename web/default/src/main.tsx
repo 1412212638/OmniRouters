@@ -98,6 +98,9 @@ declare module '@tanstack/react-router' {
 
 // Render the app
 const rootElement = document.getElementById('root')!
+// The Go web router includes crawlable public-page HTML beside #root.
+// Remove it before mounting the interactive React page to avoid duplicate UI.
+document.querySelectorAll('[data-seo-fallback]').forEach((node) => node.remove())
 // Set document.title and favicon from cached status, then refresh from network
 ;(function initSystemBranding() {
   try {

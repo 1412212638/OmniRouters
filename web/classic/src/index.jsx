@@ -46,6 +46,10 @@ function SemiLocaleWrapper({ children }) {
 
 // initialization
 
+// The Go web router includes crawlable public-page HTML beside #root.
+// Remove it before mounting the interactive classic frontend to avoid duplicate UI.
+document.querySelectorAll('[data-seo-fallback]').forEach((node) => node.remove());
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

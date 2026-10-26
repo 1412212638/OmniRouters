@@ -30,6 +30,8 @@ interface MultiSelectProps {
   selected: string[]
   onChange: (values: string[]) => void
   placeholder?: string
+  /** Placeholder shown in the input while searching existing selections. */
+  searchPlaceholder?: string
   className?: string
   allowCreate?: boolean
   /**
@@ -149,6 +151,18 @@ export function MultiSelect(props: MultiSelectProps) {
     return Array.from(set)
   }, [props.options, props.selected, canCreate, trimmedInput])
 
+  const filteredItems = React.useMemo(() => {
+    if (!trimmedInput) return items
+    const query = trimmedInput.toLocaleLowerCase()
+    return items.filter((item) => {
+      const label = labelMap.get(item) ?? item
+      return (
+        item.toLocaleLowerCase().includes(query) ||
+        label.toLocaleLowerCase().includes(query)
+      )
+    })
+  }, [items, labelMap, trimmedInput])
+
   const addValues = React.useCallback(
     (values: string[]) => {
       const next: string[] = []
@@ -230,7 +244,7 @@ export function MultiSelect(props: MultiSelectProps) {
   return (
     <Combobox
       multiple
-      items={items}
+      items={filteredItems}
       value={props.selected}
       onValueChange={handleValueChange}
       inputValue={inputValue}
@@ -325,7 +339,7 @@ export function MultiSelect(props: MultiSelectProps) {
           placeholder={
             props.selected.length === 0 && !props.renderSelectedSummary
               ? placeholder
-              : undefined
+              : props.searchPlaceholder
           }
           onKeyDown={handleKeyDown}
           aria-label={placeholder}

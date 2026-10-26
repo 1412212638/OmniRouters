@@ -41,6 +41,24 @@ export const API_KEY_STATUSES: Record<
   },
 } as const
 
+export const SUBSCRIPTION_KEY_STATUSES: Record<
+  string,
+  Pick<StatusBadgeProps, 'variant'> & { label: string }
+> = {
+  subscription_expired: {
+    label: 'Subscription expired',
+    variant: 'danger',
+  },
+  subscription_cancelled: {
+    label: 'Subscription cancelled',
+    variant: 'warning',
+  },
+  subscription_unavailable: {
+    label: 'Subscription unavailable',
+    variant: 'danger',
+  },
+}
+
 export const API_KEY_STATUS_OPTIONS = Object.values(API_KEY_STATUSES).map(
   (config) => ({
     label: config.label,

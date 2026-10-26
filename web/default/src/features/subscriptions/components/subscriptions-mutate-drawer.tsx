@@ -103,21 +103,36 @@ export function SubscriptionsMutateDrawer({
           if (res.success) setGroupOptions(res.data || [])
         })
         .catch(() => {})
-      getModels({ page_size: 500, status: '1' })
-        .then((res) => {
-          if (res.success) {
-            setModelOptions(
-              (res.data?.items || [])
-                .filter(
-                  (item) =>
-                    (item.input_modalities || []).every((m) => m === 'text') &&
-                    (item.output_modalities || []).every((m) => m === 'text')
-                )
-                .map((item) => item.model_name)
-            )
-          }
+      const loadAllModels = async () => {
+        const pageSize = 100
+        const firstPage = await getModels({
+          p: 1,
+          page_size: pageSize,
+          status: '1',
         })
-        .catch(() => {})
+        if (!firstPage.success || !firstPage.data) return
+
+        const pages = Math.ceil(firstPage.data.total / pageSize)
+        const remainingPages = await Promise.all(
+          Array.from({ length: Math.max(0, pages - 1) }, (_, index) =>
+            getModels({
+              p: index + 2,
+              page_size: pageSize,
+              status: '1',
+            })
+          )
+        )
+        const models = [
+          ...firstPage.data.items,
+          ...remainingPages.flatMap((page) =>
+            page.success && page.data ? page.data.items : []
+          ),
+        ]
+        setModelOptions(
+          Array.from(new Set(models.map((item) => item.model_name))).sort()
+        )
+      }
+      loadAllModels().catch(() => {})
       // Best-effort — empty list still lets the operator use "+ Create".
       listWaffoPancakeSubscriptionProductOptions()
         .then((res) => {
@@ -402,20 +417,21 @@ export function SubscriptionsMutateDrawer({
                   name='allowed_models'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('Allowed LLM Models')}</FormLabel>
+                      <FormLabel>{t('Allowed Models')}</FormLabel>
                       <FormControl>
                         <MultiSelect
                           id='subscription-allowed-models'
                           options={modelOptions.map((value) => ({ value, label: value }))}
                           selected={field.value}
                           onChange={field.onChange}
-                          placeholder={t('Select allowed text models')}
-                          emptyText={t('No text models available')}
+                          placeholder={t('Select allowed models')}
+                          searchPlaceholder={t('Search models...')}
+                          emptyText={t('No models available')}
                           maxVisibleChips={4}
                         />
                       </FormControl>
                       <FormDescription>
-                        {t('Only selected text LLM models can use this token subscription.')}
+                        {t('Only selected models can use this token subscription.')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

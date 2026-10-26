@@ -12,3 +12,16 @@ export function isLikelyHtml(value: string): boolean {
     value
   )
 }
+
+/**
+ * A complete document needs a document context for its head, scripts, and
+ * global CSS. HTML fragments continue to use the sanitized inline renderer.
+ */
+export function isCompleteHtmlDocument(value: string): boolean {
+  const trimmed = value.trim()
+
+  return (
+    /^<!doctype\s+html\b/i.test(trimmed) ||
+    (/<html[\s>]/i.test(trimmed) && /<head[\s>]/i.test(trimmed))
+  )
+}

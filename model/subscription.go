@@ -277,7 +277,7 @@ type SubscriptionPlan struct {
 	AllowedGroups SubscriptionGroupList `json:"allowed_groups" gorm:"type:text"`
 
 	// Token plans consume the raw input+output token count and may restrict
-	// access to an explicit allow-list of text LLM model names.
+	// access to an explicit allow-list of model names.
 	BillingMode   string     `json:"billing_mode" gorm:"type:varchar(16);not null;default:'quota'"`
 	AllowedModels StringList `json:"allowed_models" gorm:"type:text"`
 
