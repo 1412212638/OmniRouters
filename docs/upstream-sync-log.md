@@ -6,7 +6,7 @@
 - Changed: added quota/token billing modes and allowed text-model snapshots to plans and user subscriptions; added subscription-key creation and key-type metadata; restricted subscription keys to text LLM protocols and selected models; added raw input/output token pre-consume and settlement with wallet-funded Search/Fetch and built-in tool surcharges; added database migration fields, admin configuration, user key creation UI, token allowance display, and localized labels.
 - Preserved: legacy quota-based subscriptions and general API keys, existing wallet and channel quota accounting, model routing, standalone tool pricing, SQLite/MySQL/PostgreSQL schema compatibility, and existing uncommitted usage-log UI changes.
 - Validation: JSON parsing for all seven frontend locale files, `git diff --check`, and `bun run build` passed. Go tests/build were unavailable because the Go toolchain is not installed in this environment; Go code was reviewed manually for type/import and cross-database usage.
-- Commit and push: pending.
+- Commit: `04d43aca6` (`feat(subscription): add token-based subscription keys`). Push: pending.
 
 ## 2026-10-25 - Reassess SEO/GEO report after public deployment
 
