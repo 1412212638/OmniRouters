@@ -426,6 +426,7 @@ func PostTextConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, us
 
 	adminRejectReason := common.GetContextKeyString(ctx, constant.ContextKeyAdminRejectReason)
 	summary := calculateTextQuotaSummary(ctx, relayInfo, billingUsage)
+	tokenSubscription := IsTokenSubscriptionRequest(relayInfo)
 
 	var tieredResult *billingexpr.TieredResult
 	var tieredTokens billingexpr.TokenParams
@@ -478,16 +479,40 @@ func PostTextConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, us
 		extraContent = append(extraContent, fmt.Sprintf("Audio Input 花费 %s", logger.LogQuota(common.QuotaFromDecimal(q))))
 	}
 
+	toolQuota := 0
+	if tokenSubscription && !summary.ToolCallSurchargeQuota.IsZero() {
+		var clamp *common.QuotaClamp
+		toolQuota, clamp = common.QuotaFromDecimalChecked(summary.ToolCallSurchargeQuota)
+		noteQuotaClamp(relayInfo, clamp)
+	}
+	if tokenSubscription {
+		// Token subscriptions charge raw LLM input+output tokens. Tool fees
+		// remain separate and are settled against the wallet below.
+		summary.Quota = summary.TotalTokens
+	}
+
 	if !summary.hasBillableUsage() {
 		extraContent = append(extraContent, "上游没有返回计费信息，无法扣费（可能是上游超时）")
 		logger.LogError(ctx, fmt.Sprintf("total tokens is 0, cannot consume quota, userId %d, channelId %d, tokenId %d, model %s， pre-consumed quota %d", relayInfo.UserId, relayInfo.ChannelId, relayInfo.TokenId, summary.ModelName, relayInfo.FinalPreConsumedQuota))
 	} else {
-		model.UpdateUserUsedQuotaAndRequestCount(relayInfo.UserId, summary.Quota)
-		model.UpdateChannelUsedQuota(relayInfo.ChannelId, summary.Quota)
+		if !tokenSubscription {
+			model.UpdateUserUsedQuotaAndRequestCount(relayInfo.UserId, summary.Quota)
+			model.UpdateChannelUsedQuota(relayInfo.ChannelId, summary.Quota)
+		}
 	}
 
-	if err := SettleBilling(ctx, relayInfo, summary.Quota); err != nil {
-		logger.LogError(ctx, "error settling billing: "+err.Error())
+	var settleErr error
+	if tokenSubscription {
+		if session, ok := relayInfo.Billing.(*BillingSession); ok {
+			settleErr = session.SettleTokenBilling(summary.TotalTokens, toolQuota)
+		} else {
+			settleErr = fmt.Errorf("token subscription billing session is missing")
+		}
+	} else {
+		settleErr = SettleBilling(ctx, relayInfo, summary.Quota)
+	}
+	if settleErr != nil {
+		logger.LogError(ctx, "error settling billing: "+settleErr.Error())
 	} else if relayInfo != nil && relayInfo.StreamStatus != nil {
 		relayInfo.StreamStatus.BillingSettled = true
 	}

@@ -144,17 +144,32 @@ export function useSubscriptionsColumns(): ColumnDef<PlanRecord>[] {
       },
       {
         id: 'total_amount',
-        header: t('Received amount'),
+        header: t('Allowance'),
         meta: { mobileHidden: true },
         cell: ({ row }) => {
           const total = Number(row.original.plan.total_amount || 0)
           return (
             <span className='text-muted-foreground'>
-              {total > 0 ? formatQuota(total) : t('Unlimited')}
+              {row.original.plan.billing_mode === 'token'
+                ? total > 0
+                  ? `${total.toLocaleString()} ${t('tokens')}`
+                  : t('Unlimited')
+                : total > 0
+                  ? formatQuota(total)
+                  : t('Unlimited')}
             </span>
           )
         },
         size: 150,
+      },
+      {
+        id: 'billing_mode',
+        header: t('Billing Mode'),
+        cell: ({ row }) =>
+          row.original.plan.billing_mode === 'token'
+            ? t('Token based')
+            : t('Quota based'),
+        size: 120,
       },
       {
         id: 'allowed_groups',

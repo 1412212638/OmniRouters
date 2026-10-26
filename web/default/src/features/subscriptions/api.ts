@@ -215,6 +215,16 @@ export async function updateBillingPreference(
   return res.data
 }
 
+export async function createSubscriptionToken(
+  subscriptionId: number,
+  name: string
+): Promise<ApiResponse<{ token: string; id: number; name: string }>> {
+  const res = await api.post(`/api/subscription/self/${subscriptionId}/token`, {
+    name,
+  })
+  return res.data
+}
+
 export async function getGroups(): Promise<ApiResponse<string[]>> {
   const res = await api.get('/api/group')
   return res.data

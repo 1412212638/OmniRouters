@@ -10,6 +10,15 @@ import {
 } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
 import {
   Select,
@@ -31,6 +40,7 @@ import {
   getPublicPlans,
   getSelfSubscriptionFull,
   updateBillingPreference,
+  createSubscriptionToken,
 } from '@/features/subscriptions/api'
 import { SubscriptionPurchaseDialog } from '@/features/subscriptions/components/dialogs/subscription-purchase-dialog'
 import { formatDuration, formatResetPeriod } from '@/features/subscriptions/lib'
@@ -74,6 +84,13 @@ function getBillingPreferenceLabel(
   }
 }
 
+function formatTokenCount(value: number): string {
+  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(2)}B`
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`
+  return String(Math.max(0, Math.round(value)))
+}
+
 export function SubscriptionPlansCard({
   topupInfo,
   onAvailabilityChange,
@@ -96,6 +113,10 @@ export function SubscriptionPlansCard({
 
   const [purchaseOpen, setPurchaseOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<PlanRecord | null>(null)
+  const [tokenSubscriptionId, setTokenSubscriptionId] = useState<number | null>(null)
+  const [tokenName, setTokenName] = useState('')
+  const [createdToken, setCreatedToken] = useState<string | null>(null)
+  const [creatingToken, setCreatingToken] = useState(false)
 
   const enableStripe = !!topupInfo?.enable_stripe_topup
   const enableCreem = !!topupInfo?.enable_creem_topup
@@ -458,19 +479,44 @@ export function SubscriptionPlansCard({
                           ? subscription?.allowed_groups?.join(', ')
                           : t('All groups')}
                       </div>
+                      {subscription?.billing_mode === 'token' && (
+                        <div className='mt-2 flex items-center justify-between gap-2'>
+                          <span className='text-muted-foreground'>
+                            {t('Token subscription')}
+                          </span>
+                          {isActive && (
+                            <Button
+                              variant='outline'
+                              size='sm'
+                              onClick={() => {
+                                setTokenSubscriptionId(subscription.id)
+                                setTokenName('')
+                                setCreatedToken(null)
+                              }}
+                            >
+                              {t('Create subscription key')}
+                            </Button>
+                          )}
+                        </div>
+                      )}
                       <div className='text-muted-foreground mt-1'>
-                        {t('Total Quota')}:{' '}
+                        {subscription?.billing_mode === 'token'
+                          ? t('Total Tokens')
+                          : t('Total Quota')}:{' '}
                         {totalAmount > 0 ? (
                           <Tooltip>
                             <TooltipTrigger
                               render={<span className='cursor-help' />}
                             >
-                              {formatQuota(usedAmount)}/
-                              {formatQuota(totalAmount)} · {t('Remaining')}{' '}
-                              {formatQuota(remainAmount)}
+                              {subscription?.billing_mode === 'token'
+                                ? `${formatTokenCount(usedAmount)}/${formatTokenCount(totalAmount)} · ${t('Remaining')} ${formatTokenCount(remainAmount)}`
+                                : `${formatQuota(usedAmount)}/${formatQuota(totalAmount)} · ${t('Remaining')} ${formatQuota(remainAmount)}`}
                             </TooltipTrigger>
                             <TooltipContent>
-                              {t('Raw Quota')}: {usedAmount}/{totalAmount} ·{' '}
+                              {subscription?.billing_mode === 'token'
+                                ? t('Total Tokens')
+                                : t('Raw Quota')}:{' '}
+                              {usedAmount}/{totalAmount} ·{' '}
                               {t('Remaining')} {remainAmount}
                             </TooltipContent>
                           </Tooltip>
@@ -519,8 +565,8 @@ export function SubscriptionPlansCard({
                   ? `${t('Quota Reset')}: ${formatResetPeriod(plan, t)}`
                   : null,
                 totalAmount > 0
-                  ? `${t('Total Quota')}: ${formatQuota(totalAmount)}`
-                  : `${t('Total Quota')}: ${t('Unlimited')}`,
+                  ? `${plan.billing_mode === 'token' ? t('Total Tokens') : t('Total Quota')}: ${plan.billing_mode === 'token' ? formatTokenCount(totalAmount) : formatQuota(totalAmount)}`
+                  : `${plan.billing_mode === 'token' ? t('Total Tokens') : t('Total Quota')}: ${t('Unlimited')}`,
                 limit > 0 ? `${t('Purchase Limit')}: ${limit}` : null,
                 plan.upgrade_group
                   ? `${t('Upgrade Group')}: ${plan.upgrade_group}`
@@ -614,6 +660,64 @@ export function SubscriptionPlansCard({
           </p>
         )}
       </TitledCard>
+
+      <Dialog
+        open={tokenSubscriptionId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setTokenSubscriptionId(null)
+            setCreatedToken(null)
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('Create subscription key')}</DialogTitle>
+            <DialogDescription>
+              {t('This key shares the token allowance of the subscription.')}
+            </DialogDescription>
+          </DialogHeader>
+          {createdToken ? (
+            <div className='space-y-2'>
+              <p className='text-muted-foreground text-sm'>
+                {t('Copy this key now. It will not be shown again.')}
+              </p>
+              <Input value={createdToken} readOnly onFocus={(e) => e.currentTarget.select()} />
+            </div>
+          ) : (
+            <Input
+              value={tokenName}
+              onChange={(e) => setTokenName(e.target.value)}
+              placeholder={t('Key name')}
+              maxLength={50}
+            />
+          )}
+          <DialogFooter>
+            <Button
+              disabled={creatingToken || !tokenName.trim() || !!createdToken}
+              onClick={async () => {
+                if (!tokenSubscriptionId || !tokenName.trim()) return
+                setCreatingToken(true)
+                try {
+                  const res = await createSubscriptionToken(tokenSubscriptionId, tokenName.trim())
+                  if (res.success && res.data?.token) {
+                    setCreatedToken(res.data.token)
+                    toast.success(t('Created successfully'))
+                  } else {
+                    toast.error(res.message || t('Request failed'))
+                  }
+                } catch {
+                  toast.error(t('Request failed'))
+                } finally {
+                  setCreatingToken(false)
+                }
+              }}
+            >
+              {t('Create')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <SubscriptionPurchaseDialog
         open={purchaseOpen}

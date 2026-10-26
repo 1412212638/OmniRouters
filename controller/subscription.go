@@ -7,6 +7,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -26,6 +27,42 @@ type SubscriptionBalancePayRequest struct {
 	PlanId int `json:"plan_id"`
 }
 
+type SubscriptionTokenRequest struct {
+	Name string `json:"name"`
+}
+
+// CreateSubscriptionToken lets a user mint a minimal key for a purchased
+// token plan. The key is bound to the subscription and shares its quota.
+func CreateSubscriptionToken(c *gin.Context) {
+	userId := c.GetInt("id")
+	subscriptionId, err := strconv.Atoi(c.Param("id"))
+	if err != nil || subscriptionId <= 0 {
+		common.ApiErrorMsg(c, "无效的订阅ID")
+		return
+	}
+	var req SubscriptionTokenRequest
+	if err := c.ShouldBindJSON(&req); err != nil || strings.TrimSpace(req.Name) == "" || len([]rune(req.Name)) > 50 {
+		common.ApiErrorMsg(c, "请输入有效的令牌名称")
+		return
+	}
+	maxTokens := operation_setting.GetMaxUserTokens()
+	count, err := model.CountUserTokens(userId)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	if maxTokens > 0 && int(count) >= maxTokens {
+		common.ApiErrorMsg(c, fmt.Sprintf("已达到最大令牌数量限制 (%d)", maxTokens))
+		return
+	}
+	token, err := model.CreateSubscriptionToken(userId, subscriptionId, req.Name)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	common.ApiSuccess(c, gin.H{"token": token.GetFullKey(), "id": token.Id, "name": token.Name})
+}
+
 func normalizeSubscriptionPlanGroups(groups model.SubscriptionGroupList) (model.SubscriptionGroupList, error) {
 	for _, group := range groups {
 		if strings.TrimSpace(group) == "auto" {
@@ -43,6 +80,43 @@ func normalizeSubscriptionPlanGroups(groups model.SubscriptionGroupList) (model.
 		}
 	}
 	return normalized, nil
+}
+
+func normalizeSubscriptionPlanModels(billingMode string, models model.StringList) (model.StringList, error) {
+	if billingMode != model.SubscriptionBillingModeToken {
+		return model.StringList{}, nil
+	}
+	models = model.StringList(models)
+	if len(models) == 0 {
+		return nil, fmt.Errorf("token subscription requires at least one allowed model")
+	}
+	seen := make(map[string]struct{}, len(models))
+	result := make(model.StringList, 0, len(models))
+	for _, name := range models {
+		name = strings.TrimSpace(name)
+		if name == "" {
+			continue
+		}
+		if _, ok := seen[name]; ok {
+			continue
+		}
+		seen[name] = struct{}{}
+		var meta model.Model
+		if err := model.DB.Where("model_name = ? AND status = ?", name, 1).First(&meta).Error; err != nil {
+			return nil, fmt.Errorf("token subscription model does not exist: %s", name)
+		}
+		for _, modality := range append([]string(meta.InputModalities), []string(meta.OutputModalities)...) {
+			modality = strings.ToLower(strings.TrimSpace(modality))
+			if modality != "" && modality != "text" {
+				return nil, fmt.Errorf("token subscription only supports text LLM models: %s", name)
+			}
+		}
+		result = append(result, name)
+	}
+	if len(result) == 0 {
+		return nil, fmt.Errorf("token subscription requires at least one allowed model")
+	}
+	return result, nil
 }
 
 // ---- User APIs ----
@@ -187,6 +261,19 @@ func AdminCreateSubscriptionPlan(c *gin.Context) {
 		common.ApiErrorMsg(c, "总额度不能为负数")
 		return
 	}
+	if req.Plan.BillingMode == "" {
+		req.Plan.BillingMode = model.SubscriptionBillingModeQuota
+	}
+	if req.Plan.BillingMode != model.SubscriptionBillingModeQuota && req.Plan.BillingMode != model.SubscriptionBillingModeToken {
+		common.ApiErrorMsg(c, "无效的订阅计费模式")
+		return
+	}
+	allowedModels, modelErr := normalizeSubscriptionPlanModels(req.Plan.BillingMode, req.Plan.AllowedModels)
+	if modelErr != nil {
+		common.ApiError(c, modelErr)
+		return
+	}
+	req.Plan.AllowedModels = allowedModels
 	req.Plan.UpgradeGroup = strings.TrimSpace(req.Plan.UpgradeGroup)
 	if req.Plan.UpgradeGroup != "" {
 		if _, ok := ratio_setting.GetGroupRatioCopy()[req.Plan.UpgradeGroup]; !ok {
@@ -256,6 +343,19 @@ func AdminUpdateSubscriptionPlan(c *gin.Context) {
 		common.ApiErrorMsg(c, "总额度不能为负数")
 		return
 	}
+	if req.Plan.BillingMode == "" {
+		req.Plan.BillingMode = model.SubscriptionBillingModeQuota
+	}
+	if req.Plan.BillingMode != model.SubscriptionBillingModeQuota && req.Plan.BillingMode != model.SubscriptionBillingModeToken {
+		common.ApiErrorMsg(c, "无效的订阅计费模式")
+		return
+	}
+	allowedModels, modelErr := normalizeSubscriptionPlanModels(req.Plan.BillingMode, req.Plan.AllowedModels)
+	if modelErr != nil {
+		common.ApiError(c, modelErr)
+		return
+	}
+	req.Plan.AllowedModels = allowedModels
 	req.Plan.UpgradeGroup = strings.TrimSpace(req.Plan.UpgradeGroup)
 	if req.Plan.UpgradeGroup != "" {
 		if _, ok := ratio_setting.GetGroupRatioCopy()[req.Plan.UpgradeGroup]; !ok {
@@ -292,6 +392,8 @@ func AdminUpdateSubscriptionPlan(c *gin.Context) {
 			"waffo_pancake_product_id":   req.Plan.WaffoPancakeProductId,
 			"max_purchase_per_user":      req.Plan.MaxPurchasePerUser,
 			"total_amount":               req.Plan.TotalAmount,
+			"billing_mode":               req.Plan.BillingMode,
+			"allowed_models":              req.Plan.AllowedModels,
 			"upgrade_group":              req.Plan.UpgradeGroup,
 			"allowed_groups":             req.Plan.AllowedGroups,
 			"quota_reset_period":         req.Plan.QuotaResetPeriod,

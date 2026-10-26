@@ -34,6 +34,8 @@ type BillingSession struct {
 	fundingSettled   bool // funding.Settle 已成功，资金来源已提交
 	settled          bool // Settle 全部完成（资金 + 令牌）
 	refunded         bool // Refund 已调用
+	tokenSubscription bool
+	tokenFunding     *SubscriptionFunding
 	mu               sync.Mutex
 }
 
@@ -80,6 +82,34 @@ func (s *BillingSession) Settle(actualQuota int) error {
 	return tokenErr
 }
 
+func (s *BillingSession) SettleTokenBilling(tokenCount int, toolQuota int) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.settled {
+		return nil
+	}
+	if !s.tokenSubscription || s.tokenFunding == nil {
+		return fmt.Errorf("billing session is not token subscription based")
+	}
+	delta := int64(tokenCount) - s.tokenFunding.preConsumed
+	if delta != 0 {
+		if err := s.tokenFunding.Settle(int(delta)); err != nil {
+			return err
+		}
+		s.relayInfo.SubscriptionPostDelta += delta
+	}
+	// The subscription pre-consume record is now committed. If the separate
+	// wallet tool charge fails, a later Refund must not return this amount too.
+	s.fundingSettled = true
+	if toolQuota > 0 {
+		if err := model.DecreaseUserQuota(s.relayInfo.UserId, toolQuota, false); err != nil {
+			return err
+		}
+	}
+	s.settled = true
+	return nil
+}
+
 // Refund 退还所有预扣费，幂等安全，异步执行。
 func (s *BillingSession) Refund(c *gin.Context) {
 	s.mu.Lock()
@@ -104,11 +134,17 @@ func (s *BillingSession) Refund(c *gin.Context) {
 	extraReserved := s.extraReserved
 	subscriptionId := s.relayInfo.SubscriptionId
 	funding := s.funding
+	tokenFunding := s.tokenFunding
 
 	gopool.Go(func() {
 		// 1) 退还资金来源
 		if err := funding.Refund(); err != nil {
 			common.SysLog("error refunding billing source: " + err.Error())
+		}
+		if tokenFunding != nil && tokenFunding != funding {
+			if err := tokenFunding.Refund(); err != nil {
+				common.SysLog("error refunding token subscription: " + err.Error())
+			}
 		}
 		if extraReserved > 0 && funding.Source() == BillingSourceSubscription && subscriptionId > 0 {
 			if err := model.PostConsumeUserSubscriptionDelta(subscriptionId, -int64(extraReserved)); err != nil {
@@ -143,6 +179,9 @@ func (s *BillingSession) needsRefundLocked() bool {
 	if sub, ok := s.funding.(*SubscriptionFunding); ok && sub.preConsumed > 0 {
 		return true
 	}
+	if s.tokenFunding != nil && s.tokenFunding.preConsumed > 0 {
+		return true
+	}
 	return false
 }
 
@@ -154,6 +193,9 @@ func (s *BillingSession) GetPreConsumedQuota() int {
 func (s *BillingSession) Reserve(targetQuota int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.tokenSubscription {
+		return nil
+	}
 
 	imageRequest := false
 	if s.relayInfo != nil {
@@ -207,10 +249,12 @@ func (s *BillingSession) preConsume(c *gin.Context, quota int) *types.NewAPIErro
 
 	// ---- 1) 预扣令牌额度 ----
 	if effectiveQuota > 0 {
-		if err := PreConsumeTokenQuota(s.relayInfo, effectiveQuota); err != nil {
-			return types.NewErrorWithStatusCode(err, types.ErrorCodePreConsumeTokenQuotaFailed, http.StatusForbidden, types.ErrOptionWithSkipRetry(), types.ErrOptionWithNoRecordErrorLog())
+		if !s.tokenSubscription {
+			if err := PreConsumeTokenQuota(s.relayInfo, effectiveQuota); err != nil {
+				return types.NewErrorWithStatusCode(err, types.ErrorCodePreConsumeTokenQuotaFailed, http.StatusForbidden, types.ErrOptionWithSkipRetry(), types.ErrOptionWithNoRecordErrorLog())
+			}
+			s.tokenConsumed = effectiveQuota
 		}
-		s.tokenConsumed = effectiveQuota
 	}
 
 	// ---- 2) 预扣资金来源 ----
@@ -381,6 +425,37 @@ func (s *BillingSession) syncRelayInfo() {
 func NewBillingSession(c *gin.Context, relayInfo *relaycommon.RelayInfo, preConsumedQuota int) (*BillingSession, *types.NewAPIError) {
 	if relayInfo == nil {
 		return nil, types.NewError(fmt.Errorf("relayInfo is nil"), types.ErrorCodeInvalidRequest, types.ErrOptionWithSkipRetry())
+	}
+	tokenSubscriptionKey := IsTokenSubscriptionKey(relayInfo)
+	isStandaloneTool := IsStandaloneToolRequest(relayInfo)
+	if tokenSubscriptionKey && !isStandaloneTool {
+		reservation := int64(relayInfo.GetEstimatePromptTokens())
+		if meta, ok := common.GetContextKeyType[*types.TokenCountMeta](c, constant.ContextKeyTokenCountMeta); ok && meta != nil && meta.MaxTokens > 0 {
+			reservation += int64(meta.MaxTokens)
+		}
+		if reservation <= 0 {
+			reservation = 1
+		}
+		funding := &SubscriptionFunding{requestId: relayInfo.RequestId, userId: relayInfo.UserId, usingGroup: relayInfo.UsingGroup, modelName: relayInfo.OriginModelName, amount: reservation, billingMode: model.SubscriptionBillingModeToken}
+		session := &BillingSession{relayInfo: relayInfo, funding: funding, tokenFunding: funding, tokenSubscription: true}
+		if apiErr := session.preConsume(c, int(reservation)); apiErr != nil {
+			return nil, apiErr
+		}
+		relayInfo.SubscriptionTokenPreConsumed = reservation
+		return session, nil
+	}
+	if tokenSubscriptionKey && isStandaloneTool {
+		// Standalone Search/Fetch calls are tool requests, not LLM token usage.
+		// Charge their configured per-call price from the wallet even when the
+		// caller authenticated with a token subscription key.
+		session := &BillingSession{
+			relayInfo: relayInfo,
+			funding:   &WalletFunding{userId: relayInfo.UserId},
+		}
+		if apiErr := session.preConsume(c, preConsumedQuota); apiErr != nil {
+			return nil, apiErr
+		}
+		return session, nil
 	}
 
 	pref := common.NormalizeBillingPreference(relayInfo.UserSetting.BillingPreference)

@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-27 - Add token-based subscription keys
+
+- Local reason: subscription plans needed a token-based allowance for selected text LLMs, with dedicated keys that share the purchased subscription and tool fees charged separately from the wallet.
+- Changed: added quota/token billing modes and allowed text-model snapshots to plans and user subscriptions; added subscription-key creation and key-type metadata; restricted subscription keys to text LLM protocols and selected models; added raw input/output token pre-consume and settlement with wallet-funded Search/Fetch and built-in tool surcharges; added database migration fields, admin configuration, user key creation UI, token allowance display, and localized labels.
+- Preserved: legacy quota-based subscriptions and general API keys, existing wallet and channel quota accounting, model routing, standalone tool pricing, SQLite/MySQL/PostgreSQL schema compatibility, and existing uncommitted usage-log UI changes.
+- Validation: JSON parsing for all seven frontend locale files, `git diff --check`, and `bun run build` passed. Go tests/build were unavailable because the Go toolchain is not installed in this environment; Go code was reviewed manually for type/import and cross-database usage.
+- Commit and push: pending.
+
 ## 2026-10-25 - Reassess SEO/GEO report after public deployment
 
 - Local reason: the operator confirmed the production site was updated and requested a fresh evaluation using the deployed result.
@@ -22,6 +30,14 @@
 - Changed: added `/openai-compatible-api` with OpenAI SDK/Python guidance, endpoint and model compatibility boundaries, pricing requirements, FAQ, and copyable code; added `/multi-provider-ai-api` with OpenAI/Anthropic/Gemini endpoint guidance, model-specific routing boundaries, pricing requirements, FAQ, and cURL example; registered both routes, generated the TanStack route tree, added route-specific server metadata, sitemap entries, and no-JavaScript HTML fallbacks; preserved route-specific client titles when system branding loads.
 - Preserved: the $10 minimum top-up, no registration credit, live model catalog as the availability source of truth, protected new-api and QuantumNous attribution, existing public/private route behavior, and the decision to defer an unsupported competitor page.
 - Validation: `git diff --check` passed; targeted Oxlint passed for all new/changed SEO page files except the pre-existing non-null assertion in `src/main.tsx`; `bun run build` passed; full `bun run typecheck` and repository lint remain blocked by pre-existing unrelated errors; local browser preview verified both page content, code examples, FAQ, links, and responsive public layout. Go tests remain unavailable because Go is not installed in this environment.
+- Commit and push: pending.
+
+## 2026-10-26 - Show total tokens in usage log details
+
+- Local reason: usage log details showed input/output and cache token breakdowns but did not show their aggregate token count.
+- Changed: added a localized `Total Tokens` row calculated as input tokens plus output tokens in the usage log detail dialog.
+- Preserved: cache read/write rows, billing calculations, log data contracts, and all other usage log views.
+- Validation: `git diff --check` and targeted source inspection passed; no full frontend build run for this small UI change, per user preference.
 - Commit and push: pending.
 
 ## 2026-10-25 - Serve crawlable SEO endpoints and page metadata

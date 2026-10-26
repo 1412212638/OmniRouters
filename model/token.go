@@ -34,7 +34,20 @@ type Token struct {
 	// New tokens may expose the owning user's quota through /api/usage/token/.
 	// Existing rows remain disabled when this column is added by AutoMigrate.
 	AllowUserQuotaQuery bool           `json:"allow_user_quota_query"`
+	// KeyType distinguishes legacy/general keys from subscription keys. Empty
+	// values are treated as general for backwards compatibility.
+	KeyType             string `json:"key_type" gorm:"type:varchar(16);default:'general'"`
+	UserSubscriptionId  int    `json:"user_subscription_id" gorm:"index;default:0"`
+	// Transient subscription snapshot loaded during token authentication.
+	SubscriptionBillingMode string     `json:"-" gorm:"-"`
+	SubscriptionAllowedModels StringList `json:"-" gorm:"-"`
 }
+
+const (
+	TokenKeyTypeGeneral      = "general"
+	TokenKeyTypeSubscription = "subscription"
+	TokenKeyTypeCampaign     = "campaign"
+)
 
 func (token *Token) GetAutoGroups() ([]string, error) {
 	if token.AutoGroups == "" {
@@ -83,6 +96,44 @@ func (token *Token) GetFullKey() string {
 
 func (token *Token) GetMaskedKey() string {
 	return MaskTokenKey(token.Key)
+}
+
+// CreateSubscriptionToken creates a key that only carries the purchased
+// subscription entitlement. It deliberately has no user-wallet quota.
+func CreateSubscriptionToken(userId, subscriptionId int, name string) (*Token, error) {
+	if userId <= 0 || subscriptionId <= 0 || strings.TrimSpace(name) == "" {
+		return nil, errors.New("invalid subscription token arguments")
+	}
+	var sub UserSubscription
+	if err := DB.Where("id = ? AND user_id = ? AND status = ? AND end_time > ?", subscriptionId, userId, "active", GetDBTimestamp()).First(&sub).Error; err != nil {
+		return nil, err
+	}
+	plan, err := GetSubscriptionPlanById(sub.PlanId)
+	if err != nil {
+		return nil, err
+	}
+	billingMode := sub.BillingMode
+	if billingMode == "" {
+		billingMode = plan.BillingMode
+	}
+	if billingMode != SubscriptionBillingModeToken {
+		return nil, errors.New("subscription plan is not token based")
+	}
+	key, err := common.GenerateKey()
+	if err != nil {
+		return nil, err
+	}
+	token := &Token{
+		UserId: userId, Key: key, Name: strings.TrimSpace(name),
+		Status: common.TokenStatusEnabled, CreatedTime: common.GetTimestamp(), AccessedTime: common.GetTimestamp(),
+		ExpiredTime: sub.EndTime, UnlimitedQuota: true, KeyType: TokenKeyTypeSubscription,
+		UserSubscriptionId: subscriptionId, Group: "",
+		AllowUserQuotaQuery: false,
+	}
+	if err := token.Insert(); err != nil {
+		return nil, err
+	}
+	return token, nil
 }
 
 func (token *Token) GetIpLimits() []string {
@@ -232,6 +283,24 @@ func ValidateUserToken(key string) (token *Token, err error) {
 			token.Status != common.TokenStatusEnabled {
 			return token, ErrTokenInvalid
 		}
+		if token.KeyType == TokenKeyTypeSubscription {
+			if token.UserSubscriptionId <= 0 {
+				return token, ErrTokenInvalid
+			}
+			var sub UserSubscription
+			if subErr := DB.Where("id = ? AND user_id = ? AND status = ? AND end_time > ?", token.UserSubscriptionId, token.UserId, "active", GetDBTimestamp()).First(&sub).Error; subErr != nil {
+				return token, ErrTokenInvalid
+			}
+			plan, planErr := GetSubscriptionPlanById(sub.PlanId)
+			if planErr != nil {
+				return token, ErrTokenInvalid
+			}
+			token.SubscriptionBillingMode = sub.BillingMode
+			if token.SubscriptionBillingMode == "" {
+				token.SubscriptionBillingMode = plan.BillingMode
+			}
+			token.SubscriptionAllowedModels = normalizeStringList(sub.AllowedModels)
+		}
 		if token.ExpiredTime != -1 && token.ExpiredTime < common.GetTimestamp() {
 			if !common.RedisEnabled {
 				token.Status = common.TokenStatusExpired
@@ -243,6 +312,9 @@ func ValidateUserToken(key string) (token *Token, err error) {
 			return token, ErrTokenInvalid
 		}
 		if !token.UnlimitedQuota && token.RemainQuota <= 0 {
+			if token.KeyType == TokenKeyTypeSubscription {
+				return token, nil
+			}
 			if !common.RedisEnabled {
 				token.Status = common.TokenStatusExhausted
 				err := token.SelectUpdate()

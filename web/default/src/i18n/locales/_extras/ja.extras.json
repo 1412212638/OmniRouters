@@ -1,0 +1,3 @@
+{
+  "translation.After saving, configure the callback URL, Token, and message encryption mode in the WeChat Official Account platform. Choose plaintext mode for this integration. The existing custom WeChat server settings below remain available separately.": "保存後、WeChat公式アカウントでコールバックURL、Token、メッセージ暗号化モードを設定してください。この連携では平文モードを選択します。既存のカスタムWeChatサーバー設定も引き続き利用できます。"
+}

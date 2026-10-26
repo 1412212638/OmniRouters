@@ -89,6 +89,10 @@ type RelayInfo struct {
 	UsingGroup        string // 使用的分组，当auto跨分组重试时，会变动
 	UserGroup         string // 用户所在分组
 	TokenUnlimited    bool
+	TokenKeyType      string
+	SubscriptionBillingMode string
+	SubscriptionAllowedModels []string
+	SubscriptionTokenPreConsumed int64
 	StartTime         time.Time
 	FirstResponseTime time.Time
 	isFirstResponse   bool
@@ -578,6 +582,8 @@ func genBaseRelayInfo(c *gin.Context, request dto.Request) *RelayInfo {
 		TokenId:        common.GetContextKeyInt(c, constant.ContextKeyTokenId),
 		TokenKey:       common.GetContextKeyString(c, constant.ContextKeyTokenKey),
 		TokenUnlimited: common.GetContextKeyBool(c, constant.ContextKeyTokenUnlimited),
+		TokenKeyType:   common.GetContextKeyString(c, constant.ContextKeyTokenKeyType),
+		SubscriptionBillingMode: common.GetContextKeyString(c, constant.ContextKeySubscriptionBillingMode),
 		TokenGroup:     tokenGroup,
 
 		isFirstResponse: true,
@@ -596,6 +602,9 @@ func genBaseRelayInfo(c *gin.Context, request dto.Request) *RelayInfo {
 			//promptTokens: common.GetContextKeyInt(c, constant.ContextKeyPromptTokens),
 			estimatePromptTokens: common.GetContextKeyInt(c, constant.ContextKeyEstimatedTokens),
 		},
+	}
+	if allowed, ok := common.GetContextKeyType[[]string](c, constant.ContextKeySubscriptionAllowedModels); ok {
+		info.SubscriptionAllowedModels = append([]string(nil), allowed...)
 	}
 
 	if info.RelayMode == relayconstant.RelayModeUnknown {

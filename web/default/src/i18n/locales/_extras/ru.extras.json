@@ -1,3 +1,4 @@
 {
+  "translation.After saving, configure the callback URL, Token, and message encryption mode in the WeChat Official Account platform. Choose plaintext mode for this integration. The existing custom WeChat server settings below remain available separately.": "После сохранения настройте URL обратного вызова, Token и режим шифрования сообщений на платформе WeChat. Для этой интеграции выберите режим открытого текста. Существующие настройки пользовательского сервера WeChat сохраняются отдельно.",
   "translation.Bind a supplier to make it available on the model marketplace.": "Привяжите поставщика, чтобы сделать его доступным на витрине моделей."
 }

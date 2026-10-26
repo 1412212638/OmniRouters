@@ -61,6 +61,7 @@ import {
 } from '../lib'
 import type { PlanRecord } from '../types'
 import { useSubscriptions } from './subscriptions-provider'
+import { getModels } from '@/features/models/api'
 
 interface Props {
   open: boolean
@@ -78,6 +79,7 @@ export function SubscriptionsMutateDrawer({
   const { triggerRefresh } = useSubscriptions()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [groupOptions, setGroupOptions] = useState<string[]>([])
+  const [modelOptions, setModelOptions] = useState<string[]>([])
   const [creatingPancakeProduct, setCreatingPancakeProduct] = useState(false)
   const [pancakeProducts, setPancakeProducts] = useState<
     { id: string; name: string; status: string }[]
@@ -99,6 +101,21 @@ export function SubscriptionsMutateDrawer({
       getGroups()
         .then((res) => {
           if (res.success) setGroupOptions(res.data || [])
+        })
+        .catch(() => {})
+      getModels({ page_size: 500, status: '1' })
+        .then((res) => {
+          if (res.success) {
+            setModelOptions(
+              (res.data?.items || [])
+                .filter(
+                  (item) =>
+                    (item.input_modalities || []).every((m) => m === 'text') &&
+                    (item.output_modalities || []).every((m) => m === 'text')
+                )
+                .map((item) => item.model_name)
+            )
+          }
         })
         .catch(() => {})
       // Best-effort — empty list still lets the operator use "+ Create".
@@ -123,6 +140,7 @@ export function SubscriptionsMutateDrawer({
 
   const durationUnit = form.watch('duration_unit')
   const resetPeriod = form.watch('quota_reset_period')
+  const billingMode = form.watch('billing_mode')
   // Gate "+ Create on Pancake" on the same checks the mint handler runs.
   const watchedTitle = form.watch('title')
   const watchedPrice = form.watch('price_amount')
@@ -321,7 +339,11 @@ export function SubscriptionsMutateDrawer({
                   name='total_amount'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('Total Quota')}</FormLabel>
+                      <FormLabel>
+                        {billingMode === 'token'
+                          ? t('Total Tokens')
+                          : t('Total Quota')}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -340,6 +362,66 @@ export function SubscriptionsMutateDrawer({
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name='billing_mode'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Subscription Billing Mode')}</FormLabel>
+                    <Select
+                      items={[
+                        { value: 'quota', label: t('Quota based') },
+                        { value: 'token', label: t('Token based') },
+                      ]}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent alignItemWithTrigger={false}>
+                        <SelectGroup>
+                          <SelectItem value='quota'>{t('Quota based')}</SelectItem>
+                          <SelectItem value='token'>{t('Token based')}</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      {t('Token plans charge raw input and output tokens; tool fees use wallet balance.')}
+                    </FormDescription>
+                  </FormItem>
+                )}
+              />
+
+              {billingMode === 'token' && (
+                <FormField
+                  control={form.control}
+                  name='allowed_models'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('Allowed LLM Models')}</FormLabel>
+                      <FormControl>
+                        <MultiSelect
+                          id='subscription-allowed-models'
+                          options={modelOptions.map((value) => ({ value, label: value }))}
+                          selected={field.value}
+                          onChange={field.onChange}
+                          placeholder={t('Select allowed text models')}
+                          emptyText={t('No text models available')}
+                          maxVisibleChips={4}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {t('Only selected text LLM models can use this token subscription.')}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}

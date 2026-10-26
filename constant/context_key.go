@@ -25,6 +25,10 @@ const (
 	ContextKeyTokenAutoGroups           ContextKey = "token_auto_groups"
 	ContextKeyTokenAutoRouteStrategy    ContextKey = "token_auto_route_strategy"
 	ContextKeySubscriptionAllowedGroups ContextKey = "subscription_allowed_groups"
+	ContextKeyTokenKeyType              ContextKey = "token_key_type"
+	ContextKeySubscriptionId            ContextKey = "token_subscription_id"
+	ContextKeySubscriptionBillingMode   ContextKey = "token_subscription_billing_mode"
+	ContextKeySubscriptionAllowedModels ContextKey = "token_subscription_allowed_models"
 
 	/* channel related keys */
 	ContextKeyChannelId                ContextKey = "channel_id"

@@ -20,6 +20,8 @@ export const subscriptionPlanSchema = z.object({
   allow_balance_pay: z.boolean().optional().default(true),
   max_purchase_per_user: z.number(),
   total_amount: z.number(),
+  billing_mode: z.enum(['quota', 'token']).default('quota'),
+  allowed_models: z.array(z.string()).optional().default([]),
   upgrade_group: z.string().optional(),
   allowed_groups: z.array(z.string()).optional().default([]),
   stripe_price_id: z.string().optional(),
@@ -48,6 +50,8 @@ export const userSubscriptionSchema = z.object({
   amount_total: z.number(),
   amount_used: z.number(),
   allowed_groups: z.array(z.string()).optional().default([]),
+  billing_mode: z.enum(['quota', 'token']).optional().default('quota'),
+  allowed_models: z.array(z.string()).optional().default([]),
   next_reset_time: z.number().optional(),
 })
 

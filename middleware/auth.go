@@ -536,6 +536,11 @@ func SetupContextForToken(c *gin.Context, token *model.Token, parts ...string) e
 	c.Set("token_key", token.Key)
 	c.Set("token_name", token.Name)
 	c.Set("token_unlimited_quota", token.UnlimitedQuota)
+	c.Set("token_key_type", token.KeyType)
+	common.SetContextKey(c, constant.ContextKeyTokenKeyType, token.KeyType)
+	common.SetContextKey(c, constant.ContextKeySubscriptionId, token.UserSubscriptionId)
+	common.SetContextKey(c, constant.ContextKeySubscriptionBillingMode, token.SubscriptionBillingMode)
+	common.SetContextKey(c, constant.ContextKeySubscriptionAllowedModels, []string(token.SubscriptionAllowedModels))
 	if !token.UnlimitedQuota {
 		c.Set("token_quota", token.RemainQuota)
 	}

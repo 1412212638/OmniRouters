@@ -1,22 +1,11 @@
 {
-  "Add Auto group": "添加 Auto 分组",
-  "Auto group order": "Auto 分组顺序",
-  "{{count}} / {{max}} groups selected": "已选择 {{count}} / {{max}} 个分组",
-  "Drag {{group}} to reorder": "拖动 {{group}} 以重新排序",
-  "Inherit global Auto order": "继承全局 Auto 顺序",
-  "Maximum {{max}} groups selected": "已达到 {{max}} 个分组上限",
-  "Move {{group}} down": "将 {{group}} 下移",
-  "Move {{group}} up": "将 {{group}} 上移",
-  "No available groups in the global Auto order.": "全局 Auto 顺序中当前没有可用分组。",
-  "No valid custom Auto groups remain. Add a group or restore global Auto.": "没有可用的自定义 Auto 分组。请添加分组或恢复全局 Auto。",
-  "Remove {{group}}": "移除 {{group}}",
-  "Restore global Auto": "恢复全局 Auto",
-  "Select at least one Auto group or restore global Auto.": "请至少选择一个 Auto 分组，或恢复全局 Auto。",
-  "Using the complete global Auto order ({{count}} groups)": "正在使用完整全局 Auto 顺序（{{count}} 个分组）",
   "CC Switch": "CC Switch",
   "MjProxy": "MjProxy",
   "MjProxyPlus": "MjProxyPlus",
   "AppSecret": "AppSecret",
   "OmniRouters <noreply@example.com>": "OmniRouters <noreply@example.com>",
-  "credit": "credit"
+  "credit": "credit",
+  "CN / China / 中国": "CN / China / 中国",
+  "Anthropic Messages": "Anthropic Messages",
+  "Google Gemini": "Google Gemini"
 }

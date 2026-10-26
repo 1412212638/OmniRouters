@@ -395,6 +395,7 @@ func AddToken(c *gin.Context) {
 		AutoRouteStrategy:  token.AutoRouteStrategy,
 		AutoGroups:         token.AutoGroups,
 		AllowUserQuotaQuery: request.AllowUserQuotaQuery == nil || *request.AllowUserQuotaQuery,
+		KeyType:             model.TokenKeyTypeGeneral,
 	}
 	err = cleanToken.Insert()
 	if err != nil {
@@ -460,6 +461,15 @@ func UpdateToken(c *gin.Context) {
 			common.ApiErrorI18n(c, i18n.MsgTokenExhaustedCannotEable)
 			return
 		}
+	}
+	if cleanToken.KeyType == model.TokenKeyTypeSubscription && statusOnly == "" {
+		cleanToken.Name = token.Name
+		if err := cleanToken.Update(); err != nil {
+			common.ApiError(c, err)
+			return
+		}
+		common.ApiSuccess(c, buildMaskedTokenResponse(cleanToken))
+		return
 	}
 	if statusOnly != "" {
 		cleanToken.Status = token.Status

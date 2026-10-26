@@ -34,6 +34,13 @@ const (
 	SubscriptionResetCustom  = "custom"
 )
 
+// Subscription billing modes. Empty/unknown values retain the legacy quota
+// behaviour so existing plans remain compatible after migration.
+const (
+	SubscriptionBillingModeQuota = "quota"
+	SubscriptionBillingModeToken = "token"
+)
+
 var (
 	ErrSubscriptionOrderNotFound      = errors.New("subscription order not found")
 	ErrSubscriptionOrderStatusInvalid = errors.New("subscription order status invalid")
@@ -219,6 +226,23 @@ func (groups SubscriptionGroupList) Allows(group string) bool {
 	return false
 }
 
+func (models StringList) Allows(modelName string) bool {
+	modelName = strings.TrimSpace(modelName)
+	if modelName == "" || len(models) == 0 {
+		return false
+	}
+	for _, allowed := range models {
+		if strings.TrimSpace(allowed) == modelName {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *SubscriptionPlan) IsTokenPlan() bool {
+	return p != nil && p.BillingMode == SubscriptionBillingModeToken
+}
+
 // Subscription plan
 type SubscriptionPlan struct {
 	Id int `json:"id"`
@@ -252,6 +276,11 @@ type SubscriptionPlan struct {
 	// Allowed groups for subscription billing. Empty means unrestricted.
 	AllowedGroups SubscriptionGroupList `json:"allowed_groups" gorm:"type:text"`
 
+	// Token plans consume the raw input+output token count and may restrict
+	// access to an explicit allow-list of text LLM model names.
+	BillingMode   string     `json:"billing_mode" gorm:"type:varchar(16);not null;default:'quota'"`
+	AllowedModels StringList `json:"allowed_models" gorm:"type:text"`
+
 	// Total quota (amount in quota units, 0 = unlimited)
 	TotalAmount int64 `json:"total_amount" gorm:"type:bigint;not null;default:0"`
 
@@ -281,6 +310,12 @@ func (p *SubscriptionPlan) NormalizeDefaults() {
 	}
 	if p.AllowedGroups == nil {
 		p.AllowedGroups = SubscriptionGroupList{}
+	}
+	if p.BillingMode != SubscriptionBillingModeToken {
+		p.BillingMode = SubscriptionBillingModeQuota
+	}
+	if p.AllowedModels == nil {
+		p.AllowedModels = StringList{}
 	}
 }
 
@@ -356,6 +391,8 @@ type UserSubscription struct {
 
 	// AllowedGroups is snapshotted from the plan at purchase time.
 	AllowedGroups SubscriptionGroupList `json:"allowed_groups" gorm:"type:text"`
+	BillingMode   string     `json:"billing_mode" gorm:"type:varchar(16);not null;default:'quota'"`
+	AllowedModels StringList `json:"allowed_models" gorm:"type:text"`
 
 	CreatedAt int64 `json:"created_at" gorm:"bigint"`
 	UpdatedAt int64 `json:"updated_at" gorm:"bigint"`
@@ -615,6 +652,8 @@ func CreateUserSubscriptionFromPlanTx(tx *gorm.DB, userId int, plan *Subscriptio
 		UpgradeGroup:  upgradeGroup,
 		PrevUserGroup: prevGroup,
 		AllowedGroups: NormalizeSubscriptionGroups(plan.AllowedGroups),
+		BillingMode:   plan.BillingMode,
+		AllowedModels: normalizeStringList(plan.AllowedModels),
 		CreatedAt:     common.GetTimestamp(),
 		UpdatedAt:     common.GetTimestamp(),
 	}
@@ -1345,9 +1384,20 @@ func maybeResetUserSubscriptionWithPlanTx(tx *gorm.DB, sub *UserSubscription, pl
 	return tx.Save(sub).Error
 }
 
-// PreConsumeUserSubscription pre-consumes from an active subscription that is
-// entitled to bill the actual group selected for the request.
+// PreConsumeUserSubscription pre-consumes from a legacy quota-based active
+// subscription that is entitled to bill the actual group selected for the request.
 func PreConsumeUserSubscription(requestId string, userId int, usingGroup string, modelName string, quotaType int, amount int64) (*SubscriptionPreConsumeResult, error) {
+	return preConsumeUserSubscription(requestId, userId, usingGroup, modelName, quotaType, amount, SubscriptionBillingModeQuota)
+}
+
+// PreConsumeTokenSubscription pre-consumes from a token-based active
+// subscription. It is reserved for subscription keys so a general key cannot
+// accidentally consume a token plan as quota.
+func PreConsumeTokenSubscription(requestId string, userId int, usingGroup string, modelName string, amount int64) (*SubscriptionPreConsumeResult, error) {
+	return preConsumeUserSubscription(requestId, userId, usingGroup, modelName, 0, amount, SubscriptionBillingModeToken)
+}
+
+func preConsumeUserSubscription(requestId string, userId int, usingGroup string, modelName string, quotaType int, amount int64, requiredBillingMode string) (*SubscriptionPreConsumeResult, error) {
 	if userId <= 0 {
 		return nil, errors.New("invalid userId")
 	}
@@ -1379,6 +1429,20 @@ func PreConsumeUserSubscription(requestId string, userId int, usingGroup string,
 			if err := tx.Where("id = ?", existing.UserSubscriptionId).First(&sub).Error; err != nil {
 				return err
 			}
+			plan, err := getSubscriptionPlanByIdTx(tx, sub.PlanId)
+			if err != nil {
+				return err
+			}
+			billingMode := sub.BillingMode
+			if billingMode == "" {
+				billingMode = plan.BillingMode
+			}
+			if billingMode == "" {
+				billingMode = SubscriptionBillingModeQuota
+			}
+			if billingMode != requiredBillingMode {
+				return fmt.Errorf("subscription billing mode %s is not compatible with this request", billingMode)
+			}
 			if !sub.AllowedGroups.Allows(usingGroup) {
 				return fmt.Errorf("%w: group=%s", ErrSubscriptionGroupNotAllowed, usingGroup)
 			}
@@ -1404,14 +1468,21 @@ func PreConsumeUserSubscription(requestId string, userId int, usingGroup string,
 		hasMatchingGroup := false
 		for _, candidate := range subs {
 			sub := candidate
-			if !sub.AllowedGroups.Allows(usingGroup) {
-				continue
-			}
-			hasMatchingGroup = true
 			plan, err := getSubscriptionPlanByIdTx(tx, sub.PlanId)
 			if err != nil {
 				return err
 			}
+			billingMode := sub.BillingMode
+			if billingMode == "" {
+				billingMode = plan.BillingMode
+			}
+			if billingMode == "" {
+				billingMode = SubscriptionBillingModeQuota
+			}
+			if billingMode != requiredBillingMode || !sub.AllowedGroups.Allows(usingGroup) {
+				continue
+			}
+			hasMatchingGroup = true
 			if err := maybeResetUserSubscriptionWithPlanTx(tx, &sub, plan, now); err != nil {
 				return err
 			}
