@@ -8,6 +8,14 @@
 - Validation: confirmed both theme PNG assets and both ICO assets were generated from the supplied source; no build or broad test run was performed for this binary-only asset change.
 - Commit and push: pending.
 
+## 2026-10-27 - Preserve same-origin access for complete custom pages
+
+- Local reason: complete HTML configured for the home/about pages runs in a sandboxed `srcDoc` iframe. Without `allow-same-origin`, the browser assigns it an opaque `null` origin, so relative public API calls such as `/api/pricing` are treated as cross-origin and rejected by the server's credentialed CORS policy.
+- Changed: added `allow-same-origin` only to complete-document home/about `srcDoc` frames, keeping the existing sandbox restrictions and leaving external URL frames unchanged. The configured document now inherits the current site origin and can use same-origin public APIs.
+- Preserved: custom HTML isolation from the surrounding React DOM, existing theme/language postMessage handling, public API access controls, and all external iframe behavior.
+- Validation: `git diff --check` and `bun run build` in `web/default` passed. Go tests were not run because the Go toolchain is unavailable in this environment.
+- Commit and push: pending.
+
 ## 2026-10-27 - Add 404, llms.txt, dynamic sitemap, and JSON-LD metadata
 
 - Local reason: the operator requested the next SEO/GEO fixes after reviewing the external site audit.
