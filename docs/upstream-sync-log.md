@@ -4713,5 +4713,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: convert the declared route type at the helper boundary, preserving the existing route constants and body validation behavior.
 - Preserved: JSON/multipart route rules, model-scoped restrictions, query handling, and task-plugin routing behavior.
 - Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment.
-- Commit and push: pending.
+- Commit and push: source fix committed as `f75f142c2` and pushed to `origin/main` on 2026-10-28; this log update follows.
 
