@@ -4627,3 +4627,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check`; frontend production build not run after this follow-up. Go tests were not run because the Go toolchain is unavailable in this environment.
 - Commit and push: pending.
 
+## 2026-10-27 - Restrict anonymous system status fields
+
+- Local reason: anonymous `/api/status` exposed deployment metadata, administrative module settings, passkey trust policy, and internal pricing controls alongside the public frontend bootstrap configuration.
+- Changed: added role-aware status filtering; anonymous and common-user requests receive only the public branding, login/OAuth, public billing, navigation, legal, and public content fields, while enabled administrator/root dashboard sessions retain the complete status response. Kept the existing endpoint and compatibility behavior for frontend and external API clients.
+- Preserved: public login/register initialization, OAuth client configuration, Turnstile site key, public announcements/FAQ, administrator dashboard status consumers, and the admin-only `/api/status/test` route.
+- Validation: added anonymous-field regression coverage and ran `git diff --check`; Go tests were not run because the Go toolchain is unavailable in this environment.
+- Commit and push: pending.
+

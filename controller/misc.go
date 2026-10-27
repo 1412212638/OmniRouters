@@ -18,6 +18,7 @@ import (
 	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/QuantumNous/new-api/setting/system_setting"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -209,12 +210,104 @@ func GetStatus(c *gin.Context) {
 		data["custom_oauth_providers"] = providersInfo
 	}
 
+	if !hasPrivilegedStatusAccess(c) {
+		data = publicStatusData(data)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
 		"data":    data,
 	})
 	return
+}
+
+func hasPrivilegedStatusAccess(c *gin.Context) bool {
+	if role := c.GetInt("role"); role >= common.RoleAdminUser {
+		status, statusOK := c.Get("status")
+		return statusOK && status == common.UserStatusEnabled
+	}
+	if _, ok := c.Get(sessions.DefaultKey); !ok {
+		return false
+	}
+	session := sessions.Default(c)
+	role, roleOK := session.Get("role").(int)
+	status, statusOK := session.Get("status").(int)
+	return roleOK && statusOK && role >= common.RoleAdminUser && status == common.UserStatusEnabled
+}
+
+// publicStatusData contains only values needed to render public pages and
+// authentication screens. Administrative module settings, deployment details,
+// passkey trust policy, and internal pricing controls stay admin-protected.
+func publicStatusData(data gin.H) gin.H {
+	publicKeys := map[string]struct{}{
+		"email_verification": {},
+		"github_oauth": {},
+		"github_client_id": {},
+		"discord_oauth": {},
+		"discord_client_id": {},
+		"linuxdo_oauth": {},
+		"linuxdo_client_id": {},
+		"linuxdo_minimum_trust_level": {},
+		"telegram_oauth": {},
+		"telegram_bot_name": {},
+		"theme": {},
+		"model_square_theme": {},
+		"model_square_show_usage_metrics": {},
+		"system_name": {},
+		"logo": {},
+		"footer_html": {},
+		"wechat_qrcode": {},
+		"wechat_login": {},
+		"wechat_official_login": {},
+		"wechat_official_name": {},
+		"turnstile_check": {},
+		"turnstile_site_key": {},
+		"docs_link": {},
+		"quota_per_unit": {},
+		"display_in_currency": {},
+		"quota_display_type": {},
+		"custom_currency_symbol": {},
+		"custom_currency_exchange_rate": {},
+		"usd_exchange_rate": {},
+		"price": {},
+		"public_billing": {},
+		"demo_site_enabled": {},
+		"self_use_mode_enabled": {},
+		"register_enabled": {},
+		"password_login_enabled": {},
+		"password_register_enabled": {},
+		"default_use_auto_group": {},
+		"api_info_enabled": {},
+		"uptime_kuma_enabled": {},
+		"announcements_enabled": {},
+		"faq_enabled": {},
+		"HeaderNavModules": {},
+		"oidc_enabled": {},
+		"oidc_client_id": {},
+		"oidc_authorization_endpoint": {},
+		"oidc_display_name": {},
+		"passkey_login": {},
+		"passkey_display_name": {},
+		"passkey_rp_id": {},
+		"setup": {},
+		"user_agreement_enabled": {},
+		"privacy_policy_enabled": {},
+		"checkin_enabled": {},
+		"custom_oauth_providers": {},
+		"api_info": {},
+		"announcements": {},
+		"model_square_carousel": {},
+		"faq": {},
+	}
+
+	public := make(gin.H, len(publicKeys))
+	for key := range publicKeys {
+		if value, ok := data[key]; ok {
+			public[key] = value
+		}
+	}
+	return public
 }
 
 func GetNotice(c *gin.Context) {

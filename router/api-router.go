@@ -24,7 +24,10 @@ func SetApiRouter(router *gin.Engine) {
 	{
 		apiRouter.GET("/setup", controller.GetSetup)
 		apiRouter.POST("/setup", anonymousRequestBodyLimit, controller.PostSetup)
-		apiRouter.GET("/status", controller.GetStatus)
+		// Status doubles as the public frontend bootstrap endpoint. The handler
+		// returns a public whitelist for non-admin requests and full settings only
+		// for an authenticated administrator.
+		apiRouter.GET("/status", middleware.TryUserAuth(), controller.GetStatus)
 		apiRouter.GET("/uptime/status", controller.GetUptimeKumaStatus)
 		apiRouter.GET("/models", middleware.UserAuth(), controller.DashboardListModels)
 		apiRouter.GET("/status/test", middleware.AdminAuth(), controller.TestStatus)
