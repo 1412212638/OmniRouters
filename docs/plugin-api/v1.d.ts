@@ -29,7 +29,7 @@ export interface Meta {
 export interface TaskView { task_id: string; status: string; progress?: string; fail_reason?: string; created_at?: number; updated_at?: number; data?: unknown; properties?: Record<string, unknown> }
 
 export interface DriverContext {
-  requestBody: unknown; requestHeaders: Readonly<Record<string, string>>; action: string;
+  requestBody: unknown; /** Client request headers under canonical names, excluding gateway credentials. Content-Type and Accept are always present. */ requestHeaders: Readonly<Record<string, string>>; action: string;
   model: string; upstreamModel: string; baseUrl: string; apiKey?: string; authHeader: string;
   files: readonly FileReference[]; publicTaskId: string;
   originTasks?: readonly { taskId: string; upstreamTaskId: string; action: string; status: string; data: unknown }[];

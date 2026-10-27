@@ -50,7 +50,9 @@ func (w *WalletFunding) PreConsume(amount int) error {
 	if !reserved {
 		return ErrInsufficientWalletQuota
 	}
-	w.consumed = amount
+	// Retries may reserve additional quota before submission. Keep the full
+	// cumulative amount so a later refund returns every reservation.
+	w.consumed += amount
 	return nil
 }
 

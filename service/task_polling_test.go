@@ -553,3 +553,37 @@ func TestSweepUnrefundedFailedTasksRestoresMarkerAfterFundingFailure(t *testing.
 	assert.Equal(t, subscriptionUsed-int64(taskQuota), getSubscriptionUsed(t, subscriptionID))
 	assert.Equal(t, int64(1), countLogs(t))
 }
+
+// The default timeout is 72 hours so providers with long-running jobs are not
+// refunded while the upstream task is still processing.
+func TestSweepTimedOutTasksAtTheDefaultDeadline(t *testing.T) {
+	truncate(t)
+
+	const userID, initialQuota, taskQuota = 405, 10_000, 1_500
+	seedUser(t, userID, initialQuota)
+	running := makeTask(userID, 0, taskQuota, 0, BillingSourceWallet, 0)
+	running.TaskID = "running_for_60_hours"
+	running.Progress = "50%"
+	running.SubmitTime = time.Now().Add(-60 * time.Hour).Unix()
+	require.NoError(t, model.DB.Create(running).Error)
+	stuck := makeTask(userID, 0, taskQuota, 0, BillingSourceWallet, 0)
+	stuck.TaskID = "running_for_73_hours"
+	stuck.Progress = "50%"
+	stuck.SubmitTime = time.Now().Add(-73 * time.Hour).Unix()
+	require.NoError(t, model.DB.Create(stuck).Error)
+
+	previousTimeout := constant.TaskTimeoutMinutes
+	constant.TaskTimeoutMinutes = 4320
+	t.Cleanup(func() { constant.TaskTimeoutMinutes = previousTimeout })
+
+	sweepTimedOutTasks(context.Background())
+
+	var reloadedRunning, reloadedStuck model.Task
+	require.NoError(t, model.DB.First(&reloadedRunning, running.ID).Error)
+	require.NoError(t, model.DB.First(&reloadedStuck, stuck.ID).Error)
+	assert.NotEqual(t, model.TaskStatusFailure, reloadedRunning.Status)
+	assert.Equal(t, taskQuota, reloadedRunning.Quota)
+	assert.EqualValues(t, model.TaskStatusFailure, reloadedStuck.Status)
+	assert.Equal(t, "任务超时（4320分钟）", reloadedStuck.FailReason)
+	assert.Equal(t, initialQuota+taskQuota, getUserQuota(t, userID))
+}

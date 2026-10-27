@@ -122,6 +122,48 @@ func seedChannel(t *testing.T, id int) {
 	require.NoError(t, model.DB.Create(ch).Error)
 }
 
+func TestWalletFundingPreConsumeAccumulatesRetryReservations(t *testing.T) {
+	truncate(t)
+	seedUser(t, 901, 1_000)
+
+	funding := &WalletFunding{userId: 901}
+	require.NoError(t, funding.PreConsume(200))
+	require.NoError(t, funding.PreConsume(300))
+	assert.Equal(t, 500, funding.consumed)
+
+	var user model.User
+	require.NoError(t, model.DB.First(&user, 901).Error)
+	assert.Equal(t, 500, user.Quota)
+	require.NoError(t, funding.Refund())
+	require.NoError(t, model.DB.First(&user, 901).Error)
+	assert.Equal(t, 1_000, user.Quota)
+}
+
+func TestTaskRetryReservationRejectsInsufficientWalletBeforeSubmit(t *testing.T) {
+	truncate(t)
+	seedUser(t, 902, 1_000)
+
+	funding := &WalletFunding{userId: 902}
+	require.NoError(t, funding.PreConsume(990))
+	info := &relaycommon.RelayInfo{UserId: 902, IsPlayground: true}
+	session := &BillingSession{
+		relayInfo:        info,
+		funding:          funding,
+		preConsumedQuota: 990,
+	}
+
+	err := session.ReserveBeforeSubmit(1_020)
+	require.Error(t, err)
+	apiErr, ok := err.(*types.NewAPIError)
+	require.True(t, ok)
+	assert.Equal(t, types.ErrorCodeInsufficientUserQuota, apiErr.GetErrorCode())
+	assert.Equal(t, 990, session.GetPreConsumedQuota())
+
+	var user model.User
+	require.NoError(t, model.DB.First(&user, 902).Error)
+	assert.Equal(t, 10, user.Quota, "the failed reservation must not change the wallet")
+}
+
 func seedChargedAccounting(t *testing.T, userID, channelID, tokenID, quota, requestCount int) {
 	t.Helper()
 	require.NoError(t, model.DB.Model(&model.User{}).Where("id = ?", userID).Updates(map[string]any{

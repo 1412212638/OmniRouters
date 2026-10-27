@@ -36,14 +36,23 @@ var errTaskPluginUnsupportedMediaType = errors.New("unsupported task plugin medi
 
 const taskPluginInvalidRouteResult = "plugin returned an invalid route result"
 
+// Text fields are bounded by the request body limit, like a JSON body. This
+// keeps multipart JSON fields from having a smaller, surprising limit.
 const (
-	maxTaskPluginFormFields      = 256
-	maxTaskPluginMultipartParts  = 256
-	maxTaskPluginFiles           = 32
-	maxTaskPluginFieldNameBytes  = 256
-	maxTaskPluginFieldValueBytes = 1 << 20
-	maxTaskPluginFilenameBytes   = 255
+	maxTaskPluginFormFields     = 256
+	maxTaskPluginMultipartParts = 256
+	maxTaskPluginFiles          = 32
+	maxTaskPluginFieldNameBytes = 256
+	maxTaskPluginFilenameBytes  = 255
 )
+
+func taskPluginRouteBodyAllowed(routeType, bodyKind string, modelsScoped bool) bool {
+	if routeType == string(pluginruntime.RouteTypeQuery) {
+		return bodyKind == string(pluginruntime.BodyNone)
+	}
+	return bodyKind == string(pluginruntime.BodyJSON) ||
+		(bodyKind == string(pluginruntime.BodyMultipart) && !modelsScoped)
+}
 
 // PrepareTaskPluginRoute resolves and executes the pinned declarative route.
 // Query requests terminate here so channel distribution and billing are never
@@ -91,7 +100,7 @@ func PrepareTaskPluginRoute() gin.HandlerFunc {
 		}
 		bodyObject, _ := requestContext.Body.(map[string]any)
 		bodyKind, _ := bodyObject["kind"].(string)
-		if pinned.Route.Type == pluginruntime.RouteTypeQuery && bodyKind != string(pluginruntime.BodyNone) || pinned.Route.Type != pluginruntime.RouteTypeQuery && bodyKind != string(pluginruntime.BodyJSON) {
+		if !taskPluginRouteBodyAllowed(pinned.Route.Type, bodyKind, len(pinned.Route.Models) > 0) {
 			logger.LogWarn(
 				c,
 				"task_plugin subsystem=route event=prepare_rejected generation=%d plugin=%q stage=request_decode reason=body_kind_mismatch body_kind=%q",
@@ -99,7 +108,10 @@ func PrepareTaskPluginRoute() gin.HandlerFunc {
 				pinned.Plugin.Meta.Key,
 				bodyKind,
 			)
-			detail := "this route requires a JSON body"
+			detail := "this route requires a JSON or multipart body"
+			if len(pinned.Route.Models) > 0 {
+				detail = "this route requires a JSON body"
+			}
 			if pinned.Route.Type == pluginruntime.RouteTypeQuery {
 				detail = "unsupported request body for this operation"
 			}
@@ -871,13 +883,10 @@ func buildTaskPluginRouteRequest(c *gin.Context) (pluginruntime.RouteRequestCont
 					part.Close()
 					return requestContext, fmt.Errorf("request body exceeds %d fields", maxTaskPluginFormFields)
 				}
-				value, readErr := io.ReadAll(io.LimitReader(part, maxTaskPluginFieldValueBytes+1))
+				value, readErr := io.ReadAll(part)
 				part.Close()
 				if readErr != nil {
 					return requestContext, readErr
-				}
-				if len(value) > maxTaskPluginFieldValueBytes {
-					return requestContext, fmt.Errorf("request field %q exceeds %d bytes", name, maxTaskPluginFieldValueBytes)
 				}
 				if !utf8.Valid(value) {
 					return requestContext, fmt.Errorf("request field %q must be valid UTF-8", name)
@@ -973,9 +982,6 @@ func validateTaskPluginFields(fields url.Values) error {
 			}
 			if !utf8.ValidString(value) {
 				return fmt.Errorf("request field %q must be valid UTF-8", name)
-			}
-			if len(value) > maxTaskPluginFieldValueBytes {
-				return fmt.Errorf("request field %q exceeds %d bytes", name, maxTaskPluginFieldValueBytes)
 			}
 		}
 	}

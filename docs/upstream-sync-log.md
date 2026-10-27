@@ -6,7 +6,15 @@
 - Changed: added Resend as an alternative mail provider with a separately configured sender address and display name while retaining SMTP/TLS settings; persisted cache-read and cache-write token counters through hourly quota data and exposed them beside total tokens in the dashboard; added Alibaba Bailian native multimodal embedding conversion for `qwen3-vl-embedding` families with text, image, and video inputs, usage mapping, and Gemini media rejection to avoid silently billing unsupported media.
 - Preserved: existing SMTP templates, marketing mail settings, secret-key redaction, subscription and expression billing, total-token semantics, SQLite/MySQL/PostgreSQL GORM aggregation, text-only embedding compatibility, and existing channel routing.
 - Validation: `git diff --check` passed. Frontend typecheck reports pre-existing errors outside these changes; Go tests/build were not run because the Go toolchain is unavailable. Added focused cache aggregation and embedding conversion regressions.
-- Commit: `94faf3552` (`feat: sync mail dashboard and embedding updates`). Local only; not pushed.
+- Commit: `e646c98a7` (`feat: sync mail dashboard and embedding updates`). Local only; not pushed.
+
+## 2026-10-28 - Harden task plugin inputs and retry billing
+
+- Upstream commits: `556517fa5`, `dbe97beb9`, `0034b2491`, and `55e2ae54d`.
+- Changed: allow unscoped native task-plugin submit/dynamic routes to decode multipart requests under the global body limit; pass canonical client headers to plugin drivers while excluding gateway credentials; increase the default asynchronous task timeout to 72 hours; reprice each task submission retry and reserve any increased charge before contacting the upstream; accumulate wallet reservations so a failed retry refunds the full amount.
+- Preserved: model-scoped plugin routes remain JSON-only, URL-encoded forms remain rejected, existing multipart/file/part/count limits, task plugin request contracts, local subscription funding and settlement, image pre-consume behavior, and explicit `TASK_TIMEOUT_MINUTES` overrides.
+- Validation: `git diff --check` passed. Added focused multipart/header and wallet retry reservation regressions, and a 60/73-hour timeout regression. Go tests/build were not run because the Go toolchain is unavailable.
+- Commit: pending; local only, not pushed.
 
 ## 2026-10-28 - Sync billing, limiter, protocol, and stream reliability fixes
 

@@ -191,6 +191,15 @@ func (s *BillingSession) GetPreConsumedQuota() int {
 }
 
 func (s *BillingSession) Reserve(targetQuota int) error {
+	return s.reserve(targetQuota, false)
+}
+
+// ReserveBeforeSubmit 在发起上游请求前补扣重试价格，资金来源必须覆盖差额。
+func (s *BillingSession) ReserveBeforeSubmit(targetQuota int) error {
+	return s.reserve(targetQuota, true)
+}
+
+func (s *BillingSession) reserve(targetQuota int, requireAvailableQuota bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.tokenSubscription {
@@ -202,7 +211,8 @@ func (s *BillingSession) Reserve(targetQuota int) error {
 		_, imageRequest = s.relayInfo.Request.(*dto.ImageRequest)
 		imageRequest = imageRequest || s.relayInfo.ImageRequestCount > 0
 	}
-	if s.settled || s.refunded || s.trusted && !imageRequest || targetQuota <= s.preConsumedQuota {
+	requireAvailableQuota = requireAvailableQuota || imageRequest
+	if s.settled || s.refunded || s.trusted && !requireAvailableQuota || targetQuota <= s.preConsumedQuota {
 		return nil
 	}
 
@@ -211,7 +221,7 @@ func (s *BillingSession) Reserve(targetQuota int) error {
 		return nil
 	}
 
-	if err := s.reserveFunding(delta, imageRequest); err != nil {
+	if err := s.reserveFunding(delta, requireAvailableQuota); err != nil {
 		return err
 	}
 	if err := s.reserveToken(delta); err != nil {
@@ -222,7 +232,7 @@ func (s *BillingSession) Reserve(targetQuota int) error {
 	s.preConsumedQuota += delta
 	s.tokenConsumed += delta
 	s.extraReserved += delta
-	if imageRequest {
+	if requireAvailableQuota {
 		s.trusted = false
 	}
 	s.syncRelayInfo()

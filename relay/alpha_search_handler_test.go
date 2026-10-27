@@ -69,7 +69,8 @@ func (s *recordedSettlement) Settle(quota int) error {
 func (s *recordedSettlement) Refund(*gin.Context)    { s.refunded = true }
 func (*recordedSettlement) NeedsRefund() bool        { return false }
 func (*recordedSettlement) GetPreConsumedQuota() int { return 0 }
-func (*recordedSettlement) Reserve(int) error        { return nil }
+func (*recordedSettlement) Reserve(int) error               { return nil }
+func (*recordedSettlement) ReserveBeforeSubmit(int) error   { return nil }
 
 // /v1/tools/search and /v1/tools/fetch follow /v1/alpha/search: the raw body
 // reaches /v1/tools/* unchanged and the response returns unchanged. With only

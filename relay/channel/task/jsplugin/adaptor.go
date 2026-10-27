@@ -76,6 +76,35 @@ type taskResult struct {
 
 var taskArtifactKeyPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._~-]{0,127}$`)
 
+// These headers carry credentials for the gateway itself. They are never
+// exposed to task plugins; vendor-specific headers remain available for a
+// plugin to copy explicitly into its upstream request.
+var gatewayCredentialHeaders = map[string]struct{}{
+	"Authorization":       {},
+	"Proxy-Authorization": {},
+	"Cookie":              {},
+	"X-Api-Key":           {},
+	"X-Goog-Api-Key":      {},
+	"Mj-Api-Secret":       {},
+}
+
+func filteredClientRequestHeaders(headers http.Header) map[string]string {
+	result := make(map[string]string, len(headers))
+	for name, values := range headers {
+		canonicalName := http.CanonicalHeaderKey(name)
+		if len(values) == 0 {
+			continue
+		}
+		if _, forbidden := gatewayCredentialHeaders[canonicalName]; forbidden {
+			continue
+		}
+		result[canonicalName] = values[0]
+	}
+	result["Content-Type"] = headers.Get("Content-Type")
+	result["Accept"] = headers.Get("Accept")
+	return result
+}
+
 const maxTaskArtifacts = 64
 
 // maxTaskPluginPersistedJSONBytes is the shared ceiling for taskData and plugin state.
@@ -1409,8 +1438,7 @@ func (a *TaskAdaptor) submitContext(c *gin.Context, info *relaycommon.RelayInfo)
 					routeRequest.Query[key] = append([]string(nil), values...)
 				}
 			}
-			requestHeaders["Content-Type"] = c.GetHeader("Content-Type")
-			requestHeaders["Accept"] = c.GetHeader("Accept")
+			requestHeaders = filteredClientRequestHeaders(c.Request.Header)
 			if strings.Contains(c.GetHeader("Content-Type"), "multipart/form-data") {
 				if form, err := common.ParseMultipartFormReusable(c); err == nil {
 					defer form.RemoveAll()
