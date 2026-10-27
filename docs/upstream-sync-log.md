@@ -4689,5 +4689,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: use the existing `common.JSONRawMessage` alias when preserving raw JSON array elements, and add a regression test that verifies object key order is retained during array append operations.
 - Preserved: parameter override behavior, raw JSON preservation, task-plugin registration, and all upstream-synced functionality.
 - Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment. The GitHub Actions failure is the reproduced build evidence.
-- Commit and push: pending.
+- Commit and push: source fix committed as `ab60acced` and pushed to `origin/main` on 2026-10-28; this log update follows.
 
