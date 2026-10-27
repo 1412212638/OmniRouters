@@ -37,6 +37,7 @@ type ChannelFilterKind string
 
 const (
 	FilterRequestPath        ChannelFilterKind = "request_path"
+	FilterTaskPluginEndpoint ChannelFilterKind = "task_plugin_endpoint"
 	FilterTaskPluginIdentity ChannelFilterKind = "task_plugin_identity"
 )
 
@@ -46,6 +47,9 @@ type ChannelFilter struct {
 	TaskPluginKey          string
 	TaskPluginKeys         []string
 	TaskPluginChannelTypes []int
+	// TaskPluginRelayOnly excludes plugin candidates after an ordinary relay
+	// channel wins endpoint selection, so retries stay on ordinary channels.
+	TaskPluginRelayOnly bool
 }
 
 type ChannelConstraints struct {

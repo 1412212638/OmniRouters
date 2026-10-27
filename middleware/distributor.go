@@ -104,10 +104,17 @@ func Distribute() func(c *gin.Context) {
 				}
 				var selectGroup string
 				usingGroup := common.GetContextKeyString(c, constant.ContextKeyUsingGroup)
+				if value, exists := c.Get(contextKeyTaskPluginEndpointSelection); exists {
+					if selected, ok := value.(taskPluginEndpointSelection); ok && selected.Model == modelRequest.Model && selected.Channel != nil && selected.Channel.Status == common.ChannelStatusEnabled {
+						if matches, _ := model.ChannelSatisfiesFilters(selected.Channel, modelRequest.Model, constraints.Filters); matches {
+							channel = selected.Channel
+						}
+					}
+				}
 				// Playground endpoints may override the user's active group.
-				if strings.HasPrefix(c.Request.URL.Path, "/pg/chat/completions") ||
+				if channel == nil && (strings.HasPrefix(c.Request.URL.Path, "/pg/chat/completions") ||
 					strings.HasPrefix(c.Request.URL.Path, "/pg/images/generations") ||
-					strings.HasPrefix(c.Request.URL.Path, "/pg/images/edits") {
+					strings.HasPrefix(c.Request.URL.Path, "/pg/images/edits")) {
 					playgroundRequest := &dto.PlayGroundRequest{}
 					err = common.UnmarshalBodyReusable(c, playgroundRequest)
 					if err != nil {
@@ -124,67 +131,68 @@ func Distribute() func(c *gin.Context) {
 					}
 				}
 
-				if preferredChannelID, found := service.GetPreferredChannelByAffinity(c, modelRequest.Model, usingGroup); found {
-					affinityUsable := false
-					preferred, err := model.CacheGetChannel(preferredChannelID)
-					affinitySatisfied := false
-					if err == nil && preferred != nil && preferred.Status == common.ChannelStatusEnabled {
-						affinitySatisfied, _ = model.ChannelSatisfiesFilters(preferred, modelRequest.Model, constraints.Filters)
-					}
-					if affinitySatisfied {
-						if usingGroup == "auto" {
-							userGroup := common.GetContextKeyString(c, constant.ContextKeyUserGroup)
-							autoGroups := service.GetRequestAutoGroups(c, userGroup)
-							autoGroups = service.SortAutoGroupsByPrice(c, userGroup, modelRequest.Model, autoGroups)
-							for _, g := range autoGroups {
-								if model.IsChannelEnabledForGroupModel(g, modelRequest.Model, preferred.Id) {
-									selectGroup = g
-									common.SetContextKey(c, constant.ContextKeyAutoGroup, g)
-									channel = preferred
-									affinityUsable = true
-									service.MarkChannelAffinityUsed(c, g, preferred.Id)
-									break
-								}
-							}
-						} else if model.IsChannelEnabledForGroupModel(usingGroup, modelRequest.Model, preferred.Id) {
-							channel = preferred
-							selectGroup = usingGroup
-							affinityUsable = true
-							service.MarkChannelAffinityUsed(c, usingGroup, preferred.Id)
-						}
-					}
-					if !affinityUsable && !service.ShouldKeepChannelAffinityOnChannelDisabled() {
-						service.ClearCurrentChannelAffinityCache(c)
-					}
-				}
-
 				if channel == nil {
-					channel, selectGroup, err = service.CacheGetRandomSatisfiedChannel(&service.RetryParam{
-						Ctx:         c,
-						ModelName:   modelRequest.Model,
-						TokenGroup:  usingGroup,
-						RequestPath: c.Request.URL.Path,
-						Retry:       common.GetPointer(0),
-					})
-					if err != nil {
-						showGroup := usingGroup
-						if usingGroup == "auto" {
-							showGroup = fmt.Sprintf("auto(%s)", selectGroup)
+					if preferredChannelID, found := service.GetPreferredChannelByAffinity(c, modelRequest.Model, usingGroup); found {
+						affinityUsable := false
+						preferred, err := model.CacheGetChannel(preferredChannelID)
+						affinitySatisfied := false
+						if err == nil && preferred != nil && preferred.Status == common.ChannelStatusEnabled {
+							affinitySatisfied, _ = model.ChannelSatisfiesFilters(preferred, modelRequest.Model, constraints.Filters)
 						}
-						message := i18n.T(c, i18n.MsgDistributorGetChannelFailed, map[string]any{"Group": showGroup, "Model": modelRequest.Model, "Error": err.Error()})
-						// 如果错误，但是渠道不为空，说明是数据库一致性问题
-						//if channel != nil {
-						//	common.SysError(fmt.Sprintf("渠道不存在：%d", channel.Id))
-						//	message = "数据库一致性已被破坏，请联系管理员"
-						//}
-						abortWithOpenAiMessage(c, http.StatusServiceUnavailable, message, types.ErrorCodeModelNotFound)
-						return
+						if affinitySatisfied {
+							if usingGroup == "auto" {
+								userGroup := common.GetContextKeyString(c, constant.ContextKeyUserGroup)
+								autoGroups := service.GetRequestAutoGroups(c, userGroup)
+								autoGroups = service.SortAutoGroupsByPrice(c, userGroup, modelRequest.Model, autoGroups)
+								for _, g := range autoGroups {
+									if model.IsChannelEnabledForGroupModel(g, modelRequest.Model, preferred.Id) {
+										selectGroup = g
+										common.SetContextKey(c, constant.ContextKeyAutoGroup, g)
+										channel = preferred
+										affinityUsable = true
+										service.MarkChannelAffinityUsed(c, g, preferred.Id)
+										break
+									}
+								}
+							} else if model.IsChannelEnabledForGroupModel(usingGroup, modelRequest.Model, preferred.Id) {
+								channel = preferred
+								selectGroup = usingGroup
+								affinityUsable = true
+								service.MarkChannelAffinityUsed(c, usingGroup, preferred.Id)
+							}
+						}
+						if !affinityUsable && !service.ShouldKeepChannelAffinityOnChannelDisabled() {
+							service.ClearCurrentChannelAffinityCache(c)
+						}
 					}
+
 					if channel == nil {
-						abortWithOpenAiMessage(c, http.StatusServiceUnavailable, noAvailableChannelMessage(c, usingGroup, modelRequest.Model), types.ErrorCodeModelNotFound)
-						return
+						channel, selectGroup, err = service.CacheGetRandomSatisfiedChannel(&service.RetryParam{
+							Ctx:         c,
+							ModelName:   modelRequest.Model,
+							TokenGroup:  usingGroup,
+							RequestPath: c.Request.URL.Path,
+							Retry:       common.GetPointer(0),
+						})
+						if err != nil {
+							showGroup := usingGroup
+							if usingGroup == "auto" {
+								showGroup = fmt.Sprintf("auto(%s)", selectGroup)
+							}
+							message := i18n.T(c, i18n.MsgDistributorGetChannelFailed, map[string]any{"Group": showGroup, "Model": modelRequest.Model, "Error": err.Error()})
+							// 如果错误，但是渠道不为空，说明是数据库一致性问题
+							//if channel != nil {
+							//	common.SysError(fmt.Sprintf("渠道不存在：%d", channel.Id))
+							//	message = "数据库一致性已被破坏，请联系管理员"
+							//}
+							abortWithOpenAiMessage(c, http.StatusServiceUnavailable, message, types.ErrorCodeModelNotFound)
+							return
+						}
+						if channel == nil {
+							abortWithOpenAiMessage(c, http.StatusServiceUnavailable, noAvailableChannelMessage(c, usingGroup, modelRequest.Model), types.ErrorCodeModelNotFound)
+							return
+						}
 					}
-				}
 			}
 		}
 		if channel != nil {

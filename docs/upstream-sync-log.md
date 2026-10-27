@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-28 - Let ordinary channels compete on shared task endpoints
+
+- Upstream commit: `880211326`.
+- Changed: shared Responses, image, and video submit endpoints now select ordinary relay channels and matching task-plugin channels together under the existing group, priority, weight, affinity, and retry rules; ordinary winners bypass plugin decoding and request rewriting, while plugin winners keep the native plugin preparation path. Added endpoint-aware channel filters and switched the host protocol router to the shared selection middleware.
+- Preserved: native plugin-only routes, task-plugin identity routing, multipart/request-header handling from the preceding batch, plugin protocol validation, ordinary channel pricing, and local subscription billing.
+- Validation: `git diff --check` passed. Go tests/build were not run because the Go toolchain is unavailable; shared endpoint selection still needs runtime integration coverage for ordinary/plugin priority and retries.
+- Commit: pending; local only, not pushed.
+
 ## 2026-10-28 - Add Resend mail, cache dashboard metrics, and multimodal embeddings
 
 - Upstream commits: `32e587406`, `603a5ceb5`, and `afe73b08f`.
