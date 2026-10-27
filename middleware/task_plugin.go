@@ -108,7 +108,7 @@ func PrepareTaskPluginRoute() gin.HandlerFunc {
 		}
 		bodyObject, _ := requestContext.Body.(map[string]any)
 		bodyKind, _ := bodyObject["kind"].(string)
-		if !taskPluginRouteBodyAllowed(pinned.Route.Type, bodyKind, len(pinned.Route.Models) > 0) {
+		if !taskPluginRouteBodyAllowed(string(pinned.Route.Type), bodyKind, len(pinned.Route.Models) > 0) {
 			logger.LogWarn(
 				c,
 				"task_plugin subsystem=route event=prepare_rejected generation=%d plugin=%q stage=request_decode reason=body_kind_mismatch body_kind=%q",

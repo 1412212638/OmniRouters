@@ -4707,3 +4707,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment.
 - Commit and push: source fix committed as `d45459536` and pushed to `origin/main` on 2026-10-28; this log update follows.
 
+## 2026-10-28 - Fix task-plugin route type compatibility
+
+- Local reason: the GitHub Actions image build reached Go type checking and rejected `pinned.Route.Type` (`jsplugin.RouteType`) where the existing body validation helper accepts a string.
+- Changed: convert the declared route type at the helper boundary, preserving the existing route constants and body validation behavior.
+- Preserved: JSON/multipart route rules, model-scoped restrictions, query handling, and task-plugin routing behavior.
+- Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment.
+- Commit and push: pending.
+
