@@ -30,7 +30,7 @@
 - Changed: allow unscoped native task-plugin submit/dynamic routes to decode multipart requests under the global body limit; pass canonical client headers to plugin drivers while excluding gateway credentials; increase the default asynchronous task timeout to 72 hours; reprice each task submission retry and reserve any increased charge before contacting the upstream; accumulate wallet reservations so a failed retry refunds the full amount.
 - Preserved: model-scoped plugin routes remain JSON-only, URL-encoded forms remain rejected, existing multipart/file/part/count limits, task plugin request contracts, local subscription funding and settlement, image pre-consume behavior, and explicit `TASK_TIMEOUT_MINUTES` overrides.
 - Validation: `git diff --check` passed. Added focused multipart/header and wallet retry reservation regressions, and a 60/73-hour timeout regression. Go tests/build were not run because the Go toolchain is unavailable.
-- Commit: pending; local only, not pushed.
+- Commit: `e1b87c8a3` (local only; not pushed).
 
 ## 2026-10-28 - Sync billing, limiter, protocol, and stream reliability fixes
 
