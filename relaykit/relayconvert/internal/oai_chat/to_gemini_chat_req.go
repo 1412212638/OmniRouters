@@ -19,6 +19,7 @@ func OpenAIChatRequestToGeminiGenerateContent(c context.Context, textRequest dto
 		Contents: make([]dto.GeminiChatContent, 0, len(textRequest.Messages)),
 		GenerationConfig: dto.GeminiChatGenerationConfig{
 			Temperature: textRequest.Temperature,
+			ImageConfig: textRequest.ImageConfig,
 		},
 	}
 

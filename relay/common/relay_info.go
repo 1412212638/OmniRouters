@@ -1083,7 +1083,9 @@ func RemoveDisabledFields(jsonData []byte, channelOtherSettings dto.ChannelOther
 		return jsonData, nil
 	}
 
-	var data map[string]interface{}
+	// Decode only top-level members so nested JSON values retain their original
+	// property order when the request is re-encoded.
+	var data map[string]json.RawMessage
 	if err := common.Unmarshal(jsonData, &data); err != nil {
 		common.SysError("RemoveDisabledFields Unmarshal error :" + err.Error())
 		return jsonData, nil
@@ -1126,16 +1128,18 @@ func RemoveDisabledFields(jsonData []byte, channelOtherSettings dto.ChannelOther
 
 	// 默认移除 stream_options.include_obfuscation，除非明确允许（避免关闭响应流混淆保护）
 	if !channelOtherSettings.AllowIncludeObfuscation {
-		if streamOptionsAny, exists := data["stream_options"]; exists {
-			if streamOptions, ok := streamOptionsAny.(map[string]interface{}); ok {
-				if _, includeExists := streamOptions["include_obfuscation"]; includeExists {
-					delete(streamOptions, "include_obfuscation")
+		var streamOptions map[string]json.RawMessage
+		if err := common.Unmarshal(data["stream_options"], &streamOptions); err == nil && streamOptions != nil {
+			delete(streamOptions, "include_obfuscation")
+			if len(streamOptions) == 0 {
+				delete(data, "stream_options")
+			} else {
+				encoded, err := common.Marshal(streamOptions)
+				if err != nil {
+					common.SysError("RemoveDisabledFields Marshal error :" + err.Error())
+					return jsonData, nil
 				}
-				if len(streamOptions) == 0 {
-					delete(data, "stream_options")
-				} else {
-					data["stream_options"] = streamOptions
-				}
+				data["stream_options"] = encoded
 			}
 		}
 	}

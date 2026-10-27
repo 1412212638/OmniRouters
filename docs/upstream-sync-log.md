@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-28 - Sync billing, limiter, protocol, and stream reliability fixes
+
+- Upstream commits: `94cc3ff09`, `e2a0c4b16`, `0165fef98`, `4d962e464`, `1dafb19a4`, `783735607`, `7e6596728`, `0c2af9780`, and the relevant JSON-order portions of `d0b840e75`.
+- Changed: bill unlabelled Claude cache writes as 5-minute writes; retry Redis rate limiting with the script body after `NOSCRIPT`; preserve Gemini text beside tool calls, Claude tool argument number precision, adjacent Claude assistant tool calls, top-level OpenAI-to-Gemini image configuration, nested schema/property order during controlled request filtering and parameter overrides; propagate Responses stream write errors and treat delivered terminal events as successful; use a cumulative byte-based write deadline for slow SSE clients.
+- Preserved: local subscription and expression billing, DeepSeek tool routing, existing stream keepalive and client-disconnect draining, channel-specific request filtering, tool billing counters, image-generation settlement, and the current relay conversion registry.
+- Validation: `git diff --cached --check` passed. Added targeted Go regression tests for unsplit Claude cache writes, Redis script flush recovery, Claude tool-call merging, Responses completion lifecycle, stream write budgets, and nested schema order. Go tests/build were not run because the Go toolchain is unavailable in the environment.
+- Commit: `f61b8e29d` (`fix: sync billing and stream reliability updates`). Local only; not pushed.
+
 ## 2026-10-27 - Replace default frontend logo assets
 
 - Local reason: the operator supplied the OmniRouters transparent logo and requested replacing the remaining default New API logo asset.

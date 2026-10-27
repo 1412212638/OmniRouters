@@ -31,8 +31,15 @@ func BuildTieredTokenParams(usage *dto.Usage, isClaudeUsageSemantic bool, usedVa
 	cc1h := float64(0)
 
 	if usage.UsageSemantic == "anthropic" {
-		cc1h = float64(usage.ClaudeCacheCreation1hTokens)
-		cc5m = float64(usage.ClaudeCacheCreation5mTokens)
+		// Some upstreams report only the cache-write total. Bill any amount
+		// not covered by the explicit TTL split as a 5-minute cache write.
+		split5m, split1h := NormalizeCacheCreationSplit(
+			usage.PromptTokensDetails.CacheCreationTokensTotal(),
+			usage.ClaudeCacheCreation5mTokens,
+			usage.ClaudeCacheCreation1hTokens,
+		)
+		cc1h = float64(split1h)
+		cc5m = float64(split5m)
 	}
 
 	img := float64(usage.PromptTokensDetails.ImageTokens)
