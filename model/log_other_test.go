@@ -68,3 +68,27 @@ func TestLogOtherRejectsSensitivePublicFields(t *testing.T) {
 	require.JSONEq(t, `{"request_path":"/v1/responses"}`, other.JSONString())
 	require.JSONEq(t, `{}`, NewLogOther().JSONString())
 }
+
+func TestQuotaCacheTokensUsesNormalizedTotals(t *testing.T) {
+	other := NewLogOther()
+	other.SetPublic("cache_tokens", 120)
+	other.SetPublic("cache_write_tokens", 40)
+	other.SetPublic("cache_creation_tokens", 50)
+
+	read, creation := quotaCacheTokens(other)
+	assert.EqualValues(t, 120, read)
+	assert.EqualValues(t, 40, creation)
+
+	legacy := NewLogOther()
+	legacy.SetPublic("cache_creation_tokens", 50)
+	read, creation = quotaCacheTokens(legacy)
+	assert.Zero(t, read)
+	assert.EqualValues(t, 50, creation)
+
+	negative := NewLogOther()
+	negative.SetPublic("cache_tokens", -1)
+	negative.SetPublic("cache_write_tokens", -2)
+	read, creation = quotaCacheTokens(negative)
+	assert.Zero(t, read)
+	assert.Zero(t, creation)
+}

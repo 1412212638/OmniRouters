@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
@@ -284,6 +285,19 @@ func (a *Adaptor) ConvertRerankRequest(c *gin.Context, relayMode int, request dt
 func (a *Adaptor) ConvertEmbeddingRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.EmbeddingRequest) (any, error) {
 	if request.Input == nil {
 		return nil, errors.New("input is required")
+	}
+	// Gemini embedding endpoints accept plain text only. Reject content parts
+	// before billing rather than silently dropping media and charging it.
+	if items, ok := request.Input.([]any); ok && slices.ContainsFunc(items, func(item any) bool {
+		_, isPart := item.(map[string]any)
+		return isPart
+	}) {
+		return nil, types.NewErrorWithStatusCode(
+			errors.New("gemini embedding models accept only plain text input; images, videos and other content parts are not supported"),
+			types.ErrorCodeInvalidRequest,
+			http.StatusBadRequest,
+			types.ErrOptionWithSkipRetry(),
+		)
 	}
 
 	inputs := request.ParseInput()

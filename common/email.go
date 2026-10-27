@@ -76,6 +76,18 @@ func newSMTPClient(addr string) (*smtp.Client, error) {
 }
 
 func SendEmail(subject string, receiver string, content string) error {
+	OptionMapRWMutex.RLock()
+	provider := Interface2String(OptionMap["EmailProvider"])
+	resendKey := Interface2String(OptionMap["ResendApiKey"])
+	resendFrom := Interface2String(OptionMap["ResendFrom"])
+	OptionMapRWMutex.RUnlock()
+	switch provider {
+	case "resend":
+		return sendResendEmail(resendKey, resendFrom, subject, receiver, content)
+	case "", "smtp":
+	default:
+		return fmt.Errorf("Email sending method must be SMTP or Resend")
+	}
 	if SMTPFrom == "" { // for compatibility
 		SMTPFrom = SMTPAccount
 	}

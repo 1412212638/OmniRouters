@@ -65,6 +65,9 @@ func InitOptionMap() {
 	common.OptionMap["EmailAliasRestrictionEnabled"] = strconv.FormatBool(common.EmailAliasRestrictionEnabled)
 	common.OptionMap["EmailDomainWhitelist"] = strings.Join(common.EmailDomainWhitelist, ",")
 	common.OptionMap["SMTPServer"] = ""
+	common.OptionMap["EmailProvider"] = "smtp"
+	common.OptionMap["ResendApiKey"] = ""
+	common.OptionMap["ResendFrom"] = ""
 	common.OptionMap["SMTPFrom"] = ""
 	common.OptionMap["SMTPPort"] = strconv.Itoa(common.SMTPPort)
 	common.OptionMap["SMTPAccount"] = ""
@@ -250,6 +253,25 @@ func validateOptionValue(key string, value string) error {
 		if err != nil || price <= 0 || math.IsNaN(price) || math.IsInf(price, 0) {
 			return fmt.Errorf("Waffo Pancake unit price must be greater than zero")
 		}
+	}
+	if key == "EmailProvider" || key == "ResendApiKey" || key == "ResendFrom" {
+		if key == "EmailProvider" && value != "smtp" && value != "resend" {
+			return fmt.Errorf("Email sending method must be SMTP or Resend")
+		}
+		common.OptionMapRWMutex.RLock()
+		settings := map[string]string{
+			"EmailProvider": common.Interface2String(common.OptionMap["EmailProvider"]),
+			"ResendApiKey": common.Interface2String(common.OptionMap["ResendApiKey"]),
+			"ResendFrom": common.Interface2String(common.OptionMap["ResendFrom"]),
+		}
+		common.OptionMapRWMutex.RUnlock()
+		settings[key] = value
+		if settings["EmailProvider"] == "resend" {
+			return common.ValidateResendConfiguration(settings["ResendApiKey"], settings["ResendFrom"])
+		}
+	}
+	if key == "ResendKeyConfigured" {
+		return fmt.Errorf("Resend key configuration status is read-only")
 	}
 	if key == operation_setting.ToolPriceOptionKey {
 		return operation_setting.ValidateToolPricesJSON(value)

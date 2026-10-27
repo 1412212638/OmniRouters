@@ -18,7 +18,7 @@ import type { UpdateOptionRequest } from '@/features/system-settings/types'
 
 type EmailSettingsOptionValues = Omit<
   EmailFormValues,
-  'EmailDomainWhitelist'
+  'EmailDomainWhitelist' | 'ResendSenderName'
 > & {
   EmailDomainWhitelist: string
 }
@@ -33,6 +33,14 @@ const parseDomainWhitelist = (value: string) =>
     .split(',')
     .map((domain) => domain.trim())
     .filter(Boolean)
+
+const parseResendSender = (value: string) => {
+  const match = value.trim().match(/^(.*?)\s*<([^<>]+)>$/)
+  if (!match) return { ResendFrom: value.trim(), ResendSenderName: '' }
+  let name = match[1].trim()
+  if (name.startsWith('"') && name.endsWith('"')) name = name.slice(1, -1).replace(/\\(.)/g, '$1')
+  return { ResendFrom: match[2].trim(), ResendSenderName: name }
+}
 
 export function EmailSettings() {
   const { t } = useTranslation()
@@ -51,6 +59,7 @@ export function EmailSettings() {
   const defaultValues = useMemo<EmailFormValues>(
     () => ({
       ...settings,
+      ...parseResendSender(settings.ResendFrom),
       EmailDomainWhitelist: parseDomainWhitelist(settings.EmailDomainWhitelist),
     }),
     [settings]

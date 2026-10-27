@@ -122,6 +122,9 @@ func GetOptions(c *gin.Context) {
 	optionValues := make(map[string]string)
 	common.OptionMapRWMutex.Lock()
 	for k, v := range common.OptionMap {
+		if k == "ResendKeyConfigured" {
+			continue
+		}
 		value := common.Interface2String(v)
 		if isSensitiveOptionKey(k) && !isVisiblePublicKeyOption(k) {
 			continue
@@ -137,7 +140,9 @@ func GetOptions(c *gin.Context) {
 			}
 		}
 	}
+	resendConfigured := strings.TrimSpace(common.Interface2String(common.OptionMap["ResendApiKey"])) != ""
 	common.OptionMapRWMutex.Unlock()
+	options = append(options, &model.Option{Key: "ResendKeyConfigured", Value: strconv.FormatBool(resendConfigured)})
 	// This value is used by the payment settings form and must reflect the
 	// persisted option even if the in-memory option map was reinitialized.
 	var pancakeUnitPrice model.Option

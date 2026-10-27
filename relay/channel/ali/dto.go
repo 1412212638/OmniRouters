@@ -73,6 +73,8 @@ type AliUsage struct {
 	OutputTokens int `json:"output_tokens"`
 	TotalTokens  int `json:"total_tokens"`
 	ImageCount   int `json:"image_count,omitempty"`
+	ImageTokens  int `json:"image_tokens,omitempty"`
+	InputTokensDetails *dto.InputTokenDetails `json:"input_tokens_details,omitempty"`
 }
 
 type TaskResult struct {

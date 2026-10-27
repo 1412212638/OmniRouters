@@ -2,6 +2,8 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
@@ -13,12 +15,17 @@ var adminEmailSettingOptionKeys = []string{
 	"EmailDomainRestrictionEnabled",
 	"EmailAliasRestrictionEnabled",
 	"EmailDomainWhitelist",
+	"EmailProvider",
+	"ResendFrom",
+	"ResendApiKey",
 	"SMTPServer",
 	"SMTPFrom",
 	"SMTPPort",
 	"SMTPAccount",
 	"SMTPToken",
 	"SMTPSSLEnabled",
+	"SMTPStartTLSEnabled",
+	"SMTPInsecureSkipVerify",
 	"SMTPForceAuthLogin",
 	"EmailLanguage",
 	"TopUpSuccessEmailEnabled",
@@ -52,7 +59,7 @@ func isAdminEmailSettingOptionKey(key string) bool {
 }
 
 func GetEmailSettingsOptions(c *gin.Context) {
-	options := make([]*model.Option, 0, len(adminEmailSettingOptionKeys))
+	options := make([]*model.Option, 0, len(adminEmailSettingOptionKeys)+1)
 
 	common.OptionMapRWMutex.RLock()
 	for _, key := range adminEmailSettingOptionKeys {
@@ -68,6 +75,11 @@ func GetEmailSettingsOptions(c *gin.Context) {
 			Value: common.Interface2String(value),
 		})
 	}
+	resendConfigured := false
+	if key := common.Interface2String(common.OptionMap["ResendApiKey"]); strings.TrimSpace(key) != "" {
+		resendConfigured = true
+	}
+	options = append(options, &model.Option{Key: "ResendKeyConfigured", Value: strconv.FormatBool(resendConfigured)})
 	common.OptionMapRWMutex.RUnlock()
 
 	common.ApiSuccess(c, options)

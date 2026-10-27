@@ -122,18 +122,15 @@ export type EmailLanguage = keyof typeof emailTemplatePresets
 
 const createEmailSchema = (t: (key: string) => string) =>
   z.object({
+    EmailProvider: z.enum(['smtp', 'resend']),
+    ResendApiKey: z.string(),
+    ResendKeyConfigured: z.boolean(),
+    ResendFrom: z.string(),
+    ResendSenderName: z.string(),
     SMTPServer: z.string(),
-    SMTPPort: z.string().refine((value) => {
-      const trimmed = value.trim()
-      if (!trimmed) return true
-      return /^\d+$/.test(trimmed)
-    }, t('Port must be a positive integer')),
+    SMTPPort: z.string(),
     SMTPAccount: z.string(),
-    SMTPFrom: z.string().refine((value) => {
-      const trimmed = value.trim()
-      if (!trimmed) return true
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)
-    }, t('Enter a valid email or leave blank')),
+    SMTPFrom: z.string(),
     SMTPToken: z.string(),
     SMTPSSLEnabled: z.boolean(),
     SMTPStartTLSEnabled: z.boolean(),
@@ -156,11 +153,37 @@ const createEmailSchema = (t: (key: string) => string) =>
     TopUpSuccessContentTemplate: z.string(),
     MarketingEmailSubjectTemplate: z.string(),
     MarketingEmailContentTemplate: z.string(),
+  }).superRefine((values, context) => {
+    if (values.EmailProvider === 'resend') {
+      if (!values.ResendKeyConfigured && !values.ResendApiKey.trim()) {
+        context.addIssue({ code: 'custom', path: ['ResendApiKey'], message: t('Configure a Resend API key before enabling Resend') })
+      }
+      if (!/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(values.ResendFrom.trim())) {
+        context.addIssue({ code: 'custom', path: ['ResendFrom'], message: t('Enter a valid sender email address') })
+      }
+      if (/[\r\n\0]/.test(values.ResendSenderName)) {
+        context.addIssue({ code: 'custom', path: ['ResendSenderName'], message: t('Sender name must not contain line breaks or null characters') })
+      }
+      return
+    }
+    const port = values.SMTPPort.trim()
+    if (port && (!/^\d+$/.test(port) || Number(port) < 1 || Number(port) > 65535)) {
+      context.addIssue({ code: 'custom', path: ['SMTPPort'], message: t('Port must be a positive integer') })
+    }
+    const from = values.SMTPFrom.trim()
+    if (from && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(from)) {
+      context.addIssue({ code: 'custom', path: ['SMTPFrom'], message: t('Enter a valid email or leave blank') })
+    }
   })
 
 export type EmailFormValues = z.infer<ReturnType<typeof createEmailSchema>>
 
 export const defaultEmailSettingsFormValues: EmailFormValues = {
+  EmailProvider: 'smtp',
+  ResendApiKey: '',
+  ResendKeyConfigured: false,
+  ResendFrom: '',
+  ResendSenderName: '',
   SMTPServer: '',
   SMTPPort: '',
   SMTPAccount: '',
@@ -288,6 +311,14 @@ function renderTemplate(template: string, values: Record<string, string>) {
   )
 }
 
+function formatResendSender(address: string, name: string) {
+  const trimmedAddress = address.trim()
+  const trimmedName = name.trim()
+  if (!trimmedName) return trimmedAddress
+  const escaped = trimmedName.replaceAll('\\', '\\\\').replaceAll('"', '\\"')
+  return `"${escaped}" <${trimmedAddress}>`
+}
+
 function getPreviewValues(language: EmailLanguage) {
   return {
     system_name: 'OmniRouters',
@@ -372,6 +403,9 @@ export function EmailSettingsSection({
       SMTPAccount: current.SMTPAccount.trim(),
       SMTPFrom: current.SMTPFrom.trim(),
       SMTPToken: current.SMTPToken.trim(),
+      ResendApiKey: current.ResendApiKey.trim(),
+      ResendFrom: current.ResendFrom.trim(),
+      ResendSenderName: current.ResendSenderName.trim(),
       SMTPSSLEnabled: currentSecurityMode === 'ssl_tls',
       SMTPStartTLSEnabled: currentSecurityMode === 'starttls',
       EmailDomainWhitelist: normalizeDomainWhitelist(
@@ -385,6 +419,9 @@ export function EmailSettingsSection({
       SMTPAccount: defaultValues.SMTPAccount.trim(),
       SMTPFrom: defaultValues.SMTPFrom.trim(),
       SMTPToken: defaultValues.SMTPToken.trim(),
+      ResendApiKey: defaultValues.ResendApiKey.trim(),
+      ResendFrom: defaultValues.ResendFrom.trim(),
+      ResendSenderName: defaultValues.ResendSenderName.trim(),
       SMTPSSLEnabled: initialSecurityMode === 'ssl_tls',
       SMTPStartTLSEnabled: initialSecurityMode === 'starttls',
       EmailDomainWhitelist: normalizeDomainWhitelist(
@@ -394,7 +431,12 @@ export function EmailSettingsSection({
 
     ;(Object.keys(normalizedCurrent) as Array<keyof EmailFormValues>).forEach(
       (key) => {
-        if (key === 'SMTPToken' && normalizedCurrent.SMTPToken === '') return
+        if (
+          (key === 'SMTPToken' && normalizedCurrent.SMTPToken === '') ||
+          (key === 'ResendApiKey' && normalizedCurrent.ResendApiKey === '') ||
+          key === 'ResendSenderName' ||
+          key === 'ResendKeyConfigured'
+        ) return
 
         const currentValue = normalizedCurrent[key]
         const initialValue = normalizedInitial[key]
@@ -420,6 +462,21 @@ export function EmailSettingsSection({
         })
       }
     )
+
+    const senderChanged =
+      normalizedCurrent.ResendFrom !== normalizedInitial.ResendFrom ||
+      normalizedCurrent.ResendSenderName !== normalizedInitial.ResendSenderName
+    if (senderChanged) {
+      const filtered = updates.filter((item) => item.key !== 'ResendFrom')
+      filtered.push({
+        key: 'ResendFrom',
+        value: formatResendSender(
+          normalizedCurrent.ResendFrom,
+          normalizedCurrent.ResendSenderName
+        ),
+      })
+      return filtered
+    }
 
     return updates
   }, [defaultValues, form, watchedValues])
@@ -463,6 +520,8 @@ export function EmailSettingsSection({
     const orderedUpdates = [...changedUpdates].sort((a, b) => {
       if (a.key === 'EmailDomainWhitelist') return -1
       if (b.key === 'EmailDomainWhitelist') return 1
+      if (a.key === 'EmailProvider') return 1
+      if (b.key === 'EmailProvider') return -1
       return 0
     })
     const securityMode = getSmtpSecurityMode(values)
@@ -473,6 +532,10 @@ export function EmailSettingsSection({
       SMTPAccount: values.SMTPAccount.trim(),
       SMTPFrom: values.SMTPFrom.trim(),
       SMTPToken: '',
+      ResendApiKey: '',
+      ResendKeyConfigured:
+        values.ResendKeyConfigured ||
+        changedUpdates.some((update) => update.key === 'ResendApiKey'),
       SMTPSSLEnabled: securityMode === 'ssl_tls',
       SMTPStartTLSEnabled: securityMode === 'starttls',
       EmailDomainWhitelist: domains,
@@ -810,6 +873,76 @@ export function EmailSettingsSection({
           className='space-y-8'
           autoComplete='off'
         >
+          <FormField
+            control={form.control}
+            name='EmailProvider'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('Email sending method')}</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    className='grid gap-3 sm:grid-cols-2'
+                  >
+                    <div className='flex items-center gap-2 rounded-lg border p-3'>
+                      <RadioGroupItem value='smtp' id='email-provider-smtp' />
+                      <FormLabel htmlFor='email-provider-smtp' className='cursor-pointer font-normal'>SMTP</FormLabel>
+                    </div>
+                    <div className='flex items-center gap-2 rounded-lg border p-3'>
+                      <RadioGroupItem value='resend' id='email-provider-resend' />
+                      <FormLabel htmlFor='email-provider-resend' className='cursor-pointer font-normal'>Resend API</FormLabel>
+                    </div>
+                  </RadioGroup>
+                </FormControl>
+                <FormDescription>{t('Only the selected method sends email. The other method keeps its settings.')}</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {watchedValues.EmailProvider === 'resend' && (
+            <div className='grid gap-6 md:grid-cols-2'>
+              <FormField
+                control={form.control}
+                name='ResendFrom'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Sender email address')}</FormLabel>
+                    <FormControl><Input type='email' autoComplete='off' placeholder='noreply@example.com' {...field} /></FormControl>
+                    <FormDescription>{t('The domain must be verified in Resend')}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='ResendSenderName'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Sender name')}</FormLabel>
+                    <FormControl><Input autoComplete='off' placeholder={t('Site name')} {...field} /></FormControl>
+                    <FormDescription>{t('The name recipients see. Leave blank to use the site name.')}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='ResendApiKey'
+                render={({ field }) => (
+                  <FormItem className='md:col-span-2'>
+                    <FormLabel>{t('Resend API key')}</FormLabel>
+                    <FormControl><Input type='password' autoComplete='new-password' placeholder={t('Enter new token to update')} {...field} /></FormControl>
+                    <FormDescription>{watchedValues.ResendKeyConfigured ? t('Leave blank to keep the existing key') : t('Configure a Resend API key before enabling Resend')}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+
+          {watchedValues.EmailProvider !== 'resend' && (
           <div className='space-y-4'>
             <h3 className='text-sm font-semibold'>{t('SMTP')}</h3>
 
@@ -1049,6 +1182,7 @@ export function EmailSettingsSection({
               )}
             />
           </div>
+          )}
 
           <div className='space-y-4'>
             <h3 className='text-sm font-semibold'>

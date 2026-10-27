@@ -149,6 +149,8 @@ func TestLogQuotaDataSplitsRowsByUseGroupTokenChannelAndNode(t *testing.T) {
 		NodeName:  "node-a",
 		Quota:     100,
 		TokenUsed: 40,
+		CacheReadTokens:     100,
+		CacheCreationTokens: 5,
 	})
 	LogQuotaData(QuotaDataLogParams{
 		UserID:    1,
@@ -161,6 +163,23 @@ func TestLogQuotaDataSplitsRowsByUseGroupTokenChannelAndNode(t *testing.T) {
 		NodeName:  "node-a",
 		Quota:     50,
 		TokenUsed: 20,
+		CacheReadTokens:     30,
+		CacheCreationTokens: 15,
+	})
+	SaveQuotaDataCache()
+	LogQuotaData(QuotaDataLogParams{
+		UserID:              1,
+		Username:            "alice",
+		ModelName:           "gpt-a",
+		CreatedAt:           3700,
+		UseGroup:            "vip",
+		TokenID:             11,
+		ChannelID:           1,
+		NodeName:            "node-a",
+		Quota:               10,
+		TokenUsed:           5,
+		CacheReadTokens:     7,
+		CacheCreationTokens: 3,
 	})
 	LogQuotaData(QuotaDataLogParams{
 		UserID:    1,
@@ -185,9 +204,18 @@ func TestLogQuotaDataSplitsRowsByUseGroupTokenChannelAndNode(t *testing.T) {
 	require.Equal(t, 11, rows[0].TokenID)
 	require.Equal(t, 1, rows[0].ChannelID)
 	require.Equal(t, "node-a", rows[0].NodeName)
-	require.Equal(t, 2, rows[0].Count)
-	require.Equal(t, 150, rows[0].Quota)
-	require.Equal(t, 60, rows[0].TokenUsed)
+	require.Equal(t, 3, rows[0].Count)
+	require.Equal(t, 160, rows[0].Quota)
+	require.Equal(t, 65, rows[0].TokenUsed)
+	require.Equal(t, int64(137), rows[0].CacheReadTokens)
+	require.Equal(t, int64(23), rows[0].CacheCreationTokens)
 	require.Equal(t, "default", rows[1].UseGroup)
 	require.Equal(t, 25, rows[1].Quota)
+
+	dashboardRows, err := GetAllQuotaDates(0, 7200, "")
+	require.NoError(t, err)
+	require.Len(t, dashboardRows, 1)
+	require.Equal(t, 75, dashboardRows[0].TokenUsed)
+	require.Equal(t, int64(137), dashboardRows[0].CacheReadTokens)
+	require.Equal(t, int64(23), dashboardRows[0].CacheCreationTokens)
 }

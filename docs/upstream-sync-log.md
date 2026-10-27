@@ -1,12 +1,20 @@
 # Upstream Sync Log
 
+## 2026-10-28 - Add Resend mail, cache dashboard metrics, and multimodal embeddings
+
+- Upstream commits: `32e587406`, `603a5ceb5`, and `afe73b08f`.
+- Changed: added Resend as an alternative mail provider with a separately configured sender address and display name while retaining SMTP/TLS settings; persisted cache-read and cache-write token counters through hourly quota data and exposed them beside total tokens in the dashboard; added Alibaba Bailian native multimodal embedding conversion for `qwen3-vl-embedding` families with text, image, and video inputs, usage mapping, and Gemini media rejection to avoid silently billing unsupported media.
+- Preserved: existing SMTP templates, marketing mail settings, secret-key redaction, subscription and expression billing, total-token semantics, SQLite/MySQL/PostgreSQL GORM aggregation, text-only embedding compatibility, and existing channel routing.
+- Validation: `git diff --check` passed. Frontend typecheck reports pre-existing errors outside these changes; Go tests/build were not run because the Go toolchain is unavailable. Added focused cache aggregation and embedding conversion regressions.
+- Commit: `94faf3552` (`feat: sync mail dashboard and embedding updates`). Local only; not pushed.
+
 ## 2026-10-28 - Sync billing, limiter, protocol, and stream reliability fixes
 
 - Upstream commits: `94cc3ff09`, `e2a0c4b16`, `0165fef98`, `4d962e464`, `1dafb19a4`, `783735607`, `7e6596728`, `0c2af9780`, and the relevant JSON-order portions of `d0b840e75`.
 - Changed: bill unlabelled Claude cache writes as 5-minute writes; retry Redis rate limiting with the script body after `NOSCRIPT`; preserve Gemini text beside tool calls, Claude tool argument number precision, adjacent Claude assistant tool calls, top-level OpenAI-to-Gemini image configuration, nested schema/property order during controlled request filtering and parameter overrides; propagate Responses stream write errors and treat delivered terminal events as successful; use a cumulative byte-based write deadline for slow SSE clients.
 - Preserved: local subscription and expression billing, DeepSeek tool routing, existing stream keepalive and client-disconnect draining, channel-specific request filtering, tool billing counters, image-generation settlement, and the current relay conversion registry.
 - Validation: `git diff --cached --check` passed. Added targeted Go regression tests for unsplit Claude cache writes, Redis script flush recovery, Claude tool-call merging, Responses completion lifecycle, stream write budgets, and nested schema order. Go tests/build were not run because the Go toolchain is unavailable in the environment.
-- Commit: `f61b8e29d` (`fix: sync billing and stream reliability updates`). Local only; not pushed.
+- Commit: `cf5a3c6e0` (`fix: sync billing and stream reliability updates`). Local only; not pushed.
 
 ## 2026-10-27 - Replace default frontend logo assets
 

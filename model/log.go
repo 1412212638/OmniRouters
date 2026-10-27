@@ -336,6 +336,38 @@ type RecordConsumeLogParams struct {
 	Other            *LogOther `json:"other"`
 }
 
+func logOtherInt64(other *LogOther, key string) int64 {
+	if other == nil || other.public == nil {
+		return 0
+	}
+	value, ok := other.public[key]
+	if !ok {
+		return 0
+	}
+	switch value := value.(type) {
+	case int:
+		return int64(value)
+	case int64:
+		return value
+	}
+	return 0
+}
+
+func quotaCacheTokens(other *LogOther) (int64, int64) {
+	read := logOtherInt64(other, "cache_tokens")
+	creation := logOtherInt64(other, "cache_write_tokens")
+	if creation == 0 {
+		creation = logOtherInt64(other, "cache_creation_tokens")
+	}
+	if read < 0 {
+		read = 0
+	}
+	if creation < 0 {
+		creation = 0
+	}
+	return read, creation
+}
+
 func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams) {
 	if !common.LogConsumeEnabled {
 		return
@@ -384,6 +416,7 @@ func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams)
 		logger.LogError(c, "failed to record log: "+err.Error())
 	}
 	if common.DataExportEnabled {
+		cacheReadTokens, cacheCreationTokens := quotaCacheTokens(params.Other)
 		LogQuotaData(QuotaDataLogParams{
 			UserID:    userId,
 			Username:  username,
@@ -391,6 +424,8 @@ func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams)
 			Quota:     params.Quota,
 			CreatedAt: createdAt,
 			TokenUsed: params.PromptTokens + params.CompletionTokens,
+			CacheReadTokens: cacheReadTokens,
+			CacheCreationTokens: cacheCreationTokens,
 			UseGroup:  params.Group,
 			TokenID:   params.TokenId,
 			ChannelID: params.ChannelId,
@@ -443,6 +478,7 @@ func RecordTaskBillingLog(params RecordTaskBillingLogParams) {
 		common.SysLog("failed to record task billing log: " + err.Error())
 	}
 	if params.LogType == LogTypeConsume && common.DataExportEnabled {
+		cacheReadTokens, cacheCreationTokens := quotaCacheTokens(params.Other)
 		nodeName := params.NodeName
 		if nodeName == "" {
 			nodeName = common.NodeName
@@ -457,6 +493,8 @@ func RecordTaskBillingLog(params RecordTaskBillingLogParams) {
 			TokenID:   params.TokenId,
 			ChannelID: params.ChannelId,
 			NodeName:  nodeName,
+			CacheReadTokens: cacheReadTokens,
+			CacheCreationTokens: cacheCreationTokens,
 		})
 	}
 }
