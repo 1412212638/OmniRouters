@@ -4691,3 +4691,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment. The GitHub Actions failure is the reproduced build evidence.
 - Commit and push: source fix committed as `ab60acced` and pushed to `origin/main` on 2026-10-28; this log update follows.
 
+## 2026-10-28 - Fix channel selection build compatibility
+
+- Local reason: the next GitHub Actions image build failed because `service/channel_select.go` called the undefined `common.LogText` helper.
+- Changed: pass the warning format string and arguments directly to the existing variadic `logger.LogWarn` function.
+- Preserved: channel pin override diagnostics, channel selection behavior, routing priorities, and all upstream-synced functionality.
+- Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment.
+- Commit and push: pending.
+
