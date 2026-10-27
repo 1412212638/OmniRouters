@@ -14,6 +14,7 @@ import (
 	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	hostreasoning "github.com/QuantumNous/new-api/setting/reasoning"
+	hosttypes "github.com/QuantumNous/new-api/types"
 	"github.com/shopspring/decimal"
 )
 
@@ -131,6 +132,7 @@ const (
 	CacheWriteNone      CacheWriteMode = "none"
 	CacheWriteStandard  CacheWriteMode = "standard"
 	CacheWriteClaudeTTL CacheWriteMode = "claude_ttl"
+	CacheWriteOpenAITTL CacheWriteMode = "openai_ttl"
 )
 
 // ResolveCacheWriteMode describes display and migration only. A generic engine
@@ -141,6 +143,9 @@ func ResolveCacheWriteMode(name string, configured PricingValues) CacheWriteMode
 		return CacheWriteClaudeTTL
 	}
 	if _, exists := configured["CreateCacheRatio"]; exists {
+		if strings.Contains(strings.ToLower(name), "gpt") {
+			return CacheWriteOpenAITTL
+		}
 		return CacheWriteStandard
 	}
 	return CacheWriteNone
@@ -367,13 +372,15 @@ func PreviewModelPricingConversion(name string, draft PricingValues) (*ModelPric
 			{"cr", "CacheRatio", 1},
 			{"cc", "CreateCacheRatio", 1},
 			{"cc1h", "CreateCacheRatio", 6 / 3.75},
+			{"cc12h", "CreateCacheRatio", hosttypes.OpenAICacheCreation12hMultiplier},
 			{"img", "ImageRatio", 1},
 		} {
 			if ordinaryAudio && !preview.BillingDetails.AudioTextBranches && lane.variable != "c" {
 				continue
 			}
 			if lane.variable == "cc" && preview.CacheWriteMode == CacheWriteNone ||
-				lane.variable == "cc1h" && preview.CacheWriteMode != CacheWriteClaudeTTL {
+				lane.variable == "cc1h" && preview.CacheWriteMode != CacheWriteClaudeTTL ||
+				lane.variable == "cc12h" && preview.CacheWriteMode != CacheWriteOpenAITTL {
 				continue
 			}
 			multiplier := effective[lane.key].(float64)

@@ -826,6 +826,28 @@ func TestBuildTieredTokenParams_Claude_UnsplitCacheWritesUseFiveMinutePrice(t *t
 	assert.Equal(t, float64(0), params.CC1h)
 }
 
+func TestBuildTieredTokenParams_GPT_12HourCacheWrites(t *testing.T) {
+	usage := &dto.Usage{
+		PromptTokens: 1000,
+		PromptTokensDetails: dto.InputTokenDetails{
+			CachedCreationTokens: 200,
+			CacheWriteTokensDetails: &dto.CacheWriteTokenDetails{
+				TTL30mTokens: 100,
+				TTL12hTokens: 100,
+			},
+		},
+	}
+	params := BuildTieredTokenParams(usage, false, map[string]bool{"cc": true, "cc12h": true})
+	assert.Equal(t, float64(100), params.CC)
+	assert.Equal(t, float64(100), params.CC12h)
+	assert.Equal(t, float64(800), params.P)
+
+	fallback := BuildTieredTokenParams(usage, false, map[string]bool{"cc": true})
+	assert.Equal(t, float64(300), fallback.CC)
+	assert.Equal(t, float64(0), fallback.CC12h)
+	assert.Equal(t, float64(700), fallback.P)
+}
+
 func TestBuildTieredTokenParams_GPT_AudioOutput(t *testing.T) {
 	usage := &dto.Usage{
 		PromptTokens:     1000,

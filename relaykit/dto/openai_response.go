@@ -332,9 +332,21 @@ type InputTokenDetails struct {
 	// input_tokens_details.cache_write_tokens (Responses). It is billed at the
 	// cache-creation price.
 	CacheWriteTokens int `json:"cache_write_tokens,omitempty"`
+	// CacheWriteTokensDetails preserves OpenAI's 30-minute versus 12-hour write split.
+	CacheWriteTokensDetails *CacheWriteTokenDetails `json:"cache_write_tokens_details,omitempty"`
 	TextTokens       int `json:"text_tokens"`
 	AudioTokens      int `json:"audio_tokens"`
 	ImageTokens      int `json:"image_tokens"`
+}
+
+// CacheWriteTokenDetails is OpenAI's non-overlapping cache-write split by TTL.
+type CacheWriteTokenDetails struct {
+	TTL30mTokens int `json:"ttl_30m_tokens"`
+	TTL12hTokens int `json:"ttl_12h_tokens"`
+}
+
+func (d *CacheWriteTokenDetails) HasTokens() bool {
+	return d != nil && (d.TTL30mTokens != 0 || d.TTL12hTokens != 0)
 }
 
 // CachedTokenDetails describes subsets of cached_tokens. Pointers distinguish
@@ -352,6 +364,10 @@ func (d *CachedTokenDetails) HasTokens() bool {
 
 // Clone preserves presence information without sharing mutable usage fields.
 func (d InputTokenDetails) Clone() InputTokenDetails {
+	if d.CacheWriteTokensDetails != nil {
+		cacheWrite := *d.CacheWriteTokensDetails
+		d.CacheWriteTokensDetails = &cacheWrite
+	}
 	if d.CachedTokensDetails != nil {
 		cached := *d.CachedTokensDetails
 		if cached.TextTokens != nil {
@@ -386,6 +402,15 @@ func (d InputTokenDetails) CacheCreationTokensTotal() int {
 		return 0
 	}
 	return total
+}
+
+// CacheWrite12hTokens returns the reported 12-hour subset bounded by the
+// aggregate cache-write count, so malformed details cannot overcharge.
+func (d InputTokenDetails) CacheWrite12hTokens() int {
+	if d.CacheWriteTokensDetails == nil {
+		return 0
+	}
+	return min(max(d.CacheWriteTokensDetails.TTL12hTokens, 0), d.CacheCreationTokensTotal())
 }
 
 type OutputTokenDetails struct {

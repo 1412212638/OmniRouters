@@ -138,7 +138,7 @@ const PRESET_GROUPS: PresetGroup[] = [
       {
         key: 'claude-opus',
         label: 'Claude Opus 4.6',
-        expr: 'tier("base", p * 5 + c * 25 + cr * 0.5 + cc * 6.25 + cc1h * 10)',
+        expr: 'tier("base", p * 5 + c * 25 + cr * 0.5 + cc * 6.25 + cc1h * 10 + cc12h * 12.5)',
       },
       {
         key: 'gpt-5.4',
@@ -153,7 +153,7 @@ const PRESET_GROUPS: PresetGroup[] = [
       {
         key: 'claude-sonnet',
         label: 'Claude Sonnet 4.5',
-        expr: 'len <= 200000 ? tier("standard", p * 3 + c * 15 + cr * 0.3 + cc * 3.75 + cc1h * 6) : tier("long_context", p * 6 + c * 22.5 + cr * 0.6 + cc * 7.5 + cc1h * 12)',
+        expr: 'len <= 200000 ? tier("standard", p * 3 + c * 15 + cr * 0.3 + cc * 3.75 + cc1h * 6 + cc12h * 7.5) : tier("long_context", p * 6 + c * 22.5 + cr * 0.6 + cc * 7.5 + cc1h * 12 + cc12h * 15)',
       },
       {
         key: 'qwen3-max',
@@ -203,7 +203,7 @@ const PRESET_GROUPS: PresetGroup[] = [
       {
         key: 'claude-opus-fast',
         label: 'Claude Opus 4.6 Fast',
-        expr: 'tier("base", p * 5 + c * 25 + cr * 0.5 + cc * 6.25 + cc1h * 10)',
+        expr: 'tier("base", p * 5 + c * 25 + cr * 0.5 + cc * 6.25 + cc1h * 10 + cc12h * 12.5)',
         requestRules: [
           {
             conditions: [
@@ -983,8 +983,8 @@ function RawExprEditor({ exprString, onChange }: RawExprEditorProps) {
           <div>
             {t('Variables')}: <code>len</code>, <code>p</code>, <code>c</code>,{' '}
             <code>cr</code>, <code>cc</code>, <code>cc1h</code>,{' '}
-            <code>img</code>, <code>img_o</code>, <code>ai</code>,{' '}
-            <code>ao</code>
+            <code>cc12h</code>, <code>img</code>, <code>img_o</code>,{' '}
+            <code>ai</code>, <code>ao</code>
           </div>
           <div>
             {t('Functions')}: <code>tier(name, value)</code>,{' '}
@@ -1464,6 +1464,7 @@ function CostEstimator({ effectiveExpr }: EstimatorProps) {
     cacheReadTokens: 0,
     cacheCreateTokens: 0,
     cacheCreate1hTokens: 0,
+    cacheCreate12hTokens: 0,
     imageTokens: 0,
     imageOutputTokens: 0,
     audioInputTokens: 0,
@@ -1617,6 +1618,7 @@ Input side:
 - cr — cache-hit (read) token count
 - cc — cache-create token count (5-min TTL)
 - cc1h — cache-create token count (1-hour TTL, Claude-specific)
+- cc12h — cache-create token count (12-hour TTL, OpenAI-specific)
 - img — image input token count
 - ai — audio input token count
 
@@ -1655,8 +1657,8 @@ tier("base", p * 2.5 + c * 15 + cr * 0.25)
 
 Multi-tier (use len for conditions):
 len <= 200000
-  ? tier("standard", p * 3 + c * 15 + cr * 0.3 + cc * 3.75 + cc1h * 6)
-  : tier("long_context", p * 6 + c * 22.5 + cr * 0.6 + cc * 7.5 + cc1h * 12)
+  ? tier("standard", p * 3 + c * 15 + cr * 0.3 + cc * 3.75 + cc1h * 6 + cc12h * 7.5)
+  : tier("long_context", p * 6 + c * 22.5 + cr * 0.6 + cc * 7.5 + cc1h * 12 + cc12h * 15)
 
 Image model:
 tier("base", p * 2 + c * 8 + img * 2.5)

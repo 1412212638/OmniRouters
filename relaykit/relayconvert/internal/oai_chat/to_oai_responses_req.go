@@ -411,6 +411,7 @@ func ChatCompletionsRequestToResponsesRequest(req *dto.GeneralOpenAIRequest) (*d
 		Store:             req.Store,
 		Metadata:          req.Metadata,
 		PromptCacheKey:    promptCacheKeyRaw,
+		PromptCacheOptions: req.PromptCacheOptions,
 		EnableThinking:    req.EnableThinking,
 		ThinkingBudget:    req.ThinkingBudget,
 	}

@@ -49,8 +49,7 @@ func OaiResponsesHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http
 		usage.CompletionTokens = responsesResponse.Usage.OutputTokens
 		usage.TotalTokens = responsesResponse.Usage.TotalTokens
 		if responsesResponse.Usage.InputTokensDetails != nil {
-			usage.PromptTokensDetails.CachedTokens = responsesResponse.Usage.InputTokensDetails.CachedTokens
-			usage.PromptTokensDetails.CacheWriteTokens = responsesResponse.Usage.InputTokensDetails.CacheWriteTokens
+			usage.PromptTokensDetails = responsesResponse.Usage.InputTokensDetails.Clone()
 		}
 	}
 	// Count actual tool invocations from Output (not tool declarations).
@@ -119,8 +118,7 @@ func OaiResponsesStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp
 						TotalTokens:      streamResponse.Response.Usage.TotalTokens,
 					}
 					if streamResponse.Response.Usage.InputTokensDetails != nil {
-						incomingUsage.PromptTokensDetails.CachedTokens = streamResponse.Response.Usage.InputTokensDetails.CachedTokens
-						incomingUsage.PromptTokensDetails.CacheWriteTokens = streamResponse.Response.Usage.InputTokensDetails.CacheWriteTokens
+						incomingUsage.PromptTokensDetails = streamResponse.Response.Usage.InputTokensDetails.Clone()
 					}
 					usage = dto.MergeUsageNonZero(usage, incomingUsage)
 				}

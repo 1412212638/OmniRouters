@@ -83,3 +83,19 @@ func TestMergeUsageNonZeroKeepsPositiveValuesAndTakesMaxTotal(t *testing.T) {
 	assert.Equal(t, 5, merged.CompletionTokens)
 	assert.Equal(t, 20, merged.TotalTokens)
 }
+
+func TestMergeUsageNonZeroPreservesCacheWriteTTLDetails(t *testing.T) {
+	merged := MergeUsageNonZero(
+		&Usage{PromptTokensDetails: InputTokenDetails{
+			CacheWriteTokens: 12,
+			CacheWriteTokensDetails: &CacheWriteTokenDetails{TTL30mTokens: 12},
+		}},
+		&Usage{PromptTokensDetails: InputTokenDetails{
+			CacheWriteTokens: 20,
+			CacheWriteTokensDetails: &CacheWriteTokenDetails{TTL12hTokens: 8},
+		}},
+	)
+	require.NotNil(t, merged.PromptTokensDetails.CacheWriteTokensDetails)
+	assert.Equal(t, 12, merged.PromptTokensDetails.CacheWriteTokensDetails.TTL30mTokens)
+	assert.Equal(t, 8, merged.PromptTokensDetails.CacheWriteTokensDetails.TTL12hTokens)
+}

@@ -1,4 +1,9 @@
-import { BILLING_CACHE_VAR_MAP } from './billing-expr'
+import {
+  BILLING_CACHE_VAR_MAP,
+  CLAUDE_CACHE_CREATION_1H_MULTIPLIER,
+  OPENAI_CACHE_CREATION_12H_MULTIPLIER,
+} from './billing-expr'
+import { compileBillingExpression } from './billing-expression/parser'
 
 export const CACHE_MODE_TIMED = 'timed'
 export const CACHE_MODE_GENERIC = 'generic'
@@ -21,6 +26,7 @@ export type VisualTier = {
   cache_read_unit_cost?: number
   cache_create_unit_cost?: number
   cache_create_1h_unit_cost?: number
+  cache_create_12h_unit_cost?: number
   image_unit_cost?: number
   image_output_unit_cost?: number
   audio_input_unit_cost?: number
@@ -57,6 +63,7 @@ export function normalizeVisualTier(
     cache_read_unit_cost: Number(tier.cache_read_unit_cost) || 0,
     cache_create_unit_cost: Number(tier.cache_create_unit_cost) || 0,
     cache_create_1h_unit_cost: Number(tier.cache_create_1h_unit_cost) || 0,
+    cache_create_12h_unit_cost: Number(tier.cache_create_12h_unit_cost) || 0,
     image_unit_cost: Number(tier.image_unit_cost) || 0,
     image_output_unit_cost: Number(tier.image_output_unit_cost) || 0,
     audio_input_unit_cost: Number(tier.audio_input_unit_cost) || 0,
@@ -261,6 +268,7 @@ const ESTIMATOR_VARS = [
   { var: 'cr', stateKey: 'cacheReadTokens' },
   { var: 'cc', stateKey: 'cacheCreateTokens' },
   { var: 'cc1h', stateKey: 'cacheCreate1hTokens' },
+  { var: 'cc12h', stateKey: 'cacheCreate12hTokens' },
   { var: 'img', stateKey: 'imageTokens' },
   { var: 'img_o', stateKey: 'imageOutputTokens' },
   { var: 'ai', stateKey: 'audioInputTokens' },
@@ -297,8 +305,24 @@ export function evalExprLocally(
     const cacheReadTokens = extraTokenValues.cacheReadTokens || 0
     const cacheCreateTokens = extraTokenValues.cacheCreateTokens || 0
     const cacheCreate1hTokens = extraTokenValues.cacheCreate1hTokens || 0
+    const cacheCreate12hTokens = extraTokenValues.cacheCreate12hTokens || 0
+    const compiled = compileBillingExpression(exprStr)
+    const usedVars =
+      compiled.status === 'ready' ? compiled.variables : new Set()
+    const effectiveCacheCreateTokens =
+      cacheCreateTokens +
+      (usedVars.has('cc') && !usedVars.has('cc1h')
+        ? cacheCreate1hTokens * CLAUDE_CACHE_CREATION_1H_MULTIPLIER
+        : 0) +
+      (usedVars.has('cc') && !usedVars.has('cc12h')
+        ? cacheCreate12hTokens * OPENAI_CACHE_CREATION_12H_MULTIPLIER
+        : 0)
     const len =
-      promptTokens + cacheReadTokens + cacheCreateTokens + cacheCreate1hTokens
+      promptTokens +
+      cacheReadTokens +
+      cacheCreateTokens +
+      cacheCreate1hTokens +
+      cacheCreate12hTokens
     const env: Record<string, unknown> = {
       p: promptTokens,
       c: completionTokens,
@@ -331,6 +355,7 @@ export function evalExprLocally(
     for (const field of ESTIMATOR_VARS) {
       env[field.var] = extraTokenValues[field.stateKey] || 0
     }
+    if (usedVars.has('cc')) env.cc = effectiveCacheCreateTokens
     const fn = new Function(
       ...Object.keys(env),
       `"use strict"; return (${exprStr});`

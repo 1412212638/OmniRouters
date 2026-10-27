@@ -104,15 +104,22 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       dynamicSummary.secondaryEntries.find(
         (entry) =>
           entry.field === 'cacheCreate1hPrice' && entry.displayUnit === 'token'
+      ) ||
+      dynamicSummary.secondaryEntries.find(
+        (entry) =>
+          entry.field === 'cacheCreate12hPrice' && entry.displayUnit === 'token'
       )
     const inputEntry = dynamicSummary.primaryEntries.find(
       (entry) => entry.field === 'inputPrice'
     )
     const isDiscountedCacheEntry = (entry: (typeof cacheReadEntries)[number]) =>
       inputEntry != null &&
-      ['cacheReadPrice', 'cacheCreatePrice', 'cacheCreate1hPrice'].includes(
-        entry.field
-      ) &&
+      [
+        'cacheReadPrice',
+        'cacheCreatePrice',
+        'cacheCreate1hPrice',
+        'cacheCreate12hPrice',
+      ].includes(entry.field) &&
       inputEntry.value > 0 &&
       entry.value / inputEntry.value < 1
     const cacheEntries = [

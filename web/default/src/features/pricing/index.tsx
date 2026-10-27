@@ -905,6 +905,9 @@ function usePriceRows(props: {
       ) ||
       dynamicSummary.entries.find(
         (entry) => entry.field === 'cacheCreate1hPrice'
+      ) ||
+      dynamicSummary.entries.find(
+        (entry) => entry.field === 'cacheCreate12hPrice'
       )
     return {
       kind: 'paired',
@@ -943,6 +946,9 @@ function usePriceRows(props: {
       ) ||
       dynamicSummary.entries.find(
         (entry) => entry.field === 'cacheCreate1hPrice'
+      ) ||
+      dynamicSummary.entries.find(
+        (entry) => entry.field === 'cacheCreate12hPrice'
       )
     const hasTokenPrimary = dynamicSummary.entries.some(
       (entry) => entry.field === 'inputPrice' || entry.field === 'outputPrice'

@@ -6,7 +6,15 @@
 - Changed: shared Responses, image, and video submit endpoints now select ordinary relay channels and matching task-plugin channels together under the existing group, priority, weight, affinity, and retry rules; ordinary winners bypass plugin decoding and request rewriting, while plugin winners keep the native plugin preparation path. Added endpoint-aware channel filters and switched the host protocol router to the shared selection middleware.
 - Preserved: native plugin-only routes, task-plugin identity routing, multipart/request-header handling from the preceding batch, plugin protocol validation, ordinary channel pricing, and local subscription billing.
 - Validation: `git diff --check` passed. Go tests/build were not run because the Go toolchain is unavailable; shared endpoint selection still needs runtime integration coverage for ordinary/plugin priority and retries.
-- Commit: pending; local only, not pushed.
+- Commit: `64c39b5ae` (local only; not pushed).
+
+## 2026-10-28 - Bill OpenAI 12-hour prompt-cache writes separately
+
+- Upstream commit: `e9d4d6353`.
+- Changed: preserved OpenAI Responses cache-write TTL details through JSON, streaming, compaction, usage merging, and Chat-to-Responses conversion; added `cc12h` expression billing with the provider's 2x short-write multiplier and the corresponding ratio-mode settlement, GPT built-in pricing, legacy-price conversion, model pricing displays, usage-log breakdown, estimator support, and localized labels. Long-lived writes fall back to the documented short-write multiple when an expression does not declare a separate term.
+- Preserved: existing Claude 5-minute/1-hour handling, local subscription token billing, tool surcharges, image/audio pricing, model-card layout customizations, and the existing default-theme model plaza/detail UI.
+- Validation: targeted frontend formatting and `git diff --check` passed; usage-merge and tiered-normalization regression tests were added. Go tests/build and `gofmt` were unavailable because the Go toolchain is not installed; frontend typecheck still reports pre-existing unrelated errors.
+- Commit: `85883555f` (local only; not pushed).
 
 ## 2026-10-28 - Add Resend mail, cache dashboard metrics, and multimodal embeddings
 
