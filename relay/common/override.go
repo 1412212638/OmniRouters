@@ -1696,7 +1696,7 @@ func modifyArray(data []byte, path string, value interface{}, isPrepend bool) ([
 	// 添加原值（保留原始字节，对象键顺序不变）
 	addOriginal := func() {
 		current.ForEach(func(_, val gjson.Result) bool {
-			newArray = append(newArray, common.RawMessage(val.Raw))
+			newArray = append(newArray, common.JSONRawMessage(val.Raw))
 			return true
 		})
 	}

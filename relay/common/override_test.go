@@ -646,6 +646,21 @@ func TestApplyParamOverridePrependAppendArray(t *testing.T) {
 	assertJSONEqual(t, `{"arr":[0,1,2,3,4]}`, string(out))
 }
 
+func TestApplyParamOverrideAppendArrayPreservesRawObject(t *testing.T) {
+	input := []byte(`{"arr":[{"b":2,"a":1}]}`)
+	override := map[string]interface{}{
+		"operations": []interface{}{map[string]interface{}{
+			"path":  "arr",
+			"mode":  "append",
+			"value": map[string]interface{}{"c": 3},
+		}},
+	}
+
+	out, err := ApplyParamOverride(input, override, nil)
+	require.NoError(t, err)
+	require.Equal(t, `{"arr":[{"b":2,"a":1},{"c":3}]}`, string(out))
+}
+
 func TestApplyParamOverrideAppendObjectMergeKeepOrigin(t *testing.T) {
 	input := []byte(`{"obj":{"a":1}}`)
 	override := map[string]interface{}{

@@ -4683,3 +4683,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: added anonymous-field regression coverage and ran `git diff --check`; Go tests were not run because the Go toolchain is unavailable in this environment.
 - Commit and push: pending.
 
+## 2026-10-28 - Fix task-plugin checker compilation after upstream sync
+
+- Local reason: the Docker image build failed in `go run ./cmd/check-task-plugins` because the synced parameter-override code referenced the undefined `common.RawMessage` type.
+- Changed: use the existing `common.JSONRawMessage` alias when preserving raw JSON array elements, and add a regression test that verifies object key order is retained during array append operations.
+- Preserved: parameter override behavior, raw JSON preservation, task-plugin registration, and all upstream-synced functionality.
+- Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment. The GitHub Actions failure is the reproduced build evidence.
+- Commit and push: pending.
+
