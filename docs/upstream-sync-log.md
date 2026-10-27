@@ -4699,3 +4699,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment.
 - Commit and push: source fix committed as `8395c693f` and pushed to `origin/main` on 2026-10-28; this log update follows.
 
+## 2026-10-28 - Fix distributor syntax after shared routing sync
+
+- Local reason: the GitHub Actions image build reported a cascade of syntax errors in `middleware/distributor.go` after the shared channel/task-plugin routing change.
+- Changed: close the outer channel-selection `else` block after the new affinity/random-selection wrapper, restoring the intended function nesting.
+- Preserved: pin handling, affinity selection, auto-group price ordering, task-plugin filters, retry behavior, and all existing routing logic.
+- Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment.
+- Commit and push: pending.
+

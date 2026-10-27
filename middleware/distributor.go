@@ -195,6 +195,7 @@ func Distribute() func(c *gin.Context) {
 					}
 			}
 		}
+		}
 		if channel != nil {
 			if ok, kind := model.ChannelSatisfiesFilters(channel, modelRequest.Model, constraints.Filters); !ok {
 				if kind == taskdto.FilterTaskPluginIdentity {
