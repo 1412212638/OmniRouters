@@ -4705,5 +4705,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: close the outer channel-selection `else` block after the new affinity/random-selection wrapper, restoring the intended function nesting.
 - Preserved: pin handling, affinity selection, auto-group price ordering, task-plugin filters, retry behavior, and all existing routing logic.
 - Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment.
-- Commit and push: pending.
+- Commit and push: source fix committed as `d45459536` and pushed to `origin/main` on 2026-10-28; this log update follows.
 
