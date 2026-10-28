@@ -53,15 +53,21 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
   const tiers = useMemo(() => {
     if (!schema || !expression) return []
     const { billingExpr } = splitBillingExprAndRequestRules(expression)
-    return getTaskPricingDisplayTiers(billingExpr, schema)
+    return getTaskPricingDisplayTiers(billingExpr, schema).filter(
+      (tier) =>
+        tier.conditions.length > 0 ||
+        tier.constant > 0 ||
+        Object.values(tier.unitPrices).some((price) => Number(price) > 0)
+    )
   }, [expression, schema])
-  const numberFields = useMemo(
-    () =>
-      Object.entries(schema || {}).filter(
-        ([, definition]) => definition.type === 'number' && definition.unit
-      ),
-    [schema]
-  )
+  const numberFields = useMemo(() => {
+    return Object.entries(schema || {}).filter(
+      ([field, definition]) =>
+        definition.type === 'number' &&
+        definition.unit &&
+        tiers.some((tier) => Number(tier.unitPrices[field]) > 0)
+    )
+  }, [schema, tiers])
 
   if (
     !schema ||
@@ -72,6 +78,7 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
     return null
   }
 
+  const showFixedPrice = tiers.some((tier) => tier.constant > 0)
   const ratio = props.groupRatio ?? 1
   const title = props.title || t('Task pricing')
   return (
@@ -104,16 +111,20 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
                 t
               ) || t('Default'),
           },
-          {
-            id: 'constant',
-            header: t('Fixed price'),
-            className: 'text-muted-foreground px-3 py-2 text-right',
-            cellClassName: 'px-3 py-2 text-right font-mono',
-            cell: (tier) =>
-              tier.constant > 0
-                ? formatTaskPrice(tier.constant * ratio, props)
-                : '-',
-          },
+          ...(showFixedPrice
+            ? [
+                {
+                  id: 'constant',
+                  header: t('Fixed price'),
+                  className: 'text-muted-foreground px-3 py-2 text-right',
+                  cellClassName: 'px-3 py-2 text-right font-mono',
+                  cell: (tier: (typeof tiers)[number]) =>
+                    tier.constant > 0
+                      ? formatTaskPrice(tier.constant * ratio, props)
+                      : '-',
+                },
+              ]
+            : []),
           ...numberFields.map(([field, definition]) => ({
             id: field,
             header: <TaskUsageHeader schema={schema} field={field} />,
@@ -121,8 +132,16 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
             cellClassName: 'px-3 py-2 text-right font-mono',
             cell: (tier: (typeof tiers)[number]) => {
               const value = Number(tier.unitPrices[field] || 0)
+              const unitLabel =
+                definition.unit === 'token'
+                  ? t('1M tokens')
+                  : definition.unit === 'second'
+                    ? t('seconds')
+                    : definition.unit === 'count'
+                      ? t('Count')
+                      : t('credit')
               return value > 0
-                ? `${formatTaskPrice(value * ratio, props)} / ${definition.unit === 'token' ? '1M tokens' : definition.unit}`
+                ? `${formatTaskPrice(value * ratio, props)} / ${unitLabel}`
                 : '-'
             },
           })),

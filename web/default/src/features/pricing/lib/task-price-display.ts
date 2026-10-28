@@ -33,6 +33,24 @@ import { compileBillingExpression } from './billing-expression/parser'
 import { visitExpression } from './billing-expression/types'
 import { getTaskPricingDisplayTiers } from './task-matrix-display'
 
+function resolveTaskLocalizedText(
+  value: LocalizedText,
+  language: string
+): string {
+  if (!value || typeof value === 'string') return value || ''
+  const languageTag = language.replace('_', '-')
+  const normalizedLanguage =
+    languageTag === 'zhCN'
+      ? 'zh'
+      : languageTag === 'zhTW'
+        ? 'zh-TW'
+        : languageTag
+  const exact = value[normalizedLanguage]
+  if (exact) return exact
+  const baseLanguage = normalizedLanguage.split('-')[0]
+  return value[baseLanguage] || resolveLocalizedText(value, normalizedLanguage)
+}
+
 export function taskPriceLabel(
   description: LocalizedText | undefined,
   field: string,
@@ -42,7 +60,7 @@ export function taskPriceLabel(
     typeof description === 'object' && description
       ? { ...description, en: description.en?.trim() || field }
       : description
-  return resolveLocalizedText(localized, language) || field
+  return resolveTaskLocalizedText(localized, language) || field
 }
 
 export function taskEnumLabel(
@@ -59,7 +77,7 @@ export function taskUsageUnitLabel(
   fallback: string
 ): string {
   if (definition?.unit !== 'count') return fallback
-  return resolveLocalizedText(definition.unitLabel, language) || fallback
+  return resolveTaskLocalizedText(definition.unitLabel, language) || fallback
 }
 
 export function taskPricingConditions(

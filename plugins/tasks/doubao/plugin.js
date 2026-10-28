@@ -233,28 +233,79 @@ function seedanceUsageSchema(profile) {
     tokens: {
       type: "number",
       unit: "token",
-      description: { en: "Billing token unit price", zh: "计费 Token 单价" },
+      description: {
+        en: "Billing token unit price",
+        fr: "Prix unitaire des tokens facturés",
+        ja: "課金トークン単価",
+        ru: "Цена расчетной единицы токена",
+        vi: "Đơn giá token tính phí",
+        zh: "计费 Token 单价",
+        "zh-TW": "計費 Token 單價",
+      },
     },
     // Output video resolution; Seedance token unit price varies by resolution tier.
     resolution: {
       enum: profile.resolutions,
       enumLabels: resolutionLabels,
-      description: { en: "Output video resolution", zh: "输出视频分辨率" },
+      description: {
+        en: "Output video resolution",
+        fr: "Résolution vidéo de sortie",
+        ja: "出力動画の解像度",
+        ru: "Разрешение выходного видео",
+        vi: "Độ phân giải video đầu ra",
+        zh: "输出视频分辨率",
+        "zh-TW": "輸出影片解析度",
+      },
     },
   };
   // Whether the request includes reference video input; Seedance 2.x prices video-to-video tokens at a lower unit rate.
   if (profile.videoInput) {
     schema.video_input = {
       enum: ["none", "video"],
-      enumLabels: { none: { en: "No reference video", zh: "无参考视频" }, video: { en: "With reference video", zh: "有参考视频" } },
-      description: { en: "Reference video input", zh: "参考视频输入" },
+      enumLabels: {
+        none: {
+          en: "No reference video",
+          fr: "Sans vidéo de référence",
+          ja: "参照動画なし",
+          ru: "Без референсного видео",
+          vi: "Không có video tham chiếu",
+          zh: "无参考视频",
+          "zh-TW": "無參考影片",
+        },
+        video: {
+          en: "With reference video",
+          fr: "Avec vidéo de référence",
+          ja: "参照動画あり",
+          ru: "С референсным видео",
+          vi: "Có video tham chiếu",
+          zh: "有参考视频",
+          "zh-TW": "有參考影片",
+        },
+      },
+      description: {
+        en: "Reference video input",
+        fr: "Vidéo de référence",
+        ja: "参照動画",
+        ru: "Референсное видео",
+        vi: "Video tham chiếu",
+        zh: "参考视频输入",
+        "zh-TW": "參考影片輸入",
+      },
     };
   }
   // Seedance 1.5 pro prices videos with and without audio differently.
   if (profile.audio) {
     schema.generate_audio = {
       type: "boolean",
-      description: { en: "Whether audio is generated", zh: "是否生成音频" },
+      description: {
+        en: "Whether audio is generated",
+        fr: "Génération audio activée",
+        ja: "音声生成の有無",
+        ru: "Генерация аудио",
+        vi: "Có tạo âm thanh hay không",
+        zh: "是否生成音频",
+        "zh-TW": "是否生成音訊",
+      },
     };
   }
   return schema;

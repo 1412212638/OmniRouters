@@ -5920,6 +5920,7 @@
     "Usage based": "Usage based",
     "Prices are charged according to the task usage fields shown below.": "Prices are charged according to the task usage fields shown below.",
     "Task condition": "Task condition",
+    "1M tokens": "1M tokens",
     "Configure task prices by usage fields such as duration, count, or resolution. The generated expression is used for billing.": "Configure task prices by usage fields such as duration, count, or resolution. The generated expression is used for billing.",
     "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.": "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.",
     "This model has no enum conditions, so one base pricing row is shown.": "This model has no enum conditions, so one base pricing row is shown.",
