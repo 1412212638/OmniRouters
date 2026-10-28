@@ -30,6 +30,52 @@ func SetTaskPluginProtocolRouter(router *gin.Engine) {
 			}
 		}
 	}
+	registerDoubaoNativeRoutes(router)
+}
+
+// registerDoubaoNativeRoutes keeps the historical /doubao-prefixed Ark task
+// API available alongside the official /api/v3 aliases registered in the API
+// router. Both paths enter the same task-plugin pipeline and are pinned to the
+// currently loaded plugin generation on every request.
+func registerDoubaoNativeRoutes(router *gin.Engine) {
+	const (
+		createPath = "/doubao/api/v3/contents/generations/tasks"
+		queryPath  = "/doubao/api/v3/contents/generations/tasks/:task_id"
+	)
+	router.POST(createPath, doubaoNativeSubmitHandlers(http.MethodPost, createPath)...)
+	router.GET(queryPath, doubaoNativeQueryHandlers(http.MethodGet, queryPath)...)
+}
+
+func doubaoNativeSubmitHandlers(method, declaredPath string) []gin.HandlerFunc {
+	return []gin.HandlerFunc{
+		middleware.RouteTag("relay"), middleware.TokenAuth(), middleware.SystemPerformanceCheck(),
+		pinDeclaredTaskPluginRoute(method, declaredPath), middleware.ModelRequestRateLimit(),
+		middleware.PrepareTaskPluginRoute(), middleware.Distribute(), controller.RelayTask,
+	}
+}
+
+func doubaoNativeQueryHandlers(method, declaredPath string) []gin.HandlerFunc {
+	return []gin.HandlerFunc{
+		middleware.RouteTag("relay"), middleware.TokenAuth(), middleware.SystemPerformanceCheck(),
+		pinDeclaredTaskPluginRoute(method, declaredPath), middleware.PrepareTaskPluginRoute(),
+	}
+}
+
+func pinDeclaredTaskPluginRoute(method, declaredPath string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		generation := pluginruntime.DefaultRegistry.Generation()
+		binding, ok := generation.LookupDeclaredRoute(method, declaredPath)
+		if !ok || binding.Plugin == nil {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": gin.H{
+				"message": "Doubao native route is unavailable; install and enable the Doubao plugin",
+				"type":    "new_api_error", "code": "task_plugin_route_unavailable",
+			}})
+			return
+		}
+		c.Set(pluginruntime.ContextKeyPinnedRoute, pluginruntime.PinnedRoute{
+			Generation: generation, Plugin: binding.Plugin, Route: binding.Route,
+		})
+	}
 }
 
 func pinTypeSafeRoute(c *gin.Context) {

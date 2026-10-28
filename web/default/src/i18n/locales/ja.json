@@ -6013,6 +6013,14 @@
     "Google Search": "Google 検索",
     "Google Search Grounded Prompt": "Google 検索（グラウンディングプロンプト）",
     "Web Search Preview": "Web 検索プレビュー",
-    "Discount expiration time": "割引有効期限"
+    "Discount expiration time": "割引有効期限",
+    "Doubao Native": "Doubao ネイティブ API",
+    "Volcengine native video task API": "Volcengine ネイティブ動画タスク API",
+    "Create a Doubao Video Task": "Doubao 動画タスクを作成",
+    "Get a Doubao Video Task": "Doubao 動画タスクを取得",
+    "Doubao Video Create Task": "Doubao 動画タスク作成",
+    "Doubao Video Query Task": "Doubao 動画タスク照会",
+    "Doubao Video Create API": "Doubao 動画作成 API",
+    "Doubao Video Query API": "Doubao 動画照会 API"
   }
 }

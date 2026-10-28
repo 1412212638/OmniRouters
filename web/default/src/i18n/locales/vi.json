@@ -6013,6 +6013,14 @@
     "Google Search": "Tìm kiếm Google",
     "Google Search Grounded Prompt": "Tìm kiếm Google có căn cứ",
     "Web Search Preview": "Xem trước tìm kiếm web",
-    "Discount expiration time": "Thời hạn giảm giá"
+    "Discount expiration time": "Thời hạn giảm giá",
+    "Doubao Native": "API gốc Doubao",
+    "Volcengine native video task API": "API tác vụ video gốc Volcengine",
+    "Create a Doubao Video Task": "Tạo tác vụ video Doubao",
+    "Get a Doubao Video Task": "Lấy tác vụ video Doubao",
+    "Doubao Video Create Task": "Tạo tác vụ video Doubao",
+    "Doubao Video Query Task": "Tra cứu tác vụ video Doubao",
+    "Doubao Video Create API": "API tạo video Doubao",
+    "Doubao Video Query API": "API tra cứu video Doubao"
   }
 }

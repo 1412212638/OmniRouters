@@ -152,6 +152,14 @@ export const ENDPOINT_TEMPLATES: Record<
   decision: { path: '/v1/systemone', method: 'POST' },
   'deepseek-search': { path: '/v1/tools/search', method: 'POST' },
   'deepseek-fetch': { path: '/v1/tools/fetch', method: 'POST' },
+  'doubao-video-create': {
+    path: '/api/v3/contents/generations/tasks',
+    method: 'POST',
+  },
+  'doubao-video-query': {
+    path: '/api/v3/contents/generations/tasks/{task_id}',
+    method: 'GET',
+  },
 }
 
 // ============================================================================

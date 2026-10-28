@@ -102,6 +102,14 @@ import { getNameRuleOptions, ENDPOINT_TEMPLATES } from '../../constants'
 import { modelsQueryKeys, vendorsQueryKeys, parseModelTags } from '../../lib'
 import { MODEL_MODALITIES, type Model, type ModelModality } from '../../types'
 
+const ENDPOINT_TEMPLATE_LABELS: Record<string, string> = {
+  decision: 'Decision Model',
+  'deepseek-search': 'DeepSeek Search',
+  'deepseek-fetch': 'DeepSeek Fetch',
+  'doubao-video-create': 'Doubao Video Create Task',
+  'doubao-video-query': 'Doubao Video Query Task',
+}
+
 // Extended schema for ratio configuration (internal form state only)
 const extendedModelFormSchema = z.object({
   id: z.number().optional(),
@@ -1321,19 +1329,14 @@ export function ModelMutateDrawer({
                 <MultiSelect
                   options={Object.keys(ENDPOINT_TEMPLATES).map((key) => ({
                     value: key,
-                    label:
-                      key === 'decision'
-                        ? t('Decision Model')
-                        : key === 'deepseek-search'
-                          ? t('DeepSeek Search')
-                          : key === 'deepseek-fetch'
-                            ? t('DeepSeek Fetch')
-                            : key,
+                    label: ENDPOINT_TEMPLATE_LABELS[key]
+                      ? t(ENDPOINT_TEMPLATE_LABELS[key])
+                      : key,
                   }))}
                   selected={selectedEndpointTemplates}
                   onChange={handleFillEndpointTemplates}
                   placeholder={t('Load template...')}
-                  className='min-w-[200px] max-w-full sm:w-[320px]'
+                  className='max-w-full min-w-[200px] sm:w-[320px]'
                 />
               </div>
 

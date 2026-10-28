@@ -1,6 +1,8 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/QuantumNous/new-api/controller"
 	"github.com/QuantumNous/new-api/middleware"
 	"github.com/QuantumNous/new-api/service/authz"
@@ -20,6 +22,8 @@ func SetApiRouter(router *gin.Engine) {
 	apiRouter.Use(middleware.BodyStorageCleanup()) // 清理请求体存储
 	apiRouter.Use(middleware.GlobalAPIRateLimit())
 	apiRouter.Use(middleware.CORS())
+	apiRouter.POST("/v3/contents/generations/tasks", doubaoNativeSubmitHandlers(http.MethodPost, "/doubao/api/v3/contents/generations/tasks")...)
+	apiRouter.GET("/v3/contents/generations/tasks/:task_id", doubaoNativeQueryHandlers(http.MethodGet, "/doubao/api/v3/contents/generations/tasks/:task_id")...)
 	anonymousRequestBodyLimit := middleware.AnonymousRequestBodyLimit()
 	{
 		apiRouter.GET("/setup", controller.GetSetup)

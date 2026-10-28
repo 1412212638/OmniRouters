@@ -6013,6 +6013,14 @@
     "Google Search": "Google 搜尋",
     "Google Search Grounded Prompt": "Google 搜尋增強",
     "Web Search Preview": "網頁搜尋預覽",
-    "Discount expiration time": "折扣到期時間"
+    "Discount expiration time": "折扣到期時間",
+    "Doubao Native": "豆包原生 API",
+    "Volcengine native video task API": "火山引擎原生影片任務 API",
+    "Create a Doubao Video Task": "建立豆包影片任務",
+    "Get a Doubao Video Task": "查詢豆包影片任務",
+    "Doubao Video Create Task": "豆包影片建立任務",
+    "Doubao Video Query Task": "豆包影片查詢任務",
+    "Doubao Video Create API": "豆包影片建立 API",
+    "Doubao Video Query API": "豆包影片查詢 API"
   }
 }

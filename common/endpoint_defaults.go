@@ -5,7 +5,7 @@ import "github.com/QuantumNous/new-api/constant"
 // EndpointInfo 描述单个端点的默认请求信息
 // path: 上游路径
 // method: HTTP 请求方式，例如 POST/GET
-// 目前均为 POST，后续可扩展
+// 支持不同 HTTP 方法，例如原生异步任务的 GET 查询端点
 //
 // json 标签用于直接序列化到 API 输出
 // 例如：{"path":"/v1/chat/completions","method":"POST"}
@@ -28,6 +28,9 @@ var defaultEndpointInfoMap = map[constant.EndpointType]EndpointInfo{
 	constant.EndpointTypeJinaRerank:            {Path: "/v1/rerank", Method: "POST"},
 	constant.EndpointTypeImageGeneration:       {Path: "/v1/images/generations", Method: "POST"},
 	constant.EndpointTypeEmbeddings:            {Path: "/v1/embeddings", Method: "POST"},
+	constant.EndpointTypeOpenAIVideo:           {Path: "/v1/videos", Method: "POST"},
+	constant.EndpointTypeDoubaoVideoCreate:     {Path: "/api/v3/contents/generations/tasks", Method: "POST"},
+	constant.EndpointTypeDoubaoVideoQuery:      {Path: "/api/v3/contents/generations/tasks/{task_id}", Method: "GET"},
 }
 
 // GetDefaultEndpointInfo 返回指定端点类型的默认信息以及是否存在

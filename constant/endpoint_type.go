@@ -19,6 +19,8 @@ const (
 	EndpointTypeImageGeneration       = types.EndpointTypeImageGeneration
 	EndpointTypeEmbeddings            = types.EndpointTypeEmbeddings
 	EndpointTypeOpenAIVideo           = types.EndpointTypeOpenAIVideo
+	EndpointTypeDoubaoVideoCreate     = types.EndpointTypeDoubaoVideoCreate
+	EndpointTypeDoubaoVideoQuery      = types.EndpointTypeDoubaoVideoQuery
 )
 
 // Model names the distributor assigns to /v1/tools/search and /v1/tools/fetch,

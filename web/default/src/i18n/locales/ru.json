@@ -6013,6 +6013,14 @@
     "Google Search": "Поиск Google",
     "Google Search Grounded Prompt": "Поиск Google с обоснованием",
     "Web Search Preview": "Предпросмотр веб-поиска",
-    "Discount expiration time": "Срок действия скидки"
+    "Discount expiration time": "Срок действия скидки",
+    "Doubao Native": "Нативный API Doubao",
+    "Volcengine native video task API": "Нативный API видео-задач Volcengine",
+    "Create a Doubao Video Task": "Создать видео-задачу Doubao",
+    "Get a Doubao Video Task": "Получить видео-задачу Doubao",
+    "Doubao Video Create Task": "Создание видео-задачи Doubao",
+    "Doubao Video Query Task": "Запрос видео-задачи Doubao",
+    "Doubao Video Create API": "API создания видео Doubao",
+    "Doubao Video Query API": "API запроса видео Doubao"
   }
 }

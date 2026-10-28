@@ -69,3 +69,20 @@ func TestDeepSeekToolRoutingNamesReportTheirEndpoint(t *testing.T) {
 	}
 	assert.Equal(t, []constant.EndpointType{constant.EndpointTypeOpenAI}, common.GetEndpointTypesByChannelType(constant.ChannelTypeDeepSeek, "deepseek-flash"))
 }
+
+func TestDoubaoVideoModelsExposeNativeTaskEndpoints(t *testing.T) {
+	assert.Equal(t, []constant.EndpointType{
+		constant.EndpointTypeOpenAIVideo,
+		constant.EndpointTypeDoubaoVideoCreate,
+		constant.EndpointTypeDoubaoVideoQuery,
+	}, common.GetEndpointTypesByChannelType(constant.ChannelTypeDoubaoVideo, "doubao-seedance-2.0"))
+	assert.Equal(t, []constant.EndpointType{
+		constant.EndpointTypeOpenAIVideo,
+		constant.EndpointTypeOpenAI,
+		constant.EndpointTypeDoubaoVideoCreate,
+		constant.EndpointTypeDoubaoVideoQuery,
+	}, common.GetEndpointTypesByChannelType(constant.ChannelTypeVolcEngine, "doubao-seedance-2.0"))
+	assert.NotContains(t, common.GetEndpointTypesByChannelType(constant.ChannelTypeDoubaoVideo, "doubao-seedream-4.0"), constant.EndpointTypeDoubaoVideoCreate)
+	assert.NotContains(t, common.GetEndpointTypesByChannelType(constant.ChannelTypeDoubaoVideo, "kling-v2.6"), constant.EndpointTypeDoubaoVideoCreate)
+	assert.NotContains(t, common.GetEndpointTypesByChannelType(constant.ChannelTypeVolcEngine, "kling-v2.6"), constant.EndpointTypeDoubaoVideoCreate)
+}

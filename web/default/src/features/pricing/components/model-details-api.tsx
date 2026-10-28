@@ -1,12 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import {
-  ChevronRight,
-  Copy,
-  Gauge,
-  KeyRound,
-  ScrollText,
-  Zap,
-} from 'lucide-react'
+import { ChevronRight, Gauge, KeyRound, ScrollText, Zap } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { BundledLanguage } from 'shiki/bundle/web'
@@ -56,6 +49,23 @@ type SampleContext = {
   endpointType: string
   endpointPath: string
   streaming: boolean
+}
+
+function pythonLiteral(value: unknown): string {
+  if (value === null) return 'None'
+  if (typeof value === 'boolean') return value ? 'True' : 'False'
+  if (typeof value === 'string') return JSON.stringify(value)
+  if (typeof value === 'number') return String(value)
+  if (Array.isArray(value)) {
+    return `[${value.map(pythonLiteral).join(', ')}]`
+  }
+  if (typeof value === 'object') {
+    const entries = Object.entries(value).map(
+      ([key, item]) => `${JSON.stringify(key)}: ${pythonLiteral(item)}`
+    )
+    return `{${entries.join(', ')}}`
+  }
+  return 'None'
 }
 
 function buildChatSample(lang: Lang, ctx: SampleContext): string {
@@ -557,12 +567,137 @@ function buildDecisionModelSample(lang: Lang, ctx: SampleContext): string {
   ].join('\n')
 }
 
+function buildDoubaoVideoSample(lang: Lang, ctx: SampleContext): string {
+  const isQuery = ctx.endpointType === 'doubao-video-query'
+  const endpointPath = isQuery
+    ? ctx.endpointPath.replace('{task_id}', '<TASK_ID>')
+    : ctx.endpointPath
+  const url = `${ctx.baseUrl}${endpointPath}`
+  const body = {
+    model: ctx.modelName,
+    content: [
+      {
+        type: 'text',
+        text: 'A cinematic sunrise over a futuristic city, slow camera movement.',
+      },
+    ],
+    duration: 5,
+    resolution: '720p',
+    ratio: '16:9',
+    generate_audio: true,
+  }
+  const bodyJson = JSON.stringify(body, null, 2)
+  const requestMethod = isQuery ? 'GET' : 'POST'
+
+  if (lang === 'curl') {
+    if (isQuery) {
+      return [
+        `curl '${url}' \\`,
+        `  -H 'Authorization: Bearer <YOUR_API_KEY>'`,
+      ].join('\n')
+    }
+    return [
+      `curl '${url}' \\`,
+      `  -H 'Authorization: Bearer <YOUR_API_KEY>' \\`,
+      `  -H 'Content-Type: application/json' \\`,
+      `  -d '${bodyJson.replace(/\n/g, '\n     ')}'`,
+    ].join('\n')
+  }
+
+  if (lang === 'python') {
+    const requestCall = isQuery ? 'requests.get' : 'requests.post'
+    const lines = [
+      'import requests',
+      '',
+      `response = ${requestCall}(`,
+      `    '${url}',`,
+      `    headers={'Authorization': 'Bearer <YOUR_API_KEY>'},`,
+    ]
+    if (!isQuery) lines.push(`    json=${pythonLiteral(body)},`)
+    lines.push(')', 'response.raise_for_status()', 'print(response.json())')
+    return lines.join('\n')
+  }
+
+  const lines = [
+    `const response = await fetch('${url}', {`,
+    `  method: '${requestMethod}',`,
+    `  headers: { Authorization: 'Bearer <YOUR_API_KEY>',`,
+  ]
+  if (!isQuery) {
+    lines.push(`    'Content-Type': 'application/json',`)
+    lines.push('  },', `  body: JSON.stringify(${JSON.stringify(body)}),`)
+  } else {
+    lines.push('  },')
+  }
+  lines.push('})', 'if (!response.ok) throw new Error(await response.text())')
+  if (isQuery) {
+    lines.push('console.log(await response.json())')
+  } else {
+    lines.push('const task = await response.json()', 'console.log(task)')
+  }
+  return lines.join('\n')
+}
+
+function buildOpenAIVideoSample(lang: Lang, ctx: SampleContext): string {
+  const url = `${ctx.baseUrl}${ctx.endpointPath}`
+  const body = {
+    model: ctx.modelName,
+    prompt: 'A cinematic sunrise over a futuristic city, slow camera movement.',
+    seconds: 5,
+    size: '1280x720',
+  }
+  const bodyJson = JSON.stringify(body, null, 2)
+
+  if (lang === 'curl') {
+    return [
+      `curl '${url}' \\`,
+      `  -H 'Authorization: Bearer <YOUR_API_KEY>' \\`,
+      `  -H 'Content-Type: application/json' \\`,
+      `  -d '${bodyJson.replace(/\n/g, '\n     ')}'`,
+    ].join('\n')
+  }
+
+  if (lang === 'python') {
+    return [
+      'import requests',
+      '',
+      'response = requests.post(',
+      `    '${url}',`,
+      `    headers={'Authorization': 'Bearer <YOUR_API_KEY>'},`,
+      `    json=${pythonLiteral(body)},`,
+      ')',
+      'response.raise_for_status()',
+      'print(response.json())',
+    ].join('\n')
+  }
+
+  return [
+    `const response = await fetch('${url}', {`,
+    `  method: 'POST',`,
+    `  headers: {`,
+    `    Authorization: 'Bearer <YOUR_API_KEY>',`,
+    `    'Content-Type': 'application/json',`,
+    `  },`,
+    `  body: JSON.stringify(${JSON.stringify(body)}),`,
+    `})`,
+    `if (!response.ok) throw new Error(await response.text())`,
+    `console.log(await response.json())`,
+  ].join('\n')
+}
+
 function buildSample(
   lang: Lang,
   endpointType: string,
   ctx: SampleContext
 ): string {
   if (endpointType === 'decision') return buildDecisionModelSample(lang, ctx)
+  if (endpointType === 'openai-video') return buildOpenAIVideoSample(lang, ctx)
+  if (
+    endpointType === 'doubao-video-create' ||
+    endpointType === 'doubao-video-query'
+  ) {
+    return buildDoubaoVideoSample(lang, ctx)
+  }
   if (
     endpointType === 'deepseek-tools-search' ||
     endpointType === 'deepseek-tools-fetch'
@@ -652,6 +787,9 @@ function CodeSamplesSection(props: {
     decision: 'Decision Model API',
     'deepseek-tools-search': 'Web Search API',
     'deepseek-tools-fetch': 'Web Fetch API',
+    'openai-video': t('Video'),
+    'doubao-video-create': t('Doubao Video Create API'),
+    'doubao-video-query': t('Doubao Video Query API'),
   }
 
   return (

@@ -46,6 +46,7 @@ type Protocol = {
   id: string
   label: string
   description: string
+  basePath?: string
   endpoints: Endpoint[]
 }
 
@@ -196,6 +197,26 @@ const PROTOCOLS: Protocol[] = [
       },
     ],
   },
+  {
+    id: 'doubao',
+    label: 'Doubao Native',
+    description: 'Volcengine native video task API',
+    basePath: '/api/v3',
+    endpoints: [
+      {
+        id: 'video-create-task',
+        method: 'POST',
+        path: '/api/v3/contents/generations/tasks',
+        label: 'Create a Doubao Video Task',
+      },
+      {
+        id: 'video-query-task',
+        method: 'GET',
+        path: '/api/v3/contents/generations/tasks/{task_id}',
+        label: 'Get a Doubao Video Task',
+      },
+    ],
+  },
 ]
 
 type ApiEndpointsDrawerProps = {
@@ -285,13 +306,13 @@ export function ApiEndpointsDrawer({
   const selectedEndpoint = getProtocolEndpoint(selectedProtocol)
 
   function getProtocolPrefix(protocol: Protocol): string {
-    return protocol.id === 'gemini' ? '/v1beta' : '/v1'
+    return protocol.basePath ?? (protocol.id === 'gemini' ? '/v1beta' : '/v1')
   }
 
   function getProtocolBaseUrl(protocol: Protocol): string {
     if (!selectedNode) return getProtocolPrefix(protocol)
     const root = normalizeBaseUrl(selectedNode.url).replace(
-      /\/(?:v1beta|v1)$/i,
+      /\/(?:v1beta|v1|api\/v3)$/i,
       ''
     )
     return `${root}${getProtocolPrefix(protocol)}`

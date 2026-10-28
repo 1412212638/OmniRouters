@@ -65,6 +65,8 @@ export const ENDPOINT_TYPES = {
   IMAGE_GENERATION: 'image-generation',
   EMBEDDINGS: 'embeddings',
   OPENAI_VIDEO: 'openai-video',
+  DOUBAO_VIDEO_CREATE: 'doubao-video-create',
+  DOUBAO_VIDEO_QUERY: 'doubao-video-query',
 } as const
 
 export type EndpointTypeOption =
@@ -84,6 +86,8 @@ export function getEndpointTypeLabels(
     [ENDPOINT_TYPES.IMAGE_GENERATION]: t('Image'),
     [ENDPOINT_TYPES.EMBEDDINGS]: t('Embeddings'),
     [ENDPOINT_TYPES.OPENAI_VIDEO]: t('Video'),
+    [ENDPOINT_TYPES.DOUBAO_VIDEO_CREATE]: t('Doubao Video Create API'),
+    [ENDPOINT_TYPES.DOUBAO_VIDEO_QUERY]: t('Doubao Video Query API'),
   }
 }
 

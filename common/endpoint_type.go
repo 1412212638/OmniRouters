@@ -1,6 +1,10 @@
 package common
 
-import "github.com/QuantumNous/new-api/constant"
+import (
+	"strings"
+
+	"github.com/QuantumNous/new-api/constant"
+)
 
 // GetEndpointTypesByChannelType returns endpoint types in preferred order for a channel/model pair.
 func GetEndpointTypesByChannelType(channelType int, modelName string) []constant.EndpointType {
@@ -13,6 +17,15 @@ func GetEndpointTypesByChannelType(channelType int, modelName string) []constant
 	}
 	var endpointTypes []constant.EndpointType
 	switch channelType {
+	case constant.ChannelTypeDoubaoVideo:
+		if isDoubaoSeedanceVideoModel(modelName) {
+			endpointTypes = []constant.EndpointType{
+				constant.EndpointTypeDoubaoVideoCreate,
+				constant.EndpointTypeDoubaoVideoQuery,
+			}
+		} else {
+			endpointTypes = []constant.EndpointType{constant.EndpointTypeOpenAI}
+		}
 	case constant.ChannelTypeJina:
 		if IsEmbeddingModel(modelName) {
 			endpointTypes = []constant.EndpointType{constant.EndpointTypeEmbeddings}
@@ -63,6 +76,12 @@ func GetEndpointTypesByChannelType(channelType int, modelName string) []constant
 			endpointTypes = []constant.EndpointType{constant.EndpointTypeOpenAI}
 		}
 	}
+	if channelType == constant.ChannelTypeVolcEngine && isDoubaoSeedanceVideoModel(modelName) {
+		endpointTypes = append(endpointTypes,
+			constant.EndpointTypeDoubaoVideoCreate,
+			constant.EndpointTypeDoubaoVideoQuery,
+		)
+	}
 	if IsRerankModel(modelName) {
 		endpointTypes = prependEndpointType(endpointTypes, constant.EndpointTypeJinaRerank)
 	}
@@ -76,6 +95,10 @@ func GetEndpointTypesByChannelType(channelType int, modelName string) []constant
 		endpointTypes = prependEndpointType(endpointTypes, constant.EndpointTypeImageGeneration)
 	}
 	return endpointTypes
+}
+
+func isDoubaoSeedanceVideoModel(modelName string) bool {
+	return strings.Contains(strings.ToLower(modelName), "seedance") && IsVideoGenerationModel(modelName)
 }
 
 func IsOpenAIChatEndpointModel(channelType int, modelName string) bool {
@@ -123,7 +146,9 @@ func isNonChatEndpointType(endpointType constant.EndpointType) bool {
 	case constant.EndpointTypeImageGeneration,
 		constant.EndpointTypeEmbeddings,
 		constant.EndpointTypeJinaRerank,
-		constant.EndpointTypeOpenAIVideo:
+		constant.EndpointTypeOpenAIVideo,
+		constant.EndpointTypeDoubaoVideoCreate,
+		constant.EndpointTypeDoubaoVideoQuery:
 		return true
 	default:
 		return false

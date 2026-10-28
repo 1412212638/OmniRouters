@@ -582,4 +582,12 @@ export const STATIC_I18N_KEYS = [
   'Failed to load',
   'Expired at',
   'Cancelled at',
+  'Doubao Native',
+  'Volcengine native video task API',
+  'Create a Doubao Video Task',
+  'Get a Doubao Video Task',
+  'Doubao Video Create Task',
+  'Doubao Video Query Task',
+  'Doubao Video Create API',
+  'Doubao Video Query API',
 ] as const

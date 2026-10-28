@@ -318,11 +318,11 @@ export const meta = {
     capabilityUsageProfiles(IMAGE_MODELS, seedreamUsageSchema, seedreamUsageExamples)
   ),
   routes: [
-    { method: "POST", path: "/doubao/api/v3/contents/generations/tasks", type: "submit", decode: "createTask", render: "taskCreated" },
+    { method: "POST", path: "/doubao/api/v3/contents/generations/tasks", type: "submit", models: Object.keys(VIDEO_MODELS), decode: "createTask", render: "taskCreated" },
     { method: "GET", path: "/doubao/api/v3/contents/generations/tasks/:task_id", type: "query", render: "taskStatus" },
     // The vendor image API answers synchronously and has no task to re-query;
     // the complete response is delivered once and never persisted.
-    { method: "POST", path: "/doubao/api/v3/images/generations", type: "submit", decode: "createImage", render: "imageCreated" },
+    { method: "POST", path: "/doubao/api/v3/images/generations", type: "submit", models: Object.keys(IMAGE_MODELS), decode: "createImage", render: "imageCreated" },
   ],
   protocols: [
     { name: "openai_responses", supports: ["stream", "sync", "background"] },
@@ -332,6 +332,23 @@ export const meta = {
 
 function trimmed(value) {
   return String(value || "").trim();
+}
+
+// Native Ark requests use the provider's duration field directly. The native
+// route bypasses the generic TaskSubmitReq validator, so enforce the same
+// billing-safe upper bound here before a reservation is created.
+function validateNativeDuration(value, field) {
+  if (value === undefined || value === null) return;
+  const seconds = Number(value);
+  if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 3600)
+    throw new Error(field + " must be between 1 and 3600");
+}
+
+function nativeVideoBody(ctx) {
+  const req = ctx && ctx.requestBody;
+  const body = req && req.__doubao_native_body;
+  if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+  return body;
 }
 
 // Another New API gateway serves the Ark wire format only on this plugin's
@@ -395,6 +412,13 @@ function normalizeResolution(value) {
 
 function hasVideo(content) {
   return Array.isArray(content) && content.some((item) => item && (item.type === "video_url" || Object.prototype.hasOwnProperty.call(item, "video_url")));
+}
+
+function hasVisualReference(content) {
+  return Array.isArray(content) && content.some((item) => item && (
+    item.type === "video_url" || item.type === "image_url" || item.type === "input_image" ||
+    Object.prototype.hasOwnProperty.call(item, "video_url") || Object.prototype.hasOwnProperty.call(item, "image_url")
+  ));
 }
 
 // Capability profile of the executing Seedance model. Channel mapping may send
@@ -730,6 +754,8 @@ export const native = {
     const model = trimmed(body.model);
     if (!model) throw new Error("model is required");
     if (body.content !== undefined && !Array.isArray(body.content)) throw new Error("content must be an array");
+    validateNativeDuration(body.duration, "duration");
+    validateNativeDuration(body.seconds, "seconds");
     const content = Array.isArray(body.content) ? body.content : [];
     const texts = [];
     let hasReference = false;
@@ -747,9 +773,13 @@ export const native = {
         })
         .join("\n"),
       metadata: body,
+      // Keep the complete provider request separate from canonical fields used
+      // by the host for routing and billing. This is consumed only by the
+      // Doubao driver and never sent as an upstream field.
+      __doubao_native_body: body,
     };
-    const seconds = Number(body.duration);
-    if (Number.isFinite(seconds) && seconds > 0) requestBody.seconds = seconds;
+    const seconds = body.seconds === undefined ? body.duration : body.seconds;
+    if (seconds !== undefined) requestBody.seconds = seconds;
     const intent = { kind: "submit", model: model, action: hasReference ? "image_to_video" : "text_to_video", requestBody: requestBody };
     const originTaskIds = draftTaskIds(content);
     if (originTaskIds.length) intent.originTaskIds = originTaskIds;
@@ -800,6 +830,24 @@ export function buildSubmitRequest(ctx) {
     };
   }
   const req = ctx.requestBody;
+  const nativeBody = nativeVideoBody(ctx);
+  if (nativeBody) {
+    validateNativeDuration(nativeBody.duration, "duration");
+    validateNativeDuration(nativeBody.seconds, "seconds");
+    videoResolution(ctx);
+    const body = Object.assign({}, nativeBody);
+    if (Array.isArray(body.content)) body.content = rewriteDraftTaskContent(body.content, ctx.originTasks);
+    body.model = ctx.upstreamModel || body.model;
+    const hasReference = hasVisualReference(body.content);
+    return {
+      url: apiRoot(ctx) + "/api/v3/contents/generations/tasks",
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: "Bearer " + ctx.apiKey },
+      body: body,
+      action: trimmed(ctx.action) || (hasReference ? "image_to_video" : "text_to_video"),
+      rewriteModel: body.model,
+    };
+  }
   const metadata = req.metadata || {};
   // Reject output tiers the model does not offer before any quota is reserved.
   videoResolution(ctx);

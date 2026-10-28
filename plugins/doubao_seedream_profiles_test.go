@@ -153,3 +153,64 @@ func TestDoubaoSeedreamFlashBoundsAndBillingFacts(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, map[string]any{"images_up_to_1_5k": float64(1), "images_above_1_5k": float64(1)}, value)
 }
+
+func TestDoubaoNativeVideoBodyPreservesProviderFields(t *testing.T) {
+	plugin := newDoubaoProfilePlugin(t)
+	original := map[string]any{
+		"model":    "doubao-seedance-2.0",
+		"content": []any{
+			map[string]any{"type": "text", "text": "keep this exact item"},
+			map[string]any{"type": "image_url", "image_url": map[string]any{"url": "https://example.com/input.png"}},
+		},
+		"duration": 5,
+		"ratio":    "16:9",
+		"x_vendor": map[string]any{"preserve": true},
+	}
+	value, err := plugin.Engine.CallPath(t.Context(), "native", []string{"createTask"}, map[string]any{
+		"body": map[string]any{"kind": "json", "value": original},
+	})
+	require.NoError(t, err)
+	intent, ok := value.(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "doubao-seedance-2.0", intent["model"])
+	requestBody, ok := intent["requestBody"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, float64(5), requestBody["seconds"])
+	nativeBody, ok := requestBody["__doubao_native_body"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "16:9", nativeBody["ratio"])
+	require.Equal(t, map[string]any{"preserve": true}, nativeBody["x_vendor"])
+
+	value, err = plugin.Engine.CallPath(t.Context(), "buildSubmitRequest", map[string]any{
+		"model":         "doubao-seedance-2.0",
+		"action":        intent["action"],
+		"upstreamModel": "ark-video-id",
+		"requestBody":   requestBody,
+		"apiKey":        "secret",
+		"baseUrl":       "https://ark.example",
+	})
+	require.NoError(t, err)
+	descriptor, ok := value.(map[string]any)
+	require.True(t, ok)
+	body, ok := descriptor["body"].(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "ark-video-id", body["model"])
+	assert.Equal(t, "image_to_video", descriptor["action"])
+	assert.Equal(t, "16:9", body["ratio"])
+	assert.Equal(t, map[string]any{"preserve": true}, body["x_vendor"])
+	content, ok := body["content"].([]any)
+	require.True(t, ok)
+	require.Len(t, content, 2)
+	assert.Equal(t, "text", content[0].(map[string]any)["type"])
+	assert.Equal(t, "image_url", content[1].(map[string]any)["type"])
+}
+
+func TestDoubaoNativeVideoDurationIsBounded(t *testing.T) {
+	plugin := newDoubaoProfilePlugin(t)
+	_, err := plugin.Engine.CallPath(t.Context(), "native", []string{"createTask"}, map[string]any{
+		"body": map[string]any{"kind": "json", "value": map[string]any{
+			"model": "doubao-seedance-2.0", "content": []any{map[string]any{"type": "text", "text": "a cat"}}, "duration": 3601,
+		}},
+	})
+	require.ErrorContains(t, err, "duration must be between 1 and 3600")
+}

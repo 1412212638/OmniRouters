@@ -20,6 +20,56 @@ func TestTypeSafeNativeRouteRegistered(t *testing.T) {
 	t.Fatal("TypeSafe native POST route must not fall through to the web frontend")
 }
 
+func TestDoubaoNativeRoutesRegistered(t *testing.T) {
+	router := gin.New()
+	SetTaskPluginProtocolRouter(router)
+	want := map[string]map[string]bool{
+		http.MethodPost: {
+			"/doubao/api/v3/contents/generations/tasks": false,
+		},
+		http.MethodGet: {
+			"/doubao/api/v3/contents/generations/tasks/:task_id": false,
+		},
+	}
+	for _, route := range router.Routes() {
+		if paths, ok := want[route.Method]; ok {
+			if _, exists := paths[route.Path]; exists {
+				paths[route.Path] = true
+			}
+		}
+	}
+	for method, paths := range want {
+		for path, found := range paths {
+			if !found {
+				t.Fatalf("Doubao native %s route %s must be registered", method, path)
+			}
+		}
+	}
+}
+
+func TestDoubaoNativeAPIRoutesRegisteredInAPIGroup(t *testing.T) {
+	router := gin.New()
+	SetApiRouter(router)
+	want := map[string]map[string]bool{
+		http.MethodPost: {"/api/v3/contents/generations/tasks": false},
+		http.MethodGet:  {"/api/v3/contents/generations/tasks/:task_id": false},
+	}
+	for _, route := range router.Routes() {
+		if paths, ok := want[route.Method]; ok {
+			if _, exists := paths[route.Path]; exists {
+				paths[route.Path] = true
+			}
+		}
+	}
+	for method, paths := range want {
+		for path, found := range paths {
+			if !found {
+				t.Fatalf("Doubao native API-group %s route %s must be registered", method, path)
+			}
+		}
+	}
+}
+
 func TestTypeSafeMissingPluginReturnsJSON(t *testing.T) {
 	router := gin.New()
 	router.POST("/v1/systemone", pinTypeSafeRoute, func(c *gin.Context) {

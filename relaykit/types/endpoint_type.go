@@ -18,6 +18,8 @@ const (
 	EndpointTypeImageGeneration       EndpointType = "image-generation"
 	EndpointTypeEmbeddings            EndpointType = "embeddings"
 	EndpointTypeOpenAIVideo           EndpointType = "openai-video"
+	EndpointTypeDoubaoVideoCreate     EndpointType = "doubao-video-create"
+	EndpointTypeDoubaoVideoQuery      EndpointType = "doubao-video-query"
 )
 
 // Finish reasons shared by the OpenAI-compatible response formats.
