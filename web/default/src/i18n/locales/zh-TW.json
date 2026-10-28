@@ -5920,7 +5920,7 @@
     "Usage based": "按用量計費",
     "Prices are charged according to the task usage fields shown below.": "價格會根據下方顯示的任務用量欄位計費。",
     "Task condition": "任務條件",
-    "1M tokens": "100 萬 Token",
+    "1M tokens": "1M tokens",
     "Configure task prices by usage fields such as duration, count, or resolution. The generated expression is used for billing.": "依照時長、次數或解析度等用量欄位設定任務價格。產生的運算式將用於計費。",
     "Prices are charged per usage unit. Token usage fields are priced per 1M tokens.": "價格按用量單位計費。Token 用量按每 100 萬 Token 定價。",
     "This model has no enum conditions, so one base pricing row is shown.": "此模型沒有列舉條件，因此顯示一列基礎價格。",
