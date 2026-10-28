@@ -6,7 +6,7 @@
 - Changed: added selectable endpoint templates for both routes, a distinct `video-generation` endpoint type and default path, non-chat classification, pricing conversion handling, localized labels, and a video request sample for the selected endpoint.
 - Preserved: the existing `/v1/videos` endpoint type and route remain unchanged; `/v1/video/generations` remains the existing host route.
 - Validation: `bun run build`, `bunx oxfmt --check` on touched frontend files, locale JSON parsing, and `git diff --check` passed. Go tests/build and `gofmt` were unavailable because Go is not installed.
-- Source commit and push: pending.
+- Source commit and push: `efa5ff09a` (`feat: add video generation endpoint templates`), pushed to `origin/main`; this log status update is included in the following documentation commit.
 
 ## 2026-10-29 - Add native Doubao video task endpoints
 
