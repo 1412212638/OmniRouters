@@ -51,6 +51,20 @@ type SampleContext = {
   streaming: boolean
 }
 
+const QUERY_ENDPOINT_TEMPLATES: Record<
+  string,
+  { path: string; method: string }
+> = {
+  'video-generation-query': {
+    path: '/v1/video/generations/{task_id}',
+    method: 'GET',
+  },
+  'openai-video-query': {
+    path: '/v1/videos/{video_id}',
+    method: 'GET',
+  },
+}
+
 function pythonLiteral(value: unknown): string {
   if (value === null) return 'None'
   if (typeof value === 'boolean') return value ? 'True' : 'False'
@@ -639,7 +653,15 @@ function buildDoubaoVideoSample(lang: Lang, ctx: SampleContext): string {
 }
 
 function buildOpenAIVideoSample(lang: Lang, ctx: SampleContext): string {
-  const url = `${ctx.baseUrl}${ctx.endpointPath}`
+  const isQuery =
+    ctx.endpointType === 'video-generation-query' ||
+    ctx.endpointType === 'openai-video-query'
+  const endpointPath = isQuery
+    ? ctx.endpointPath
+        .replace('{task_id}', '<TASK_ID>')
+        .replace('{video_id}', '<VIDEO_ID>')
+    : ctx.endpointPath
+  const url = `${ctx.baseUrl}${endpointPath}`
   const body = {
     model: ctx.modelName,
     prompt: 'A cinematic sunrise over a futuristic city, slow camera movement.',
@@ -649,6 +671,12 @@ function buildOpenAIVideoSample(lang: Lang, ctx: SampleContext): string {
   const bodyJson = JSON.stringify(body, null, 2)
 
   if (lang === 'curl') {
+    if (isQuery) {
+      return [
+        `curl '${url}' \\`,
+        `  -H 'Authorization: Bearer <YOUR_API_KEY>'`,
+      ].join('\n')
+    }
     return [
       `curl '${url}' \\`,
       `  -H 'Authorization: Bearer <YOUR_API_KEY>' \\`,
@@ -658,6 +686,18 @@ function buildOpenAIVideoSample(lang: Lang, ctx: SampleContext): string {
   }
 
   if (lang === 'python') {
+    if (isQuery) {
+      return [
+        'import requests',
+        '',
+        'response = requests.get(',
+        `    '${url}',`,
+        `    headers={'Authorization': 'Bearer <YOUR_API_KEY>'},`,
+        ')',
+        'response.raise_for_status()',
+        'print(response.json())',
+      ].join('\n')
+    }
     return [
       'import requests',
       '',
@@ -668,6 +708,17 @@ function buildOpenAIVideoSample(lang: Lang, ctx: SampleContext): string {
       ')',
       'response.raise_for_status()',
       'print(response.json())',
+    ].join('\n')
+  }
+
+  if (isQuery) {
+    return [
+      `const response = await fetch('${url}', {`,
+      `  method: 'GET',`,
+      `  headers: { Authorization: 'Bearer <YOUR_API_KEY>' },`,
+      `})`,
+      `if (!response.ok) throw new Error(await response.text())`,
+      `console.log(await response.json())`,
     ].join('\n')
   }
 
@@ -691,7 +742,12 @@ function buildSample(
   ctx: SampleContext
 ): string {
   if (endpointType === 'decision') return buildDecisionModelSample(lang, ctx)
-  if (endpointType === 'video-generation' || endpointType === 'openai-video') {
+  if (
+    endpointType === 'video-generation' ||
+    endpointType === 'video-generation-query' ||
+    endpointType === 'openai-video' ||
+    endpointType === 'openai-video-query'
+  ) {
     return buildOpenAIVideoSample(lang, ctx)
   }
   if (
@@ -740,9 +796,18 @@ function CodeSamplesSection(props: {
 
   const endpoints = useMemo(() => {
     const types = props.model.supported_endpoint_types || []
-    return types
+    const expandedTypes = [...types]
+    if (types.includes('video-generation')) {
+      expandedTypes.push('video-generation-query')
+    }
+    if (types.includes('openai-video')) {
+      expandedTypes.push('openai-video-query')
+    }
+    return expandedTypes
+      .filter((type, index, values) => values.indexOf(type) === index)
       .map((type) => {
-        const info = props.endpointMap[type] || {}
+        const info =
+          props.endpointMap[type] || QUERY_ENDPOINT_TEMPLATES[type] || {}
         let path = info.path || ''
         if (path && path.includes('{model}')) {
           path = replaceModelInPath(path, props.model.model_name || '')
@@ -789,8 +854,10 @@ function CodeSamplesSection(props: {
     decision: 'Decision Model API',
     'deepseek-tools-search': 'Web Search API',
     'deepseek-tools-fetch': 'Web Fetch API',
-    'video-generation': t('Video Generation API'),
-    'openai-video': t('Video'),
+    'video-generation': t('OpenAI Video Generation API'),
+    'video-generation-query': t('OpenAI Video Generation Query API'),
+    'openai-video': t('OpenAI Videos API'),
+    'openai-video-query': t('OpenAI Videos Query API'),
     'doubao-video-create': t('Doubao Video Create API'),
     'doubao-video-query': t('Doubao Video Query API'),
   }

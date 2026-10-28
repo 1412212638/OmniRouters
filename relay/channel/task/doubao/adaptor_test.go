@@ -206,3 +206,49 @@ func TestConvertToRequestPayloadPreservesExplicitZeroPriority(t *testing.T) {
 		t.Fatalf("marshaled payload omitted safety_identifier: %s", body)
 	}
 }
+
+func TestParseTaskResultUsesProviderUsageForTieredBilling(t *testing.T) {
+	result, err := (&TaskAdaptor{}).ParseTaskResult([]byte(`{
+		"status": "succeeded",
+		"content": {"video_url": "https://example.com/video.mp4"},
+		"usage": {
+			"completion_tokens": 114345,
+			"total_tokens": 114345
+		}
+	}`))
+	if err != nil {
+		t.Fatalf("ParseTaskResult() error = %v", err)
+	}
+	if result.UsageFacts["tokens"] != float64(114345) {
+		t.Fatalf("UsageFacts[tokens] = %#v, want 114345", result.UsageFacts["tokens"])
+	}
+	if result.CompletionTokens != 114345 || result.TotalTokens != 114345 {
+		t.Fatalf("token fields = (%d, %d), want (114345, 114345)", result.CompletionTokens, result.TotalTokens)
+	}
+}
+
+func TestParseTaskResultFallsBackToTotalTokens(t *testing.T) {
+	result, err := (&TaskAdaptor{}).ParseTaskResult([]byte(`{
+		"status": "succeeded",
+		"usage": {"completion_tokens": 0, "total_tokens": 9876}
+	}`))
+	if err != nil {
+		t.Fatalf("ParseTaskResult() error = %v", err)
+	}
+	if result.UsageFacts["tokens"] != float64(9876) {
+		t.Fatalf("UsageFacts[tokens] = %#v, want 9876", result.UsageFacts["tokens"])
+	}
+}
+
+func TestParseTaskResultFallsBackToSingularTotalToken(t *testing.T) {
+	result, err := (&TaskAdaptor{}).ParseTaskResult([]byte(`{
+		"status": "succeeded",
+		"usage": {"total_token": 4321}
+	}`))
+	if err != nil {
+		t.Fatalf("ParseTaskResult() error = %v", err)
+	}
+	if result.UsageFacts["tokens"] != float64(4321) || result.TotalTokens != 4321 {
+		t.Fatalf("usage = %#v, total tokens = %d, want 4321", result.UsageFacts["tokens"], result.TotalTokens)
+	}
+}

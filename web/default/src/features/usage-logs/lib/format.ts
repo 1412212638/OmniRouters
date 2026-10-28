@@ -150,6 +150,19 @@ export function parseLogOther(other: string): LogOtherData | null {
 }
 
 /**
+ * Task plugins store completion units in usage_facts because the legacy log
+ * columns are populated only for synchronous token responses.
+ */
+export function getTaskUsageTokens(
+  other: LogOtherData | null | undefined
+): number {
+  const value = other?.usage_facts?.tokens
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? value
+    : 0
+}
+
+/**
  * Get time color based on duration (in seconds)
  */
 export function getTimeColor(

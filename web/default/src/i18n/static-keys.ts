@@ -592,4 +592,8 @@ export const STATIC_I18N_KEYS = [
   'Doubao Video Query API',
   'Video Generation API',
   'Video API',
+  'OpenAI Video Generation API',
+  'OpenAI Video Generation Query API',
+  'OpenAI Videos API',
+  'OpenAI Videos Query API',
 ] as const

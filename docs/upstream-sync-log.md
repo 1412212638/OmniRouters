@@ -1,5 +1,37 @@
 # Upstream Sync Log
 
+## 2026-10-29 - Simplify dynamic task pricing on model cards
+
+- Local reason: external model cards exposed the generic “Dynamic Pricing” label instead of a useful price summary for task-token models such as Seedance.
+- Changed: task-token cards now show `Input: -` and `Output: <min>–<max> / 1M tokens` (or the selected token unit), remove the redundant dynamic-pricing badge, and preserve two decimal places for small task-token prices where needed.
+- Preserved: full tier conditions and exact pricing tables on the model detail page, regular token pricing, request pricing, and task billing behavior.
+- Validation: targeted frontend formatting and `git diff --check`; no broad build was run for this display-only change.
+- Source commit and push: pending.
+
+## 2026-10-29 - Clarify OpenAI video endpoint samples
+
+- Local reason: the model detail API examples labeled the two OpenAI-compatible video creation routes inconsistently and omitted their corresponding query routes.
+- Changed: renamed the creation examples to OpenAI Video Generation API and OpenAI Videos API; added separate GET examples for `/v1/video/generations/{task_id}` and `/v1/videos/{video_id}`. Query tabs are derived from the creation endpoint and do not become separate pricing or model filters.
+- Preserved: existing endpoint types, pricing behavior, model-card endpoint badges, and video creation request bodies.
+- Validation: targeted frontend formatting and `git diff --check`; no broad build was run for this display/sample change.
+- Source commit and push: pending.
+
+## 2026-10-29 - Show task token facts in usage logs
+
+- Local reason: asynchronous task logs store completion units under `other.usage_facts.tokens`, while the legacy top-level token columns remain zero. The detail dialog therefore hid Token Breakdown and the common log table showed `-`.
+- Changed: common log rows now display task token facts in the Tokens column, and the detail dialog uses them as output/total tokens when legacy input/output fields are empty.
+- Preserved: synchronous input/output token display, cache breakdowns, billing details, and existing log payloads.
+- Validation: targeted frontend formatting and `git diff --check`; no broad build was run for this small display-only change.
+- Source commit and push: pending.
+
+## 2026-10-29 - Use native Doubao task usage for tiered settlement
+
+- Local reason: native Doubao `/api/v3/contents/generations/tasks` responses expose actual video usage, but the Go task adaptor only populated legacy token fields. Tiered expressions therefore kept the submission estimate when `UsageFacts` was empty.
+- Changed: parse `usage.completion_tokens` into `TaskInfo.UsageFacts["tokens"]`, with `total_tokens` and the singular `total_token` accepted as fallbacks; retain the legacy completion/total token fields for non-tiered billing. Added regression coverage for the provider response shape and both fallbacks.
+- Preserved: native Doubao task routing, video URL/status handling, existing expression tier and resolution rules, and legacy token recalculation.
+- Validation: `git diff --check` passed. Go tests and `gofmt` were unavailable because the Go toolchain is not installed in this environment.
+- Source commit and push: pending.
+
 ## 2026-10-29 - Add video generation endpoint templates
 
 - Local reason: the model endpoint selector was missing the existing `/v1/video/generations` and `/v1/videos` routes.

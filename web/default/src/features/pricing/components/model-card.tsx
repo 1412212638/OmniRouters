@@ -2,7 +2,6 @@ import { ChevronRight, Copy } from 'lucide-react'
 import { memo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { StatusBadge } from '@/components/status-badge'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { getLobeIcon } from '@/lib/lobe-icon'
 import { cn } from '@/lib/utils'
@@ -81,9 +80,35 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     Math.max(groups.length - 1, 0) +
     Math.max(endpoints.length - 2, 0) +
     Math.max(tags.length - 2, 0)
-  const showDynamicBadge = isDynamicPricing || Boolean(soraSummary)
   const footerBillingLabel =
     isTokenBased || soraSummary ? t('Token-based') : t('Per Request')
+
+  const formatCardPriceRange = (value: string): string => {
+    const separator = value.indexOf('-')
+    return separator < 0
+      ? value
+      : `${value.slice(0, separator)}–${value.slice(separator + 1)}`
+  }
+
+  const taskInputEntry = dynamicSummary?.entries.find((entry) =>
+    ['input_tokens', 'prompt_tokens'].includes(entry.field)
+  )
+  const taskOutputEntry = dynamicSummary?.entries.find((entry) =>
+    ['tokens', 'output_tokens', 'completion_tokens'].includes(entry.field)
+  )
+  const taskTokenSummary =
+    props.model.billing_usage_schema &&
+    dynamicSummary &&
+    (taskInputEntry || taskOutputEntry)
+      ? {
+          input: taskInputEntry
+            ? formatCardPriceRange(taskInputEntry.formatted)
+            : '-',
+          output: taskOutputEntry
+            ? formatCardPriceRange(taskOutputEntry.formatted)
+            : '-',
+        }
+      : null
 
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -126,7 +151,27 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       ...cacheReadEntries,
       ...(cacheWriteEntry ? [cacheWriteEntry] : []),
     ]
-    if (dynamicSummary.isSpecialExpression) {
+    if (taskTokenSummary) {
+      const tokenUnitText = ` / ${tokenUnitLabel} tokens`
+      priceSummary = (
+        <>
+          <span className='text-muted-foreground whitespace-nowrap'>
+            {t('Input')}:{' '}
+            <span className='text-foreground font-mono font-semibold'>
+              {taskTokenSummary.input}
+            </span>
+            {taskTokenSummary.input !== '-' && tokenUnitText}
+          </span>
+          <span className='text-muted-foreground whitespace-nowrap'>
+            {t('Output')}:{' '}
+            <span className='text-foreground font-mono font-semibold'>
+              {taskTokenSummary.output}
+            </span>
+            {taskTokenSummary.output !== '-' && tokenUnitText}
+          </span>
+        </>
+      )
+    } else if (dynamicSummary.isSpecialExpression) {
       priceSummary = (
         <span className='min-w-0'>
           <span className='text-amber-700 dark:text-amber-300'>
@@ -379,14 +424,6 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           <span className='text-muted-foreground text-xs font-medium'>
             {footerBillingLabel}
           </span>
-          {showDynamicBadge && (
-            <StatusBadge
-              label={t('Dynamic Pricing')}
-              variant='warning'
-              copyable={false}
-              size='sm'
-            />
-          )}
         </div>
         <ModelPerfBadge perf={props.perf} className='row-span-2 self-start' />
 

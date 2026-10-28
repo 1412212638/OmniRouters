@@ -1,4 +1,7 @@
-import { formatBillingCurrencyFromUSD } from '@/lib/currency'
+import {
+  formatBillingCurrencyFromUSD,
+  getCurrencyDisplay,
+} from '@/lib/currency'
 
 import { TOKEN_UNIT_DIVISORS } from '../constants'
 import type { PricingModel, PricingUsableGroup, TokenUnit } from '../types'
@@ -133,15 +136,22 @@ function formatTaskUnitPrice(
     const groupRatio = options.groupRatioMultiplier ?? 1
     const priceRate = options.priceRate ?? 1
     const usdExchangeRate = options.usdExchangeRate ?? 1
-    return formatBillingCurrencyFromUSD(
-      applyRechargeRate(
-        (value / TOKEN_UNIT_DIVISORS[options.tokenUnit]) * groupRatio,
-        options.showRechargePrice ?? false,
-        priceRate,
-        usdExchangeRate
-      ),
-      { digitsLarge: 4, digitsSmall: 6, abbreviate: false }
+    const amountUSD = applyRechargeRate(
+      (value / TOKEN_UNIT_DIVISORS[options.tokenUnit]) * groupRatio,
+      options.showRechargePrice ?? false,
+      priceRate,
+      usdExchangeRate
     )
+    const { meta } = getCurrencyDisplay()
+    const displayExchangeRate =
+      meta.kind === 'currency' || meta.kind === 'custom' ? meta.exchangeRate : 1
+    const displayAmount = amountUSD * displayExchangeRate
+    return formatBillingCurrencyFromUSD(amountUSD, {
+      digitsLarge: 2,
+      digitsSmall: 2,
+      abbreviate: false,
+      minimumFractionDigits: Math.abs(displayAmount) < 10 ? 2 : 0,
+    })
   }
   const groupRatio = options.groupRatioMultiplier ?? 1
   const priceRate = options.priceRate ?? 1

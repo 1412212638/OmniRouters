@@ -6024,6 +6024,10 @@
     "Doubao Video Create API": "API de création vidéo Doubao",
     "Doubao Video Query API": "API de requête vidéo Doubao",
     "Video Generation API": "API de génération vidéo",
-    "Video API": "API vidéo"
+    "Video API": "API vidéo",
+    "OpenAI Video Generation API": "API de génération vidéo OpenAI",
+    "OpenAI Video Generation Query API": "API de requête de génération vidéo OpenAI",
+    "OpenAI Videos API": "API Videos OpenAI",
+    "OpenAI Videos Query API": "API de requête Videos OpenAI"
   }
 }

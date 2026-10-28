@@ -38,6 +38,7 @@ import {
   parseAuditLine,
   decodeBillingExprB64,
   getTieredBillingSummary,
+  getTaskUsageTokens,
   hasAnyCacheTokens,
   isViolationFeeLog,
   getFirstResponseTimeColor,
@@ -406,8 +407,9 @@ function TokenBreakdown(props: { log: UsageLog; other: LogOtherData }) {
   const { t } = useTranslation()
   const { log, other } = props
 
+  const taskTokens = getTaskUsageTokens(other)
   const promptTokens = log.prompt_tokens || 0
-  const completionTokens = log.completion_tokens || 0
+  const completionTokens = log.completion_tokens || taskTokens
   const cacheRead = other.cache_tokens || 0
   const cacheWrite = other.cache_creation_tokens || 0
   const cacheWrite5m = other.cache_creation_tokens_5m || 0
@@ -415,7 +417,7 @@ function TokenBreakdown(props: { log: UsageLog; other: LogOtherData }) {
   const cacheWrite12h = other.cache_creation_tokens_12h || 0
   const cacheWrite30m =
     cacheWrite12h > 0 ? Math.max(cacheWrite - cacheWrite12h, 0) : 0
-  const hasTokens = promptTokens > 0 || completionTokens > 0
+  const hasTokens = promptTokens > 0 || completionTokens > 0 || taskTokens > 0
 
   if (!hasTokens) return null
 

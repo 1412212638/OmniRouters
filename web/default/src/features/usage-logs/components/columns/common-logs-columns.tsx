@@ -26,6 +26,7 @@ import type { UsageLog } from '../../data/schema'
 import {
   formatModelName,
   getTieredBillingSummary,
+  getTaskUsageTokens,
   hasAnyCacheTokens,
   parseLogOther,
   isViolationFeeLog,
@@ -654,9 +655,17 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
 
         const other = parseLogOther(log.other)
 
+        const taskTokens = getTaskUsageTokens(other)
         const promptTokens = log.prompt_tokens || 0
         const completionTokens = log.completion_tokens || 0
         if (promptTokens === 0 && completionTokens === 0) {
+          if (taskTokens > 0) {
+            return (
+              <span className='font-mono text-xs font-medium tabular-nums'>
+                {taskTokens.toLocaleString()}
+              </span>
+            )
+          }
           return <span className='text-muted-foreground text-xs'>-</span>
         }
 

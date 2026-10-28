@@ -88,6 +88,7 @@ type responseTask struct {
 	Usage struct {
 		CompletionTokens int `json:"completion_tokens"`
 		TotalTokens      int `json:"total_tokens"`
+		TotalToken       int `json:"total_token"`
 		ToolUsage        struct {
 			WebSearch int `json:"web_search"`
 		} `json:"tool_usage"`
@@ -335,6 +336,22 @@ func (a *TaskAdaptor) ParseTaskResult(respBody []byte) (*relaycommon.TaskInfo, e
 		// 解析 usage 信息用于按倍率计费
 		taskResult.CompletionTokens = resTask.Usage.CompletionTokens
 		taskResult.TotalTokens = resTask.Usage.TotalTokens
+		if taskResult.TotalTokens <= 0 {
+			taskResult.TotalTokens = resTask.Usage.TotalToken
+		}
+		// Tiered task billing settles from UsageFacts. Prefer the provider's
+		// completion token count and fall back to total_tokens for responses
+		// that omit completion_tokens.
+		usageTokens := resTask.Usage.CompletionTokens
+		if usageTokens <= 0 {
+			usageTokens = resTask.Usage.TotalTokens
+		}
+		if usageTokens <= 0 {
+			usageTokens = resTask.Usage.TotalToken
+		}
+		if usageTokens > 0 {
+			taskResult.UsageFacts = map[string]any{"tokens": float64(usageTokens)}
+		}
 	case "failed":
 		taskResult.Status = model.TaskStatusFailure
 		taskResult.Progress = "100%"

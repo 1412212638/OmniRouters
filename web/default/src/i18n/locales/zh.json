@@ -6024,6 +6024,10 @@
     "Doubao Video Create API": "豆包视频创建 API",
     "Doubao Video Query API": "豆包视频查询 API",
     "Video Generation API": "视频生成 API",
-    "Video API": "视频 API"
+    "Video API": "视频 API",
+    "OpenAI Video Generation API": "OpenAI 视频生成 API",
+    "OpenAI Video Generation Query API": "OpenAI 视频生成查询 API",
+    "OpenAI Videos API": "OpenAI Videos API",
+    "OpenAI Videos Query API": "OpenAI Videos 查询 API"
   }
 }

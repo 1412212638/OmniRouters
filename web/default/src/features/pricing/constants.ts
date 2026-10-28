@@ -86,8 +86,8 @@ export function getEndpointTypeLabels(
     [ENDPOINT_TYPES.JINA_RERANK]: 'Rerank',
     [ENDPOINT_TYPES.IMAGE_GENERATION]: t('Image'),
     [ENDPOINT_TYPES.EMBEDDINGS]: t('Embeddings'),
-    [ENDPOINT_TYPES.VIDEO_GENERATION]: t('Video Generation API'),
-    [ENDPOINT_TYPES.OPENAI_VIDEO]: t('Video'),
+    [ENDPOINT_TYPES.VIDEO_GENERATION]: t('OpenAI Video Generation API'),
+    [ENDPOINT_TYPES.OPENAI_VIDEO]: t('OpenAI Videos API'),
     [ENDPOINT_TYPES.DOUBAO_VIDEO_CREATE]: t('Doubao Video Create API'),
     [ENDPOINT_TYPES.DOUBAO_VIDEO_QUERY]: t('Doubao Video Query API'),
   }
