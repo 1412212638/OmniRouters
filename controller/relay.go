@@ -734,6 +734,7 @@ func RelayTask(c *gin.Context) {
 			ModelRatio:      relayInfo.PriceData.ModelRatio,
 			OtherRatios:     relayInfo.PriceData.OtherRatios(),
 			FixedQuotas:     relayInfo.PriceData.FixedQuotas,
+			TieredSnapshot:  relayInfo.TieredBillingSnapshot,
 			OriginModelName: relayInfo.OriginModelName,
 			PerCallBilling: common.StringsContains(
 				constant.TaskPricePatches,
@@ -834,6 +835,7 @@ func executeTaskSubmission(c *gin.Context, relayInfo *relaycommon.RelayInfo) (*t
 		ModelRatio:      relayInfo.PriceData.ModelRatio,
 		OtherRatios:     relayInfo.PriceData.OtherRatios(),
 		FixedQuotas:     relayInfo.PriceData.FixedQuotas,
+		TieredSnapshot:  relayInfo.TieredBillingSnapshot,
 		OriginModelName: relayInfo.OriginModelName,
 		PerCallBilling:  common.StringsContains(constant.TaskPricePatches, relayInfo.OriginModelName) || relayInfo.PriceData.UsePrice || len(relayInfo.PriceData.FixedQuotas) > 0,
 	}

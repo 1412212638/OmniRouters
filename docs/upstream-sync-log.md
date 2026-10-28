@@ -4803,3 +4803,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: targeted Oxfmt and `git diff --check` passed.
 - Commit and push: code committed as `70b2e114a`; changelog committed as `b80474c5b`. Both were pushed to `origin/main` on 2026-10-29.
 
+## 2026-10-29 - Persist task pricing snapshots for completion settlement
+
+- Local reason: asynchronous Seedance task logs could undercharge when the upstream completion token count differed from the submission estimate because the tiered pricing snapshot was not stored with the task.
+- Changed: persist `relayInfo.TieredBillingSnapshot` in both task submission billing contexts, including the protocol bridge path, so polling can evaluate the completed task with the upstream usage facts and configured tier price.
+- Preserved: existing pre-consumption, non-tiered task billing, plugin routing, and legacy task records without a snapshot.
+- Validation: targeted source inspection and `git diff --check`; Go tests were not run because the Go toolchain is unavailable in this environment.
+- Commit and push: pending.
+
