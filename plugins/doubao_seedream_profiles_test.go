@@ -38,6 +38,91 @@ func TestDoubaoSeedreamProfiles(t *testing.T) {
 	}
 }
 
+func TestDoubaoSeedanceAliasesExposeProfilesAndBillingRatios(t *testing.T) {
+	plugin := newDoubaoProfilePlugin(t)
+	profiles := map[string][]string{
+		"doubao-seedance-2.0":      {"480p", "720p", "1080p", "4k"},
+		"doubao-seedance-2.0-fast": {"480p", "720p"},
+		"doubao-seedance-2.0-mini": {"480p", "720p"},
+		"doubao-seedance-2.5":      {"480p", "720p", "1080p"},
+	}
+	for model, resolutions := range profiles {
+		assert.Contains(t, plugin.Meta.Models, model)
+		schema, examples := plugin.Meta.UsageForModel(model)
+		assert.Equal(t, resolutions, schema["resolution"].Enum, model)
+		assert.Contains(t, schema, "tokens", model)
+		assert.Contains(t, schema, "video_input", model)
+		assert.NotEmpty(t, examples, model)
+	}
+
+	aliases := []struct {
+		model      string
+		resolution string
+		wantRatio  float64
+	}{
+		{model: "doubao-seedance-2.0", resolution: "1080p", wantRatio: 31.0 / 46.0},
+		{model: "doubao-seedance-2.0-fast", resolution: "720p", wantRatio: 22.0 / 37.0},
+		{model: "doubao-seedance-2.0-mini", resolution: "720p", wantRatio: 14.0 / 23.0},
+		{model: "doubao-seedance-2.5", resolution: "1080p", wantRatio: 7.0 / 10.7},
+	}
+	for _, alias := range aliases {
+		t.Run(alias.model, func(t *testing.T) {
+			content := []any{map[string]any{
+				"type":      "video_url",
+				"video_url": map[string]any{"url": "https://example.com/reference.mp4"},
+			}}
+			value, err := plugin.Engine.Call(t.Context(), "extractUsage", map[string]any{
+				"model":         alias.model,
+				"upstreamModel": alias.model,
+				"usagePurpose":  "billing_ratios",
+				"requestBody": map[string]any{
+					"model":    alias.model,
+					"seconds":  5,
+					"metadata": map[string]any{"resolution": alias.resolution, "content": content},
+				},
+			})
+			require.NoError(t, err)
+			ratioFacts, ok := value.(map[string]any)
+			require.True(t, ok)
+			ratio, ok := ratioFacts["video_input_ratio"].(float64)
+			require.True(t, ok)
+			assert.InDelta(t, alias.wantRatio, ratio, 1e-12)
+
+			facts, err := plugin.Engine.Call(t.Context(), "extractUsage", map[string]any{
+				"model":         alias.model,
+				"upstreamModel": alias.model,
+				"usagePurpose":  "facts",
+				"requestBody": map[string]any{
+					"model":    alias.model,
+					"seconds":  5,
+					"metadata": map[string]any{"resolution": alias.resolution, "content": content},
+				},
+			})
+			require.NoError(t, err)
+			usage, ok := facts.(map[string]any)
+			require.True(t, ok)
+			assert.Equal(t, alias.resolution, usage["resolution"])
+			assert.Equal(t, "video", usage["video_input"])
+			tokens, ok := usage["tokens"].(float64)
+			require.True(t, ok)
+			assert.Greater(t, tokens, 0.0)
+		})
+	}
+
+	for _, model := range []string{"doubao-seedance-2.0-fast", "doubao-seedance-2.0-mini"} {
+		_, err := plugin.Engine.Call(t.Context(), "buildSubmitRequest", map[string]any{
+			"model":         model,
+			"upstreamModel": model,
+			"requestBody":   map[string]any{
+				"model":    model,
+				"prompt":   "a short video",
+				"metadata": map[string]any{"resolution": "1080p"},
+			},
+		})
+		assert.ErrorContains(t, err, "resolution must be one of 480p, 720p")
+	}
+}
+
 func TestDoubaoSeedreamFlashBoundsAndBillingFacts(t *testing.T) {
 	plugin := newDoubaoProfilePlugin(t)
 	request := func(model string, body map[string]any) map[string]any {

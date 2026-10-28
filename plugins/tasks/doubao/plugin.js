@@ -9,9 +9,19 @@ const VIDEO_MODELS = {
   "doubao-seedance-1-0-lite-i2v": { resolutions: ["480p", "720p", "1080p"] },
   "doubao-seedance-1-5-pro-251215": { resolutions: ["480p", "720p", "1080p"], audio: true },
   "doubao-seedance-2-0-260128": { resolutions: ["480p", "720p", "1080p", "4k"], videoInput: true },
+  "doubao-seedance-2.0": { resolutions: ["480p", "720p", "1080p", "4k"], videoInput: true },
   "doubao-seedance-2-0-fast-260128": { resolutions: ["480p", "720p"], videoInput: true },
+  "doubao-seedance-2.0-fast": { resolutions: ["480p", "720p"], videoInput: true },
   "doubao-seedance-2-0-mini-260615": { resolutions: ["480p", "720p"], videoInput: true },
+  "doubao-seedance-2.0-mini": { resolutions: ["480p", "720p"], videoInput: true },
   "doubao-seedance-2-5-260628": { resolutions: ["480p", "720p", "1080p"], videoInput: true },
+  "doubao-seedance-2.5": { resolutions: ["480p", "720p", "1080p"], videoInput: true },
+};
+const VIDEO_MODEL_ALIASES = {
+  "doubao-seedance-2.0": "doubao-seedance-2-0-260128",
+  "doubao-seedance-2.0-fast": "doubao-seedance-2-0-fast-260128",
+  "doubao-seedance-2.0-mini": "doubao-seedance-2-0-mini-260615",
+  "doubao-seedance-2.5": "doubao-seedance-2-5-260628",
 };
 // Every Ark resolution tier; an endpoint ID reached through channel mapping
 // without a declared profile keeps them all.
@@ -296,7 +306,7 @@ export const meta = {
     en: "Volcengine Doubao Seedance video generation and Seedream image generation",
     zh: "火山引擎豆包 Seedance 视频生成与 Seedream 图片生成",
   },
-  version: "1.2.0",
+  version: "1.3.0",
   author: { name: "QuantumNous" },
   channelTypes: [54, 45], // VolcEngine-type channels serve Ark video models with the same wire format
   models: Object.keys(VIDEO_MODELS).concat(Object.keys(IMAGE_MODELS)),
@@ -430,6 +440,7 @@ function estimateTokens(seconds, resolution) {
 }
 
 function videoInputRatio(model, resolution, content) {
+  model = VIDEO_MODEL_ALIASES[trimmed(model)] || trimmed(model);
   const video = hasVideo(content);
   const res = trimmed(resolution).toLowerCase();
   if (model === "doubao-seedance-2-5-260628") {
