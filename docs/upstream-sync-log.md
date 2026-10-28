@@ -6,7 +6,7 @@
 - Changed: declared all four names with the matching Seedance capability profiles; mapped them to the corresponding existing video-input billing ratios for legacy per-call pricing; bumped the plugin version to `1.3.0`; added regression coverage for model discovery, usage schemas/facts, ratios, and unsupported resolutions.
 - Preserved: existing versioned Ark model names, endpoint routing, protocol behavior, and administrator-defined task billing expressions. The plugin metadata does not invent or hardcode a new token price.
 - Validation: Bun syntax and runtime smoke checks plus `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable in this environment.
-- Source commit: `b1afc79c5`; push status: pending.
+- Source commit: `b1afc79c5`, pushed to `origin/main` with documentation commit `4fa474466` on 2026-10-28.
 
 ## 2026-10-28 - Let ordinary channels compete on shared task endpoints
 
