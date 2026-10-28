@@ -4739,3 +4739,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment.
 - Commit and push: source fix committed as `f75f142c2` and pushed to `origin/main` on 2026-10-28; this log update follows.
 
+## 2026-10-29 - Localize and clean up task pricing display
+
+- Local reason: task pricing details showed English plugin usage labels, empty fixed-price columns, and an unpriced default row in the model marketplace.
+- Changed: hide unused fixed/unit-price columns and empty unconditioned default rows; localize task pricing units and Doubao Seedance usage labels/conditions for all supported frontend languages, including the `zhCN`/`zhTW` language codes.
+- Preserved: billing expressions, price calculations, plugin override precedence, and explicitly conditioned zero-price tiers.
+- Validation: locale JSON parsing, Doubao plugin syntax check, targeted Oxfmt, and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test dependencies and unrelated type errors; no diagnostics referenced changed files. Local preview was started at `http://localhost:8080/pricing`.
+- Commit and push: code committed as `f07dea0ae`; this changelog update is included in the documentation commit, and both commits are pending push.
+
