@@ -6,7 +6,7 @@
 - Changed: exposed authenticated native Doubao task creation and polling at `/api/v3/contents/generations/tasks` and the existing `/doubao/api/v3/...` compatibility path, with the official aliases kept inside the API middleware group; added native endpoint types, model inference for Seedance video models on Doubao/VolcEngine channels, endpoint templates, model-detail cURL/Python/TypeScript/JavaScript examples, and API-key access-point entries. Native plugin requests preserve provider fields and content order while only rewriting the routed model and gateway-owned draft task IDs; duration is bounded before billing and route model scopes distinguish Seedance video from Seedream image models.
 - Preserved: the existing OpenAI-compatible `/v1/videos` protocol, image generation route, task ownership/public-ID handling, pricing expressions, channel selection, and plugin hot-loading. `/api` remains reserved in plugin manifests; the public unprefixed aliases pin to the canonical Doubao plugin declarations.
 - Validation: `node --check plugins/tasks/doubao/plugin.js`, `bun run build`, `bunx oxfmt --check` on touched frontend files, locale JSON parsing, and `git diff --check` passed. Frontend typecheck remains blocked by existing missing test dependencies and unrelated repository errors; Go tests/build and `gofmt` were unavailable because Go is not installed.
-- Source commit and push: pending.
+- Source commit and push: `a74e1d612` (`feat: expose native Doubao video API endpoints`), pushed to `origin/main`; this log status update is included in the following documentation commit.
 
 ## 2026-10-28 - Declare Seedance aliases in the Doubao plugin
 
