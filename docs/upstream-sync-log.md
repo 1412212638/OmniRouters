@@ -4747,3 +4747,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: locale JSON parsing, Doubao plugin syntax check, targeted Oxfmt, and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test dependencies and unrelated type errors; no diagnostics referenced changed files. Local preview was started at `http://localhost:8080/pricing`.
 - Commit and push: code committed as `f07dea0ae`; the changelog was committed as `dfe2a8080`. Both commits were pushed to `origin/main` on 2026-10-29.
 
+## 2026-10-29 - Preserve token unit format in Chinese pricing
+
+- Local reason: Chinese model pricing displayed the token unit as `100 万 Token`, while the requested marketplace format is `1M tokens`.
+- Changed: simplified and traditional Chinese locales now preserve the `1M tokens` label used by the pricing table.
+- Preserved: all billing calculations, other locale translations, and task pricing behavior.
+- Validation: targeted Oxfmt and `git diff --check` passed.
+- Commit and push: code committed as `70b2e114a`; changelog commit and push are pending.
+
