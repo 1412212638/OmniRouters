@@ -6021,6 +6021,8 @@
     "Doubao Video Create Task": "Créer une tâche vidéo Doubao",
     "Doubao Video Query Task": "Interroger une tâche vidéo Doubao",
     "Doubao Video Create API": "API de création vidéo Doubao",
-    "Doubao Video Query API": "API de requête vidéo Doubao"
+    "Doubao Video Query API": "API de requête vidéo Doubao",
+    "Video Generation API": "API de génération vidéo",
+    "Video API": "API vidéo"
   }
 }

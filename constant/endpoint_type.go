@@ -18,6 +18,7 @@ const (
 	EndpointTypeJinaRerank            = types.EndpointTypeJinaRerank
 	EndpointTypeImageGeneration       = types.EndpointTypeImageGeneration
 	EndpointTypeEmbeddings            = types.EndpointTypeEmbeddings
+	EndpointTypeVideoGeneration       = types.EndpointTypeVideoGeneration
 	EndpointTypeOpenAIVideo           = types.EndpointTypeOpenAIVideo
 	EndpointTypeDoubaoVideoCreate     = types.EndpointTypeDoubaoVideoCreate
 	EndpointTypeDoubaoVideoQuery      = types.EndpointTypeDoubaoVideoQuery

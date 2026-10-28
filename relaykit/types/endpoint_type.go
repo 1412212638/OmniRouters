@@ -17,6 +17,7 @@ const (
 	EndpointTypeJinaRerank            EndpointType = "jina-rerank"
 	EndpointTypeImageGeneration       EndpointType = "image-generation"
 	EndpointTypeEmbeddings            EndpointType = "embeddings"
+	EndpointTypeVideoGeneration       EndpointType = "video-generation"
 	EndpointTypeOpenAIVideo           EndpointType = "openai-video"
 	EndpointTypeDoubaoVideoCreate     EndpointType = "doubao-video-create"
 	EndpointTypeDoubaoVideoQuery      EndpointType = "doubao-video-query"

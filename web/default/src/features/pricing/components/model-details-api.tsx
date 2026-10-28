@@ -691,7 +691,9 @@ function buildSample(
   ctx: SampleContext
 ): string {
   if (endpointType === 'decision') return buildDecisionModelSample(lang, ctx)
-  if (endpointType === 'openai-video') return buildOpenAIVideoSample(lang, ctx)
+  if (endpointType === 'video-generation' || endpointType === 'openai-video') {
+    return buildOpenAIVideoSample(lang, ctx)
+  }
   if (
     endpointType === 'doubao-video-create' ||
     endpointType === 'doubao-video-query'
@@ -787,6 +789,7 @@ function CodeSamplesSection(props: {
     decision: 'Decision Model API',
     'deepseek-tools-search': 'Web Search API',
     'deepseek-tools-fetch': 'Web Fetch API',
+    'video-generation': t('Video Generation API'),
     'openai-video': t('Video'),
     'doubao-video-create': t('Doubao Video Create API'),
     'doubao-video-query': t('Doubao Video Query API'),

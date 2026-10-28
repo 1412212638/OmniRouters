@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-29 - Add video generation endpoint templates
+
+- Local reason: the model endpoint selector was missing the existing `/v1/video/generations` and `/v1/videos` routes.
+- Changed: added selectable endpoint templates for both routes, a distinct `video-generation` endpoint type and default path, non-chat classification, pricing conversion handling, localized labels, and a video request sample for the selected endpoint.
+- Preserved: the existing `/v1/videos` endpoint type and route remain unchanged; `/v1/video/generations` remains the existing host route.
+- Validation: `bun run build`, `bunx oxfmt --check` on touched frontend files, locale JSON parsing, and `git diff --check` passed. Go tests/build and `gofmt` were unavailable because Go is not installed.
+- Source commit and push: pending.
+
 ## 2026-10-29 - Add native Doubao video task endpoints
 
 - Local reason: customers using Volcengine Ark's native video API need to keep the official request body and `/api/v3` create/query paths instead of converting everything through the OpenAI-compatible `/v1/videos` endpoint.

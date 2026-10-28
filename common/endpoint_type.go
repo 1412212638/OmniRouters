@@ -145,6 +145,7 @@ func isNonChatEndpointType(endpointType constant.EndpointType) bool {
 	switch endpointType {
 	case constant.EndpointTypeImageGeneration,
 		constant.EndpointTypeEmbeddings,
+		constant.EndpointTypeVideoGeneration,
 		constant.EndpointTypeJinaRerank,
 		constant.EndpointTypeOpenAIVideo,
 		constant.EndpointTypeDoubaoVideoCreate,

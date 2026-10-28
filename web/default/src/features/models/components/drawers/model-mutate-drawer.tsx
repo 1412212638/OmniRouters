@@ -106,6 +106,8 @@ const ENDPOINT_TEMPLATE_LABELS: Record<string, string> = {
   decision: 'Decision Model',
   'deepseek-search': 'DeepSeek Search',
   'deepseek-fetch': 'DeepSeek Fetch',
+  'video-generation': 'Video Generation API',
+  'openai-video': 'Video API',
   'doubao-video-create': 'Doubao Video Create Task',
   'doubao-video-query': 'Doubao Video Query Task',
 }

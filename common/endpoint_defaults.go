@@ -28,6 +28,7 @@ var defaultEndpointInfoMap = map[constant.EndpointType]EndpointInfo{
 	constant.EndpointTypeJinaRerank:            {Path: "/v1/rerank", Method: "POST"},
 	constant.EndpointTypeImageGeneration:       {Path: "/v1/images/generations", Method: "POST"},
 	constant.EndpointTypeEmbeddings:            {Path: "/v1/embeddings", Method: "POST"},
+	constant.EndpointTypeVideoGeneration:       {Path: "/v1/video/generations", Method: "POST"},
 	constant.EndpointTypeOpenAIVideo:           {Path: "/v1/videos", Method: "POST"},
 	constant.EndpointTypeDoubaoVideoCreate:     {Path: "/api/v3/contents/generations/tasks", Method: "POST"},
 	constant.EndpointTypeDoubaoVideoQuery:      {Path: "/api/v3/contents/generations/tasks/{task_id}", Method: "GET"},

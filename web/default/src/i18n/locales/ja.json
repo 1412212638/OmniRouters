@@ -6021,6 +6021,8 @@
     "Doubao Video Create Task": "Doubao 動画タスク作成",
     "Doubao Video Query Task": "Doubao 動画タスク照会",
     "Doubao Video Create API": "Doubao 動画作成 API",
-    "Doubao Video Query API": "Doubao 動画照会 API"
+    "Doubao Video Query API": "Doubao 動画照会 API",
+    "Video Generation API": "動画生成 API",
+    "Video API": "動画 API"
   }
 }

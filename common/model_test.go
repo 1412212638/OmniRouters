@@ -86,3 +86,13 @@ func TestDoubaoVideoModelsExposeNativeTaskEndpoints(t *testing.T) {
 	assert.NotContains(t, common.GetEndpointTypesByChannelType(constant.ChannelTypeDoubaoVideo, "kling-v2.6"), constant.EndpointTypeDoubaoVideoCreate)
 	assert.NotContains(t, common.GetEndpointTypesByChannelType(constant.ChannelTypeVolcEngine, "kling-v2.6"), constant.EndpointTypeDoubaoVideoCreate)
 }
+
+func TestVideoEndpointDefaultsUseDistinctPaths(t *testing.T) {
+	videoGeneration, ok := common.GetDefaultEndpointInfo(constant.EndpointTypeVideoGeneration)
+	assert.True(t, ok)
+	assert.Equal(t, common.EndpointInfo{Path: "/v1/video/generations", Method: "POST"}, videoGeneration)
+
+	openAIVideo, ok := common.GetDefaultEndpointInfo(constant.EndpointTypeOpenAIVideo)
+	assert.True(t, ok)
+	assert.Equal(t, common.EndpointInfo{Path: "/v1/videos", Method: "POST"}, openAIVideo)
+}

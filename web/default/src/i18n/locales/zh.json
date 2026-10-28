@@ -6021,6 +6021,8 @@
     "Doubao Video Create Task": "豆包视频创建任务",
     "Doubao Video Query Task": "豆包视频查询任务",
     "Doubao Video Create API": "豆包视频创建 API",
-    "Doubao Video Query API": "豆包视频查询 API"
+    "Doubao Video Query API": "豆包视频查询 API",
+    "Video Generation API": "视频生成 API",
+    "Video API": "视频 API"
   }
 }

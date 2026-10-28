@@ -247,7 +247,8 @@ func PreviewModelPricingConversion(name string, draft PricingValues) (*ModelPric
 		if channel.Type == constant.ChannelTypeTaskPlugin {
 			return &ModelPricingConversion{UnsupportedReason: "Task pricing must be converted manually using the task usage schema."}, nil
 		}
-		if slices.Contains(common.GetEndpointTypesByChannelType(channel.Type, name), constant.EndpointTypeOpenAIVideo) {
+		channelEndpoints := common.GetEndpointTypesByChannelType(channel.Type, name)
+		if slices.Contains(channelEndpoints, constant.EndpointTypeVideoGeneration) || slices.Contains(channelEndpoints, constant.EndpointTypeOpenAIVideo) {
 			return &ModelPricingConversion{UnsupportedReason: "Video pricing must be converted manually."}, nil
 		}
 		if channel.Status == common.ChannelStatusEnabled && channel.Type == constant.ChannelTypeOpenRouter && strings.Contains(strings.ToLower(name), "claude") && !fixedPrice {
@@ -318,7 +319,7 @@ func PreviewModelPricingConversion(name string, draft PricingValues) (*ModelPric
 				if fixedPrice {
 					preview.BillingDetails.ImageCount = true
 				}
-			case constant.EndpointTypeOpenAIVideo:
+			case constant.EndpointTypeVideoGeneration, constant.EndpointTypeOpenAIVideo:
 				return &ModelPricingConversion{UnsupportedReason: "Video pricing must be converted manually."}, nil
 			case constant.EndpointTypeOpenAI, constant.EndpointTypeOpenAIResponse, constant.EndpointTypeAnthropic, constant.EndpointTypeGemini, constant.EndpointTypeEmbeddings, constant.EndpointTypeJinaRerank:
 				// These endpoints use the ordinary token/fixed-request settlement.
