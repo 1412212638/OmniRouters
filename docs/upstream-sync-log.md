@@ -4753,5 +4753,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: simplified and traditional Chinese locales now preserve the `1M tokens` label used by the pricing table.
 - Preserved: all billing calculations, other locale translations, and task pricing behavior.
 - Validation: targeted Oxfmt and `git diff --check` passed.
-- Commit and push: code committed as `70b2e114a`; changelog commit and push are pending.
+- Commit and push: code committed as `70b2e114a`; changelog committed as `b80474c5b`. Both were pushed to `origin/main` on 2026-10-29.
 
