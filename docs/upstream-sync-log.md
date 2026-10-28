@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-28 - Declare Seedance aliases in the Doubao plugin
+
+- Local reason: third-party Seedance channels use the public model aliases `doubao-seedance-2.0`, `doubao-seedance-2.0-fast`, `doubao-seedance-2.0-mini`, and `doubao-seedance-2.5`, which were absent from the built-in plugin metadata and therefore did not expose their model-specific usage schema for plugin pricing.
+- Changed: declared all four names with the matching Seedance capability profiles; mapped them to the corresponding existing video-input billing ratios for legacy per-call pricing; bumped the plugin version to `1.3.0`; added regression coverage for model discovery, usage schemas/facts, ratios, and unsupported resolutions.
+- Preserved: existing versioned Ark model names, endpoint routing, protocol behavior, and administrator-defined task billing expressions. The plugin metadata does not invent or hardcode a new token price.
+- Validation: Bun syntax and runtime smoke checks plus `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable in this environment.
+- Source commit: `b1afc79c5`; push status: pending.
+
 ## 2026-10-28 - Let ordinary channels compete on shared task endpoints
 
 - Upstream commit: `880211326`.
