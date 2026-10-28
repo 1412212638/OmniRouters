@@ -4809,5 +4809,5 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: persist `relayInfo.TieredBillingSnapshot` in both task submission billing contexts, including the protocol bridge path, so polling can evaluate the completed task with the upstream usage facts and configured tier price.
 - Preserved: existing pre-consumption, non-tiered task billing, plugin routing, and legacy task records without a snapshot.
 - Validation: targeted source inspection and `git diff --check`; Go tests were not run because the Go toolchain is unavailable in this environment.
-- Commit and push: pending.
+- Commit and push: code committed as `d4db9aa2d` and pushed to `origin/main` on 2026-10-29; this changelog status follow-up is committed separately.
 
