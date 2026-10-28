@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-29 - Use plugin task prices on external model cards
+
+- Local reason: Seedance models can expose a legacy top-level compatibility expression while their real token pricing lives in `billing_plugin_variants`; external cards therefore fell back to `Dynamic Pricing`.
+- Changed: external model cards now select the task pricing variant with a usage schema and render its input/output token price range.
+- Preserved: plugin-specific pricing remains authoritative on model details and settlement, while regular model cards keep their existing pricing behavior.
+- Validation: targeted frontend formatting and `git diff --check`; full typecheck remains blocked by existing repository errors and missing test dependencies.
+- Source commit and push: pending.
+
 ## 2026-10-29 - Simplify dynamic task pricing on model cards
 
 - Local reason: external model cards exposed the generic “Dynamic Pricing” label instead of a useful price summary for task-token models such as Seedance.

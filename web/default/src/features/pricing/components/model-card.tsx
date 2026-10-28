@@ -13,6 +13,7 @@ import {
 } from '../lib/dynamic-price'
 import { parseTags } from '../lib/filters'
 import { getDisplayedModelName, isTokenBasedModel } from '../lib/model-helpers'
+import { withPluginPricing } from '../lib/plugin-pricing'
 import {
   formatPrice,
   formatRequestPrice,
@@ -50,13 +51,30 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   const modelIcon = modelIconKey ? getLobeIcon(modelIconKey, 28) : null
   const initial = props.model.model_name?.charAt(0).toUpperCase() || '?'
   const isDynamicPricing =
-    props.model.billing_mode === 'tiered_expr' &&
-    Boolean(props.model.billing_expr)
+    (props.model.billing_mode === 'tiered_expr' &&
+      Boolean(props.model.billing_expr)) ||
+    Boolean(
+      props.model.billing_plugin_variants?.some(
+        (variant) =>
+          variant.billing_mode === 'tiered_expr' &&
+          Boolean(variant.billing_expr) &&
+          Object.keys(variant.billing_usage_schema ?? {}).length > 0
+      )
+    )
   const hasCacheReadPrice = isTokenBased && props.model.cache_ratio != null
   const hasCacheWritePrice =
     isTokenBased && props.model.create_cache_ratio != null
+  const taskPricingVariant = props.model.billing_plugin_variants?.find(
+    (variant) =>
+      variant.billing_mode === 'tiered_expr' &&
+      Boolean(variant.billing_expr) &&
+      Object.keys(variant.billing_usage_schema ?? {}).length > 0
+  )
+  const displayPricingModel = taskPricingVariant
+    ? withPluginPricing(props.model, taskPricingVariant)
+    : props.model
   const dynamicSummary = isDynamicPricing
-    ? getDynamicPricingSummary(props.model, {
+    ? getDynamicPricingSummary(displayPricingModel, {
         tokenUnit,
         showRechargePrice,
         priceRate,
@@ -97,7 +115,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     ['tokens', 'output_tokens', 'completion_tokens'].includes(entry.field)
   )
   const taskTokenSummary =
-    props.model.billing_usage_schema &&
+    displayPricingModel.billing_usage_schema &&
     dynamicSummary &&
     (taskInputEntry || taskOutputEntry)
       ? {
