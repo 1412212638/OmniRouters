@@ -8,6 +8,14 @@
 - Validation: targeted frontend formatting and `git diff --check`; full typecheck remains blocked by existing repository errors and missing test dependencies.
 - Source commit and push: pending.
 
+## 2026-10-29 - Apply plugin task prices to catalog cards
+
+- Local reason: the model plaza uses `CatalogModelCard` and its `usePriceRows` path, while the earlier fix only covered the reusable detail-style `ModelCard`.
+- Changed: catalog cards now select the task pricing plugin variant, map Seedance `tokens` to output pricing, and render the same input/output range format.
+- Preserved: existing catalog card discounts, regular token prices, cache rows, and detail-page pricing.
+- Validation: targeted frontend formatting and `git diff --check`.
+- Source commit and push: pending.
+
 ## 2026-10-29 - Simplify dynamic task pricing on model cards
 
 - Local reason: external model cards exposed the generic “Dynamic Pricing” label instead of a useful price summary for task-token models such as Seedance.

@@ -102,6 +102,7 @@ import {
   isFreePricingModel,
   isTokenBasedModel,
 } from './lib/model-helpers'
+import { withPluginPricing } from './lib/plugin-pricing'
 import {
   formatPrice,
   formatRequestPrice,
@@ -823,6 +824,13 @@ type CatalogPriceSummary =
       unit?: string
     }
 
+function formatCardPriceRange(value: string): string {
+  const separator = value.indexOf('-')
+  return separator < 0
+    ? value
+    : `${value.slice(0, separator)}–${value.slice(separator + 1)}`
+}
+
 function usePriceRows(props: {
   model: PricingModel
   tokenUnit: TokenUnit
@@ -836,11 +844,21 @@ function usePriceRows(props: {
     ...props.model,
     enable_groups: getAvailableGroups(props.model, props.usableGroup),
   }
-  const isTokenBased = isTokenBasedModel(pricingModel)
+  const taskPricingVariant = pricingModel.billing_plugin_variants?.find(
+    (variant) =>
+      variant.billing_mode === 'tiered_expr' &&
+      Boolean(variant.billing_expr) &&
+      Object.keys(variant.billing_usage_schema ?? {}).length > 0
+  )
+  const effectivePricingModel = taskPricingVariant
+    ? withPluginPricing(pricingModel, taskPricingVariant)
+    : pricingModel
+  const isTokenBased = isTokenBasedModel(effectivePricingModel)
   const tokenUnitLabel = props.tokenUnit === 'K' ? '1K tokens' : '1M tokens'
   const dynamicSummary =
-    pricingModel.billing_mode === 'tiered_expr' && pricingModel.billing_expr
-      ? getDynamicPricingSummary(pricingModel, {
+    effectivePricingModel.billing_mode === 'tiered_expr' &&
+    effectivePricingModel.billing_expr
+      ? getDynamicPricingSummary(effectivePricingModel, {
           tokenUnit: props.tokenUnit,
           priceRate: props.priceRate,
           usdExchangeRate: props.usdExchangeRate,
@@ -850,6 +868,12 @@ function usePriceRows(props: {
           ),
         })
       : null
+  const taskInputEntry = dynamicSummary?.entries.find((entry) =>
+    ['input_tokens', 'prompt_tokens'].includes(entry.field)
+  )
+  const taskOutputEntry = dynamicSummary?.entries.find((entry) =>
+    ['tokens', 'output_tokens', 'completion_tokens'].includes(entry.field)
+  )
   const catalogPriceRanges = dynamicSummary?.hasRequestRules
     ? getDynamicCatalogPriceRanges(pricingModel, {
         tokenUnit: props.tokenUnit,
@@ -877,6 +901,20 @@ function usePriceRows(props: {
       kind: 'single',
       label: t('Billing'),
       value: t('Dynamic Pricing'),
+    }
+  }
+
+  if (taskInputEntry || taskOutputEntry) {
+    return {
+      kind: 'paired',
+      inputValue: taskInputEntry
+        ? formatCardPriceRange(taskInputEntry.formatted)
+        : '-',
+      outputValue: taskOutputEntry
+        ? formatCardPriceRange(taskOutputEntry.formatted)
+        : '-',
+      inputUnit: taskInputEntry ? tokenUnitLabel : '',
+      outputUnit: taskOutputEntry ? tokenUnitLabel : '',
     }
   }
 
