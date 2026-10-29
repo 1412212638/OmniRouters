@@ -89,3 +89,25 @@ func TestRelayUploadForwardsMultipartAndReturnsUpstreamResponse(t *testing.T) {
 	require.Equal(t, "accepted", recorder.Header().Get("X-Upstream-Upload"))
 	require.JSONEq(t, `{"id":"asset_123","url":"https://upstream.example/asset_123"}`, recorder.Body.String())
 }
+
+func TestIsSuccessfulUploadStatus(t *testing.T) {
+	tests := []struct {
+		status int
+		want   bool
+	}{
+		{status: http.StatusOK, want: true},
+		{status: http.StatusCreated, want: true},
+		{status: http.StatusNoContent, want: true},
+		{status: http.StatusMultipleChoices, want: false},
+		{status: http.StatusBadRequest, want: false},
+	}
+	for _, test := range tests {
+		require.Equal(t, test.want, isSuccessfulUploadStatus(test.status))
+	}
+}
+
+func TestUploadPricingRequiresFixedPrice(t *testing.T) {
+	err := validateUploadPrice(false)
+	require.ErrorContains(t, err, "fixed per-request price")
+	require.NoError(t, validateUploadPrice(true))
+}

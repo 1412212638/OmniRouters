@@ -4819,3 +4819,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: added middleware and controller regression tests; `git diff --check` passed. The first GitHub Actions image build exposed an invalid `RelayInfo.ApiKey` field initializer; removed it and kept the key on `ChannelMeta.ApiKey`. Go tests could not run locally because Go/gofmt are unavailable in this environment.
 - Commit and push: initial upload relay source fix committed and pushed after the failed build. A follow-up corrected upstream path passthrough after review.
 
+## 2026-10-30 - Bill upload requests by configured model price
+
+- Local reason: `/v1/upload` used the model field for channel selection but did not apply that model's configured price, so successful uploads appeared free in usage logs.
+- Changed: upload requests now use the selected model's fixed per-request price through the shared billing session, pre-consume before forwarding, settle on upstream 2xx, and refund on failure. Successful logs record the actual quota and request billing unit; user/channel usage totals include the charge. Token-ratio-only pricing is rejected because upload responses do not report billable token usage. Token-subscription keys remain subject to the existing allowed-endpoint/model validation.
+- Preserved: synchronous multipart streaming and upstream response passthrough; no file persistence, no fabricated token usage, and no `/v1/files` behavior change. Model performance samples still record success and latency with zero generated tokens.
+- Validation: added upload status and fixed-price requirement regression coverage; `git diff --check` passed. Go tests were not run because Go/gofmt are unavailable in this environment.
+- Commit and push: pending.
+
