@@ -118,7 +118,7 @@
 - Changed: replaced the default and classic theme `public/logo.png` assets with `omnirouters-logo-transparent.png`, and generated PNG-backed ICO favicons from the same transparent source for both themes.
 - Preserved: runtime-configured logo URLs, external COS HTML, email templates, and unrelated upstream compatibility references.
 - Validation: confirmed both theme PNG assets and both ICO assets were generated from the supplied source; no build or broad test run was performed for this binary-only asset change.
-- Commit and push: source change committed as `4fb51d39e`; push to `origin/main` pending.
+- Commit and push: source change committed as `4fb51d39e`, changelog follow-up as `991a6e2a0`; both pushed to `origin/main` on 2026-10-30.
 
 ## 2026-10-27 - Preserve same-origin access for complete custom pages
 
