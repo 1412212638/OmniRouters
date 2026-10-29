@@ -74,7 +74,6 @@ func RelayUpload(c *gin.Context) {
 	}
 	channelKey := common.GetContextKeyString(c, constant.ContextKeyChannelKey)
 	channelInfo := &relaycommon.RelayInfo{
-		ApiKey: channelKey,
 		ChannelMeta: &relaycommon.ChannelMeta{
 			ChannelType:     channelType,
 			ApiKey:          channelKey,
