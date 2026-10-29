@@ -24,7 +24,7 @@ func TestRelayUploadForwardsMultipartAndReturnsUpstreamResponse(t *testing.T) {
 			upstreamResult <- err
 			http.Error(w, "upstream assertion failed", http.StatusInternalServerError)
 		}
-		if r.Method != http.MethodPost || r.URL.Path != "/v1/files" || r.Header.Get("Authorization") != "Bearer upstream-key" {
+		if r.Method != http.MethodPost || r.URL.Path != "/v1/upload" || r.Header.Get("Authorization") != "Bearer upstream-key" {
 			fail(io.ErrUnexpectedEOF)
 			return
 		}

@@ -17,7 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const upstreamRelayUploadPath = "/v1/files"
+const relayUploadPath = "/v1/upload"
 
 // RelayUpload synchronously forwards a multipart upload to the selected
 // channel. The gateway does not persist a file record or expose a later
@@ -50,7 +50,7 @@ func RelayUpload(c *gin.Context) {
 		return
 	}
 	channelType := common.GetContextKeyInt(c, constant.ContextKeyChannelType)
-	upstreamURL := relaycommon.GetFullRequestURL(baseURL, upstreamRelayUploadPath, channelType)
+	upstreamURL := relaycommon.GetFullRequestURL(baseURL, relayUploadPath, channelType)
 	if c.Request.URL.RawQuery != "" {
 		upstreamURL += "?" + c.Request.URL.RawQuery
 	}

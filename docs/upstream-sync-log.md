@@ -4814,8 +4814,8 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 ## 2026-10-29 - Add synchronous multipart upload relay
 
 - Local reason: the Seedance asset-upload workflow needs an upload endpoint that immediately forwards multipart data to its selected upstream and returns the upstream response, without creating a gateway file record.
-- Changed: register `POST /v1/upload`, route by the leading multipart `model` field, forward the multipart body as a stream to the selected channel's `/v1/files` path using channel credentials/proxy/header overrides, and stream the upstream status, headers, and body back to the caller. No file metadata or durable upload is created.
-- Preserved: the placeholder `/v1/files` routes and all existing video/task endpoint behavior.
+- Changed: register `POST /v1/upload`, route by the leading multipart `model` field, forward the multipart body as a stream to the selected channel's same `/v1/upload` path using channel credentials/proxy/header overrides, and stream the upstream status, headers, and body back to the caller. No file metadata or durable upload is created.
+- Preserved: the unrelated placeholder `/v1/files` routes and all existing video/task endpoint behavior.
 - Validation: added middleware and controller regression tests; `git diff --check` passed. The first GitHub Actions image build exposed an invalid `RelayInfo.ApiKey` field initializer; removed it and kept the key on `ChannelMeta.ApiKey`. Go tests could not run locally because Go/gofmt are unavailable in this environment.
-- Commit and push: upload relay source fix committed and pushed after the failed build.
+- Commit and push: initial upload relay source fix committed and pushed after the failed build. A follow-up corrected upstream path passthrough after review.
 
