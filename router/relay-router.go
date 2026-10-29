@@ -137,6 +137,7 @@ func SetRelayRouter(router *gin.Engine) {
 		})
 
 		// audio related routes
+		httpRouter.POST("/upload", controller.RelayUpload)
 		httpRouter.POST("/audio/transcriptions", func(c *gin.Context) {
 			controller.Relay(c, types.RelayFormatOpenAIAudio)
 		})

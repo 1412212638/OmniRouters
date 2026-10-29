@@ -89,6 +89,19 @@ func TestListModelsSupportsOpenAIAndGeminiAuthentication(t *testing.T) {
 	}
 }
 
+func TestRelayUploadEndpointIsRegistered(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	SetRelayRouter(engine)
+
+	for _, route := range engine.Routes() {
+		if route.Method == http.MethodPost && route.Path == "/v1/upload" {
+			return
+		}
+	}
+	require.FailNow(t, "POST /v1/upload route was not registered")
+}
+
 func setupRelayRouterTestDB(t *testing.T) {
 	t.Helper()
 

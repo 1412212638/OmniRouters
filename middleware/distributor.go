@@ -1,9 +1,12 @@
 package middleware
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
+	"mime"
+	"mime/multipart"
 	"net/http"
 	"strings"
 	"time"
@@ -521,6 +524,14 @@ func getModelRequest(c *gin.Context) (*ModelRequest, bool, error) {
 			modelRequest.Model = modelName
 		}
 		c.Set("relay_mode", relayMode)
+	} else if c.Request.URL.Path == "/v1/upload" {
+		// Read only the leading model field, then restore the multipart stream
+		// for the upload proxy after channel selection.
+		req, err := prepareRelayUploadModel(c)
+		if err != nil {
+			return nil, false, err
+		}
+		modelRequest.Model = req.Model
 	} else if !strings.HasPrefix(c.Request.URL.Path, "/v1/audio/transcriptions") && !strings.Contains(c.Request.Header.Get("Content-Type"), "multipart/form-data") {
 		req, err := getModelFromRequest(c)
 		if err != nil {
@@ -615,6 +626,66 @@ func getMultipartModelRequest(c *gin.Context) (*ModelRequest, error) {
 		return values[0]
 	}
 	return &ModelRequest{Model: value("model"), Group: value("group")}, nil
+}
+
+// prepareRelayUploadModel reads only enough of a multipart stream to obtain
+// its leading model field, then restores every byte consumed by the parser in
+// front of the unread request body. This keeps upload files out of the body
+// cache while still allowing channel selection before proxying the stream.
+func prepareRelayUploadModel(c *gin.Context) (*ModelRequest, error) {
+	contentType := c.Request.Header.Get("Content-Type")
+	_, params, err := mime.ParseMediaType(contentType)
+	if err != nil || params["boundary"] == "" {
+		return nil, errors.New("multipart boundary is required")
+	}
+	if c.Request.Body == nil {
+		return nil, errors.New("request body is empty")
+	}
+	maxMB := constant.MaxRequestBodyMB
+	if maxMB <= 0 {
+		maxMB = 128
+	}
+	maxBytes := int64(maxMB) << 20
+	if c.Request.ContentLength > maxBytes {
+		return nil, fmt.Errorf("%w: request body exceeds %d MB", common.ErrRequestBodyTooLarge, maxMB)
+	}
+	originalBody := c.Request.Body
+	c.Request.Body = http.MaxBytesReader(c.Writer, originalBody, maxBytes)
+	var consumed bytes.Buffer
+	tee := io.TeeReader(c.Request.Body, &consumed)
+	reader := multipart.NewReader(tee, params["boundary"])
+	part, err := reader.NextPart()
+	if err != nil {
+		return nil, fmt.Errorf("read multipart model field: %w", err)
+	}
+	if part.FormName() != "model" || part.FileName() != "" {
+		return nil, errors.New("multipart model field must be the first form field")
+	}
+	value, err := io.ReadAll(io.LimitReader(part, 257))
+	if err != nil {
+		return nil, fmt.Errorf("read multipart model field: %w", err)
+	}
+	if len(value) > 256 {
+		return nil, errors.New("multipart model field is too large")
+	}
+	modelName := strings.TrimSpace(string(value))
+	if modelName == "" {
+		return nil, errors.New("model is required")
+	}
+	c.Request.Body = &prependReadCloser{
+		Reader: io.MultiReader(bytes.NewReader(consumed.Bytes()), c.Request.Body),
+		closer: c.Request.Body,
+	}
+	return &ModelRequest{Model: modelName}, nil
+}
+
+type prependReadCloser struct {
+	io.Reader
+	closer io.Closer
+}
+
+func (r *prependReadCloser) Close() error {
+	return r.closer.Close()
 }
 
 // tokenModelLimitAllows reports whether a token model-limit map authorizes

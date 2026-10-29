@@ -4811,3 +4811,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: targeted source inspection and `git diff --check`; Go tests were not run because the Go toolchain is unavailable in this environment.
 - Commit and push: code committed as `d4db9aa2d` and pushed to `origin/main` on 2026-10-29; this changelog status follow-up is committed separately.
 
+## 2026-10-29 - Add synchronous multipart upload relay
+
+- Local reason: the Seedance asset-upload workflow needs an upload endpoint that immediately forwards multipart data to its selected upstream and returns the upstream response, without creating a gateway file record.
+- Changed: register `POST /v1/upload`, route by the leading multipart `model` field, forward the multipart body as a stream to the selected channel's `/v1/files` path using channel credentials/proxy/header overrides, and stream the upstream status, headers, and body back to the caller. No file metadata or durable upload is created.
+- Preserved: the placeholder `/v1/files` routes and all existing video/task endpoint behavior.
+- Validation: added middleware and controller regression tests; `git diff --check` passed. Go tests could not run because Go/gofmt are unavailable in this environment.
+- Commit and push: pending.
+
