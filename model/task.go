@@ -176,8 +176,11 @@ func (t *Task) GetUpstreamTaskID() string {
 }
 
 // GetResultURL 获取任务结果 URL（视频地址等）
-// 新数据存在 PrivateData.ResultURL 中；旧数据回退到 FailReason（历史兼容）
+// 仅成功任务有结果；新数据使用 PrivateData.ResultURL，旧成功任务回退到 FailReason。
 func (t *Task) GetResultURL() string {
+	if t.Status != TaskStatusSuccess {
+		return ""
+	}
 	if t.PrivateData.ResultURL != "" {
 		return t.PrivateData.ResultURL
 	}

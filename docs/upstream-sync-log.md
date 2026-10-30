@@ -1,5 +1,21 @@
 # Upstream Sync Log
 
+## 2026-10-30 - Minimize public video task query responses
+
+- Local reason: `/v1/video/generations/{task_id}` serialized the admin task DTO, exposing internal record/user/channel IDs, platform, quota, upstream model mapping, raw provider task IDs/errors, and upstream asset URLs. Failed tasks also exposed their error text as `result_url` through a legacy fallback.
+- Changed: introduced a dedicated public field allowlist retaining the `code/data` envelope, public task/model identity, action, lifecycle timestamps, status/progress, a gateway content URL on success, and categorized safe error messages on failure. The legacy `fail_reason` contains the same safe message. Gemini/Vertex realtime queries retain their existing response shape but now use the gateway URL and safe errors. `GetResultURL` no longer returns results for unfinished/failed tasks.
+- Preserved: user ownership checks, full administrator task DTO/raw data, persisted failure reasons for diagnostics/performance exclusions, billing/refunds, native provider route formats, and the OpenAI video content download endpoint.
+- Validation: formatted new/changed DTO and regression files and passed `git diff --check`. Added regression cases for public field allowlisting, safe error categories and unsupported parameters, preserved admin data, unfinished task handling, and successful legacy result URLs. Project tests cannot run with local Go 1.25.0 (repository requires Go 1.26.10); no toolchain was downloaded.
+- Source commit and push: pending.
+
+## 2026-10-30 - Recognize wrapped task HTTP status codes
+
+- Local reason: an additional Seedance failure format uses `status_code=400` rather than `HTTP 400`, so the asynchronous performance exclusion fix did not recognize it.
+- Changed: accept explicit `status_code=` and `status_code:` failure markers alongside existing HTTP markers; added regression cases for the supplied Seedance error, persisted reasons, spacing, unexcluded HTTP 500 with business code 400, business-only codes, and longer non-HTTP codes.
+- Preserved: configured status ranges, synchronous relay handling, unknown failure sampling, task logs, refunds, and historical aggregates. Provider business code `10001` does not determine exclusion.
+- Validation: `git diff --check` passed; full package tests remain unavailable with local Go 1.25.0 (repository requires 1.26.10).
+- Source commit and push: pending.
+
 ## 2026-10-30 - Honor performance exclusions for asynchronous task failures
 
 - Local reason: asynchronous video polling records terminal failures independently of the synchronous relay failure path, bypassing configured success-rate status exclusions even when the failure reason explicitly contains `HTTP 400`.

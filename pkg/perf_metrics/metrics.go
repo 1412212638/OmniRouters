@@ -71,7 +71,7 @@ func RecordRelayFailureSample(info *relaycommon.RelayInfo, statusCode int) {
 // Task providers can report a failed operation inside a successful polling
 // response. Only explicit HTTP markers identify its original failure status;
 // provider business codes and the polling response's HTTP 200 do not.
-var taskFailureHTTPStatus = regexp.MustCompile(`(?i)\bHTTP(?:/[0-9.]+)?[ \t]+([45][0-9]{2})\b`)
+var taskFailureHTTPStatus = regexp.MustCompile(`(?i)(?:\bHTTP(?:/[0-9.]+)?[ \t]+|\bstatus_code[ \t]*[=:][ \t]*)([45][0-9]{2})\b`)
 
 func taskFailureExcluded(task *model.Task, result *relaycommon.TaskInfo) bool {
 	if task.Status != model.TaskStatusFailure {

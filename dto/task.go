@@ -54,6 +54,29 @@ type TaskDto struct {
 	Data       json.RawMessage `json:"data"`
 }
 
+// PublicVideoTask is the allowlist for client-facing video task queries.
+// TaskDto remains the internal/admin projection and must not be used here.
+type PublicVideoTask struct {
+	TaskID     string                `json:"task_id"`
+	Model      string                `json:"model"`
+	Action     string                `json:"action"`
+	Status     string                `json:"status"`
+	Progress   string                `json:"progress"`
+	CreatedAt  int64                 `json:"created_at"`
+	UpdatedAt  int64                 `json:"updated_at"`
+	SubmitTime int64                 `json:"submit_time"`
+	StartTime  int64                 `json:"start_time"`
+	FinishTime int64                 `json:"finish_time"`
+	ResultURL  string                `json:"result_url,omitempty"`
+	FailReason string                `json:"fail_reason,omitempty"`
+	Error      *PublicVideoTaskError `json:"error,omitempty"`
+}
+
+type PublicVideoTaskError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
 type FetchReq struct {
 	IDs []string `json:"ids"`
 }

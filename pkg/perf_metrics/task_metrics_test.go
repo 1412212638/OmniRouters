@@ -99,6 +99,12 @@ func TestRecordTaskResultHonorsExcludedFailureStatuses(t *testing.T) {
 	}{
 		{"embedded upstream 400", model.TaskStatusFailure, "", relaycommon.FailTaskInfo(`seedance HTTP 400 https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks: {"error":{"code":"InvalidParameter","message":"reference_audio cannot be the only reference input"}}`), 0},
 		{"persisted failure reason", model.TaskStatusFailure, "seedance HTTP 400: invalid content", nil, 0},
+		{"wrapped status code", model.TaskStatusFailure, "", relaycommon.FailTaskInfo(`status_code=400, {"code":10001,"message":"Seedance facade currently supports only text and image_url content; got type=video_url","details":{"error_code":"PARAM_INVALID","retryable":false}}`), 0},
+		{"persisted status code", model.TaskStatusFailure, "status_code=400, invalid content", nil, 0},
+		{"status code spacing", model.TaskStatusFailure, "status_code = 403, forbidden", nil, 0},
+		{"included status code", model.TaskStatusFailure, `status_code=500, {"code":400,"message":"internal error"}`, nil, 1},
+		{"business code alone", model.TaskStatusFailure, `{"code":10001,"message":"invalid content"}`, nil, 1},
+		{"longer status is not HTTP", model.TaskStatusFailure, "status_code=40001", nil, 1},
 		{"excluded range", model.TaskStatusFailure, "upstream HTTP 403: forbidden", nil, 0},
 		{"polling failure", model.TaskStatusFailure, "poll failed: auth (HTTP 401)", nil, 0},
 		{"excluded server failure", model.TaskStatusFailure, "HTTP/1.1 502 Bad Gateway", nil, 0},
