@@ -6,7 +6,7 @@
 - Changed: introduced a dedicated public field allowlist retaining the `code/data` envelope, public task/model identity, action, lifecycle timestamps, status/progress, a gateway content URL on success, and categorized safe error messages on failure. The legacy `fail_reason` contains the same safe message. Gemini/Vertex realtime queries retain their existing response shape but now use the gateway URL and safe errors. `GetResultURL` no longer returns results for unfinished/failed tasks.
 - Preserved: user ownership checks, full administrator task DTO/raw data, persisted failure reasons for diagnostics/performance exclusions, billing/refunds, native provider route formats, and the OpenAI video content download endpoint.
 - Validation: formatted new/changed DTO and regression files and passed `git diff --check`. Added regression cases for public field allowlisting, safe error categories and unsupported parameters, preserved admin data, unfinished task handling, and successful legacy result URLs. Project tests cannot run with local Go 1.25.0 (repository requires Go 1.26.10); no toolchain was downloaded.
-- Source commit and push: pending.
+- Source commit and push: `266c5ca26` (`fix: minimize public video task details`) pushed successfully to `origin/main`; this documentation follow-up records the confirmed push.
 
 ## 2026-10-30 - Recognize wrapped task HTTP status codes
 
