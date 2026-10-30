@@ -68,6 +68,7 @@ type PublicVideoTask struct {
 	StartTime  int64                 `json:"start_time"`
 	FinishTime int64                 `json:"finish_time"`
 	ResultURL  string                `json:"result_url,omitempty"`
+	Metadata   map[string]string     `json:"metadata,omitempty"`
 	FailReason string                `json:"fail_reason,omitempty"`
 	Error      *PublicVideoTaskError `json:"error,omitempty"`
 }

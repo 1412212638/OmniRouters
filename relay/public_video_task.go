@@ -26,6 +26,9 @@ func publicVideoTask(task *model.Task) *dto.PublicVideoTask {
 	if task.Status == model.TaskStatusSuccess {
 		// Expose an authenticated gateway resource, never the upstream URL.
 		out.ResultURL = taskcommon.BuildProxyURL(task.TaskID)
+		if upstreamURL := task.GetResultURL(); upstreamURL != "" {
+			out.Metadata = map[string]string{"url": upstreamURL}
+		}
 	}
 	if task.Status == model.TaskStatusFailure {
 		out.Error = publicVideoTaskError(task)

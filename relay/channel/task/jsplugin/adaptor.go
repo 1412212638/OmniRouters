@@ -1002,6 +1002,12 @@ func (a *TaskAdaptor) ConvertToOpenAIVideo(task *model.Task) ([]byte, error) {
 	rendered["progress"] = host.Progress
 	rendered["created_at"] = host.CreatedAt
 	rendered["model"] = host.Model
+	// Keep the OpenAI video compatibility metadata consistent with legacy
+	// adaptors. The URL is empty until the task succeeds, then points to the
+	// provider result recorded for the task.
+	if host.Metadata != nil {
+		rendered["metadata"] = host.Metadata
+	}
 	if host.CompletedAt != 0 {
 		rendered["completed_at"] = host.CompletedAt
 	} else {

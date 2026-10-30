@@ -1,5 +1,21 @@
 # Upstream Sync Log
 
+## 2026-10-30 - Include upstream video URL metadata on native task queries
+
+- Local reason: clients using `/v1/video/generations/{task_id}` also need the provider result URL in the native-compatible `metadata.url` field after successful completion.
+- Changed: the public native task projection now includes `metadata.url` only for successful tasks, using the recorded upstream video URL; pending and failed tasks omit metadata. The separate `result_url` remains the gateway content URL.
+- Preserved: public field allowlisting, redacted errors, admin task details, ownership checks, and OpenAI `/v1/videos` behavior.
+- Validation: added assertions for the upstream metadata URL and omission on pending/failed tasks; formatted changed files and passed `git diff --check`. Full Go tests remain unavailable with local Go 1.25.0 while the repository requires Go 1.26.10.
+- Source commit and push: pending.
+
+## 2026-10-30 - Preserve OpenAI video metadata URL for plugin tasks
+
+- Local reason: JS task plugins rendered their own OpenAI video object after the host created the task, but dropped the host-generated `metadata.url`; completed `/v1/videos/{id}` responses could therefore omit the upstream video URL.
+- Changed: merge the host-generated video metadata into the plugin-rendered OpenAI response. The URL remains empty while a task is pending or failed and is populated from the recorded provider result after success.
+- Preserved: public task query field allowlisting, gateway content proxy behavior, task ownership checks, and provider-specific rendering fields.
+- Validation: formatted the adaptor and passed `git diff --check`; full Go tests remain unavailable with local Go 1.25.0 while the repository requires Go 1.26.10.
+- Source commit and push: pending.
+
 ## 2026-10-30 - Minimize public video task query responses
 
 - Local reason: `/v1/video/generations/{task_id}` serialized the admin task DTO, exposing internal record/user/channel IDs, platform, quota, upstream model mapping, raw provider task IDs/errors, and upstream asset URLs. Failed tasks also exposed their error text as `result_url` through a legacy fallback.

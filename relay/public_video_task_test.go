@@ -36,7 +36,7 @@ func TestPublicVideoTaskDoesNotExposeInternalData(t *testing.T) {
 	wantFields := map[string]bool{
 		"task_id": true, "model": true, "action": true, "status": true, "progress": true,
 		"created_at": true, "updated_at": true, "submit_time": true, "start_time": true,
-		"finish_time": true, "result_url": true,
+		"finish_time": true, "result_url": true, "metadata": true,
 	}
 	if response.Code != "success" || len(response.Data) != len(wantFields) {
 		t.Fatalf("unexpected public response: %s", encoded)
@@ -48,6 +48,10 @@ func TestPublicVideoTaskDoesNotExposeInternalData(t *testing.T) {
 	}
 	if response.Data["result_url"] != "https://gateway.example/v1/videos/task_public/content" || response.Data["model"] != "minimax-h3" || response.Data["created_at"] != float64(100) {
 		t.Fatalf("incorrect public result/identity/timestamp: %s", encoded)
+	}
+	metadata, ok := response.Data["metadata"].(map[string]any)
+	if !ok || metadata["url"] != "https://private-provider.example/video.mp4" {
+		t.Fatalf("upstream metadata URL missing: %s", encoded)
 	}
 	for _, secret := range []string{"Bloom-", "secret-key", "task_private", "private-provider", "private-request-id", "internal-group", "private-plugin"} {
 		if strings.Contains(string(encoded), secret) {
@@ -89,7 +93,7 @@ func TestPublicVideoTaskFailureMessagesAreSafe(t *testing.T) {
 			task := &model.Task{TaskID: "task_public", Status: model.TaskStatusFailure, FailReason: tc.reason}
 			task.Data = []byte(tc.raw)
 			public := publicVideoTask(task)
-			if public.ResultURL != "" || public.Error == nil || public.Error.Code != tc.code || public.Error.Message != tc.message || public.FailReason != tc.message {
+			if public.ResultURL != "" || public.Metadata != nil || public.Error == nil || public.Error.Code != tc.code || public.Error.Message != tc.message || public.FailReason != tc.message {
 				t.Fatalf("unexpected public failure: %+v", public)
 			}
 			encoded, err := common.Marshal(public)
@@ -114,7 +118,7 @@ func TestPublicVideoTaskPendingHasNoResultOrError(t *testing.T) {
 		PrivateData: model.TaskPrivateData{ResultURL: "https://private-provider.example/stale.mp4"},
 	}
 	got := publicVideoTask(task)
-	if got.ResultURL != "" || got.Error != nil || got.FailReason != "" {
+	if got.ResultURL != "" || got.Metadata != nil || got.Error != nil || got.FailReason != "" {
 		t.Fatalf("pending task exposed a result/error: %+v", got)
 	}
 }
