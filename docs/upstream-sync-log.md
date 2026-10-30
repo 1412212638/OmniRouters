@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-30 - Honor performance exclusions for asynchronous task failures
+
+- Local reason: asynchronous video polling records terminal failures independently of the synchronous relay failure path, bypassing configured success-rate status exclusions even when the failure reason explicitly contains `HTTP 400`.
+- Changed: task performance sampling now applies the existing excluded-status configuration to explicit HTTP failure markers in the task result or persisted failure reason, including provider errors wrapped inside successful polling responses. Unidentified failures remain counted; provider business codes are not treated as HTTP statuses.
+- Preserved: task status persistence, failure details, usage logs, refund/settlement behavior, successful task metrics, and synchronous request exclusions. Previously aggregated metrics are not rewritten.
+- Validation: `git diff --check` passed. Added targeted regression cases for embedded Seedance 400 failures, persisted and polling errors, status ranges, excluded server statuses, unexcluded/unknown failures, and successful tasks. Tests could not run: the installed Go version is 1.25.0 while this repository requires 1.26.10; no toolchain was downloaded.
+- Source commit and push: included in this fix commit; push to `origin/main` requested by the user, pending confirmation.
+
 ## 2026-10-29 - Use plugin task prices on external model cards
 
 - Local reason: Seedance models can expose a legacy top-level compatibility expression while their real token pricing lives in `billing_plugin_variants`; external cards therefore fell back to `Dynamic Pricing`.

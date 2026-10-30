@@ -5,7 +5,9 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"regexp"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -66,11 +68,35 @@ func RecordRelayFailureSample(info *relaycommon.RelayInfo, statusCode int) {
 	RecordRelaySample(info, false, 0, 0, 0)
 }
 
+// Task providers can report a failed operation inside a successful polling
+// response. Only explicit HTTP markers identify its original failure status;
+// provider business codes and the polling response's HTTP 200 do not.
+var taskFailureHTTPStatus = regexp.MustCompile(`(?i)\bHTTP(?:/[0-9.]+)?[ \t]+([45][0-9]{2})\b`)
+
+func taskFailureExcluded(task *model.Task, result *relaycommon.TaskInfo) bool {
+	if task.Status != model.TaskStatusFailure {
+		return false
+	}
+	reason := task.FailReason
+	if result != nil && result.Reason != "" {
+		reason = result.Reason
+	}
+	match := taskFailureHTTPStatus.FindStringSubmatch(reason)
+	if len(match) != 2 {
+		return false
+	}
+	statusCode, _ := strconv.Atoi(match[1])
+	return perf_metrics_setting.ShouldExcludeStatusCode(statusCode)
+}
+
 // RecordTaskResult samples an async task once it wins its terminal status CAS.
 // Task latency is measured end to end; throughput is recorded only for
 // successful tasks that report provider token usage.
 func RecordTaskResult(task *model.Task, result *relaycommon.TaskInfo) {
 	if task == nil {
+		return
+	}
+	if taskFailureExcluded(task, result) {
 		return
 	}
 	modelName := task.Properties.OriginModelName
