@@ -6,7 +6,7 @@
 - Changed: the public native task projection now includes `metadata.url` only for successful tasks, using the recorded upstream video URL; pending and failed tasks omit metadata. The separate `result_url` remains the gateway content URL.
 - Preserved: public field allowlisting, redacted errors, admin task details, ownership checks, and OpenAI `/v1/videos` behavior.
 - Validation: added assertions for the upstream metadata URL and omission on pending/failed tasks; formatted changed files and passed `git diff --check`. Full Go tests remain unavailable with local Go 1.25.0 while the repository requires Go 1.26.10.
-- Source commit and push: pending.
+- Source commit and push: `b3e40fd11` (`fix: expose video metadata URLs on task queries`) pushed successfully to `origin/main`; this documentation follow-up records the confirmed push.
 
 ## 2026-10-30 - Preserve OpenAI video metadata URL for plugin tasks
 
