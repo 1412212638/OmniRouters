@@ -23,8 +23,9 @@ func publicVideoTask(task *model.Task) *dto.PublicVideoTask {
 		Progress: task.Progress, CreatedAt: createdAt, UpdatedAt: task.UpdatedAt,
 		SubmitTime: task.SubmitTime, StartTime: task.StartTime, FinishTime: task.FinishTime,
 	}
+	out.Usage = publicVideoUsage(task)
 	if task.Status == model.TaskStatusSuccess {
-		// Expose an authenticated gateway resource, never the upstream URL.
+		// Expose both the gateway download URL and the provider result metadata.
 		out.ResultURL = taskcommon.BuildProxyURL(task.TaskID)
 		if upstreamURL := task.GetResultURL(); upstreamURL != "" {
 			out.Metadata = map[string]string{"url": upstreamURL}
@@ -36,6 +37,28 @@ func publicVideoTask(task *model.Task) *dto.PublicVideoTask {
 		out.FailReason = out.Error.Message
 	}
 	return out
+}
+
+func publicVideoUsage(task *model.Task) *dto.PublicVideoUsage {
+	var provider struct {
+		Usage *struct {
+			ToolUsage        *int64 `json:"tool_usage"`
+			TotalToken       *int64 `json:"total_token"`
+			TotalTokens      *int64 `json:"total_tokens"`
+			CompletionTokens *int64 `json:"completion_tokens"`
+		} `json:"usage"`
+	}
+	if task == nil || len(task.Data) == 0 || common.Unmarshal(task.Data, &provider) != nil || provider.Usage == nil {
+		return nil
+	}
+	usage := &dto.PublicVideoUsage{
+		ToolUsage: provider.Usage.ToolUsage, TotalToken: provider.Usage.TotalToken,
+		TotalTokens: provider.Usage.TotalTokens, CompletionTokens: provider.Usage.CompletionTokens,
+	}
+	if usage.ToolUsage == nil && usage.TotalToken == nil && usage.TotalTokens == nil && usage.CompletionTokens == nil {
+		return nil
+	}
+	return usage
 }
 
 var unsupportedVideoField = regexp.MustCompile(`^field ([A-Za-z][A-Za-z0-9_]{0,63}) is not supported by model [^\r\n]+$`)

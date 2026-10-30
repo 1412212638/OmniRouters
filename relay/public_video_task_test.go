@@ -21,7 +21,10 @@ func TestPublicVideoTaskDoesNotExposeInternalData(t *testing.T) {
 		Properties:  model.Properties{OriginModelName: "minimax-h3", UpstreamModelName: "Bloom-minimax-h3-pro"},
 		PrivateData: model.TaskPrivateData{Key: "secret-key", UpstreamTaskID: "task_private", ResultURL: "https://private-provider.example/video.mp4"},
 	}
-	task.SetData(map[string]any{"id": "task_private", "model": "Bloom-minimax-h3-pro", "gateway_request_id": "private-request-id"})
+	task.SetData(map[string]any{
+		"id": "task_private", "model": "Bloom-minimax-h3-pro", "gateway_request_id": "private-request-id",
+		"usage": map[string]any{"tool_usage": 0, "total_token": 42624, "total_tokens": 42624, "completion_tokens": 42624},
+	})
 	encoded, err := common.Marshal(dto.TaskResponse[any]{Code: "success", Data: publicVideoTask(task)})
 	if err != nil {
 		t.Fatal(err)
@@ -36,7 +39,7 @@ func TestPublicVideoTaskDoesNotExposeInternalData(t *testing.T) {
 	wantFields := map[string]bool{
 		"task_id": true, "model": true, "action": true, "status": true, "progress": true,
 		"created_at": true, "updated_at": true, "submit_time": true, "start_time": true,
-		"finish_time": true, "result_url": true, "metadata": true,
+		"finish_time": true, "result_url": true, "metadata": true, "usage": true,
 	}
 	if response.Code != "success" || len(response.Data) != len(wantFields) {
 		t.Fatalf("unexpected public response: %s", encoded)
@@ -53,7 +56,11 @@ func TestPublicVideoTaskDoesNotExposeInternalData(t *testing.T) {
 	if !ok || metadata["url"] != "https://private-provider.example/video.mp4" {
 		t.Fatalf("upstream metadata URL missing: %s", encoded)
 	}
-	for _, secret := range []string{"Bloom-", "secret-key", "task_private", "private-provider", "private-request-id", "internal-group", "private-plugin"} {
+	usage, ok := response.Data["usage"].(map[string]any)
+	if !ok || usage["tool_usage"] != float64(0) || usage["total_token"] != float64(42624) || usage["total_tokens"] != float64(42624) || usage["completion_tokens"] != float64(42624) {
+		t.Fatalf("usage details missing: %s", encoded)
+	}
+	for _, secret := range []string{"Bloom-", "secret-key", "task_private", "private-request-id", "internal-group", "private-plugin"} {
 		if strings.Contains(string(encoded), secret) {
 			t.Fatalf("public response leaked %q", secret)
 		}
@@ -118,7 +125,7 @@ func TestPublicVideoTaskPendingHasNoResultOrError(t *testing.T) {
 		PrivateData: model.TaskPrivateData{ResultURL: "https://private-provider.example/stale.mp4"},
 	}
 	got := publicVideoTask(task)
-	if got.ResultURL != "" || got.Metadata != nil || got.Error != nil || got.FailReason != "" {
+	if got.ResultURL != "" || got.Metadata != nil || got.Usage != nil || got.Error != nil || got.FailReason != "" {
 		t.Fatalf("pending task exposed a result/error: %+v", got)
 	}
 }

@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-10-30 - Expose task usage details in public video queries
+
+- Local reason: native video task queries hid the provider usage block even though it contains the actual tool and token counts needed to reconcile billing.
+- Changed: public `/v1/video/generations/{task_id}` responses now allowlist `usage.tool_usage`, `usage.total_token`, `usage.total_tokens`, and `usage.completion_tokens` from persisted task data, preserving explicit zero values and omitting the block when no usage is available.
+- Preserved: public response redaction, upstream `metadata.url` on success, gateway `result_url`, administrator raw task data, and pending/failed URL rules.
+- Validation: added usage assertions, formatted changed files, and passed `git diff --check`; full Go tests remain unavailable with local Go 1.25.0 while the repository requires Go 1.26.10.
+- Source commit and push: included in the usage response fix commit; push to `origin/main` is being performed now.
+
 ## 2026-10-30 - Include upstream video URL metadata on native task queries
 
 - Local reason: clients using `/v1/video/generations/{task_id}` also need the provider result URL in the native-compatible `metadata.url` field after successful completion.
