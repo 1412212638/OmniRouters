@@ -634,6 +634,16 @@ func getMultipartModelRequest(c *gin.Context) (*ModelRequest, error) {
 // cache while still allowing channel selection before proxying the stream.
 func prepareRelayUploadModel(c *gin.Context) (*ModelRequest, error) {
 	contentType := c.Request.Header.Get("Content-Type")
+	if strings.HasPrefix(strings.ToLower(strings.TrimSpace(contentType)), "application/json") {
+		request, err := getModelFromJSONBody(c)
+		if err != nil {
+			return nil, err
+		}
+		if strings.TrimSpace(request.Model) == "" {
+			return nil, errors.New("model is required")
+		}
+		return request, nil
+	}
 	_, params, err := mime.ParseMediaType(contentType)
 	if err != nil || params["boundary"] == "" {
 		return nil, errors.New("multipart boundary is required")

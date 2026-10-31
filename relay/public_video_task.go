@@ -62,6 +62,7 @@ func publicVideoUsage(task *model.Task) *dto.PublicVideoUsage {
 }
 
 var unsupportedVideoField = regexp.MustCompile(`^field ([A-Za-z][A-Za-z0-9_]{0,63}) is not supported by model [^\r\n]+$`)
+var missingVideoUnitPrice = regexp.MustCompile(`(?i)^output video unit price is required for mode ([A-Za-z0-9_-]{1,32}) and resolution ([A-Za-z0-9_-]{1,32})$`)
 
 func publicVideoTaskError(task *model.Task) *dto.PublicVideoTaskError {
 	var provider struct {
@@ -74,6 +75,12 @@ func publicVideoTaskError(task *model.Task) *dto.PublicVideoTaskError {
 	// endpoints, upstream IDs, or credentials and must not be copied verbatim.
 	_ = common.Unmarshal(task.Data, &provider)
 	for _, message := range []string{task.FailReason, provider.Error.Message} {
+		if match := missingVideoUnitPrice.FindStringSubmatch(strings.TrimSpace(message)); len(match) == 3 {
+			return &dto.PublicVideoTaskError{
+				Code:    "invalid_media_billing",
+				Message: fmt.Sprintf("Video pricing is not configured for mode %s at %s resolution. Please contact the service provider.", match[1], match[2]),
+			}
+		}
 		if match := unsupportedVideoField.FindStringSubmatch(strings.TrimSpace(message)); len(match) == 2 {
 			return &dto.PublicVideoTaskError{
 				Code:    "invalid_request",
@@ -82,6 +89,8 @@ func publicVideoTaskError(task *model.Task) *dto.PublicVideoTaskError {
 		}
 	}
 	switch strings.ToLower(provider.Error.Code) {
+	case "invalid_media_billing":
+		return &dto.PublicVideoTaskError{Code: "invalid_media_billing", Message: "Video pricing is not configured for this generation mode and resolution. Please contact the service provider."}
 	case "invalid_request", "invalid_request_error", "invalidparameter", "param_invalid":
 		return &dto.PublicVideoTaskError{Code: "invalid_request", Message: "Invalid video generation parameters. Please check your request."}
 	case "content_policy_violation", "content_filter", "content_filtered":
@@ -89,4 +98,27 @@ func publicVideoTaskError(task *model.Task) *dto.PublicVideoTaskError {
 	default:
 		return &dto.PublicVideoTaskError{Code: "video_generation_failed", Message: "Video generation failed. Please retry or contact support with the task ID."}
 	}
+}
+
+// sanitizeOpenAIVideoTaskError replaces plugin/provider error objects with the
+// same public-safe projection used by /v1/video/generations/{id}.
+func sanitizeOpenAIVideoTaskError(task *model.Task, response []byte) ([]byte, error) {
+	if task.Status != model.TaskStatusFailure {
+		return response, nil
+	}
+	var rendered map[string]any
+	if err := common.Unmarshal(response, &rendered); err != nil || rendered == nil {
+		return nil, fmt.Errorf("invalid OpenAI video response")
+	}
+	publicError := publicVideoTaskError(task)
+	errorJSON, err := common.Marshal(publicError)
+	if err != nil {
+		return nil, err
+	}
+	var safeError map[string]any
+	if err := common.Unmarshal(errorJSON, &safeError); err != nil {
+		return nil, err
+	}
+	rendered["error"] = safeError
+	return common.Marshal(rendered)
 }

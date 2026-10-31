@@ -92,6 +92,11 @@ func TestPublicVideoTaskFailureMessagesAreSafe(t *testing.T) {
 			"video_generation_failed", "Video generation failed. Please retry or contact support with the task ID.",
 		},
 		{
+			"missing media unit price", "output video unit price is required for mode ref2va and resolution 2k",
+			`{"error":{"code":"invalid_media_billing","message":"output video unit price is required for mode ref2va and resolution 2k","gateway_code":"A40001","gateway_request_id":"private-id"}}`,
+			"invalid_media_billing", "Video pricing is not configured for mode ref2va at 2k resolution. Please contact the service provider.",
+		},
+		{
 			"malformed raw data", "private diagnostic", `not json`,
 			"video_generation_failed", "Video generation failed. Please retry or contact support with the task ID.",
 		},
@@ -116,6 +121,29 @@ func TestPublicVideoTaskFailureMessagesAreSafe(t *testing.T) {
 				t.Fatal("public failure presentation mutated diagnostic data")
 			}
 		})
+	}
+}
+
+func TestSanitizeOpenAIVideoTaskError(t *testing.T) {
+	task := &model.Task{
+		TaskID: "task_public", Status: model.TaskStatusFailure,
+		FailReason: "output video unit price is required for mode ref2va and resolution 2k",
+	}
+	task.Data = []byte(`{"error":{"code":"invalid_media_billing","message":"output video unit price is required for mode ref2va and resolution 2k","gateway_code":"A40001","gateway_message":"internal","gateway_request_id":"private-id"}}`)
+	got, err := sanitizeOpenAIVideoTaskError(task, []byte(`{"id":"task_public","object":"video","status":"failed","metadata":{"url":""},"error":{"code":"invalid_media_billing","message":"internal","gateway_request_id":"private-id"}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var response map[string]any
+	if err := common.Unmarshal(got, &response); err != nil {
+		t.Fatal(err)
+	}
+	errorValue, ok := response["error"].(map[string]any)
+	if !ok || errorValue["code"] != "invalid_media_billing" || errorValue["message"] != "Video pricing is not configured for mode ref2va at 2k resolution. Please contact the service provider." {
+		t.Fatalf("unexpected sanitized error: %s", got)
+	}
+	if strings.Contains(string(got), "gateway_") || strings.Contains(string(got), "private-id") || strings.Contains(string(got), "internal") {
+		t.Fatalf("internal error details leaked: %s", got)
 	}
 }
 

@@ -30,9 +30,12 @@ const relayUploadPath = "/v1/upload"
 // retrieval operation; the upstream response is returned as-is.
 func RelayUpload(c *gin.Context) {
 	contentType := c.Request.Header.Get("Content-Type")
-	if !strings.HasPrefix(strings.ToLower(contentType), "multipart/form-data;") {
+	normalizedContentType := strings.ToLower(strings.TrimSpace(contentType))
+	isMultipart := strings.HasPrefix(normalizedContentType, "multipart/form-data;")
+	isJSON := strings.HasPrefix(normalizedContentType, "application/json")
+	if !isMultipart && !isJSON {
 		c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": gin.H{
-			"message": "Content-Type must be multipart/form-data",
+			"message": "Content-Type must be multipart/form-data or application/json",
 			"type":    "invalid_request_error",
 			"code":    "unsupported_media_type",
 		}})

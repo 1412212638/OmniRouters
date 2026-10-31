@@ -62,3 +62,21 @@ func TestGetModelRequestRelayUploadMultipart(t *testing.T) {
 	_, stored := c.Get(common.KeyBodyStorage)
 	require.False(t, stored, "upload routing must not buffer the file into BodyStorage")
 }
+
+func TestGetModelRequestRelayUploadJSONPreservesBody(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	originalBody := []byte(`{"model":"seedance-asset-upload","url":"https://arkdocs.tos-cn-beijing.volces.com/images/image-generation/seedream_50_pro_layer_input.png","asset_type":"Image","name":"input.png"}`)
+
+	c, _ := gin.CreateTestContext(httptest.NewRecorder())
+	c.Request = httptest.NewRequest(http.MethodPost, "/v1/upload", bytes.NewReader(originalBody))
+	c.Request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	t.Cleanup(func() { common.CleanupBodyStorage(c) })
+
+	request, shouldSelectChannel, err := getModelRequest(c)
+	require.NoError(t, err)
+	require.True(t, shouldSelectChannel)
+	require.Equal(t, "seedance-asset-upload", request.Model)
+	replayedBody, err := io.ReadAll(c.Request.Body)
+	require.NoError(t, err)
+	require.Equal(t, originalBody, replayedBody)
+}

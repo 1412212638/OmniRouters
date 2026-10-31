@@ -4875,3 +4875,19 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: added upload status and fixed-price requirement regression coverage; `git diff --check` passed. Go tests were not run because Go/gofmt are unavailable in this environment.
 - Commit and push: pending.
 
+## 2026-10-31 - Unify public video task failure details
+
+- Local reason: `/v1/video/generations/{id}` collapsed media billing failures into a generic message, while `/v1/videos/{id}` could expose upstream gateway codes, request IDs, and raw provider diagnostics.
+- Changed: recognize missing video unit-price failures and return a useful public-safe `invalid_media_billing` explanation; sanitize OpenAI video retrieval errors through the same projection used by the legacy task endpoint. Successful video metadata and usage behavior remain unchanged.
+- Preserved: full task response data for administrator diagnostics, provider-specific routing, task settlement, and the existing public task/status fields.
+- Validation: added regression coverage for media billing error mapping and OpenAI video error sanitization; `git diff --check` passed. `gofmt` and Go tests could not run because Go is unavailable in this environment.
+- Commit and push: pending.
+
+## 2026-11-01 - Forward JSON requests through the upload endpoint
+
+- Local reason: Seedance asset-upload providers can accept JSON references such as a remote asset URL, while `/v1/upload` previously accepted multipart requests only.
+- Changed: accept `application/json` on `POST /v1/upload`; extract the top-level `model` only for channel selection, then replay the original stored request bytes to the upstream unchanged. Existing multipart streaming remains supported.
+- Preserved: upstream path, authentication, fixed per-request billing, response passthrough, request-size limits, and the no-persistence behavior.
+- Validation: added middleware coverage for model extraction and byte-for-byte request replay, plus controller coverage for upstream JSON forwarding. `git diff --check` passed; Go tests could not run because Go/gofmt are unavailable in this environment.
+- Commit and push: pending.
+

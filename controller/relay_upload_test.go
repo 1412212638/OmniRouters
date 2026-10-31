@@ -90,6 +90,42 @@ func TestRelayUploadForwardsMultipartAndReturnsUpstreamResponse(t *testing.T) {
 	require.JSONEq(t, `{"id":"asset_123","url":"https://upstream.example/asset_123"}`, recorder.Body.String())
 }
 
+func TestRelayUploadForwardsJSONBodyAndReturnsUpstreamResponse(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	originalBody := []byte(`{"model":"seedance-asset-upload","url":"https://arkdocs.tos-cn-beijing.volces.com/images/image-generation/seedream_50_pro_layer_input.png","asset_type":"Image","name":"input.png"}`)
+	upstreamResult := make(chan error, 1)
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		actual, err := io.ReadAll(r.Body)
+		if err == nil && (!bytes.Equal(originalBody, actual) || r.Header.Get("Content-Type") != "application/json; charset=utf-8") {
+			err = io.ErrUnexpectedEOF
+		}
+		upstreamResult <- err
+		if err != nil {
+			http.Error(w, "upstream assertion failed", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		_, _ = io.WriteString(w, `{"id":"asset_123"}`)
+	}))
+	defer upstream.Close()
+
+	request := httptest.NewRequest(http.MethodPost, "/v1/upload", bytes.NewReader(originalBody))
+	request.Header.Set("Content-Type", "application/json; charset=utf-8")
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = request
+	common.SetContextKey(c, constant.ContextKeyChannelBaseUrl, upstream.URL)
+	common.SetContextKey(c, constant.ContextKeyChannelKey, "upstream-key")
+	common.SetContextKey(c, constant.ContextKeyChannelSetting, dto.ChannelSettings{})
+
+	RelayUpload(c)
+
+	require.NoError(t, <-upstreamResult)
+	require.Equal(t, http.StatusCreated, recorder.Code)
+	require.JSONEq(t, `{"id":"asset_123"}`, recorder.Body.String())
+}
+
 func TestIsSuccessfulUploadStatus(t *testing.T) {
 	tests := []struct {
 		status int
