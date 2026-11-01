@@ -29,6 +29,7 @@ const SITE_SECTIONS = [
           About: settings.About,
           HomePageContent: settings.HomePageContent,
           ServerAddress: settings.ServerAddress,
+          docsLink: settings['general_setting.docs_link'],
           legal: {
             user_agreement: settings['legal.user_agreement'],
             privacy_policy: settings['legal.privacy_policy'],
@@ -48,7 +49,6 @@ const SITE_SECTIONS = [
           showUsageMetrics={
             settings['console_setting.model_square_show_usage_metrics']
           }
-          docsLink={settings['general_setting.docs_link']}
           config={headerNavConfig}
           initialSerialized={headerNavSerialized}
         />

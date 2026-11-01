@@ -187,7 +187,7 @@
 ## 2026-11-01 - Fix public sidebar visibility and relocate documentation link
 
 - Local reason: ordinary users did not receive the administrator sidebar module configuration, and the top-navigation documentation URL was exposed under billing quota settings.
-- Changed: included `SidebarModulesAdmin` in the public status payload, guarded the member tiers route with the existing sidebar module setting, and moved the documentation URL editor to Site Settings → Header navigation while preserving the existing `general_setting.docs_link` option.
+- Changed: included `SidebarModulesAdmin` in the public status payload, guarded the member tiers route with the existing sidebar module setting, and moved the documentation URL editor to Site Settings → System Information while preserving the existing `general_setting.docs_link` option. After the initial Header navigation placement caused the settings page to fail for the operator, the field was removed from that form and placed in the simpler System Information form.
 - Preserved: the existing navigation configuration format, documentation URL option, administrator sidebar editor, and all other routes remain unchanged.
 - Validation: `git diff --check` and `bun run build` in `web/default` passed. Go tests were not run because Go is unavailable in this environment.
 - Commit and push: pending.
