@@ -296,6 +296,16 @@ func Register(c *gin.Context) {
 	}
 	// 生成默认令牌
 	if constant.GenerateDefaultToken {
+		// Mandatory real-name mode must never create an initial model key that
+		// bypasses the verification gate.
+		realNameRequired := false
+		if service.GetRealNameConfig().Required {
+			realNameRequired = true
+		}
+		if realNameRequired {
+			c.JSON(http.StatusOK, gin.H{"success": true, "message": ""})
+			return
+		}
 		key, err := common.GenerateKey()
 		if err != nil {
 			common.ApiErrorI18n(c, i18n.MsgUserDefaultTokenFailed)

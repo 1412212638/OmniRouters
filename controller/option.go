@@ -9,6 +9,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting"
 	"github.com/QuantumNous/new-api/setting/billing_setting"
 	"github.com/QuantumNous/new-api/setting/console_setting"
@@ -64,6 +65,9 @@ func isVisiblePublicKeyOption(key string) bool {
 }
 
 func isSensitiveOptionKey(key string) bool {
+	if strings.HasPrefix(key, "real_name_verification.") && strings.HasSuffix(key, "app_code") {
+		return true
+	}
 	return strings.HasSuffix(key, "Token") ||
 		strings.HasSuffix(key, "Secret") ||
 		strings.HasSuffix(key, "Key") ||
@@ -122,7 +126,7 @@ func GetOptions(c *gin.Context) {
 	optionValues := make(map[string]string)
 	common.OptionMapRWMutex.Lock()
 	for k, v := range common.OptionMap {
-		if k == "ResendKeyConfigured" {
+		if k == "ResendKeyConfigured" || k == service.RealNamePersonalConfiguredOption || k == service.RealNameEnterpriseConfiguredOption {
 			continue
 		}
 		value := common.Interface2String(v)
@@ -141,8 +145,14 @@ func GetOptions(c *gin.Context) {
 		}
 	}
 	resendConfigured := strings.TrimSpace(common.Interface2String(common.OptionMap["ResendApiKey"])) != ""
+	personalAppCodeConfigured := strings.TrimSpace(common.Interface2String(common.OptionMap[service.RealNamePersonalAppCodeOption])) != ""
+	enterpriseAppCodeConfigured := strings.TrimSpace(common.Interface2String(common.OptionMap[service.RealNameEnterpriseAppCodeOption])) != ""
 	common.OptionMapRWMutex.Unlock()
 	options = append(options, &model.Option{Key: "ResendKeyConfigured", Value: strconv.FormatBool(resendConfigured)})
+	options = append(options,
+		&model.Option{Key: service.RealNamePersonalConfiguredOption, Value: strconv.FormatBool(personalAppCodeConfigured)},
+		&model.Option{Key: service.RealNameEnterpriseConfiguredOption, Value: strconv.FormatBool(enterpriseAppCodeConfigured)},
+	)
 	// This value is used by the payment settings form and must reflect the
 	// persisted option even if the in-memory option map was reinitialized.
 	var pancakeUnitPrice model.Option
@@ -201,6 +211,65 @@ func UpdateOption(c *gin.Context) {
 		}
 	}
 	switch option.Key {
+	case service.RealNameEnabledOption:
+		if option.Value == "false" && service.GetRealNameConfig().Required {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "请先关闭强制实名认证服务访问开关"})
+			return
+		}
+	case service.RealNameRequiredOption:
+		if option.Value == "true" {
+			cfg := service.GetRealNameConfig()
+			if !cfg.Enabled || (!cfg.PersonalAvailable() && !cfg.EnterpriseAvailable()) {
+				c.JSON(http.StatusOK, gin.H{"success": false, "message": "启用强制实名认证前，请先启用实名认证并配置至少一种认证方式"})
+				return
+			}
+		}
+	case service.RealNamePersonalEnabledOption:
+		if option.Value == "false" {
+			cfg := service.GetRealNameConfig()
+			if cfg.Required && !cfg.EnterpriseAvailable() {
+				c.JSON(http.StatusOK, gin.H{"success": false, "message": "强制实名认证开启时至少保留一种可用认证方式"})
+				return
+			}
+		}
+		if option.Value == "true" && !service.GetRealNameConfig().EncryptionConfigured {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "请先配置 REAL_NAME_ENCRYPTION_KEY"})
+			return
+		}
+		if option.Value == "true" && service.GetRealNameConfig().PersonalAppCode == "" {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "请先配置个人认证 AppCode"})
+			return
+		}
+	case service.RealNameEnterpriseEnabledOption:
+		if option.Value == "false" {
+			cfg := service.GetRealNameConfig()
+			if cfg.Required && !cfg.PersonalAvailable() {
+				c.JSON(http.StatusOK, gin.H{"success": false, "message": "强制实名认证开启时至少保留一种可用认证方式"})
+				return
+			}
+		}
+		if option.Value == "true" && !service.GetRealNameConfig().EncryptionConfigured {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "请先配置 REAL_NAME_ENCRYPTION_KEY"})
+			return
+		}
+		if option.Value == "true" && service.GetRealNameConfig().EnterpriseAppCode == "" {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "请先配置企业认证 AppCode"})
+			return
+		}
+	case service.RealNamePersonalAppCodeOption, service.RealNameEnterpriseAppCodeOption:
+		if strings.TrimSpace(option.Value.(string)) == "" {
+			cfg := service.GetRealNameConfig()
+			if cfg.Required {
+				if option.Key == service.RealNamePersonalAppCodeOption && cfg.PersonalEnabled && !cfg.EnterpriseAvailable() {
+					c.JSON(http.StatusOK, gin.H{"success": false, "message": "强制实名认证开启时不能清空唯一可用认证方式"})
+					return
+				}
+				if option.Key == service.RealNameEnterpriseAppCodeOption && cfg.EnterpriseEnabled && !cfg.PersonalAvailable() {
+					c.JSON(http.StatusOK, gin.H{"success": false, "message": "强制实名认证开启时不能清空唯一可用认证方式"})
+					return
+				}
+			}
+		}
 	case "GitHubOAuthEnabled":
 		if option.Value == "true" && common.GitHubClientId == "" {
 			c.JSON(http.StatusOK, gin.H{
@@ -506,6 +575,15 @@ func UpdateOption(c *gin.Context) {
 	}
 	if shouldRefreshPricingForOption(option.Key) {
 		model.RefreshPricing()
+	}
+	if option.Key == service.RealNamePersonalAppCodeOption || option.Key == service.RealNameEnterpriseAppCodeOption {
+		configuredKey := service.RealNamePersonalConfiguredOption
+		if option.Key == service.RealNameEnterpriseAppCodeOption {
+			configuredKey = service.RealNameEnterpriseConfiguredOption
+		}
+		if err := model.UpdateOption(configuredKey, strconv.FormatBool(strings.TrimSpace(option.Value.(string)) != "")); err != nil {
+			common.SysLog("failed to update real-name credential status: " + err.Error())
+		}
 	}
 	// Only record the updated option name; values may contain secrets.
 	if auditSafe && len(auditBefore) <= 8192 && len(option.Value.(string)) <= 8192 {

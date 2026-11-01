@@ -100,6 +100,7 @@ const paymentSchema = z.object({
       })
     }
   }),
+  InvoiceProfileEnabled: z.boolean(),
   StripeApiSecret: z.string(),
   StripeWebhookSecret: z.string(),
   StripePriceId: z.string(),
@@ -308,6 +309,7 @@ export function PaymentSettingsSection({
       PayMethods: values.PayMethods.trim(),
       AmountOptions: values.AmountOptions.trim(),
       AmountDiscount: values.AmountDiscount.trim(),
+      InvoiceProfileEnabled: values.InvoiceProfileEnabled,
       StripeApiSecret: values.StripeApiSecret.trim(),
       StripeWebhookSecret: values.StripeWebhookSecret.trim(),
       StripePriceId: values.StripePriceId.trim(),
@@ -363,6 +365,7 @@ export function PaymentSettingsSection({
       PayMethods: initialRef.current.PayMethods.trim(),
       AmountOptions: initialRef.current.AmountOptions.trim(),
       AmountDiscount: initialRef.current.AmountDiscount.trim(),
+      InvoiceProfileEnabled: initialRef.current.InvoiceProfileEnabled,
       StripeApiSecret: initialRef.current.StripeApiSecret.trim(),
       StripeWebhookSecret: initialRef.current.StripeWebhookSecret.trim(),
       StripePriceId: initialRef.current.StripePriceId.trim(),
@@ -466,6 +469,13 @@ export function PaymentSettingsSection({
       updates.push({
         key: 'payment_setting.amount_discount',
         value: sanitized.AmountDiscount,
+      })
+    }
+
+    if (sanitized.InvoiceProfileEnabled !== initial.InvoiceProfileEnabled) {
+      updates.push({
+        key: 'payment_setting.invoice_profile_enabled',
+        value: sanitized.InvoiceProfileEnabled,
       })
     }
 
@@ -874,6 +884,29 @@ export function PaymentSettingsSection({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name='InvoiceProfileEnabled'
+              render={({ field }) => (
+                <SettingsSwitchItem>
+                  <SettingsSwitchContent>
+                    <FormLabel>{t('Show invoice information')}</FormLabel>
+                    <FormDescription>
+                      {t(
+                        'Display the invoice information card on the wallet page'
+                      )}
+                    </FormDescription>
+                  </SettingsSwitchContent>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </SettingsSwitchItem>
+              )}
+            />
 
             <FormField
               control={form.control}

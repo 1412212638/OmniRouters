@@ -154,6 +154,40 @@ export async function resetUserTwoFA(id: number): Promise<ApiResponse> {
   return res.data
 }
 
+export interface AdminIdentityVerification {
+  type: 'personal' | 'enterprise'
+  status: string
+  display_name?: string
+  id_card_suffix?: string
+  company_name_masked?: string
+  registration_suffix?: string
+  provider?: string
+  upstream_reference?: string
+  verified_at?: number
+}
+
+export interface AdminIdentityVerificationFull extends AdminIdentityVerification {
+  name?: string
+  id_card?: string
+  company_name?: string
+  registration_number?: string
+}
+
+export async function getUserIdentityVerification(id: number) {
+  const res = await api.get<ApiResponse<AdminIdentityVerification>>(`/api/user/${id}/identity-verification`)
+  return res.data
+}
+
+export async function viewUserIdentityVerification(id: number) {
+  const res = await api.post<ApiResponse<AdminIdentityVerificationFull>>(`/api/user/${id}/identity-verification/view`)
+  return res.data
+}
+
+export async function resetUserIdentityVerification(id: number, reason: string) {
+  const res = await api.post<ApiResponse>(`/api/user/${id}/identity-verification/reset`, { reason })
+  return res.data
+}
+
 /**
  * Get all available groups
  */

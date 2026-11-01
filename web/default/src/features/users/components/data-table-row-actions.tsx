@@ -10,6 +10,7 @@ import {
   ShieldAlert,
   Link2,
   CreditCard,
+  ShieldCheck,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -40,6 +41,7 @@ import {
 import { getUserActionMessage } from '../lib'
 import type { User, ManageUserAction } from '../types'
 import { UserBindingDialog } from './dialogs/user-binding-dialog'
+import { IdentityVerificationDialog } from './dialogs/identity-verification-dialog'
 import { useUsers } from './users-provider'
 
 interface DataTableRowActionsProps {
@@ -54,6 +56,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const [resetTwoFAOpen, setResetTwoFAOpen] = useState(false)
   const [bindingDialogOpen, setBindingDialogOpen] = useState(false)
   const [subscriptionsDialogOpen, setSubscriptionsDialogOpen] = useState(false)
+  const [identityDialogOpen, setIdentityDialogOpen] = useState(false)
 
   const handleEdit = () => {
     setCurrentRow(user)
@@ -195,6 +198,16 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         <DropdownMenuItem
           onSelect={(event) => {
             event.preventDefault()
+            setIdentityDialogOpen(true)
+          }}
+        >
+          {t('Real-name Verification')}
+          <DropdownMenuShortcut><ShieldCheck size={16} /></DropdownMenuShortcut>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onSelect={(event) => {
+            event.preventDefault()
             setSubscriptionsDialogOpen(true)
           }}
         >
@@ -256,6 +269,14 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         )}
         confirmText={t('Reset Passkey')}
         handleConfirm={handleResetPasskey}
+      />
+
+      <IdentityVerificationDialog
+        userId={user.id}
+        username={user.username}
+        open={identityDialogOpen}
+        onOpenChange={setIdentityDialogOpen}
+        onReset={triggerRefresh}
       />
 
       <ConfirmDialog

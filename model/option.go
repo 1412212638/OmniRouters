@@ -49,6 +49,14 @@ func InitOptionMap() {
 	common.OptionMap["WeChatAuthEnabled"] = strconv.FormatBool(common.WeChatAuthEnabled)
 	common.OptionMap["WeChatOfficialEnabled"] = strconv.FormatBool(common.WeChatOfficialEnabled)
 	common.OptionMap["TurnstileCheckEnabled"] = strconv.FormatBool(common.TurnstileCheckEnabled)
+	common.OptionMap["real_name_verification.enabled"] = "false"
+	common.OptionMap["real_name_verification.enforcement_enabled"] = "false"
+	common.OptionMap["real_name_verification.personal_enabled"] = "false"
+	common.OptionMap["real_name_verification.personal_app_code"] = ""
+	common.OptionMap["real_name_verification.enterprise_enabled"] = "false"
+	common.OptionMap["real_name_verification.enterprise_app_code"] = ""
+	common.OptionMap["real_name_verification.personal_app_code_configured"] = "false"
+	common.OptionMap["real_name_verification.enterprise_app_code_configured"] = "false"
 	common.OptionMap["RegisterEnabled"] = strconv.FormatBool(common.RegisterEnabled)
 	common.OptionMap["AutomaticDisableChannelEnabled"] = strconv.FormatBool(common.AutomaticDisableChannelEnabled)
 	common.OptionMap["AutomaticEnableChannelEnabled"] = strconv.FormatBool(common.AutomaticEnableChannelEnabled)
@@ -147,6 +155,7 @@ func InitOptionMap() {
 	common.OptionMap["DefaultUseAutoGroup"] = strconv.FormatBool(setting.DefaultUseAutoGroup)
 	common.OptionMap["MaxTokenAutoGroups"] = strconv.Itoa(setting.GetMaxTokenAutoGroups())
 	common.OptionMap["PayMethods"] = operation_setting.PayMethods2JsonString()
+	common.OptionMap["payment_setting.invoice_profile_enabled"] = "true"
 	common.OptionMap["GitHubClientId"] = ""
 	common.OptionMap["GitHubClientSecret"] = ""
 	common.OptionMap["TelegramBotToken"] = ""

@@ -7,6 +7,14 @@ import {
 } from './section-registry.tsx'
 
 const defaultAuthSettings: AuthSettings = {
+	'real_name_verification.enabled': false,
+	'real_name_verification.enforcement_enabled': false,
+	'real_name_verification.personal_enabled': false,
+	'real_name_verification.personal_app_code': '',
+	'real_name_verification.personal_app_code_configured': false,
+	'real_name_verification.enterprise_enabled': false,
+	'real_name_verification.enterprise_app_code': '',
+	'real_name_verification.enterprise_app_code_configured': false,
   PasswordLoginEnabled: true,
   PasswordRegisterEnabled: true,
   EmailVerificationEnabled: false,

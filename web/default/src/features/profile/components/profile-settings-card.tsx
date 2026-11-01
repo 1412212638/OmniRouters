@@ -1,4 +1,4 @@
-import { Link2, Settings } from 'lucide-react'
+import { Link2, Settings, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -10,6 +10,7 @@ import { TitledCard } from '@/components/ui/titled-card'
 import type { UserProfile } from '../types'
 import { AccountBindingsTab } from './tabs/account-bindings-tab'
 import { NotificationTab } from './tabs/notification-tab'
+import { IdentityVerificationTab } from './tabs/identity-verification-tab'
 
 // ============================================================================
 // Profile Settings Card Component
@@ -54,7 +55,7 @@ export function ProfileSettingsCard({
       disableHoverEffect
     >
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className='grid w-full grid-cols-2 items-stretch gap-1 rounded-xl p-1 group-data-horizontal/tabs:h-10'>
+        <TabsList className='grid w-full grid-cols-3 items-stretch gap-1 rounded-xl p-1 group-data-horizontal/tabs:h-10'>
           <TabsTrigger
             value='bindings'
             className='h-full gap-2 rounded-lg px-3 py-0 leading-none'
@@ -73,6 +74,14 @@ export function ProfileSettingsCard({
             </span>
             <span className='sm:hidden'>{t('Settings')}</span>
           </TabsTrigger>
+          <TabsTrigger
+            value='identity'
+            className='h-full gap-2 rounded-lg px-3 py-0 leading-none'
+          >
+            <ShieldCheck className='h-4 w-4' />
+            <span className='hidden sm:inline'>{t('Real-name Verification')}</span>
+            <span className='sm:hidden'>{t('Identity')}</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value='bindings' className='mt-4 sm:mt-6'>
@@ -81,6 +90,9 @@ export function ProfileSettingsCard({
 
         <TabsContent value='settings' className='mt-4 sm:mt-6'>
           <NotificationTab profile={profile} onUpdate={onProfileUpdate} />
+        </TabsContent>
+        <TabsContent value='identity' className='mt-4 sm:mt-6'>
+          <IdentityVerificationTab />
         </TabsContent>
       </Tabs>
     </TitledCard>

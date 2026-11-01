@@ -385,6 +385,16 @@ func TokenAuthReadOnly() func(c *gin.Context) {
 			c.Abort()
 			return
 		}
+		if required, checkErr := service.RealNameRequiredForUser(token.UserId); checkErr != nil {
+			common.SysLog(fmt.Sprintf("real-name read-only gate check failed for user %d: %v", token.UserId, checkErr))
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": common.TranslateMessage(c, i18n.MsgDatabaseError)})
+			c.Abort()
+			return
+		} else if required {
+			c.JSON(http.StatusForbidden, gin.H{"success": false, "message": "请先完成实名认证后再使用平台服务"})
+			c.Abort()
+			return
+		}
 
 		c.Set("id", token.UserId)
 		c.Set("token_id", token.Id)
@@ -495,6 +505,14 @@ func TokenAuth() func(c *gin.Context) {
 		userEnabled := userCache.Status == common.UserStatusEnabled
 		if !userEnabled {
 			abortWithOpenAiMessage(c, http.StatusForbidden, common.TranslateMessage(c, i18n.MsgAuthUserBanned))
+			return
+		}
+		if required, checkErr := service.RealNameRequiredForUser(token.UserId); checkErr != nil {
+			common.SysLog(fmt.Sprintf("real-name gate check failed for user %d: %v", token.UserId, checkErr))
+			abortWithOpenAiMessage(c, http.StatusInternalServerError, common.TranslateMessage(c, i18n.MsgDatabaseError))
+			return
+		} else if required {
+			abortWithOpenAiMessage(c, http.StatusForbidden, "请先完成实名认证后再使用平台服务")
 			return
 		}
 

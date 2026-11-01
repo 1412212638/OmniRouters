@@ -136,6 +136,7 @@ func GetStatus(c *gin.Context) {
 		"price":             operation_setting.Price,
 		"stripe_unit_price": setting.StripeUnitPrice,
 		"public_billing":    publicBilling,
+		"invoice_profile_enabled": common.OptionMap["payment_setting.invoice_profile_enabled"] == "true" || common.OptionMap["payment_setting.invoice_profile_enabled"] == "1",
 
 		// 面板启用开关
 		"api_info_enabled":      cs.ApiInfoEnabled,
@@ -272,6 +273,7 @@ func publicStatusData(data gin.H) gin.H {
 		"usd_exchange_rate": {},
 		"price": {},
 		"public_billing": {},
+		"invoice_profile_enabled": {},
 		"demo_site_enabled": {},
 		"self_use_mode_enabled": {},
 		"register_enabled": {},

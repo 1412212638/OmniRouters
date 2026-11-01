@@ -137,6 +137,14 @@ export type SiteSettings = {
 }
 
 export type AuthSettings = {
+	'real_name_verification.enabled': boolean
+	'real_name_verification.enforcement_enabled': boolean
+	'real_name_verification.personal_enabled': boolean
+	'real_name_verification.personal_app_code': string
+	'real_name_verification.personal_app_code_configured': boolean
+	'real_name_verification.enterprise_enabled': boolean
+	'real_name_verification.enterprise_app_code': string
+	'real_name_verification.enterprise_app_code_configured': boolean
   PasswordLoginEnabled: boolean
   PasswordRegisterEnabled: boolean
   EmailVerificationEnabled: boolean
@@ -330,6 +338,7 @@ export type BillingSettings = {
   PayMethods: string
   'payment_setting.amount_options': string
   'payment_setting.amount_discount': string
+  'payment_setting.invoice_profile_enabled': boolean
   StripeApiSecret: string
   StripeWebhookSecret: string
   StripePriceId: string

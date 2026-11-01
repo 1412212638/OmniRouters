@@ -432,6 +432,13 @@ func GetTokenUsage(c *gin.Context) {
 }
 
 func AddToken(c *gin.Context) {
+	if required, err := service.RealNameRequiredForUser(c.GetInt("id")); err != nil {
+		common.ApiError(c, err)
+		return
+	} else if required {
+		common.ApiErrorMsg(c, "请先完成实名认证后再创建 API Key")
+		return
+	}
 	request := tokenRequest{}
 	err := c.ShouldBindJSON(&request)
 	if err != nil {

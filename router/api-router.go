@@ -101,11 +101,14 @@ func SetApiRouter(router *gin.Engine) {
 			{
 				selfRoute.GET("/self/groups", controller.GetUserGroups)
 				selfRoute.GET("/self", controller.GetSelf)
+				selfRoute.GET("/identity-verification", controller.GetIdentityVerification)
+				selfRoute.POST("/identity-verification/individual", middleware.CriticalRateLimit(), controller.SavePersonalVerification)
+				selfRoute.POST("/identity-verification/enterprise", middleware.CriticalRateLimit(), controller.SaveEnterpriseVerification)
 				selfRoute.GET("/oauth/wechat/official/bind/qr", middleware.CriticalRateLimit(), controller.WeChatOfficialBindQR)
 				selfRoute.GET("/oauth/wechat/official/bind/poll", middleware.WeChatOfficialPollRateLimit(), controller.WeChatOfficialBindPoll)
 				selfRoute.POST("/oauth/wechat/official/bind", middleware.CriticalRateLimit(), anonymousRequestBodyLimit, controller.WeChatOfficialBind)
-				selfRoute.GET("/models", controller.GetUserModels)
-				selfRoute.GET("/image-model-capabilities", controller.GetImageModelCapabilities)
+				selfRoute.GET("/models", middleware.RealNameBusinessGate(), controller.GetUserModels)
+				selfRoute.GET("/image-model-capabilities", middleware.RealNameBusinessGate(), controller.GetImageModelCapabilities)
 				selfRoute.PUT("/self", middleware.CriticalRateLimit(), controller.UpdateSelf)
 				selfRoute.DELETE("/self", controller.DeleteSelf)
 				selfRoute.GET("/token", middleware.CriticalRateLimit(), middleware.UserCriticalRateLimit("access-token"), controller.GenerateAccessToken)
@@ -116,27 +119,27 @@ func SetApiRouter(router *gin.Engine) {
 				selfRoute.POST("/passkey/verify/begin", controller.PasskeyVerifyBegin)
 				selfRoute.POST("/passkey/verify/finish", controller.PasskeyVerifyFinish)
 				selfRoute.DELETE("/passkey", controller.PasskeyDelete)
-				selfRoute.GET("/aff", controller.GetAffCode)
-				selfRoute.GET("/friends/summary", controller.GetFriendsSummary)
-				selfRoute.GET("/friends", controller.GetFriends)
-				selfRoute.GET("/friends/rewards", controller.GetFriendsRewards)
-				selfRoute.POST("/friends/cashback/transfer", middleware.UserCriticalRateLimit("friends-cashback-transfer"), controller.TransferReferralCashback)
-				selfRoute.GET("/topup/info", controller.GetTopUpInfo)
-				selfRoute.GET("/invoice-profile", controller.GetInvoiceProfile)
-				selfRoute.PUT("/invoice-profile", middleware.CriticalRateLimit(), controller.UpdateInvoiceProfile)
-				selfRoute.DELETE("/invoice-profile", middleware.CriticalRateLimit(), controller.DeleteInvoiceProfile)
-				selfRoute.GET("/topup/self", controller.GetUserTopUps)
-				selfRoute.GET("/topup/:id/invoice", middleware.UserCriticalRateLimit("topup-invoice"), controller.GetTopUpInvoice)
-				selfRoute.POST("/topup", middleware.CriticalRateLimit(), controller.TopUp)
-				selfRoute.POST("/pay", middleware.CriticalRateLimit(), controller.RequestEpay)
-				selfRoute.POST("/amount", controller.RequestAmount)
-				selfRoute.POST("/stripe/pay", middleware.CriticalRateLimit(), controller.RequestStripePay)
-				selfRoute.POST("/stripe/amount", controller.RequestStripeAmount)
-				selfRoute.POST("/creem/pay", middleware.CriticalRateLimit(), controller.RequestCreemPay)
-				selfRoute.POST("/waffo/amount", controller.RequestWaffoAmount)
-				selfRoute.POST("/waffo/pay", middleware.CriticalRateLimit(), controller.RequestWaffoPay)
-				selfRoute.POST("/waffo-pancake/amount", controller.RequestWaffoPancakeAmount)
-				selfRoute.POST("/waffo-pancake/pay", middleware.CriticalRateLimit(), controller.RequestWaffoPancakePay)
+				selfRoute.GET("/aff", middleware.RealNameBusinessGate(), controller.GetAffCode)
+				selfRoute.GET("/friends/summary", middleware.RealNameBusinessGate(), controller.GetFriendsSummary)
+				selfRoute.GET("/friends", middleware.RealNameBusinessGate(), controller.GetFriends)
+				selfRoute.GET("/friends/rewards", middleware.RealNameBusinessGate(), controller.GetFriendsRewards)
+				selfRoute.POST("/friends/cashback/transfer", middleware.UserCriticalRateLimit("friends-cashback-transfer"), middleware.RealNameBusinessGate(), controller.TransferReferralCashback)
+				selfRoute.GET("/topup/info", middleware.RealNameBusinessGate(), controller.GetTopUpInfo)
+				selfRoute.GET("/invoice-profile", middleware.RealNameBusinessGate(), controller.GetInvoiceProfile)
+				selfRoute.PUT("/invoice-profile", middleware.CriticalRateLimit(), middleware.RealNameBusinessGate(), controller.UpdateInvoiceProfile)
+				selfRoute.DELETE("/invoice-profile", middleware.CriticalRateLimit(), middleware.RealNameBusinessGate(), controller.DeleteInvoiceProfile)
+				selfRoute.GET("/topup/self", middleware.RealNameBusinessGate(), controller.GetUserTopUps)
+				selfRoute.GET("/topup/:id/invoice", middleware.UserCriticalRateLimit("topup-invoice"), middleware.RealNameBusinessGate(), controller.GetTopUpInvoice)
+				selfRoute.POST("/topup", middleware.CriticalRateLimit(), middleware.RealNameBusinessGate(), controller.TopUp)
+				selfRoute.POST("/pay", middleware.CriticalRateLimit(), middleware.RealNameBusinessGate(), controller.RequestEpay)
+				selfRoute.POST("/amount", middleware.RealNameBusinessGate(), controller.RequestAmount)
+				selfRoute.POST("/stripe/pay", middleware.CriticalRateLimit(), middleware.RealNameBusinessGate(), controller.RequestStripePay)
+				selfRoute.POST("/stripe/amount", middleware.RealNameBusinessGate(), controller.RequestStripeAmount)
+				selfRoute.POST("/creem/pay", middleware.CriticalRateLimit(), middleware.RealNameBusinessGate(), controller.RequestCreemPay)
+				selfRoute.POST("/waffo/amount", middleware.RealNameBusinessGate(), controller.RequestWaffoAmount)
+				selfRoute.POST("/waffo/pay", middleware.CriticalRateLimit(), middleware.RealNameBusinessGate(), controller.RequestWaffoPay)
+				selfRoute.POST("/waffo-pancake/amount", middleware.RealNameBusinessGate(), controller.RequestWaffoPancakeAmount)
+				selfRoute.POST("/waffo-pancake/pay", middleware.CriticalRateLimit(), middleware.RealNameBusinessGate(), controller.RequestWaffoPancakePay)
 				selfRoute.POST("/aff_transfer", middleware.UserCriticalRateLimit("aff-transfer"), controller.TransferAffQuota)
 				selfRoute.PUT("/setting", controller.UpdateUserSetting)
 
@@ -149,7 +152,7 @@ func SetApiRouter(router *gin.Engine) {
 
 				// Check-in routes
 				selfRoute.GET("/checkin", controller.GetCheckinStatus)
-				selfRoute.POST("/checkin", middleware.TurnstileCheck(), controller.DoCheckin)
+				selfRoute.POST("/checkin", middleware.TurnstileCheck(), middleware.RealNameBusinessGate(), controller.DoCheckin)
 
 				// Custom OAuth bindings
 				selfRoute.GET("/oauth/bindings", controller.GetUserOAuthBindings)
@@ -167,6 +170,9 @@ func SetApiRouter(router *gin.Engine) {
 				adminRoute.DELETE("/:id/oauth/bindings/:provider_id", controller.UnbindCustomOAuthByAdmin)
 				adminRoute.DELETE("/:id/bindings/:binding_type", controller.AdminClearUserBinding)
 				adminRoute.GET("/:id", controller.GetUser)
+				adminRoute.GET("/:id/identity-verification", controller.GetIdentityVerificationByAdmin)
+				adminRoute.POST("/:id/identity-verification/view", controller.ViewIdentityVerificationByAdmin)
+				adminRoute.POST("/:id/identity-verification/reset", controller.ResetIdentityVerificationByAdmin)
 				adminRoute.POST("/", controller.CreateUser)
 				adminRoute.POST("/manage", controller.ManageUser)
 				adminRoute.PUT("/", controller.UpdateUser)
@@ -181,7 +187,7 @@ func SetApiRouter(router *gin.Engine) {
 
 		// Subscription billing (plans, purchase, admin management)
 		subscriptionRoute := apiRouter.Group("/subscription")
-		subscriptionRoute.Use(middleware.UserAuth())
+	subscriptionRoute.Use(middleware.UserAuth(), middleware.RealNameBusinessGate())
 		{
 			subscriptionRoute.GET("/plans", controller.GetSubscriptionPlans)
 			subscriptionRoute.GET("/self", controller.GetSubscriptionSelf)
@@ -212,7 +218,7 @@ func SetApiRouter(router *gin.Engine) {
 		}
 
 		memberTierRoute := apiRouter.Group("/member_tiers")
-		memberTierRoute.Use(middleware.UserAuth())
+	memberTierRoute.Use(middleware.UserAuth(), middleware.RealNameBusinessGate())
 		{
 			memberTierRoute.GET("/self", controller.GetMemberTierSelf)
 		}
@@ -374,11 +380,11 @@ func SetApiRouter(router *gin.Engine) {
 		// TODO: remove once the classic frontend is removed; the default frontend uses /system-task/log-cleanup.
 		logRoute.DELETE("/", middleware.RootAuth(), controller.DeleteHistoryLogs)
 		logRoute.GET("/stat", middleware.AdminAuth(), controller.GetLogsStat)
-		logRoute.GET("/self/stat", middleware.UserAuth(), controller.GetLogsSelfStat)
+		logRoute.GET("/self/stat", middleware.UserAuth(), middleware.RealNameBusinessGate(), controller.GetLogsSelfStat)
 		logRoute.GET("/channel_affinity_usage_cache", middleware.AdminAuth(), controller.GetChannelAffinityUsageCacheStats)
 		logRoute.GET("/search", middleware.AdminAuth(), controller.SearchAllLogs)
 		logRoute.GET("/self", middleware.UserAuth(), controller.GetUserLogs)
-		logRoute.GET("/self/search", middleware.UserAuth(), middleware.SearchRateLimit(), controller.SearchUserLogs)
+		logRoute.GET("/self/search", middleware.UserAuth(), middleware.RealNameBusinessGate(), middleware.SearchRateLimit(), controller.SearchUserLogs)
 
 		systemTaskRoute := apiRouter.Group("/system-task")
 		systemTaskRoute.Use(middleware.RootAuth())
@@ -400,9 +406,9 @@ func SetApiRouter(router *gin.Engine) {
 		dataRoute := apiRouter.Group("/data")
 		dataRoute.GET("/", middleware.AdminAuth(), controller.GetAllQuotaDates)
 		dataRoute.GET("/users", middleware.AdminAuth(), controller.GetQuotaDatesByUser)
-		dataRoute.GET("/self", middleware.UserAuth(), controller.GetUserQuotaDates)
+		dataRoute.GET("/self", middleware.UserAuth(), middleware.RealNameBusinessGate(), controller.GetUserQuotaDates)
 		dataRoute.GET("/flow", middleware.AdminAuth(), controller.GetAllFlowQuotaDates)
-		dataRoute.GET("/flow/self", middleware.UserAuth(), controller.GetUserFlowQuotaDates)
+		dataRoute.GET("/flow/self", middleware.UserAuth(), middleware.RealNameBusinessGate(), controller.GetUserFlowQuotaDates)
 
 		logRoute.Use(middleware.CORS(), middleware.CriticalRateLimit())
 		{
@@ -424,12 +430,12 @@ func SetApiRouter(router *gin.Engine) {
 		}
 
 		mjRoute := apiRouter.Group("/mj")
-		mjRoute.GET("/self", middleware.UserAuth(), controller.GetUserMidjourney)
+	mjRoute.GET("/self", middleware.UserAuth(), middleware.RealNameBusinessGate(), controller.GetUserMidjourney)
 		mjRoute.GET("/", middleware.AdminAuth(), controller.GetAllMidjourney)
 
 		taskRoute := apiRouter.Group("/task")
 		{
-			taskRoute.GET("/self", middleware.UserAuth(), controller.GetUserTask)
+			taskRoute.GET("/self", middleware.UserAuth(), middleware.RealNameBusinessGate(), controller.GetUserTask)
 			taskRoute.GET("/", middleware.AdminAuth(), controller.GetAllTask)
 		}
 

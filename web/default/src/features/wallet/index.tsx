@@ -61,7 +61,7 @@ export function Wallet(props: WalletProps) {
   const [showSubscriptionPanel, setShowSubscriptionPanel] = useState(true)
 
   const { status } = useStatus()
-  const { currency } = useSystemConfig()
+  const { currency, invoiceProfileEnabled = true } = useSystemConfig()
   const { topupInfo, presetAmounts, loading: topupLoading } = useTopupInfo()
 
   // Calculate effective exchange rate - when display type is USD, use rate of 1
@@ -94,10 +94,10 @@ export function Wallet(props: WalletProps) {
   const fetchUser = useCallback(async () => {
     try {
       setUserLoading(true)
-      const [response, invoiceResponse] = await Promise.all([
-        getSelf(),
-        getInvoiceProfile().catch(() => null),
-      ])
+      const response = await getSelf()
+      const invoiceResponse = invoiceProfileEnabled
+        ? await getInvoiceProfile().catch(() => null)
+        : null
       if (response.success && response.data) {
         setUser({
           ...(response.data as UserWalletData),
@@ -112,7 +112,7 @@ export function Wallet(props: WalletProps) {
     } finally {
       setUserLoading(false)
     }
-  }, [])
+  }, [invoiceProfileEnabled])
 
   useEffect(() => {
     fetchUser()
@@ -260,16 +260,18 @@ export function Wallet(props: WalletProps) {
         <SectionPageLayout.Content>
           <div className='mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-5'>
             <WalletStatsCard user={user} loading={userLoading} />
-            <InvoiceProfileCard
-              profile={user?.invoice_profile}
-              onSaved={(invoiceProfile) =>
-                setUser((current) =>
-                  current
-                    ? { ...current, invoice_profile: invoiceProfile }
-                    : current
-                )
-              }
-            />
+            {invoiceProfileEnabled && (
+              <InvoiceProfileCard
+                profile={user?.invoice_profile}
+                onSaved={(invoiceProfile) =>
+                  setUser((current) =>
+                    current
+                      ? { ...current, invoice_profile: invoiceProfile }
+                      : current
+                  )
+                }
+              />
+            )}
 
             <div
               className={

@@ -5,6 +5,7 @@ import { BotProtectionSection } from './bot-protection-section'
 import { CustomOAuthSection } from './custom-oauth/custom-oauth-section'
 import { OAuthSection } from './oauth-section'
 import { PasskeySection } from './passkey-section'
+import { RealNameSection } from './real-name-section'
 
 const AUTH_SECTIONS = [
   {
@@ -62,6 +63,24 @@ const AUTH_SECTIONS = [
           WeChatOfficialAppID: settings.WeChatOfficialAppID,
           WeChatOfficialAppSecret: settings.WeChatOfficialAppSecret,
           WeChatOfficialToken: settings.WeChatOfficialToken,
+        }}
+      />
+    ),
+  },
+  {
+    id: 'real-name',
+    titleKey: 'Real-name Verification',
+    build: (settings: AuthSettings) => (
+      <RealNameSection
+        defaultValues={{
+          'real_name_verification.enabled': settings['real_name_verification.enabled'],
+          'real_name_verification.enforcement_enabled': settings['real_name_verification.enforcement_enabled'],
+          'real_name_verification.personal_enabled': settings['real_name_verification.personal_enabled'],
+          'real_name_verification.personal_app_code': settings['real_name_verification.personal_app_code'],
+          'real_name_verification.personal_app_code_configured': settings['real_name_verification.personal_app_code_configured'],
+          'real_name_verification.enterprise_enabled': settings['real_name_verification.enterprise_enabled'],
+          'real_name_verification.enterprise_app_code': settings['real_name_verification.enterprise_app_code'],
+          'real_name_verification.enterprise_app_code_configured': settings['real_name_verification.enterprise_app_code_configured'],
         }}
       />
     ),

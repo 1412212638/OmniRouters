@@ -176,6 +176,14 @@
 - Validation: `git diff --check` and `bun run build` in `web/default` passed. Go tests were not run because the Go toolchain is unavailable in this environment.
 - Commit and push: pending.
 
+## 2026-11-01 - Add wallet invoice information visibility switch
+
+- Local reason: the wallet invoice information card needs an administrator-controlled visibility setting.
+- Changed: added `payment_setting.invoice_profile_enabled`, defaulting to `true`, to the billing settings; exposed it through public status; and made the wallet page skip both the invoice profile request and card rendering when disabled.
+- Preserved: saved invoice profiles, payment invoice snapshots, and invoice APIs remain available; existing installations keep the card visible by default.
+- Validation: `git diff --check` and `bun run build` in `web/default` passed. Go tests were not run because Go is unavailable in this environment.
+- Commit and push: pending.
+
 ## 2026-10-27 - Add 404, llms.txt, dynamic sitemap, and JSON-LD metadata
 
 - Local reason: the operator requested the next SEO/GEO fixes after reviewing the external site audit.
@@ -4889,5 +4897,93 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: accept `application/json` on `POST /v1/upload`; extract the top-level `model` only for channel selection, then replay the original stored request bytes to the upstream unchanged. Existing multipart streaming remains supported.
 - Preserved: upstream path, authentication, fixed per-request billing, response passthrough, request-size limits, and the no-persistence behavior.
 - Validation: added middleware coverage for model extraction and byte-for-byte request replay, plus controller coverage for upstream JSON forwarding. `git diff --check` passed; Go tests could not run because Go/gofmt are unavailable in this environment.
+- Commit and push: pending.
+
+## 2026-11-01 - Document the tentative real-name verification plan
+
+- Local reason: the project needs a reviewed design before implementing optional two-factor identity verification and the separate policy that can require verification before API key creation.
+- Changed: added `docs/real-name-verification-plan.md` covering the Alibaba Cloud AppCode integration, result/error handling, encrypted storage, administrator access, user/admin APIs, independent enforcement switch, key-creation paths, privacy controls, compatibility, and validation plan.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred pending confirmation.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Switch the tentative real-name provider to POST verification
+
+- Local reason: the proposed Alibaba Cloud Market provider uses a POST form request and returns `error_code` plus `result.isok`, avoiding identity data in an upstream GET query string.
+- Changed: updated `docs/real-name-verification-plan.md` to use `zidv2.market.alicloudapi.com/idcheck/Post`, `cardNo`/`realName`, AppCode authentication, the `error_code=0` and `result.isok=true` success rule, and HTTP 400/403 and quota handling.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred pending confirmation.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Record real-name provider integration verification
+
+- Local reason: a live test was requested after switching the tentative provider.
+- Changed: recorded the verified POST form request, AppCode authentication, HTTP `200`, `error_code=0`, and `result.isok=true` success path in `docs/real-name-verification-plan.md` without storing credentials or identity data.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: live provider request succeeded; `git diff --check` passed. No automated tests were needed for this documentation-only update.
+- Commit and push: pending.
+
+## 2026-11-01 - Add enterprise verification to the tentative plan
+
+- Local reason: a second Alibaba Cloud Market provider was supplied for enterprise four-factor verification.
+- Changed: expanded `docs/real-name-verification-plan.md` with the enterprise endpoint, POST-plus-query request shape, AppCode configuration, the documented-but-unconfirmed `key` parameter, per-field result semantics, strict success rule, error-code handling, `seqNo` correlation, separate encrypted enterprise data, user/admin API shapes, and validation coverage.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Verify the enterprise identity provider
+
+- Local reason: a live enterprise verification request was requested after adding the provider to the plan.
+- Changed: recorded the successful enterprise response in `docs/real-name-verification-plan.md`: HTTP `200`, `code=10000`, all four `*_result` fields equal to `1`, and a returned `seqNo`; the test also confirmed that omitting the documented `key` parameter currently succeeds.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: live provider request succeeded; `git diff --check` passed. No automated tests were needed for this documentation-only update.
+- Commit and push: pending.
+
+## 2026-11-01 - Lock the user to one verification method after success
+
+- Local reason: the confirmed product behavior is to let an unverified user choose personal or enterprise verification, then lock the selected type and verified data after success.
+- Changed: updated `docs/real-name-verification-plan.md` so each user has one current verification record, can switch methods only before success, and enterprise details are retained as part of the user's encrypted verification data.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Confirm exceptional administrator verification reset
+
+- Local reason: the user confirmed administrators may reset a locked personal or enterprise verification record in exceptional cases.
+- Changed: updated `docs/real-name-verification-plan.md` to require an administrator-provided reason and audit entry, return the user to the unverified state so they may choose either method again, preserve existing keys, and reapply the new-key gate when enabled.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Enforce real-name verification for all model services
+
+- Local reason: the user changed the enforcement policy from gating only new API key creation to disabling all model/API services for accounts without a completed verification.
+- Changed: updated `docs/real-name-verification-plan.md` so the independent enforcement switch blocks all model/API requests made with existing or new keys until either personal or enterprise verification succeeds; key creation is also blocked, while profile and verification recovery flows remain accessible. Administrator reset re-applies the service block until reverification.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Extend the real-name gate to all business services
+
+- Local reason: the confirmed policy is to make all platform business services unavailable to unverified users when enforcement is enabled, rather than limiting the gate to model/API traffic.
+- Changed: updated `docs/real-name-verification-plan.md` to block model/API, subscription, top-up, invoice, and other business services for unverified users while keeping login, profile, verification, help, and necessary account recovery accessible.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Make personal and enterprise verification independently available
+
+- Local reason: personal and enterprise verification providers are configured separately, and the available user choices must follow which providers are enabled and configured.
+- Changed: updated `docs/real-name-verification-plan.md` with independent method switches and credentials: one available method means only that method is shown, both available methods allow a choice, and disabling a method does not revoke an existing successful verification. Enforcement cannot be enabled when no method is available.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Implement real-name verification and service enforcement
+
+- Local reason: the user confirmed the reviewed personal/enterprise verification design and requested implementation.
+- Changed: added independently configurable personal and enterprise verification under the default frontend Authentication settings; added server-side Alibaba verification clients, encrypted verification records, user verification APIs, profile UI, administrator summary/full-view/reset APIs and UI, audit logging for resets, and a mandatory verification gate for model/API requests, API key creation, subscriptions, top-up, invoice actions, and initial registration keys. `REAL_NAME_ENCRYPTION_KEY` is required before a method can be enabled; AppCodes remain server-only.
+- Preserved: existing authentication methods, existing successful verification records when a method is later disabled, existing keys during administrator reset, profile/verification/recovery access, and unrelated untracked worktree files.
+- Validation: `bun run build` in `web/default` passed; `git diff --check` passed. Go tests could not run because Go and `gofmt` are unavailable in this environment. Backend compile/test validation remains pending in an environment with Go 1.22+.
 - Commit and push: pending.
 

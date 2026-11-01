@@ -7,6 +7,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/gin-gonic/gin"
@@ -35,6 +36,13 @@ type SubscriptionTokenRequest struct {
 // token plan. The key is bound to the subscription and shares its quota.
 func CreateSubscriptionToken(c *gin.Context) {
 	userId := c.GetInt("id")
+	if required, err := service.RealNameRequiredForUser(userId); err != nil {
+		common.ApiError(c, err)
+		return
+	} else if required {
+		common.ApiErrorMsg(c, "请先完成实名认证后再创建订阅 API Key")
+		return
+	}
 	subscriptionId, err := strconv.Atoi(c.Param("id"))
 	if err != nil || subscriptionId <= 0 {
 		common.ApiErrorMsg(c, "无效的订阅ID")

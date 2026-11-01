@@ -10,6 +10,36 @@ import type {
   CheckinResponse,
 } from './types'
 
+export interface IdentityVerificationResponse {
+  enabled: boolean
+  required: boolean
+  available_methods: Array<'personal' | 'enterprise'>
+  verification: {
+    type: 'personal' | 'enterprise'
+    status: 'verified'
+    display_name?: string
+    id_card_suffix?: string
+    company_name_masked?: string
+    registration_suffix?: string
+    verified_at: number
+  } | null
+}
+
+export async function getIdentityVerification() {
+  const res = await api.get<ApiResponse<IdentityVerificationResponse>>('/api/user/identity-verification')
+  return res.data
+}
+
+export async function submitPersonalVerification(name: string, idCard: string) {
+  const res = await api.post<ApiResponse>('/api/user/identity-verification/individual', { name, id_card: idCard })
+  return res.data
+}
+
+export async function submitEnterpriseVerification(data: { company_name: string; registration_number: string; name: string; id_card: string }) {
+  const res = await api.post<ApiResponse>('/api/user/identity-verification/enterprise', data)
+  return res.data
+}
+
 // ============================================================================
 // User Profile APIs
 // ============================================================================
