@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Switch } from '@/components/ui/switch'
+import { Input } from '@/components/ui/input'
 
 import {
   SettingsControlChildren,
@@ -32,6 +33,7 @@ import {
 
 const headerNavSchema = z.object({
   showUsageMetrics: z.boolean(),
+  docsLink: z.string(),
   home: z.boolean(),
   console: z.boolean(),
   pricingEnabled: z.boolean(),
@@ -48,12 +50,14 @@ type HeaderNavFormValues = z.infer<typeof headerNavSchema>
 
 type HeaderNavigationSectionProps = {
   showUsageMetrics: boolean
+  docsLink: string
   config: HeaderNavModulesConfig
   initialSerialized: string
 }
 
 const toFormValues = (config: HeaderNavModulesConfig): HeaderNavFormValues => ({
   showUsageMetrics: false,
+  docsLink: '',
   home:
     config.home === undefined ? HEADER_NAV_DEFAULT.home : Boolean(config.home),
   console:
@@ -94,14 +98,15 @@ const toFormValues = (config: HeaderNavModulesConfig): HeaderNavFormValues => ({
 
 export function HeaderNavigationSection({
   showUsageMetrics,
+  docsLink,
   config,
   initialSerialized,
 }: HeaderNavigationSectionProps) {
   const { t } = useTranslation()
   const updateOption = useUpdateOption()
   const formDefaults = useMemo(
-    () => ({ ...toFormValues(config), showUsageMetrics }),
-    [config, showUsageMetrics]
+    () => ({ ...toFormValues(config), showUsageMetrics, docsLink }),
+    [config, docsLink, showUsageMetrics]
   )
 
   const form = useForm<HeaderNavFormValues>({
@@ -142,6 +147,13 @@ export function HeaderNavigationSection({
       const result = await updateOption.mutateAsync({
         key: 'console_setting.model_square_show_usage_metrics',
         value: values.showUsageMetrics,
+      })
+      if (!result.success) return
+    }
+    if (values.docsLink.trim() !== docsLink.trim()) {
+      const result = await updateOption.mutateAsync({
+        key: 'general_setting.docs_link',
+        value: values.docsLink.trim(),
       })
       if (!result.success) return
     }
@@ -266,6 +278,28 @@ export function HeaderNavigationSection({
               />
             ))}
           </div>
+
+          <FormField
+            control={form.control}
+            name='docsLink'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('Documentation Link')}</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={t('https://docs.example.com')}
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription>
+                  {t(
+                    'External URL opened by the Docs item in the top navigation'
+                  )}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <div className='grid gap-4 lg:grid-cols-2'>
             {accessModules.map((module) => (

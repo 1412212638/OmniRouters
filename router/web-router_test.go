@@ -79,7 +79,7 @@ func TestBuildBrandedIndexPageAddsCanonicalAndPublicPageSEO(t *testing.T) {
 	assertContains(t, result, `<meta name="robots" content="index, follow" />`)
 	assertContains(t, result, `<link rel="canonical" href="https://omnirouters.com/pricing" />`)
 	assertContains(t, result, `<meta property="og:url" content="https://omnirouters.com/pricing" />`)
-	assertContains(t, result, `<main data-seo-fallback="true"><h1>OmniRouters`)
+	assertContains(t, result, `<noscript><main data-seo-fallback="true"><h1>OmniRouters`)
 }
 
 func TestBuildBrandedIndexPageUsesHomepageSearchMetadata(t *testing.T) {

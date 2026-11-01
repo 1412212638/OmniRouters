@@ -285,6 +285,7 @@ func publicStatusData(data gin.H) gin.H {
 		"announcements_enabled": {},
 		"faq_enabled": {},
 		"HeaderNavModules": {},
+		"SidebarModulesAdmin": {},
 		"oidc_enabled": {},
 		"oidc_client_id": {},
 		"oidc_authorization_endpoint": {},

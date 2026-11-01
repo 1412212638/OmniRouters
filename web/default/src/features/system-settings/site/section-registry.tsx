@@ -48,6 +48,7 @@ const SITE_SECTIONS = [
           showUsageMetrics={
             settings['console_setting.model_square_show_usage_metrics']
           }
+          docsLink={settings['general_setting.docs_link']}
           config={headerNavConfig}
           initialSerialized={headerNavSerialized}
         />

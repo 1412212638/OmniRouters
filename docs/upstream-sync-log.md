@@ -184,6 +184,22 @@
 - Validation: `git diff --check` and `bun run build` in `web/default` passed. Go tests were not run because Go is unavailable in this environment.
 - Commit and push: pending.
 
+## 2026-11-01 - Fix public sidebar visibility and relocate documentation link
+
+- Local reason: ordinary users did not receive the administrator sidebar module configuration, and the top-navigation documentation URL was exposed under billing quota settings.
+- Changed: included `SidebarModulesAdmin` in the public status payload, guarded the member tiers route with the existing sidebar module setting, and moved the documentation URL editor to Site Settings → Header navigation while preserving the existing `general_setting.docs_link` option.
+- Preserved: the existing navigation configuration format, documentation URL option, administrator sidebar editor, and all other routes remain unchanged.
+- Validation: `git diff --check` and `bun run build` in `web/default` passed. Go tests were not run because Go is unavailable in this environment.
+- Commit and push: pending.
+
+## 2026-11-01 - Prevent SEO fallback content flash on the interactive site
+
+- Local reason: the server-rendered SEO fallback was inserted as visible body content and appeared before the deferred frontend bundle initialized.
+- Changed: wrapped public and not-found fallback pages in standard `<noscript>` blocks so JavaScript-enabled users do not see raw SEO text during startup, while users without JavaScript retain readable fallback content.
+- Preserved: page metadata, crawlable fallback copy, route-specific public content, and the frontend fallback cleanup behavior.
+- Validation: `git diff --check` passed. Go tests were not run because Go is unavailable in this environment.
+- Commit and push: pending.
+
 ## 2026-10-27 - Add 404, llms.txt, dynamic sitemap, and JSON-LD metadata
 
 - Local reason: the operator requested the next SEO/GEO fixes after reviewing the external site audit.

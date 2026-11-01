@@ -154,8 +154,8 @@ func buildNotFoundIndexPage(c *gin.Context, page []byte) []byte {
 
 func upsertNotFoundNoScriptContent(document []byte) []byte {
 	documentString := string(document)
-	content := `<main data-seo-fallback="true"><h1>Page not found</h1><p>The page you requested does not exist.</p><nav><a href="/">Home</a> | <a href="/pricing">AI model pricing</a> | <a href="/openai-compatible-api">OpenAI-compatible API guide</a></nav></main>`
-	seoRE := regexp.MustCompile(`(?is)<(?:noscript|main)\s+data-seo-fallback=["'][^"']*["'][^>]*>.*?</(?:noscript|main)>`)
+	content := `<noscript><main data-seo-fallback="true"><h1>Page not found</h1><p>The page you requested does not exist.</p><nav><a href="/">Home</a> | <a href="/pricing">AI model pricing</a> | <a href="/openai-compatible-api">OpenAI-compatible API guide</a></nav></main></noscript>`
+	seoRE := regexp.MustCompile(`(?is)(<noscript>\s*)?<main\s+data-seo-fallback=["'][^"']*["'][^>]*>.*?</main>(\s*</noscript>)?`)
 	if seoRE.MatchString(documentString) {
 		return []byte(seoRE.ReplaceAllStringFunc(documentString, func(string) string { return content }))
 	}
@@ -527,7 +527,8 @@ func insertBeforeHeadClose(document string, tag string) string {
 func upsertPublicNoScriptContent(document string, systemName string, description string, path string, origin string, billing controller.PublicBillingInfo) string {
 	content := publicNoScriptBody(systemName, description, path, origin, billing)
 	content = strings.Replace(content, "<main>", `<main data-seo-fallback="true">`, 1)
-	seoRE := regexp.MustCompile(`(?is)<(?:noscript|main)\s+data-seo-fallback=["'][^"']*["'][^>]*>.*?</(?:noscript|main)>`)
+	content = `<noscript>` + content + `</noscript>`
+	seoRE := regexp.MustCompile(`(?is)(<noscript>\s*)?<main\s+data-seo-fallback=["'][^"']*["'][^>]*>.*?</main>(\s*</noscript>)?`)
 	if seoRE.MatchString(document) {
 		return seoRE.ReplaceAllStringFunc(document, func(string) string { return content })
 	}

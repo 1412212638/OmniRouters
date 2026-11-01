@@ -1515,6 +1515,7 @@
     "Do string replacement in the target field": "在目标字段里做字符串替换",
     "Docs": "文档",
     "Documentation Link": "文档链接",
+    "External URL opened by the Docs item in the top navigation": "顶部导航中的文档项打开的外部链接",
     "Documentation or external knowledge base.": "文档或外部知识库。",
     "does not exist or might have been removed.": "不存在或可能已被移除。",
     "Domain": "域名",
