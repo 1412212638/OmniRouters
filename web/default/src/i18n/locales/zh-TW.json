@@ -428,6 +428,7 @@
     "Allow users to check in daily for random quota rewards": "允許用戶每日簽到獲取隨機額度獎勵",
     "Allow users to enter promo codes": "允許用戶輸入促銷代碼",
     "Allow users to log in with password": "允許用戶使用密碼登入",
+    "Allow users to enable two-factor authentication": "允許用戶啟用兩步驗證",
     "Allow users to register and sign in with Passkey (WebAuthn)": "允許用戶使用通行金鑰 (WebAuthn) 註冊和登入",
     "Allow users to sign in with Discord": "允許用戶使用 Discord 登入",
     "Allow users to sign in with GitHub": "允許用戶使用 GitHub 登入",
@@ -6028,6 +6029,8 @@
     "OpenAI Video Generation API": "OpenAI 影片生成 API",
     "OpenAI Video Generation Query API": "OpenAI 影片生成查詢 API",
     "OpenAI Videos API": "OpenAI Videos API",
-    "OpenAI Videos Query API": "OpenAI Videos 查詢 API"
+    "OpenAI Videos Query API": "OpenAI Videos 查詢 API",
+    "Receive product updates and promotional emails": "接收產品動態與優惠郵件",
+    "Receive product news, feature announcements, and special offers by email.": "透過電子郵件接收產品動態、新功能公告和優惠活動資訊。"
   }
 }

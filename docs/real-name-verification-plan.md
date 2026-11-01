@@ -178,7 +178,7 @@ real_name_verification.enterprise_enabled
 real_name_verification.enterprise_app_code
 ```
 
-`personal_app_code_configured` 和 `enterprise_app_code_configured` 只读返回配置状态，不接受管理员直接修改。证件加密密钥通过环境变量 `REAL_NAME_ENCRYPTION_KEY` 提供。
+`personal_app_code_configured` 和 `enterprise_app_code_configured` 只读返回配置状态，不接受管理员直接修改。实名信息必须加密保存。加密密钥优先使用环境变量 `REAL_NAME_ENCRYPTION_KEY`；未配置时复用已有的稳定 `CRYPTO_SECRET`，再回退到显式配置的 `SESSION_SECRET`。不能使用进程启动时自动生成的临时密钥，也不能在已有认证数据后更换密钥。
 
 ### 3.1 实名认证功能开关
 
@@ -245,7 +245,7 @@ real_name_verification.enterprise_app_code
 姓名和身份证号使用服务端专用加密密钥进行 AEAD 加密后落库，密钥不进入数据库、前端、仓库或日志。建议使用独立环境变量：
 
 ```env
-REAL_NAME_ENCRYPTION_KEY=
+REAL_NAME_ENCRYPTION_KEY= # 可选；未配置时复用 CRYPTO_SECRET
 ```
 
 密钥缺失时不允许提交认证，也不能回退到明文存储。未来如需轮换密钥，再增加版本字段和迁移流程。

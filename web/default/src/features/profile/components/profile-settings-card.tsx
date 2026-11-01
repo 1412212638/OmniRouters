@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import { Link2, Settings, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -6,7 +7,9 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TitledCard } from '@/components/ui/titled-card'
+import { cn } from '@/lib/utils'
 
+import { getIdentityVerification } from '../api'
 import type { UserProfile } from '../types'
 import { AccountBindingsTab } from './tabs/account-bindings-tab'
 import { NotificationTab } from './tabs/notification-tab'
@@ -29,6 +32,18 @@ export function ProfileSettingsCard({
 }: ProfileSettingsCardProps) {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState('bindings')
+  const identityVerification = useQuery({
+    queryKey: ['identity-verification'],
+    queryFn: getIdentityVerification,
+    enabled: !loading && !!profile,
+  })
+  const showIdentityVerification =
+    identityVerification.data?.success === true &&
+    identityVerification.data.data?.enabled === true
+  const visibleTab =
+    activeTab === 'identity' && !showIdentityVerification
+      ? 'bindings'
+      : activeTab
 
   if (loading) {
     return (
@@ -54,8 +69,13 @@ export function ProfileSettingsCard({
       icon={<Settings className='h-4 w-4' />}
       disableHoverEffect
     >
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className='grid w-full grid-cols-3 items-stretch gap-1 rounded-xl p-1 group-data-horizontal/tabs:h-10'>
+      <Tabs value={visibleTab} onValueChange={setActiveTab}>
+        <TabsList
+          className={cn(
+            'grid w-full items-stretch gap-1 rounded-xl p-1 group-data-horizontal/tabs:h-10',
+            showIdentityVerification ? 'grid-cols-3' : 'grid-cols-2'
+          )}
+        >
           <TabsTrigger
             value='bindings'
             className='h-full gap-2 rounded-lg px-3 py-0 leading-none'
@@ -74,14 +94,16 @@ export function ProfileSettingsCard({
             </span>
             <span className='sm:hidden'>{t('Settings')}</span>
           </TabsTrigger>
-          <TabsTrigger
-            value='identity'
-            className='h-full gap-2 rounded-lg px-3 py-0 leading-none'
-          >
-            <ShieldCheck className='h-4 w-4' />
-            <span className='hidden sm:inline'>{t('Real-name Verification')}</span>
-            <span className='sm:hidden'>{t('Identity')}</span>
-          </TabsTrigger>
+          {showIdentityVerification && (
+            <TabsTrigger
+              value='identity'
+              className='h-full gap-2 rounded-lg px-3 py-0 leading-none'
+            >
+              <ShieldCheck className='h-4 w-4' />
+              <span className='hidden sm:inline'>{t('Real-name Verification')}</span>
+              <span className='sm:hidden'>{t('Identity')}</span>
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value='bindings' className='mt-4 sm:mt-6'>
@@ -91,9 +113,11 @@ export function ProfileSettingsCard({
         <TabsContent value='settings' className='mt-4 sm:mt-6'>
           <NotificationTab profile={profile} onUpdate={onProfileUpdate} />
         </TabsContent>
-        <TabsContent value='identity' className='mt-4 sm:mt-6'>
-          <IdentityVerificationTab />
-        </TabsContent>
+        {showIdentityVerification && (
+          <TabsContent value='identity' className='mt-4 sm:mt-6'>
+            <IdentityVerificationTab />
+          </TabsContent>
+        )}
       </Tabs>
     </TitledCard>
   )

@@ -428,6 +428,7 @@
     "Allow users to check in daily for random quota rewards": "Cho phép người dùng điểm danh hàng ngày để nhận phần thưởng hạn ngạch ngẫu nhiên",
     "Allow users to enter promo codes": "Cho phép người dùng nhập mã khuyến mãi",
     "Allow users to log in with password": "Cho phép người dùng đăng nhập bằng mật khẩu",
+    "Allow users to enable two-factor authentication": "Cho phép người dùng bật xác thực hai yếu tố",
     "Allow users to register and sign in with Passkey (WebAuthn)": "Cho phép người dùng đăng ký và đăng nhập bằng Passkey (WebAuthn)",
     "Allow users to sign in with Discord": "Cho phép người dùng đăng nhập bằng Discord",
     "Allow users to sign in with GitHub": "Cho phép người dùng đăng nhập bằng GitHub",
@@ -6028,6 +6029,8 @@
     "OpenAI Video Generation API": "API tạo video OpenAI",
     "OpenAI Video Generation Query API": "API tra cứu tạo video OpenAI",
     "OpenAI Videos API": "API Videos OpenAI",
-    "OpenAI Videos Query API": "API tra cứu Videos OpenAI"
+    "OpenAI Videos Query API": "API tra cứu Videos OpenAI",
+    "Receive product updates and promotional emails": "Nhận email cập nhật sản phẩm và ưu đãi",
+    "Receive product news, feature announcements, and special offers by email.": "Nhận tin tức sản phẩm, thông báo tính năng mới và ưu đãi đặc biệt qua email."
   }
 }

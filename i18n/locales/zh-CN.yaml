@@ -2,6 +2,7 @@
 # 中文（简体）翻译文件
 
 # Common messages
+auth.two_fa_enrollment_disabled: "管理员已关闭新的两步验证启用操作"
 common.invalid_params: "无效的参数"
 common.database_error: "数据库出错，请联系管理员"
 common.retry_later: "请稍后重试"

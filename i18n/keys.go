@@ -1,6 +1,7 @@
 package i18n
 
 const MsgTaskPluginUnknownMetaField = "task_plugin.unknown_meta_field"
+const MsgTwoFAEnrollmentDisabled = "auth.two_fa_enrollment_disabled"
 
 // Message keys for i18n translations
 // Use these constants instead of hardcoded strings

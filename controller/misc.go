@@ -78,6 +78,7 @@ func GetStatus(c *gin.Context) {
 
 	cs := console_setting.GetConsoleSetting()
 	passkeySetting := system_setting.PasskeySettingsSnapshot()
+	twoFAEnrollmentEnabled := system_setting.TwoFAEnrollmentEnabled()
 	common.OptionMapRWMutex.RLock()
 	defer common.OptionMapRWMutex.RUnlock()
 
@@ -153,6 +154,7 @@ func GetStatus(c *gin.Context) {
 		"oidc_authorization_endpoint": system_setting.GetOIDCSettings().AuthorizationEndpoint,
 		"oidc_display_name":           system_setting.GetOIDCSettings().GetEffectiveDisplayName(),
 		"passkey_login":               passkeySetting.Enabled,
+		"two_fa_enrollment_enabled":   twoFAEnrollmentEnabled,
 		"passkey_display_name":        passkeySetting.RPDisplayName,
 		"passkey_rp_id":               passkeySetting.EffectiveRPID(),
 		"passkey_rp_ids":              passkeySetting.RelyingPartyIDs(),

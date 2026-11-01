@@ -4,6 +4,7 @@ import {
   CardStaggerItem,
 } from '@/components/page-transition'
 import { useStatus } from '@/hooks/use-status'
+import { ROLE } from '@/lib/roles'
 import { useAuthStore } from '@/stores/auth-store'
 
 import { CheckinCalendarCard } from './components/checkin-calendar-card'
@@ -22,11 +23,14 @@ export function Profile() {
   const permissions = useAuthStore((s) => s.auth.user?.permissions)
 
   const checkinEnabled = status?.checkin_enabled === true
+  const passkeyEnabled = status?.passkey_login === true
   const turnstileEnabled = !!(
     status?.turnstile_check && status?.turnstile_site_key
   )
   const turnstileSiteKey = status?.turnstile_site_key || ''
-  const canConfigureSidebar = permissions?.sidebar_settings !== false
+  const canConfigureSidebar =
+    (profile?.role ?? 0) >= ROLE.ADMIN &&
+    permissions?.sidebar_settings !== false
 
   return (
     <Main>
@@ -60,7 +64,7 @@ export function Profile() {
                   />
                 )}
                 {canConfigureSidebar && <SidebarModulesCard />}
-                <PasskeyCard loading={loading} />
+                {passkeyEnabled && <PasskeyCard loading={loading} />}
                 <TwoFACard loading={loading} />
               </div>
             </div>

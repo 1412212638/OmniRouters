@@ -16,6 +16,7 @@ import {
 import { MultiSelect } from '@/components/multi-select'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import {
   Form,
   FormControl,
@@ -45,6 +46,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
+import { parseUserSettings } from '@/features/profile/lib/format'
 import {
   ADMIN_PERMISSION_ACTIONS,
   ADMIN_PERMISSION_RESOURCES,
@@ -72,7 +74,7 @@ import {
   transformFormDataToPayload,
   transformUserToFormDefaults,
 } from '../lib'
-import { type User } from '../types'
+import type { User } from '../types'
 import { UserQuotaDialog } from './user-quota-dialog'
 import { useUsers } from './users-provider'
 
@@ -93,6 +95,30 @@ export function UsersMutateDrawer({
   const currentUser = useAuthStore((s) => s.auth.user)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [quotaDialogOpen, setQuotaDialogOpen] = useState(false)
+
+  const userDetails = useQuery({
+    queryKey: ['user-detail', currentRow?.id],
+    queryFn: () => {
+      if (!currentRow) throw new Error('User ID is required')
+      return getUser(currentRow.id)
+    },
+    enabled: open && isUpdate,
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+  })
+  let marketingEmailStatus = t('Unavailable')
+  if (userDetails.isFetching) {
+    marketingEmailStatus = t('Loading...')
+  } else if (
+    !userDetails.isError &&
+    userDetails.data?.success &&
+    userDetails.data.data
+  ) {
+    const enabled =
+      parseUserSettings(userDetails.data.data.setting)
+        .marketing_email_enabled ?? true
+    marketingEmailStatus = enabled ? t('Enabled') : t('Disabled')
+  }
 
   // Fetch groups
   const { data: groupsData } = useQuery({
@@ -117,18 +143,18 @@ export function UsersMutateDrawer({
 
   // Load existing data when updating
   useEffect(() => {
-    if (open && isUpdate && currentRow) {
-      // For update, fetch fresh data
-      getUser(currentRow.id).then((result) => {
-        if (result.success && result.data) {
-          form.reset(transformUserToFormDefaults(result.data))
-        }
-      })
+    if (
+      open &&
+      isUpdate &&
+      userDetails.data?.success &&
+      userDetails.data.data
+    ) {
+      form.reset(transformUserToFormDefaults(userDetails.data.data))
     } else if (open && !isUpdate) {
       // For create, reset to defaults
       form.reset(USER_FORM_DEFAULT_VALUES)
     }
-  }, [open, isUpdate, currentRow, form])
+  }, [open, isUpdate, userDetails.data, form])
 
   const { meta: currencyMeta } = getCurrencyDisplay()
   const currencyLabel = getCurrencyLabel()
@@ -185,7 +211,7 @@ export function UsersMutateDrawer({
               : t(ERROR_MESSAGES.CREATE_FAILED))
         )
       }
-    } catch (_error) {
+    } catch {
       toast.error(t(ERROR_MESSAGES.UNEXPECTED))
     } finally {
       setIsSubmitting(false)
@@ -194,10 +220,7 @@ export function UsersMutateDrawer({
 
   const refreshUserData = async () => {
     if (!currentRow) return
-    const result = await getUser(currentRow.id)
-    if (result.success && result.data) {
-      form.reset(transformUserToFormDefaults(result.data))
-    }
+    await userDetails.refetch()
     triggerRefresh()
   }
 
@@ -350,12 +373,10 @@ export function UsersMutateDrawer({
                       <FormItem>
                         <FormLabel>{t('Group')}</FormLabel>
                         <Select
-                          items={[
-                            ...groups.map((group) => ({
-                              value: group,
-                              label: group,
-                            })),
-                          ]}
+                          items={groups.map((group) => ({
+                            value: group,
+                            label: group,
+                          }))}
                           onValueChange={(value) => {
                             if (value === null) return
                             field.onChange(value)
@@ -569,6 +590,24 @@ export function UsersMutateDrawer({
                     )}
                   </SideDrawerSection>
                 )}
+
+              {isUpdate && (
+                <SideDrawerSection>
+                  <h3 className='text-sm font-medium'>{t('Preferences')}</h3>
+                  <FieldGroup>
+                    <Field>
+                      <FieldLabel htmlFor='userMarketingEmail'>
+                        {t('Receive product updates and promotional emails')}
+                      </FieldLabel>
+                      <Input
+                        id='userMarketingEmail'
+                        value={marketingEmailStatus}
+                        readOnly
+                      />
+                    </Field>
+                  </FieldGroup>
+                </SideDrawerSection>
+              )}
 
               {/* Binding Information (Read-only) */}
               {isUpdate && (

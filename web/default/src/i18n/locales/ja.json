@@ -428,6 +428,7 @@
     "Allow users to check in daily for random quota rewards": "ユーザーが毎日チェックインしてランダムなクォータ報酬を受け取れるようにする",
     "Allow users to enter promo codes": "ユーザーがプロモーションコードを入力できるようにする",
     "Allow users to log in with password": "ユーザーがパスワードでログインできるようにする",
+    "Allow users to enable two-factor authentication": "ユーザーが二要素認証を有効にできるようにする",
     "Allow users to register and sign in with Passkey (WebAuthn)": "ユーザーがPasskey (WebAuthn) で登録およびサインインできるようにする",
     "Allow users to sign in with Discord": "ユーザーがDiscordでログインできるようにする",
     "Allow users to sign in with GitHub": "ユーザーがGitHubでサインインできるようにする",
@@ -6028,6 +6029,8 @@
     "OpenAI Video Generation API": "OpenAI 動画生成 API",
     "OpenAI Video Generation Query API": "OpenAI 動画生成照会 API",
     "OpenAI Videos API": "OpenAI Videos API",
-    "OpenAI Videos Query API": "OpenAI Videos 照会 API"
+    "OpenAI Videos Query API": "OpenAI Videos 照会 API",
+    "Receive product updates and promotional emails": "製品の最新情報やキャンペーンメールを受け取る",
+    "Receive product news, feature announcements, and special offers by email.": "製品ニュース、新機能のお知らせ、お得なキャンペーン情報をメールで受け取ります。"
   }
 }

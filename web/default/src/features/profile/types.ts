@@ -96,6 +96,8 @@ export interface UserSettings {
   accept_unset_model_ratio_model?: boolean
   /** Record IP log */
   record_ip_log?: boolean
+  /** Receive product updates and promotional emails; defaults to true */
+  marketing_email_enabled?: boolean
   /** Receive upstream model update notifications (admin only) */
   upstream_model_update_notify_enabled?: boolean
   /** Preferred interface/API response language */
@@ -115,6 +117,7 @@ export interface UpdateUserRequest {
  * User settings update request
  */
 export interface UpdateUserSettingsRequest {
+  marketing_email_enabled?: boolean
   notify_type?: string
   quota_warning_threshold?: number
   webhook_url?: string
@@ -156,6 +159,7 @@ export interface TwoFAStatus {
   enabled: boolean
   locked: boolean
   backup_codes_remaining: number
+  enrollment_enabled: boolean
 }
 
 /**

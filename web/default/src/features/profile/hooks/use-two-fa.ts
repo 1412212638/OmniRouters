@@ -12,6 +12,7 @@ const DEFAULT_STATUS: TwoFAStatus = {
   enabled: false,
   locked: false,
   backup_codes_remaining: 0,
+  enrollment_enabled: true,
 }
 
 export function useTwoFA(enabled = true) {

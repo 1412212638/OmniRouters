@@ -6,7 +6,9 @@ import (
 	"strconv"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/i18n"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/setting/system_setting"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -31,6 +33,10 @@ type Setup2FAResponse struct {
 
 // Setup2FA 初始化2FA设置
 func Setup2FA(c *gin.Context) {
+	if !system_setting.TwoFAEnrollmentEnabled() {
+		common.ApiErrorI18n(c, i18n.MsgTwoFAEnrollmentDisabled)
+		return
+	}
 	userId := c.GetInt("id")
 
 	// 检查用户是否已经启用2FA
@@ -135,6 +141,10 @@ func Setup2FA(c *gin.Context) {
 
 // Enable2FA 启用2FA
 func Enable2FA(c *gin.Context) {
+	if !system_setting.TwoFAEnrollmentEnabled() {
+		common.ApiErrorI18n(c, i18n.MsgTwoFAEnrollmentDisabled)
+		return
+	}
 	var req Setup2FARequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -285,8 +295,9 @@ func Get2FAStatus(c *gin.Context) {
 	}
 
 	status := map[string]interface{}{
-		"enabled": false,
-		"locked":  false,
+		"enabled":            false,
+		"locked":             false,
+		"enrollment_enabled": system_setting.TwoFAEnrollmentEnabled(),
 	}
 
 	if twoFA != nil {

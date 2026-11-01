@@ -428,6 +428,7 @@
     "Allow users to check in daily for random quota rewards": "Permettre aux utilisateurs de se connecter quotidiennement pour des récompenses de quota aléatoires",
     "Allow users to enter promo codes": "Autoriser les utilisateurs à saisir des codes promotionnels",
     "Allow users to log in with password": "Autoriser les utilisateurs à se connecter avec un mot de passe",
+    "Allow users to enable two-factor authentication": "Autoriser les utilisateurs à activer l’authentification à deux facteurs",
     "Allow users to register and sign in with Passkey (WebAuthn)": "Autoriser les utilisateurs à s'inscrire et se connecter avec une clé d'accès (Passkey) (WebAuthn)",
     "Allow users to sign in with Discord": "Autoriser les utilisateurs à se connecter avec Discord",
     "Allow users to sign in with GitHub": "Autoriser les utilisateurs à se connecter avec GitHub",
@@ -6028,6 +6029,8 @@
     "OpenAI Video Generation API": "API de génération vidéo OpenAI",
     "OpenAI Video Generation Query API": "API de requête de génération vidéo OpenAI",
     "OpenAI Videos API": "API Videos OpenAI",
-    "OpenAI Videos Query API": "API de requête Videos OpenAI"
+    "OpenAI Videos Query API": "API de requête Videos OpenAI",
+    "Receive product updates and promotional emails": "Recevoir les actualités et les offres par e-mail",
+    "Receive product news, feature announcements, and special offers by email.": "Recevez par e-mail les actualités du produit, les annonces de nouvelles fonctionnalités et les offres spéciales."
   }
 }

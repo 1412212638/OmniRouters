@@ -194,7 +194,10 @@ func IncrementUserAuthVersionWithTx(tx *gorm.DB, userId int) (int64, error) {
 		if err := SetUserAuthVersionFence(userId, next); err != nil {
 			return 0, err
 		}
-		result := tx.Unscoped().Model(&User{}).
+		// Bypass User.AuthVersion's create-only field permission only on this
+		// explicit version write; legacy Save/Updates must remain unable to
+		// overwrite the version from a stale User snapshot.
+		result := tx.Table("users").
 			Where("id = ? AND auth_version = ?", userId, user.AuthVersion).
 			Update("auth_version", next)
 		if result.Error != nil {
@@ -237,7 +240,7 @@ func PublishUserAuthCache(userId int) error {
 // InitializeUserAuthVersions must run after AutoMigrate when upgrading an
 // existing database. It is idempotent and portable across all supported DBs.
 func InitializeUserAuthVersions() error {
-	return DB.Model(&User{}).Where("auth_version IS NULL OR auth_version < ?", 1).Update("auth_version", 1).Error
+	return DB.Table("users").Where("auth_version IS NULL OR auth_version < ?", 1).Update("auth_version", 1).Error
 }
 
 func updateUserCacheFieldAtVersion(userId int, field string, value interface{}, authVersion int64) error {

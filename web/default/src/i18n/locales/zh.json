@@ -428,6 +428,7 @@
     "Allow users to check in daily for random quota rewards": "允许用户每日签到获取随机额度奖励",
     "Allow users to enter promo codes": "允许用户输入促销代码",
     "Allow users to log in with password": "允许用户使用密码登录",
+    "Allow users to enable two-factor authentication": "允许用户启用两步验证",
     "Allow users to register and sign in with Passkey (WebAuthn)": "允许用户使用通行密钥 (WebAuthn) 注册和登录",
     "Allow users to sign in with Discord": "允许用户使用 Discord 登录",
     "Allow users to sign in with GitHub": "允许用户使用 GitHub 登录",
@@ -6074,6 +6075,8 @@
     "Submitting...": "提交中...",
     "Verification service is temporarily unavailable": "认证服务暂时不可用",
     "Show invoice information": "显示账单信息",
-    "Display the invoice information card on the wallet page": "在钱包页面显示账单信息卡片"
+    "Display the invoice information card on the wallet page": "在钱包页面显示账单信息卡片",
+    "Receive product updates and promotional emails": "接收产品动态与优惠邮件",
+    "Receive product news, feature announcements, and special offers by email.": "通过邮件接收产品动态、新功能公告和优惠活动信息。"
   }
 }

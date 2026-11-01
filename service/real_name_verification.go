@@ -66,7 +66,7 @@ func GetRealNameConfig() RealNameConfig {
 	return RealNameConfig{
 		Enabled:           optionBool(RealNameEnabledOption),
 		Required:          optionBool(RealNameRequiredOption),
-		EncryptionConfigured: strings.TrimSpace(os.Getenv("REAL_NAME_ENCRYPTION_KEY")) != "",
+		EncryptionConfigured: realNameEncryptionSecret() != "",
 		PersonalEnabled:   optionBool(RealNamePersonalEnabledOption),
 		PersonalAppCode:   optionString(RealNamePersonalAppCodeOption),
 		EnterpriseEnabled: optionBool(RealNameEnterpriseEnabledOption),
@@ -91,10 +91,25 @@ func RealNameRequiredForUser(userID int) (bool, error) {
 	return !verified, err
 }
 
+// realNameEncryptionSecret keeps the dedicated setting as an override while
+// allowing existing deployments with a stable CRYPTO_SECRET to opt in without
+// adding another environment variable. Generated process-local defaults are
+// deliberately excluded because they would make stored identity data
+// undecryptable after a restart.
+func realNameEncryptionSecret() string {
+	if secret := strings.TrimSpace(os.Getenv("REAL_NAME_ENCRYPTION_KEY")); secret != "" {
+		return secret
+	}
+	if secret := strings.TrimSpace(os.Getenv("CRYPTO_SECRET")); secret != "" {
+		return secret
+	}
+	return strings.TrimSpace(os.Getenv("SESSION_SECRET"))
+}
+
 func encryptionKey() ([]byte, error) {
-	secret := strings.TrimSpace(os.Getenv("REAL_NAME_ENCRYPTION_KEY"))
+	secret := realNameEncryptionSecret()
 	if secret == "" {
-		return nil, errors.New("REAL_NAME_ENCRYPTION_KEY is not configured")
+		return nil, errors.New("no stable real-name encryption secret is configured")
 	}
 	digest := sha256.Sum256([]byte(secret))
 	return digest[:], nil

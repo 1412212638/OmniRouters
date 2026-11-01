@@ -1516,6 +1516,7 @@ type UpdateUserSettingRequest struct {
 	UpstreamModelUpdateNotifyEnabled *bool   `json:"upstream_model_update_notify_enabled,omitempty"`
 	AcceptUnsetModelRatioModel       bool    `json:"accept_unset_model_ratio_model"`
 	RecordIpLog                      bool    `json:"record_ip_log"`
+	MarketingEmailEnabled            *bool   `json:"marketing_email_enabled,omitempty"`
 }
 
 func UpdateUserSetting(c *gin.Context) {
@@ -1606,6 +1607,10 @@ func UpdateUserSetting(c *gin.Context) {
 		return
 	}
 	existingSettings := user.GetSetting()
+	marketingEmailEnabled := existingSettings.MarketingEmailEnabled
+	if req.MarketingEmailEnabled != nil {
+		marketingEmailEnabled = req.MarketingEmailEnabled
+	}
 	upstreamModelUpdateNotifyEnabled := existingSettings.UpstreamModelUpdateNotifyEnabled
 	if user.Role >= common.RoleAdminUser && req.UpstreamModelUpdateNotifyEnabled != nil {
 		upstreamModelUpdateNotifyEnabled = *req.UpstreamModelUpdateNotifyEnabled
@@ -1618,6 +1623,7 @@ func UpdateUserSetting(c *gin.Context) {
 		UpstreamModelUpdateNotifyEnabled: upstreamModelUpdateNotifyEnabled,
 		AcceptUnsetRatioModel:            req.AcceptUnsetModelRatioModel,
 		RecordIpLog:                      req.RecordIpLog,
+		MarketingEmailEnabled:            marketingEmailEnabled,
 	}
 
 	// 如果是webhook类型,添加webhook相关设置

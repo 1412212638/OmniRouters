@@ -49,6 +49,7 @@ func TestAuthFlowDatabaseContracts(t *testing.T) {
 			require.NoError(t, db.AutoMigrate(&model.AuthFlow{}))
 			testAuthFlowContracts(t)
 			testUserSessionContracts(t)
+			testUserAuthVersionWrites(t)
 		})
 	}
 }

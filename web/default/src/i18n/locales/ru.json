@@ -428,6 +428,7 @@
     "Allow users to check in daily for random quota rewards": "Разрешить пользователям регистрироваться ежедневно для получения случайных квотных наград",
     "Allow users to enter promo codes": "Разрешить пользователям вводить промокоды",
     "Allow users to log in with password": "Разрешить пользователям входить по паролю",
+    "Allow users to enable two-factor authentication": "Разрешить пользователям включать двухфакторную аутентификацию",
     "Allow users to register and sign in with Passkey (WebAuthn)": "Разрешить пользователям регистрироваться и входить с помощью Passkey (WebAuthn)",
     "Allow users to sign in with Discord": "Разрешить пользователям входить через Discord",
     "Allow users to sign in with GitHub": "Разрешить пользователям входить через GitHub",
@@ -6028,6 +6029,8 @@
     "OpenAI Video Generation API": "API генерации видео OpenAI",
     "OpenAI Video Generation Query API": "API запроса генерации видео OpenAI",
     "OpenAI Videos API": "API Videos OpenAI",
-    "OpenAI Videos Query API": "API запроса Videos OpenAI"
+    "OpenAI Videos Query API": "API запроса Videos OpenAI",
+    "Receive product updates and promotional emails": "Получать новости продукта и рекламные письма",
+    "Receive product news, feature announcements, and special offers by email.": "Получайте новости продукта, анонсы новых функций и специальные предложения по электронной почте."
   }
 }

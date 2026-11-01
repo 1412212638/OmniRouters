@@ -138,6 +138,7 @@ export type SiteSettings = {
 }
 
 export type AuthSettings = {
+  'two_fa.enrollment_enabled': boolean
 	'real_name_verification.enabled': boolean
 	'real_name_verification.enforcement_enabled': boolean
 	'real_name_verification.personal_enabled': boolean

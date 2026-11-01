@@ -24,6 +24,7 @@ common.name_cannot_be_empty: "Name cannot be empty"
 common.batch_too_many: "Too many items in batch request, maximum is {{.Max}}"
 
 # Auth middleware messages
+auth.two_fa_enrollment_disabled: "The administrator has disabled new two-factor authentication enrollment"
 auth.not_logged_in: "Unauthorized, not logged in and no access token provided"
 auth.access_token_invalid: "Unauthorized, invalid access token"
 auth.user_info_invalid: "Unauthorized, invalid user info"

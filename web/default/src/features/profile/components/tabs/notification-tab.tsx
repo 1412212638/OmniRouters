@@ -5,6 +5,13 @@ import { toast } from 'sonner'
 
 import { PasswordInput } from '@/components/password-input'
 import { Button } from '@/components/ui/button'
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -62,6 +69,7 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
     gotify_priority: 5,
     accept_unset_model_ratio_model: false,
     record_ip_log: false,
+    marketing_email_enabled: true,
     upstream_model_update_notify_enabled: false,
   })
 
@@ -90,6 +98,7 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
         accept_unset_model_ratio_model:
           parsed.accept_unset_model_ratio_model || false,
         record_ip_log: parsed.record_ip_log || false,
+        marketing_email_enabled: parsed.marketing_email_enabled ?? true,
         upstream_model_update_notify_enabled:
           parsed.upstream_model_update_notify_enabled || false,
       })
@@ -107,7 +116,7 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
       } else {
         toast.error(response.message || t('Failed to update settings'))
       }
-    } catch (_error) {
+    } catch {
       toast.error(t('Failed to update settings'))
     } finally {
       setLoading(false)
@@ -125,8 +134,9 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
           value={[notifyType]}
           onValueChange={(value) => {
             const nextValue = value.find((item) => item !== notifyType)
-            if (nextValue)
+            if (nextValue) {
               updateField('notify_type', normalizeNotifyType(nextValue))
+            }
           }}
           aria-label={t('Notification Method')}
           variant='outline'
@@ -337,6 +347,33 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
             />
           </div>
         )}
+
+        <FieldGroup>
+          <Field
+            orientation='horizontal'
+            className='rounded-lg border p-3 sm:p-4'
+          >
+            <FieldContent>
+              <FieldLabel htmlFor='marketingEmail'>
+                {t('Receive product updates and promotional emails')}
+              </FieldLabel>
+              <FieldDescription id='marketingEmailDescription'>
+                {t(
+                  'Receive product news, feature announcements, and special offers by email.'
+                )}
+              </FieldDescription>
+            </FieldContent>
+            <Switch
+              id='marketingEmail'
+              aria-describedby='marketingEmailDescription'
+              className='shrink-0'
+              checked={settings.marketing_email_enabled ?? true}
+              onCheckedChange={(checked) =>
+                updateField('marketing_email_enabled', checked)
+              }
+            />
+          </Field>
+        </FieldGroup>
 
         {/* Accept Unset Model Price */}
         <div className='flex items-start justify-between gap-3 rounded-lg border p-3 sm:items-center sm:p-4'>

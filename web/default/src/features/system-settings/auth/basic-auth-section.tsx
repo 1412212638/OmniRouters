@@ -27,6 +27,7 @@ import { useResetForm } from '../hooks/use-reset-form'
 import { useUpdateOption } from '../hooks/use-update-option'
 
 const basicAuthSchema = z.object({
+  twoFAEnrollmentEnabled: z.boolean(),
   PasswordLoginEnabled: z.boolean(),
   PasswordRegisterEnabled: z.boolean(),
   EmailVerificationEnabled: z.boolean(),
@@ -79,7 +80,10 @@ export function BasicAuthSection({ defaultValues }: BasicAuthSectionProps) {
           updates.push({ key, value: domains })
         }
       } else if (value !== defaultValues[key as keyof typeof defaultValues]) {
-        updates.push({ key, value })
+        updates.push({
+          key: key === 'twoFAEnrollmentEnabled' ? 'two_fa.enrollment_enabled' : key,
+          value,
+        })
       }
     })
 
@@ -95,6 +99,26 @@ export function BasicAuthSection({ defaultValues }: BasicAuthSectionProps) {
           <SettingsPageFormActions
             onSave={form.handleSubmit(onSubmit)}
             isSaving={updateOption.isPending}
+          />
+          <FormField
+            control={form.control}
+            name='twoFAEnrollmentEnabled'
+            render={({ field }) => (
+              <SettingsSwitchItem>
+                <SettingsSwitchContent>
+                  <FormLabel>{t('Two-factor Authentication')}</FormLabel>
+                  <FormDescription>
+                    {t('Allow users to enable two-factor authentication')}
+                  </FormDescription>
+                </SettingsSwitchContent>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </SettingsSwitchItem>
+            )}
           />
           <FormField
             control={form.control}

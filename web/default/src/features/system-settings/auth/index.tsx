@@ -7,6 +7,7 @@ import {
 } from './section-registry.tsx'
 
 const defaultAuthSettings: AuthSettings = {
+	'two_fa.enrollment_enabled': true,
 	'real_name_verification.enabled': false,
 	'real_name_verification.enforcement_enabled': false,
 	'real_name_verification.personal_enabled': false,

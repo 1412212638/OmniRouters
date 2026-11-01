@@ -47,6 +47,10 @@ export function TwoFACard({ loading: pageLoading }: TwoFACardProps) {
     )
   }
 
+  if (!status.enrollment_enabled && !status.enabled) {
+    return null
+  }
+
   return (
     <>
       <Card data-card-hover='false' className='gap-0 overflow-hidden py-0'>
