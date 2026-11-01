@@ -5009,7 +5009,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: real-name encryption now prefers `REAL_NAME_ENCRYPTION_KEY`, then reuses an explicitly configured `CRYPTO_SECRET` or `SESSION_SECRET`; generated process-local defaults are excluded. Admin full-detail viewing continues to decrypt records server-side and returns readable identity fields only through the protected administrator endpoint.
 - Preserved: identity data remains encrypted at rest, masked summaries remain the default, existing records using the dedicated key continue to use it, and no plaintext fallback was added.
 - Validation: `git diff --check` passed; Go tests and `gofmt` are unavailable in this environment.
-- Commit and push: pending.
+- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
 
 ## 2026-11-02 - Hide disabled real-name verification in profile
 
@@ -5017,7 +5017,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: the profile settings card reads the existing identity-verification query and renders the tab and content only when its enabled flag is true; the remaining tabs use two equal columns and a hidden active identity tab falls back to account bindings. Pending or unsuccessful responses keep the entry hidden.
 - Preserved: existing verification APIs, submission rules, administrator views, and the independent mandatory verification policy remain unchanged; earlier uncommitted encryption-secret changes are preserved.
 - Validation: `git diff --check` passed. Targeted Oxlint reported only the pre-existing skeleton index-key violation; the same file passed with that single rule disabled. No full build or additional tests for this small visibility change.
-- Commit and push: pending.
+- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
 
 ## 2026-11-02 - Hide personal sidebar configuration for ordinary users
 
@@ -5025,7 +5025,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: profile now shows the sidebar configuration card only for administrator roles with the existing sidebar settings permission; unknown roles keep the card hidden while the profile loads.
 - Preserved: administrator permission restrictions, current sidebar visibility settings, and other profile cards; earlier uncommitted work remains intact.
 - Validation: targeted Oxlint for `profile/index.tsx` and `git diff --check` passed; no full build for this small visibility change.
-- Commit and push: pending.
+- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
 
 ## 2026-11-02 - Hide profile Passkey card when disabled by administrator
 
@@ -5033,7 +5033,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: profile mounts the Passkey card only when the existing public `passkey_login` flag is true, hiding the card and avoiding its management requests when disabled or unknown.
 - Preserved: Passkey authentication and existing credentials are unchanged. Two-factor enrollment is controlled separately by the switch described in the next entry.
 - Validation: targeted Oxlint and `git diff --check` passed; no full build for this small visibility change.
-- Commit and push: pending.
+- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
 
 ## 2026-11-02 - Add administrator switch for two-factor enrollment
 
@@ -5041,7 +5041,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: added `two_fa.enrollment_enabled` under Basic Authentication, defaulting to true for compatibility; the public status and per-user 2FA status expose the setting. Setup and enable endpoints reject new enrollment while disabled. The profile hides the 2FA card when enrollment is disabled and the user has no enabled 2FA, while users who already enabled it retain management and disable controls. Frontend labels are translated across supported locales.
 - Preserved: existing 2FA credentials and authentication remain intact when enrollment is disabled; Passkey visibility continues to follow its existing admin switch.
 - Validation: targeted Oxlint passed; `git diff --check` passed. Full frontend typecheck reports repository errors outside these changes and missing test dependencies. Added a regression test proving both setup and enable requests are rejected before any database access when enrollment is disabled; execution and Go formatting remain unavailable because the Go toolchain is not installed.
-- Commit and push: pending.
+- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
 
 ## 2026-11-02 - Fix authentication version writes blocked by GORM permissions
 
@@ -5049,7 +5049,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: transactional auth-version increments and upgrade initialization now write through the users table directly, avoiding the create-only schema guard while retaining the row lock, compare-and-swap predicate, transaction rollback, and Redis fence. This fixes the shared updater used by two-factor creation/deletion, Passkey changes, and other security operations.
 - Preserved: legacy User Save/Updates cannot overwrite auth versions; existing security/session policies and pending feature changes remain intact.
 - Validation: `git diff --check` passed. Added database contract coverage for 2FA creation/deletion, stale saves, rollback, and idempotent initialization to the existing SQLite/MySQL/PostgreSQL test harness. Tests could not run because Go is unavailable locally.
-- Commit and push: pending.
+- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
 
 ## 2026-11-02 - Add saved marketing email preference and administrator visibility
 
@@ -5057,4 +5057,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: added `marketing_email_enabled` to the existing user-settings JSON and settings update API. An omitted value defaults to enabled, explicit false survives serialization, and clients omitting the field preserve the saved choice. Added the profile preference switch and a read-only enabled/disabled field in the administrator Edit User drawer, using freshly fetched user details. Added labels and descriptions in all seven frontend locales; no database migration is required.
 - Preserved: no email sending, campaign integration, or administrator editing of this preference was added; account/security notifications and existing uncommitted work remain intact. Minor existing lint violations in the touched components were corrected without changing behavior.
 - Validation: targeted Oxlint passed with one pre-existing parseInt style warning; frontend formatting, locale JSON parsing, and `git diff --check` passed. Full frontend typecheck still fails on existing unrelated errors and missing test dependencies; no errors were reported in the files changed for this preference. Go compilation/tests remain unavailable because the Go toolchain is not installed.
-- Commit and push: pending; no push requested for this change.
+- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
