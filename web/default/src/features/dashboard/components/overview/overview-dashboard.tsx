@@ -30,6 +30,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { fetchTokenKey, getApiKeys } from '@/features/keys/api'
 import type { ApiKey } from '@/features/keys/types'
+import { getOrganization } from '@/features/organizations/api'
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { getUserModels } from '@/lib/api'
 import { MOTION_TRANSITION } from '@/lib/motion'
@@ -439,6 +441,13 @@ function CompactQuickAction(props: { action: QuickAction }) {
 export function OverviewDashboard() {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.auth.user)
+  const organizationId = useActiveOrganizationId()
+  const organization = useQuery({
+    queryKey: ['organization', user?.id, organizationId],
+    queryFn: () => getOrganization(organizationId as number),
+    enabled: Boolean(organizationId),
+    staleTime: 30_000,
+  })
   const { items: apiInfoItems } = useApiInfo()
   const {
     apiInfo: showApiInfoPanel,
@@ -450,13 +459,25 @@ export function OverviewDashboard() {
     boolean | null
   >(() => getSavedSetupGuideExpanded())
 
-  const requestCount = Number(user?.request_count ?? 0)
-  const remainQuota = Number(user?.quota ?? 0)
-  const usedQuota = Number(user?.used_quota ?? 0)
-  const isAdmin = Boolean(user?.role && user.role >= ROLE.ADMIN)
+  const currentOrganization = organization.data?.organization
+  const requestCount = Number(
+    organizationId
+      ? (currentOrganization?.request_count ?? 0)
+      : (user?.request_count ?? 0)
+  )
+  const remainQuota = Number(
+    organizationId ? (currentOrganization?.quota ?? 0) : (user?.quota ?? 0)
+  )
+  const usedQuota = Number(
+    organizationId
+      ? (organization.data?.monthly_used_quota ?? 0)
+      : (user?.used_quota ?? 0)
+  )
+  const isAdmin =
+    !organizationId && Boolean(user?.role && user.role >= ROLE.ADMIN)
 
   const apiKeysQuery = useQuery({
-    queryKey: ['dashboard', 'overview', 'api-keys'],
+    queryKey: ['dashboard', 'overview', 'api-keys', user?.id, organizationId],
     queryFn: async () => {
       const result = await getApiKeys({ p: 1, size: 10 })
       return result.success ? (result.data?.items ?? []) : []
@@ -465,7 +486,14 @@ export function OverviewDashboard() {
   })
 
   const modelsQuery = useQuery({
-    queryKey: ['dashboard', 'overview', 'user-models', 'openai'],
+    queryKey: [
+      'dashboard',
+      'overview',
+      'user-models',
+      'openai',
+      user?.id,
+      organizationId,
+    ],
     queryFn: async () => {
       const result = await getUserModels({ endpointType: 'openai' })
       return result.success ? (result.data ?? []) : []

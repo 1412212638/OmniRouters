@@ -55,6 +55,7 @@ import type {
 import { CreemProductsSection } from './creem-products-section'
 
 interface RechargeFormCardProps {
+  allowRedemption?: boolean
   paymentType?: string
   selectedFeeRate?: number
   topupInfo: TopupInfo | null
@@ -87,6 +88,7 @@ interface RechargeFormCardProps {
 }
 
 export function RechargeFormCard({
+  allowRedemption = true,
   paymentType,
   selectedFeeRate,
   topupInfo,
@@ -527,49 +529,51 @@ export function RechargeFormCard({
         )}
 
       {/* Redemption Code Section */}
-      <div className='space-y-2.5 border-t pt-4 sm:space-y-3 sm:pt-6'>
-        <div className='flex items-center gap-2'>
-          <Gift className='text-muted-foreground h-4 w-4' />
-          <Label
-            htmlFor='redemption-code'
-            className='text-muted-foreground text-xs font-medium tracking-wider uppercase'
-          >
-            {t('Have a Code?')}
-          </Label>
-        </div>
-        <div className='grid grid-cols-[minmax(0,1fr)_auto] gap-2'>
-          <Input
-            id='redemption-code'
-            value={redemptionCode}
-            onChange={(e) => onRedemptionCodeChange(e.target.value)}
-            placeholder={t('Enter your redemption code')}
-            className='h-9 min-w-0'
-          />
-          <Button
-            onClick={onRedeem}
-            disabled={redeeming}
-            variant='outline'
-            className='h-9 px-4'
-          >
-            {redeeming && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-            {t('Redeem')}
-          </Button>
-        </div>
-        {topupLink && (
-          <p className='text-muted-foreground text-xs'>
-            {t('Need a redemption code?')}{' '}
-            <a
-              href={topupLink}
-              target='_blank'
-              rel='noopener noreferrer'
-              className='inline-flex items-center gap-1 underline-offset-4 hover:underline'
+      {allowRedemption && (
+        <div className='space-y-2.5 border-t pt-4 sm:space-y-3 sm:pt-6'>
+          <div className='flex items-center gap-2'>
+            <Gift className='text-muted-foreground h-4 w-4' />
+            <Label
+              htmlFor='redemption-code'
+              className='text-muted-foreground text-xs font-medium tracking-wider uppercase'
             >
-              {t('Get one here')}
-              <ExternalLink className='h-3 w-3' />
-            </a>
-          </p>
-        )}
-      </div>
+              {t('Have a Code?')}
+            </Label>
+          </div>
+          <div className='grid grid-cols-[minmax(0,1fr)_auto] gap-2'>
+            <Input
+              id='redemption-code'
+              value={redemptionCode}
+              onChange={(e) => onRedemptionCodeChange(e.target.value)}
+              placeholder={t('Enter your redemption code')}
+              className='h-9 min-w-0'
+            />
+            <Button
+              onClick={onRedeem}
+              disabled={redeeming}
+              variant='outline'
+              className='h-9 px-4'
+            >
+              {redeeming && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+              {t('Redeem')}
+            </Button>
+          </div>
+          {topupLink && (
+            <p className='text-muted-foreground text-xs'>
+              {t('Need a redemption code?')}{' '}
+              <a
+                href={topupLink}
+                target='_blank'
+                rel='noopener noreferrer'
+                className='inline-flex items-center gap-1 underline-offset-4 hover:underline'
+              >
+                {t('Get one here')}
+                <ExternalLink className='h-3 w-3' />
+              </a>
+            </p>
+          )}
+        </div>
+      )}
     </TitledCard>
   )
 }

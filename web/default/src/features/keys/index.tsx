@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { SectionPageLayout } from '@/components/layout'
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
 
 import { ApiKeysDialogs } from './components/api-keys-dialogs'
 import { ApiKeysPrimaryButtons } from './components/api-keys-primary-buttons'
@@ -29,11 +30,14 @@ function OpenCreateDialogFromSearch({ enabled }: { enabled?: boolean }) {
 
 export function ApiKeys({ openCreate = false }: { openCreate?: boolean }) {
   const { t } = useTranslation()
+  const organizationId = useActiveOrganizationId()
   return (
-    <ApiKeysProvider>
+    <ApiKeysProvider key={organizationId ?? 'personal'}>
       <OpenCreateDialogFromSearch enabled={openCreate} />
       <SectionPageLayout fixedContent>
-        <SectionPageLayout.Title>{t('API Keys')}</SectionPageLayout.Title>
+        <SectionPageLayout.Title>
+          {t(organizationId ? 'Organization API Keys' : 'API Keys')}
+        </SectionPageLayout.Title>
         <SectionPageLayout.Actions>
           <ApiKeysPrimaryButtons />
         </SectionPageLayout.Actions>

@@ -13,6 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
 import { ROLE } from '@/lib/roles'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -198,7 +199,8 @@ export function Dashboard() {
   )
 
   const meta = SECTION_META[activeSection] ?? SECTION_META.overview
-  const isAdmin = Boolean(userRole && userRole >= ROLE.ADMIN)
+  const organizationId = useActiveOrganizationId()
+  const isAdmin = Boolean(userRole && userRole >= ROLE.ADMIN && !organizationId)
   const visibleSections = useMemo(
     () =>
       DASHBOARD_SECTION_IDS.filter(

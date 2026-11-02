@@ -23,12 +23,12 @@ import { useTranslation } from 'react-i18next'
 import { BadgeCell } from '@/components/data-table'
 import { StatusBadge } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { Progress } from '@/components/ui/progress'
 import {
   Tooltip,
   TooltipContent,
@@ -53,7 +53,8 @@ import { useApiKeys } from './api-keys-provider'
 export function ApiKeyStatusCell({ apiKey }: { apiKey: ApiKey }) {
   const { t } = useTranslation()
   const subscriptionStatus =
-    apiKey.key_type === 'subscription' && apiKey.status === API_KEY_STATUS.ENABLED
+    apiKey.key_type === 'subscription' &&
+    apiKey.status === API_KEY_STATUS.ENABLED
       ? SUBSCRIPTION_KEY_STATUSES[apiKey.effective_status]
       : undefined
   if (subscriptionStatus) {
@@ -80,6 +81,16 @@ export function ApiKeyStatusCell({ apiKey }: { apiKey: ApiKey }) {
 
 export function ApiKeyTypeCell({ apiKey }: { apiKey: ApiKey }) {
   const { t } = useTranslation()
+  if ((apiKey.organization_id ?? 0) > 0) {
+    return (
+      <StatusBadge
+        label={t('Organization key')}
+        variant='info'
+        copyable={false}
+        className='-ml-1.5'
+      />
+    )
+  }
   if (apiKey.key_type === 'subscription') {
     return (
       <div className='min-w-0 space-y-0.5'>
@@ -122,6 +133,13 @@ function formatSubscriptionAmount(
 
 export function ApiKeyQuotaCell({ apiKey }: { apiKey: ApiKey }) {
   const { t } = useTranslation()
+  if ((apiKey.organization_id ?? 0) > 0) {
+    return (
+      <span className='text-muted-foreground text-xs'>
+        {t('Organization balance')}
+      </span>
+    )
+  }
   const subscription = apiKey.subscription
   if (apiKey.key_type !== 'subscription' || !subscription) {
     if (apiKey.unlimited_quota) {
@@ -159,7 +177,9 @@ export function ApiKeyQuotaCell({ apiKey }: { apiKey: ApiKey }) {
         <PopoverContent className='w-auto p-2' side='top'>
           <div className='space-y-1 text-xs'>
             <div>{t('Shared subscription quota')}</div>
-            <div>{t('Used:')} {formatAmount(used)}</div>
+            <div>
+              {t('Used:')} {formatAmount(used)}
+            </div>
           </div>
         </PopoverContent>
       </Popover>
@@ -170,8 +190,12 @@ export function ApiKeyQuotaCell({ apiKey }: { apiKey: ApiKey }) {
     <Tooltip>
       <TooltipTrigger render={<div className='w-[150px] space-y-1' />}>
         <div className='flex justify-between text-xs'>
-          <span className='font-medium tabular-nums'>{formatAmount(remaining)}</span>
-          <span className='text-muted-foreground tabular-nums'>{formatAmount(total)}</span>
+          <span className='font-medium tabular-nums'>
+            {formatAmount(remaining)}
+          </span>
+          <span className='text-muted-foreground tabular-nums'>
+            {formatAmount(total)}
+          </span>
         </div>
         <Progress
           value={percentage}
@@ -188,11 +212,21 @@ export function ApiKeyQuotaCell({ apiKey }: { apiKey: ApiKey }) {
       <TooltipContent>
         <div className='space-y-1 text-xs'>
           <div>{t('Shared subscription quota')}</div>
-          <div>{t('Used:')} {formatAmount(used)}</div>
-          <div>{t('Remaining:')} {formatAmount(remaining)} ({percentage.toFixed(1)}%)</div>
-          <div>{t('Total:')} {formatAmount(total)}</div>
+          <div>
+            {t('Used:')} {formatAmount(used)}
+          </div>
+          <div>
+            {t('Remaining:')} {formatAmount(remaining)} ({percentage.toFixed(1)}
+            %)
+          </div>
+          <div>
+            {t('Total:')} {formatAmount(total)}
+          </div>
           {subscription.next_reset_time > 0 && (
-            <div>{t('Next reset:')} {formatTimestampToDate(subscription.next_reset_time)}</div>
+            <div>
+              {t('Next reset:')}{' '}
+              {formatTimestampToDate(subscription.next_reset_time)}
+            </div>
           )}
         </div>
       </TooltipContent>

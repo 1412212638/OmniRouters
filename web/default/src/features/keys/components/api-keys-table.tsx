@@ -21,9 +21,11 @@ import {
 } from '@/components/ui/empty'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
 import { useTableUrlState } from '@/hooks/use-table-url-state'
 import { formatQuota, formatTimestampToDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/stores/auth-store'
 
 import { getApiKeys, searchApiKeys } from '../api'
 import {
@@ -124,7 +126,9 @@ function ApiKeysMobileList({
                 <div className='truncate text-sm font-semibold'>
                   {apiKey.name}
                 </div>
-                <div className='text-muted-foreground text-[11px]'>{t('API Key')}</div>
+                <div className='text-muted-foreground text-[11px]'>
+                  {t('API Key')}
+                </div>
                 <ApiKeyTypeCell apiKey={apiKey} />
               </div>
               <ApiKeyStatusCell apiKey={apiKey} />
@@ -173,6 +177,8 @@ function ApiKeysMobileList({
 
 export function ApiKeysTable() {
   const { t } = useTranslation()
+  const organizationId = useActiveOrganizationId()
+  const userId = useAuthStore((state) => state.auth.user?.id)
   const { refreshTrigger } = useApiKeys()
   const columns = useApiKeysColumns()
 
@@ -211,6 +217,8 @@ export function ApiKeysTable() {
   const { data, isLoading, isFetching } = useQuery({
     queryKey: [
       'keys',
+      userId,
+      organizationId,
       pagination.pageIndex + 1,
       pagination.pageSize,
       globalFilter,

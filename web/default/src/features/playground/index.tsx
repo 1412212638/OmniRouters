@@ -1,3 +1,9 @@
+import { Info } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
+
 import { PlaygroundChat } from './components/chat/playground-chat'
 import { PlaygroundInput } from './components/input/playground-input'
 import {
@@ -8,6 +14,8 @@ import {
 } from './hooks'
 
 export function Playground() {
+  const { t } = useTranslation()
+  const organizationId = useActiveOrganizationId()
   const {
     config,
     parameterEnabled,
@@ -58,6 +66,18 @@ export function Playground() {
 
   return (
     <div className='relative flex size-full min-h-0 flex-col overflow-hidden'>
+      {organizationId && (
+        <div className='mx-auto w-full max-w-4xl shrink-0 px-4 pt-3'>
+          <Alert>
+            <Info />
+            <AlertDescription>
+              {t(
+                'Playground uses your personal balance. Use an organization API key for organization billing.'
+              )}
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
       {/* Full-width scroll container: scrolling works even over side whitespace */}
       <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
         <PlaygroundChat

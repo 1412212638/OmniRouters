@@ -10,9 +10,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
 import { getUserGroups } from '@/lib/api'
 import { formatQuota, formatTimestampToDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/stores/auth-store'
 
 import { type ApiKey } from '../types'
 import { ApiKeyGroupCell } from './api-key-group-cell'
@@ -34,8 +36,10 @@ function getQuotaProgressColor(percentage: number): string {
 }
 
 function useGroupRatios(): Record<string, number> {
+  const organizationId = useActiveOrganizationId()
+  const userId = useAuthStore((state) => state.auth.user?.id)
   const { data } = useQuery({
-    queryKey: ['user-groups'],
+    queryKey: ['user-groups', userId, organizationId],
     queryFn: getUserGroups,
     staleTime: 0,
     select: (res) => {
@@ -121,7 +125,10 @@ export function useApiKeysColumns(): ColumnDef<ApiKey>[] {
       header: t('Quota'),
       cell: ({ row }) => {
         const apiKey = row.original
-        if (apiKey.key_type === 'subscription') {
+        if (
+          (apiKey.organization_id ?? 0) > 0 ||
+          apiKey.key_type === 'subscription'
+        ) {
           return <ApiKeyQuotaCell apiKey={apiKey} />
         }
         if (apiKey.unlimited_quota) {

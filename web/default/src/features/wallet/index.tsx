@@ -1,10 +1,17 @@
+import { useQuery } from '@tanstack/react-query'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { SectionPageLayout } from '@/components/layout'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Skeleton } from '@/components/ui/skeleton'
+import { getOrganization } from '@/features/organizations/api'
+import type { OrganizationWorkspace } from '@/features/organizations/types'
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
 import { useStatus } from '@/hooks/use-status'
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { getSelf } from '@/lib/api'
+import { useAuthStore } from '@/stores/auth-store'
 
 import { getInvoiceProfile } from './api'
 import { AffiliateRewardsCard } from './components/affiliate-rewards-card'
@@ -27,10 +34,7 @@ import {
   useWaffoPayment,
   useWaffoPancakePayment,
 } from './hooks'
-import {
-  getMinTopupAmount,
-  isWaffoPancakePayment,
-} from './lib'
+import { getMinTopupAmount, isWaffoPancakePayment } from './lib'
 import type {
   UserWalletData,
   PaymentMethod,
@@ -43,6 +47,53 @@ interface WalletProps {
 }
 
 export function Wallet(props: WalletProps) {
+  const userId = useAuthStore((state) => state.auth.user?.id)
+  const organizationId = useActiveOrganizationId()
+  const { t } = useTranslation()
+  const workspace = useQuery({
+    queryKey: ['organization', userId, organizationId],
+    queryFn: () => getOrganization(organizationId as number),
+    enabled: organizationId !== null,
+  })
+  if (organizationId && workspace.isPending) {
+    return <Skeleton className='h-48 w-full' />
+  }
+  if (
+    organizationId &&
+    (!workspace.data ||
+      !['owner', 'admin'].includes(workspace.data.membership.role))
+  ) {
+    return (
+      <SectionPageLayout>
+        <SectionPageLayout.Title>
+          {t('Organization wallet')}
+        </SectionPageLayout.Title>
+        <SectionPageLayout.Content>
+          <Alert>
+            <AlertDescription>
+              {t(
+                'Only organization owners and admins can manage the shared wallet.'
+              )}
+            </AlertDescription>
+          </Alert>
+        </SectionPageLayout.Content>
+      </SectionPageLayout>
+    )
+  }
+  return (
+    <WalletContent
+      key={organizationId ?? 'personal'}
+      {...props}
+      workspace={organizationId ? workspace.data : undefined}
+    />
+  )
+}
+
+function WalletContent(
+  props: WalletProps & { workspace?: OrganizationWorkspace }
+) {
+  const isOrganization = Boolean(props.workspace)
+
   const { t } = useTranslation()
   const [user, setUser] = useState<UserWalletData | null>(null)
   const [userLoading, setUserLoading] = useState(true)
@@ -83,7 +134,7 @@ export function Wallet(props: WalletProps) {
     loading: affiliateLoading,
     transferQuota,
     transferring,
-  } = useAffiliate()
+  } = useAffiliate(!isOrganization)
   const { redeeming, redeemCode } = useRedemption()
   const { processing: creemProcessing, processCreemPayment } = useCreemPayment()
   const { processWaffoPayment } = useWaffoPayment()
@@ -94,6 +145,22 @@ export function Wallet(props: WalletProps) {
   const fetchUser = useCallback(async () => {
     try {
       setUserLoading(true)
+      if (props.workspace) {
+        const result = await getOrganization(props.workspace.organization.id)
+        const org = result.organization
+        setUser({
+          id: org.id,
+          username: org.name,
+          quota: org.quota ?? 0,
+          used_quota: org.used_quota ?? 0,
+          request_count: org.request_count ?? 0,
+          group: org.group,
+          aff_quota: 0,
+          aff_history_quota: 0,
+          aff_count: 0,
+        })
+        return
+      }
       const response = await getSelf()
       const invoiceResponse = invoiceProfileEnabled
         ? await getInvoiceProfile().catch(() => null)
@@ -112,7 +179,7 @@ export function Wallet(props: WalletProps) {
     } finally {
       setUserLoading(false)
     }
-  }, [invoiceProfileEnabled])
+  }, [invoiceProfileEnabled, props.workspace])
 
   useEffect(() => {
     fetchUser()
@@ -256,11 +323,24 @@ export function Wallet(props: WalletProps) {
   return (
     <>
       <SectionPageLayout>
-        <SectionPageLayout.Title>{t('Wallet')}</SectionPageLayout.Title>
+        <SectionPageLayout.Title>
+          {isOrganization
+            ? `${props.workspace?.organization.name} · ${t('Organization wallet')}`
+            : t('Wallet')}
+        </SectionPageLayout.Title>
         <SectionPageLayout.Content>
           <div className='mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-5'>
+            {isOrganization && (
+              <Alert>
+                <AlertDescription>
+                  {t(
+                    'Payments made here are credited directly to this organization. Personal balances remain separate.'
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
             <WalletStatsCard user={user} loading={userLoading} />
-            {invoiceProfileEnabled && (
+            {!isOrganization && invoiceProfileEnabled && (
               <InvoiceProfileCard
                 profile={user?.invoice_profile}
                 onSaved={(invoiceProfile) =>
@@ -275,13 +355,14 @@ export function Wallet(props: WalletProps) {
 
             <div
               className={
-                showSubscriptionPanel
+                !isOrganization && showSubscriptionPanel
                   ? 'grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] xl:items-start'
                   : 'grid gap-4'
               }
             >
               <div id='wallet-add-funds' className='scroll-mt-4'>
                 <RechargeFormCard
+                  allowRedemption={!isOrganization}
                   topupInfo={topupInfo}
                   presetAmounts={presetAmounts}
                   selectedPreset={selectedPreset}
@@ -318,7 +399,7 @@ export function Wallet(props: WalletProps) {
                     topupInfo?.enable_waffo_pancake_topup
                   }
                 />
-                {topupInfo?.corporate_transfer?.enabled && (
+                {!isOrganization && topupInfo?.corporate_transfer?.enabled && (
                   <div className='mt-4'>
                     <CorporateTransferCard
                       config={topupInfo.corporate_transfer}
@@ -327,20 +408,24 @@ export function Wallet(props: WalletProps) {
                 )}
               </div>
 
-              <SubscriptionPlansCard
-                topupInfo={topupInfo}
-                onAvailabilityChange={handleSubscriptionAvailabilityChange}
-                userQuota={user?.quota}
-                onPurchaseSuccess={fetchUser}
-              />
+              {!isOrganization && (
+                <SubscriptionPlansCard
+                  topupInfo={topupInfo}
+                  onAvailabilityChange={handleSubscriptionAvailabilityChange}
+                  userQuota={user?.quota}
+                  onPurchaseSuccess={fetchUser}
+                />
+              )}
             </div>
 
-            <AffiliateRewardsCard
-              user={user}
-              affiliateLink={affiliateLink}
-              onTransfer={() => setTransferDialogOpen(true)}
-              loading={affiliateLoading}
-            />
+            {!isOrganization && (
+              <AffiliateRewardsCard
+                user={user}
+                affiliateLink={affiliateLink}
+                onTransfer={() => setTransferDialogOpen(true)}
+                loading={affiliateLoading}
+              />
+            )}
           </div>
         </SectionPageLayout.Content>
       </SectionPageLayout>

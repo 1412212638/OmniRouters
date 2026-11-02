@@ -65,6 +65,7 @@ import type {
   FlowOverflowMode,
   FlowRole,
 } from '@/features/dashboard/types'
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
 import { formatQuota } from '@/lib/format'
 import { ROLE } from '@/lib/roles'
 import { computeTimeRange } from '@/lib/time'
@@ -238,8 +239,13 @@ export function FlowCharts(props: FlowChartsProps) {
   const { resolvedTheme, themeReady } = useChartTheme()
   const chartInstanceRef = useRef<IVChart | null>(null)
   const user = useAuthStore((state) => state.auth.user)
-  const isRoot = Boolean(user?.role && user.role >= ROLE.SUPER_ADMIN)
-  const isAdmin = Boolean(user?.role && user.role >= ROLE.ADMIN)
+  const organizationId = useActiveOrganizationId()
+  const isRoot = Boolean(
+    user?.role && user.role >= ROLE.SUPER_ADMIN && !organizationId
+  )
+  const isAdmin = Boolean(
+    user?.role && user.role >= ROLE.ADMIN && !organizationId
+  )
   let flowRole: FlowRole = 'user'
   if (isRoot) {
     flowRole = 'root'
@@ -316,7 +322,14 @@ export function FlowCharts(props: FlowChartsProps) {
     isError,
     isLoading,
   } = useQuery({
-    queryKey: ['dashboard', 'flow', flowQueryParams, flowRole],
+    queryKey: [
+      'dashboard',
+      'flow',
+      user?.id,
+      organizationId,
+      flowQueryParams,
+      flowRole,
+    ],
     queryFn: () => getFlowQuotaDates(flowQueryParams, isAdmin),
     select: (res) =>
       requireSuccessfulFlowRows(res, t('Please try again later.')),

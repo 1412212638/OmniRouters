@@ -9,10 +9,12 @@ import {
   DataTableRow,
   useDataTable,
 } from '@/components/data-table'
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
 import { useMediaQuery } from '@/hooks'
 import { useIsAdmin } from '@/hooks/use-admin'
 import { useTableUrlState } from '@/hooks/use-table-url-state'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/stores/auth-store'
 
 import {
   DEFAULT_LOGS_DATA,
@@ -56,7 +58,9 @@ interface UsageLogsTableProps {
 
 export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
   const { t } = useTranslation()
-  const isAdmin = useIsAdmin()
+  const organizationId = useActiveOrganizationId()
+  const userId = useAuthStore((state) => state.auth.user?.id)
+  const isAdmin = useIsAdmin() && !organizationId
   const isMobile = useMediaQuery('(max-width: 640px)')
   const searchParams = route.useSearch()
 
@@ -101,6 +105,8 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
   const { data, isLoading, isFetching } = useQuery({
     queryKey: [
       'logs',
+      userId,
+      organizationId,
       logCategory,
       isAdmin,
       pagination.pageIndex + 1,

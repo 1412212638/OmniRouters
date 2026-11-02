@@ -20,6 +20,7 @@ const apiKeySubscriptionSchema = z.object({
 
 export const apiKeySchema = z.object({
   id: z.number(),
+  organization_id: z.number().optional(),
   name: z.string(),
   key: z.string(),
   status: z.number(), // 1: enabled, 2: disabled, 3: expired, 4: exhausted

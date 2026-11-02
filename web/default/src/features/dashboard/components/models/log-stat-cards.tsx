@@ -13,6 +13,7 @@ import type {
   QuotaDataItem,
   DashboardFilters,
 } from '@/features/dashboard/types'
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
 import { toIntlLocale } from '@/i18n/languages'
 import { formatCompactNumber, formatNumber, formatQuota } from '@/lib/format'
 import { computeTimeRange } from '@/lib/time'
@@ -43,10 +44,11 @@ export function LogStatCards(props: LogStatCardsProps) {
   const { i18n } = useTranslation()
   const statCardsConfig = useModelStatCardsConfig()
   const user = useAuthStore((state) => state.auth.user)
-  const isAdmin = !!(user?.role && user.role >= 10)
-  const [stats, setStats] = useState<
-    ReturnType<typeof calculateDashboardStats> | null
-  >(null)
+  const organizationId = useActiveOrganizationId()
+  const isAdmin = !!(user?.role && user.role >= 10 && !organizationId)
+  const [stats, setStats] = useState<ReturnType<
+    typeof calculateDashboardStats
+  > | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
@@ -92,7 +94,7 @@ export function LogStatCards(props: LogStatCardsProps) {
     return () => {
       abortController.abort()
     }
-  }, [filters, isAdmin, onDataUpdate])
+  }, [filters, isAdmin, onDataUpdate, organizationId])
 
   const adaptedStats = {
     rpm: stats?.totalCount ?? 0,

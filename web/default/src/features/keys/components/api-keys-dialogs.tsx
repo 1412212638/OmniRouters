@@ -1,19 +1,31 @@
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
+
 import { ApiEndpointsDrawer } from './api-endpoints-drawer'
 import { ApiKeysDeleteDialog } from './api-keys-delete-dialog'
 import { ApiKeysMutateDrawer } from './api-keys-mutate-drawer'
 import { useApiKeys } from './api-keys-provider'
 import { CCSwitchDialog } from './dialogs/cc-switch-dialog'
+import { OrganizationKeyDrawer } from './organization-key-drawer'
 
 export function ApiKeysDialogs() {
   const { open, setOpen, currentRow, resolvedKey } = useApiKeys()
+  const organizationId = useActiveOrganizationId()
 
   return (
     <>
-      <ApiKeysMutateDrawer
-        open={open === 'create' || open === 'update'}
-        onOpenChange={(isOpen) => !isOpen && setOpen(null)}
-        currentRow={open === 'update' ? currentRow || undefined : undefined}
-      />
+      {organizationId ? (
+        <OrganizationKeyDrawer
+          open={open === 'create' || open === 'update'}
+          onOpenChange={(isOpen) => !isOpen && setOpen(null)}
+          currentRow={open === 'update' ? currentRow || undefined : undefined}
+        />
+      ) : (
+        <ApiKeysMutateDrawer
+          open={open === 'create' || open === 'update'}
+          onOpenChange={(isOpen) => !isOpen && setOpen(null)}
+          currentRow={open === 'update' ? currentRow || undefined : undefined}
+        />
+      )}
       <ApiKeysDeleteDialog />
       <CCSwitchDialog
         open={open === 'cc-switch'}

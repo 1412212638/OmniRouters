@@ -15,6 +15,7 @@ const OPERATIONS_SECTIONS = [
       <SystemBehaviorSection
         defaultValues={{
           DefaultCollapseSidebar: settings.DefaultCollapseSidebar,
+          OrganizationEnabled: settings.OrganizationEnabled,
           DemoSiteEnabled: settings.DemoSiteEnabled,
           SelfUseModeEnabled: settings.SelfUseModeEnabled,
           ClientGoneDrainTimeout: settings.ClientGoneDrainTimeout,

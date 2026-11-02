@@ -10,6 +10,7 @@ import {
 
 const defaultOperationsSettings: OperationsSettings = {
   DefaultCollapseSidebar: false,
+  OrganizationEnabled: true,
   DemoSiteEnabled: false,
   SelfUseModeEnabled: false,
   ClientGoneDrainTimeout: 10,

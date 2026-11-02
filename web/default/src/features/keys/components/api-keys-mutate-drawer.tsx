@@ -44,10 +44,12 @@ import {
 } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
 import { useStatus } from '@/hooks/use-status'
 import { getUserModels, getUserGroups } from '@/lib/api'
 import { getCurrencyDisplay, getCurrencyLabel } from '@/lib/currency'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/stores/auth-store'
 
 import {
   createApiKey,
@@ -83,6 +85,8 @@ export function ApiKeysMutateDrawer({
   currentRow,
 }: ApiKeyMutateDrawerProps) {
   const { t } = useTranslation()
+  const organizationId = useActiveOrganizationId()
+  const userId = useAuthStore((state) => state.auth.user?.id)
   const isUpdate = !!currentRow
   const currentRowId = currentRow?.id
   const { triggerRefresh } = useApiKeys()
@@ -96,7 +100,7 @@ export function ApiKeysMutateDrawer({
 
   // Fetch models
   const { data: modelsData } = useQuery({
-    queryKey: ['user-models'],
+    queryKey: ['user-models', userId, organizationId],
     queryFn: () => getUserModels(),
     enabled: open,
     staleTime: 0,
@@ -108,7 +112,7 @@ export function ApiKeysMutateDrawer({
     isFetched: groupsFetched,
     isFetching: groupsFetching,
   } = useQuery({
-    queryKey: ['user-groups'],
+    queryKey: ['user-groups', userId, organizationId],
     queryFn: getUserGroups,
     enabled: open,
     staleTime: 0,

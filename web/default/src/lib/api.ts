@@ -2,6 +2,7 @@ import axios, { type AxiosRequestConfig } from 'axios'
 import { t } from 'i18next'
 import { toast } from 'sonner'
 
+import { getActiveOrganizationId } from '@/features/organizations/workspace-store'
 import { useAuthStore } from '@/stores/auth-store'
 
 declare module 'axios' {
@@ -9,6 +10,7 @@ declare module 'axios' {
     skipBusinessError?: boolean
     skipErrorHandler?: boolean
     disableDuplicate?: boolean
+    skipOrganizationWorkspace?: boolean
   }
 }
 
@@ -113,10 +115,14 @@ api.get = ((url: string, config: ApiRequestConfig = {}) => {
   if (disableDuplicate) return originalGet(url, config)
 
   const params = config.params ? JSON.stringify(config.params) : '{}'
-  const key = `${url}?${params}`
+  const organizationId = config.skipOrganizationWorkspace
+    ? null
+    : getActiveOrganizationId()
+  const key = `${getUserId() ?? ''}:${organizationId ?? ''}:${url}?${params}`
 
   // Return existing in-flight request if available
-  if (inFlightGet.has(key)) return inFlightGet.get(key)!
+  const inFlight = inFlightGet.get(key)
+  if (inFlight) return inFlight
 
   // Create new request and clean up after completion
   const req = originalGet(url, config).finally(() => inFlightGet.delete(key))
@@ -257,6 +263,11 @@ export function getCommonHeaders(): Record<string, string> {
     headers.Authorization = `Bearer ${accessToken}`
   }
 
+  const organizationId = getActiveOrganizationId()
+  if (organizationId) {
+    headers['New-Api-Organization'] = String(organizationId)
+  }
+
   return headers
 }
 
@@ -275,6 +286,15 @@ api.interceptors.request.use((config) => {
   if (accessToken) {
     ;(config.headers as Record<string, string>)['Authorization'] =
       `Bearer ${accessToken}`
+  }
+  const organizationId = config.skipOrganizationWorkspace
+    ? null
+    : getActiveOrganizationId()
+  if (organizationId) {
+    ;(config.headers as Record<string, string>)['New-Api-Organization'] =
+      String(organizationId)
+  } else if (config.headers) {
+    delete (config.headers as Record<string, string>)['New-Api-Organization']
   }
   return config
 })

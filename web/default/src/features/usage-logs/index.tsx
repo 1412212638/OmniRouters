@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { SectionPageLayout } from '@/components/layout'
 import type { NavGroup } from '@/components/layout/types'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
 import { CacheStatsDialog } from '@/features/system-settings/general/channel-affinity/cache-stats-dialog'
 import { useSidebarConfig } from '@/hooks/use-sidebar-config'
 
@@ -146,8 +147,9 @@ function UsageLogsContent() {
 }
 
 export function UsageLogs() {
+  const organizationId = useActiveOrganizationId()
   return (
-    <UsageLogsProvider>
+    <UsageLogsProvider key={organizationId ?? 'personal'}>
       <UsageLogsContent />
     </UsageLogsProvider>
   )

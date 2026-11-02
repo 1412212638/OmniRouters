@@ -13,6 +13,7 @@ const STATUS_RELATED_KEYS = new Set([
   'console_setting.model_square_show_usage_metrics',
   'HeaderNavModules',
   'SidebarModulesAdmin',
+  'OrganizationEnabled',
   'Notice',
   'LogConsumeEnabled',
   'QuotaPerUnit',

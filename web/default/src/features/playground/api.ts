@@ -28,6 +28,7 @@ export async function sendChatCompletion(
 export async function getUserModels(group: string): Promise<ModelOption[]> {
   const res = await api.get(API_ENDPOINTS.USER_MODELS, {
     params: { endpoint_type: 'openai', group },
+    skipOrganizationWorkspace: true,
   })
   const { data } = res
 
@@ -45,7 +46,9 @@ export async function getUserModels(group: string): Promise<ModelOption[]> {
  * Get user groups
  */
 export async function getUserGroups(): Promise<GroupOption[]> {
-  const res = await api.get(API_ENDPOINTS.USER_GROUPS)
+  const res = await api.get(API_ENDPOINTS.USER_GROUPS, {
+    skipOrganizationWorkspace: true,
+  })
   const { data } = res
 
   if (!data.success || !data.data) {

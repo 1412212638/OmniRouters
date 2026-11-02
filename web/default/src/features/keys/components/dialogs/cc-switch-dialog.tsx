@@ -27,7 +27,9 @@ import { Combobox } from '@/components/ui/combobox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
 import { getUserModels } from '@/lib/api'
+import { useAuthStore } from '@/stores/auth-store'
 
 const APP_CONFIGS = {
   claude: {
@@ -97,12 +99,14 @@ interface Props {
 
 export function CCSwitchDialog(props: Props) {
   const { t } = useTranslation()
+  const organizationId = useActiveOrganizationId()
+  const userId = useAuthStore((state) => state.auth.user?.id)
   const [app, setApp] = useState<AppType>('claude')
   const [name, setName] = useState<string>(APP_CONFIGS.claude.defaultName)
   const [models, setModels] = useState<Record<string, string>>({})
 
   const { data: modelsData } = useQuery({
-    queryKey: ['user-models-ccswitch'],
+    queryKey: ['user-models-ccswitch', userId, organizationId],
     queryFn: () => getUserModels(),
     enabled: props.open,
     staleTime: 5 * 60 * 1000,

@@ -139,14 +139,14 @@ export type SiteSettings = {
 
 export type AuthSettings = {
   'two_fa.enrollment_enabled': boolean
-	'real_name_verification.enabled': boolean
-	'real_name_verification.enforcement_enabled': boolean
-	'real_name_verification.personal_enabled': boolean
-	'real_name_verification.personal_app_code': string
-	'real_name_verification.personal_app_code_configured': boolean
-	'real_name_verification.enterprise_enabled': boolean
-	'real_name_verification.enterprise_app_code': string
-	'real_name_verification.enterprise_app_code_configured': boolean
+  'real_name_verification.enabled': boolean
+  'real_name_verification.enforcement_enabled': boolean
+  'real_name_verification.personal_enabled': boolean
+  'real_name_verification.personal_app_code': string
+  'real_name_verification.personal_app_code_configured': boolean
+  'real_name_verification.enterprise_enabled': boolean
+  'real_name_verification.enterprise_app_code': string
+  'real_name_verification.enterprise_app_code_configured': boolean
   PasswordLoginEnabled: boolean
   PasswordRegisterEnabled: boolean
   EmailVerificationEnabled: boolean
@@ -388,6 +388,7 @@ export type BillingSettings = {
 
 export type OperationsSettings = {
   DefaultCollapseSidebar: boolean
+  OrganizationEnabled: boolean
   DemoSiteEnabled: boolean
   SelfUseModeEnabled: boolean
   ClientGoneDrainTimeout: number

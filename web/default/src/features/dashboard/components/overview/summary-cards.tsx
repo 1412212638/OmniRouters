@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button'
 import { getUserQuotaDates } from '@/features/dashboard/api'
 import { useSummaryCardsConfig } from '@/features/dashboard/hooks/use-dashboard-config'
 import type { QuotaDataItem } from '@/features/dashboard/types'
+import { getOrganization } from '@/features/organizations/api'
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
 import { useStatus } from '@/hooks/use-status'
 import { getCurrencyLabel, isCurrencyDisplayEnabled } from '@/lib/currency'
 import { formatNumber, formatQuota } from '@/lib/format'
@@ -121,18 +123,39 @@ const HEALTH_CONFIG: Record<
 export function SummaryCards() {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.auth.user)
+  const organizationId = useActiveOrganizationId()
   const { status, loading } = useStatus()
 
+  const organization = useQuery({
+    queryKey: ['organization', user?.id, organizationId],
+    queryFn: () => getOrganization(organizationId as number),
+    enabled: Boolean(organizationId),
+    staleTime: 30_000,
+  })
+
   const summaryTimeRange = useMemo(() => computeTimeRange(1), [])
-  const remainQuota = Number(user?.quota ?? 0)
-  const usedQuota = Number(user?.used_quota ?? 0)
-  const requestCount = Number(user?.request_count ?? 0)
+  const currentOrganization = organization.data?.organization
+  const remainQuota = Number(
+    organizationId ? (currentOrganization?.quota ?? 0) : (user?.quota ?? 0)
+  )
+  const usedQuota = Number(
+    organizationId
+      ? (organization.data?.monthly_used_quota ?? 0)
+      : (user?.used_quota ?? 0)
+  )
+  const requestCount = Number(
+    organizationId
+      ? (currentOrganization?.request_count ?? 0)
+      : (user?.request_count ?? 0)
+  )
 
   const usageTrendQuery = useQuery({
     queryKey: [
       'dashboard',
       'overview',
       'summary-sparklines',
+      user?.id,
+      organizationId,
       summaryTimeRange.start_timestamp,
       summaryTimeRange.end_timestamp,
     ],

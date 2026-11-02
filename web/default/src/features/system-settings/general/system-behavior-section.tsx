@@ -28,6 +28,7 @@ import { safeNumberFieldProps } from '../utils/numeric-field'
 
 const behaviorSchema = z.object({
   DefaultCollapseSidebar: z.boolean(),
+  OrganizationEnabled: z.boolean(),
   DemoSiteEnabled: z.boolean(),
   SelfUseModeEnabled: z.boolean(),
   ClientGoneDrainTimeout: z.number().int().min(1).max(300),
@@ -79,6 +80,29 @@ export function SystemBehaviorSection({
                   <FormLabel>{t('Default Collapse Sidebar')}</FormLabel>
                   <FormDescription>
                     {t('Sidebar collapsed by default for new users')}
+                  </FormDescription>
+                </SettingsSwitchContent>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </SettingsSwitchItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name='OrganizationEnabled'
+            render={({ field }) => (
+              <SettingsSwitchItem>
+                <SettingsSwitchContent>
+                  <FormLabel>{t('Organization Workspaces')}</FormLabel>
+                  <FormDescription>
+                    {t(
+                      'Allow users to create and use shared organization workspaces and organization API keys'
+                    )}
                   </FormDescription>
                 </SettingsSwitchContent>
                 <FormControl>
