@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-11-02 - Fix organization Midjourney build import
+
+- Local reason: GitHub image compilation failed with `controller/midjourney.go:311:46: undefined: constant` after the organization workspace changes.
+- Changed: import the existing `constant` package used to scope the current user's Midjourney task list to the selected organization.
+- Preserved: personal/organization task isolation, task authorization, billing, existing routes, and protected project identity.
+- Validation: formatted the handler and passed `git diff --check`; checked package-selector imports in the organization changes. Full local Go compilation remains unavailable because Go 1.25.0 is below the required Go 1.26.10; GitHub image build must confirm compilation. No local Docker build or toolchain installation.
+- Source commit and push: pending.
+
 ## 2026-11-02 - Add first-version organization workspaces
 
 - Local reason: add the agreed first version of personal and organization workspaces for team-funded API usage.
