@@ -5058,3 +5058,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: no email sending, campaign integration, or administrator editing of this preference was added; account/security notifications and existing uncommitted work remain intact. Minor existing lint violations in the touched components were corrected without changing behavior.
 - Validation: targeted Oxlint passed with one pre-existing parseInt style warning; frontend formatting, locale JSON parsing, and `git diff --check` passed. Full frontend typecheck still fails on existing unrelated errors and missing test dependencies; no errors were reported in the files changed for this preference. Go compilation/tests remain unavailable because the Go toolchain is not installed.
 - Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
+
+## 2026-11-02 - Accept Seedance native automatic duration
+
+- Local reason: Seedance's native /api/v3/contents/generations/tasks contract uses duration: -1 to request an automatically selected duration, but the Doubao plugin rejected every non-positive value.
+- Changed: the native duration validator accepts exactly `-1` for `duration`; the original provider body preserves that sentinel, while the internal billing request omits it so it cannot become a negative billing multiplier. Values below `-1`, zero, and values above 3600 remain rejected.
+- Preserved: native provider fields are forwarded unchanged, normal positive duration validation remains in place, and billing falls back to a safe positive estimate until completion usage is available.
+- Validation: added native plugin coverage for acceptance and upstream preservation of `-1`, positive billing estimation, and rejection of `-2`, `0`, and `3601`; `node --check` and `git diff --check` are run for this change. Go tests remain unavailable because the repository requires Go 1.26.10 while this machine has Go 1.25.0.
+- Commit and push: pending.
+

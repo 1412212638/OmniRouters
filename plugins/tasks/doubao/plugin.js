@@ -391,6 +391,8 @@ function trimmed(value) {
 function validateNativeDuration(value, field) {
   if (value === undefined || value === null) return;
   const seconds = Number(value);
+  // Ark uses -1 for an automatically chosen duration, not a billing multiplier.
+  if (field === "duration" && seconds === -1) return;
   if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 3600)
     throw new Error(field + " must be between 1 and 3600");
 }
@@ -830,7 +832,9 @@ export const native = {
       __doubao_native_body: body,
     };
     const seconds = body.seconds === undefined ? body.duration : body.seconds;
-    if (seconds !== undefined) requestBody.seconds = seconds;
+    // Retain the automatic-duration sentinel only in the original provider body.
+    // Billing estimates use extractUsage's positive fallback until settlement.
+    if (seconds !== undefined && Number(seconds) !== -1) requestBody.seconds = seconds;
     const intent = { kind: "submit", model: model, action: hasReference ? "image_to_video" : "text_to_video", requestBody: requestBody };
     const originTaskIds = draftTaskIds(content);
     if (originTaskIds.length) intent.originTaskIds = originTaskIds;

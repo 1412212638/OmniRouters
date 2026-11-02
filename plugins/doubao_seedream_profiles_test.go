@@ -214,3 +214,31 @@ func TestDoubaoNativeVideoDurationIsBounded(t *testing.T) {
 	})
 	require.ErrorContains(t, err, "duration must be between 1 and 3600")
 }
+
+func TestDoubaoNativeVideoAutomaticDuration(t *testing.T) {
+	plugin := newDoubaoProfilePlugin(t)
+	value, err := plugin.Engine.CallPath(t.Context(), "native", []string{"createTask"}, map[string]any{
+		"body": map[string]any{"kind": "json", "value": map[string]any{
+			"model": "doubao-seedance-2.0", "content": []any{map[string]any{"type": "text", "text": "a cat"}}, "duration": -1,
+		}},
+	})
+	require.NoError(t, err)
+	requestBody := value.(map[string]any)["requestBody"].(map[string]any)
+	assert.NotContains(t, requestBody, "seconds")
+	ctx := map[string]any{"model": "doubao-seedance-2.0", "requestBody": requestBody, "baseUrl": "https://ark.example"}
+	value, err = plugin.Engine.CallPath(t.Context(), "buildSubmitRequest", ctx)
+	require.NoError(t, err)
+	assert.Equal(t, float64(-1), value.(map[string]any)["body"].(map[string]any)["duration"])
+	value, err = plugin.Engine.Call(t.Context(), "extractUsage", ctx)
+	require.NoError(t, err)
+	assert.Greater(t, value.(map[string]any)["tokens"].(float64), float64(0))
+
+	for _, duration := range []int{-2, 0, 3601} {
+		_, err = plugin.Engine.CallPath(t.Context(), "native", []string{"createTask"}, map[string]any{
+			"body": map[string]any{"kind": "json", "value": map[string]any{
+				"model": "doubao-seedance-2.0", "content": []any{map[string]any{"type": "text", "text": "a cat"}}, "duration": duration,
+			}},
+		})
+		require.ErrorContains(t, err, "duration must be between 1 and 3600")
+	}
+}
