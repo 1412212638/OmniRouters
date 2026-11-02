@@ -128,6 +128,12 @@ func PrepareTaskPluginRoute() gin.HandlerFunc {
 		}
 		if pinned.Route.Type == pluginruntime.RouteTypeQuery {
 			taskID := requestContext.Params[pinned.Route.TaskIDParam]
+			if pinned.Route.TaskIDQuery {
+				values := requestContext.Query[pinned.Route.TaskIDParam]
+				if len(values) > 0 {
+					taskID = values[0]
+				}
+			}
 			logger.LogDebug(
 				c,
 				"task_plugin subsystem=route event=resolved generation=%d plugin=%q kind=query renderer=%q task_count=1 distribute=false",

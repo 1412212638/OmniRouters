@@ -26,6 +26,7 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import type { SidebarData } from '@/components/layout/types'
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
 import { ROLE } from '@/lib/roles'
 
 import { useStatus } from './use-status'
@@ -39,6 +40,14 @@ import { useStatus } from './use-status'
 export function useSidebarData(): SidebarData {
   const { t } = useTranslation()
   const { status } = useStatus()
+  const activeOrganizationId = useActiveOrganizationId()
+  const organizationWorkspaceItems = [
+    {
+      title: t('Wallet'),
+      url: '/wallet',
+      icon: Wallet,
+    },
+  ]
 
   return {
     navGroups: [
@@ -105,44 +114,46 @@ export function useSidebarData(): SidebarData {
         ],
       },
       {
-        id: 'personal',
-        title: t('Personal'),
-        items: [
-          {
-            title: t('Wallet'),
-            url: '/wallet',
-            icon: Wallet,
-          },
-          {
-            title: t('Friends Hub'),
-            url: '/friends-hub',
-            icon: UserRoundPlus,
-          },
-          {
-            title: t('Member Tiers'),
-            url: '/member-tiers',
-            icon: BadgeCheck,
-          },
-          {
-            title: t('Support Tickets'),
-            url: '/tickets',
-            icon: MessageSquare,
-          },
-          {
-            title: t('Profile'),
-            url: '/profile',
-            icon: User,
-          },
-          ...(status?.organization_enabled === false
-            ? []
-            : [
-                {
-                  title: t('Organizations'),
-                  url: '/organizations',
-                  icon: Building2,
-                },
-              ]),
-        ],
+        id: activeOrganizationId ? 'organization' : 'personal',
+        title: activeOrganizationId ? t('Organization') : t('Personal'),
+        items: activeOrganizationId
+          ? organizationWorkspaceItems
+          : [
+              {
+                title: t('Wallet'),
+                url: '/wallet',
+                icon: Wallet,
+              },
+              {
+                title: t('Friends Hub'),
+                url: '/friends-hub',
+                icon: UserRoundPlus,
+              },
+              {
+                title: t('Member Tiers'),
+                url: '/member-tiers',
+                icon: BadgeCheck,
+              },
+              {
+                title: t('Support Tickets'),
+                url: '/tickets',
+                icon: MessageSquare,
+              },
+              {
+                title: t('Profile'),
+                url: '/profile',
+                icon: User,
+              },
+              ...(status?.organization_enabled === false
+                ? []
+                : [
+                    {
+                      title: t('Organizations'),
+                      url: '/organizations',
+                      icon: Building2,
+                    },
+                  ]),
+            ],
       },
       {
         id: 'admin',

@@ -47,6 +47,29 @@ func TestDoubaoNativeRoutesRegistered(t *testing.T) {
 	}
 }
 
+func TestAstraFlowNativeRoutesRegistered(t *testing.T) {
+	router := gin.New()
+	SetTaskRouter(router)
+	want := map[string]map[string]bool{
+		http.MethodPost: {"/v1/tasks/submit": false},
+		http.MethodGet:  {"/v1/tasks/status": false},
+	}
+	for _, route := range router.Routes() {
+		if paths, ok := want[route.Method]; ok {
+			if _, exists := paths[route.Path]; exists {
+				paths[route.Path] = true
+			}
+		}
+	}
+	for method, paths := range want {
+		for path, found := range paths {
+			if !found {
+				t.Fatalf("AstraFlow native %s route %s must be registered", method, path)
+			}
+		}
+	}
+}
+
 func TestDoubaoNativeAPIRoutesRegisteredInAPIGroup(t *testing.T) {
 	router := gin.New()
 	SetApiRouter(router)

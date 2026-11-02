@@ -50,6 +50,7 @@ const monitoringSchema = z.object({
     bucket_time: z.enum(['minute', '5min', 'hour']),
     retention_days: z.coerce.number().min(0),
     excluded_status_codes: z.string(),
+    exclude_task_failures_without_status_code: z.boolean(),
   }),
 })
 
@@ -63,6 +64,7 @@ type FlatMonitoringDefaults = {
   'perf_metrics_setting.bucket_time': 'minute' | '5min' | 'hour'
   'perf_metrics_setting.retention_days': number
   'perf_metrics_setting.excluded_status_codes': string
+  'perf_metrics_setting.exclude_task_failures_without_status_code': boolean
 }
 
 type MonitoringSettingsSectionProps = {
@@ -80,6 +82,10 @@ const buildFormDefaults = (
     retention_days: defaults['perf_metrics_setting.retention_days'],
     excluded_status_codes:
       defaults['perf_metrics_setting.excluded_status_codes'] ?? '',
+    exclude_task_failures_without_status_code:
+      defaults[
+        'perf_metrics_setting.exclude_task_failures_without_status_code'
+      ] ?? false,
   },
 })
 
@@ -96,6 +102,10 @@ const normalizeDefaults = (
     defaults['perf_metrics_setting.retention_days'],
   'perf_metrics_setting.excluded_status_codes':
     defaults['perf_metrics_setting.excluded_status_codes'] ?? '',
+  'perf_metrics_setting.exclude_task_failures_without_status_code':
+    defaults[
+      'perf_metrics_setting.exclude_task_failures_without_status_code'
+    ] ?? false,
 })
 
 const normalizeFormValues = (
@@ -110,6 +120,8 @@ const normalizeFormValues = (
     values.perf_metrics_setting.retention_days,
   'perf_metrics_setting.excluded_status_codes':
     values.perf_metrics_setting.excluded_status_codes.trim(),
+  'perf_metrics_setting.exclude_task_failures_without_status_code':
+    values.perf_metrics_setting.exclude_task_failures_without_status_code,
 })
 
 export function MonitoringSettingsSection({
@@ -300,6 +312,31 @@ export function MonitoringSettingsSection({
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='perf_metrics_setting.exclude_task_failures_without_status_code'
+              render={({ field }) => (
+                <SettingsSwitchItem className='md:col-span-2 xl:col-span-4'>
+                  <SettingsSwitchContent>
+                    <FormLabel>
+                      {t('Exclude task failures without HTTP status codes')}
+                    </FormLabel>
+                    <FormDescription>
+                      {t(
+                        'When enabled, asynchronous task failures without an HTTP status code are omitted from model performance metrics. Logs, refunds, and billing are unchanged.'
+                      )}
+                    </FormDescription>
+                  </SettingsSwitchContent>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={!perfMetricsEnabled}
+                    />
+                  </FormControl>
+                </SettingsSwitchItem>
               )}
             />
             <FormField

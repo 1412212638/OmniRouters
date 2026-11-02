@@ -130,3 +130,43 @@ func TestRecordTaskResultHonorsExcludedFailureStatuses(t *testing.T) {
 		})
 	}
 }
+
+func TestRecordTaskResultCanExcludeFailuresWithoutHTTPStatus(t *testing.T) {
+	setting := config.GlobalConfig.Get("perf_metrics_setting").(*perf_metrics_setting.PerfMetricsSetting)
+	original := *setting
+	setting.Enabled = true
+	setting.ExcludedStatusCodes = "400"
+	setting.ExcludeTaskFailuresWithoutStatusCode = false
+	t.Cleanup(func() { *setting = original })
+	t.Cleanup(clearTaskMetricBuckets)
+
+	recordFailure := func(reason string) int64 {
+		clearTaskMetricBuckets()
+		RecordTaskResult(&model.Task{
+			Status:     model.TaskStatusFailure,
+			FailReason: reason,
+			Properties: model.Properties{OriginModelName: "video-model"},
+		}, nil)
+		var count int64
+		hotBuckets.Range(func(_, value any) bool {
+			count += value.(*atomicBucket).snapshot().requestCount
+			return true
+		})
+		return count
+	}
+
+	if got := recordFailure("duration or seconds is required"); got != 1 {
+		t.Fatalf("default should count status-less failure: got %d requests, want 1", got)
+	}
+
+	setting.ExcludeTaskFailuresWithoutStatusCode = true
+	if got := recordFailure("duration or seconds is required"); got != 0 {
+		t.Fatalf("enabled switch should exclude status-less failure: got %d requests, want 0", got)
+	}
+	if got := recordFailure("HTTP 500: provider error"); got != 1 {
+		t.Fatalf("enabled switch must retain non-excluded HTTP status: got %d requests, want 1", got)
+	}
+	if got := recordFailure("HTTP 400: invalid request"); got != 0 {
+		t.Fatalf("existing excluded status should remain excluded: got %d requests, want 0", got)
+	}
+}

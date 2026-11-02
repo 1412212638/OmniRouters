@@ -410,6 +410,7 @@ export type OperationsSettings = {
   'perf_metrics_setting.bucket_time': 'hour' | 'minute' | '5min'
   'perf_metrics_setting.retention_days': number
   'perf_metrics_setting.excluded_status_codes': string
+  'perf_metrics_setting.exclude_task_failures_without_status_code': boolean
 }
 
 export type SecuritySettings = {

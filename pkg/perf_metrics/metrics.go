@@ -83,7 +83,7 @@ func taskFailureExcluded(task *model.Task, result *relaycommon.TaskInfo) bool {
 	}
 	match := taskFailureHTTPStatus.FindStringSubmatch(reason)
 	if len(match) != 2 {
-		return false
+		return perf_metrics_setting.GetSetting().ExcludeTaskFailuresWithoutStatusCode
 	}
 	statusCode, _ := strconv.Atoi(match[1])
 	return perf_metrics_setting.ShouldExcludeStatusCode(statusCode)

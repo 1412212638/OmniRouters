@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Building2, Copy, KeyRound, MailPlus, Plus } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -79,6 +79,7 @@ export function Organizations() {
   const selectOrganization = useWorkspaceStore(
     (state) => state.selectOrganization
   )
+  const selectorEntry = useRef(false)
   const [organizationName, setOrganizationName] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
   const [tokenName, setTokenName] = useState('')
@@ -97,22 +98,13 @@ export function Organizations() {
   })
   const selectedId = organizations.isSuccess
     ? (organizations.data.find((entry) => entry.organization.id === activeId)
-        ?.organization.id ??
-      organizations.data[0]?.organization.id ??
-      null)
+        ?.organization.id ?? null)
     : null
   useEffect(() => {
-    if (userId && organizations.isSuccess && activeId !== selectedId) {
-      selectOrganization(userId, selectedId)
-    }
-  }, [
-    activeId,
-    organizations.isSuccess,
-    selectOrganization,
-    selectedId,
-    userId,
-  ])
-
+    if (selectorEntry.current) return
+    selectorEntry.current = true
+    if (userId && activeId !== null) selectOrganization(userId, null)
+  }, [activeId, selectOrganization, userId])
   const organization = useQuery({
     queryKey: ['organization', userId, selectedId],
     queryFn: () => getOrganization(selectedId as number),
@@ -252,77 +244,88 @@ export function Organizations() {
                 )}
               </p>
             </div>
-            <div className='flex items-end gap-2'>
-              <Field>
-                <FieldLabel htmlFor='organizationName'>
-                  {t('New organization')}
-                </FieldLabel>
-                <Input
-                  id='organizationName'
-                  value={organizationName}
-                  onChange={(event) => setOrganizationName(event.target.value)}
-                  placeholder={t('Organization name')}
-                />
-              </Field>
-              <Button onClick={create} disabled={!organizationName.trim()}>
-                <Plus data-icon='inline-start' />
-                {t('Create')}
-              </Button>
-            </div>
+            {activeId === null && (
+              <div className='flex items-end gap-2'>
+                <Field>
+                  <FieldLabel htmlFor='organizationName'>
+                    {t('New organization')}
+                  </FieldLabel>
+                  <Input
+                    id='organizationName'
+                    value={organizationName}
+                    onChange={(event) =>
+                      setOrganizationName(event.target.value)
+                    }
+                    placeholder={t('Organization name')}
+                  />
+                </Field>
+                <Button onClick={create} disabled={!organizationName.trim()}>
+                  <Plus data-icon='inline-start' />
+                  {t('Create')}
+                </Button>
+              </div>
+            )}
           </div>
 
-          {pendingInvitations.data && pendingInvitations.data.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('Pending invitations')}</CardTitle>
-                <CardDescription>
-                  {t('Accept an invitation to join an organization.')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className='flex flex-col gap-2'>
-                {pendingInvitations.data.map((invitation) => (
-                  <div
-                    key={invitation.id}
-                    className='flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3'
-                  >
-                    <span>
-                      {invitation.organization_name || invitation.email}
-                    </span>
-                    <Button
-                      size='sm'
-                      onClick={() =>
-                        action(
-                          () => acceptOrganizationInvitation(invitation.id),
-                          'Invitation accepted'
-                        )
-                      }
+          {activeId === null &&
+            pendingInvitations.data &&
+            pendingInvitations.data.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t('Pending invitations')}</CardTitle>
+                  <CardDescription>
+                    {t('Accept an invitation to join an organization.')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className='flex flex-col gap-2'>
+                  {pendingInvitations.data.map((invitation) => (
+                    <div
+                      key={invitation.id}
+                      className='flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3'
                     >
-                      {t('Accept')}
-                    </Button>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+                      <span>
+                        {invitation.organization_name || invitation.email}
+                      </span>
+                      <Button
+                        size='sm'
+                        onClick={() =>
+                          action(
+                            () => acceptOrganizationInvitation(invitation.id),
+                            'Invitation accepted'
+                          )
+                        }
+                      >
+                        {t('Accept')}
+                      </Button>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
-          {organizations.data && organizations.data.length > 0 && (
-            <div className='flex flex-wrap gap-2'>
-              {organizations.data.map((entry) => (
-                <Button
-                  key={entry.organization.id}
-                  variant={
-                    selectedId === entry.organization.id ? 'default' : 'outline'
-                  }
-                  onClick={() =>
-                    userId && selectOrganization(userId, entry.organization.id)
-                  }
-                >
-                  <Building2 data-icon='inline-start' />
-                  {entry.organization.name}
-                </Button>
-              ))}
-            </div>
-          )}
+          {activeId === null &&
+            organizations.data &&
+            organizations.data.length > 0 && (
+              <div className='flex flex-wrap gap-2'>
+                {organizations.data.map((entry) => (
+                  <Button
+                    key={entry.organization.id}
+                    variant={
+                      selectedId === entry.organization.id
+                        ? 'default'
+                        : 'outline'
+                    }
+                    onClick={() =>
+                      userId &&
+                      selectOrganization(userId, entry.organization.id)
+                    }
+                  >
+                    <Building2 data-icon='inline-start' />
+                    {entry.organization.name}
+                  </Button>
+                ))}
+              </div>
+            )}
 
           {!selectedId ? (
             <Card>

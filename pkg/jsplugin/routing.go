@@ -30,6 +30,7 @@ type Route struct {
 	Render       string    `json:"render,omitempty"`
 	RetainResult bool      `json:"retainResult,omitempty"`
 	TaskIDParam  string    `json:"taskIdParam,omitempty"`
+	TaskIDQuery  bool      `json:"taskIdQuery,omitempty"`
 	// Models restricts this route to the listed models. The host matches the
 	// canonical top-level "model" body field before any JS hook runs; empty
 	// means unrestricted. Must be a subset of meta.models.
@@ -692,7 +693,7 @@ func routePatternIntersectsNamespace(routePath, namespace string) bool {
 	return true
 }
 
-func validateRoute(route *Route) error {
+func validateRoute(route *Route, allowAstraFlowTaskPaths bool) error {
 	if route.Method != strings.ToUpper(strings.TrimSpace(route.Method)) {
 		return fmt.Errorf("plugin route method %q must use canonical uppercase spelling", route.Method)
 	}
@@ -705,12 +706,13 @@ func validateRoute(route *Route) error {
 	if err != nil {
 		return err
 	}
-	if namespace, reserved := intersectingReservedNamespace(route.Path); reserved {
+	astraFlowPath := route.Path == "/v1/tasks/submit" || route.Path == "/v1/tasks/status"
+	if namespace, reserved := intersectingReservedNamespace(route.Path); reserved && !(allowAstraFlowTaskPaths && astraFlowPath) {
 		return fmt.Errorf("plugin route path %q intersects reserved namespace %s", route.Path, namespace)
 	}
 	switch route.Type {
 	case RouteTypeSubmit:
-		if route.Decode == "" || route.Render == "" || route.TaskIDParam != "" {
+		if route.Decode == "" || route.Render == "" || route.TaskIDParam != "" || route.TaskIDQuery {
 			return fmt.Errorf("submit route %s %s must declare decode and render and must not declare taskIdParam", route.Method, route.Path)
 		}
 	case RouteTypeQuery:
@@ -726,11 +728,14 @@ func validateRoute(route *Route) error {
 		if !pathNamePattern.MatchString(route.TaskIDParam) {
 			return fmt.Errorf("query route %s %s has invalid taskIdParam %q", route.Method, route.Path, route.TaskIDParam)
 		}
-		if !pathHasParameter(route.Path, route.TaskIDParam) {
+		if route.TaskIDQuery && pathHasParameter(route.Path, route.TaskIDParam) {
+			return fmt.Errorf("query route %s %s using taskIdQuery must not contain :%s", route.Method, route.Path, route.TaskIDParam)
+		}
+		if !route.TaskIDQuery && !pathHasParameter(route.Path, route.TaskIDParam) {
 			return fmt.Errorf("query route %s %s must contain :%s", route.Method, route.Path, route.TaskIDParam)
 		}
 	case RouteTypeDynamic:
-		if route.Decode == "" || route.Render == "" || route.TaskIDParam != "" {
+		if route.Decode == "" || route.Render == "" || route.TaskIDParam != "" || route.TaskIDQuery {
 			return fmt.Errorf("dynamic route %s %s must declare decode and render and must not declare taskIdParam", route.Method, route.Path)
 		}
 	default:

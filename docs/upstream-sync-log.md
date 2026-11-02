@@ -5119,3 +5119,35 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: no email sending, campaign integration, or administrator editing of this preference was added; account/security notifications and existing uncommitted work remain intact. Minor existing lint violations in the touched components were corrected without changing behavior.
 - Validation: targeted Oxlint passed with one pre-existing parseInt style warning; frontend formatting, locale JSON parsing, and `git diff --check` passed. Full frontend typecheck still fails on existing unrelated errors and missing test dependencies; no errors were reported in the files changed for this preference. Go compilation/tests remain unavailable because the Go toolchain is not installed.
 - Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
+
+## 2026-11-03 - Exclude asynchronous failures without HTTP status codes from performance metrics
+
+- Local reason: video and other asynchronous providers can return terminal failures without an HTTP status code; operators need an opt-in way to keep these provider validation failures out of model success-rate metrics.
+- Changed: added `perf_metrics_setting.exclude_task_failures_without_status_code`, defaulting to false. When enabled, only status-less asynchronous task failures are excluded; failures with an explicit HTTP status still follow the existing excluded-status-code rules. Added the administrator switch and translations in the Monitoring & Alerts settings.
+- Preserved: task logs, refunds, billing, synchronous relay metrics, and failures with explicit HTTP statuses are unchanged.
+- Validation: added focused Go regression coverage for default behavior, opt-in exclusion, explicit included statuses, and existing excluded statuses. Targeted Oxlint and Oxfmt, locale JSON parsing, and `git diff --check` passed. Go tooling was unavailable locally, so the Go test and gofmt could not run.
+- Commit and push: local changes are intentionally uncommitted and unpushed at the user's request.
+
+## 2026-11-03 - Rename MediaKit task plugin to AstraFlow and expose upstream task routes
+
+- Local reason: AstraFlow uses shared native asynchronous task paths for all models and clients must call the platform-compatible paths directly.
+- Changed: renamed the embedded plugin directory/key to `astraflow`, changed its display name, and exposed `POST /v1/tasks/submit` plus `GET /v1/tasks/status?task_id=...` before the generic `/v1/tasks/:key` routes are registered. Added the generic `taskIdQuery` route declaration so task plugins can read query-string task IDs; existing path-parameter query routes remain unchanged.
+- Preserved: the upstream request and status URLs, ten-second pre-consume, actual-duration settlement, model-specific usage schema, and OpenAI protocol routes.
+- Validation: Bun plugin checks and `git diff --check` remain the available local checks; Go tests remain unavailable because the Go toolchain is not installed.
+- Commit and push: local changes are intentionally uncommitted and unpushed at the user's request.
+
+## 2026-11-03 - Add AstraFlow video enhancement task plugin
+
+- Local reason: add an AstraFlow task plugin for the video enhancement API (`POST /v1/tasks/submit` and `GET /v1/tasks/status?task_id=...`).
+- Changed: renamed the embedded plugin to `astraflow` and exposed the same unprefixed native paths as the upstream platform, allowing future AstraFlow models to share these routes. The plugin keeps bearer authentication, remote video artifact proxying, and usage facts for `seconds`, `resolution`, and `fps`. Resolution tiers are `720p`, `1080p`, `2k`, `4k`, `6k`, and `8k`; FPS tiers are `30`, `60`, and `120`. The admin pricing matrix has 18 resolution/FPS combinations with `seconds` as its only billable quantity and a per-second price. The plugin pre-consumes ten seconds, then reconciles the charge to the actual upstream duration after completion; the client request remains in the upstream-native shape. Completion usage can also update returned resolution/FPS when present.
+- Preserved: upstream request shape (`model`, `input.video_url`, `parameters.resolution`, `parameters.fps`), provider URLs, and existing task plugin billing/settlement behavior. Prices remain administrator-configured through task billing expressions; no hard-coded currency rates were added.
+- Validation: added focused plugin registration, request forwarding, status parsing, completion usage, and artifact URL regression coverage. Bun checks confirmed 10-second pre-consume, preservation of the native request body, actual-duration completion facts, and FPS rejection outside 30/60/120; `git diff --check` passed. Go tests could not run because the Go toolchain is unavailable.
+- Commit and push: local changes are intentionally uncommitted and unpushed at the user's request.
+
+## 2026-11-03 - Separate personal and organization workspace navigation
+
+- Local reason: organization members should choose a workspace before entering its dashboard, and organization navigation should not expose personal-only pages.
+- Changed: the organization entry now acts as a personal workspace selector without auto-opening the first organization; creation and invitation acceptance remain on the personal selector, while the create form is hidden after entering an organization. When an organization is active, the personal sidebar group becomes an Organization group and hides Friends Hub, Member Tiers, Support Tickets, and Profile. Added the localized Organization label across all frontend locales.
+- Preserved: multi-organization membership, invitation acceptance, header workspace switching, organization APIs, and existing organization detail tabs remain unchanged.
+- Validation: targeted Oxlint and Oxfmt passed for the changed frontend files, all seven locale files parse successfully, and `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable.
+- Commit and push: pending in the current combined push.

@@ -6,19 +6,21 @@ import (
 )
 
 type PerfMetricsSetting struct {
-	Enabled             bool   `json:"enabled"`
-	FlushInterval       int    `json:"flush_interval"`
-	BucketTime          string `json:"bucket_time"`
-	RetentionDays       int    `json:"retention_days"`
-	ExcludedStatusCodes string `json:"excluded_status_codes"`
+	Enabled                              bool   `json:"enabled"`
+	FlushInterval                        int    `json:"flush_interval"`
+	BucketTime                           string `json:"bucket_time"`
+	RetentionDays                        int    `json:"retention_days"`
+	ExcludedStatusCodes                  string `json:"excluded_status_codes"`
+	ExcludeTaskFailuresWithoutStatusCode bool   `json:"exclude_task_failures_without_status_code"`
 }
 
 var perfMetricsSetting = PerfMetricsSetting{
-	Enabled:             true,
-	FlushInterval:       5,
-	BucketTime:          "hour",
-	RetentionDays:       0,
-	ExcludedStatusCodes: "",
+	Enabled:                              true,
+	FlushInterval:                        5,
+	BucketTime:                           "hour",
+	RetentionDays:                        0,
+	ExcludedStatusCodes:                  "",
+	ExcludeTaskFailuresWithoutStatusCode: false,
 }
 
 func init() {

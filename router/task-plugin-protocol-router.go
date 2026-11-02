@@ -33,6 +33,21 @@ func SetTaskPluginProtocolRouter(router *gin.Engine) {
 	registerDoubaoNativeRoutes(router)
 }
 
+func astraFlowNativeSubmitHandlers(declaredPath string) []gin.HandlerFunc {
+	return []gin.HandlerFunc{
+		middleware.RouteTag("relay"), middleware.TokenAuth(), middleware.SystemPerformanceCheck(),
+		pinDeclaredTaskPluginRoute(http.MethodPost, declaredPath), middleware.ModelRequestRateLimit(),
+		middleware.PrepareTaskPluginRoute(), middleware.Distribute(), controller.RelayTask,
+	}
+}
+
+func astraFlowNativeQueryHandlers(declaredPath string) []gin.HandlerFunc {
+	return []gin.HandlerFunc{
+		middleware.RouteTag("relay"), middleware.TokenAuth(), middleware.SystemPerformanceCheck(),
+		pinDeclaredTaskPluginRoute(http.MethodGet, declaredPath), middleware.PrepareTaskPluginRoute(),
+	}
+}
+
 // registerDoubaoNativeRoutes keeps the historical /doubao-prefixed Ark task
 // API available alongside the official /api/v3 aliases registered in the API
 // router. Both paths enter the same task-plugin pipeline and are pinned to the

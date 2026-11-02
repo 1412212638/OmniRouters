@@ -40,6 +40,10 @@ const OPERATIONS_SECTIONS = [
             settings['perf_metrics_setting.retention_days'] ?? 0,
           'perf_metrics_setting.excluded_status_codes':
             settings['perf_metrics_setting.excluded_status_codes'] ?? '',
+          'perf_metrics_setting.exclude_task_failures_without_status_code':
+            settings[
+              'perf_metrics_setting.exclude_task_failures_without_status_code'
+            ] ?? false,
         }}
       />
     ),

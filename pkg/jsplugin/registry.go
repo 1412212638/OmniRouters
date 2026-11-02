@@ -1319,7 +1319,7 @@ func normalizeV1Meta(meta *Meta) error {
 	}
 	routeKeys := make(map[string]struct{}, len(meta.Routes))
 	for index := range meta.Routes {
-		if err := validateRoute(&meta.Routes[index]); err != nil {
+		if err := validateRoute(&meta.Routes[index], meta.Key == "astraflow"); err != nil {
 			return err
 		}
 		for _, model := range meta.Routes[index].Models {
@@ -1755,7 +1755,7 @@ func decodeRoutes(value any) ([]Route, error) {
 		}
 		for key := range object {
 			switch key {
-			case "method", "path", "type", "action", "decode", "render", "taskIdParam", "models", "retainResult":
+			case "method", "path", "type", "action", "decode", "render", "taskIdParam", "taskIdQuery", "models", "retainResult":
 			default:
 				return nil, fmt.Errorf("plugin meta route %d has unknown field %q", index, key)
 			}
@@ -1791,6 +1791,11 @@ func decodeRoutes(value any) ([]Route, error) {
 		}
 		if route.TaskIDParam, err = stringMetaField(object, "taskIdParam"); err != nil {
 			return nil, err
+		}
+		if value, exists := object["taskIdQuery"]; exists {
+			if route.TaskIDQuery, ok = value.(bool); !ok {
+				return nil, fmt.Errorf("plugin meta route %d taskIdQuery must be a boolean", index)
+			}
 		}
 		if _, exists := object["models"]; exists {
 			if route.Models, err = strictStringSlice(object, "models"); err != nil {
