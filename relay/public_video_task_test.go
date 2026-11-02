@@ -7,6 +7,7 @@ import (
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/relay/channel/task/taskcommon"
 	"github.com/QuantumNous/new-api/setting/system_setting"
 )
 
@@ -144,6 +145,56 @@ func TestSanitizeOpenAIVideoTaskError(t *testing.T) {
 	}
 	if strings.Contains(string(got), "gateway_") || strings.Contains(string(got), "private-id") || strings.Contains(string(got), "internal") {
 		t.Fatalf("internal error details leaked: %s", got)
+	}
+}
+
+func TestAddOpenAIVideoResultURLsExposesUpstreamAndProxy(t *testing.T) {
+	originalAddress := system_setting.ServerAddress
+	system_setting.ServerAddress = "https://gateway.example"
+	t.Cleanup(func() { system_setting.ServerAddress = originalAddress })
+	task := &model.Task{
+		TaskID: "task_public", Status: model.TaskStatusSuccess,
+		PrivateData: model.TaskPrivateData{ResultURL: "https://gateway.example/v1/videos/task_public/content"},
+	}
+	task.Data = []byte(`{"metadata":{"url":"https://provider.example/video.mp4?signature=short-lived"}}`)
+	got, err := addOpenAIVideoResultURLs(task, []byte(`{"id":"task_public","metadata":{"url":"https://gateway.example/v1/videos/task_public/content"}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var response struct {
+		Metadata map[string]string `json:"metadata"`
+	}
+	if err := common.Unmarshal(got, &response); err != nil {
+		t.Fatal(err)
+	}
+	if response.Metadata["url"] != "https://provider.example/video.mp4?signature=short-lived" {
+		t.Fatalf("upstream result URL missing: %s", got)
+	}
+	if response.Metadata["proxy_url"] != "https://gateway.example/v1/videos/task_public/content" {
+		t.Fatalf("gateway proxy URL missing: %s", got)
+	}
+}
+
+func TestAddOpenAIVideoResultURLsPrefersStoredUpstreamURL(t *testing.T) {
+	task := &model.Task{
+		TaskID: "task_public", Status: model.TaskStatusSuccess,
+		PrivateData: model.TaskPrivateData{ResultURL: "https://provider.example/video.mp4"},
+	}
+	got, err := addOpenAIVideoResultURLs(task, []byte(`{"id":"task_public","metadata":{"url":"https://old-provider.example/old.mp4"}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var response struct {
+		Metadata map[string]string `json:"metadata"`
+	}
+	if err := common.Unmarshal(got, &response); err != nil {
+		t.Fatal(err)
+	}
+	if response.Metadata["url"] != "https://provider.example/video.mp4" {
+		t.Fatalf("stored task URL should be authoritative: %s", got)
+	}
+	if response.Metadata["proxy_url"] != taskcommon.BuildProxyURL(task.TaskID) {
+		t.Fatalf("proxy URL missing: %s", got)
 	}
 }
 

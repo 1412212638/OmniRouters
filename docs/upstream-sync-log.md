@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-11-03 - Return provider video URL alongside gateway proxy
+
+- Local reason: clients using `/v1/videos/{id}` need the upstream result URL in the response metadata as well as the gateway's content proxy URL.
+- Changed: successful OpenAI video task queries now set `metadata.url` to the upstream result URL when available and add `metadata.proxy_url` for the gateway `/content` endpoint. URL resolution prefers the persisted task result, then renderer metadata, then known URL fields in the stored upstream task response. Added relay tests for the paired URLs and persisted-result precedence.
+- Preserved: the proxy endpoint and its credentialed streaming behavior remain available; when no upstream URL can be resolved, the existing metadata URL is retained. Task logs and billing data are unchanged.
+- Validation: `git diff --check` passed. Targeted Go tests could not run because Go is not installed or available on PATH in this environment.
+- Commit and push: pending.
+
 ## 2026-11-03 - Hide mapped upstream model names in user task logs
 
 - Local reason: ordinary users could see a mapped provider model name in the raw task response shown by task-log details, even though the task model field itself displayed the requested alias.

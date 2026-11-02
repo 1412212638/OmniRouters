@@ -61,6 +61,76 @@ func publicVideoUsage(task *model.Task) *dto.PublicVideoUsage {
 	return usage
 }
 
+func addOpenAIVideoResultURLs(task *model.Task, response []byte) ([]byte, error) {
+	if task == nil || task.Status != model.TaskStatusSuccess {
+		return response, nil
+	}
+	var rendered map[string]any
+	if err := common.Unmarshal(response, &rendered); err != nil || rendered == nil {
+		return nil, fmt.Errorf("invalid OpenAI video response")
+	}
+	metadata, _ := rendered["metadata"].(map[string]any)
+	if metadata == nil {
+		metadata = make(map[string]any)
+		rendered["metadata"] = metadata
+	}
+
+	proxyURL := taskcommon.BuildProxyURL(task.TaskID)
+	upstreamURL := task.GetResultURL()
+	if isVideoProxyURL(upstreamURL, task.TaskID) {
+		upstreamURL = ""
+	}
+	if upstreamURL == "" {
+		if responseURL, ok := metadata["url"].(string); ok && !isVideoProxyURL(responseURL, task.TaskID) {
+			upstreamURL = responseURL
+		}
+	}
+	if upstreamURL == "" {
+		upstreamURL = upstreamVideoURLFromTaskData(task.Data, task.TaskID)
+	}
+	if upstreamURL != "" {
+		metadata["url"] = upstreamURL
+	}
+	metadata["proxy_url"] = proxyURL
+	return common.Marshal(rendered)
+}
+
+func isVideoProxyURL(value, taskID string) bool {
+	if value == "" || taskID == "" {
+		return false
+	}
+	path := strings.SplitN(value, "?", 2)[0]
+	return strings.HasSuffix(strings.TrimRight(path, "/"), "/v1/videos/"+taskID+"/content")
+}
+
+func upstreamVideoURLFromTaskData(data []byte, taskID string) string {
+	var root map[string]any
+	if err := common.Unmarshal(data, &root); err != nil {
+		return ""
+	}
+	for _, path := range [][]string{
+		{"metadata", "url"},
+		{"content", "video_url"},
+		{"output", "video_url"},
+		{"video_url"},
+		{"url"},
+	} {
+		var current any = root
+		for _, key := range path {
+			object, ok := current.(map[string]any)
+			if !ok {
+				current = nil
+				break
+			}
+			current = object[key]
+		}
+		if value, ok := current.(string); ok && value != "" && !isVideoProxyURL(value, taskID) {
+			return value
+		}
+	}
+	return ""
+}
+
 var unsupportedVideoField = regexp.MustCompile(`^field ([A-Za-z][A-Za-z0-9_]{0,63}) is not supported by model [^\r\n]+$`)
 var missingVideoUnitPrice = regexp.MustCompile(`(?i)^output video unit price is required for mode ([A-Za-z0-9_-]{1,32}) and resolution ([A-Za-z0-9_-]{1,32})$`)
 
