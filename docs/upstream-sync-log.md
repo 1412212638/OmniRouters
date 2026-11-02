@@ -5151,3 +5151,19 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: multi-organization membership, invitation acceptance, header workspace switching, organization APIs, and existing organization detail tabs remain unchanged.
 - Validation: targeted Oxlint and Oxfmt passed for the changed frontend files, all seven locale files parse successfully, and `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable.
 - Commit and push: included in `e94c2ce62` (`feat: refine organization workspace navigation and AstraFlow tasks`); pushed successfully to `origin/main` on 2026-11-03.
+
+## 2026-11-03 - Accept numeric enum selectors in native task requests
+
+- Local reason: AstraFlow's native request requires `parameters.fps` as a JSON number, while its billing usage schema stores FPS enum values as strings; request validation incorrectly rejected valid `fps: 30` payloads with `plugin usage enum must be a string`.
+- Changed: request-side plugin usage validation now compares finite numeric enum selectors using their canonical string form. Completion usage validation remains string-only, and enum membership is still enforced.
+- Preserved: upstream-native request bodies, plugin pricing facts, settlement behavior, and strict completion usage validation for all task plugins.
+- Validation: added focused Go regression coverage for numeric request enum selectors, rejected enum values, and strict completion facts. `git diff --check` passed; Go tests and gofmt could not run because the Go toolchain is unavailable locally.
+- Commit and push: pending; not pushed yet.
+
+## 2026-11-03 - Add searchable organization card selector
+
+- Local reason: the personal organization selector needed a clearer overview for users who belong to multiple organizations.
+- Changed: added breadcrumb context, a top-right organization creation dialog, client-side organization-name search, responsive organization cards showing the icon, name, active member count, and creation time, plus an explicit no-match state. The organization list response now includes the active member count without adding a database column.
+- Preserved: pending invitations remain in the personal selector, card selection still enters the existing organization workspace, and all organization workspace tabs and controls remain unchanged.
+- Validation: pending targeted Oxlint/Oxfmt, locale JSON parsing, and frontend checks; Go tests remain unavailable locally because the Go toolchain is not installed.
+- Commit and push: pending; not pushed yet.

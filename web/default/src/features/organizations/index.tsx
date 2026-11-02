@@ -1,7 +1,16 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Building2, Copy, KeyRound, MailPlus, Plus } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import {
+  Building2,
+  CalendarDays,
+  Copy,
+  KeyRound,
+  MailPlus,
+  Plus,
+  Search,
+  Users,
+} from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -25,6 +34,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
@@ -39,6 +56,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   formatQuota,
+  formatTimestampToDate,
   parseQuotaFromDollars,
   quotaUnitsToDollars,
 } from '@/lib/format'
@@ -81,6 +99,8 @@ export function Organizations() {
   )
   const selectorEntry = useRef(false)
   const [organizationName, setOrganizationName] = useState('')
+  const [organizationSearch, setOrganizationSearch] = useState('')
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [tokenName, setTokenName] = useState('')
   const [transferAmount, setTransferAmount] = useState('')
@@ -100,6 +120,13 @@ export function Organizations() {
     ? (organizations.data.find((entry) => entry.organization.id === activeId)
         ?.organization.id ?? null)
     : null
+  const filteredOrganizations = useMemo(() => {
+    const query = organizationSearch.trim().toLocaleLowerCase()
+    if (!query) return organizations.data ?? []
+    return (organizations.data ?? []).filter((entry) =>
+      entry.organization.name.toLocaleLowerCase().includes(query)
+    )
+  }, [organizationSearch, organizations.data])
   useEffect(() => {
     if (selectorEntry.current) return
     selectorEntry.current = true
@@ -183,6 +210,7 @@ export function Organizations() {
       'Organization created'
     )
     setOrganizationName('')
+    setCreateDialogOpen(false)
   }
   const invite = () => {
     if (!selectedId || !inviteEmail.trim()) return
@@ -236,19 +264,68 @@ export function Organizations() {
       <div className='min-h-0 flex-1 overflow-auto px-3 py-3 sm:px-4 sm:py-6'>
         <div className='mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-6'>
           <div className='flex flex-wrap items-start justify-between gap-3'>
-            <div>
-              <h1 className='text-xl font-semibold'>{t('Organizations')}</h1>
-              <p className='text-muted-foreground text-sm'>
-                {t(
-                  'Manage shared team workspaces, members, and organization API keys.'
-                )}
-              </p>
+            <div className='space-y-3'>
+              {activeId === null && (
+                <nav
+                  aria-label={t('Breadcrumb')}
+                  className='text-muted-foreground flex items-center gap-2 text-xs'
+                >
+                  <span>{t('Account management')}</span>
+                  <span aria-hidden='true'>/</span>
+                  <span className='text-foreground'>{t('Organizations')}</span>
+                </nav>
+              )}
+              <div>
+                <h1 className='text-xl font-semibold'>{t('Organizations')}</h1>
+                <p className='text-muted-foreground text-sm'>
+                  {t(
+                    'Manage shared team workspaces, members, and organization API keys.'
+                  )}
+                </p>
+              </div>
             </div>
             {activeId === null && (
-              <div className='flex items-end gap-2'>
+              <Button onClick={() => setCreateDialogOpen(true)}>
+                <Plus data-icon='inline-start' />
+                {t('New organization')}
+              </Button>
+            )}
+          </div>
+
+          {activeId === null && (
+            <div className='relative max-w-md'>
+              <Search
+                aria-hidden='true'
+                className='text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2'
+              />
+              <Input
+                aria-label={t('Search organizations')}
+                value={organizationSearch}
+                onChange={(event) => setOrganizationSearch(event.target.value)}
+                placeholder={t('Search organizations')}
+                className='pl-9'
+              />
+            </div>
+          )}
+
+          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t('New organization')}</DialogTitle>
+                <DialogDescription>
+                  {t('Create a shared organization workspace.')}
+                </DialogDescription>
+              </DialogHeader>
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  create()
+                }}
+                className='space-y-4'
+              >
                 <Field>
                   <FieldLabel htmlFor='organizationName'>
-                    {t('New organization')}
+                    {t('Organization name')}
                   </FieldLabel>
                   <Input
                     id='organizationName'
@@ -257,15 +334,24 @@ export function Organizations() {
                       setOrganizationName(event.target.value)
                     }
                     placeholder={t('Organization name')}
+                    autoFocus
                   />
                 </Field>
-                <Button onClick={create} disabled={!organizationName.trim()}>
-                  <Plus data-icon='inline-start' />
-                  {t('Create')}
-                </Button>
-              </div>
-            )}
-          </div>
+                <DialogFooter>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => setCreateDialogOpen(false)}
+                  >
+                    {t('Cancel')}
+                  </Button>
+                  <Button type='submit' disabled={!organizationName.trim()}>
+                    {t('Create')}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
 
           {activeId === null &&
             pendingInvitations.data &&
@@ -305,35 +391,65 @@ export function Organizations() {
 
           {activeId === null &&
             organizations.data &&
-            organizations.data.length > 0 && (
-              <div className='flex flex-wrap gap-2'>
-                {organizations.data.map((entry) => (
-                  <Button
+            organizations.data.length > 0 &&
+            (filteredOrganizations.length > 0 ? (
+              <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
+                {filteredOrganizations.map((entry) => (
+                  <Card
                     key={entry.organization.id}
-                    variant={
-                      selectedId === entry.organization.id
-                        ? 'default'
-                        : 'outline'
-                    }
+                    className='hover:border-primary/50 focus-visible:ring-ring min-h-45 cursor-pointer transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:outline-none'
+                    role='button'
+                    tabIndex={0}
                     onClick={() =>
                       userId &&
                       selectOrganization(userId, entry.organization.id)
                     }
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        if (userId) {
+                          selectOrganization(userId, entry.organization.id)
+                        }
+                      }
+                    }}
                   >
-                    <Building2 data-icon='inline-start' />
-                    {entry.organization.name}
-                  </Button>
+                    <CardHeader className='flex-row items-start gap-3'>
+                      <div className='bg-muted text-muted-foreground flex size-10 shrink-0 items-center justify-center rounded-lg'>
+                        <Building2 className='size-5' />
+                      </div>
+                      <CardTitle className='min-w-0 truncate pt-1'>
+                        {entry.organization.name}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='mt-auto space-y-3'>
+                      <div className='text-muted-foreground flex items-center gap-2 text-sm'>
+                        <Users className='size-4' />
+                        <span>
+                          {t('{{count}} members', {
+                            count: entry.member_count ?? 0,
+                          })}
+                        </span>
+                      </div>
+                      <div className='text-muted-foreground flex items-center gap-2 border-t pt-3 text-xs'>
+                        <CalendarDays className='size-4' />
+                        <span>
+                          {t('Created at')}:{' '}
+                          {formatTimestampToDate(entry.organization.created_at)}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
-            )}
+            ) : (
+              <Card>
+                <CardContent className='text-muted-foreground py-12 text-center text-sm'>
+                  {t('No organizations match your search.')}
+                </CardContent>
+              </Card>
+            ))}
 
-          {!selectedId ? (
-            <Card>
-              <CardContent className='text-muted-foreground py-12 text-center text-sm'>
-                {t('Create or join an organization to get started.')}
-              </CardContent>
-            </Card>
-          ) : (
+          {selectedId ? (
             <Tabs defaultValue='overview' className='flex flex-col gap-4'>
               <TabsList className='w-full justify-start overflow-x-auto'>
                 <TabsTrigger value='overview'>{t('Overview')}</TabsTrigger>
@@ -861,7 +977,16 @@ export function Organizations() {
                 </Card>
               </TabsContent>
             </Tabs>
-          )}
+          ) : null}
+          {!selectedId &&
+          organizations.isSuccess &&
+          organizations.data.length === 0 ? (
+            <Card>
+              <CardContent className='text-muted-foreground py-12 text-center text-sm'>
+                {t('Create or join an organization to get started.')}
+              </CardContent>
+            </Card>
+          ) : null}
         </div>
       </div>
       <AlertDialog

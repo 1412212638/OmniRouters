@@ -25,6 +25,7 @@ export interface OrganizationWorkspace {
   membership: OrganizationMembership
   monthly_used_quota: number
   period: string
+  member_count?: number
 }
 
 export interface OrganizationMember extends OrganizationMembership {

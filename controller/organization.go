@@ -19,6 +19,7 @@ type organizationMembershipResponse struct {
 	Membership       model.OrganizationMember `json:"membership"`
 	Period           string                   `json:"period"`
 	MonthlyUsedQuota int                      `json:"monthly_used_quota"`
+	MemberCount      int64                    `json:"member_count"`
 }
 
 func organizationMember(c *gin.Context, organizationId int) (*model.OrganizationMember, error) {
@@ -44,12 +45,18 @@ func organizationOverview(organizationId, userId int) (*organizationMembershipRe
 	period := model.CurrentOrganizationUsagePeriod()
 	var usage model.OrganizationMemberUsage
 	_ = model.DB.Where("organization_id = ? AND user_id = ? AND period = ?", organizationId, userId, period).First(&usage).Error
+	var memberCount int64
+	if err := model.DB.Model(&model.OrganizationMember{}).
+		Where("organization_id = ? AND status = ?", organizationId, model.OrganizationMemberActive).
+		Count(&memberCount).Error; err != nil {
+		return nil, err
+	}
 	if !model.OrganizationCanManage(membership.Role) {
 		organization.Quota = 0
 		organization.UsedQuota = 0
 		organization.RequestCount = 0
 	}
-	return &organizationMembershipResponse{Organization: *organization, Membership: *membership, Period: period, MonthlyUsedQuota: usage.UsedQuota}, nil
+	return &organizationMembershipResponse{Organization: *organization, Membership: *membership, Period: period, MonthlyUsedQuota: usage.UsedQuota, MemberCount: memberCount}, nil
 }
 
 func GetOrganizations(c *gin.Context) {

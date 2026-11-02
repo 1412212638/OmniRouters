@@ -7,6 +7,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestResolvedUsageRequestAcceptsNumericEnumSelectors(t *testing.T) {
+	adaptor := &TaskAdaptor{plugin: &pluginruntime.LoadedPlugin{Meta: pluginruntime.Meta{
+		UsageSchema: map[string]pluginruntime.UsageFieldSchema{
+			"fps": {Enum: []string{"30", "60", "120"}},
+		},
+	}}}
+
+	require.NoError(t, adaptor.validateResolvedUsageRequest(map[string]any{
+		"parameters": map[string]any{"fps": float64(30)},
+	}, ""))
+	require.ErrorContains(t, adaptor.validateResolvedUsageRequest(map[string]any{
+		"parameters": map[string]any{"fps": float64(24)},
+	}, ""), "plugin usage enum is not an allowed value")
+}
+
+func TestCompletionUsageEnumRemainsStringOnly(t *testing.T) {
+	schema := pluginruntime.UsageFieldSchema{Enum: []string{"30", "60", "120"}}
+	_, err := validateUsageValue(float64(30), schema, false)
+	require.ErrorContains(t, err, "plugin usage enum must be a string")
+}
+
 func TestDoubaoNativeAutomaticDurationSkipsBillingValidationOnly(t *testing.T) {
 	adaptor := &TaskAdaptor{plugin: &pluginruntime.LoadedPlugin{Meta: pluginruntime.Meta{Key: "doubao"}}}
 	request := map[string]any{

@@ -1685,6 +1685,16 @@ func (a *TaskAdaptor) validatedCompletionUsageFacts(facts any, modelName string)
 func validateUsageValue(value any, schema pluginruntime.UsageFieldSchema, allowNumericString bool) (float64, error) {
 	if len(schema.Enum) > 0 {
 		text, ok := value.(string)
+		if !ok && allowNumericString {
+			// Native request fields may use JSON numbers while the billing
+			// schema stores enum selectors as strings (for example fps: 30
+			// matching the billing value "30"). Keep completion facts strict;
+			// this numeric compatibility is enabled only for request validation.
+			if number, numeric := usageNumber(value, false); numeric && !math.IsNaN(number) && !math.IsInf(number, 0) {
+				text = strconv.FormatFloat(number, 'f', -1, 64)
+				ok = true
+			}
+		}
 		if !ok {
 			return 0, fmt.Errorf("plugin usage enum must be a string")
 		}
