@@ -6,7 +6,7 @@
 - Changed: only for the Doubao plugin, the usage-validation copy omits `duration: -1` when it is paired with the plugin's internal original native request. The original request remains unchanged and is still forwarded with `duration: -1`; the existing positive fallback estimate and completion usage settlement remain in effect.
 - Preserved: rejection of negative/zero duration values other than the exact native sentinel, negative `seconds`, all other plugin validation, and unrelated in-progress work.
 - Validation: added host regressions for the exact native sentinel, immutability of the forwarded request, invalid durations, negative seconds, and non-Doubao plugins. Changed Go files passed `gofmt`, the Doubao plugin passed `node --check`, and `git diff --check` passed. Go tests cannot run locally because Go 1.25.0 is below the repository's Go 1.26.10 requirement; no toolchain or Docker image was installed.
-- Source commit and push: pending.
+- Source commit and push: `59d06604f` (`feat: sync Alibaba task plugin and model pricing`) pushed successfully to `origin/main`; this commit includes the Seedance automatic-duration validation fix, Alibaba protocol backport, model-specific pricing editor, and their regression tests.
 
 ## 2026-11-02 - Fix organization Midjourney build import
 
@@ -25,7 +25,7 @@
 - Deferred: official 1.5.0 native route/status wrapping/stream forwarding/request-header changes and `duration-auto@1` depend on host upgrades absent here. Intentionally skipped: blindly replacing the plugin with a version the current host cannot register, and changing existing billing semantics or saved prices.
 - Preserved: existing host capability declarations, `/ali` native routes, JSON/SSE settlement, image-model pricing, legacy default-schema fallback, protected project identity, and all unrelated organization workspace changes.
 - Validation: five Bun regression tests passed; targeted Oxlint passed (one existing harmless spread warning); targeted Oxfmt and `git diff --check` passed. `node --check` and a Node plugin smoke run passed for JSON/multipart/fileRef, explicit zero/false, count bounds, URL/Base64 rendering, nested task data, Wan3 21:9 and input/output duration summation. Full frontend typecheck remains blocked by 34 existing errors outside this change; no errors in the changed files. Go tests were added but not executed because Go is unavailable on this session's PATH; no toolchain was installed. No live provider call or deployment performed.
-- Local commit and push status: uncommitted and not pushed.
+- Local commit and push status: included in `59d06604f` (`feat: sync Alibaba task plugin and model pricing`) and pushed successfully to `origin/main`.
 
 ## 2026-11-02 - Add first-version organization workspaces
 
