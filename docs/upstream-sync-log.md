@@ -6,7 +6,7 @@
 - Changed: the user task-log projection now recursively replaces provider model values and failure-reason references with the requested model alias, and removes explicit upstream-model fields while preserving task usage and other response data. JSON numbers are preserved as raw values. Added controller regression coverage for nested model fields, error text, preserved usage, stored-data immutability, and the unchanged admin projection.
 - Preserved: administrators retain original provider diagnostics; `/v1/videos/{id}` continues to return the gateway content URL, which fetches the video through the gateway and avoids exposing expiring signed provider URLs.
 - Validation: `git diff --check` passed. Targeted Go regression tests and `gofmt` could not run because neither Go nor `gofmt` is installed or available on PATH in this environment.
-- Source commit: `6b5017833` (`fix: hide mapped models from user task logs`); push pending.
+- Source commit: `7da8dedf1` (`fix: hide mapped models from user task logs`); pushed successfully to `origin/main`.
 
 ## 2026-11-02 - Keep Seedance automatic duration out of billing validation
 
