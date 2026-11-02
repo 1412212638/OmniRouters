@@ -5158,7 +5158,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: request-side plugin usage validation now compares finite numeric enum selectors using their canonical string form. Completion usage validation remains string-only, and enum membership is still enforced.
 - Preserved: upstream-native request bodies, plugin pricing facts, settlement behavior, and strict completion usage validation for all task plugins.
 - Validation: added focused Go regression coverage for numeric request enum selectors, rejected enum values, and strict completion facts. `git diff --check` passed; Go tests and gofmt could not run because the Go toolchain is unavailable locally.
-- Commit and push: included in `a7192f777` (`feat: improve organization selector and task validation`); pending push to `origin/main`.
+- Commit and push: included in `a7192f777` (`feat: improve organization selector and task validation`); pushed successfully to `origin/main` on 2026-11-03. The status correction is recorded in `a81b20c59`.
 
 ## 2026-11-03 - Add searchable organization card selector
 
@@ -5166,4 +5166,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: added breadcrumb context, a top-right organization creation dialog, client-side organization-name search, responsive organization cards showing the icon, name, active member count, and creation time, plus an explicit no-match state. The organization list response now includes the active member count without adding a database column.
 - Preserved: pending invitations remain in the personal selector, card selection still enters the existing organization workspace, and all organization workspace tabs and controls remain unchanged.
 - Validation: pending targeted Oxlint/Oxfmt, locale JSON parsing, and frontend checks; Go tests remain unavailable locally because the Go toolchain is not installed.
-- Commit and push: included in `a7192f777` (`feat: improve organization selector and task validation`); pending push to `origin/main`.
+- Commit and push: included in `a7192f777` (`feat: improve organization selector and task validation`); pushed successfully to `origin/main` on 2026-11-03. The status correction is recorded in `a81b20c59`.
