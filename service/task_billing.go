@@ -71,16 +71,17 @@ func LogTaskConsumption(c *gin.Context, info *relaycommon.RelayInfo, task *model
 	appendTaskLogInfo(task, other)
 	attachQuotaSaturation(c, info, other)
 	model.RecordConsumeLog(c, info.UserId, model.RecordConsumeLogParams{
-		ChannelId: info.ChannelId,
-		ModelName: info.OriginModelName,
-		TokenName: tokenName,
-		Quota:     info.PriceData.Quota,
-		Content:   logContent,
-		TokenId:   info.TokenId,
-		Group:     info.UsingGroup,
-		Other:     other,
+		OrganizationId: info.OrganizationId,
+		ChannelId:      info.ChannelId,
+		ModelName:      info.OriginModelName,
+		TokenName:      tokenName,
+		Quota:          info.PriceData.Quota,
+		Content:        logContent,
+		TokenId:        info.TokenId,
+		Group:          info.UsingGroup,
+		Other:          other,
 	})
-	model.UpdateUserUsedQuotaAndRequestCount(info.UserId, info.PriceData.Quota)
+	RecordRelayUsage(info, info.PriceData.Quota)
 	model.UpdateChannelUsedQuota(info.ChannelId, info.PriceData.Quota)
 }
 
@@ -104,8 +105,18 @@ func taskIsSubscription(task *model.Task) bool {
 	return task.PrivateData.BillingSource == BillingSourceSubscription && task.PrivateData.SubscriptionId > 0
 }
 
+func taskIsOrganization(task *model.Task) bool {
+	return task != nil && (task.PrivateData.OrganizationId > 0 || task.PrivateData.BillingSource == BillingSourceOrganization)
+}
+
 // taskAdjustFunding 调整任务的资金来源（钱包或订阅），delta > 0 表示扣费，delta < 0 表示退还。
 func taskAdjustFunding(task *model.Task, delta int) error {
+	if taskIsOrganization(task) {
+		if task.PrivateData.OrganizationId <= 0 {
+			return fmt.Errorf("organization id is missing from task billing context")
+		}
+		return model.AdjustOrganizationQuota(task.PrivateData.OrganizationId, task.UserId, delta, task.PrivateData.OrganizationUsagePeriod)
+	}
 	if taskIsSubscription(task) {
 		return model.PostConsumeUserSubscriptionDelta(task.PrivateData.SubscriptionId, int64(delta))
 	}
@@ -227,7 +238,10 @@ func RefundTaskQuota(ctx context.Context, task *model.Task, reason string) bool 
 	taskAdjustTokenQuota(ctx, task, -quota)
 
 	// 3. 回减预扣时累计的用户和渠道用量，请求次数保持不变
-	model.UpdateUserUsedQuota(task.UserId, -quota)
+	// Organization funding already updates organization monetary usage.
+	if !taskIsOrganization(task) {
+		model.UpdateUserUsedQuota(task.UserId, -quota)
+	}
 	model.UpdateChannelUsedQuota(task.ChannelId, -quota)
 
 	// 4. 记录日志
@@ -235,15 +249,16 @@ func RefundTaskQuota(ctx context.Context, task *model.Task, reason string) bool 
 	other.SetPublic("task_id", task.TaskID)
 	other.SetPublic("reason", reason)
 	model.RecordTaskBillingLog(model.RecordTaskBillingLogParams{
-		UserId:    task.UserId,
-		LogType:   model.LogTypeRefund,
-		Content:   "",
-		ChannelId: task.ChannelId,
-		ModelName: taskModelName(task),
-		Quota:     quota,
-		TokenId:   task.PrivateData.TokenId,
-		Group:     task.Group,
-		Other:     other,
+		OrganizationId: task.PrivateData.OrganizationId,
+		UserId:         task.UserId,
+		LogType:        model.LogTypeRefund,
+		Content:        "",
+		ChannelId:      task.ChannelId,
+		ModelName:      taskModelName(task),
+		Quota:          quota,
+		TokenId:        task.PrivateData.TokenId,
+		Group:          task.Group,
+		Other:          other,
 	})
 
 	// 5. 资金退款完成后再清除持久化标记。
@@ -295,7 +310,10 @@ func RecalculateTaskQuota(ctx context.Context, task *model.Task, actualQuota int
 	}
 
 	// 提交阶段已经累计过一次请求；结算阶段只调整最终用量。
-	model.UpdateUserUsedQuota(task.UserId, quotaDelta)
+	// Organization funding already applies the delta to the shared wallet.
+	if !taskIsOrganization(task) {
+		model.UpdateUserUsedQuota(task.UserId, quotaDelta)
+	}
 	model.UpdateChannelUsedQuota(task.ChannelId, quotaDelta)
 
 	var logType int
@@ -315,16 +333,17 @@ func RecalculateTaskQuota(ctx context.Context, task *model.Task, actualQuota int
 		attachQuotaSaturationToOther(other, clamp)
 	}
 	model.RecordTaskBillingLog(model.RecordTaskBillingLogParams{
-		UserId:    task.UserId,
-		LogType:   logType,
-		Content:   reason,
-		ChannelId: task.ChannelId,
-		ModelName: taskModelName(task),
-		Quota:     logQuota,
-		TokenId:   task.PrivateData.TokenId,
-		Group:     task.Group,
-		Other:     other,
-		NodeName:  task.PrivateData.NodeName,
+		OrganizationId: task.PrivateData.OrganizationId,
+		UserId:         task.UserId,
+		LogType:        logType,
+		Content:        reason,
+		ChannelId:      task.ChannelId,
+		ModelName:      taskModelName(task),
+		Quota:          logQuota,
+		TokenId:        task.PrivateData.TokenId,
+		Group:          task.Group,
+		Other:          other,
+		NodeName:       task.PrivateData.NodeName,
 	})
 }
 

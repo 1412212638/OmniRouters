@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/logger"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/service"
@@ -292,7 +293,7 @@ func validateTopUpQuota(amount int64) (int, error) {
 func rejectInvalidCreditedQuota(c *gin.Context, userId int, quota decimal.Decimal) bool {
 	creditedQuota, err := validateCreditedQuota(quota)
 	if err == nil {
-		err = model.ValidateTopUpQuotaCapacity(userId, creditedQuota)
+		err = validateTopUpWallet(c, userId, creditedQuota)
 	}
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": err.Error()})
@@ -304,7 +305,7 @@ func rejectInvalidCreditedQuota(c *gin.Context, userId int, quota decimal.Decima
 func rejectInvalidTopUpQuota(c *gin.Context, userId int, amount int64) bool {
 	creditedQuota, err := validateTopUpQuota(amount)
 	if err == nil {
-		err = model.ValidateTopUpQuotaCapacity(userId, creditedQuota)
+		err = validateTopUpWallet(c, userId, creditedQuota)
 	}
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": err.Error()})
@@ -334,7 +335,7 @@ func RequestEpay(c *gin.Context) {
 		return
 	}
 
-	group, err := model.GetUserGroup(id, true)
+	group, err := topUpGroup(c, id)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "获取用户分组失败"})
 		return
@@ -376,6 +377,7 @@ func RequestEpay(c *gin.Context) {
 		amount = dAmount.Div(dQuotaPerUnit).IntPart()
 	}
 	topUp := &model.TopUp{
+		OrganizationId:  common.GetContextKeyInt(c, constant.ContextKeyOrganizationId),
 		UserId:          id,
 		Amount:          amount,
 		Money:           payMoney,
@@ -550,7 +552,7 @@ func RequestAmount(c *gin.Context) {
 	if rejectInvalidTopUpQuota(c, id, req.Amount) {
 		return
 	}
-	group, err := model.GetUserGroup(id, true)
+	group, err := topUpGroup(c, id)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "获取用户分组失败"})
 		return
@@ -573,7 +575,14 @@ func GetUserTopUps(c *gin.Context) {
 		total  int64
 		err    error
 	)
-	if keyword != "" {
+	if organizationId := common.GetContextKeyInt(c, constant.ContextKeyOrganizationId); organizationId > 0 {
+		member, memberErr := organizationMember(c, organizationId)
+		if memberErr != nil || !model.OrganizationCanManage(member.Role) {
+			common.ApiErrorMsg(c, "organization manager permission required")
+			return
+		}
+		topups, total, err = model.GetOrganizationTopUps(organizationId, keyword, pageInfo)
+	} else if keyword != "" {
 		topups, total, err = model.SearchUserTopUps(userId, keyword, pageInfo)
 	} else {
 		topups, total, err = model.GetUserTopUps(userId, pageInfo)

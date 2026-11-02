@@ -185,9 +185,40 @@ func SetApiRouter(router *gin.Engine) {
 			}
 		}
 
+		// Organization workspace and shared-wallet APIs.
+		organizationRoute := apiRouter.Group("/organizations")
+		organizationRoute.Use(middleware.OrganizationEnabled(), middleware.UserAuth(), middleware.RealNameBusinessGate())
+		{
+			organizationRoute.GET("/", controller.GetOrganizations)
+			organizationRoute.POST("/", controller.CreateOrganization)
+			organizationRoute.GET("", controller.GetOrganizations)
+			organizationRoute.POST("", controller.CreateOrganization)
+			organizationRoute.GET("/invitations", controller.ListOrganizationInvitations)
+			organizationRoute.POST("/invitations/:invitation_id/accept", controller.AcceptOrganizationInvitation)
+			organizationRoute.GET("/:organization_id", controller.GetOrganization)
+			organizationRoute.PATCH("/:organization_id", controller.UpdateOrganization)
+			organizationRoute.POST("/:organization_id/owner", middleware.CriticalRateLimit(), controller.TransferOrganizationOwnership)
+			organizationRoute.GET("/:organization_id/members", controller.GetOrganizationMembers)
+			organizationRoute.PATCH("/:organization_id/members/:user_id", controller.UpdateOrganizationMember)
+			organizationRoute.DELETE("/:organization_id/members/:user_id", controller.RemoveOrganizationMember)
+			organizationRoute.POST("/:organization_id/leave", controller.LeaveOrganization)
+			organizationRoute.GET("/:organization_id/invitations", controller.GetOrganizationInvitations)
+			organizationRoute.POST("/:organization_id/invitations", controller.CreateOrganizationInvitation)
+			organizationRoute.DELETE("/:organization_id/invitations/:invitation_id", controller.RevokeOrganizationInvitation)
+			organizationRoute.GET("/:organization_id/tokens", controller.GetOrganizationTokens)
+			organizationRoute.POST("/:organization_id/tokens", controller.CreateOrganizationToken)
+			organizationRoute.PATCH("/:organization_id/tokens/:token_id", controller.UpdateOrganizationToken)
+			organizationRoute.DELETE("/:organization_id/tokens/:token_id", controller.DeleteOrganizationToken)
+			organizationRoute.POST("/:organization_id/tokens/:token_id/key", middleware.CriticalRateLimit(), middleware.DisableCache(), controller.GetOrganizationTokenKey)
+			organizationRoute.GET("/:organization_id/usage", controller.GetOrganizationUsage)
+			organizationRoute.GET("/:organization_id/logs", controller.GetOrganizationLogs)
+			organizationRoute.POST("/:organization_id/wallet/transfer", middleware.CriticalRateLimit(), controller.TransferOrganizationWallet)
+			organizationRoute.GET("/:organization_id/wallet/transactions", controller.GetOrganizationWalletTransactions)
+		}
+
 		// Subscription billing (plans, purchase, admin management)
 		subscriptionRoute := apiRouter.Group("/subscription")
-	subscriptionRoute.Use(middleware.UserAuth(), middleware.RealNameBusinessGate())
+		subscriptionRoute.Use(middleware.UserAuth(), middleware.RealNameBusinessGate())
 		{
 			subscriptionRoute.GET("/plans", controller.GetSubscriptionPlans)
 			subscriptionRoute.GET("/self", controller.GetSubscriptionSelf)
@@ -218,7 +249,7 @@ func SetApiRouter(router *gin.Engine) {
 		}
 
 		memberTierRoute := apiRouter.Group("/member_tiers")
-	memberTierRoute.Use(middleware.UserAuth(), middleware.RealNameBusinessGate())
+		memberTierRoute.Use(middleware.UserAuth(), middleware.RealNameBusinessGate())
 		{
 			memberTierRoute.GET("/self", controller.GetMemberTierSelf)
 		}
@@ -430,7 +461,7 @@ func SetApiRouter(router *gin.Engine) {
 		}
 
 		mjRoute := apiRouter.Group("/mj")
-	mjRoute.GET("/self", middleware.UserAuth(), middleware.RealNameBusinessGate(), controller.GetUserMidjourney)
+		mjRoute.GET("/self", middleware.UserAuth(), middleware.RealNameBusinessGate(), controller.GetUserMidjourney)
 		mjRoute.GET("/", middleware.AdminAuth(), controller.GetAllMidjourney)
 
 		taskRoute := apiRouter.Group("/task")

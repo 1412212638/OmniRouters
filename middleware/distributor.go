@@ -196,8 +196,8 @@ func Distribute() func(c *gin.Context) {
 							return
 						}
 					}
+				}
 			}
-		}
 		}
 		if channel != nil {
 			if ok, kind := model.ChannelSatisfiesFilters(channel, modelRequest.Model, constraints.Filters); !ok {
@@ -726,7 +726,7 @@ func getTaskOriginModelName(c *gin.Context) string {
 	}
 
 	userId := c.GetInt("id")
-	if task, exist, err := model.GetByTaskId(userId, taskId); err == nil && exist && task != nil {
+	if task, exist, err := model.GetByTaskId(userId, taskId, common.GetContextKeyInt(c, constant.ContextKeyOrganizationId)); err == nil && exist && task != nil {
 		return task.Properties.OriginModelName
 	}
 	return ""

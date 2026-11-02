@@ -82,20 +82,22 @@ type TokenCountMeta struct {
 }
 
 type RelayInfo struct {
-	TokenId           int
-	TokenKey          string
-	TokenGroup        string
-	UserId            int
-	UsingGroup        string // 使用的分组，当auto跨分组重试时，会变动
-	UserGroup         string // 用户所在分组
-	TokenUnlimited    bool
-	TokenKeyType      string
-	SubscriptionBillingMode string
-	SubscriptionAllowedModels []string
+	TokenId                      int
+	TokenKey                     string
+	TokenGroup                   string
+	UserId                       int
+	OrganizationId               int
+	OrganizationUsagePeriod      string
+	UsingGroup                   string // 使用的分组，当auto跨分组重试时，会变动
+	UserGroup                    string // 用户所在分组
+	TokenUnlimited               bool
+	TokenKeyType                 string
+	SubscriptionBillingMode      string
+	SubscriptionAllowedModels    []string
 	SubscriptionTokenPreConsumed int64
-	StartTime         time.Time
-	FirstResponseTime time.Time
-	isFirstResponse   bool
+	StartTime                    time.Time
+	FirstResponseTime            time.Time
+	isFirstResponse              bool
 	//SendLastReasoningResponse bool
 	IsStream               bool
 	IsGeminiBatchEmbedding bool
@@ -570,21 +572,23 @@ func genBaseRelayInfo(c *gin.Context, request dto.Request) *RelayInfo {
 	info := &RelayInfo{
 		Request: request,
 
-		RequestId:  reqId,
-		UserId:     common.GetContextKeyInt(c, constant.ContextKeyUserId),
-		UsingGroup: common.GetContextKeyString(c, constant.ContextKeyUsingGroup),
-		UserGroup:  common.GetContextKeyString(c, constant.ContextKeyUserGroup),
-		UserQuota:  common.GetContextKeyInt(c, constant.ContextKeyUserQuota),
-		UserEmail:  common.GetContextKeyString(c, constant.ContextKeyUserEmail),
+		RequestId:               reqId,
+		UserId:                  common.GetContextKeyInt(c, constant.ContextKeyUserId),
+		OrganizationId:          common.GetContextKeyInt(c, constant.ContextKeyOrganizationId),
+		OrganizationUsagePeriod: common.GetContextKeyString(c, constant.ContextKeyOrganizationUsagePeriod),
+		UsingGroup:              common.GetContextKeyString(c, constant.ContextKeyUsingGroup),
+		UserGroup:               common.GetContextKeyString(c, constant.ContextKeyUserGroup),
+		UserQuota:               common.GetContextKeyInt(c, constant.ContextKeyUserQuota),
+		UserEmail:               common.GetContextKeyString(c, constant.ContextKeyUserEmail),
 
 		OriginModelName: common.GetContextKeyString(c, constant.ContextKeyOriginalModel),
 
-		TokenId:        common.GetContextKeyInt(c, constant.ContextKeyTokenId),
-		TokenKey:       common.GetContextKeyString(c, constant.ContextKeyTokenKey),
-		TokenUnlimited: common.GetContextKeyBool(c, constant.ContextKeyTokenUnlimited),
-		TokenKeyType:   common.GetContextKeyString(c, constant.ContextKeyTokenKeyType),
+		TokenId:                 common.GetContextKeyInt(c, constant.ContextKeyTokenId),
+		TokenKey:                common.GetContextKeyString(c, constant.ContextKeyTokenKey),
+		TokenUnlimited:          common.GetContextKeyBool(c, constant.ContextKeyTokenUnlimited),
+		TokenKeyType:            common.GetContextKeyString(c, constant.ContextKeyTokenKeyType),
 		SubscriptionBillingMode: common.GetContextKeyString(c, constant.ContextKeySubscriptionBillingMode),
-		TokenGroup:     tokenGroup,
+		TokenGroup:              tokenGroup,
 
 		isFirstResponse: true,
 		RelayMode:       relayconstant.Path2RelayMode(c.Request.URL.Path),

@@ -25,18 +25,18 @@ import (
 // BillingSession 封装单次请求的预扣费/结算/退款生命周期。
 // 实现 relaycommon.BillingSettler 接口。
 type BillingSession struct {
-	relayInfo        *relaycommon.RelayInfo
-	funding          FundingSource
-	preConsumedQuota int  // 实际预扣额度（信任用户可能为 0）
-	tokenConsumed    int  // 令牌额度实际扣减量
-	extraReserved    int  // 发送前补充预扣的额度（订阅退款时需要单独回滚）
-	trusted          bool // 是否命中信任额度旁路
-	fundingSettled   bool // funding.Settle 已成功，资金来源已提交
-	settled          bool // Settle 全部完成（资金 + 令牌）
-	refunded         bool // Refund 已调用
+	relayInfo         *relaycommon.RelayInfo
+	funding           FundingSource
+	preConsumedQuota  int  // 实际预扣额度（信任用户可能为 0）
+	tokenConsumed     int  // 令牌额度实际扣减量
+	extraReserved     int  // 发送前补充预扣的额度（订阅退款时需要单独回滚）
+	trusted           bool // 是否命中信任额度旁路
+	fundingSettled    bool // funding.Settle 已成功，资金来源已提交
+	settled           bool // Settle 全部完成（资金 + 令牌）
+	refunded          bool // Refund 已调用
 	tokenSubscription bool
-	tokenFunding     *SubscriptionFunding
-	mu               sync.Mutex
+	tokenFunding      *SubscriptionFunding
+	mu                sync.Mutex
 }
 
 // Settle 根据实际消耗额度进行结算。
@@ -182,6 +182,12 @@ func (s *BillingSession) needsRefundLocked() bool {
 	if s.tokenFunding != nil && s.tokenFunding.preConsumed > 0 {
 		return true
 	}
+	// Organization keys use unlimited token quota, so tokenConsumed may be
+	// zero even though the shared wallet was reserved. Include that funding
+	// source explicitly to avoid losing a reservation on failed requests.
+	if organizationFunding, ok := s.funding.(*OrganizationFunding); ok && organizationFunding.consumed > 0 {
+		return true
+	}
 	return false
 }
 
@@ -279,6 +285,12 @@ func (s *BillingSession) preConsume(c *gin.Context, quota int) *types.NewAPIErro
 		}
 		// TODO: model 层应定义哨兵错误（如 ErrNoActiveSubscription），用 errors.Is 替代字符串匹配
 		if errors.Is(err, ErrInsufficientWalletQuota) {
+			if s.relayInfo.OrganizationId > 0 {
+				return types.NewErrorWithStatusCode(
+					fmt.Errorf("organization balance or member monthly limit is insufficient"),
+					types.ErrorCodeInsufficientUserQuota, http.StatusForbidden,
+					types.ErrOptionWithSkipRetry(), types.ErrOptionWithNoRecordErrorLog())
+			}
 			userQuota, quotaErr := model.GetUserQuota(s.relayInfo.UserId, false)
 			if quotaErr != nil {
 				userQuota = 0
@@ -328,6 +340,14 @@ func (s *BillingSession) reserveFunding(delta int, requireAvailableQuota bool) e
 		}
 		funding.consumed += delta
 		return nil
+	case *OrganizationFunding:
+		if err := funding.PreConsume(delta); err != nil {
+			if errors.Is(err, ErrInsufficientWalletQuota) {
+				return types.NewErrorWithStatusCode(err, types.ErrorCodeInsufficientUserQuota, http.StatusForbidden, types.ErrOptionWithSkipRetry(), types.ErrOptionWithNoRecordErrorLog())
+			}
+			return types.NewError(err, types.ErrorCodeUpdateDataError, types.ErrOptionWithSkipRetry())
+		}
+		return nil
 	case *SubscriptionFunding:
 		if err := model.PostConsumeUserSubscriptionDelta(funding.subscriptionId, int64(delta)); err != nil {
 			return types.NewErrorWithStatusCode(
@@ -352,6 +372,12 @@ func (s *BillingSession) rollbackFundingReserve(delta int) {
 		} else {
 			funding.consumed -= delta
 		}
+	case *OrganizationFunding:
+		if err := model.AdjustOrganizationQuota(funding.organizationId, funding.userId, -delta, funding.period); err != nil {
+			common.SysLog("error rolling back organization funding reserve: " + err.Error())
+		} else {
+			funding.consumed -= delta
+		}
 	case *SubscriptionFunding:
 		if err := model.PostConsumeUserSubscriptionDelta(funding.subscriptionId, -int64(delta)); err != nil {
 			common.SysLog("error rolling back subscription funding reserve: " + err.Error())
@@ -371,6 +397,9 @@ func (s *BillingSession) reserveToken(delta int) error {
 
 // shouldTrust 统一信任额度检查，适用于钱包和订阅。
 func (s *BillingSession) shouldTrust(c *gin.Context) bool {
+	if s.relayInfo.OrganizationId > 0 {
+		return false
+	}
 	// 异步任务（ForcePreConsume=true）必须预扣全额，不允许信任旁路
 	if s.relayInfo.ForcePreConsume {
 		return false
@@ -435,6 +464,17 @@ func (s *BillingSession) syncRelayInfo() {
 func NewBillingSession(c *gin.Context, relayInfo *relaycommon.RelayInfo, preConsumedQuota int) (*BillingSession, *types.NewAPIError) {
 	if relayInfo == nil {
 		return nil, types.NewError(fmt.Errorf("relayInfo is nil"), types.ErrorCodeInvalidRequest, types.ErrOptionWithSkipRetry())
+	}
+	if relayInfo.OrganizationId > 0 {
+		if relayInfo.TokenKeyType != "" && relayInfo.TokenKeyType != model.TokenKeyTypeGeneral {
+			return nil, types.NewError(fmt.Errorf("organization key cannot use a personal subscription"), types.ErrorCodeInvalidRequest, types.ErrOptionWithSkipRetry())
+		}
+		funding := &OrganizationFunding{organizationId: relayInfo.OrganizationId, userId: relayInfo.UserId, period: relayInfo.OrganizationUsagePeriod}
+		session := &BillingSession{relayInfo: relayInfo, funding: funding}
+		if apiErr := session.preConsume(c, preConsumedQuota); apiErr != nil {
+			return nil, apiErr
+		}
+		return session, nil
 	}
 	tokenSubscriptionKey := IsTokenSubscriptionKey(relayInfo)
 	isStandaloneTool := IsStandaloneToolRequest(relayInfo)
@@ -508,11 +548,11 @@ func NewBillingSession(c *gin.Context, relayInfo *relaycommon.RelayInfo, preCons
 		session := &BillingSession{
 			relayInfo: relayInfo,
 			funding: &SubscriptionFunding{
-				requestId: relayInfo.RequestId,
-				userId:    relayInfo.UserId,
+				requestId:  relayInfo.RequestId,
+				userId:     relayInfo.UserId,
 				usingGroup: relayInfo.UsingGroup,
-				modelName: relayInfo.OriginModelName,
-				amount:    subConsume,
+				modelName:  relayInfo.OriginModelName,
+				amount:     subConsume,
 			},
 		}
 		// 必须传 subConsume 而非 preConsumedQuota，保证 SubscriptionFunding.amount、

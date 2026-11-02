@@ -58,6 +58,8 @@ func ImageTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo, requestBody io
 	task := model.InitTask(constant.TaskPlatformOpenAIImage, info)
 	task.PrivateData.UpstreamTaskID = upstreamTaskID
 	task.PrivateData.BillingSource = info.BillingSource
+	task.PrivateData.OrganizationId = info.OrganizationId
+	task.PrivateData.OrganizationUsagePeriod = info.OrganizationUsagePeriod
 	task.PrivateData.SubscriptionId = info.SubscriptionId
 	task.PrivateData.TokenId = info.TokenId
 	task.PrivateData.BillingContext = &model.TaskBillingContext{

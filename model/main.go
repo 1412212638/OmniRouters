@@ -375,6 +375,11 @@ func migrateDB() error {
 		&SystemTaskLock{},
 		&CasbinRule{},
 		&AuthzRole{},
+		&Organization{},
+		&OrganizationMember{},
+		&OrganizationMemberUsage{},
+		&OrganizationInvitation{},
+		&OrganizationWalletTransaction{},
 	)
 	if err != nil {
 		return err
@@ -451,6 +456,11 @@ func migrateDBFast() error {
 		{&SystemInstance{}, "SystemInstance"},
 		{&SystemTask{}, "SystemTask"},
 		{&SystemTaskLock{}, "SystemTaskLock"},
+		{&Organization{}, "Organization"},
+		{&OrganizationMember{}, "OrganizationMember"},
+		{&OrganizationMemberUsage{}, "OrganizationMemberUsage"},
+		{&OrganizationInvitation{}, "OrganizationInvitation"},
+		{&OrganizationWalletTransaction{}, "OrganizationWalletTransaction"},
 	}
 	// 动态计算migration数量，确保errChan缓冲区足够大
 	errChan := make(chan error, len(migrations))
@@ -509,6 +519,11 @@ func migrateClickHouseLogDB() error {
 	if err := LOG_DB.Exec(clickHouseLogCreateTableSQL(ttlDays)).Error; err != nil {
 		return err
 	}
+	// CREATE IF NOT EXISTS does not evolve existing ClickHouse tables. Keep
+	// legacy log rows in the personal workspace with the same zero default.
+	if err := LOG_DB.Exec("ALTER TABLE logs ADD COLUMN IF NOT EXISTS organization_id Int32 DEFAULT 0 AFTER user_id").Error; err != nil {
+		return err
+	}
 	return syncClickHouseLogTTL(ttlDays)
 }
 
@@ -540,6 +555,7 @@ func clickHouseLogCreateTableSQL(ttlDays int) string {
 CREATE TABLE IF NOT EXISTS logs (
 	id Int64 DEFAULT 0,
 	user_id Int32 DEFAULT 0,
+	organization_id Int32 DEFAULT 0,
 	created_at Int64 DEFAULT 0,
 	type Int32 DEFAULT 0,
 	content String DEFAULT '',

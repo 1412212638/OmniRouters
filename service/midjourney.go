@@ -39,6 +39,12 @@ func PrepareMidjourneyTaskBilling(relayInfo *relaycommon.RelayInfo, task *model.
 	task.Quota = 0
 	task.TokenId = 0
 	task.BillingChannelId = 0
+	task.OrganizationId = 0
+	task.OrganizationUsagePeriod = ""
+	if relayInfo != nil {
+		task.OrganizationId = relayInfo.OrganizationId
+		task.OrganizationUsagePeriod = relayInfo.OrganizationUsagePeriod
+	}
 	if !shouldBill {
 		return false, nil
 	}
@@ -53,6 +59,8 @@ func PrepareMidjourneyTaskBilling(relayInfo *relaycommon.RelayInfo, task *model.
 	}
 
 	task.Quota = quota
+	task.OrganizationId = relayInfo.OrganizationId
+	task.OrganizationUsagePeriod = relayInfo.OrganizationUsagePeriod
 	task.BillingChannelId = task.ChannelId
 	if relayInfo.ChannelMeta != nil && relayInfo.ChannelId > 0 {
 		task.BillingChannelId = relayInfo.ChannelId
@@ -100,8 +108,14 @@ func RefundMidjourneyQuota(ctx context.Context, task *model.Midjourney, reason s
 		return true
 	}
 
-	if err := model.IncreaseUserQuota(task.UserId, quota, false); err != nil {
-		logger.LogWarn(ctx, fmt.Sprintf("退还 Midjourney 用户额度失败 task %s: %s", task.MjId, err.Error()))
+	var fundingErr error
+	if task.OrganizationId > 0 {
+		fundingErr = model.AdjustOrganizationQuota(task.OrganizationId, task.UserId, -quota, task.OrganizationUsagePeriod)
+	} else {
+		fundingErr = model.IncreaseUserQuota(task.UserId, quota, false)
+	}
+	if fundingErr != nil {
+		logger.LogWarn(ctx, fmt.Sprintf("退还 Midjourney 用户额度失败 task %s: %s", task.MjId, fundingErr.Error()))
 		return false
 	}
 
@@ -115,20 +129,23 @@ func RefundMidjourneyQuota(ctx context.Context, task *model.Midjourney, reason s
 	}
 
 	billingChannelId := task.GetBillingChannelId()
-	model.UpdateUserUsedQuota(task.UserId, -quota)
+	if task.OrganizationId == 0 {
+		model.UpdateUserUsedQuota(task.UserId, -quota)
+	}
 	model.UpdateChannelUsedQuota(billingChannelId, -quota)
 	other := model.NewLogOther()
 	other.SetPublic("task_id", task.MjId)
 	other.SetPublic("reason", reason)
 	model.RecordTaskBillingLog(model.RecordTaskBillingLogParams{
-		UserId:    task.UserId,
-		LogType:   model.LogTypeRefund,
-		Content:   "",
-		ChannelId: billingChannelId,
-		ModelName: CovertMjpActionToModelName(task.Action),
-		Quota:     quota,
-		TokenId:   task.TokenId,
-		Other:     other,
+		OrganizationId: task.OrganizationId,
+		UserId:         task.UserId,
+		LogType:        model.LogTypeRefund,
+		Content:        "",
+		ChannelId:      billingChannelId,
+		ModelName:      CovertMjpActionToModelName(task.Action),
+		Quota:          quota,
+		TokenId:        task.TokenId,
+		Other:          other,
 	})
 
 	task.Quota = 0

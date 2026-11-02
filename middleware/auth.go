@@ -197,6 +197,14 @@ func authHelper(c *gin.Context, minRole int) {
 	c.Set("group", userGroup)
 	c.Set("user_group", userGroup)
 	c.Set("use_access_token", useAccessToken)
+	if err := setupDashboardOrganizationContext(c); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+		c.Abort()
+		return
+	}
 
 	// 管理/root 写操作审计兜底：内聚在鉴权链路里，保证任何经过 AdminAuth/RootAuth
 	// 的写接口都会自动留痕（无需在路由上单独挂审计中间件，避免漏挂）。
@@ -209,6 +217,54 @@ func authHelper(c *gin.Context, minRole int) {
 	c.Next()
 
 	finishAdminAudit(c, auditWriter)
+}
+
+// setupDashboardOrganizationContext binds the optional workspace header to the
+// authenticated dashboard user. API-token requests derive this context from
+// the token itself in SetupContextForToken; dashboard requests must prove
+// active membership before any workspace-scoped controller runs.
+func setupDashboardOrganizationContext(c *gin.Context) error {
+	// Account/profile/authentication and administrator configuration endpoints
+	// always remain personal/global. Only these dashboard data APIs consume the
+	// workspace selection; organization-management routes validate their path ID.
+	path := strings.TrimSuffix(c.Request.URL.Path, "/")
+	workspaceScoped := strings.HasPrefix(path, "/api/token") ||
+		path == "/api/user/models" || path == "/api/user/self/groups" ||
+		path == "/api/log/self" || path == "/api/log/self/stat" ||
+		path == "/api/data/self" || path == "/api/data/flow/self" ||
+		path == "/api/task/self" || path == "/api/mj/self" ||
+		path == "/api/user/pay" || path == "/api/user/stripe/pay" ||
+		path == "/api/user/creem/pay" || path == "/api/user/waffo/pay" ||
+		path == "/api/user/waffo-pancake/pay" || path == "/api/user/amount" ||
+		path == "/api/user/stripe/amount" || path == "/api/user/waffo/amount" ||
+		path == "/api/user/waffo-pancake/amount" || path == "/api/user/topup/self"
+	if !workspaceScoped {
+		return nil
+	}
+	header := strings.TrimSpace(c.GetHeader("New-Api-Organization"))
+	if header == "" {
+		common.SetContextKey(c, constant.ContextKeyOrganizationId, 0)
+		common.SetContextKey(c, constant.ContextKeyOrganizationUsagePeriod, "")
+		return nil
+	}
+	organizationID, err := strconv.Atoi(header)
+	if err != nil || organizationID <= 0 {
+		return errors.New("invalid organization workspace")
+	}
+	if !common.OrganizationEnabled {
+		return errors.New("organization feature is disabled")
+	}
+	userID := c.GetInt("id")
+	membership, err := model.GetOrganizationMember(organizationID, userID)
+	if err != nil || membership.Status != model.OrganizationMemberActive {
+		return errors.New("organization membership is unavailable")
+	}
+	if _, err := model.GetOrganizationById(organizationID); err != nil {
+		return errors.New("organization is unavailable")
+	}
+	common.SetContextKey(c, constant.ContextKeyOrganizationId, organizationID)
+	common.SetContextKey(c, constant.ContextKeyOrganizationUsagePeriod, model.CurrentOrganizationUsagePeriod())
+	return nil
 }
 
 func writeDashboardAuthFailure(c *gin.Context, err error) {
@@ -396,9 +452,10 @@ func TokenAuthReadOnly() func(c *gin.Context) {
 			return
 		}
 
-		c.Set("id", token.UserId)
-		c.Set("token_id", token.Id)
-		c.Set("token_key", token.Key)
+		if err := SetupContextForToken(c, token); err != nil {
+			abortWithOpenAiMessage(c, http.StatusForbidden, err.Error(), types.ErrorCodeAccessDenied)
+			return
+		}
 		c.Next()
 	}
 }
@@ -517,8 +574,14 @@ func TokenAuth() func(c *gin.Context) {
 		}
 
 		userCache.WriteContext(c)
+		if err := SetupContextForToken(c, token, parts...); err != nil {
+			if !c.IsAborted() {
+				abortWithOpenAiMessage(c, http.StatusForbidden, err.Error(), types.ErrorCodeAccessDenied)
+			}
+			return
+		}
 
-		userGroup := userCache.Group
+		userGroup := common.GetContextKeyString(c, constant.ContextKeyUserGroup)
 		tokenGroup := token.Group
 		if tokenGroup != "" {
 			// check common.UserUsableGroups[userGroup]
@@ -537,10 +600,6 @@ func TokenAuth() func(c *gin.Context) {
 		}
 		common.SetContextKey(c, constant.ContextKeyUsingGroup, userGroup)
 
-		err = SetupContextForToken(c, token, parts...)
-		if err != nil {
-			return
-		}
 		c.Next()
 	}
 }
@@ -559,6 +618,27 @@ func SetupContextForToken(c *gin.Context, token *model.Token, parts ...string) e
 	common.SetContextKey(c, constant.ContextKeySubscriptionId, token.UserSubscriptionId)
 	common.SetContextKey(c, constant.ContextKeySubscriptionBillingMode, token.SubscriptionBillingMode)
 	common.SetContextKey(c, constant.ContextKeySubscriptionAllowedModels, []string(token.SubscriptionAllowedModels))
+	common.SetContextKey(c, constant.ContextKeyOrganizationId, token.OrganizationId)
+	if token.OrganizationId > 0 {
+		if !common.OrganizationEnabled {
+			return fmt.Errorf("organization workspaces are disabled")
+		}
+		if token.KeyType != "" && token.KeyType != model.TokenKeyTypeGeneral {
+			return fmt.Errorf("organization key cannot use a personal subscription")
+		}
+		organization, err := model.GetOrganizationById(token.OrganizationId)
+		if err != nil {
+			return fmt.Errorf("organization is unavailable: %w", err)
+		}
+		member, err := model.GetOrganizationMember(token.OrganizationId, token.UserId)
+		if err != nil || member.Status != model.OrganizationMemberActive {
+			return fmt.Errorf("organization membership is unavailable")
+		}
+		common.SetContextKey(c, constant.ContextKeyOrganizationUsagePeriod, model.CurrentOrganizationUsagePeriod())
+		common.SetContextKey(c, constant.ContextKeyUserQuota, organization.Quota)
+		common.SetContextKey(c, constant.ContextKeyUserGroup, organization.Group)
+		common.SetContextKey(c, constant.ContextKeyUserExtraGroups, []string{})
+	}
 	if !token.UnlimitedQuota {
 		c.Set("token_quota", token.RemainQuota)
 	}

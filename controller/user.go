@@ -314,15 +314,15 @@ func Register(c *gin.Context) {
 		}
 		// 生成默认令牌
 		token := model.Token{
-			UserId:             insertedUser.Id, // 使用插入后的用户ID
-			Name:               cleanUser.Username + "的初始令牌",
-			Key:                key,
-			CreatedTime:        common.GetTimestamp(),
-			AccessedTime:       common.GetTimestamp(),
-			ExpiredTime:        -1,     // 永不过期
-			RemainQuota:        500000, // 示例额度
-			UnlimitedQuota:     true,
-			ModelLimitsEnabled: false,
+			UserId:              insertedUser.Id, // 使用插入后的用户ID
+			Name:                cleanUser.Username + "的初始令牌",
+			Key:                 key,
+			CreatedTime:         common.GetTimestamp(),
+			AccessedTime:        common.GetTimestamp(),
+			ExpiredTime:         -1,     // 永不过期
+			RemainQuota:         500000, // 示例额度
+			UnlimitedQuota:      true,
+			ModelLimitsEnabled:  false,
 			AllowUserQuotaQuery: true,
 		}
 		if setting.DefaultUseAutoGroup {
@@ -708,6 +708,17 @@ func GetUserModels(c *gin.Context) {
 		return
 	}
 	groups := service.GetUserUsableGroupsWithExtras(user.Group, user.GetExtraGroups())
+	organizationId := common.GetContextKeyInt(c, constant.ContextKeyOrganizationId)
+	if organizationId > 0 {
+		organization, err := model.GetOrganizationById(organizationId)
+		if err != nil {
+			common.ApiError(c, err)
+			return
+		}
+		// Organization keys inherit one organization group, so model suggestions
+		// must not include models from the member's personal or extra groups.
+		groups = map[string]string{organization.Group: setting.GetUsableGroupDescription(organization.Group)}
+	}
 	group := strings.TrimSpace(c.Query("group"))
 	groupsToQuery := make([]string, 0, len(groups))
 	switch {
@@ -715,7 +726,7 @@ func GetUserModels(c *gin.Context) {
 		for groupName := range groups {
 			groupsToQuery = append(groupsToQuery, groupName)
 		}
-	case group == "auto":
+	case group == "auto" && organizationId == 0:
 		if _, ok := groups[group]; ok {
 			groupsToQuery = service.GetUserAutoGroupWithExtras(user.Group, user.GetExtraGroups())
 		}

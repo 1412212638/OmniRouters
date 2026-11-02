@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting"
@@ -26,6 +27,19 @@ func GetGroups(c *gin.Context) {
 
 func GetUserGroups(c *gin.Context) {
 	usableGroups := make(map[string]map[string]interface{})
+	if organizationId := common.GetContextKeyInt(c, constant.ContextKeyOrganizationId); organizationId > 0 {
+		organization, err := model.GetOrganizationById(organizationId)
+		if err != nil {
+			common.ApiError(c, err)
+			return
+		}
+		usableGroups[organization.Group] = map[string]interface{}{
+			"ratio": service.GetUserGroupRatio(organization.Group, organization.Group),
+			"desc":  setting.GetUsableGroupDescription(organization.Group),
+		}
+		common.ApiSuccess(c, usableGroups)
+		return
+	}
 	userId := c.GetInt("id")
 	user, err := model.GetUserCache(userId)
 	if err != nil {

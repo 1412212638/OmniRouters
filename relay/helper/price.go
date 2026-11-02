@@ -70,8 +70,14 @@ func HandleGroupRatio(ctx *gin.Context, relayInfo *relaycommon.RelayInfo) hostty
 		groupRatioInfo.GroupRatio = ratio_setting.GetGroupRatio(relayInfo.UsingGroup)
 	}
 	groupRatioInfo.BaseGroupRatio = groupRatioInfo.GroupRatio
+	ratioUserId := relayInfo.UserId
+	if relayInfo.OrganizationId > 0 {
+		// Organization pricing is shared by the workspace. Do not apply a
+		// member-specific model override to otherwise identical organization keys.
+		ratioUserId = 0
+	}
 	modelRatio, matched, userSpecific := ratio_setting.ResolveGroupModelRatio(
-		relayInfo.UsingGroup, relayInfo.GetBillingModelName(), relayInfo.UserId,
+		relayInfo.UsingGroup, relayInfo.GetBillingModelName(), ratioUserId,
 	)
 	if matched {
 		groupRatioInfo.ModelGroupRatio = modelRatio
@@ -176,21 +182,21 @@ func ModelPriceHelper(c *gin.Context, info *relaycommon.RelayInfo, promptTokens 
 	}
 
 	priceData := hosttypes.PriceData{
-		FreeModel:            freeModel,
-		ModelPrice:           modelPrice,
-		ModelRatio:           modelRatio,
-		CompletionRatio:      completionRatio,
-		GroupRatioInfo:       groupRatioInfo,
-		UsePrice:             usePrice,
-		CacheRatio:           cacheRatio,
-		ImageRatio:           imageRatio,
-		AudioRatio:           audioRatio,
-		AudioCompletionRatio: audioCompletionRatio,
-		CacheCreationRatio:   cacheCreationRatio,
-		CacheCreation5mRatio: cacheCreationRatio5m,
-		CacheCreation1hRatio: cacheCreationRatio1h,
+		FreeModel:             freeModel,
+		ModelPrice:            modelPrice,
+		ModelRatio:            modelRatio,
+		CompletionRatio:       completionRatio,
+		GroupRatioInfo:        groupRatioInfo,
+		UsePrice:              usePrice,
+		CacheRatio:            cacheRatio,
+		ImageRatio:            imageRatio,
+		AudioRatio:            audioRatio,
+		AudioCompletionRatio:  audioCompletionRatio,
+		CacheCreationRatio:    cacheCreationRatio,
+		CacheCreation5mRatio:  cacheCreationRatio5m,
+		CacheCreation1hRatio:  cacheCreationRatio1h,
 		CacheCreation12hRatio: cacheCreationRatio12h,
-		QuotaToPreConsume:    preConsumedQuota,
+		QuotaToPreConsume:     preConsumedQuota,
 	}
 	if usePrice {
 		for name, ratio := range meta.BillingRatios {

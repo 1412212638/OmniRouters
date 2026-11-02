@@ -29,6 +29,8 @@ const (
 	ContextKeySubscriptionId            ContextKey = "token_subscription_id"
 	ContextKeySubscriptionBillingMode   ContextKey = "token_subscription_billing_mode"
 	ContextKeySubscriptionAllowedModels ContextKey = "token_subscription_allowed_models"
+	ContextKeyOrganizationId            ContextKey = "organization_id"
+	ContextKeyOrganizationUsagePeriod   ContextKey = "organization_usage_period"
 
 	/* channel related keys */
 	ContextKeyChannelId                ContextKey = "channel_id"

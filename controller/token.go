@@ -72,9 +72,9 @@ func (request *tokenRequest) UnmarshalJSON(data []byte) error {
 
 type tokenResponse struct {
 	*model.Token
-	AutoGroups        []string                   `json:"auto_groups"`
-	Subscription      *tokenSubscriptionResponse `json:"subscription,omitempty"`
-	EffectiveStatus   string                     `json:"effective_status,omitempty"`
+	AutoGroups      []string                   `json:"auto_groups"`
+	Subscription    *tokenSubscriptionResponse `json:"subscription,omitempty"`
+	EffectiveStatus string                     `json:"effective_status,omitempty"`
 }
 
 // tokenSubscriptionResponse is the read-only subscription snapshot displayed
@@ -270,13 +270,14 @@ func setTokenAutoGroups(c *gin.Context, token *model.Token, groups []string) boo
 
 func GetAllTokens(c *gin.Context) {
 	userId := c.GetInt("id")
+	organizationID := common.GetContextKeyInt(c, constant.ContextKeyOrganizationId)
 	pageInfo := common.GetPageQuery(c)
-	tokens, err := model.GetAllUserTokens(userId, pageInfo.GetStartIdx(), pageInfo.GetPageSize())
+	tokens, err := model.GetAllUserTokens(userId, pageInfo.GetStartIdx(), pageInfo.GetPageSize(), organizationID)
 	if err != nil {
 		common.ApiError(c, err)
 		return
 	}
-	total, _ := model.CountUserTokens(userId)
+	total, _ := model.CountUserTokens(userId, organizationID)
 	pageInfo.SetTotal(int(total))
 	pageInfo.SetItems(buildMaskedTokenResponses(tokens))
 	common.ApiSuccess(c, pageInfo)
@@ -289,7 +290,7 @@ func SearchTokens(c *gin.Context) {
 
 	pageInfo := common.GetPageQuery(c)
 
-	tokens, total, err := model.SearchUserTokens(userId, keyword, token, pageInfo.GetStartIdx(), pageInfo.GetPageSize())
+	tokens, total, err := model.SearchUserTokens(userId, keyword, token, pageInfo.GetStartIdx(), pageInfo.GetPageSize(), common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -306,7 +307,7 @@ func GetToken(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
-	token, err := model.GetTokenByIds(id, userId)
+	token, err := model.GetTokenByIds(id, userId, common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -333,7 +334,7 @@ func GetTokenKey(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
-	token, err := model.GetTokenByIds(id, userId)
+	token, err := model.GetTokenByIds(id, userId, common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -346,7 +347,7 @@ func GetTokenKey(c *gin.Context) {
 func GetTokenStatus(c *gin.Context) {
 	tokenId := c.GetInt("token_id")
 	userId := c.GetInt("id")
-	token, err := model.GetTokenByIds(tokenId, userId)
+	token, err := model.GetTokenByIds(tokenId, userId, common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -446,6 +447,15 @@ func AddToken(c *gin.Context) {
 		return
 	}
 	token := request.Token
+	if organizationID := common.GetContextKeyInt(c, constant.ContextKeyOrganizationId); organizationID > 0 {
+		created, err := model.CreateOrganizationToken(organizationID, c.GetInt("id"), token.Name)
+		if err != nil {
+			common.ApiError(c, err)
+			return
+		}
+		common.ApiSuccess(c, buildMaskedTokenResponse(created))
+		return
+	}
 	if len(token.Name) > 50 {
 		common.ApiErrorI18n(c, i18n.MsgTokenNameTooLong)
 		return
@@ -494,21 +504,21 @@ func AddToken(c *gin.Context) {
 		return
 	}
 	cleanToken := model.Token{
-		UserId:             c.GetInt("id"),
-		Name:               token.Name,
-		Key:                key,
-		CreatedTime:        common.GetTimestamp(),
-		AccessedTime:       common.GetTimestamp(),
-		ExpiredTime:        token.ExpiredTime,
-		RemainQuota:        token.RemainQuota,
-		UnlimitedQuota:     token.UnlimitedQuota,
-		ModelLimitsEnabled: token.ModelLimitsEnabled,
-		ModelLimits:        token.ModelLimits,
-		AllowIps:           token.AllowIps,
-		Group:              token.Group,
-		CrossGroupRetry:    token.CrossGroupRetry,
-		AutoRouteStrategy:  token.AutoRouteStrategy,
-		AutoGroups:         token.AutoGroups,
+		UserId:              c.GetInt("id"),
+		Name:                token.Name,
+		Key:                 key,
+		CreatedTime:         common.GetTimestamp(),
+		AccessedTime:        common.GetTimestamp(),
+		ExpiredTime:         token.ExpiredTime,
+		RemainQuota:         token.RemainQuota,
+		UnlimitedQuota:      token.UnlimitedQuota,
+		ModelLimitsEnabled:  token.ModelLimitsEnabled,
+		ModelLimits:         token.ModelLimits,
+		AllowIps:            token.AllowIps,
+		Group:               token.Group,
+		CrossGroupRetry:     token.CrossGroupRetry,
+		AutoRouteStrategy:   token.AutoRouteStrategy,
+		AutoGroups:          token.AutoGroups,
 		AllowUserQuotaQuery: request.AllowUserQuotaQuery == nil || *request.AllowUserQuotaQuery,
 		KeyType:             model.TokenKeyTypeGeneral,
 	}
@@ -526,7 +536,7 @@ func AddToken(c *gin.Context) {
 func DeleteToken(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	userId := c.GetInt("id")
-	err := model.DeleteTokenById(id, userId)
+	err := model.DeleteTokenById(id, userId, common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -562,9 +572,30 @@ func UpdateToken(c *gin.Context) {
 			return
 		}
 	}
-	cleanToken, err := model.GetTokenByIds(token.Id, userId)
+	cleanToken, err := model.GetTokenByIds(token.Id, userId, common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
 	if err != nil {
 		common.ApiError(c, err)
+		return
+	}
+	if cleanToken.OrganizationId > 0 {
+		var name *string
+		if statusOnly == "" {
+			name = &token.Name
+		}
+		var status *int
+		if statusOnly != "" {
+			if token.Status != common.TokenStatusEnabled && token.Status != common.TokenStatusDisabled {
+				common.ApiErrorMsg(c, "invalid organization token status")
+				return
+			}
+			status = &token.Status
+		}
+		updated, err := model.UpdateOrganizationToken(cleanToken.OrganizationId, cleanToken.Id, name, status)
+		if err != nil {
+			common.ApiError(c, err)
+			return
+		}
+		common.ApiSuccess(c, buildMaskedTokenResponse(updated))
 		return
 	}
 	if token.Status == common.TokenStatusEnabled {
@@ -638,7 +669,7 @@ func DeleteTokenBatch(c *gin.Context) {
 		return
 	}
 	userId := c.GetInt("id")
-	count, err := model.BatchDeleteTokens(tokenBatch.Ids, userId)
+	count, err := model.BatchDeleteTokens(tokenBatch.Ids, userId, common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -661,7 +692,7 @@ func GetTokenKeysBatch(c *gin.Context) {
 		return
 	}
 	userId := c.GetInt("id")
-	tokens, err := model.GetTokenKeysByIds(tokenBatch.Ids, userId)
+	tokens, err := model.GetTokenKeysByIds(tokenBatch.Ids, userId, common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
 	if err != nil {
 		common.ApiError(c, err)
 		return

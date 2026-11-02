@@ -58,6 +58,14 @@ func sendTopUpSuccessEmail(topUp *model.TopUp, quotaAdded int) {
 		Balance:         logger.FormatQuota(user.Quota),
 		PaidAt:          time.Unix(paidAt, 0).Local().Format("2006-01-02 15:04:05"),
 	}
+	if topUp.OrganizationId > 0 {
+		organization, err := model.GetOrganizationById(topUp.OrganizationId)
+		if err != nil {
+			return
+		}
+		params.Username = organization.Name
+		params.Balance = logger.FormatQuota(organization.Quota)
+	}
 
 	subject, content := common.BuildTopUpSuccessMail(params)
 	if err := common.SendEmail(subject, emailToUse, content); err != nil {

@@ -39,7 +39,7 @@ type pluginProtocolBridgeDeps struct {
 	tickJitter         time.Duration
 	heartbeatInterval  time.Duration
 	admissionTimeout   time.Duration
-	getByTaskId        func(int, string) (*model.Task, bool, error)
+	getByTaskId        func(int, string, ...int) (*model.Task, bool, error)
 	resolvePlugin      func(constant.TaskPlatform) (*pluginruntime.LoadedPlugin, *pluginruntime.RoutingGeneration, bool)
 	imagePollInterval  time.Duration
 	pollTask           func(context.Context, *model.Task) error
@@ -417,7 +417,8 @@ func streamTaskPluginProtocol(
 		return
 	}
 
-	observationContext, cancelObservation := context.WithTimeout(c.Request.Context(), deps.observationTimeout)
+	workspaceContext := context.WithValue(c.Request.Context(), constant.ContextKeyOrganizationId, common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
+	observationContext, cancelObservation := context.WithTimeout(workspaceContext, deps.observationTimeout)
 	defer cancelObservation()
 	heartbeatTicker := time.NewTicker(deps.heartbeatInterval)
 	defer heartbeatTicker.Stop()
@@ -671,7 +672,8 @@ func waitTaskPluginProtocol(
 		deps.observationTimeout.Milliseconds(),
 		deps.tickInterval.Milliseconds(),
 	)
-	observationContext, cancelObservation := context.WithTimeout(c.Request.Context(), deps.observationTimeout)
+	workspaceContext := context.WithValue(c.Request.Context(), constant.ContextKeyOrganizationId, common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
+	observationContext, cancelObservation := context.WithTimeout(workspaceContext, deps.observationTimeout)
 	defer cancelObservation()
 	tickNumber := uint64(0)
 	lastStatus := ""
@@ -953,7 +955,7 @@ func retrieveTaskPluginResponse(c *gin.Context, deps pluginProtocolBridgeDeps) {
 	userID := common.GetContextKeyInt(c, constant.ContextKeyUserId)
 	logger.LogDebug(c, "task_plugin subsystem=protocol event=retrieve_start response_id=%q public_task_id=%q", responseID, taskID)
 
-	task, exists, err := deps.getByTaskId(userID, taskID)
+	task, exists, err := deps.getByTaskId(userID, taskID, common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
 	if err != nil {
 		logger.LogError(c, "task protocol retrieve lookup failed")
 		logger.LogDebug(c, "task_plugin subsystem=protocol event=retrieve_failed reason=lookup_error public_task_id=%q", taskID)

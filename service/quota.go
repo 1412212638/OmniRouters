@@ -90,6 +90,13 @@ func PreWssConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, usag
 		return nil
 	}
 	userQuota, err := model.GetUserQuota(relayInfo.UserId, false)
+	if relayInfo.OrganizationId > 0 {
+		var organization *model.Organization
+		organization, err = model.GetOrganizationById(relayInfo.OrganizationId)
+		if err == nil {
+			userQuota = organization.Quota
+		}
+	}
 	if err != nil {
 		return err
 	}
@@ -119,7 +126,11 @@ func PreWssConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, usag
 	if ok {
 		actualGroupRatio = userGroupRatio
 	}
-	modelGroupRatio, _, _ := ratio_setting.ResolveGroupModelRatio(relayInfo.UsingGroup, modelName, relayInfo.UserId)
+	ratioUserId := relayInfo.UserId
+	if relayInfo.OrganizationId > 0 {
+		ratioUserId = 0
+	}
+	modelGroupRatio, _, _ := ratio_setting.ResolveGroupModelRatio(relayInfo.UsingGroup, modelName, ratioUserId)
 	actualGroupRatio *= modelGroupRatio
 
 	quotaInfo := QuotaInfo{
@@ -148,7 +159,13 @@ func PreWssConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, usag
 		return fmt.Errorf("token quota is not enough, token remain quota: %s, need quota: %s", logger.FormatQuota(token.RemainQuota), logger.FormatQuota(quota))
 	}
 
-	err = PostConsumeQuota(relayInfo, quota, 0, false)
+	if relayInfo.OrganizationId > 0 && relayInfo.Billing != nil {
+		// Keep realtime reservations in the same session so final settlement
+		// deducts only the difference and enforces the member's monthly limit.
+		err = relayInfo.Billing.ReserveBeforeSubmit(relayInfo.Billing.GetPreConsumedQuota() + quota)
+	} else {
+		err = PostConsumeQuota(relayInfo, quota, 0, false)
+	}
 	if err != nil {
 		return err
 	}
@@ -225,7 +242,7 @@ func PostWssConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, mod
 		logger.LogError(ctx, fmt.Sprintf("total tokens is 0, cannot consume quota, userId %d, channelId %d, "+
 			"tokenId %d, model %s， pre-consumed quota %d", relayInfo.UserId, relayInfo.ChannelId, relayInfo.TokenId, modelName, relayInfo.FinalPreConsumedQuota))
 	} else {
-		model.UpdateUserUsedQuotaAndRequestCount(relayInfo.UserId, quota)
+		RecordRelayUsage(relayInfo, quota)
 		model.UpdateChannelUsedQuota(relayInfo.ChannelId, quota)
 	}
 
@@ -364,7 +381,7 @@ func PostAudioConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, u
 		logger.LogError(ctx, fmt.Sprintf("total tokens is 0, cannot consume quota, userId %d, channelId %d, "+
 			"tokenId %d, model %s， pre-consumed quota %d", relayInfo.UserId, relayInfo.ChannelId, relayInfo.TokenId, relayInfo.OriginModelName, relayInfo.FinalPreConsumedQuota))
 	} else {
-		model.UpdateUserUsedQuotaAndRequestCount(relayInfo.UserId, quota)
+		RecordRelayUsage(relayInfo, quota)
 		model.UpdateChannelUsedQuota(relayInfo.ChannelId, quota)
 	}
 
@@ -399,11 +416,11 @@ func PostAudioConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, u
 		Other:            other,
 	})
 	gopool.Go(func() {
-	uncachedPromptTokens := usage.PromptTokens - usage.PromptTokensDetails.CachedTokens
-	if uncachedPromptTokens < 0 {
-		uncachedPromptTokens = 0
-	}
-	perfmetrics.RecordRelaySample(relayInfo, true, int64(usage.CompletionTokens), int64(uncachedPromptTokens), int64(usage.PromptTokensDetails.CachedTokens))
+		uncachedPromptTokens := usage.PromptTokens - usage.PromptTokensDetails.CachedTokens
+		if uncachedPromptTokens < 0 {
+			uncachedPromptTokens = 0
+		}
+		perfmetrics.RecordRelaySample(relayInfo, true, int64(usage.CompletionTokens), int64(uncachedPromptTokens), int64(usage.PromptTokensDetails.CachedTokens))
 	})
 }
 
@@ -441,8 +458,16 @@ func PostConsumeQuota(relayInfo *relaycommon.RelayInfo, quota int, preConsumedQu
 
 func postConsumeQuotaWithResult(relayInfo *relaycommon.RelayInfo, quota int, preConsumedQuota int, sendEmail bool) (result postConsumeQuotaResult, err error) {
 
-	// 1) Consume from wallet quota OR subscription item
-	if relayInfo != nil && relayInfo.BillingSource == BillingSourceSubscription {
+	// 1) Keep organization funding explicit even on compatibility paths that
+	// do not have a BillingSession. Never fall back to the member's wallet.
+	if relayInfo != nil && (relayInfo.OrganizationId > 0 || relayInfo.BillingSource == BillingSourceOrganization) {
+		if relayInfo.OrganizationId <= 0 {
+			return result, errors.New("organization id is missing")
+		}
+		if err := model.AdjustOrganizationQuota(relayInfo.OrganizationId, relayInfo.UserId, quota, relayInfo.OrganizationUsagePeriod); err != nil {
+			return result, err
+		}
+	} else if relayInfo != nil && relayInfo.BillingSource == BillingSourceSubscription {
 		if relayInfo.SubscriptionId == 0 {
 			return result, errors.New("subscription id is missing")
 		}
@@ -488,6 +513,9 @@ func postConsumeQuotaWithResult(relayInfo *relaycommon.RelayInfo, quota int, pre
 }
 
 func checkAndSendQuotaNotify(relayInfo *relaycommon.RelayInfo, quota int, preConsumedQuota int) {
+	if relayInfo == nil || relayInfo.OrganizationId > 0 {
+		return
+	}
 	gopool.Go(func() {
 		userSetting := relayInfo.UserSetting
 		threshold := common.QuotaRemindThreshold

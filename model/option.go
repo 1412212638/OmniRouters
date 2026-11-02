@@ -203,6 +203,7 @@ func InitOptionMap() {
 	common.OptionMap["DataExportInterval"] = strconv.Itoa(common.DataExportInterval)
 	common.OptionMap["DataExportDefaultTime"] = common.DataExportDefaultTime
 	common.OptionMap["DefaultCollapseSidebar"] = strconv.FormatBool(common.DefaultCollapseSidebar)
+	common.OptionMap["OrganizationEnabled"] = strconv.FormatBool(common.OrganizationEnabled)
 	common.OptionMap["MjNotifyEnabled"] = strconv.FormatBool(setting.MjNotifyEnabled)
 	common.OptionMap["MjAccountFilterEnabled"] = strconv.FormatBool(setting.MjAccountFilterEnabled)
 	common.OptionMap["MjModeClearEnabled"] = strconv.FormatBool(setting.MjModeClearEnabled)
@@ -270,8 +271,8 @@ func validateOptionValue(key string, value string) error {
 		common.OptionMapRWMutex.RLock()
 		settings := map[string]string{
 			"EmailProvider": common.Interface2String(common.OptionMap["EmailProvider"]),
-			"ResendApiKey": common.Interface2String(common.OptionMap["ResendApiKey"]),
-			"ResendFrom": common.Interface2String(common.OptionMap["ResendFrom"]),
+			"ResendApiKey":  common.Interface2String(common.OptionMap["ResendApiKey"]),
+			"ResendFrom":    common.Interface2String(common.OptionMap["ResendFrom"]),
 		}
 		common.OptionMapRWMutex.RUnlock()
 		settings[key] = value
@@ -446,11 +447,13 @@ func updateOptionMap(key string, value string) (err error) {
 			pluginruntime.DefaultRegistry.SetEnabled(boolValue)
 		case "TaskPluginOverrideEnabled":
 			constant.TaskPluginOverrideEnabled = boolValue
-		pluginruntime.DefaultRegistry.SetEnabled(boolValue)
+			pluginruntime.DefaultRegistry.SetEnabled(boolValue)
 		case "DataExportEnabled":
 			common.DataExportEnabled = boolValue
 		case "DefaultCollapseSidebar":
 			common.DefaultCollapseSidebar = boolValue
+		case "OrganizationEnabled":
+			common.OrganizationEnabled = boolValue
 		case "MjNotifyEnabled":
 			setting.MjNotifyEnabled = boolValue
 		case "MjAccountFilterEnabled":

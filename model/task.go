@@ -14,12 +14,12 @@ import (
 	"github.com/QuantumNous/new-api/relaykit/dto"
 )
 
-func GetByTaskIdsForPlatforms(userID int, platforms []constant.TaskPlatform, taskIDs []string) ([]*Task, error) {
+func GetByTaskIdsForPlatforms(userID int, platforms []constant.TaskPlatform, taskIDs []string, organizationId ...int) ([]*Task, error) {
 	if len(platforms) == 0 || len(taskIDs) == 0 {
 		return nil, nil
 	}
 	var tasks []*Task
-	if err := DB.WithContext(context.Background()).Where("user_id = ? AND platform IN ? AND task_id IN ?", userID, platforms, taskIDs).Find(&tasks).Error; err != nil {
+	if err := DB.WithContext(context.Background()).Where("user_id = ? AND organization_id = ? AND platform IN ? AND task_id IN ?", userID, taskWorkspaceId(organizationId), platforms, taskIDs).Find(&tasks).Error; err != nil {
 		return nil, err
 	}
 	return tasks, nil
@@ -59,25 +59,26 @@ const (
 const TaskRefundLegacyCutoff int64 = 1740182400 // 2025-02-22 00:00:00 UTC
 
 type Task struct {
-	ID            int64                 `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
-	CreatedAt     int64                 `json:"created_at" gorm:"index"`
-	UpdatedAt     int64                 `json:"updated_at"`
-	TaskID        string                `json:"task_id" gorm:"type:varchar(191);index"` // 第三方id，不一定有/ song id\ Task id
-	Platform      constant.TaskPlatform `json:"platform" gorm:"type:varchar(30);index"` // 平台
-	UserId        int                   `json:"user_id" gorm:"index"`
-	Group         string                `json:"group" gorm:"type:varchar(50)"` // 修正计费用
-	ChannelId     int                   `json:"channel_id" gorm:"index"`
-	Quota         int                   `json:"quota"`
-	RefundPending bool                  `json:"-" gorm:"index;default:false"`
-	Action        string                `json:"action" gorm:"type:varchar(40);index"` // 任务类型, song, lyrics, description-mode
-	Status        TaskStatus            `json:"status" gorm:"type:varchar(20);index"` // 任务状态
-	FailReason    string                `json:"fail_reason"`
-	SubmitTime    int64                 `json:"submit_time" gorm:"index"`
-	StartTime     int64                 `json:"start_time" gorm:"index"`
-	FinishTime    int64                 `json:"finish_time" gorm:"index"`
-	Progress      string                `json:"progress" gorm:"type:varchar(20);index"`
-	Properties    Properties            `json:"properties" gorm:"type:json"`
-	Username      string                `json:"username,omitempty" gorm:"-"`
+	ID             int64                 `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
+	CreatedAt      int64                 `json:"created_at" gorm:"index"`
+	UpdatedAt      int64                 `json:"updated_at"`
+	TaskID         string                `json:"task_id" gorm:"type:varchar(191);index"` // 第三方id，不一定有/ song id\ Task id
+	Platform       constant.TaskPlatform `json:"platform" gorm:"type:varchar(30);index"` // 平台
+	UserId         int                   `json:"user_id" gorm:"index"`
+	OrganizationId int                   `json:"organization_id,omitempty" gorm:"index;default:0"`
+	Group          string                `json:"group" gorm:"type:varchar(50)"` // 修正计费用
+	ChannelId      int                   `json:"channel_id" gorm:"index"`
+	Quota          int                   `json:"quota"`
+	RefundPending  bool                  `json:"-" gorm:"index;default:false"`
+	Action         string                `json:"action" gorm:"type:varchar(40);index"` // 任务类型, song, lyrics, description-mode
+	Status         TaskStatus            `json:"status" gorm:"type:varchar(20);index"` // 任务状态
+	FailReason     string                `json:"fail_reason"`
+	SubmitTime     int64                 `json:"submit_time" gorm:"index"`
+	StartTime      int64                 `json:"start_time" gorm:"index"`
+	FinishTime     int64                 `json:"finish_time" gorm:"index"`
+	Progress       string                `json:"progress" gorm:"type:varchar(20);index"`
+	Properties     Properties            `json:"properties" gorm:"type:json"`
+	Username       string                `json:"username,omitempty" gorm:"-"`
 	// 禁止返回给用户，内部可能包含key等隐私信息
 	PrivateData TaskPrivateData `json:"-" gorm:"column:private_data;type:json"`
 	Data        json.RawMessage `json:"data" gorm:"type:json"`
@@ -124,14 +125,16 @@ type TaskPrivateData struct {
 	ResultURL      string                 `json:"result_url,omitempty"`       // 任务成功后的结果 URL（视频地址等）
 	Execution      *TaskExecutionSnapshot `json:"execution,omitempty"`
 	// 计费上下文：用于异步退款/差额结算（轮询阶段读取）
-	BillingSource       string              `json:"billing_source,omitempty"`  // "wallet" 或 "subscription"
-	SubscriptionId      int                 `json:"subscription_id,omitempty"` // 订阅 ID，用于订阅退款
-	TokenId             int                 `json:"token_id,omitempty"`        // 令牌 ID，用于令牌额度退款
-	NodeName            string              `json:"node_name,omitempty"`       // 发起任务的节点名，轮询结算阶段据此归属日志而非最后查询节点
-	BillingContext      *TaskBillingContext `json:"billing_context,omitempty"` // 计费参数快照（用于轮询阶段重新计算）
-	ResponsesBackground bool                `json:"responses_background,omitempty"`
-	PluginState         json.RawMessage     `json:"plugin_state,omitempty"`
-	PollFailures        int                 `json:"poll_failures,omitempty"`
+	BillingSource           string              `json:"billing_source,omitempty"`            // "wallet" 或 "subscription"
+	OrganizationId          int                 `json:"organization_id,omitempty"`           // 组织钱包归属
+	OrganizationUsagePeriod string              `json:"organization_usage_period,omitempty"` // 提交时冻结的组织计费月份
+	SubscriptionId          int                 `json:"subscription_id,omitempty"`           // 订阅 ID，用于订阅退款
+	TokenId                 int                 `json:"token_id,omitempty"`                  // 令牌 ID，用于令牌额度退款
+	NodeName                string              `json:"node_name,omitempty"`                 // 发起任务的节点名，轮询结算阶段据此归属日志而非最后查询节点
+	BillingContext          *TaskBillingContext `json:"billing_context,omitempty"`           // 计费参数快照（用于轮询阶段重新计算）
+	ResponsesBackground     bool                `json:"responses_background,omitempty"`
+	PluginState             json.RawMessage     `json:"plugin_state,omitempty"`
+	PollFailures            int                 `json:"poll_failures,omitempty"`
 }
 
 // TaskBillingContext 记录任务提交时的计费参数，以便轮询阶段可以重新计算额度。
@@ -204,7 +207,7 @@ func (p *TaskPrivateData) Scan(val interface{}) error {
 func (p TaskPrivateData) Value() (driver.Value, error) {
 	if p.Key == "" && p.UpstreamTaskID == "" && p.ResultURL == "" &&
 		p.Execution == nil && p.BillingSource == "" && p.SubscriptionId == 0 &&
-		p.TokenId == 0 && p.NodeName == "" && p.BillingContext == nil &&
+		p.TokenId == 0 && p.OrganizationId == 0 && p.OrganizationUsagePeriod == "" && p.NodeName == "" && p.BillingContext == nil &&
 		!p.ResponsesBackground && len(p.PluginState) == 0 && p.PollFailures == 0 {
 		return nil, nil
 	}
@@ -217,6 +220,7 @@ func (p TaskPrivateData) Value() (driver.Value, error) {
 
 // SyncTaskQueryParams 用于包含所有搜索条件的结构体，可以根据需求添加更多字段
 type SyncTaskQueryParams struct {
+	OrganizationID int
 	Platform       constant.TaskPlatform
 	ChannelID      string
 	TaskID         string
@@ -230,7 +234,7 @@ type SyncTaskQueryParams struct {
 
 func InitTask(platform constant.TaskPlatform, relayInfo *commonRelay.RelayInfo) *Task {
 	properties := Properties{}
-	privateData := TaskPrivateData{}
+	privateData := TaskPrivateData{OrganizationId: relayInfo.OrganizationId, OrganizationUsagePeriod: relayInfo.OrganizationUsagePeriod}
 	if relayInfo != nil && relayInfo.ChannelMeta != nil {
 		// A New API channel may rotate between several gateway tokens, so the
 		// task keeps the key that submitted it and polls with the same identity.
@@ -256,16 +260,17 @@ func InitTask(platform constant.TaskPlatform, relayInfo *commonRelay.RelayInfo) 
 	}
 
 	t := &Task{
-		TaskID:      taskID,
-		UserId:      relayInfo.UserId,
-		Group:       relayInfo.UsingGroup,
-		SubmitTime:  time.Now().Unix(),
-		Status:      TaskStatusNotStart,
-		Progress:    "0%",
-		ChannelId:   relayInfo.ChannelId,
-		Platform:    platform,
-		Properties:  properties,
-		PrivateData: privateData,
+		TaskID:         taskID,
+		UserId:         relayInfo.UserId,
+		OrganizationId: relayInfo.OrganizationId,
+		Group:          relayInfo.UsingGroup,
+		SubmitTime:     time.Now().Unix(),
+		Status:         TaskStatusNotStart,
+		Progress:       "0%",
+		ChannelId:      relayInfo.ChannelId,
+		Platform:       platform,
+		Properties:     properties,
+		PrivateData:    privateData,
 	}
 	return t
 }
@@ -275,7 +280,7 @@ func TaskGetAllUserTask(userId int, startIdx int, num int, queryParams SyncTaskQ
 	var err error
 
 	// 初始化查询构建器
-	query := DB.Where("user_id = ?", userId)
+	query := DB.Where("user_id = ? AND organization_id = ?", userId, queryParams.OrganizationID)
 
 	if queryParams.TaskID != "" {
 		query = query.Where("task_id = ?", queryParams.TaskID)
@@ -447,13 +452,20 @@ func GetByOnlyTaskId(taskId string) (*Task, bool, error) {
 	return task, exist, err
 }
 
-func GetByTaskId(userId int, taskId string) (*Task, bool, error) {
+func taskWorkspaceId(organizationId []int) int {
+	if len(organizationId) > 0 && organizationId[0] > 0 {
+		return organizationId[0]
+	}
+	return 0
+}
+
+func GetByTaskId(userId int, taskId string, organizationId ...int) (*Task, bool, error) {
 	if taskId == "" {
 		return nil, false, nil
 	}
 	var task *Task
 	var err error
-	err = DB.Where("user_id = ? and task_id = ?", userId, taskId).
+	err = DB.Where("user_id = ? AND organization_id = ? AND task_id = ?", userId, taskWorkspaceId(organizationId), taskId).
 		First(&task).Error
 	exist, err := RecordExist(err)
 	if err != nil {
@@ -469,8 +481,9 @@ func GetTaskForProtocolObservation(ctx context.Context, userID int, platform con
 		return nil, false, nil
 	}
 	var task Task
+	organizationId, _ := ctx.Value(constant.ContextKeyOrganizationId).(int)
 	err := DB.WithContext(ctx).
-		Where("user_id = ? AND platform = ? AND task_id = ?", userID, platform, taskID).
+		Where("user_id = ? AND organization_id = ? AND platform = ? AND task_id = ?", userID, organizationId, platform, taskID).
 		First(&task).Error
 	exists, err := RecordExist(err)
 	if err != nil || !exists {
@@ -479,13 +492,13 @@ func GetTaskForProtocolObservation(ctx context.Context, userID int, platform con
 	return &task, true, nil
 }
 
-func GetByTaskIds(userId int, taskIds []any) ([]*Task, error) {
+func GetByTaskIds(userId int, taskIds []any, organizationId ...int) ([]*Task, error) {
 	if len(taskIds) == 0 {
 		return nil, nil
 	}
 	var task []*Task
 	var err error
-	err = DB.Where("user_id = ? and task_id in (?)", userId, taskIds).
+	err = DB.Where("user_id = ? AND organization_id = ? AND task_id in (?)", userId, taskWorkspaceId(organizationId), taskIds).
 		Find(&task).Error
 	if err != nil {
 		return nil, err
@@ -654,7 +667,7 @@ func TaskCountAllTasks(queryParams SyncTaskQueryParams) int64 {
 // TaskCountAllUserTask returns total tasks for given user
 func TaskCountAllUserTask(userId int, queryParams SyncTaskQueryParams) int64 {
 	var total int64
-	query := DB.Model(&Task{}).Where("user_id = ?", userId)
+	query := DB.Model(&Task{}).Where("user_id = ? AND organization_id = ?", userId, queryParams.OrganizationID)
 	if queryParams.TaskID != "" {
 		query = query.Where("task_id = ?", queryParams.TaskID)
 	}

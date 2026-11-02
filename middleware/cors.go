@@ -14,12 +14,13 @@ func CORS() gin.HandlerFunc {
 		"https://www.omnirouters.com.cn",
 	}
 	config.AllowCredentials = true
-	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
+	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{
 		"Accept",
 		"Authorization",
 		"Content-Type",
 		"New-Api-User",
+		"New-Api-Organization",
 		"Origin",
 		"X-Requested-With",
 	}

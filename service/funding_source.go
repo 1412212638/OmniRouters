@@ -32,6 +32,40 @@ type FundingSource interface {
 // 使 wallet_first 等计费偏好可以回退到订阅。
 var ErrInsufficientWalletQuota = errors.New("wallet quota insufficient")
 
+// OrganizationFunding charges a shared organization wallet and the member's
+// monthly limit. The period is captured when the request starts.
+type OrganizationFunding struct {
+	organizationId int
+	userId         int
+	period         string
+	consumed       int
+}
+
+func (o *OrganizationFunding) Source() string { return BillingSourceOrganization }
+func (o *OrganizationFunding) PreConsume(amount int) error {
+	if amount <= 0 {
+		return nil
+	}
+	reserved, err := model.TryReserveOrganizationQuota(o.organizationId, o.userId, amount, o.period)
+	if err != nil {
+		return err
+	}
+	if !reserved {
+		return ErrInsufficientWalletQuota
+	}
+	o.consumed += amount
+	return nil
+}
+func (o *OrganizationFunding) Settle(delta int) error {
+	return model.AdjustOrganizationQuota(o.organizationId, o.userId, delta, o.period)
+}
+func (o *OrganizationFunding) Refund() error {
+	if o.consumed <= 0 {
+		return nil
+	}
+	return model.AdjustOrganizationQuota(o.organizationId, o.userId, -o.consumed, o.period)
+}
+
 type WalletFunding struct {
 	userId   int
 	consumed int // 实际预扣的用户额度

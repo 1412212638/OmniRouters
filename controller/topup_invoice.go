@@ -29,6 +29,13 @@ func GetTopUpInvoice(c *gin.Context) {
 		common.ApiErrorMsg(c, "充值记录不存在")
 		return
 	}
+	if topUp.OrganizationId > 0 && c.GetInt("role") < common.RoleAdminUser {
+		member, err := organizationMember(c, topUp.OrganizationId)
+		if err != nil || !model.OrganizationCanManage(member.Role) || topUp.UserId != c.GetInt("id") {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"success": false, "message": "无权访问该充值记录"})
+			return
+		}
+	}
 	if c.GetInt("id") != topUp.UserId && c.GetInt("role") < common.RoleAdminUser {
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"success": false, "message": "无权访问该充值记录"})
 		return

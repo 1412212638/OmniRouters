@@ -14,6 +14,7 @@ import (
 type Token struct {
 	Id                 int            `json:"id"`
 	UserId             int            `json:"user_id" gorm:"index"`
+	OrganizationId     int            `json:"organization_id,omitempty" gorm:"index;default:0"`
 	Key                string         `json:"key" gorm:"type:varchar(128);uniqueIndex"`
 	Status             int            `json:"status" gorm:"default:1"`
 	Name               string         `json:"name" gorm:"index" `
@@ -27,20 +28,21 @@ type Token struct {
 	AllowIps           *string        `json:"allow_ips" gorm:"default:''"`
 	UsedQuota          int            `json:"used_quota" gorm:"default:0"` // used quota
 	Group              string         `json:"group" gorm:"default:''"`
-	CrossGroupRetry    bool           `json:"cross_group_retry"` // 跨分组重试，仅auto分组有效
+	CrossGroupRetry    bool           `json:"cross_group_retry"`                             // 跨分组重试，仅auto分组有效
 	AutoRouteStrategy  string         `json:"auto_route_strategy" gorm:"size:32;default:''"` // Auto 路由策略
 	AutoGroups         string         `json:"-" gorm:"type:text"`
 	DeletedAt          gorm.DeletedAt `gorm:"index"`
 	// New tokens may expose the owning user's quota through /api/usage/token/.
 	// Existing rows remain disabled when this column is added by AutoMigrate.
-	AllowUserQuotaQuery bool           `json:"allow_user_quota_query"`
+	AllowUserQuotaQuery bool `json:"allow_user_quota_query"`
 	// KeyType distinguishes legacy/general keys from subscription keys. Empty
 	// values are treated as general for backwards compatibility.
-	KeyType             string `json:"key_type" gorm:"type:varchar(16);default:'general'"`
-	UserSubscriptionId  int    `json:"user_subscription_id" gorm:"index;default:0"`
+	KeyType            string `json:"key_type" gorm:"type:varchar(16);default:'general'"`
+	UserSubscriptionId int    `json:"user_subscription_id" gorm:"index;default:0"`
 	// Transient subscription snapshot loaded during token authentication.
-	SubscriptionBillingMode string     `json:"-" gorm:"-"`
+	SubscriptionBillingMode   string     `json:"-" gorm:"-"`
 	SubscriptionAllowedModels StringList `json:"-" gorm:"-"`
+	CacheSchema               int        `json:"-" gorm:"-"`
 }
 
 const (
@@ -158,10 +160,17 @@ func (token *Token) GetIpLimits() []string {
 	return ipLimits
 }
 
-func GetAllUserTokens(userId int, startIdx int, num int) ([]*Token, error) {
+func tokenWorkspaceId(organizationId []int) int {
+	if len(organizationId) > 0 && organizationId[0] > 0 {
+		return organizationId[0]
+	}
+	return 0
+}
+
+func GetAllUserTokens(userId int, startIdx int, num int, organizationId ...int) ([]*Token, error) {
 	var tokens []*Token
 	var err error
-	err = DB.Where("user_id = ?", userId).Order("id desc").Limit(num).Offset(startIdx).Find(&tokens).Error
+	err = DB.Where("user_id = ? AND organization_id = ?", userId, tokenWorkspaceId(organizationId)).Order("id desc").Limit(num).Offset(startIdx).Find(&tokens).Error
 	return tokens, err
 }
 
@@ -211,7 +220,7 @@ func validateLikePattern(input string) error {
 
 const searchHardLimit = 100
 
-func SearchUserTokens(userId int, keyword string, token string, offset int, limit int) (tokens []*Token, total int64, err error) {
+func SearchUserTokens(userId int, keyword string, token string, offset int, limit int, organizationId ...int) (tokens []*Token, total int64, err error) {
 	// model 层强制截断
 	if limit <= 0 || limit > searchHardLimit {
 		limit = searchHardLimit
@@ -228,7 +237,7 @@ func SearchUserTokens(userId int, keyword string, token string, offset int, limi
 	maxTokens := operation_setting.GetMaxUserTokens()
 	hasFuzzy := strings.Contains(keyword, "%") || strings.Contains(token, "%")
 	if hasFuzzy {
-		count, err := CountUserTokens(userId)
+		count, err := CountUserTokens(userId, organizationId...)
 		if err != nil {
 			common.SysLog("failed to count user tokens: " + err.Error())
 			return nil, 0, errors.New("获取令牌数量失败")
@@ -238,7 +247,7 @@ func SearchUserTokens(userId int, keyword string, token string, offset int, limi
 		}
 	}
 
-	baseQuery := DB.Model(&Token{}).Where("user_id = ?", userId)
+	baseQuery := DB.Model(&Token{}).Where("user_id = ? AND organization_id = ?", userId, tokenWorkspaceId(organizationId))
 
 	// 非空才加 LIKE 条件，空则跳过（不过滤该字段）
 	if keyword != "" {
@@ -278,6 +287,15 @@ func ValidateUserToken(key string) (token *Token, err error) {
 	}
 	token, err = GetTokenByKey(key, false)
 	if err == nil {
+		if token.OrganizationId > 0 {
+			member, membershipErr := GetOrganizationMember(token.OrganizationId, token.UserId)
+			if membershipErr != nil || member.Status != OrganizationMemberActive {
+				return token, ErrTokenInvalid
+			}
+			if _, organizationErr := GetOrganizationById(token.OrganizationId); organizationErr != nil {
+				return token, ErrTokenInvalid
+			}
+		}
 		if token.Status == common.TokenStatusExhausted ||
 			token.Status == common.TokenStatusExpired ||
 			token.Status != common.TokenStatusEnabled {
@@ -333,13 +351,13 @@ func ValidateUserToken(key string) (token *Token, err error) {
 	return nil, fmt.Errorf("%w: %v", ErrDatabase, err)
 }
 
-func GetTokenByIds(id int, userId int) (*Token, error) {
+func GetTokenByIds(id int, userId int, organizationId ...int) (*Token, error) {
 	if id == 0 || userId == 0 {
 		return nil, errors.New("id 或 userId 为空！")
 	}
 	token := Token{Id: id, UserId: userId}
 	var err error = nil
-	err = DB.First(&token, "id = ? and user_id = ?", id, userId).Error
+	err = DB.First(&token, "id = ? and user_id = ? AND organization_id = ?", id, userId, tokenWorkspaceId(organizationId)).Error
 	return &token, err
 }
 
@@ -438,13 +456,13 @@ func DisableModelLimits(tokenId int) error {
 	return token.Update()
 }
 
-func DeleteTokenById(id int, userId int) (err error) {
+func DeleteTokenById(id int, userId int, organizationId ...int) (err error) {
 	// Why we need userId here? In case user want to delete other's token.
 	if id == 0 || userId == 0 {
 		return errors.New("id 或 userId 为空！")
 	}
 	token := Token{Id: id, UserId: userId}
-	err = DB.Where(token).First(&token).Error
+	err = DB.Where("id = ? AND user_id = ? AND organization_id = ?", id, userId, tokenWorkspaceId(organizationId)).First(&token).Error
 	if err != nil {
 		return err
 	}
@@ -512,14 +530,14 @@ func decreaseTokenQuota(id int, quota int) (err error) {
 }
 
 // CountUserTokens returns total number of tokens for the given user, used for pagination
-func CountUserTokens(userId int) (int64, error) {
+func CountUserTokens(userId int, organizationId ...int) (int64, error) {
 	var total int64
-	err := DB.Model(&Token{}).Where("user_id = ?", userId).Count(&total).Error
+	err := DB.Model(&Token{}).Where("user_id = ? AND organization_id = ?", userId, tokenWorkspaceId(organizationId)).Count(&total).Error
 	return total, err
 }
 
 // BatchDeleteTokens 删除指定用户的一组令牌，返回成功删除数量
-func BatchDeleteTokens(ids []int, userId int) (int, error) {
+func BatchDeleteTokens(ids []int, userId int, organizationId ...int) (int, error) {
 	if len(ids) == 0 {
 		return 0, errors.New("ids 不能为空！")
 	}
@@ -527,7 +545,7 @@ func BatchDeleteTokens(ids []int, userId int) (int, error) {
 	tx := DB.Begin()
 
 	var tokens []Token
-	if err := tx.Where("user_id = ? AND id IN (?)", userId, ids).Find(&tokens).Error; err != nil {
+	if err := tx.Where("user_id = ? AND organization_id = ? AND id IN (?)", userId, tokenWorkspaceId(organizationId), ids).Find(&tokens).Error; err != nil {
 		tx.Rollback()
 		return 0, err
 	}
@@ -535,7 +553,7 @@ func BatchDeleteTokens(ids []int, userId int) (int, error) {
 		common.SysLog("failed to invalidate token cache before batch delete: " + err.Error())
 	}
 
-	if err := tx.Where("user_id = ? AND id IN (?)", userId, ids).Delete(&Token{}).Error; err != nil {
+	if err := tx.Where("user_id = ? AND organization_id = ? AND id IN (?)", userId, tokenWorkspaceId(organizationId), ids).Delete(&Token{}).Error; err != nil {
 		tx.Rollback()
 		return 0, err
 	}
@@ -547,10 +565,10 @@ func BatchDeleteTokens(ids []int, userId int) (int, error) {
 	return len(tokens), nil
 }
 
-func GetTokenKeysByIds(ids []int, userId int) ([]Token, error) {
+func GetTokenKeysByIds(ids []int, userId int, organizationId ...int) ([]Token, error) {
 	var tokens []Token
 	err := DB.Select("id", commonKeyCol).
-		Where("user_id = ? AND id IN (?)", userId, ids).
+		Where("user_id = ? AND organization_id = ? AND id IN (?)", userId, tokenWorkspaceId(organizationId), ids).
 		Find(&tokens).Error
 	return tokens, err
 }

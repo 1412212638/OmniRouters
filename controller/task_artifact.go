@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/middleware"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/relay"
@@ -17,7 +19,7 @@ import (
 var taskArtifactKeyPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._~-]{0,127}$`)
 
 func GetTask(c *gin.Context) {
-	task, exists, err := model.GetByTaskId(c.GetInt("id"), c.Param("key"))
+	task, exists, err := model.GetByTaskId(c.GetInt("id"), c.Param("key"), common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "Failed to query task"}})
 		return
@@ -41,7 +43,7 @@ type taskArtifactResponse struct {
 }
 
 func GetTaskArtifacts(c *gin.Context) {
-	task, exists, err := model.GetByTaskId(c.GetInt("id"), c.Param("key"))
+	task, exists, err := model.GetByTaskId(c.GetInt("id"), c.Param("key"), common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
 	if err != nil || !exists {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"code": "artifact_not_found", "message": "Task or artifact not found"}})
 		return
@@ -87,7 +89,7 @@ func TaskArtifactContent(c *gin.Context) {
 	if middleware.IsTaskArtifactAccess(c) {
 		task, exists, err = model.GetByOnlyTaskId(taskID)
 	} else {
-		task, exists, err = model.GetByTaskId(c.GetInt("id"), taskID)
+		task, exists, err = model.GetByTaskId(c.GetInt("id"), taskID, common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
 	}
 	if err != nil || !exists || task == nil || task.Status != model.TaskStatusSuccess {
 		c.Status(http.StatusNotFound)

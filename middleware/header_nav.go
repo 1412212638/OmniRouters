@@ -129,6 +129,18 @@ func IsHeaderNavModuleEnabled(module string) bool {
 	return getHeaderNavAccess(module).Enabled
 }
 
+// OrganizationEnabled rejects organization workspace requests when disabled.
+func OrganizationEnabled() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if !common.OrganizationEnabled {
+			c.JSON(http.StatusForbidden, gin.H{"success": false, "message": "Organization workspaces are disabled"})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}
+
 func HeaderNavModulePublicOrUserAuth(module string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		access := getHeaderNavAccess(module)

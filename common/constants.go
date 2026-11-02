@@ -67,6 +67,8 @@ var DataExportEnabled = true
 var DataExportInterval = 5         // unit: minute
 var DataExportDefaultTime = "hour" // unit: minute
 var DefaultCollapseSidebar = false // default value of collapse sidebar
+// OrganizationEnabled controls organization workspaces and organization API keys.
+var OrganizationEnabled = true
 
 // Any options with "Secret", "Token" in its key won't be return by GetOptions
 
@@ -168,12 +170,14 @@ var TelegramBotName = ""
 var QuotaForNewUser = 0
 var QuotaForInviter = 0
 var QuotaForInvitee = 0
+
 // ReferralFirstTopUpCashbackRate is the percentage (0-100) of a referred
 // user's first successful wallet top-up credited as pending cashback.
 var ReferralFirstTopUpCashbackRate = 0.0
 var ChannelDisableThreshold = 5.0
 var AutomaticDisableChannelEnabled = false
 var AutomaticEnableChannelEnabled = false
+
 // QuotaRemindThreshold is the default remaining quota threshold for user notifications.
 // Keep this aligned with the frontend default so notifications are enabled consistently
 // for users who have not saved a personal threshold yet.
@@ -211,7 +215,7 @@ var BatchUpdateInterval int
 
 var RelayTimeout int // unit is second
 
-var RelayIdleConnTimeout int // unit is second
+var RelayIdleConnTimeout int       // unit is second
 var RelayResponseHeaderTimeout int // unit is second
 var RelayMaxIdleConns int
 var RelayMaxIdleConnsPerHost int

@@ -725,6 +725,8 @@ func RelayTask(c *gin.Context) {
 		task.PrivateData.UpstreamTaskID = result.UpstreamTaskID
 		task.PrivateData.PluginState = result.PluginState
 		task.PrivateData.BillingSource = relayInfo.BillingSource
+		task.PrivateData.OrganizationId = relayInfo.OrganizationId
+		task.PrivateData.OrganizationUsagePeriod = relayInfo.OrganizationUsagePeriod
 		task.PrivateData.SubscriptionId = relayInfo.SubscriptionId
 		task.PrivateData.TokenId = relayInfo.TokenId
 		task.PrivateData.NodeName = common.NodeName
@@ -826,6 +828,8 @@ func executeTaskSubmission(c *gin.Context, relayInfo *relaycommon.RelayInfo) (*t
 	task.PrivateData.UpstreamTaskID = result.UpstreamTaskID
 	task.PrivateData.PluginState = result.PluginState
 	task.PrivateData.BillingSource = relayInfo.BillingSource
+	task.PrivateData.OrganizationId = relayInfo.OrganizationId
+	task.PrivateData.OrganizationUsagePeriod = relayInfo.OrganizationUsagePeriod
 	task.PrivateData.SubscriptionId = relayInfo.SubscriptionId
 	task.PrivateData.TokenId = relayInfo.TokenId
 	task.PrivateData.NodeName = common.NodeName

@@ -16,19 +16,19 @@ import (
 // Registration rewards remain backed by the legacy user counters while
 // first-top-up rewards come from the referral ledger.
 type ReferralFriendsSummary struct {
-	InviteCount                      int64
-	FirstTopUpInviteCount            int64
-	InviterRegistrationRewardQuota  int
-	InviteeRegistrationRewardQuota   int
-	RegistrationPendingQuota         int
-	RegistrationTotalQuota           int
-	CashbackPendingQuota             int
-	CashbackTotalQuota               int
+	InviteCount                    int64
+	FirstTopUpInviteCount          int64
+	InviterRegistrationRewardQuota int
+	InviteeRegistrationRewardQuota int
+	RegistrationPendingQuota       int
+	RegistrationTotalQuota         int
+	CashbackPendingQuota           int
+	CashbackTotalQuota             int
 }
 
 type ReferralFriend struct {
-	User         User
-	Cashback     *ReferralReward
+	User     User
+	Cashback *ReferralReward
 }
 
 // GetReferralFriendsSummary returns all Friends Hub counters for an inviter.
@@ -60,14 +60,14 @@ func GetReferralFriendsSummary(userID int) (*ReferralFriendsSummary, *User, erro
 		return nil, nil, err
 	}
 	return &ReferralFriendsSummary{
-		InviteCount:                     inviteCount,
-		FirstTopUpInviteCount:           cashbackInviteCount,
+		InviteCount:                    inviteCount,
+		FirstTopUpInviteCount:          cashbackInviteCount,
 		InviterRegistrationRewardQuota: common.QuotaForInviter,
 		InviteeRegistrationRewardQuota: common.QuotaForInvitee,
-		RegistrationPendingQuota:        user.AffQuota,
-		RegistrationTotalQuota:          user.AffHistoryQuota,
-		CashbackPendingQuota:             int(totals.Pending),
-		CashbackTotalQuota:               int(totals.Total),
+		RegistrationPendingQuota:       user.AffQuota,
+		RegistrationTotalQuota:         user.AffHistoryQuota,
+		CashbackPendingQuota:           int(totals.Pending),
+		CashbackTotalQuota:             int(totals.Total),
 	}, &user, nil
 }
 
@@ -323,6 +323,9 @@ func referralCashbackQuota(creditedQuota int, rateBps int) (int, error) {
 // The reward remains pending until the user explicitly transfers it to the
 // wallet, so registration rewards and cashback never share AffQuota.
 func ApplyFirstTopUpReferralCashbackTx(tx *gorm.DB, topUp *TopUp, creditedQuota int) error {
+	if topUp != nil && topUp.OrganizationId > 0 {
+		return nil
+	}
 	if tx == nil || topUp == nil || topUp.Id <= 0 || topUp.UserId <= 0 || creditedQuota <= 0 {
 		return ErrReferralRewardInvalid
 	}
@@ -336,7 +339,7 @@ func ApplyFirstTopUpReferralCashbackTx(tx *gorm.DB, topUp *TopUp, creditedQuota 
 	}
 	var previousWalletTopUps int64
 	if err := tx.Model(&TopUp{}).
-		Where("user_id = ? AND status = ? AND amount > ? AND id <> ?", invitee.Id, common.TopUpStatusSuccess, 0, topUp.Id).
+		Where("user_id = ? AND organization_id = 0 AND status = ? AND amount > ? AND id <> ?", invitee.Id, common.TopUpStatusSuccess, 0, topUp.Id).
 		Count(&previousWalletTopUps).Error; err != nil {
 		return err
 	}

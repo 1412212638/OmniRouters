@@ -1143,7 +1143,7 @@ func applyOriginTaskIntent(c *gin.Context, intent map[string]any, meta pluginrun
 	tasks := make([]*model.Task, 0, len(ids))
 	channelID := 0
 	for _, id := range ids {
-		task, exist, err := model.GetByTaskId(userID, id)
+		task, exist, err := model.GetByTaskId(userID, id, common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
 		if err != nil {
 			return &originTaskIntentError{Code: "origin_task_not_found", Message: "origin task not found or not owned by you", StatusCode: http.StatusInternalServerError}
 		}
@@ -1214,7 +1214,7 @@ func renderTaskPluginQuery(
 	)
 	userID := common.GetContextKeyInt(c, constant.ContextKeyUserId)
 	platforms := taskPluginLegacyPlatforms(pinned.Plugin.Meta)
-	tasks, err := model.GetByTaskIdsForPlatforms(userID, platforms, taskIDs)
+	tasks, err := model.GetByTaskIdsForPlatforms(userID, platforms, taskIDs, common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
 	if err != nil {
 		logger.LogDebug(
 			c,
@@ -1534,4 +1534,3 @@ func PrepareTaskPluginSubmit() gin.HandlerFunc {
 		c.Next()
 	}
 }
-

@@ -222,7 +222,7 @@ func recordUploadSuccess(c *gin.Context, info *relaycommon.RelayInfo, status int
 		return
 	}
 	if info.UserId > 0 {
-		model.UpdateUserUsedQuotaAndRequestCount(info.UserId, info.PriceData.Quota)
+		service.RecordRelayUsage(info, info.PriceData.Quota)
 		model.UpdateChannelUsedQuota(info.ChannelId, info.PriceData.Quota)
 		model.RecordConsumeLog(c, info.UserId, model.RecordConsumeLogParams{
 			ChannelId:      info.ChannelId,
