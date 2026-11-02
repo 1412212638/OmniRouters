@@ -6,7 +6,7 @@
 - Changed: successful OpenAI video task queries now set `metadata.url` to the upstream result URL when available and add `metadata.proxy_url` for the gateway `/content` endpoint. URL resolution prefers the persisted task result, then renderer metadata, then known URL fields in the stored upstream task response. Added relay tests for the paired URLs and persisted-result precedence.
 - Preserved: the proxy endpoint and its credentialed streaming behavior remain available; when no upstream URL can be resolved, the existing metadata URL is retained. Task logs and billing data are unchanged.
 - Validation: `git diff --check` passed. Targeted Go tests could not run because Go is not installed or available on PATH in this environment.
-- Commit and push: pending.
+- Source commit: `2cd997466` (`feat: expose upstream video result URL`); pushed successfully to `origin/main`.
 
 ## 2026-11-03 - Hide mapped upstream model names in user task logs
 
