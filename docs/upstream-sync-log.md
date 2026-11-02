@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-11-02 - Add first-version organization workspaces
+
+- Local reason: add the agreed first version of personal and organization workspaces for team-funded API usage.
+- Changed: added organization, membership, invitation, monthly member usage, wallet transaction, ownership transfer, organization API key, and organization-scoped usage-log models and APIs; organization keys now carry organization context through authentication, shared-wallet pre-consume/settlement/refund, synchronous and asynchronous task billing, performance/log/usage accounting, and token-cache invalidation; added organization membership migration and database-compatible quota reservation with monthly limits; added the default frontend organization route, personal/organization workspace switcher, invitations, member roles and limits, ownership transfer, wallet transfers, organization keys, scoped logs, and localized strings.
+- Preserved: personal keys, personal balances, subscriptions, existing model/channel pricing, personal usage and logs, protected project identity, and existing non-organization routes. Ordinary organization members only see their own keys, usage, and masked organization financial data; owner/admin operations remain role-gated.
+- Validation: `bun run build` passed in `web/default`; locale JSON parsing and `git diff --check` passed; changed Go files were formatted with the available `gofmt`. Go tests were not runnable because the repository requires Go 1.26.10 and this machine has Go 1.25.0; no toolchain was downloaded.
+- Source commit and push: pending.
+
 ## 2026-10-30 - Expose task usage details in public video queries
 
 - Local reason: native video task queries hid the provider usage block even though it contains the actual tool and token counts needed to reconcile billing.
@@ -174,7 +182,7 @@
 - Changed: added `allow-same-origin` only to complete-document home/about `srcDoc` frames, keeping the existing sandbox restrictions and leaving external URL frames unchanged. The configured document now inherits the current site origin and can use same-origin public APIs.
 - Preserved: custom HTML isolation from the surrounding React DOM, existing theme/language postMessage handling, public API access controls, and all external iframe behavior.
 - Validation: `git diff --check` and `bun run build` in `web/default` passed. Go tests were not run because the Go toolchain is unavailable in this environment.
-- Commit and push: pending.
+- Commit and push: included in `9255d78e3` (`fix: allow Seedance automatic duration`); pushed successfully to `origin/main` on 2026-11-02.
 
 ## 2026-11-01 - Add wallet invoice information visibility switch
 
@@ -5011,6 +5019,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check` passed; Go tests and `gofmt` are unavailable in this environment.
 - Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
 
+## 2026-11-02 - Accept Seedance native automatic duration
+
+- Local reason: Seedance's native `/api/v3/contents/generations/tasks` contract uses `duration: -1` to request an automatically selected duration, but the Doubao plugin rejected every non-positive value.
+- Changed: the native duration validator accepts exactly `-1` for `duration`; the original provider body preserves that sentinel, while the internal billing request omits it so it cannot become a negative billing multiplier. Values below `-1`, zero, and values above 3600 remain rejected.
+- Preserved: native provider fields are forwarded unchanged, normal positive duration validation remains in place, and billing falls back to a safe positive estimate until completion usage is available.
+- Validation: added native plugin coverage for acceptance and upstream preservation of `-1`, positive billing estimation, and rejection of `-2`, `0`, and `3601`; `node --check` and `git diff --check` are run for this change. Go tests remain unavailable because the repository requires Go 1.26.10 while this machine has Go 1.25.0.
+- Commit and push: pending.
+
 ## 2026-11-02 - Hide disabled real-name verification in profile
 
 - Local reason: the profile always displayed a real-name verification tab even when the feature was disabled by the administrator.
@@ -5058,12 +5074,3 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: no email sending, campaign integration, or administrator editing of this preference was added; account/security notifications and existing uncommitted work remain intact. Minor existing lint violations in the touched components were corrected without changing behavior.
 - Validation: targeted Oxlint passed with one pre-existing parseInt style warning; frontend formatting, locale JSON parsing, and `git diff --check` passed. Full frontend typecheck still fails on existing unrelated errors and missing test dependencies; no errors were reported in the files changed for this preference. Go compilation/tests remain unavailable because the Go toolchain is not installed.
 - Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
-
-## 2026-11-02 - Accept Seedance native automatic duration
-
-- Local reason: Seedance's native /api/v3/contents/generations/tasks contract uses duration: -1 to request an automatically selected duration, but the Doubao plugin rejected every non-positive value.
-- Changed: the native duration validator accepts exactly `-1` for `duration`; the original provider body preserves that sentinel, while the internal billing request omits it so it cannot become a negative billing multiplier. Values below `-1`, zero, and values above 3600 remain rejected.
-- Preserved: native provider fields are forwarded unchanged, normal positive duration validation remains in place, and billing falls back to a safe positive estimate until completion usage is available.
-- Validation: added native plugin coverage for acceptance and upstream preservation of `-1`, positive billing estimation, and rejection of `-2`, `0`, and `3601`; `node --check` and `git diff --check` are run for this change. Go tests remain unavailable because the repository requires Go 1.26.10 while this machine has Go 1.25.0.
-- Commit and push: pending.
-
