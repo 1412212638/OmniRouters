@@ -5126,7 +5126,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: added `perf_metrics_setting.exclude_task_failures_without_status_code`, defaulting to false. When enabled, only status-less asynchronous task failures are excluded; failures with an explicit HTTP status still follow the existing excluded-status-code rules. Added the administrator switch and translations in the Monitoring & Alerts settings.
 - Preserved: task logs, refunds, billing, synchronous relay metrics, and failures with explicit HTTP statuses are unchanged.
 - Validation: added focused Go regression coverage for default behavior, opt-in exclusion, explicit included statuses, and existing excluded statuses. Targeted Oxlint and Oxfmt, locale JSON parsing, and `git diff --check` passed. Go tooling was unavailable locally, so the Go test and gofmt could not run.
-- Commit and push: local changes are intentionally uncommitted and unpushed at the user's request.
+- Commit and push: included in `e94c2ce62` (`feat: refine organization workspace navigation and AstraFlow tasks`); pushed successfully to `origin/main` on 2026-11-03.
 
 ## 2026-11-03 - Rename MediaKit task plugin to AstraFlow and expose upstream task routes
 
@@ -5134,7 +5134,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: renamed the embedded plugin directory/key to `astraflow`, changed its display name, and exposed `POST /v1/tasks/submit` plus `GET /v1/tasks/status?task_id=...` before the generic `/v1/tasks/:key` routes are registered. Added the generic `taskIdQuery` route declaration so task plugins can read query-string task IDs; existing path-parameter query routes remain unchanged.
 - Preserved: the upstream request and status URLs, ten-second pre-consume, actual-duration settlement, model-specific usage schema, and OpenAI protocol routes.
 - Validation: Bun plugin checks and `git diff --check` remain the available local checks; Go tests remain unavailable because the Go toolchain is not installed.
-- Commit and push: local changes are intentionally uncommitted and unpushed at the user's request.
+- Commit and push: included in `e94c2ce62` (`feat: refine organization workspace navigation and AstraFlow tasks`); pushed successfully to `origin/main` on 2026-11-03.
 
 ## 2026-11-03 - Add AstraFlow video enhancement task plugin
 
@@ -5150,4 +5150,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: the organization entry now acts as a personal workspace selector without auto-opening the first organization; creation and invitation acceptance remain on the personal selector, while the create form is hidden after entering an organization. When an organization is active, the personal sidebar group becomes an Organization group and hides Friends Hub, Member Tiers, Support Tickets, and Profile. Added the localized Organization label across all frontend locales.
 - Preserved: multi-organization membership, invitation acceptance, header workspace switching, organization APIs, and existing organization detail tabs remain unchanged.
 - Validation: targeted Oxlint and Oxfmt passed for the changed frontend files, all seven locale files parse successfully, and `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable.
-- Commit and push: pending in the current combined push.
+- Commit and push: included in `e94c2ce62` (`feat: refine organization workspace navigation and AstraFlow tasks`); pushed successfully to `origin/main` on 2026-11-03.
