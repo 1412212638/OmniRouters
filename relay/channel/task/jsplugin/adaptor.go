@@ -1534,8 +1534,35 @@ func (a *TaskAdaptor) usageRatios(ctx context.Context, modelName, hook string, a
 }
 
 func (a *TaskAdaptor) validateResolvedUsageRequest(request any, modelName string) error {
+	requestValue := jsonValue(request)
+	if a.plugin != nil && a.plugin.Meta.Key == "doubao" {
+		omitDoubaoAutomaticDurationSentinel(requestValue)
+	}
 	schema, _ := a.plugin.Meta.UsageForModel(modelName)
-	return a.validateResolvedUsageValue(jsonValue(request), schema)
+	return a.validateResolvedUsageValue(requestValue, schema)
+}
+
+// Automatic duration belongs only to the original Doubao wire request. The
+// task's positive billing estimate and completion usage remain separate.
+func omitDoubaoAutomaticDurationSentinel(request any) {
+	requestBody, ok := request.(map[string]any)
+	if !ok {
+		return
+	}
+	nativeBody, ok := requestBody["__doubao_native_body"].(map[string]any)
+	if !ok {
+		return
+	}
+	duration, ok := usageNumber(nativeBody["duration"], false)
+	if !ok || duration != -1 {
+		return
+	}
+	delete(nativeBody, "duration")
+	if metadata, ok := requestBody["metadata"].(map[string]any); ok {
+		if metadataDuration, numeric := usageNumber(metadata["duration"], false); numeric && metadataDuration == -1 {
+			delete(metadata, "duration")
+		}
+	}
 }
 
 func (a *TaskAdaptor) validateResolvedUsageValue(value any, usageSchema map[string]pluginruntime.UsageFieldSchema) error {

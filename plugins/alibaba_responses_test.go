@@ -37,11 +37,12 @@ func TestAlibabaResponsesProtocol(t *testing.T) {
 	})
 
 	t.Run("declares documented usage facts", func(t *testing.T) {
-		require.Len(t, plugin.Meta.UsageSchema, 2)
+		schema, _ := plugin.Meta.UsageForModel("wan3.0-video")
+		require.Len(t, schema, 2)
 		for _, key := range []string{"seconds", "resolution"} {
-			schema, exists := plugin.Meta.UsageSchema[key]
+			field, exists := schema[key]
 			require.True(t, exists, key)
-			assert.NotEmpty(t, schema.Description, key)
+			assert.NotEmpty(t, field.Description, key)
 		}
 
 		value, callErr := plugin.Engine.Call(t.Context(), "extractUsage", map[string]any{

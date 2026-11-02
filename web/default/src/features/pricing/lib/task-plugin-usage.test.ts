@@ -1,0 +1,96 @@
+import assert from 'node:assert/strict'
+import { describe, test } from 'node:test'
+
+import type { TaskPluginOption } from '../../channels/api'
+import {
+  createDefaultTaskMatrixConfig,
+  generateTaskExprFromConfig,
+  getTaskNumberFields,
+  taskMatrixToTiers,
+  tryParseTaskMatrixConfig,
+} from './task-expr'
+import { getTaskPluginUsageSchema } from './task-plugin-usage'
+
+const plugin: Pick<TaskPluginOption, 'usageSchema' | 'usageProfiles'> = {
+  usageSchema: {
+    image_count: { type: 'number', unit: 'count' },
+    seconds: { type: 'number', unit: 'second' },
+    resolution: { enum: ['480P', '720P', '1080P'] },
+  },
+  usageProfiles: [
+    {
+      models: ['wan3.0-video', 'wan3.0-video-prime'],
+      schema: {
+        seconds: { type: 'number', unit: 'second' },
+        resolution: { enum: ['480P', '720P', '1080P'] },
+      },
+    },
+    {
+      models: ['wan2.7-image'],
+      schema: { image_count: { type: 'number', unit: 'count' } },
+    },
+    { models: ['no-usage'], schema: {} },
+  ],
+}
+
+describe('task plugin model pricing metadata', () => {
+  test('Wan3 pricing generates only model-declared usage fields', () => {
+    const schema = getTaskPluginUsageSchema(plugin, 'WAN3.0-VIDEO')
+    assert.ok(schema)
+    assert.deepEqual(
+      getTaskNumberFields(schema).map(([name]) => name),
+      ['seconds']
+    )
+    const matrix = createDefaultTaskMatrixConfig(schema)
+    matrix.rows.forEach((row, index) => {
+      row.unitPrices.seconds = [0.3, 0.6, 1.2][index]
+    })
+    const expression = generateTaskExprFromConfig(
+      { tiers: taskMatrixToTiers(matrix, schema) },
+      schema
+    )
+    assert.doesNotMatch(expression, /image_count/)
+    assert.match(expression, /u\("seconds"\) \* 0\.3/)
+    assert.match(expression, /u\("seconds"\) \* 0\.6/)
+    assert.match(expression, /u\("seconds"\) \* 1\.2/)
+    assert.match(expression, /u\("resolution"\) == "720P"/)
+  })
+
+  test('image model pricing does not inherit video fields', () => {
+    const schema = getTaskPluginUsageSchema(plugin, 'wan2.7-image')
+    assert.ok(schema)
+    assert.deepEqual(Object.keys(schema), ['image_count'])
+  })
+
+  test('reediting the old zero image term preserves the configured video price', () => {
+    const schema = getTaskPluginUsageSchema(plugin, 'wan3.0-video')
+    assert.ok(schema)
+    const matrix = tryParseTaskMatrixConfig(
+      'tier("base", u("image_count") * 0 + u("seconds") * 0.6)',
+      schema
+    )
+    assert.ok(matrix)
+    assert.equal(matrix.rows.length, 3)
+    assert.ok(matrix.rows.every((row) => row.unitPrices.seconds === 0.6))
+    const expression = generateTaskExprFromConfig(
+      { tiers: taskMatrixToTiers(matrix, schema) },
+      schema
+    )
+    assert.equal(expression, 'tier("base", u("seconds") * 0.6)')
+  })
+
+  test('legacy plugins and unmatched models retain their default schema', () => {
+    assert.equal(getTaskPluginUsageSchema(plugin, 'other'), plugin.usageSchema)
+    assert.equal(
+      getTaskPluginUsageSchema(
+        { usageSchema: plugin.usageSchema },
+        'wan3.0-video'
+      ),
+      plugin.usageSchema
+    )
+  })
+
+  test('empty model profiles replace rather than merge the default schema', () => {
+    assert.deepEqual(getTaskPluginUsageSchema(plugin, 'no-usage'), {})
+  })
+})

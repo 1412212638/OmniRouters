@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-11-02 - Keep Seedance automatic duration out of billing validation
+
+- Local reason: native Seedance `duration: -1` was accepted by the Doubao decoder and retained for the provider, but recursive host usage validation also inspected its internal request copy and rejected it as a negative billing quantity before submission.
+- Changed: only for the Doubao plugin, the usage-validation copy omits `duration: -1` when it is paired with the plugin's internal original native request. The original request remains unchanged and is still forwarded with `duration: -1`; the existing positive fallback estimate and completion usage settlement remain in effect.
+- Preserved: rejection of negative/zero duration values other than the exact native sentinel, negative `seconds`, all other plugin validation, and unrelated in-progress work.
+- Validation: added host regressions for the exact native sentinel, immutability of the forwarded request, invalid durations, negative seconds, and non-Doubao plugins. Changed Go files passed `gofmt`, the Doubao plugin passed `node --check`, and `git diff --check` passed. Go tests cannot run locally because Go 1.25.0 is below the repository's Go 1.26.10 requirement; no toolchain or Docker image was installed.
+- Source commit and push: pending.
+
 ## 2026-11-02 - Fix organization Midjourney build import
 
 - Local reason: GitHub image compilation failed with `controller/midjourney.go:311:46: undefined: constant` after the organization workspace changes.
@@ -7,6 +15,17 @@
 - Preserved: personal/organization task isolation, task authorization, billing, existing routes, and protected project identity.
 - Validation: formatted the handler and passed `git diff --check`; Go parser object-resolution checks across 779 production Go files found no unresolved selector bases or unused imports after the fix. Full local Go compilation remains unavailable because Go 1.25.0 is below the required Go 1.26.10; GitHub image build must confirm compilation. No local Docker build or toolchain installation.
 - Source commit and push: `6f492ad6d` (`fix: import organization context constant in Midjourney controller`) pushed successfully to `origin/main`; this follow-up records the confirmed push. Image compilation/publication remains subject to GitHub Actions.
+
+## 2026-11-02 - Fix per-model task pricing fields and backport compatible Alibaba updates
+
+- Local reason: the model pricing editor ignored `usageProfiles` from task plugin options and used the global image/video schema, generating `u("image_count") * 0` for Wan3, which the backend correctly rejected.
+- Integrated local fix: `web/default/src/features/channels/api.ts` now types the existing per-model metadata; `features/pricing/lib/task-plugin-usage.ts` resolves a replacement model schema with case-insensitive matching and default fallback, matching the backend. `model-pricing-sheet.tsx` uses that schema for both model and plugin pricing editors. Added five regression cases, including preserving video prices while reediting an old zero image term. Corrected the touched API response message type and existing sheet lint errors (conditional rendering and stable Sora draft row IDs, which are stripped during serialization).
+- Upstream reviewed: Alibaba plugin commit `c59f6fd553921702cb47dacadc9731fa01548e96` (2026-10-30), official version 1.5.0. Integrated into `plugins/tasks/alibaba/plugin.js`: OpenAI Images JSON/multipart protocol, file references, URL/Base64 output, and Wan3 21:9. The compatible local backport is version 1.4.1; this is not a full upgrade to official 1.5.0. Added `plugins/alibaba_image_protocol_test.go` and corrected the existing Responses test to inspect the Wan3 model profile.
+- Already present: model-specific usage profiles, image count bounds, explicit zero/false preservation, and Wan3 combined input/output billable seconds. Both local and latest upstream expose only `seconds` and `resolution` for Wan3; separate input/output duration pricing is not implemented by this change.
+- Deferred: official 1.5.0 native route/status wrapping/stream forwarding/request-header changes and `duration-auto@1` depend on host upgrades absent here. Intentionally skipped: blindly replacing the plugin with a version the current host cannot register, and changing existing billing semantics or saved prices.
+- Preserved: existing host capability declarations, `/ali` native routes, JSON/SSE settlement, image-model pricing, legacy default-schema fallback, protected project identity, and all unrelated organization workspace changes.
+- Validation: five Bun regression tests passed; targeted Oxlint passed (one existing harmless spread warning); targeted Oxfmt and `git diff --check` passed. `node --check` and a Node plugin smoke run passed for JSON/multipart/fileRef, explicit zero/false, count bounds, URL/Base64 rendering, nested task data, Wan3 21:9 and input/output duration summation. Full frontend typecheck remains blocked by 34 existing errors outside this change; no errors in the changed files. Go tests were added but not executed because Go is unavailable on this session's PATH; no toolchain was installed. No live provider call or deployment performed.
+- Local commit and push status: uncommitted and not pushed.
 
 ## 2026-11-02 - Add first-version organization workspaces
 

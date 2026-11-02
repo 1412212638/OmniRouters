@@ -60,6 +60,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { getTaskPluginOptions } from '@/features/channels/api'
 import { splitBillingExprAndRequestRules } from '@/features/pricing/lib/billing-expr'
+import { getTaskPluginUsageSchema } from '@/features/pricing/lib/task-plugin-usage'
 import type { BillingUsageSchema } from '@/features/pricing/types'
 import { cn } from '@/lib/utils'
 
@@ -164,7 +165,7 @@ export const ModelPricingEditorPanel = forwardRef<
   const [soraPerRequestPricingEnabled, setSoraPerRequestPricingEnabled] =
     useState(false)
   const [soraResolutionTiers, setSoraResolutionTiers] = useState<
-    SoraResolutionTierDraft[]
+    (SoraResolutionTierDraft & { id: string })[]
   >([])
   const [soraAudioGenerationSurcharge, setSoraAudioGenerationSurcharge] =
     useState('')
@@ -217,18 +218,21 @@ export const ModelPricingEditorPanel = forwardRef<
         audioRatio: editData.audioRatio || '',
         audioCompletionRatio: editData.audioCompletionRatio || '',
       })
-      setPricingMode(
-        editData.billingMode === 'tiered_expr'
-          ? 'tiered_expr'
-          : editData.price || editData.soraPerRequestPricingEnabled
-            ? 'per-request'
-            : 'per-token'
-      )
+      let nextPricingMode: PricingMode = 'per-token'
+      if (editData.billingMode === 'tiered_expr') {
+        nextPricingMode = 'tiered_expr'
+      } else if (editData.price || editData.soraPerRequestPricingEnabled) {
+        nextPricingMode = 'per-request'
+      }
+      setPricingMode(nextPricingMode)
       setSoraPerRequestPricingEnabled(
         Boolean(editData.soraPerRequestPricingEnabled)
       )
       setSoraResolutionTiers(
-        cloneSoraResolutionTiers(editData.soraResolutionTiers)
+        cloneSoraResolutionTiers(editData.soraResolutionTiers).map((tier) => ({
+          ...tier,
+          id: crypto.randomUUID(),
+        }))
       )
       setSoraAudioGenerationSurcharge(
         editData.soraAudioGenerationSurcharge || ''
@@ -278,11 +282,17 @@ export const ModelPricingEditorPanel = forwardRef<
     >()
 
     for (const plugin of taskPluginOptionsQuery.data || []) {
-      if (!plugin.models.includes(watchedModelName)) continue
+      if (
+        !plugin.models.some(
+          (model) => model.toLowerCase() === watchedModelName.toLowerCase()
+        )
+      ) {
+        continue
+      }
       rows.set(plugin.key, {
         key: plugin.key,
         name: plugin.name,
-        usageSchema: plugin.usageSchema,
+        usageSchema: getTaskPluginUsageSchema(plugin, watchedModelName),
       })
     }
 
@@ -424,7 +434,9 @@ export const ModelPricingEditorPanel = forwardRef<
   const handleSoraToggle = (checked: boolean) => {
     setSoraPerRequestPricingEnabled(checked)
     if (checked && soraResolutionTiers.length === 0) {
-      setSoraResolutionTiers([...EMPTY_SORA_TIERS])
+      setSoraResolutionTiers(
+        EMPTY_SORA_TIERS.map((tier) => ({ ...tier, id: crypto.randomUUID() }))
+      )
     }
   }
 
@@ -446,7 +458,7 @@ export const ModelPricingEditorPanel = forwardRef<
   const handleAddSoraTier = () => {
     setSoraResolutionTiers((current) => [
       ...current,
-      { value: '', multiplier: '' },
+      { value: '', multiplier: '', id: crypto.randomUUID() },
     ])
   }
 
@@ -988,7 +1000,7 @@ export const ModelPricingEditorPanel = forwardRef<
                           <div className='flex flex-col gap-2'>
                             {soraResolutionTiers.map((tier, index) => (
                               <div
-                                key={`sora-tier-${index}`}
+                                key={tier.id}
                                 className='grid gap-2 sm:grid-cols-[minmax(0,1fr)_160px_auto]'
                               >
                                 <Input
@@ -1107,84 +1119,92 @@ export const ModelPricingEditorPanel = forwardRef<
                       <div className='text-muted-foreground text-sm'>
                         {t('Loading task plugins...')}
                       </div>
-                    ) : pluginRows.length === 0 ? (
-                      <div className='text-muted-foreground text-sm'>
-                        {t('No task plugins expose this model.')}
-                      </div>
-                    ) : (
-                      <div className='flex flex-col gap-3'>
-                        {pluginRows.map((plugin) => {
-                          const usageKeys = Object.keys(
-                            plugin.usageSchema || {}
-                          )
-                          return (
-                            <div
-                              key={plugin.key}
-                              className='flex min-w-0 flex-col gap-2 rounded-md border p-3'
-                            >
-                              <div className='flex min-w-0 items-center justify-between gap-3'>
-                                <div className='min-w-0'>
-                                  <div className='truncate text-sm font-medium'>
-                                    {plugin.name}
+                    ) : null}
+                    {!taskPluginOptionsQuery.isLoading &&
+                      pluginRows.length === 0 && (
+                        <div className='text-muted-foreground text-sm'>
+                          {t('No task plugins expose this model.')}
+                        </div>
+                      )}
+                    {!taskPluginOptionsQuery.isLoading &&
+                      pluginRows.length > 0 && (
+                        <div className='flex flex-col gap-3'>
+                          {pluginRows.map((plugin) => {
+                            const usageKeys = Object.keys(
+                              plugin.usageSchema || {}
+                            )
+                            return (
+                              <div
+                                key={plugin.key}
+                                className='flex min-w-0 flex-col gap-2 rounded-md border p-3'
+                              >
+                                <div className='flex min-w-0 items-center justify-between gap-3'>
+                                  <div className='min-w-0'>
+                                    <div className='truncate text-sm font-medium'>
+                                      {plugin.name}
+                                    </div>
+                                    <div className='text-muted-foreground truncate font-mono text-xs'>
+                                      {plugin.key}
+                                    </div>
                                   </div>
-                                  <div className='text-muted-foreground truncate font-mono text-xs'>
-                                    {plugin.key}
-                                  </div>
+                                  {plugin.stale && (
+                                    <span className='text-destructive shrink-0 text-xs'>
+                                      {t('Unavailable')}
+                                    </span>
+                                  )}
                                 </div>
-                                {plugin.stale && (
-                                  <span className='text-destructive shrink-0 text-xs'>
-                                    {t('Unavailable')}
-                                  </span>
-                                )}
-                              </div>
-                              {(!plugin.usageSchema ||
-                                Object.keys(plugin.usageSchema).length ===
-                                  0) && (
-                                <Textarea
-                                  value={
-                                    pluginBillingExpressions[plugin.key] || ''
-                                  }
-                                  placeholder='u("seconds") * 0.3'
-                                  className='min-h-20 font-mono text-xs'
-                                  onChange={(event) =>
-                                    setPluginBillingExpressions((current) => ({
-                                      ...current,
-                                      [plugin.key]: event.target.value,
-                                    }))
-                                  }
-                                />
-                              )}
-                              {plugin.usageSchema &&
-                                Object.keys(plugin.usageSchema).length > 0 && (
-                                  <TaskUsagePricingEditor
-                                    schema={plugin.usageSchema}
-                                    expression={
+                                {(!plugin.usageSchema ||
+                                  Object.keys(plugin.usageSchema).length ===
+                                    0) && (
+                                  <Textarea
+                                    value={
                                       pluginBillingExpressions[plugin.key] || ''
                                     }
-                                    onExpressionChange={(nextExpression) =>
+                                    placeholder='u("seconds") * 0.3'
+                                    className='min-h-20 font-mono text-xs'
+                                    onChange={(event) =>
                                       setPluginBillingExpressions(
                                         (current) => ({
                                           ...current,
-                                          [plugin.key]: nextExpression,
+                                          [plugin.key]: event.target.value,
                                         })
                                       )
                                     }
                                   />
                                 )}
-                              <FieldDescription className='text-xs leading-5'>
-                                {usageKeys.length > 0
-                                  ? t('Available usage fields: {{fields}}', {
-                                      fields: usageKeys.join(', '),
-                                    })
-                                  : t(
-                                      'Use the usage fields declared by this plugin. The expression is validated when saved.'
-                                    )}
-                              </FieldDescription>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )}
+                                {plugin.usageSchema &&
+                                  Object.keys(plugin.usageSchema).length >
+                                    0 && (
+                                    <TaskUsagePricingEditor
+                                      schema={plugin.usageSchema}
+                                      expression={
+                                        pluginBillingExpressions[plugin.key] ||
+                                        ''
+                                      }
+                                      onExpressionChange={(nextExpression) =>
+                                        setPluginBillingExpressions(
+                                          (current) => ({
+                                            ...current,
+                                            [plugin.key]: nextExpression,
+                                          })
+                                        )
+                                      }
+                                    />
+                                  )}
+                                <FieldDescription className='text-xs leading-5'>
+                                  {usageKeys.length > 0
+                                    ? t('Available usage fields: {{fields}}', {
+                                        fields: usageKeys.join(', '),
+                                      })
+                                    : t(
+                                        'Use the usage fields declared by this plugin. The expression is validated when saved.'
+                                      )}
+                                </FieldDescription>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
                   </Field>
                 )}
               </FieldGroup>

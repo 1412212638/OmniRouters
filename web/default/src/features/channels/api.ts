@@ -36,11 +36,16 @@ export type TaskPluginOption = {
   channelTypes?: number[] | null
   upstreams?: string[] | null
   usageSchema?: BillingUsageSchema
+  usageProfiles?: {
+    models: string[]
+    schema: BillingUsageSchema
+  }[]
 }
 
 export async function getTaskPluginOptions(): Promise<TaskPluginOption[]> {
   const response = await api.get<{
     success: boolean
+    message?: string
     data: TaskPluginOption[]
   }>('/api/task_plugin_options')
   if (!response.data.success) {
