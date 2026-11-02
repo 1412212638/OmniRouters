@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"encoding/json"
 	"strconv"
+	"strings"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
@@ -88,7 +90,71 @@ func tasksToDto(tasks []*model.Task, fillUser bool) []*dto.TaskDto {
 			properties := task.Properties
 			properties.UpstreamModelName = ""
 			result[i].Properties = properties
+			if task.Properties.UpstreamModelName != "" && task.Properties.UpstreamModelName != task.Properties.OriginModelName {
+				result[i].Data = sanitizeUserTaskData(task.Data, task.Properties.UpstreamModelName, task.Properties.OriginModelName)
+				result[i].FailReason = strings.ReplaceAll(task.FailReason, task.Properties.UpstreamModelName, task.Properties.OriginModelName)
+			}
 		}
 	}
 	return result
+}
+
+func sanitizeUserTaskData(data json.RawMessage, upstreamModelName, publicModelName string) json.RawMessage {
+	if len(data) == 0 {
+		return data
+	}
+	if !common.IsValidJSON(data) {
+		// Do not expose an unparseable provider payload on the user-facing path.
+		return json.RawMessage("null")
+	}
+	return sanitizeTaskDataValue(data, upstreamModelName, publicModelName)
+}
+
+func sanitizeTaskDataValue(raw json.RawMessage, upstreamModelName, publicModelName string) json.RawMessage {
+	switch common.GetJsonType(raw) {
+	case "object":
+		var object map[string]json.RawMessage
+		if err := common.Unmarshal(raw, &object); err != nil {
+			return raw
+		}
+		for key, value := range object {
+			switch strings.ToLower(key) {
+			case "upstream_model", "upstream_model_name", "actual_model":
+				delete(object, key)
+				continue
+			case "model", "model_name":
+				if common.GetJsonType(value) == "string" {
+					if encoded, err := common.Marshal(publicModelName); err == nil {
+						object[key] = encoded
+						continue
+					}
+				}
+			}
+			object[key] = sanitizeTaskDataValue(value, upstreamModelName, publicModelName)
+		}
+		encoded, err := common.Marshal(object)
+		if err == nil {
+			return encoded
+		}
+	case "array":
+		var array []json.RawMessage
+		if err := common.Unmarshal(raw, &array); err != nil {
+			return raw
+		}
+		for i, value := range array {
+			array[i] = sanitizeTaskDataValue(value, upstreamModelName, publicModelName)
+		}
+		encoded, err := common.Marshal(array)
+		if err == nil {
+			return encoded
+		}
+	case "string":
+		var value string
+		if err := common.Unmarshal(raw, &value); err == nil && upstreamModelName != "" && strings.Contains(value, upstreamModelName) {
+			if encoded, marshalErr := common.Marshal(strings.ReplaceAll(value, upstreamModelName, publicModelName)); marshalErr == nil {
+				return encoded
+			}
+		}
+	}
+	return raw
 }
