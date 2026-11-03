@@ -5168,6 +5168,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bun --check plugins/tasks/doubao/plugin.js` and `git diff --check` passed. Added plugin regression coverage for alias profile registration and upstream model rewriting; Go tests could not run because the Go toolchain is unavailable locally.
 - Commit and push: included in `ebf88d5b8` (`feat: add friendly Seedream 5.0 aliases`); pushed successfully to `origin/main` on 2026-11-03.
 
+## 2026-11-04 - Route Doubao Seedream through the unified Images API
+
+- Local reason: Seedream requests sent to `/v1/images/generations` bypassed the Doubao task plugin because it did not claim the `openai_image` protocol, so the image-specific usage facts were absent and the configured tiered expression charged zero.
+- Changed: registered Doubao Seedream models for the shared `openai_image` host protocol and added OpenAI Images request decoding/rendering that reuses the existing Ark request conversion, pixel-tier pre-consume, and actual output-size settlement.
+- Preserved: the existing native Doubao image route, Responses API behavior, OpenAI-compatible channels not claimed by plugins, and existing Seedream model aliases and pricing expressions.
+- Validation: added regression coverage for unified endpoint decode, submit-time 2K billing facts, and completion settlement across actual 1K/2K outputs. `bun --check` and `git diff --check` passed; Go test execution is pending local toolchain availability.
+- Commit and push: pending; not pushed yet.
+
 ## 2026-11-03 - Add searchable organization card selector
 
 - Local reason: the personal organization selector needed a clearer overview for users who belong to multiple organizations.

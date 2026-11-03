@@ -389,6 +389,7 @@ export const meta = {
   ],
   protocols: [
     { name: "openai_responses", supports: ["stream", "sync", "background"] },
+    { name: "openai_image", models: Object.keys(IMAGE_MODELS) },
     { name: "openai_video", models: Object.keys(VIDEO_MODELS) },
   ],
 };
@@ -1168,6 +1169,43 @@ export const protocols = {
           },
         ],
         metadata: { vendor: "doubao" },
+      };
+    },
+  },
+  // OpenAI Images API. The host keeps this endpoint synchronous for clients;
+  // the plugin still owns request conversion and Seedream usage extraction.
+  openai_image: {
+    decodeRequest: function (ctx) {
+      if (!ctx.body || ctx.body.kind !== "json") throw new Error("JSON body required");
+      const value = ctx.body.value;
+      if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("request body must be an object");
+      const model = trimmed(ctx.model);
+      if (!model) throw new Error("model is required");
+      if (value.stream !== undefined && value.stream !== false) throw new Error("stream is not supported; the complete image response is returned once all images are generated");
+      if (value.response_format !== undefined && value.response_format !== "url" && value.response_format !== "b64_json")
+        throw new Error("response_format must be url or b64_json");
+
+      const requestBody = Object.assign({}, value, { model: model });
+      if (requestBody.image === undefined && requestBody.images !== undefined) {
+        requestBody.image = requestBody.images;
+        delete requestBody.images;
+      }
+      const images = requestBody.image === undefined ? [] : Array.isArray(requestBody.image) ? requestBody.image : [requestBody.image];
+      return {
+        kind: "submit",
+        model: model,
+        action: images.length ? "image_to_image" : "text_to_image",
+        requestBody: requestBody,
+      };
+    },
+    render: function (ctx, task) {
+      const data = artifactData(task);
+      return {
+        created: task.created_at,
+        data: imageURLEntries(data).map(function (item) {
+          return { url: item.url };
+        }),
+        metadata: data,
       };
     },
   },

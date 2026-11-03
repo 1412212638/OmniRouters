@@ -76,6 +76,57 @@ func TestDoubaoSeedreamFriendlyAliasesRedirectToDatedUpstreamModels(t *testing.T
 	}
 }
 
+func TestDoubaoSeedreamOpenAIImageProtocolUsesPixelBillingFacts(t *testing.T) {
+	plugin := newDoubaoProfilePlugin(t)
+	requestBody := map[string]any{
+		"model": "doubao-seedream-5.0-pro",
+		"prompt": "a product photo",
+		"size": "2K",
+		"n": float64(1),
+		"response_format": "url",
+	}
+	value, err := plugin.Engine.CallPath(t.Context(), "protocols", []string{"openai_image", "decodeRequest"}, map[string]any{
+		"model": "doubao-seedream-5.0-pro",
+		"operation": "generate",
+		"body": map[string]any{"kind": "json", "value": requestBody},
+	})
+	require.NoError(t, err)
+	intent, ok := value.(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "text_to_image", intent["action"])
+	decoded, ok := intent["requestBody"].(map[string]any)
+	require.True(t, ok)
+
+	usage, err := plugin.Engine.Call(t.Context(), "extractUsage", map[string]any{
+		"model": "doubao-seedream-5.0-pro",
+		"upstreamModel": "doubao-seedream-5-0-pro-260628",
+		"action": intent["action"],
+		"usagePurpose": "facts",
+		"requestBody": decoded,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, map[string]any{
+		"images_above_1_5k": float64(1),
+		"images_up_to_1_5k": float64(0),
+		"input_images": float64(0),
+		"layer_decomposition": false,
+	}, usage)
+
+	value, err = plugin.Engine.Call(t.Context(), "extractUsageOnComplete", map[string]any{
+		"model": "doubao-seedream-5.0-pro",
+		"upstreamModel": "doubao-seedream-5-0-pro-260628",
+		"action": intent["action"],
+	}, map[string]any{"data": []any{
+		map[string]any{"url": "https://cdn.example/1.png", "size": "1024x1024"},
+		map[string]any{"url": "https://cdn.example/2.png", "size": "2048x2048"},
+	}})
+	require.NoError(t, err)
+	assert.Equal(t, map[string]any{
+		"images_up_to_1_5k": float64(1),
+		"images_above_1_5k": float64(1),
+	}, value)
+}
+
 func TestDoubaoSeedanceAliasesExposeProfilesAndBillingRatios(t *testing.T) {
 	plugin := newDoubaoProfilePlugin(t)
 	profiles := map[string][]string{
