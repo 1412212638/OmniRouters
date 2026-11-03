@@ -235,7 +235,7 @@
 - Changed: added `payment_setting.invoice_profile_enabled`, defaulting to `true`, to the billing settings; exposed it through public status; and made the wallet page skip both the invoice profile request and card rendering when disabled.
 - Preserved: saved invoice profiles, payment invoice snapshots, and invoice APIs remain available; existing installations keep the card visible by default.
 - Validation: `git diff --check` and `bun run build` in `web/default` passed. Go tests were not run because Go is unavailable in this environment.
-- Commit and push: pending.
+- Commit and push: included in `b4b9f07df` (`fix: simplify catalog task price display`); pushed to `origin/main` on 2026-11-04.
 
 ## 2026-11-01 - Fix public sidebar visibility and relocate documentation link
 
