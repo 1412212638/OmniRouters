@@ -14,6 +14,7 @@ import (
 	"github.com/QuantumNous/new-api/logger"
 	"github.com/QuantumNous/new-api/model"
 	pluginruntime "github.com/QuantumNous/new-api/pkg/jsplugin"
+	"github.com/QuantumNous/new-api/pkg/perf_metrics"
 	"github.com/QuantumNous/new-api/relay"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relaykit/types"
@@ -94,6 +95,7 @@ func serveTaskPluginImageProtocol(c *gin.Context, pinned pluginruntime.PinnedEnd
 		return
 	}
 	task := outcome.Task
+	completedAtSubmission := task.Status == model.TaskStatusSuccess || task.Status == model.TaskStatusFailure
 	if task.Status != model.TaskStatusSuccess && task.Status != model.TaskStatusFailure {
 		if taskErr = waitTaskPluginImageTask(c, task, deps); taskErr != nil {
 			if c.Request.Context().Err() == nil {
@@ -101,6 +103,11 @@ func serveTaskPluginImageProtocol(c *gin.Context, pinned pluginruntime.PinnedEnd
 			}
 			return
 		}
+	}
+	if completedAtSubmission {
+		// Synchronous task plugins do not pass through the background poller's
+		// terminal CAS, so measure them using the enclosing relay request time.
+		perfmetrics.RecordRelaySample(outcome.RelayInfo, task.Status == model.TaskStatusSuccess, 0, 0, 0)
 	}
 	if task.Status == model.TaskStatusFailure {
 		reason := strings.TrimSpace(task.FailReason)

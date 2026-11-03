@@ -431,6 +431,29 @@ func TestLogTaskConsumptionWithoutSnapshotKeepsRatioMode(t *testing.T) {
 	assert.Contains(t, log.Content, "size: 2.00")
 }
 
+func TestLogTaskConsumptionRecordsElapsedTime(t *testing.T) {
+	truncate(t)
+	const userID, channelID = 42, 42
+	seedUser(t, userID, 10_000)
+	seedChannel(t, channelID)
+
+	info := &relaycommon.RelayInfo{
+		UserId:          userID,
+		OriginModelName: "qwen-image-3.0",
+		UsingGroup:      "default",
+		StartTime:       time.Now().Add(-3 * time.Second),
+		ChannelMeta:     &relaycommon.ChannelMeta{ChannelId: channelID},
+		TaskRelayInfo:   &relaycommon.TaskRelayInfo{Action: "GENERATE"},
+		PriceData: types.PriceData{
+			Quota:          100,
+			GroupRatioInfo: types.GroupRatioInfo{GroupRatio: 1},
+		},
+	}
+
+	log := callLogTaskConsumption(t, info, makeTask(userID, channelID, 100, 0, BillingSourceWallet, 0))
+	assert.GreaterOrEqual(t, log.UseTime, 3)
+}
+
 func TestTaskBillingOtherSeparatesPluginAndRootDiagnostics(t *testing.T) {
 	task := makeTask(1, 1, 100, 0, BillingSourceWallet, 0)
 	task.TaskID = "task_public"

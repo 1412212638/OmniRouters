@@ -10,6 +10,7 @@ import { getTaskPricingDisplayTiers } from '../lib/task-matrix-display'
 import {
   taskPriceLabel,
   taskPricingConditions,
+  taskUsageUnitLabel,
 } from '../lib/task-price-display'
 import type { BillingUsageSchema, PricingModel } from '../types'
 
@@ -132,14 +133,16 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
             cellClassName: 'px-3 py-2 text-right font-mono',
             cell: (tier: (typeof tiers)[number]) => {
               const value = Number(tier.unitPrices[field] || 0)
-              const unitLabel =
-                definition.unit === 'token'
-                  ? t('1M tokens')
-                  : definition.unit === 'second'
-                    ? t('seconds')
-                    : definition.unit === 'count'
-                      ? t('Count')
-                      : t('credit')
+              let unitLabel = t('credit')
+              if (definition.unit === 'token') unitLabel = t('1M tokens')
+              else if (definition.unit === 'second') unitLabel = t('seconds')
+              else if (definition.unit === 'count') {
+                unitLabel = taskUsageUnitLabel(
+                  definition,
+                  i18n.language,
+                  t('Count')
+                )
+              }
               return value > 0
                 ? `${formatTaskPrice(value * ratio, props)} / ${unitLabel}`
                 : '-'

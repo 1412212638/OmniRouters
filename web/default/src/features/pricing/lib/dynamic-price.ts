@@ -37,6 +37,7 @@ export type DynamicPriceEntry = {
   variable?: BillingVar
   displayUnit: 'token' | 'request' | 'custom'
   unit?: string
+  unitLabel?: string | Record<string, string>
 }
 
 export type CardExamplePrice = {
@@ -67,6 +68,13 @@ export type DynamicPricingSummary = {
   primaryRanges: DynamicPriceRange[]
   requestPriceRange: string | null
 }
+
+export type TaskImagePriceEntries = {
+  input: DynamicPriceEntry
+  output: DynamicPriceEntry[]
+}
+
+export type TaskVideoPriceEntry = DynamicPriceEntry
 
 const PRIMARY_DYNAMIC_FIELDS = new Set(['inputPrice', 'outputPrice'])
 
@@ -210,9 +218,58 @@ export function getTaskPriceEntries(
           min === max ? formattedMin : `${formattedMin}-${formattedMax}`,
         displayUnit,
         unit: definition.unit,
+        unitLabel: definition.unitLabel,
       },
     ]
   })
+}
+
+export function getTaskImagePriceEntries(
+  model: PricingModel,
+  entries: DynamicPriceEntry[]
+): TaskImagePriceEntries | null {
+  const schema = model.billing_usage_schema
+  if (!schema) return null
+  const inputField = ['input_images', 'input_image_count'].find(
+    (field) => schema[field] && entries.some((entry) => entry.field === field)
+  )
+  if (!inputField) return null
+  const input = entries.find((entry) => entry.field === inputField)
+  if (!input) return null
+
+  const output = entries
+    .filter(
+      (entry) =>
+        entry.field.startsWith('images_') ||
+        entry.field === 'image_count' ||
+        entry.field === 'output_image_count'
+    )
+    .sort((a, b) => a.value - b.value)
+  if (output.length === 0) return null
+  return { input, output }
+}
+
+export function getTaskVideoPriceEntry(
+  model: PricingModel,
+  entries: DynamicPriceEntry[]
+): TaskVideoPriceEntry | null {
+  const schema = model.billing_usage_schema
+  if (!schema) {
+    return null
+  }
+  const hasOutputDimension = Object.entries(schema).some(
+    ([field, definition]) => {
+      if (!definition.enum?.length) return false
+      const metadata = `${field} ${JSON.stringify(definition.description || '')}`
+      return /resolution|fps|分辨率|帧率/i.test(metadata)
+    }
+  )
+  if (!hasOutputDimension) return null
+  const durationField = Object.entries(schema).find(
+    ([, definition]) => definition.unit === 'second'
+  )?.[0]
+  if (!durationField) return null
+  return entries.find((entry) => entry.field === durationField) ?? null
 }
 
 export function formatDynamicUnitPrice(
