@@ -5222,7 +5222,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: the active catalog `usePriceRows` now uses a tested task-price summary helper to display localized image input labels and per-image output ranges, and video output ranges with no input price and localized seconds.
 - Preserved: token pricing, request pricing, filters, model details and billing behavior remain unchanged.
 - Validation: all 9 tests in `bun test src/features/pricing/lib/dynamic-price.test.ts` passed. The Rsbuild production build passed, formatting and `git diff --check` passed, and Oxlint passed for the new helper and its test. Whole-repository typecheck remains blocked by existing diagnostics in unrelated modules; the filtered output showed no diagnostics in the changed pricing files.
-- Commit and push: included in `11765267d` (`fix: wire task pricing into catalog cards`); push pending.
+- Commit and push: included in `5f49c0999` (`fix: wire task pricing into catalog cards`); pushed to `origin/main` on 2026-11-04.
 
 ## 2026-11-03 - Add searchable organization card selector
 
