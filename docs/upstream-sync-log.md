@@ -5166,7 +5166,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: added `doubao-seedream-5.0-pro` and `doubao-seedream-5.0-flash` to the Doubao plugin with their matching capability and usage profiles. Image request construction resolves them to `doubao-seedream-5-0-pro-260628` and `doubao-seedream-5-0-flash-260915` respectively; existing dated names remain supported.
 - Preserved: provider request format, channel model mapping behavior, image capability validation, and existing billing expressions for the dated models.
 - Validation: `bun --check plugins/tasks/doubao/plugin.js` and `git diff --check` passed. Added plugin regression coverage for alias profile registration and upstream model rewriting; Go tests could not run because the Go toolchain is unavailable locally.
-- Commit and push: pending; not pushed yet.
+- Commit and push: included in `ebf88d5b8` (`feat: add friendly Seedream 5.0 aliases`); pushed successfully to `origin/main` on 2026-11-03.
 
 ## 2026-11-03 - Add searchable organization card selector
 
