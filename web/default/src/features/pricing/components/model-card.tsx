@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils'
 import { DEFAULT_TOKEN_UNIT } from '../constants'
 import {
   getDynamicDisplayGroupRatio,
+  getTaskImagePriceEntries,
+  getTaskVideoPriceEntry,
   getDynamicPricingSummary,
 } from '../lib/dynamic-price'
 import { parseTags } from '../lib/filters'
@@ -20,6 +22,7 @@ import {
   getSoraPricingDisplay,
   stripTrailingZeros,
 } from '../lib/price'
+import { taskPriceLabel, taskUsageUnitLabel } from '../lib/task-price-display'
 import type { PricingModel, TokenUnit } from '../types'
 import { ModelPerfBadge, type ModelPerfBadgeData } from './model-perf-badge'
 
@@ -127,6 +130,52 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             : '-',
         }
       : null
+  const imagePriceEntries = dynamicSummary
+    ? getTaskImagePriceEntries(displayPricingModel, dynamicSummary.entries)
+    : null
+  const inputImagePrice = imagePriceEntries?.input
+  const outputImagePrices = imagePriceEntries?.output
+  const lowestOutputImagePrice = outputImagePrices?.[0]
+  const highestOutputImagePrice = outputImagePrices?.at(-1)
+  const inputImageDefinition =
+    displayPricingModel.billing_usage_schema?.[inputImagePrice?.field || '']
+  const outputImageDefinition =
+    displayPricingModel.billing_usage_schema?.[
+      lowestOutputImagePrice?.field || ''
+    ]
+  let imageUnitLabel = ''
+  if (inputImagePrice) {
+    imageUnitLabel = taskUsageUnitLabel(
+      inputImageDefinition,
+      i18n.language,
+      t('Count')
+    )
+  } else if (outputImagePrices?.length) {
+    imageUnitLabel = taskUsageUnitLabel(
+      outputImageDefinition,
+      i18n.language,
+      t('Count')
+    )
+  }
+  const taskImageSummary =
+    inputImagePrice && lowestOutputImagePrice && highestOutputImagePrice
+      ? {
+          inputLabel: taskPriceLabel(
+            inputImageDefinition?.description,
+            inputImagePrice?.field || '',
+            i18n.language
+          ),
+          inputPrice: formatCardPriceRange(inputImagePrice?.formatted || ''),
+          outputPrice:
+            lowestOutputImagePrice === highestOutputImagePrice
+              ? formatCardPriceRange(lowestOutputImagePrice.formatted)
+              : `${formatCardPriceRange(lowestOutputImagePrice.formatted)}–${formatCardPriceRange(highestOutputImagePrice.formatted)}`,
+          unit: imageUnitLabel,
+        }
+      : null
+  const taskVideoPrice = dynamicSummary
+    ? getTaskVideoPriceEntry(displayPricingModel, dynamicSummary.entries)
+    : null
 
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -169,7 +218,42 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       ...cacheReadEntries,
       ...(cacheWriteEntry ? [cacheWriteEntry] : []),
     ]
-    if (taskTokenSummary) {
+    if (taskImageSummary) {
+      priceSummary = (
+        <>
+          <span className='text-muted-foreground whitespace-nowrap'>
+            {taskImageSummary.inputLabel}:{' '}
+            <span className='text-foreground font-mono font-semibold'>
+              {taskImageSummary.inputPrice}
+            </span>{' '}
+            /{taskImageSummary.unit}
+          </span>
+          <span className='text-muted-foreground whitespace-nowrap'>
+            {t('Output')}:{' '}
+            <span className='text-foreground font-mono font-semibold'>
+              {taskImageSummary.outputPrice}
+            </span>{' '}
+            /{taskImageSummary.unit}
+          </span>
+        </>
+      )
+    } else if (taskVideoPrice) {
+      priceSummary = (
+        <>
+          <span className='text-muted-foreground whitespace-nowrap'>
+            {t('Input')}:{' '}
+            <span className='text-foreground font-mono font-semibold'>-</span>
+          </span>
+          <span className='text-muted-foreground whitespace-nowrap'>
+            {t('Output')}:{' '}
+            <span className='text-foreground font-mono font-semibold'>
+              {formatCardPriceRange(taskVideoPrice.formatted)}
+            </span>{' '}
+            /{t('seconds')}
+          </span>
+        </>
+      )
+    } else if (taskTokenSummary) {
       const tokenUnitText = ` / ${tokenUnitLabel} tokens`
       priceSummary = (
         <>

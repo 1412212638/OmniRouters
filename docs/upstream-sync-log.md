@@ -5174,7 +5174,47 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: registered Doubao Seedream models for the shared `openai_image` host protocol and added OpenAI Images request decoding/rendering that reuses the existing Ark request conversion, pixel-tier pre-consume, and actual output-size settlement.
 - Preserved: the existing native Doubao image route, Responses API behavior, OpenAI-compatible channels not claimed by plugins, and existing Seedream model aliases and pricing expressions.
 - Validation: added regression coverage for unified endpoint decode, submit-time 2K billing facts, and completion settlement across actual 1K/2K outputs. `bun --check` and `git diff --check` passed; Go test execution is pending local toolchain availability.
-- Commit and push: pending; not pushed yet.
+- Commit and push: included in `b526abaa5` (`fix: improve task image and video pricing display`); push pending.
+
+## 2026-11-04 - Record Alibaba image task performance and elapsed time
+
+- Local reason: successful synchronous Alibaba Qwen image generations bypass the background task poller's performance sampler, and task consumption logs left `use_time` at its zero default.
+- Changed: synchronous terminal task results in the OpenAI Images task bridge now use the relay request timer for performance samples; task consumption logs store elapsed whole seconds from relay start, clamped at zero for invalid timestamps.
+- Preserved: asynchronous tasks continue to be sampled by the existing terminal polling path, billing and task response payloads are unchanged, and ordinary request log timing behavior is unchanged.
+- Validation: added a task billing regression test for elapsed log time; `git diff --check` passed. Go tests and gofmt could not run because the Go toolchain is unavailable locally.
+- Commit and push: included in `b526abaa5` (`fix: improve task image and video pricing display`); push pending.
+
+## 2026-11-04 - Show localized units in model pricing details
+
+- Local reason: model detail pricing rendered every count-based task usage price with the generic “Count” label, even when the plugin schema supplied a localized unit such as “张”.
+- Changed: model detail pricing now uses each task usage field's localized `unitLabel` for count-based units, matching the admin pricing configuration and plugin metadata.
+- Preserved: token and duration units, fallback labels for schemas without `unitLabel`, price calculations, and billing expressions are unchanged.
+- Validation: added focused frontend coverage for localized image count units; targeted Bun tests passed, Oxlint passed after refactoring unit selection, and `git diff --check` passed.
+- Commit and push: included in `b526abaa5` (`fix: improve task image and video pricing display`); push pending.
+
+## 2026-11-04 - Correct image pricing summary on model cards
+
+- Local reason: external model cards summarized image task prices as generic input/output prices, used a single output rate instead of the configured tier range, and rendered the raw `count` unit.
+- Changed: image task cards identify Seedream (`input_images` / `images_*`) and Qwen Image 3 (`input_image_count` / `image_count`) usage fields, show input image pricing separately from the output range, and render the plugin-provided localized image unit.
+- Preserved: token pricing summaries, non-image task summaries, model detail pricing tables, and billing behavior remain unchanged.
+- Validation: added pricing entry coverage for Seedream and Qwen Image 3 input/output image fields and preserved unit metadata; targeted Bun tests and Oxlint passed, and `git diff --check` passed.
+- Commit and push: included in `b526abaa5` (`fix: improve task image and video pricing display`); push pending.
+
+## 2026-11-04 - Display resolution-tiered video prices as output rates
+
+- Local reason: resolution-tiered task video models showed the same per-second amount as both input and output and exposed the raw unit name `second` on marketplace cards.
+- Changed: task models with per-second usage and output resolution/FPS tiers now show no input price, combine the configured rates into the output price range, and localize the unit label. Detection uses schema units and localized dimension metadata rather than fixed usage field names.
+- Preserved: image task summaries, token summaries, non-video task summaries, and billing calculations are unchanged.
+- Validation: added coverage for resolution-based video rates and a plugin schema whose duration field is named `input_video_duration`; targeted Bun tests, Oxlint and formatting checks passed, and `git diff --check` passed.
+- Commit and push: included in `b526abaa5` (`fix: improve task image and video pricing display`); push pending.
+
+## 2026-11-04 - Hide task plugin names from model pricing details
+
+- Local reason: model detail pricing headings exposed the internal task plugin name (for example, “Doubao 任务定价”) to end users.
+- Changed: plugin-backed pricing sections now use the neutral localized “Task pricing” title while retaining the pricing rows and plugin-specific billing metadata internally.
+- Preserved: pricing calculations, provider selection, model cards, and admin configuration labels remain unchanged.
+- Validation: `git diff --check` passed. Targeted frontend tests were not added because this is a static title change; frontend test execution remains covered by the existing pricing tests.
+- Commit and push: pending; not pushed.
 
 ## 2026-11-03 - Add searchable organization card selector
 

@@ -10,6 +10,7 @@ import {
   tryParseTaskMatrixConfig,
 } from './task-expr'
 import { getTaskPluginUsageSchema } from './task-plugin-usage'
+import { taskUsageUnitLabel } from './task-price-display'
 
 const plugin: Pick<TaskPluginOption, 'usageSchema' | 'usageProfiles'> = {
   usageSchema: {
@@ -34,6 +35,17 @@ const plugin: Pick<TaskPluginOption, 'usageSchema' | 'usageProfiles'> = {
 }
 
 describe('task plugin model pricing metadata', () => {
+  test('localized count units are used for model pricing display', () => {
+    const definition = {
+      unit: 'count',
+      unitLabel: { en: 'image', zh: '张', 'zh-TW': '張' },
+    }
+
+    assert.equal(taskUsageUnitLabel(definition, 'zh', 'Count'), '张')
+    assert.equal(taskUsageUnitLabel(definition, 'en', 'Count'), 'image')
+    assert.equal(taskUsageUnitLabel({ unit: 'count' }, 'zh', 'Count'), 'Count')
+  })
+
   test('Wan3 pricing generates only model-declared usage fields', () => {
     const schema = getTaskPluginUsageSchema(plugin, 'WAN3.0-VIDEO')
     assert.ok(schema)

@@ -7,6 +7,7 @@ import (
 	"maps"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
@@ -70,6 +71,13 @@ func LogTaskConsumption(c *gin.Context, info *relaycommon.RelayInfo, task *model
 	}
 	appendTaskLogInfo(task, other)
 	attachQuotaSaturation(c, info, other)
+	useTimeSeconds := 0
+	if !info.StartTime.IsZero() {
+		useTimeSeconds = int(time.Since(info.StartTime).Seconds())
+		if useTimeSeconds < 0 {
+			useTimeSeconds = 0
+		}
+	}
 	model.RecordConsumeLog(c, info.UserId, model.RecordConsumeLogParams{
 		OrganizationId: info.OrganizationId,
 		ChannelId:      info.ChannelId,
@@ -80,6 +88,7 @@ func LogTaskConsumption(c *gin.Context, info *relaycommon.RelayInfo, task *model
 		TokenId:        info.TokenId,
 		Group:          info.UsingGroup,
 		Other:          other,
+		UseTimeSeconds: useTimeSeconds,
 	})
 	RecordRelayUsage(info, info.PriceData.Quota)
 	model.UpdateChannelUsedQuota(info.ChannelId, info.PriceData.Quota)

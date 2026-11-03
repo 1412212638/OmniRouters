@@ -386,7 +386,7 @@ function getTaskPricingSections(model: PricingModel, taskPricingTitle: string) {
         billing_usage_schema: variant.billing_usage_schema,
         billing_usage_examples: variant.billing_usage_examples,
       },
-      title: `${variant.plugin_name} ${taskPricingTitle}`,
+      title: taskPricingTitle,
     })),
   ]
   const uniqueSections = rawSections.filter(
