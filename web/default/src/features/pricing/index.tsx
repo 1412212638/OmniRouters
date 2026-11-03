@@ -819,6 +819,7 @@ type CatalogPriceSummary =
       cacheUnit?: string
       cacheWriteValue?: string
       cacheWriteUnit?: string
+      note?: string
     }
   | {
       kind: 'single'
@@ -883,7 +884,12 @@ function usePriceRows(props: {
         dynamicSummary.entries,
         i18n.language,
         t('Count'),
-        t('seconds')
+        t('seconds'),
+        t('Reference video input'),
+        t('Generated video output'),
+        t(
+          'With a reference video, its duration and the generated video duration are billed together.'
+        )
       )
     : null
   const catalogPriceRanges = dynamicSummary?.hasRequestRules
@@ -1381,6 +1387,11 @@ function CatalogModelCard(props: {
               </span>
             )}
           </InfoLine>
+        )}
+        {priceRows.kind === 'paired' && priceRows.note && (
+          <p className='text-muted-foreground text-xs sm:col-span-2'>
+            {priceRows.note}
+          </p>
         )}
         {priceRows.kind === 'single' && (
           <div className='min-w-0 sm:col-span-2'>

@@ -176,12 +176,13 @@ type AuthMeta struct {
 // influence billing. Numeric facts use one of the host-owned canonical units;
 // boolean facts are flags; enum facts constrain non-numeric pricing selectors.
 type UsageFieldSchema struct {
-	Type        string                   `json:"type,omitempty"`
-	Unit        string                   `json:"unit,omitempty"`
-	UnitLabel   LocalizedText            `json:"unitLabel,omitempty"`
-	Enum        []string                 `json:"enum,omitempty"`
-	Description LocalizedText            `json:"description,omitempty"`
-	EnumLabels  map[string]LocalizedText `json:"enumLabels,omitempty"`
+	Type           string                   `json:"type,omitempty"`
+	Unit           string                   `json:"unit,omitempty"`
+	UnitLabel      LocalizedText            `json:"unitLabel,omitempty"`
+	PricingDisplay string                   `json:"pricingDisplay,omitempty"`
+	Enum           []string                 `json:"enum,omitempty"`
+	Description    LocalizedText            `json:"description,omitempty"`
+	EnumLabels     map[string]LocalizedText `json:"enumLabels,omitempty"`
 }
 
 type LoadedPlugin struct {
@@ -1490,7 +1491,7 @@ func decodeUsageSchema(value any) (map[string]UsageFieldSchema, error) {
 		}
 		for key := range fieldObject {
 			switch key {
-			case "type", "unit", "unitLabel", "enum", "description", "enumLabels":
+			case "type", "unit", "unitLabel", "pricingDisplay", "enum", "description", "enumLabels":
 			default:
 				return nil, fmt.Errorf("plugin meta usageSchema field %q has unknown property %q", name, key)
 			}
@@ -1501,6 +1502,9 @@ func decodeUsageSchema(value any) (map[string]UsageFieldSchema, error) {
 			return nil, err
 		}
 		if field.Unit, err = stringMetaField(fieldObject, "unit"); err != nil {
+			return nil, err
+		}
+		if field.PricingDisplay, err = stringMetaField(fieldObject, "pricingDisplay"); err != nil {
 			return nil, err
 		}
 		if field.UnitLabel, err = localizedTextMetaField(fieldObject, "unitLabel", maxUsageFieldDescriptionRunes); err != nil {
@@ -1537,6 +1541,10 @@ func decodeUsageSchema(value any) (map[string]UsageFieldSchema, error) {
 }
 
 func validateUsageFieldSchema(name string, field UsageFieldSchema) error {
+	if field.PricingDisplay != "" &&
+		(field.Type != "number" || field.Unit != "second" || field.PricingDisplay != "input_output_video_seconds") {
+		return fmt.Errorf("plugin meta usageSchema field %q pricingDisplay must be input_output_video_seconds on a second field", name)
+	}
 	if field.UnitLabel != nil {
 		if field.Type != "number" || field.Unit != "count" || field.Enum != nil {
 			return fmt.Errorf("plugin meta usageSchema field %q unitLabel requires a number field with count unit", name)

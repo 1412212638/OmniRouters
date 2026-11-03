@@ -224,6 +224,23 @@ export function getTaskPriceEntries(
   })
 }
 
+export function getTaskImageOutputPriceEntries(
+  model: PricingModel,
+  entries: DynamicPriceEntry[]
+): DynamicPriceEntry[] {
+  const schema = model.billing_usage_schema
+  if (!schema) return []
+
+  return entries
+    .filter(
+      (entry) =>
+        entry.field.startsWith('images_') ||
+        entry.field === 'image_count' ||
+        entry.field === 'output_image_count'
+    )
+    .sort((a, b) => a.value - b.value)
+}
+
 export function getTaskImagePriceEntries(
   model: PricingModel,
   entries: DynamicPriceEntry[]
@@ -235,17 +252,8 @@ export function getTaskImagePriceEntries(
   )
   if (!inputField) return null
   const input = entries.find((entry) => entry.field === inputField)
-  if (!input) return null
-
-  const output = entries
-    .filter(
-      (entry) =>
-        entry.field.startsWith('images_') ||
-        entry.field === 'image_count' ||
-        entry.field === 'output_image_count'
-    )
-    .sort((a, b) => a.value - b.value)
-  if (output.length === 0) return null
+  const output = getTaskImageOutputPriceEntries(model, entries)
+  if (!input || output.length === 0) return null
   return { input, output }
 }
 

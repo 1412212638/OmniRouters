@@ -5224,6 +5224,22 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: all 9 tests in `bun test src/features/pricing/lib/dynamic-price.test.ts` passed. The Rsbuild production build passed, formatting and `git diff --check` passed, and Oxlint passed for the new helper and its test. Whole-repository typecheck remains blocked by existing diagnostics in unrelated modules; the filtered output showed no diagnostics in the changed pricing files.
 - Commit and push: included in `5f49c0999` (`fix: wire task pricing into catalog cards`); pushed to `origin/main` on 2026-11-04.
 
+## 2026-11-04 - Display output-only image tier prices on catalog cards
+
+- Local reason: image task models that configure output image prices without a separately billed input-image field fell back to generic pricing and repeated the output unit price as both input and output.
+- Changed: catalog image pricing now recognizes output image tiers independently, shows `-` for the unpriced input side, and displays the output rate using the configured image unit label.
+- Preserved: models that separately bill input images retain their input price and output tier range; video, token, and billing calculations are unchanged.
+- Validation: all 10 tests in `bun test src/features/pricing/lib/dynamic-price.test.ts` passed; targeted Oxlint and `git diff --check` passed. Oxfmt was run on the changed test file and its check passed afterward.
+- Commit and push: pending; will be included in the next catalog pricing commit.
+
+## 2026-11-04 - Show Wan 3.0 reference video pricing on catalog cards and details
+
+- Local reason: Wan 3.0 charges the combined reference-video input and generated-video durations, but its shared per-second rate was shown as output-only in the catalog and as one generic column in model details.
+- Changed: added a validated, display-only `pricingDisplay` usage-schema marker for Wan 3.0 and Wan 3.0 Prime. Catalog cards now show the configured per-second range under both reference input and generated output with an explicit combined-duration note; model details show the same rate in separate reference-input and generated-output columns for each configured resolution.
+- Preserved: the billing expression, pre-consumption, usage facts, and settlement still use the existing combined `seconds` field and do not change charges. Other Alibaba video models retain their existing display. Also includes the prior output-only image tier card fix.
+- Validation: 17 targeted frontend tests passed, Rsbuild production build passed, all locale JSON files parsed, targeted Oxlint/Oxfmt and `git diff --check` passed. Go tests could not run because the Go toolchain is not installed in this environment; full Oxlint on the catalog page reports pre-existing diagnostics outside the changed lines.
+- Commit and push: pending.
+
 ## 2026-11-03 - Add searchable organization card selector
 
 - Local reason: the personal organization selector needed a clearer overview for users who belong to multiple organizations.

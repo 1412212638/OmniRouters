@@ -80,6 +80,10 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
   }
 
   const showFixedPrice = tiers.some((tier) => tier.constant > 0)
+  const combinedVideoSecondsField = Object.entries(schema || {}).find(
+    ([, definition]) =>
+      definition.pricingDisplay === 'input_output_video_seconds'
+  )?.[0]
   const ratio = props.groupRatio ?? 1
   const title = props.title || t('Task pricing')
   return (
@@ -89,9 +93,13 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
         <Badge variant='secondary'>{t('Usage based')}</Badge>
       </div>
       <p className='text-muted-foreground text-xs leading-5'>
-        {t(
-          'Prices are charged according to the task usage fields shown below.'
-        )}
+        {combinedVideoSecondsField
+          ? t(
+              'With a reference video, its duration and the generated video duration are billed together.'
+            )
+          : t(
+              'Prices are charged according to the task usage fields shown below.'
+            )}
       </p>
       <StaticDataTable
         className='rounded-lg border'
@@ -126,28 +134,48 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
                 },
               ]
             : []),
-          ...numberFields.map(([field, definition]) => ({
-            id: field,
-            header: <TaskUsageHeader schema={schema} field={field} />,
-            className: 'text-muted-foreground px-3 py-2 text-right',
-            cellClassName: 'px-3 py-2 text-right font-mono',
-            cell: (tier: (typeof tiers)[number]) => {
-              const value = Number(tier.unitPrices[field] || 0)
-              let unitLabel = t('credit')
-              if (definition.unit === 'token') unitLabel = t('1M tokens')
-              else if (definition.unit === 'second') unitLabel = t('seconds')
-              else if (definition.unit === 'count') {
-                unitLabel = taskUsageUnitLabel(
-                  definition,
-                  i18n.language,
-                  t('Count')
-                )
-              }
-              return value > 0
-                ? `${formatTaskPrice(value * ratio, props)} / ${unitLabel}`
-                : '-'
-            },
-          })),
+          ...numberFields.flatMap(([field, definition]) => {
+            const headers =
+              field === combinedVideoSecondsField
+                ? [
+                    {
+                      id: `${field}-input`,
+                      label: t('Reference video input'),
+                    },
+                    {
+                      id: `${field}-output`,
+                      label: t('Generated video output'),
+                    },
+                  ]
+                : [
+                    {
+                      id: field,
+                      label: <TaskUsageHeader schema={schema} field={field} />,
+                    },
+                  ]
+            return headers.map(({ id, label }) => ({
+              id,
+              header: label,
+              className: 'text-muted-foreground px-3 py-2 text-right',
+              cellClassName: 'px-3 py-2 text-right font-mono',
+              cell: (tier: (typeof tiers)[number]) => {
+                const value = Number(tier.unitPrices[field] || 0)
+                let unitLabel = t('credit')
+                if (definition.unit === 'token') unitLabel = t('1M tokens')
+                else if (definition.unit === 'second') unitLabel = t('seconds')
+                else if (definition.unit === 'count') {
+                  unitLabel = taskUsageUnitLabel(
+                    definition,
+                    i18n.language,
+                    t('Count')
+                  )
+                }
+                return value > 0
+                  ? `${formatTaskPrice(value * ratio, props)} / ${unitLabel}`
+                  : '-'
+              },
+            }))
+          }),
         ]}
       />
     </section>

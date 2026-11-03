@@ -1,6 +1,6 @@
 import type { PricingModel } from '../types'
 import {
-  getTaskImagePriceEntries,
+  getTaskImageOutputPriceEntries,
   getTaskVideoPriceEntry,
   type DynamicPriceEntry,
 } from './dynamic-price'
@@ -13,6 +13,7 @@ export type CatalogTaskPriceRows = {
   outputLabel?: string
   outputValue: string
   outputUnit: string
+  note?: string
 }
 
 function formatCardPriceRange(value: string): string {
@@ -27,40 +28,64 @@ export function getCatalogTaskPriceRows(
   entries: DynamicPriceEntry[],
   language: string,
   countFallback: string,
-  secondUnit: string
+  secondUnit: string,
+  referenceVideoLabel = 'Reference video input',
+  generatedVideoLabel = 'Generated video output',
+  combinedVideoBillingNote = 'With a reference video, its duration and the generated video duration are billed together.'
 ): CatalogTaskPriceRows | null {
-  const imagePrices = getTaskImagePriceEntries(model, entries)
-  if (imagePrices) {
+  const outputImagePrices = getTaskImageOutputPriceEntries(model, entries)
+  if (outputImagePrices.length > 0) {
     const schema = model.billing_usage_schema || {}
-    const inputDefinition = schema[imagePrices.input.field]
-    const outputDefinition = schema[imagePrices.output[0].field]
-    const lowest = imagePrices.output[0]
-    const highest = imagePrices.output.at(-1) || lowest
+    const input = entries.find((entry) =>
+      ['input_images', 'input_image_count'].includes(entry.field)
+    )
+    const inputDefinition = input ? schema[input.field] : undefined
+    const outputDefinition = schema[outputImagePrices[0].field]
+    const lowest = outputImagePrices[0]
+    const highest = outputImagePrices.at(-1) || lowest
     const outputValue =
       lowest === highest
         ? formatCardPriceRange(lowest.formatted)
         : `${formatCardPriceRange(lowest.formatted)}–${formatCardPriceRange(highest.formatted)}`
-    const unit = taskUsageUnitLabel(
-      inputDefinition,
+    const outputUnit = taskUsageUnitLabel(
+      outputDefinition,
       language,
-      taskUsageUnitLabel(outputDefinition, language, countFallback)
+      countFallback
     )
 
     return {
-      inputLabel: taskPriceLabel(
-        inputDefinition?.description,
-        imagePrices.input.field,
-        language
-      ),
-      inputValue: formatCardPriceRange(imagePrices.input.formatted),
-      inputUnit: unit,
+      ...(input && {
+        inputLabel: taskPriceLabel(
+          inputDefinition?.description,
+          input.field,
+          language
+        ),
+      }),
+      inputValue: input ? formatCardPriceRange(input.formatted) : '-',
+      inputUnit: input
+        ? taskUsageUnitLabel(inputDefinition, language, outputUnit)
+        : '',
       outputValue,
-      outputUnit: unit,
+      outputUnit,
     }
   }
 
   const videoPrice = getTaskVideoPriceEntry(model, entries)
   if (!videoPrice) return null
+  if (
+    model.billing_usage_schema?.[videoPrice.field]?.pricingDisplay ===
+    'input_output_video_seconds'
+  ) {
+    return {
+      inputLabel: referenceVideoLabel,
+      inputValue: formatCardPriceRange(videoPrice.formatted),
+      inputUnit: secondUnit,
+      outputLabel: generatedVideoLabel,
+      outputValue: formatCardPriceRange(videoPrice.formatted),
+      outputUnit: secondUnit,
+      note: combinedVideoBillingNote,
+    }
+  }
   return {
     inputValue: '-',
     inputUnit: '',

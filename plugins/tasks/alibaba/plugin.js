@@ -162,7 +162,7 @@ const QWEN_IMAGE3_USAGE_SCHEMA = {
 
 // Wan video usage facts. The resolution options follow the model's
 // capability table so pricing lists only the tiers the model offers.
-function wanVideoUsageSchema(resolutions, audio) {
+function wanVideoUsageSchema(resolutions, audio, combinedVideoSeconds = false) {
   const resolutionLabels = {};
   for (const resolution of resolutions) resolutionLabels[resolution] = { en: resolution, zh: resolution };
   const schema = {
@@ -171,6 +171,7 @@ function wanVideoUsageSchema(resolutions, audio) {
       type: "number",
       unit: "second",
       description: { en: "Video generation unit price", zh: "视频生成单价" },
+      ...(combinedVideoSeconds ? { pricingDisplay: "input_output_video_seconds" } : {}),
     },
     // Requested output video resolution.
     resolution: {
@@ -181,7 +182,7 @@ function wanVideoUsageSchema(resolutions, audio) {
   };
   // wan2.6-i2v-flash prices audio and silent output differently. parameters.audio
   // defaults to true; the completion usage.audio flag replaces the estimate.
-  if (audio) {
+  if (audio === true) {
     schema.audio = {
       type: "boolean",
       description: { en: "Whether audio is generated", zh: "是否生成音频" },
@@ -202,10 +203,14 @@ function wanVideoUsageProfiles() {
     const key = modelKey(model);
     const resolutions = WAN_MODELS[key].resolutions;
     const audio = WAN_AUDIO_VIDEO_MODELS.includes(key);
-    const shape = resolutions.join("/") + (audio ? "+audio" : "");
+    const wan3 = key === "wan3.0-video" || key === "wan3.0-video-prime";
+    const shape =
+      resolutions.join("/") +
+      (audio ? "+audio" : "") +
+      (wan3 ? "+wan3" : "");
     let profile = profiles.find((entry) => entry.shape === shape);
     if (!profile) {
-      profile = { shape: shape, models: [], schema: wanVideoUsageSchema(resolutions, audio) };
+      profile = { shape: shape, models: [], schema: wanVideoUsageSchema(resolutions, audio, wan3) };
       profiles.push(profile);
     }
     profile.models.push(model);
@@ -223,7 +228,7 @@ export const meta = {
     zh: "阿里云百炼图片与视频生成（万相、千问图像、Z-Image）",
   },
   // Compatible backport of the independent Alibaba 1.5.0 protocol changes.
-  version: "1.4.1",
+  version: "1.4.2",
   author: { name: "QuantumNous" },
   channelTypes: [17],
   // Literal metadata also supports the dashboard's static script preview.

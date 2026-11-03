@@ -158,6 +158,7 @@ export type BillingUsageFieldSchema = {
   type?: 'number' | 'boolean'
   unit?: BillingUsageUnit
   unitLabel?: string | Record<string, string>
+  pricingDisplay?: 'input_output_video_seconds'
   enum?: string[]
   enumLabels?: Record<string, string | Record<string, string>>
   description?: string | Record<string, string>

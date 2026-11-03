@@ -281,6 +281,39 @@ describe('task image price entries', () => {
     )
   })
 
+  test('shows output-only image tier pricing without duplicating it as input', () => {
+    const model = testPricingModel({
+      billing_usage_schema: {
+        image_count: {
+          type: 'number',
+          unit: 'count',
+          unitLabel: { en: 'image', zh: '张' },
+          description: {
+            en: 'Image generation unit price',
+            zh: '图片生成单价',
+          },
+        },
+        output_image_type: {
+          enum: ['1.5k_and_below', 'above_1.5k'],
+          description: { en: 'Output image type', zh: '输出图像类型' },
+        },
+      },
+    })
+    const entries = [
+      { field: 'image_count', value: 0.12, formatted: '¥0.12' },
+    ] as Parameters<typeof getCatalogTaskPriceRows>[1]
+
+    assert.deepEqual(
+      getCatalogTaskPriceRows(model, entries, 'zh', '数量', '秒'),
+      {
+        inputValue: '-',
+        inputUnit: '',
+        outputValue: '¥0.12',
+        outputUnit: '张',
+      }
+    )
+  })
+
   test('builds catalog video rows with no input price and localized seconds', () => {
     const model = testPricingModel({
       billing_usage_schema: {
@@ -310,6 +343,48 @@ describe('task image price entries', () => {
         inputUnit: '',
         outputValue: '¥0.0125–¥1.6',
         outputUnit: '秒',
+      }
+    )
+  })
+
+  test('shows Wan3 reference and generated video rates separately', () => {
+    const model = testPricingModel({
+      billing_usage_schema: {
+        seconds: {
+          type: 'number',
+          unit: 'second',
+          pricingDisplay: 'input_output_video_seconds',
+        },
+        resolution: { enum: ['480P', '720P', '1080P'] },
+      },
+    })
+    const entries = [
+      {
+        field: 'seconds',
+        value: 0.3,
+        formatted: '¥0.3-¥1.2',
+      },
+    ] as Parameters<typeof getCatalogTaskPriceRows>[1]
+
+    assert.deepEqual(
+      getCatalogTaskPriceRows(
+        model,
+        entries,
+        'zh',
+        '数量',
+        '秒',
+        '参考视频输入',
+        '生成视频输出',
+        '使用参考视频时，按参考视频时长与生成视频时长之和计费。'
+      ),
+      {
+        inputLabel: '参考视频输入',
+        inputValue: '¥0.3–¥1.2',
+        inputUnit: '秒',
+        outputLabel: '生成视频输出',
+        outputValue: '¥0.3–¥1.2',
+        outputUnit: '秒',
+        note: '使用参考视频时，按参考视频时长与生成视频时长之和计费。',
       }
     )
   })

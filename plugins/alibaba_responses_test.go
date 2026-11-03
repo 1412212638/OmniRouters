@@ -44,6 +44,11 @@ func TestAlibabaResponsesProtocol(t *testing.T) {
 			require.True(t, exists, key)
 			assert.NotEmpty(t, field.Description, key)
 		}
+		assert.Equal(t, "input_output_video_seconds", schema["seconds"].PricingDisplay)
+		primeSchema, _ := plugin.Meta.UsageForModel("wan3.0-video-prime")
+		assert.Equal(t, "input_output_video_seconds", primeSchema["seconds"].PricingDisplay)
+		otherSchema, _ := plugin.Meta.UsageForModel("wan2.7-t2v")
+		assert.Empty(t, otherSchema["seconds"].PricingDisplay)
 
 		value, callErr := plugin.Engine.Call(t.Context(), "extractUsage", map[string]any{
 			"model":         "wan2.5-i2v-preview",
