@@ -5174,7 +5174,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: registered Doubao Seedream models for the shared `openai_image` host protocol and added OpenAI Images request decoding/rendering that reuses the existing Ark request conversion, pixel-tier pre-consume, and actual output-size settlement.
 - Preserved: the existing native Doubao image route, Responses API behavior, OpenAI-compatible channels not claimed by plugins, and existing Seedream model aliases and pricing expressions.
 - Validation: added regression coverage for unified endpoint decode, submit-time 2K billing facts, and completion settlement across actual 1K/2K outputs. `bun --check` and `git diff --check` passed; Go test execution is pending local toolchain availability.
-- Commit and push: included in `8cdad1ae1` (`fix: improve task image and video pricing display`); pushed to `origin/main` on 2026-11-04.
+- Commit and push: included in `3b986df67` (`fix: bill Doubao images through unified endpoint`); pushed to `origin/main` on 2026-11-04.
 
 ## 2026-11-04 - Record Alibaba image task performance and elapsed time
 
