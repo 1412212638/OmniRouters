@@ -5214,7 +5214,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: plugin-backed pricing sections now use the neutral localized “Task pricing” title while retaining the pricing rows and plugin-specific billing metadata internally.
 - Preserved: pricing calculations, provider selection, model cards, and admin configuration labels remain unchanged.
 - Validation: `git diff --check` passed. Targeted frontend tests were not added because this is a static title change; frontend test execution remains covered by the existing pricing tests.
-- Commit and push: pending; not pushed.
+- Commit and push: included in `8cdad1ae1` (`fix: improve task image and video pricing display`); pushed to `origin/main` on 2026-11-04.
 
 ## 2026-11-03 - Add searchable organization card selector
 
