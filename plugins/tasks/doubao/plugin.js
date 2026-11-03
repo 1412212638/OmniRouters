@@ -107,6 +107,13 @@ const IMAGE_MODELS = {
     fastPromptMode: true,
   },
 };
+const IMAGE_MODEL_ALIASES = {
+  "doubao-seedream-5.0-pro": "doubao-seedream-5-0-pro-260628",
+  "doubao-seedream-5.0-flash": "doubao-seedream-5-0-flash-260915",
+};
+for (const [alias, upstreamModel] of Object.entries(IMAGE_MODEL_ALIASES)) {
+  IMAGE_MODELS[alias] = IMAGE_MODELS[upstreamModel];
+}
 const IMAGE_RESOLUTIONS = ["1K", "1.5K", "2K", "3K", "4K"];
 // Square pixel area of each preset, used only for the submit-time tier estimate.
 const IMAGE_PRESET_PIXELS = { "1K": 1048576, "1.5K": 2359296, "2K": 4194304, "3K": 9437184, "4K": 16777216 };
@@ -134,6 +141,11 @@ const MAX_IMAGE_OUTPUTS = 17;
 const MAX_REFERENCE_IMAGES = 14;
 // Base64 references must be `data:image/<lowercase format>;base64,<payload>`.
 const IMAGE_DATA_URI = /^data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/]+={0,2}$/;
+
+function canonicalImageModel(model) {
+  const name = trimmed(model);
+  return IMAGE_MODEL_ALIASES[name] || name;
+}
 // Responses fields copied verbatim into the Ark body. `background` is excluded:
 // on /v1/responses it is the host's boolean background-execution flag, not Ark's
 // string transparency option. `tools` is filtered separately.
@@ -543,7 +555,8 @@ function imageModelCandidates(ctx) {
 
 function imageProfile(ctx) {
   for (const model of imageModelCandidates(ctx)) {
-    if (Object.prototype.hasOwnProperty.call(IMAGE_MODELS, model)) return IMAGE_MODELS[model];
+    const canonical = canonicalImageModel(model);
+    if (Object.prototype.hasOwnProperty.call(IMAGE_MODELS, canonical)) return IMAGE_MODELS[canonical];
   }
   return DEFAULT_IMAGE_PROFILE;
 }
@@ -599,7 +612,7 @@ function imageSize(size, profile, layered) {
 // and accepts `optimize_prompt_options: null` as unset.
 function convertImage(ctx) {
   const req = ctx.requestBody || {};
-  const model = trimmed(ctx.upstreamModel || req.model);
+  const model = canonicalImageModel(ctx.upstreamModel || req.model);
   if (!model) throw new Error("model is required");
   const profile = imageProfile(ctx);
   const body = {};

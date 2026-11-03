@@ -24,6 +24,12 @@ func TestDoubaoSeedreamProfiles(t *testing.T) {
 	plugin := newDoubaoProfilePlugin(t)
 	layered := []string{"images_above_1_5k", "images_up_to_1_5k", "input_images", "layer_decomposition"}
 	oneTier := []string{"images_above_1_5k", "input_images"}
+	for _, model := range []string{"doubao-seedream-5.0-pro", "doubao-seedream-5.0-flash"} {
+		assert.Contains(t, plugin.Meta.Models, model)
+		schema, examples := plugin.Meta.UsageForModel(model)
+		assert.Equal(t, layered, slices.Sorted(maps.Keys(schema)), model)
+		assert.NotEmpty(t, examples, model)
+	}
 	for model, want := range map[string][]string{
 		"doubao-seedream-5-0-pro-260628":   layered,
 		"doubao-seedream-5-0-flash-260915": layered,
@@ -35,6 +41,38 @@ func TestDoubaoSeedreamProfiles(t *testing.T) {
 		schema, examples := plugin.Meta.UsageForModel(model)
 		assert.Equal(t, want, slices.Sorted(maps.Keys(schema)), model)
 		assert.NotEmpty(t, examples, model)
+	}
+}
+
+func TestDoubaoSeedreamFriendlyAliasesRedirectToDatedUpstreamModels(t *testing.T) {
+	plugin := newDoubaoProfilePlugin(t)
+	for _, test := range []struct {
+		alias    string
+		upstream string
+	}{
+		{alias: "doubao-seedream-5.0-pro", upstream: "doubao-seedream-5-0-pro-260628"},
+		{alias: "doubao-seedream-5.0-flash", upstream: "doubao-seedream-5-0-flash-260915"},
+	} {
+		t.Run(test.alias, func(t *testing.T) {
+			value, err := plugin.Engine.Call(t.Context(), "buildSubmitRequest", map[string]any{
+				"baseUrl":       "https://ark.example",
+				"apiKey":        "fixture-key",
+				"model":         test.alias,
+				"upstreamModel": test.alias,
+				"requestBody": map[string]any{
+					"model":  test.alias,
+					"prompt": "a cat",
+					"size":   "2K",
+				},
+			})
+			require.NoError(t, err)
+			request, ok := value.(map[string]any)
+			require.True(t, ok)
+			body, ok := request["body"].(map[string]any)
+			require.True(t, ok)
+			assert.Equal(t, test.upstream, body["model"])
+			assert.Equal(t, test.upstream, request["rewriteModel"])
+		})
 	}
 }
 

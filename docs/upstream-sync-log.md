@@ -5160,6 +5160,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: added focused Go regression coverage for numeric request enum selectors, rejected enum values, and strict completion facts. `git diff --check` passed; Go tests and gofmt could not run because the Go toolchain is unavailable locally.
 - Commit and push: included in `a7192f777` (`feat: improve organization selector and task validation`); pushed successfully to `origin/main` on 2026-11-03. The status correction is recorded in `a81b20c59`.
 
+## 2026-11-03 - Add friendly Seedream 5.0 model aliases
+
+- Local reason: expose stable customer-facing Seedream 5.0 Pro and Flash model names without dated snapshot suffixes while retaining the official Ark snapshot IDs upstream.
+- Changed: added `doubao-seedream-5.0-pro` and `doubao-seedream-5.0-flash` to the Doubao plugin with their matching capability and usage profiles. Image request construction resolves them to `doubao-seedream-5-0-pro-260628` and `doubao-seedream-5-0-flash-260915` respectively; existing dated names remain supported.
+- Preserved: provider request format, channel model mapping behavior, image capability validation, and existing billing expressions for the dated models.
+- Validation: `bun --check plugins/tasks/doubao/plugin.js` and `git diff --check` passed. Added plugin regression coverage for alias profile registration and upstream model rewriting; Go tests could not run because the Go toolchain is unavailable locally.
+- Commit and push: pending; not pushed yet.
+
 ## 2026-11-03 - Add searchable organization card selector
 
 - Local reason: the personal organization selector needed a clearer overview for users who belong to multiple organizations.
