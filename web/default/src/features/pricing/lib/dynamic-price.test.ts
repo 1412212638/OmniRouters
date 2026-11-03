@@ -300,7 +300,7 @@ describe('task image price entries', () => {
       },
     })
     const entries = [
-      { field: 'image_count', value: 0.12, formatted: '¥0.12' },
+      { field: 'image_count', value: 0.12, formatted: '¥0.12-¥0.12' },
     ] as Parameters<typeof getCatalogTaskPriceRows>[1]
 
     assert.deepEqual(
@@ -374,8 +374,7 @@ describe('task image price entries', () => {
         '数量',
         '秒',
         '参考视频输入',
-        '生成视频输出',
-        '使用参考视频时，按参考视频时长与生成视频时长之和计费。'
+        '生成视频输出'
       ),
       {
         inputLabel: '参考视频输入',
@@ -384,7 +383,6 @@ describe('task image price entries', () => {
         outputLabel: '生成视频输出',
         outputValue: '¥0.3–¥1.2',
         outputUnit: '秒',
-        note: '使用参考视频时，按参考视频时长与生成视频时长之和计费。',
       }
     )
   })

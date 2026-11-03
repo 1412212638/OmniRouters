@@ -5240,6 +5240,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: 17 targeted frontend tests passed, Rsbuild production build passed, all locale JSON files parsed, targeted Oxlint/Oxfmt and `git diff --check` passed. Go tests could not run because the Go toolchain is not installed in this environment; full Oxlint on the catalog page reports pre-existing diagnostics outside the changed lines.
 - Commit and push: included in `a69639dea` (`fix: show Wan3 reference video pricing`); pushed to `origin/main` on 2026-11-04.
 
+## 2026-11-04 - Refine catalog task price labels
+
+- Local reason: the catalog repeated Wan 3.0's combined-duration billing note even though the model details already explain it, and equal image prices appeared as a redundant range such as `¥0.12–¥0.12`.
+- Changed: removed the combined-duration note from catalog cards while keeping it in model details; identical price-range endpoints now collapse to one unit price.
+- Preserved: Wan 3.0 input/output labels and rates remain on the card, and all billing calculations and detail-page pricing explanations are unchanged.
+- Validation: all 11 tests in `bun test src/features/pricing/lib/dynamic-price.test.ts` passed; Rsbuild production build, targeted Oxlint/Oxfmt, and `git diff --check` passed.
+- Commit and push: pending.
+
 ## 2026-11-03 - Add searchable organization card selector
 
 - Local reason: the personal organization selector needed a clearer overview for users who belong to multiple organizations.

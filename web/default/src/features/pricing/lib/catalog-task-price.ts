@@ -13,14 +13,14 @@ export type CatalogTaskPriceRows = {
   outputLabel?: string
   outputValue: string
   outputUnit: string
-  note?: string
 }
 
 function formatCardPriceRange(value: string): string {
   const separator = value.indexOf('-')
-  return separator < 0
-    ? value
-    : `${value.slice(0, separator)}–${value.slice(separator + 1)}`
+  if (separator < 0) return value
+  const minimum = value.slice(0, separator)
+  const maximum = value.slice(separator + 1)
+  return minimum === maximum ? minimum : `${minimum}–${maximum}`
 }
 
 export function getCatalogTaskPriceRows(
@@ -30,8 +30,7 @@ export function getCatalogTaskPriceRows(
   countFallback: string,
   secondUnit: string,
   referenceVideoLabel = 'Reference video input',
-  generatedVideoLabel = 'Generated video output',
-  combinedVideoBillingNote = 'With a reference video, its duration and the generated video duration are billed together.'
+  generatedVideoLabel = 'Generated video output'
 ): CatalogTaskPriceRows | null {
   const outputImagePrices = getTaskImageOutputPriceEntries(model, entries)
   if (outputImagePrices.length > 0) {
@@ -43,10 +42,15 @@ export function getCatalogTaskPriceRows(
     const outputDefinition = schema[outputImagePrices[0].field]
     const lowest = outputImagePrices[0]
     const highest = outputImagePrices.at(-1) || lowest
-    const outputValue =
-      lowest === highest
-        ? formatCardPriceRange(lowest.formatted)
-        : `${formatCardPriceRange(lowest.formatted)}–${formatCardPriceRange(highest.formatted)}`
+    const lowestFormatted = formatCardPriceRange(lowest.formatted)
+    const highestFormatted = formatCardPriceRange(highest.formatted)
+    let outputValue = lowestFormatted
+    if (
+      lowest !== highest &&
+      (lowest.value !== highest.value || lowestFormatted !== highestFormatted)
+    ) {
+      outputValue = `${lowestFormatted}–${highestFormatted}`
+    }
     const outputUnit = taskUsageUnitLabel(
       outputDefinition,
       language,
@@ -83,7 +87,6 @@ export function getCatalogTaskPriceRows(
       outputLabel: generatedVideoLabel,
       outputValue: formatCardPriceRange(videoPrice.formatted),
       outputUnit: secondUnit,
-      note: combinedVideoBillingNote,
     }
   }
   return {
