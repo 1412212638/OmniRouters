@@ -5216,6 +5216,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `git diff --check` passed. Targeted frontend tests were not added because this is a static title change; frontend test execution remains covered by the existing pricing tests.
 - Commit and push: included in `8cdad1ae1` (`fix: improve task image and video pricing display`); pushed to `origin/main` on 2026-11-04.
 
+## 2026-11-04 - Apply task price summaries to the active model catalog
+
+- Local reason: the active Model Square renders `CatalogModelCard` from `pricing/index.tsx`; the earlier image/video summary logic was only added to the separate legacy `ModelCard`, so catalog cards kept showing generic duplicated input/output prices and raw units.
+- Changed: the active catalog `usePriceRows` now uses a tested task-price summary helper to display localized image input labels and per-image output ranges, and video output ranges with no input price and localized seconds.
+- Preserved: token pricing, request pricing, filters, model details and billing behavior remain unchanged.
+- Validation: all 9 tests in `bun test src/features/pricing/lib/dynamic-price.test.ts` passed. The Rsbuild production build passed, formatting and `git diff --check` passed, and Oxlint passed for the new helper and its test. Whole-repository typecheck remains blocked by existing diagnostics in unrelated modules; the filtered output showed no diagnostics in the changed pricing files.
+- Commit and push: included in `11765267d` (`fix: wire task pricing into catalog cards`); push pending.
+
 ## 2026-11-03 - Add searchable organization card selector
 
 - Local reason: the personal organization selector needed a clearer overview for users who belong to multiple organizations.

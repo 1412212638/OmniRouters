@@ -89,6 +89,7 @@ import {
   FILTER_ALL,
 } from './constants'
 import { usePricingData } from './hooks/use-pricing-data'
+import { getCatalogTaskPriceRows } from './lib/catalog-task-price'
 import {
   getCardExamplePrice,
   getDynamicCatalogPriceRanges,
@@ -808,9 +809,11 @@ function InfoLine(props: {
 type CatalogPriceSummary =
   | {
       kind: 'paired'
+      inputLabel?: string
       inputValue: string
       outputValue: string
       inputUnit: string
+      outputLabel?: string
       outputUnit: string
       cacheValue?: string
       cacheUnit?: string
@@ -839,7 +842,7 @@ function usePriceRows(props: {
   selectedGroup?: string
   usableGroup: PricingUsableGroup
 }): CatalogPriceSummary {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const pricingModel = {
     ...props.model,
     enable_groups: getAvailableGroups(props.model, props.usableGroup),
@@ -874,6 +877,15 @@ function usePriceRows(props: {
   const taskOutputEntry = dynamicSummary?.entries.find((entry) =>
     ['tokens', 'output_tokens', 'completion_tokens'].includes(entry.field)
   )
+  const taskPriceRows = dynamicSummary
+    ? getCatalogTaskPriceRows(
+        effectivePricingModel,
+        dynamicSummary.entries,
+        i18n.language,
+        t('Count'),
+        t('seconds')
+      )
+    : null
   const catalogPriceRanges = dynamicSummary?.hasRequestRules
     ? getDynamicCatalogPriceRanges(pricingModel, {
         tokenUnit: props.tokenUnit,
@@ -916,6 +928,10 @@ function usePriceRows(props: {
       inputUnit: taskInputEntry ? tokenUnitLabel : '',
       outputUnit: taskOutputEntry ? tokenUnitLabel : '',
     }
+  }
+
+  if (taskPriceRows) {
+    return { kind: 'paired', ...taskPriceRows }
   }
 
   if (dynamicSummary?.requestPriceRange) {
@@ -1293,7 +1309,10 @@ function CatalogModelCard(props: {
           <TinyModalities modalities={props.model.output_modalities} />
         </InfoLine>
         {priceRows.kind === 'paired' && (
-          <InfoLine label={`${t('Input')}:`} valueClassName='truncate'>
+          <InfoLine
+            label={`${priceRows.inputLabel || t('Input')}:`}
+            valueClassName='truncate'
+          >
             <span
               className={cn(
                 'font-mono font-medium',
@@ -1310,7 +1329,10 @@ function CatalogModelCard(props: {
           </InfoLine>
         )}
         {priceRows.kind === 'paired' && (
-          <InfoLine label={`${t('Output')}:`} valueClassName='truncate'>
+          <InfoLine
+            label={`${priceRows.outputLabel || t('Output')}:`}
+            valueClassName='truncate'
+          >
             <span
               className={cn(
                 'font-mono font-medium',

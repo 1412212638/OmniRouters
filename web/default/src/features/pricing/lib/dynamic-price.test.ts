@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
+import type { PricingModel } from '../types'
 import { parseTiersFromExpr } from './billing-expr'
+import { getCatalogTaskPriceRows } from './catalog-task-price'
 import {
   getDynamicPriceEntries,
   getDynamicPricingSummary,
@@ -10,6 +12,18 @@ import {
   getTaskVideoPriceEntry,
 } from './dynamic-price'
 import { getDisplayedModelName } from './model-helpers'
+
+function testPricingModel(model: Partial<PricingModel>): PricingModel {
+  return {
+    id: 0,
+    model_name: 'test-model',
+    quota_type: 0,
+    model_ratio: 1,
+    completion_ratio: 1,
+    enable_groups: [],
+    ...model,
+  }
+}
 
 describe('dynamic fixed request prices', () => {
   test('displays fixed prices as USD per request without token scaling', () => {
@@ -23,10 +37,10 @@ describe('dynamic fixed request prices', () => {
     assert.equal(entry?.value, 0.005)
     assert.equal(entry?.formatted, '$0.005')
 
-    const model = {
+    const model = testPricingModel({
       billing_mode: 'tiered_expr',
       billing_expr: 'tier("request", fixed(0.005))',
-    }
+    })
     const summary = getDynamicPricingSummary(model, { tokenUnit: 'M' })
 
     assert.equal(summary?.requestPriceRange, '$0.005')
@@ -35,7 +49,7 @@ describe('dynamic fixed request prices', () => {
 
 describe('task image price entries', () => {
   test('keeps input and output image prices and localized unit metadata', () => {
-    const model = {
+    const model = testPricingModel({
       billing_mode: 'tiered_expr',
       billing_expr:
         'tier("base", u("images_above_1_5k") * 0.6 + u("images_up_to_1_5k") * 0.3 + u("input_images") * 0.02)',
@@ -65,7 +79,7 @@ describe('task image price entries', () => {
           description: { en: 'Input image unit price', zh: '输入图片单价' },
         },
       },
-    }
+    })
     const entries = getTaskPriceEntries(model, { tokenUnit: 'M' })
 
     assert.deepEqual(
@@ -95,7 +109,7 @@ describe('task image price entries', () => {
   })
 
   test('groups Qwen output tiers with its separately priced input images', () => {
-    const model = {
+    const model = testPricingModel({
       billing_mode: 'tiered_expr',
       billing_expr: 'tier("base", u("image_count") * 0.25)',
       billing_usage_schema: {
@@ -116,7 +130,7 @@ describe('task image price entries', () => {
           description: { en: 'Input image unit price', zh: '输入图片单价' },
         },
       },
-    }
+    })
     const entries = getTaskPriceEntries(model, { tokenUnit: 'M' }, [
       {
         label: '1K output',
@@ -146,7 +160,7 @@ describe('task image price entries', () => {
   })
 
   test('treats resolution-tiered second prices as video output pricing', () => {
-    const model = {
+    const model = testPricingModel({
       billing_mode: 'tiered_expr',
       billing_expr: 'tier("base", u("seconds") * 0.45)',
       billing_usage_schema: {
@@ -160,7 +174,7 @@ describe('task image price entries', () => {
         },
         resolution: { enum: ['480P', '720P', '1080P'] },
       },
-    }
+    })
     const entries = getTaskPriceEntries(model, { tokenUnit: 'M' }, [
       {
         label: '480P',
@@ -189,7 +203,7 @@ describe('task image price entries', () => {
   })
 
   test('recognizes video duration fields by unit and output dimensions metadata', () => {
-    const model = {
+    const model = testPricingModel({
       billing_usage_schema: {
         input_video_duration: {
           type: 'number',
@@ -211,7 +225,7 @@ describe('task image price entries', () => {
           },
         },
       },
-    }
+    })
     const price = {
       key: 'task:input_video_duration',
       field: 'input_video_duration',
@@ -224,6 +238,80 @@ describe('task image price entries', () => {
     }
 
     assert.equal(getTaskVideoPriceEntry(model, [price]), price)
+  })
+
+  test('builds the catalog Seedream image price rows from task usage data', () => {
+    const model = testPricingModel({
+      billing_usage_schema: {
+        images_above_1_5k: {
+          type: 'number',
+          unit: 'count',
+          unitLabel: { en: 'image', zh: '张' },
+          description: { en: 'Output image price', zh: '图片生成单价' },
+        },
+        images_up_to_1_5k: {
+          type: 'number',
+          unit: 'count',
+          unitLabel: { en: 'image', zh: '张' },
+          description: { en: 'Output image price', zh: '图片生成单价' },
+        },
+        input_images: {
+          type: 'number',
+          unit: 'count',
+          unitLabel: { en: 'image', zh: '张' },
+          description: { en: 'Input image unit price', zh: '输入图片单价' },
+        },
+      },
+    })
+    const entries = [
+      { field: 'images_above_1_5k', value: 0.6, formatted: '¥0.6' },
+      { field: 'images_up_to_1_5k', value: 0.3, formatted: '¥0.3' },
+      { field: 'input_images', value: 0.02, formatted: '¥0.02' },
+    ] as Parameters<typeof getCatalogTaskPriceRows>[1]
+
+    assert.deepEqual(
+      getCatalogTaskPriceRows(model, entries, 'zh', '数量', '秒'),
+      {
+        inputLabel: '输入图片单价',
+        inputValue: '¥0.02',
+        inputUnit: '张',
+        outputValue: '¥0.3–¥0.6',
+        outputUnit: '张',
+      }
+    )
+  })
+
+  test('builds catalog video rows with no input price and localized seconds', () => {
+    const model = testPricingModel({
+      billing_usage_schema: {
+        input_video_duration: {
+          type: 'number',
+          unit: 'second',
+          description: { en: 'Input video duration', zh: '输入视频时长（秒）' },
+        },
+        target_output_resolution: {
+          enum: ['720p', '1080p'],
+          description: { en: 'Target output resolution', zh: '目标输出分辨率' },
+        },
+      },
+    })
+    const entries = [
+      {
+        field: 'input_video_duration',
+        value: 0.0125,
+        formatted: '¥0.0125-¥1.6',
+      },
+    ] as Parameters<typeof getCatalogTaskPriceRows>[1]
+
+    assert.deepEqual(
+      getCatalogTaskPriceRows(model, entries, 'zh', '数量', '秒'),
+      {
+        inputValue: '-',
+        inputUnit: '',
+        outputValue: '¥0.0125–¥1.6',
+        outputUnit: '秒',
+      }
+    )
   })
 })
 
