@@ -5287,3 +5287,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: newsletter generation never sends automatically; only an administrator's explicit approval starts delivery. Promotions are informational and do not change pricing or billing, and no model price history is recorded. Existing unset marketing preferences continue to default to enabled.
 - Validation: frontend production build, targeted Oxlint, Oxfmt, locale JSON parsing, and `git diff --check` passed. Full frontend typecheck remains blocked by existing unrelated type errors and missing test dependencies. Go tests and `gofmt` were unavailable because the Go toolchain is not installed.
 - Commit and push: committed as `74ae51005` (`feat: expand subscriptions and marketing email workflows`) and pushed to `origin/main` on 2026-11-05.
+
+## 2026-11-05 - Fix duplicate subscription group field blocking container build
+
+- Local reason: the GHCR build failed in `go run ./cmd/check-task-plugins` because `RelayInfo` declared `SubscriptionAllowedGroups` twice.
+- Changed: retained the subscription group snapshot field at its primary billing metadata location and removed the duplicate declaration.
+- Preserved: subscription group filtering, billing, logging, and all unrelated local changes.
+- Validation: source inspection and `git diff --check` passed; the local Go toolchain is unavailable, so the Go compiler and plugin check could not run locally.
+- Commit and push: pending.
