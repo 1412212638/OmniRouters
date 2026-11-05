@@ -3,6 +3,9 @@ import { api } from '@/lib/api'
 import type {
   FetchUpstreamRatiosRequest,
   LogCleanupTask,
+  MarketingDigest,
+  MarketingDigestPromotion,
+  MarketingDigestRecipient,
   SearchMarketingEmailUsersParams,
   SearchMarketingEmailUsersResponse,
   SendMarketingEmailRequest,
@@ -123,6 +126,91 @@ export async function sendEmailSettingsMarketingEmail(
     '/api/email_settings/marketing_email/send',
     request
   )
+  return res.data
+}
+
+export async function listMarketingDigestPromotions() {
+  const res = await api.get<{
+    success: boolean
+    data?: MarketingDigestPromotion[]
+  }>('/api/email_settings/newsletter/promotions')
+  return res.data
+}
+
+export async function saveMarketingDigestPromotion(
+  promotion: Omit<MarketingDigestPromotion, 'id'> & { id?: number }
+) {
+  const res = await api.request<{
+    success: boolean
+    data?: MarketingDigestPromotion
+  }>({
+    method: promotion.id ? 'PUT' : 'POST',
+    url: '/api/email_settings/newsletter/promotions',
+    data: promotion,
+  })
+  return res.data
+}
+
+export async function deleteMarketingDigestPromotion(id: number) {
+  const res = await api.delete(
+    `/api/email_settings/newsletter/promotions/${id}`
+  )
+  return res.data
+}
+
+export async function listMarketingDigests() {
+  const res = await api.get<{ success: boolean; data?: MarketingDigest[] }>(
+    '/api/email_settings/newsletter/digests'
+  )
+  return res.data
+}
+
+export async function generateMarketingDigest(periodDays: number) {
+  const res = await api.post<{
+    success: boolean
+    message?: string
+    data?: { digest: MarketingDigest; created: boolean }
+  }>('/api/email_settings/newsletter/digests/generate', {
+    period_days: periodDays,
+  })
+  return res.data
+}
+
+export async function updateMarketingDigest(
+  id: number,
+  request: {
+    subject: string
+    content: string
+    audience_type: MarketingDigest['audience_type']
+    audience_group: string
+    user_ids: number[]
+  }
+) {
+  const res = await api.put<{ success: boolean; data?: MarketingDigest }>(
+    `/api/email_settings/newsletter/digests/${id}`,
+    request
+  )
+  return res.data
+}
+
+export async function sendMarketingDigest(id: number, retry = false) {
+  const action = retry ? 'retry' : 'send'
+  const res = await api.post(
+    `/api/email_settings/newsletter/digests/${id}/${action}`
+  )
+  return res.data
+}
+
+export async function listMarketingDigestRecipients(
+  id: number,
+  status?: MarketingDigestRecipient['status']
+) {
+  const res = await api.get<{
+    success: boolean
+    data?: { items: MarketingDigestRecipient[]; total: number }
+  }>(`/api/email_settings/newsletter/digests/${id}/recipients`, {
+    params: { status, limit: 100, offset: 0 },
+  })
   return res.data
 }
 

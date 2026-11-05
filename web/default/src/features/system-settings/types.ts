@@ -63,6 +63,56 @@ export type SendMarketingEmailResponse = {
   }
 }
 
+export type MarketingDigestStatus =
+  | 'pending_review'
+  | 'sending'
+  | 'sent'
+  | 'sent_with_errors'
+  | 'failed'
+
+export type MarketingDigest = {
+  id: number
+  period_start: number
+  period_end: number
+  subject: string
+  content: string
+  model_names: string
+  promotion_snapshot: string
+  audience_type: 'all' | 'topup' | 'active' | 'group' | 'manual'
+  audience_group: string
+  audience_user_ids: string
+  status: MarketingDigestStatus
+  created_at: number
+  updated_at: number
+  reviewed_by: number
+  sent_at: number
+  recipient_count: number
+  sent_count: number
+  skipped_count: number
+  failed_count: number
+}
+
+export type MarketingDigestPromotion = {
+  id: number
+  model_name: string
+  description: string
+  discount: string
+  starts_at: number
+  ends_at: number
+  url: string
+  enabled: boolean
+}
+
+export type MarketingDigestRecipient = {
+  id: number
+  digest_id: number
+  user_id: number
+  email_masked: string
+  status: 'pending' | 'sending' | 'sent' | 'skipped' | 'failed'
+  reason: string
+  updated_at: number
+}
+
 export type SystemTaskStatus = 'pending' | 'running' | 'succeeded' | 'failed'
 
 export type SystemTask<

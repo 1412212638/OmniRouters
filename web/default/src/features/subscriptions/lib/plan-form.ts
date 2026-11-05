@@ -1,6 +1,8 @@
 import type { TFunction } from 'i18next'
 import { z } from 'zod'
 
+import { parseQuotaFromDollars, quotaUnitsToEditableAmount } from '@/lib/format'
+
 import type { SubscriptionPlan, PlanPayload } from '../types'
 
 export function getPlanFormSchema(t: TFunction) {
@@ -73,7 +75,10 @@ export function planToFormValues(plan: SubscriptionPlan): PlanFormValues {
     sort_order: Number(plan.sort_order || 0),
     allow_balance_pay: plan.allow_balance_pay !== false,
     max_purchase_per_user: Number(plan.max_purchase_per_user || 0),
-    total_amount: Number(plan.total_amount || 0),
+    total_amount:
+      plan.billing_mode === 'token'
+        ? Number(plan.total_amount || 0)
+        : quotaUnitsToEditableAmount(Number(plan.total_amount || 0)),
     billing_mode: plan.billing_mode || 'quota',
     allowed_models: plan.allowed_models || [],
     upgrade_group: plan.upgrade_group || '',
@@ -99,7 +104,10 @@ export function formValuesToPlanPayload(values: PlanFormValues): PlanPayload {
           : 0,
       sort_order: Number(values.sort_order || 0),
       max_purchase_per_user: Number(values.max_purchase_per_user || 0),
-      total_amount: Number(values.total_amount || 0),
+      total_amount:
+        values.billing_mode === 'token'
+          ? Number(values.total_amount || 0)
+          : parseQuotaFromDollars(Number(values.total_amount || 0)),
       billing_mode: values.billing_mode,
       allowed_models: values.allowed_models,
       upgrade_group: values.upgrade_group || '',

@@ -114,7 +114,13 @@ func FilterUserTokenAutoGroups(userGroup string, groups []string) []string {
 }
 
 func filterUserTokenAutoGroups(userGroup string, groups, extraGroups []string) []string {
-	maxCount := setting.GetMaxTokenAutoGroups()
+	return filterUserTokenAutoGroupsLimit(userGroup, groups, extraGroups, setting.GetMaxTokenAutoGroups())
+}
+
+func filterUserTokenAutoGroupsLimit(userGroup string, groups, extraGroups []string, maxCount int) []string {
+	if maxCount <= 0 {
+		return []string{}
+	}
 	filtered := make([]string, 0, min(len(groups), maxCount))
 	seen := make(map[string]struct{})
 	for _, group := range groups {
@@ -145,7 +151,11 @@ func GetRequestAutoGroups(c *gin.Context, userGroup string) []string {
 	if !ok {
 		return []string{}
 	}
-	filtered := filterUserTokenAutoGroups(userGroup, groups, getUserExtraGroupsFromContext(c))
+	maxCount := setting.GetMaxTokenAutoGroups()
+	if common.GetContextKeyString(c, constant.ContextKeyTokenKeyType) == model.TokenKeyTypeSubscription {
+		maxCount = len(groups)
+	}
+	filtered := filterUserTokenAutoGroupsLimit(userGroup, groups, getUserExtraGroupsFromContext(c), maxCount)
 	return filterSubscriptionAllowedGroups(c, filtered)
 }
 

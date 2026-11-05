@@ -1397,7 +1397,11 @@ func PreConsumeTokenSubscription(requestId string, userId int, usingGroup string
 	return preConsumeUserSubscription(requestId, userId, usingGroup, modelName, 0, amount, SubscriptionBillingModeToken)
 }
 
-func preConsumeUserSubscription(requestId string, userId int, usingGroup string, modelName string, quotaType int, amount int64, requiredBillingMode string) (*SubscriptionPreConsumeResult, error) {
+func PreConsumeSubscriptionById(requestId string, userId, subscriptionId int, usingGroup, modelName string, amount int64, billingMode string) (*SubscriptionPreConsumeResult, error) {
+	return preConsumeUserSubscription(requestId, userId, usingGroup, modelName, 0, amount, billingMode, subscriptionId)
+}
+
+func preConsumeUserSubscription(requestId string, userId int, usingGroup string, modelName string, quotaType int, amount int64, requiredBillingMode string, subscriptionIdHint ...int) (*SubscriptionPreConsumeResult, error) {
 	if userId <= 0 {
 		return nil, errors.New("invalid userId")
 	}
@@ -1424,6 +1428,9 @@ func preConsumeUserSubscription(requestId string, userId int, usingGroup string,
 		if query.RowsAffected > 0 {
 			if existing.Status == "refunded" {
 				return errors.New("subscription pre-consume already refunded")
+			}
+			if len(subscriptionIdHint) > 0 && subscriptionIdHint[0] > 0 && existing.UserSubscriptionId != subscriptionIdHint[0] {
+				return errors.New("request is already bound to another subscription")
 			}
 			var sub UserSubscription
 			if err := tx.Where("id = ?", existing.UserSubscriptionId).First(&sub).Error; err != nil {
@@ -1456,8 +1463,11 @@ func preConsumeUserSubscription(requestId string, userId int, usingGroup string,
 		}
 
 		var subs []UserSubscription
-		if err := lockForUpdate(tx).
-			Where("user_id = ? AND status = ? AND end_time > ?", userId, "active", now).
+		query := lockForUpdate(tx).Where("user_id = ? AND status = ? AND end_time > ?", userId, "active", now)
+		if len(subscriptionIdHint) > 0 && subscriptionIdHint[0] > 0 {
+			query = query.Where("id = ?", subscriptionIdHint[0])
+		}
+		if err := query.
 			Order("end_time asc, id asc").
 			Find(&subs).Error; err != nil {
 			return err

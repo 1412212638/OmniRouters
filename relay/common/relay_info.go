@@ -94,6 +94,7 @@ type RelayInfo struct {
 	TokenKeyType                 string
 	SubscriptionBillingMode      string
 	SubscriptionAllowedModels    []string
+	SubscriptionAllowedGroups    []string
 	SubscriptionTokenPreConsumed int64
 	StartTime                    time.Time
 	FirstResponseTime            time.Time
@@ -588,6 +589,7 @@ func genBaseRelayInfo(c *gin.Context, request dto.Request) *RelayInfo {
 		TokenUnlimited:          common.GetContextKeyBool(c, constant.ContextKeyTokenUnlimited),
 		TokenKeyType:            common.GetContextKeyString(c, constant.ContextKeyTokenKeyType),
 		SubscriptionBillingMode: common.GetContextKeyString(c, constant.ContextKeySubscriptionBillingMode),
+		SubscriptionId:          common.GetContextKeyInt(c, constant.ContextKeySubscriptionId),
 		TokenGroup:              tokenGroup,
 
 		isFirstResponse: true,
@@ -609,6 +611,9 @@ func genBaseRelayInfo(c *gin.Context, request dto.Request) *RelayInfo {
 	}
 	if allowed, ok := common.GetContextKeyType[[]string](c, constant.ContextKeySubscriptionAllowedModels); ok {
 		info.SubscriptionAllowedModels = append([]string(nil), allowed...)
+	}
+	if allowed, ok := common.GetContextKeyType[[]string](c, constant.ContextKeySubscriptionAllowedGroups); ok {
+		info.SubscriptionAllowedGroups = append([]string(nil), allowed...)
 	}
 
 	if info.RelayMode == relayconstant.RelayModeUnknown {

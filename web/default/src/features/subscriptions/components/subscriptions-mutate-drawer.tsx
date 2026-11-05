@@ -43,6 +43,8 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
+import { getModels } from '@/features/models/api'
+import { getEditableQuotaStep } from '@/lib/format'
 
 import {
   createPlan,
@@ -61,7 +63,6 @@ import {
 } from '../lib'
 import type { PlanRecord } from '../types'
 import { useSubscriptions } from './subscriptions-provider'
-import { getModels } from '@/features/models/api'
 
 interface Props {
   open: boolean
@@ -357,12 +358,15 @@ export function SubscriptionsMutateDrawer({
                       <FormLabel>
                         {billingMode === 'token'
                           ? t('Total Tokens')
-                          : t('Total Quota')}
+                          : t('Subscription Amount')}
                       </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           type='number'
+                          step={
+                            billingMode === 'token' ? 1 : getEditableQuotaStep()
+                          }
                           min={0}
                           onChange={(e) =>
                             field.onChange(parseFloat(e.target.value) || 0)
@@ -399,13 +403,19 @@ export function SubscriptionsMutateDrawer({
                       </FormControl>
                       <SelectContent alignItemWithTrigger={false}>
                         <SelectGroup>
-                          <SelectItem value='quota'>{t('Quota based')}</SelectItem>
-                          <SelectItem value='token'>{t('Token based')}</SelectItem>
+                          <SelectItem value='quota'>
+                            {t('Quota based')}
+                          </SelectItem>
+                          <SelectItem value='token'>
+                            {t('Token based')}
+                          </SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      {t('Token plans charge raw input and output tokens; tool fees use wallet balance.')}
+                      {t(
+                        'Token plans charge raw input and output tokens; tool fees use wallet balance.'
+                      )}
                     </FormDescription>
                   </FormItem>
                 )}
@@ -421,7 +431,10 @@ export function SubscriptionsMutateDrawer({
                       <FormControl>
                         <MultiSelect
                           id='subscription-allowed-models'
-                          options={modelOptions.map((value) => ({ value, label: value }))}
+                          options={modelOptions.map((value) => ({
+                            value,
+                            label: value,
+                          }))}
                           selected={field.value}
                           onChange={field.onChange}
                           placeholder={t('Select allowed models')}
@@ -431,7 +444,9 @@ export function SubscriptionsMutateDrawer({
                         />
                       </FormControl>
                       <FormDescription>
-                        {t('Only selected models can use this token subscription.')}
+                        {t(
+                          'Only selected models can use this token subscription.'
+                        )}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

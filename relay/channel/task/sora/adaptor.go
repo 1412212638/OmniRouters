@@ -176,6 +176,21 @@ func (a *TaskAdaptor) validateSoraParamPricing(c *gin.Context) *dto.TaskError {
 
 	resolution := resolveSoraPricingResolution(req.Resolution, req.Size, rule)
 	if resolution == "" {
+		requestedResolution := strings.TrimSpace(req.Resolution)
+		if requestedResolution == "" {
+			requestedResolution = strings.TrimSpace(req.Size)
+		}
+		if requestedResolution != "" {
+			return service.TaskErrorWrapperLocal(
+				fmt.Errorf(
+					"unsupported resolution %q, available values: %s",
+					requestedResolution,
+					strings.Join(rule.ResolutionValues(), ", "),
+				),
+				"invalid_request",
+				http.StatusBadRequest,
+			)
+		}
 		return service.TaskErrorWrapperLocal(fmt.Errorf("field resolution is required"), "invalid_request", http.StatusBadRequest)
 	}
 
@@ -217,7 +232,13 @@ func resolveSoraPricingResolution(resolution, size string, rule billing_setting.
 	if resolution = strings.TrimSpace(resolution); resolution != "" {
 		return resolution
 	}
-	switch strings.TrimSpace(size) {
+	size = strings.TrimSpace(size)
+	// Preserve provider-specific dimensions when the administrator configured
+	// that exact value as a pricing tier (for example, 1080x720).
+	if _, ok := rule.FindResolutionMultiplier(size); ok {
+		return size
+	}
+	switch size {
 	case "720x1280", "1280x720":
 		for _, value := range []string{"720p", "720P"} {
 			if _, ok := rule.FindResolutionMultiplier(value); ok {
@@ -231,7 +252,7 @@ func resolveSoraPricingResolution(resolution, size string, rule billing_setting.
 			}
 		}
 	}
-	if len(rule.ResolutionTiers) == 1 {
+	if size == "" && len(rule.ResolutionTiers) == 1 {
 		return strings.TrimSpace(rule.ResolutionTiers[0].Value)
 	}
 	return ""

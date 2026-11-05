@@ -267,6 +267,7 @@ type MarketingMailParams struct {
 	DisplayName     string
 	Email           string
 	UserId          string
+	UnsubscribeURL  string
 	SubjectTemplate string
 	ContentTemplate string
 }
@@ -286,6 +287,7 @@ func BuildMarketingMail(params MarketingMailParams) (subject string, content str
 		"display_name": displayName,
 		"email":        params.Email,
 		"user_id":      params.UserId,
+		"unsubscribe_url": params.UnsubscribeURL,
 	}
 
 	subjectTemplate := params.SubjectTemplate

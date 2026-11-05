@@ -17,17 +17,17 @@ func IsStandaloneToolRequest(info *relaycommon.RelayInfo) bool {
 	return info.RelayMode == relayconstant.RelayModeToolsSearch || info.RelayMode == relayconstant.RelayModeToolsFetch
 }
 
-// IsTokenSubscriptionKey identifies an authenticated key bound to a token
-// subscription, including calls to the independent Web Tools endpoints.
+// IsTokenSubscriptionKey identifies an authenticated key bound to a subscription
+// plan, including calls to the independent Web Tools endpoints.
 func IsTokenSubscriptionKey(info *relaycommon.RelayInfo) bool {
-	return info != nil && info.TokenKeyType == "subscription" && info.SubscriptionBillingMode == "token"
+	return info != nil && info.TokenKeyType == "subscription" && (info.SubscriptionBillingMode == "token" || info.SubscriptionBillingMode == "quota")
 }
 
 // IsTokenSubscriptionRequest identifies LLM traffic billed by raw input and
 // output tokens from a token-based subscription. Standalone Web Tools use the
 // same key but are billed separately from the wallet.
 func IsTokenSubscriptionRequest(info *relaycommon.RelayInfo) bool {
-	return IsTokenSubscriptionKey(info) && !IsStandaloneToolRequest(info)
+	return info != nil && info.TokenKeyType == "subscription" && info.SubscriptionBillingMode == "token" && !IsStandaloneToolRequest(info)
 }
 
 // ValidateSubscriptionRequest applies the restrictions carried by a
@@ -36,7 +36,7 @@ func ValidateSubscriptionRequest(info *relaycommon.RelayInfo) error {
 	if info == nil || info.TokenKeyType != "subscription" {
 		return nil
 	}
-	if info.SubscriptionBillingMode != "token" {
+	if info.SubscriptionBillingMode != "token" && info.SubscriptionBillingMode != "quota" {
 		return errors.New("subscription key is bound to an unsupported plan")
 	}
 	switch info.RelayMode {
@@ -49,6 +49,9 @@ func ValidateSubscriptionRequest(info *relaycommon.RelayInfo) error {
 		// Supported model request protocols and standalone web tools are allowed.
 	default:
 		return fmt.Errorf("subscription key does not support this request type")
+	}
+	if info.SubscriptionBillingMode == "quota" {
+		return nil
 	}
 	if IsStandaloneToolRequest(info) {
 		return nil

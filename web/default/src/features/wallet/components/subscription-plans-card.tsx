@@ -113,7 +113,9 @@ export function SubscriptionPlansCard({
 
   const [purchaseOpen, setPurchaseOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<PlanRecord | null>(null)
-  const [tokenSubscriptionId, setTokenSubscriptionId] = useState<number | null>(null)
+  const [tokenSubscriptionId, setTokenSubscriptionId] = useState<number | null>(
+    null
+  )
   const [tokenName, setTokenName] = useState('')
   const [createdToken, setCreatedToken] = useState<string | null>(null)
   const [creatingToken, setCreatingToken] = useState(false)
@@ -479,10 +481,10 @@ export function SubscriptionPlansCard({
                           ? subscription?.allowed_groups?.join(', ')
                           : t('All groups')}
                       </div>
-                      {subscription?.billing_mode === 'token' && (
+                      {isActive && subscription && (
                         <div className='mt-2 flex items-center justify-between gap-2'>
                           <span className='text-muted-foreground'>
-                            {t('Token subscription')}
+                            {t('Subscription key')}
                           </span>
                           {isActive && (
                             <Button
@@ -502,7 +504,8 @@ export function SubscriptionPlansCard({
                       <div className='text-muted-foreground mt-1'>
                         {subscription?.billing_mode === 'token'
                           ? t('Total Tokens')
-                          : t('Total Quota')}:{' '}
+                          : t('Total Quota')}
+                        :{' '}
                         {totalAmount > 0 ? (
                           <Tooltip>
                             <TooltipTrigger
@@ -515,9 +518,9 @@ export function SubscriptionPlansCard({
                             <TooltipContent>
                               {subscription?.billing_mode === 'token'
                                 ? t('Total Tokens')
-                                : t('Raw Quota')}:{' '}
-                              {usedAmount}/{totalAmount} ·{' '}
-                              {t('Remaining')} {remainAmount}
+                                : t('Raw Quota')}
+                              : {usedAmount}/{totalAmount} · {t('Remaining')}{' '}
+                              {remainAmount}
                             </TooltipContent>
                           </Tooltip>
                         ) : (
@@ -674,7 +677,7 @@ export function SubscriptionPlansCard({
           <DialogHeader>
             <DialogTitle>{t('Create subscription key')}</DialogTitle>
             <DialogDescription>
-              {t('This key shares the token allowance of the subscription.')}
+              {t('This key shares the subscription allowance.')}
             </DialogDescription>
           </DialogHeader>
           {createdToken ? (
@@ -682,7 +685,11 @@ export function SubscriptionPlansCard({
               <p className='text-muted-foreground text-sm'>
                 {t('Copy this key now. It will not be shown again.')}
               </p>
-              <Input value={createdToken} readOnly onFocus={(e) => e.currentTarget.select()} />
+              <Input
+                value={createdToken}
+                readOnly
+                onFocus={(e) => e.currentTarget.select()}
+              />
             </div>
           ) : (
             <Input
@@ -699,7 +706,10 @@ export function SubscriptionPlansCard({
                 if (!tokenSubscriptionId || !tokenName.trim()) return
                 setCreatingToken(true)
                 try {
-                  const res = await createSubscriptionToken(tokenSubscriptionId, tokenName.trim())
+                  const res = await createSubscriptionToken(
+                    tokenSubscriptionId,
+                    tokenName.trim()
+                  )
                   if (res.success && res.data?.token) {
                     setCreatedToken(res.data.token)
                     toast.success(t('Created successfully'))

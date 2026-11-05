@@ -96,9 +96,7 @@ export function WorkspaceSwitcher() {
     if (!userId) return
     await clearWorkspaceQueries()
     selectOrganization(userId, organizationId)
-    await navigate({
-      to: organizationId === null ? '/dashboard' : '/organizations',
-    })
+    await navigate({ to: '/dashboard' })
   }
 
   if (!enabled) return null

@@ -33,7 +33,7 @@ type SubscriptionTokenRequest struct {
 }
 
 // CreateSubscriptionToken lets a user mint a minimal key for a purchased
-// token plan. The key is bound to the subscription and shares its quota.
+// subscription plan. The key is bound to the subscription and shares its quota.
 func CreateSubscriptionToken(c *gin.Context) {
 	userId := c.GetInt("id")
 	if required, err := service.RealNameRequiredForUser(userId); err != nil {

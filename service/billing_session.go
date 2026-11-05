@@ -479,6 +479,15 @@ func NewBillingSession(c *gin.Context, relayInfo *relaycommon.RelayInfo, preCons
 	tokenSubscriptionKey := IsTokenSubscriptionKey(relayInfo)
 	isStandaloneTool := IsStandaloneToolRequest(relayInfo)
 	if tokenSubscriptionKey && !isStandaloneTool {
+		billingMode := relayInfo.SubscriptionBillingMode
+		if billingMode == model.SubscriptionBillingModeQuota {
+			reservation := preConsumedQuota
+			if reservation <= 0 { reservation = 1 }
+			funding := &SubscriptionFunding{requestId: relayInfo.RequestId, userId: relayInfo.UserId, usingGroup: relayInfo.UsingGroup, modelName: relayInfo.OriginModelName, amount: int64(reservation), billingMode: billingMode, subscriptionId: relayInfo.SubscriptionId}
+			session := &BillingSession{relayInfo: relayInfo, funding: funding}
+			if apiErr := session.preConsume(c, reservation); apiErr != nil { return nil, apiErr }
+			return session, nil
+		}
 		reservation := int64(relayInfo.GetEstimatePromptTokens())
 		if meta, ok := common.GetContextKeyType[*types.TokenCountMeta](c, constant.ContextKeyTokenCountMeta); ok && meta != nil && meta.MaxTokens > 0 {
 			reservation += int64(meta.MaxTokens)
@@ -486,7 +495,7 @@ func NewBillingSession(c *gin.Context, relayInfo *relaycommon.RelayInfo, preCons
 		if reservation <= 0 {
 			reservation = 1
 		}
-		funding := &SubscriptionFunding{requestId: relayInfo.RequestId, userId: relayInfo.UserId, usingGroup: relayInfo.UsingGroup, modelName: relayInfo.OriginModelName, amount: reservation, billingMode: model.SubscriptionBillingModeToken}
+		funding := &SubscriptionFunding{requestId: relayInfo.RequestId, userId: relayInfo.UserId, usingGroup: relayInfo.UsingGroup, modelName: relayInfo.OriginModelName, amount: reservation, billingMode: model.SubscriptionBillingModeToken, subscriptionId: relayInfo.SubscriptionId}
 		session := &BillingSession{relayInfo: relayInfo, funding: funding, tokenFunding: funding, tokenSubscription: true}
 		if apiErr := session.preConsume(c, int(reservation)); apiErr != nil {
 			return nil, apiErr

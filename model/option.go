@@ -98,6 +98,8 @@ func InitOptionMap() {
 	common.OptionMap["TopUpSuccessContentTemplate"] = common.TopUpSuccessContentTemplate
 	common.OptionMap["MarketingEmailSubjectTemplate"] = common.MarketingEmailSubjectTemplate
 	common.OptionMap["MarketingEmailContentTemplate"] = common.MarketingEmailContentTemplate
+	common.OptionMap["MarketingDigestIntervalDays"] = strconv.Itoa(common.MarketingDigestIntervalDays)
+	common.OptionMap["MarketingDigestReviewEmail"] = common.MarketingDigestReviewEmail
 	common.OptionMap["Notice"] = ""
 	common.OptionMap["About"] = ""
 	common.OptionMap["HomePageContent"] = ""
@@ -534,6 +536,10 @@ func updateOptionMap(key string, value string) (err error) {
 		common.MarketingEmailSubjectTemplate = value
 	case "MarketingEmailContentTemplate":
 		common.MarketingEmailContentTemplate = value
+	case "MarketingDigestIntervalDays":
+		common.MarketingDigestIntervalDays, _ = strconv.Atoi(value)
+	case "MarketingDigestReviewEmail":
+		common.MarketingDigestReviewEmail = value
 	case "ServerAddress":
 		system_setting.ServerAddress = value
 	case "TaskPublicAddress":

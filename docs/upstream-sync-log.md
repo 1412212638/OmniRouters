@@ -5255,3 +5255,35 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: pending invitations remain in the personal selector, card selection still enters the existing organization workspace, and all organization workspace tabs and controls remain unchanged.
 - Validation: pending targeted Oxlint/Oxfmt, locale JSON parsing, and frontend checks; Go tests remain unavailable locally because the Go toolchain is not installed.
 - Commit and push: included in `a7192f777` (`feat: improve organization selector and task validation`); pushed successfully to `origin/main` on 2026-11-03. The status correction is recorded in `a81b20c59`.
+
+## 2026-11-04 - Validate configured Sora video resolutions
+
+- Local reason: configured Sora per-second prices must not silently accept a resolution the administrator did not price, including custom provider-supported dimensions such as `1080x720`.
+- Changed: Sora parameter pricing now rejects explicit unconfigured resolutions with HTTP 400. Custom dimensions are accepted when configured as an exact tier; a single-tier default remains available only when the request omits a resolution.
+- Preserved: validation only runs for Sora-channel models with enabled Sora parameter pricing; existing standard size aliases, upstream request bodies, and other video models remain unchanged.
+- Validation: added regression coverage for configured custom dimensions and rejection of unconfigured dimensions. `gofmt` and Go test execution were unavailable because Go is not installed; `git diff --check` passed.
+- Commit/push: not committed or pushed.
+
+## 2026-11-05 - Make quota subscription amounts editable as money and inherit subscription key groups
+
+- Local reason: quota plans were edited with internal quota units, and subscription keys only supported token plans without preserving the plan's group scope.
+- Changed: default subscription-plan editing converts quota units to the configured display currency for quota plans and converts the amount back on save; token plans remain raw token counts. Subscription keys can be created for either billing mode. A single allowed group is bound directly; multiple allowed groups are inherited as an automatic routing set; unrestricted plans keep the user's normal group access. Authentication and billing now carry the subscription group snapshot and pre-consume the exact subscription referenced by the key.
+- Preserved: wallet and Web Tools billing behavior, existing token-plan model restrictions, unrestricted plans, and the user's uncommitted Sora resolution validation changes.
+- Validation: targeted Oxfmt, locale JSON parsing, and diff checks passed. Targeted Oxlint reports only existing diagnostics in the touched UI files. Frontend typecheck is blocked by existing unrelated repository errors and missing test dependencies; Go tests were unavailable because the Go toolchain is not installed.
+- Commit and push: pending.
+
+## 2026-11-05 - Enter organization workspace from the top switcher
+
+- Local reason: selecting a concrete organization in the top workspace switcher incorrectly opened the organization management page instead of the selected workspace.
+- Changed: organization entries now preserve the selected organization and navigate directly to the dashboard workspace; the personal-space item also returns to the dashboard, while Manage organizations continues to open the organization selector/management page.
+- Preserved: organization selector card behavior and organization management page flow.
+- Validation: targeted Oxfmt and `git diff --check` passed; full frontend typecheck remains blocked by existing repository errors and missing test dependencies.
+- Commit and push: pending.
+
+## 2026-11-05 - Add reviewed product update newsletters
+
+- Local reason: administrators need periodic, reviewable product update emails covering new models and manually maintained discounts, with recipient targeting and marketing opt-out support.
+- Changed: added promotion, digest, and per-recipient delivery records; scheduled and manual draft generation; reviewer notification; admin APIs and settings UI for editing drafts, choosing audiences, approving sends, inspecting delivery outcomes, and retrying/resuming failed work. Delivery runs in system tasks and rechecks account status and marketing preference before each email. Marketing emails include signed unsubscribe links. The existing manual marketing email sender also respects opt-outs.
+- Preserved: newsletter generation never sends automatically; only an administrator's explicit approval starts delivery. Promotions are informational and do not change pricing or billing, and no model price history is recorded. Existing unset marketing preferences continue to default to enabled.
+- Validation: frontend production build, targeted Oxlint, Oxfmt, locale JSON parsing, and `git diff --check` passed. Full frontend typecheck remains blocked by existing unrelated type errors and missing test dependencies. Go tests and `gofmt` were unavailable because the Go toolchain is not installed.
+- Commit and push: pending; changes are intentionally left uncommitted and unpushed.

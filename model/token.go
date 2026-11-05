@@ -42,6 +42,7 @@ type Token struct {
 	// Transient subscription snapshot loaded during token authentication.
 	SubscriptionBillingMode   string     `json:"-" gorm:"-"`
 	SubscriptionAllowedModels StringList `json:"-" gorm:"-"`
+	SubscriptionAllowedGroups SubscriptionGroupList `json:"-" gorm:"-"`
 	CacheSchema               int        `json:"-" gorm:"-"`
 }
 
@@ -118,8 +119,15 @@ func CreateSubscriptionToken(userId, subscriptionId int, name string) (*Token, e
 	if billingMode == "" {
 		billingMode = plan.BillingMode
 	}
-	if billingMode != SubscriptionBillingModeToken {
-		return nil, errors.New("subscription plan is not token based")
+	if billingMode != SubscriptionBillingModeQuota && billingMode != SubscriptionBillingModeToken {
+		return nil, errors.New("subscription plan has an unsupported billing mode")
+	}
+	allowedGroups := NormalizeSubscriptionGroups(sub.AllowedGroups)
+	group := ""
+	if len(allowedGroups) == 1 {
+		group = allowedGroups[0]
+	} else if len(allowedGroups) > 1 {
+		group = "auto"
 	}
 	key, err := common.GenerateKey()
 	if err != nil {
@@ -129,8 +137,14 @@ func CreateSubscriptionToken(userId, subscriptionId int, name string) (*Token, e
 		UserId: userId, Key: key, Name: strings.TrimSpace(name),
 		Status: common.TokenStatusEnabled, CreatedTime: common.GetTimestamp(), AccessedTime: common.GetTimestamp(),
 		ExpiredTime: sub.EndTime, UnlimitedQuota: true, KeyType: TokenKeyTypeSubscription,
-		UserSubscriptionId: subscriptionId, Group: "",
+		UserSubscriptionId: subscriptionId, Group: group,
+		CrossGroupRetry: len(allowedGroups) > 1,
 		AllowUserQuotaQuery: false,
+	}
+	if len(allowedGroups) > 1 {
+		if err := token.SetAutoGroups([]string(allowedGroups)); err != nil {
+			return nil, err
+		}
 	}
 	if err := token.Insert(); err != nil {
 		return nil, err
@@ -318,6 +332,7 @@ func ValidateUserToken(key string) (token *Token, err error) {
 				token.SubscriptionBillingMode = plan.BillingMode
 			}
 			token.SubscriptionAllowedModels = normalizeStringList(sub.AllowedModels)
+			token.SubscriptionAllowedGroups = NormalizeSubscriptionGroups(sub.AllowedGroups)
 		}
 		if token.ExpiredTime != -1 && token.ExpiredTime < common.GetTimestamp() {
 			if !common.RedisEnabled {

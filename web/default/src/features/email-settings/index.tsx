@@ -14,6 +14,7 @@ import {
   defaultEmailSettingsFormValues,
   type EmailFormValues,
 } from '@/features/system-settings/integrations/email-settings-section'
+import { MarketingDigestSection } from '@/features/system-settings/integrations/marketing-digest-section'
 import type { UpdateOptionRequest } from '@/features/system-settings/types'
 
 type EmailSettingsOptionValues = Omit<
@@ -38,7 +39,8 @@ const parseResendSender = (value: string) => {
   const match = value.trim().match(/^(.*?)\s*<([^<>]+)>$/)
   if (!match) return { ResendFrom: value.trim(), ResendSenderName: '' }
   let name = match[1].trim()
-  if (name.startsWith('"') && name.endsWith('"')) name = name.slice(1, -1).replace(/\\(.)/g, '$1')
+  if (name.startsWith('"') && name.endsWith('"'))
+    name = name.slice(1, -1).replace(/\\(.)/g, '$1')
   return { ResendFrom: match[2].trim(), ResendSenderName: name }
 }
 
@@ -102,6 +104,7 @@ export function EmailSettings() {
           sendMarketingEmailRequest={sendEmailSettingsMarketingEmail}
           onSaved={handleSaved}
         />
+        <MarketingDigestSection options={data?.data || []} />
       </SectionPageLayout.Content>
     </SectionPageLayout>
   )

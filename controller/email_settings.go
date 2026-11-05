@@ -2,11 +2,13 @@ package controller
 
 import (
 	"net/http"
+	"net/mail"
 	"strconv"
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,6 +43,8 @@ var adminEmailSettingOptionKeys = []string{
 	"TopUpSuccessContentTemplate",
 	"MarketingEmailSubjectTemplate",
 	"MarketingEmailContentTemplate",
+	"MarketingDigestIntervalDays",
+	"MarketingDigestReviewEmail",
 }
 
 var adminEmailSettingOptionKeySet = buildOptionKeySet(adminEmailSettingOptionKeys)
@@ -104,6 +108,22 @@ func UpdateEmailSettingOption(c *gin.Context) {
 	if option.Key == "EmailDomainRestrictionEnabled" && option.Value == "true" && len(common.EmailDomainWhitelist) == 0 {
 		common.ApiErrorMsg(c, "cannot enable email domain restriction before adding allowed domains")
 		return
+	}
+	if option.Key == "MarketingDigestIntervalDays" {
+		days, err := strconv.Atoi(strings.TrimSpace(option.Value.(string)))
+		if err != nil || days < 0 || days > service.MaxMarketingDigestIntervalDays {
+			common.ApiErrorMsg(c, "newsletter interval must be between 0 and 365 days")
+			return
+		}
+	}
+	if option.Key == "MarketingDigestReviewEmail" {
+		email := strings.TrimSpace(option.Value.(string))
+		if email != "" {
+			if _, err := mail.ParseAddress(email); err != nil || strings.ContainsAny(email, "\r\n") {
+				common.ApiErrorMsg(c, "invalid reviewer email address")
+				return
+			}
+		}
 	}
 
 	if err := model.UpdateOption(option.Key, option.Value.(string)); err != nil {

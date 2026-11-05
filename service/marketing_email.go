@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
@@ -58,6 +57,15 @@ func SendMarketingEmailToUsers(userIds []int, subjectTemplate string, contentTem
 			continue
 		}
 
+		if !model.IsMarketingDigestUserEligible(&user) {
+			result.Skipped++
+			result.SkippedUsers = append(result.SkippedUsers, MarketingEmailUserResult{
+				UserId:   user.Id,
+				Username: user.Username,
+				Reason:   "marketing email preference is disabled or account is unavailable",
+			})
+			continue
+		}
 		userSetting := user.GetSetting()
 		emailToUse := strings.TrimSpace(userSetting.NotificationEmail)
 		if emailToUse == "" {
@@ -66,24 +74,12 @@ func SendMarketingEmailToUsers(userIds []int, subjectTemplate string, contentTem
 		if emailToUse == "" {
 			result.Skipped++
 			result.SkippedUsers = append(result.SkippedUsers, MarketingEmailUserResult{
-				UserId:   user.Id,
-				Username: user.Username,
-				Reason:   "user has no email",
+				UserId: user.Id, Username: user.Username, Reason: "user has no email",
 			})
 			continue
 		}
 
-		subject, content := common.BuildMarketingMail(common.MarketingMailParams{
-			SystemName:      common.SystemName,
-			Username:        user.Username,
-			DisplayName:     user.DisplayName,
-			Email:           emailToUse,
-			UserId:          strconv.Itoa(user.Id),
-			SubjectTemplate: subjectTemplate,
-			ContentTemplate: contentTemplate,
-		})
-
-		if err := common.SendEmail(subject, emailToUse, content); err != nil {
+		if err := SendMarketingDigestEmail(&user, subjectTemplate, contentTemplate, common.SendEmail); err != nil {
 			result.Failed++
 			result.FailedUsers = append(result.FailedUsers, MarketingEmailUserResult{
 				UserId:   user.Id,

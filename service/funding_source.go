@@ -137,9 +137,17 @@ func (s *SubscriptionFunding) PreConsume(_ int) error {
 	var res *model.SubscriptionPreConsumeResult
 	var err error
 	if s.billingMode == model.SubscriptionBillingModeToken {
-		res, err = model.PreConsumeTokenSubscription(s.requestId, s.userId, s.usingGroup, s.modelName, s.amount)
+		if s.subscriptionId > 0 {
+			res, err = model.PreConsumeSubscriptionById(s.requestId, s.userId, s.subscriptionId, s.usingGroup, s.modelName, s.amount, s.billingMode)
+		} else {
+			res, err = model.PreConsumeTokenSubscription(s.requestId, s.userId, s.usingGroup, s.modelName, s.amount)
+		}
 	} else {
-		res, err = model.PreConsumeUserSubscription(s.requestId, s.userId, s.usingGroup, s.modelName, 0, s.amount)
+		if s.subscriptionId > 0 {
+			res, err = model.PreConsumeSubscriptionById(s.requestId, s.userId, s.subscriptionId, s.usingGroup, s.modelName, s.amount, s.billingMode)
+		} else {
+			res, err = model.PreConsumeUserSubscription(s.requestId, s.userId, s.usingGroup, s.modelName, 0, s.amount)
+		}
 	}
 	if err != nil {
 		return err

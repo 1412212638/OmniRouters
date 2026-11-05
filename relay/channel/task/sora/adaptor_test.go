@@ -44,13 +44,23 @@ func TestIsSoraAudioGenerationEnabled(t *testing.T) {
 	}
 }
 
-func TestResolveSoraPricingResolutionAcceptsSize(t *testing.T) {
+func TestResolveSoraPricingResolutionMatchesConfiguredTiers(t *testing.T) {
 	rule := billing_setting.SoraPerRequestPricing{ResolutionTiers: []billing_setting.SoraResolutionTier{
 		{Value: "720p", Multiplier: 1},
 		{Value: "1080p", Multiplier: 2},
 	}}
 	assert.Equal(t, "720p", resolveSoraPricingResolution("", "1280x720", rule))
 	assert.Equal(t, "1080p", resolveSoraPricingResolution("", "1792x1024", rule))
+
+	customSizeRule := billing_setting.SoraPerRequestPricing{ResolutionTiers: []billing_setting.SoraResolutionTier{
+		{Value: "768p", Multiplier: 1},
+		{Value: "1080x720", Multiplier: 2},
+	}}
+	assert.Equal(t, "1080x720", resolveSoraPricingResolution("", "1080x720", customSizeRule))
+	assert.Empty(t, resolveSoraPricingResolution("", "1080x720", rule))
+	assert.Empty(t, resolveSoraPricingResolution("", "1080x720", billing_setting.SoraPerRequestPricing{
+		ResolutionTiers: []billing_setting.SoraResolutionTier{{Value: "720p", Multiplier: 1}},
+	}))
 	assert.Equal(t, "720p", resolveSoraPricingResolution("", "", billing_setting.SoraPerRequestPricing{
 		ResolutionTiers: []billing_setting.SoraResolutionTier{{Value: "720p", Multiplier: 1}},
 	}))

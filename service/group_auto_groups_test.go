@@ -7,6 +7,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
+	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/gin-gonic/gin"
@@ -81,6 +82,17 @@ func TestGetRequestAutoGroupsPreservesTokenOrderWithinSubscriptionGroups(t *test
 
 	common.SetContextKey(ctx, constant.ContextKeyTokenAutoGroups, []string{"vip", "svip", "default"})
 	assert.Equal(t, []string{"vip", "svip"}, GetRequestAutoGroups(ctx, "default"))
+}
+
+func TestSubscriptionKeyAutoGroupsKeepAllPlanGroups(t *testing.T) {
+	configureRequestAutoGroupsTest(t)
+	ctx := newRequestAutoGroupsContext()
+	common.SetContextKey(ctx, constant.ContextKeyTokenKeyType, model.TokenKeyTypeSubscription)
+	common.SetContextKey(ctx, constant.ContextKeyTokenAutoGroups, []string{"vip", "default", "svip"})
+	common.SetContextKey(ctx, constant.ContextKeySubscriptionAllowedGroups, []string{"vip", "default", "svip"})
+	require.NoError(t, setting.UpdateMaxTokenAutoGroups("1"))
+
+	assert.Equal(t, []string{"vip", "default", "svip"}, GetRequestAutoGroups(ctx, "default"))
 }
 
 func TestGetRequestAutoGroupsSubscriptionRestrictionIsOptional(t *testing.T) {
