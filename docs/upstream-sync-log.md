@@ -243,7 +243,7 @@
 - Changed: included `SidebarModulesAdmin` in the public status payload, guarded the member tiers route with the existing sidebar module setting, and moved the documentation URL editor to Site Settings → System Information while preserving the existing `general_setting.docs_link` option. After the initial Header navigation placement caused the settings page to fail for the operator, the field was removed from that form and placed in the simpler System Information form.
 - Preserved: the existing navigation configuration format, documentation URL option, administrator sidebar editor, and all other routes remain unchanged.
 - Validation: `git diff --check` and `bun run build` in `web/default` passed. Go tests were not run because Go is unavailable in this environment.
-- Commit and push: pending.
+- Commit and push: committed as `f0b1965e2` (`fix: remove duplicate subscription group field`) and pushed to `origin/main` on 2026-11-05.
 
 ## 2026-11-01 - Prevent SEO fallback content flash on the interactive site
 
