@@ -5302,4 +5302,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: renamed the idempotency lookup variable to `existingQuery`; query conditions and subscription selection behavior are unchanged.
 - Preserved: subscription pre-consume selection, request idempotency, group restrictions, and all unrelated changes.
 - Validation: source inspection and `git diff --check` passed; the local Go toolchain is unavailable, so the Go compiler and tests could not run locally.
-- Commit and push: pending.
+- Commit and push: committed as `9be6bd63e` (`fix: avoid subscription query redeclaration`) and pushed to `origin/main` on 2026-11-05.
