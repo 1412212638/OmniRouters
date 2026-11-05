@@ -1421,11 +1421,11 @@ func preConsumeUserSubscription(requestId string, userId int, usingGroup string,
 
 	err := DB.Transaction(func(tx *gorm.DB) error {
 		var existing SubscriptionPreConsumeRecord
-		query := tx.Where("request_id = ?", requestId).Limit(1).Find(&existing)
-		if query.Error != nil {
-			return query.Error
+		existingQuery := tx.Where("request_id = ?", requestId).Limit(1).Find(&existing)
+		if existingQuery.Error != nil {
+			return existingQuery.Error
 		}
-		if query.RowsAffected > 0 {
+		if existingQuery.RowsAffected > 0 {
 			if existing.Status == "refunded" {
 				return errors.New("subscription pre-consume already refunded")
 			}

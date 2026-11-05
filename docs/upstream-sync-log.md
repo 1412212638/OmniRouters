@@ -243,7 +243,7 @@
 - Changed: included `SidebarModulesAdmin` in the public status payload, guarded the member tiers route with the existing sidebar module setting, and moved the documentation URL editor to Site Settings → System Information while preserving the existing `general_setting.docs_link` option. After the initial Header navigation placement caused the settings page to fail for the operator, the field was removed from that form and placed in the simpler System Information form.
 - Preserved: the existing navigation configuration format, documentation URL option, administrator sidebar editor, and all other routes remain unchanged.
 - Validation: `git diff --check` and `bun run build` in `web/default` passed. Go tests were not run because Go is unavailable in this environment.
-- Commit and push: committed as `f0b1965e2` (`fix: remove duplicate subscription group field`) and pushed to `origin/main` on 2026-11-05.
+- Commit and push: pending.
 
 ## 2026-11-01 - Prevent SEO fallback content flash on the interactive site
 
@@ -5294,4 +5294,12 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: retained the subscription group snapshot field at its primary billing metadata location and removed the duplicate declaration.
 - Preserved: subscription group filtering, billing, logging, and all unrelated local changes.
 - Validation: source inspection and `git diff --check` passed; the local Go toolchain is unavailable, so the Go compiler and plugin check could not run locally.
+- Commit and push: committed as `f0b1965e2` (`fix: remove duplicate subscription group field`) and pushed to `origin/main` on 2026-11-05.
+
+## 2026-11-05 - Fix subscription query variable redeclaration blocking container build
+
+- Local reason: the next GHCR build reached the main binary compile and failed because the idempotency lookup and subscription selection declared `query` twice in the same transaction closure.
+- Changed: renamed the idempotency lookup variable to `existingQuery`; query conditions and subscription selection behavior are unchanged.
+- Preserved: subscription pre-consume selection, request idempotency, group restrictions, and all unrelated changes.
+- Validation: source inspection and `git diff --check` passed; the local Go toolchain is unavailable, so the Go compiler and tests could not run locally.
 - Commit and push: pending.
