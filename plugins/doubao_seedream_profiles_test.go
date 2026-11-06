@@ -30,6 +30,10 @@ func TestDoubaoSeedreamProfiles(t *testing.T) {
 		assert.Equal(t, layered, slices.Sorted(maps.Keys(schema)), model)
 		assert.NotEmpty(t, examples, model)
 	}
+	proSchema, _ := plugin.Meta.UsageForModel("doubao-seedream-5.0-pro")
+	assert.Equal(t, float64(1), proSchema["input_images"].FreeQuantity)
+	flashSchema, _ := plugin.Meta.UsageForModel("doubao-seedream-5.0-flash")
+	assert.Zero(t, flashSchema["input_images"].FreeQuantity)
 	for model, want := range map[string][]string{
 		"doubao-seedream-5-0-pro-260628":   layered,
 		"doubao-seedream-5-0-flash-260915": layered,
@@ -241,6 +245,25 @@ func TestDoubaoSeedreamFlashBoundsAndBillingFacts(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Equal(t, map[string]any{"images_up_to_1_5k": float64(1), "images_above_1_5k": float64(1)}, value)
+}
+
+func TestDoubaoSeedreamCompletionUsesGeneratedImageCount(t *testing.T) {
+	plugin := newDoubaoProfilePlugin(t)
+	value, err := plugin.Engine.Call(t.Context(), "extractUsageOnComplete", map[string]any{
+		"model": "doubao-seedream-5.0-pro", "upstreamModel": "doubao-seedream-5-0-pro-260628", "action": "text_to_image",
+	}, map[string]any{
+		"data": []any{
+			map[string]any{"url": "https://cdn.example/base.jpeg", "size": "2048x2048"},
+			map[string]any{"url": "https://cdn.example/layer.png", "size": "1273x265"},
+		},
+		"usage": map[string]any{"input_images": 1, "generated_images": 8},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, map[string]any{
+		"images_up_to_1_5k": float64(1),
+		"images_above_1_5k": float64(7),
+		"input_images":      float64(1),
+	}, value)
 }
 
 func TestDoubaoNativeVideoBodyPreservesProviderFields(t *testing.T) {

@@ -31,9 +31,9 @@ func TestHailuoUsageProfilesPerModel(t *testing.T) {
 		resolutions []string
 	}{
 		{
-			models:      []string{"MiniMax-H3"},
+			models:      []string{"minimax-h3", "minimax-h3-fast", "minimax-h3-lite", "minimax-h3-highspeed", "minimax-h3-mini", "minimax-h3-max"},
 			fields:      []string{"input_images", "input_video_seconds", "resolution", "seconds"},
-			resolutions: []string{"768P", "2K"},
+			resolutions: []string{"480P", "768P", "1080P", "2K"},
 		},
 		{
 			models:      []string{"MiniMax-Hailuo-2.3", "MiniMax-Hailuo-2.3-Fast"},
@@ -63,6 +63,11 @@ func TestHailuoUsageProfilesPerModel(t *testing.T) {
 		}
 	}
 	assert.ElementsMatch(t, plugin.Meta.Models, profiled, "every declared model must select a usage profile")
+
+	t.Run("H3 model matching is case insensitive", func(t *testing.T) {
+		schema, _ := plugin.Meta.UsageForModel("MiniMax-H3")
+		assert.Equal(t, []string{"480P", "768P", "1080P", "2K"}, schema["resolution"].Enum)
+	})
 
 	t.Run("submission keeps facts outside the selected profile billable", func(t *testing.T) {
 		info := &relaycommon.RelayInfo{

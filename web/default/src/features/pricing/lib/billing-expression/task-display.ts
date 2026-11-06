@@ -323,6 +323,7 @@ export function readConditionalTaskPricing(
         ...(conditionText ? { conditionText } : {}),
         constant: branch.constant,
         unitPrices,
+        freeQuantities: {},
       })
     }
   }

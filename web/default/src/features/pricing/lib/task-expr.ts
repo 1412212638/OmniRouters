@@ -39,6 +39,8 @@ export type TaskVisualTier = {
   conditions: TaskVisualCondition[]
   constant: number
   unitPrices: Record<string, number>
+  /** Number of count units included at no charge for this tier. */
+  freeQuantities: Record<string, number>
 }
 
 export type TaskVisualConfig = {
@@ -49,6 +51,7 @@ export type TaskMatrixRow = {
   combination: Record<string, string>
   constant: number
   unitPrices: Record<string, number>
+  freeQuantities: Record<string, number>
 }
 
 export type TaskMatrixConfig = {
@@ -113,6 +116,11 @@ export function createDefaultTaskVisualConfig(
         unitPrices: Object.fromEntries(
           getTaskNumberFields(schema).map(([field]) => [field, 0])
         ),
+        freeQuantities: Object.fromEntries(
+          getTaskNumberFields(schema)
+            .filter(([, definition]) => definition.unit === 'count')
+            .map(([field, definition]) => [field, definition.freeQuantity ?? 0])
+        ),
       },
     ],
   }
@@ -124,11 +132,17 @@ export function createDefaultTaskMatrixConfig(
   const unitPrices = Object.fromEntries(
     getTaskNumberFields(schema).map(([field]) => [field, 0])
   )
+  const freeQuantities = Object.fromEntries(
+    getTaskNumberFields(schema)
+      .filter(([, definition]) => definition.unit === 'count')
+      .map(([field, definition]) => [field, definition.freeQuantity ?? 0])
+  )
   return {
     rows: getTaskEnumCombinations(schema).map((combination) => ({
       combination,
       constant: 0,
       unitPrices: { ...unitPrices },
+      freeQuantities: { ...freeQuantities },
     })),
   }
 }
@@ -155,7 +169,13 @@ export function taskMatrixToTiers(
       row.constant === firstRow.constant &&
       numberFields.every(
         ([field]) => row.unitPrices[field] === firstRow.unitPrices[field]
-      )
+      ) &&
+      numberFields
+        .filter(([, definition]) => definition.unit === 'count')
+        .every(
+          ([field]) =>
+            row.freeQuantities[field] === firstRow.freeQuantities[field]
+        )
   )
   if (isUniform) {
     return [
@@ -168,6 +188,11 @@ export function taskMatrixToTiers(
             field,
             firstRow.unitPrices[field] ?? 0,
           ])
+        ),
+        freeQuantities: Object.fromEntries(
+          numberFields
+            .filter(([, definition]) => definition.unit === 'count')
+            .map(([field]) => [field, firstRow.freeQuantities[field] ?? 0])
         ),
       },
     ]
@@ -184,6 +209,11 @@ export function taskMatrixToTiers(
     constant: row.constant,
     unitPrices: Object.fromEntries(
       numberFields.map(([field]) => [field, row.unitPrices[field] ?? 0])
+    ),
+    freeQuantities: Object.fromEntries(
+      numberFields
+        .filter(([, definition]) => definition.unit === 'count')
+        .map(([field]) => [field, row.freeQuantities[field] ?? 0])
     ),
   }))
 }
@@ -220,6 +250,11 @@ export function tryParseTaskMatrixConfig(
       constant: tier.constant,
       unitPrices: Object.fromEntries(
         numberFields.map(([field]) => [field, tier.unitPrices[field] ?? 0])
+      ),
+      freeQuantities: Object.fromEntries(
+        numberFields
+          .filter(([, definition]) => definition.unit === 'count')
+          .map(([field]) => [field, tier.freeQuantities?.[field] ?? 0])
       ),
     }
   })
@@ -260,12 +295,23 @@ export function evaluateTaskVisualConfig(
 
     const quantity = Number(sample[field])
     if (!Number.isFinite(quantity) || quantity < 0) return null
+    const freeQuantity =
+      schema?.[field]?.unit === 'count'
+        ? Math.max(Number(matchedTier.freeQuantities?.[field] ?? 0), 0)
+        : 0
+    const billableQuantity = Math.max(quantity - freeQuantity, 0)
     const amount =
       schema?.[field]?.unit === 'token'
         ? (quantity * unitPrice) / TASK_TOKEN_PRICE_SCALE
-        : quantity * unitPrice
+        : billableQuantity * unitPrice
     if (!Number.isFinite(amount)) return null
-    parts.push({ kind: 'usage', field, amount, quantity, unitPrice })
+    parts.push({
+      kind: 'usage',
+      field,
+      amount,
+      quantity: billableQuantity,
+      unitPrice,
+    })
   }
 
   // Keep visual row selection and itemization, but share expression arithmetic
@@ -274,7 +320,14 @@ export function evaluateTaskVisualConfig(
   const normalizedUsage = { ...sample }
   for (const part of parts) {
     if (part.kind !== 'usage' || !part.field) continue
-    normalizedUsage[part.field] = part.quantity ?? 0
+    normalizedUsage[part.field] =
+      schema?.[part.field]?.unit === 'count'
+        ? Math.max(
+            Number(sample[part.field] ?? 0) -
+              Number(matchedTier.freeQuantities?.[part.field] ?? 0),
+            0
+          )
+        : (part.quantity ?? 0)
     const scale = schema?.[part.field]?.unit === 'token' ? ' / 1000000' : ''
     terms.push(`u(${JSON.stringify(part.field)}) * ${part.unitPrice}${scale}`)
   }
@@ -327,6 +380,22 @@ export function normalizeTaskVisualConfig(
           return [field, Number.isFinite(value) && value >= 0 ? value : 0]
         })
       )
+      const freeQuantities = Object.fromEntries(
+        [...numberFields]
+          .filter((field) => schema[field].unit === 'count')
+          .map((field) => {
+            const value = Number(
+              tier.freeQuantities?.[field] ??
+                (tier.freeQuantities === undefined
+                  ? schema[field].freeQuantity
+                  : 0)
+            )
+            return [
+              field,
+              Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0,
+            ]
+          })
+      )
       const constant = Number(tier.constant)
       return {
         label: tier.label || (index === 0 ? 'base' : `tier_${index + 1}`),
@@ -335,6 +404,7 @@ export function normalizeTaskVisualConfig(
         ),
         constant: Number.isFinite(constant) && constant >= 0 ? constant : 0,
         unitPrices,
+        freeQuantities,
       }
     }),
   }
@@ -348,13 +418,19 @@ function generateTaskTierBody(
   if (tier.constant > 0) parts.push(String(tier.constant))
   for (const [field, definition] of numberFields) {
     const price = tier.unitPrices[field] ?? 0
+    const freeQuantity =
+      definition.unit === 'count'
+        ? Math.max(0, Math.floor(tier.freeQuantities?.[field] ?? 0))
+        : 0
+    const usage =
+      freeQuantity > 0
+        ? `max(u(${JSON.stringify(field)}) - ${freeQuantity}, 0)`
+        : `u(${JSON.stringify(field)})`
     if (definition.unit === 'token') {
-      parts.push(
-        `u(${JSON.stringify(field)}) * ${price} / ${TASK_TOKEN_PRICE_SCALE}`
-      )
+      parts.push(`${usage} * ${price} / ${TASK_TOKEN_PRICE_SCALE}`)
       continue
     }
-    parts.push(`u(${JSON.stringify(field)}) * ${price}`)
+    parts.push(`${usage} * ${price}`)
   }
   return parts.join(' + ')
 }
@@ -415,6 +491,7 @@ export function tryParseTaskVisualConfig(
         conditions: tier.conditions,
         constant: tier.constant,
         unitPrices: tier.unitPrices,
+        freeQuantities: { ...(tier.freeQuantities ?? {}) },
       })),
     },
     schema

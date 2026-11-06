@@ -183,6 +183,9 @@ type UsageFieldSchema struct {
 	Enum           []string                 `json:"enum,omitempty"`
 	Description    LocalizedText            `json:"description,omitempty"`
 	EnumLabels     map[string]LocalizedText `json:"enumLabels,omitempty"`
+	// FreeQuantity is a display/editor default for count-based task pricing.
+	// The generated billing expression remains the source of truth.
+	FreeQuantity   float64                  `json:"freeQuantity,omitempty"`
 }
 
 type LoadedPlugin struct {

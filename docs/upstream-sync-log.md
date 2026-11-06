@@ -5303,3 +5303,18 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: subscription pre-consume selection, request idempotency, group restrictions, and all unrelated changes.
 - Validation: source inspection and `git diff --check` passed; the local Go toolchain is unavailable, so the Go compiler and tests could not run locally.
 - Commit and push: committed as `9be6bd63e` (`fix: avoid subscription query redeclaration`) and pushed to `origin/main` on 2026-11-05.
+
+## 2026-11-07 - Extend H3 task profiles and free-count pricing
+
+- Local reason: MiniMax H3 variants need stable lowercase model names, independently configurable resolution capabilities, and usage pricing that can make an initial number of reference images free.
+- Changed: added lowercase H3 model aliases with per-model resolution profiles and case-insensitive legacy matching; extended the task pricing editor and expression parser with count-based free quantities encoded as `max(u("field") - N, 0) * price`; propagated those quantities through previews, task pricing details, catalog cards, and localized input summaries for reference images and videos.
+- Preserved: existing Hailuo submission, upstream usage extraction, pre-consumption and settlement continue using the upstream actual usage values; token/second pricing and existing task expressions remain compatible, and the plugin map can narrow a model's supported resolutions independently.
+- Validation: H3 plugin passed `node --check`; targeted frontend task-plugin and dynamic-price tests passed (7 and 11 tests); `git diff --check` passed. Full frontend typecheck remains blocked by existing unrelated repository errors and missing test dependencies; Go tests could not run because Go is not installed.
+- Commit and push: pending.
+
+## 2026-11-07 - Add Seedream 5.0 Pro free reference-image metadata
+
+- Local reason: Seedream 5.0 Pro returns `usage.input_images` and includes the first reference image at no charge.
+- Changed: the Doubao task plugin marks one input image as a count-pricing editor default for `doubao-seedream-5.0-pro`; the generic task pricing UI carries that suggestion into the generated `max(u("input_images") - 1, 0) * price` expression and the model-card/detail display. Completion settlement now honors `usage.generated_images` even when `data` contains only a subset of output payloads, conservatively assigning unknown-size outputs to the higher pixel tier.
+- Preserved: the expression remains the only billing source after saving, other Seedream models keep their existing input-image behavior, and output pricing still uses the actual `generated_images`/`data[].size` facts returned by upstream.
+- Validation: plugin syntax and targeted frontend pricing tests pass; Go tests cannot run locally because Go is not installed. Commit and push: pending.

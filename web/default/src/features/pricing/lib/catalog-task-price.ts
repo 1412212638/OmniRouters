@@ -10,6 +10,8 @@ export type CatalogTaskPriceRows = {
   inputLabel?: string
   inputValue: string
   inputUnit: string
+  inputFreeQuantity?: number
+  inputFreeQuantityMax?: number
   outputLabel?: string
   outputValue: string
   outputUnit: string
@@ -69,6 +71,12 @@ export function getCatalogTaskPriceRows(
       inputUnit: input
         ? taskUsageUnitLabel(inputDefinition, language, outputUnit)
         : '',
+      ...(input?.freeQuantity != null && {
+        inputFreeQuantity: input.freeQuantity,
+        ...(input.freeQuantityMax != null && {
+          inputFreeQuantityMax: input.freeQuantityMax,
+        }),
+      }),
       outputValue,
       outputUnit,
     }

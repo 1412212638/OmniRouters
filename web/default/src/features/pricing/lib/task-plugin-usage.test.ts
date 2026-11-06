@@ -4,6 +4,7 @@ import { describe, test } from 'node:test'
 import type { TaskPluginOption } from '../../channels/api'
 import {
   createDefaultTaskMatrixConfig,
+  evaluateTaskVisualConfig,
   generateTaskExprFromConfig,
   getTaskNumberFields,
   taskMatrixToTiers,
@@ -89,6 +90,48 @@ describe('task plugin model pricing metadata', () => {
       schema
     )
     assert.equal(expression, 'tier("base", u("seconds") * 0.6)')
+  })
+
+  test('count pricing supports a free quantity without changing the billable expression', () => {
+    const schema = {
+      input_images: {
+        type: 'number' as const,
+        unit: 'count' as const,
+        unitLabel: { en: 'image', zh: '张' },
+      },
+    }
+    const config = createDefaultTaskMatrixConfig(schema)
+    config.rows[0].unitPrices.input_images = 0.05
+    config.rows[0].freeQuantities.input_images = 5
+    const expression = generateTaskExprFromConfig(
+      { tiers: taskMatrixToTiers(config, schema) },
+      schema
+    )
+    assert.equal(
+      expression,
+      'tier("base", max(u("input_images") - 5, 0) * 0.05)'
+    )
+    const parsed = tryParseTaskMatrixConfig(expression, schema)
+    assert.ok(parsed)
+    assert.equal(parsed.rows[0].freeQuantities.input_images, 5)
+    const preview = evaluateTaskVisualConfig(
+      { tiers: taskMatrixToTiers(parsed, schema) },
+      { input_images: 7 },
+      schema
+    )
+    assert.equal(preview?.total, 0.1)
+  })
+
+  test('new count pricing uses the plugin free-quantity suggestion', () => {
+    const schema = {
+      input_images: {
+        type: 'number' as const,
+        unit: 'count' as const,
+        freeQuantity: 1,
+      },
+    }
+    const config = createDefaultTaskMatrixConfig(schema)
+    assert.equal(config.rows[0].freeQuantities.input_images, 1)
   })
 
   test('legacy plugins and unmatched models retain their default schema', () => {

@@ -369,6 +369,7 @@ export type TaskTier = {
   conditions: { field: string; value: string }[]
   constant: number
   unitPrices: Record<string, number>
+  freeQuantities: Record<string, number>
 }
 
 /** `unreachable` marks a branch that can never match a request, so callers skip
@@ -432,6 +433,7 @@ function taskTier(
   let constant = 0
   let hasConstant = false
   const unitPrices: Record<string, number> = {}
+  const freeQuantities: Record<string, number> = {}
   for (let term of flattenBinary(node.args[1], '+')) {
     const literal = nonnegativePriceLiteral(term)
     if (literal !== null) {
@@ -447,6 +449,7 @@ function taskTier(
       }
       term = term.left
     }
+    let freeQuantity = 0
     if (
       term.kind !== 'binary' ||
       term.operator !== '*' ||
@@ -456,7 +459,41 @@ function taskTier(
       typeof term.left.args[0].value !== 'string' ||
       nonnegativePriceLiteral(term.right) === null
     ) {
-      return null
+      // Count fields may use the canonical free-quantity form:
+      // max(u("field") - N, 0) * price.
+      if (
+        term.kind !== 'binary' ||
+        term.operator !== '*' ||
+        term.left.kind !== 'call' ||
+        term.left.name !== 'max' ||
+        term.left.args.length !== 2 ||
+        term.left.args[0].kind !== 'binary' ||
+        term.left.args[0].operator !== '-' ||
+        term.left.args[0].left.kind !== 'call' ||
+        term.left.args[0].left.name !== 'u' ||
+        term.left.args[0].left.args[0].kind !== 'literal' ||
+        typeof term.left.args[0].left.args[0].value !== 'string' ||
+        nonnegativePriceLiteral(term.left.args[0].right) === null ||
+        nonnegativePriceLiteral(term.left.args[1]) !== 0 ||
+        nonnegativePriceLiteral(term.right) === null
+      ) {
+        return null
+      }
+      const freeField = term.left.args[0].left.args[0].value
+      const freeDefinition = schema[freeField]
+      if (
+        freeDefinition?.type !== 'number' ||
+        freeDefinition.unit !== 'count'
+      ) {
+        return null
+      }
+      if (Object.hasOwn(unitPrices, freeField)) return null
+      freeQuantity = nonnegativePriceLiteral(term.left.args[0].right) ?? 0
+      if (!Number.isInteger(freeQuantity)) return null
+      const field = freeField
+      unitPrices[field] = nonnegativePriceLiteral(term.right) ?? 0
+      freeQuantities[field] = freeQuantity
+      continue
     }
     const field = term.left.args[0].value
     const definition = schema[field]
@@ -473,7 +510,13 @@ function taskTier(
     unitPrices[field] = nonnegativePriceLiteral(term.right) ?? 0
   }
   if (Object.keys(unitPrices).length === 0) return null
-  return { label: node.args[0].value, conditions, constant, unitPrices }
+  return {
+    label: node.args[0].value,
+    conditions,
+    constant,
+    unitPrices,
+    freeQuantities,
+  }
 }
 
 /** Keep task summaries limited to schema-backed enum tiers and canonical scaled units.

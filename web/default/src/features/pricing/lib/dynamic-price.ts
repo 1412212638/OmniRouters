@@ -38,6 +38,9 @@ export type DynamicPriceEntry = {
   displayUnit: 'token' | 'request' | 'custom'
   unit?: string
   unitLabel?: string | Record<string, string>
+  /** Count units included at no charge for task pricing. */
+  freeQuantity?: number
+  freeQuantityMax?: number
 }
 
 export type CardExamplePrice = {
@@ -194,16 +197,24 @@ export function getTaskPriceEntries(
   if (tiers.length === 0) return []
 
   const fields = Object.keys(schema).filter((field) =>
-    tiers.some((tier) => Number(tier.unitPrices[field]) > 0)
+    tiers.some(
+      (tier) =>
+        Number(tier.unitPrices[field]) > 0 ||
+        Number(tier.freeQuantities?.[field]) > 0
+    )
   )
   return fields.flatMap((field) => {
     const definition = schema[field]
     const values = tiers
       .map((tier) => Number(tier.unitPrices[field]))
       .filter((value) => Number.isFinite(value) && value > 0)
-    if (!definition?.unit || values.length === 0) return []
-    const min = Math.min(...values)
-    const max = Math.max(...values)
+    const freeValues = tiers
+      .map((tier) => Number(tier.freeQuantities?.[field] ?? 0))
+      .filter((value) => Number.isFinite(value) && value > 0)
+    if (!definition?.unit || (values.length === 0 && freeValues.length === 0))
+      return []
+    const min = values.length > 0 ? Math.min(...values) : 0
+    const max = values.length > 0 ? Math.max(...values) : 0
     const formattedMin = formatTaskUnitPrice(min, definition.unit, options)
     const formattedMax = formatTaskUnitPrice(max, definition.unit, options)
     const displayUnit = definition.unit === 'token' ? 'token' : 'custom'
@@ -219,6 +230,10 @@ export function getTaskPriceEntries(
         displayUnit,
         unit: definition.unit,
         unitLabel: definition.unitLabel,
+        ...(freeValues.length > 0 && {
+          freeQuantity: Math.min(...freeValues),
+          freeQuantityMax: Math.max(...freeValues),
+        }),
       },
     ]
   })

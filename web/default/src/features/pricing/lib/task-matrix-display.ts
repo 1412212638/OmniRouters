@@ -53,6 +53,7 @@ export function getTaskMatrixDisplayTiers(
       .map(([field, value]) => ({ field, value })),
     constant: row.constant,
     unitPrices: { ...row.unitPrices },
+    freeQuantities: { ...row.freeQuantities },
   }))
 }
 

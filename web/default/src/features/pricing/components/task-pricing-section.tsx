@@ -58,7 +58,10 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
       (tier) =>
         tier.conditions.length > 0 ||
         tier.constant > 0 ||
-        Object.values(tier.unitPrices).some((price) => Number(price) > 0)
+        Object.values(tier.unitPrices).some((price) => Number(price) > 0) ||
+        Object.values(tier.freeQuantities || {}).some(
+          (quantity) => Number(quantity) > 0
+        )
     )
   }, [expression, schema])
   const numberFields = useMemo(() => {
@@ -66,7 +69,11 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
       ([field, definition]) =>
         definition.type === 'number' &&
         definition.unit &&
-        tiers.some((tier) => Number(tier.unitPrices[field]) > 0)
+        tiers.some(
+          (tier) =>
+            Number(tier.unitPrices[field]) > 0 ||
+            Number(tier.freeQuantities?.[field]) > 0
+        )
     )
   }, [schema, tiers])
 
@@ -160,6 +167,10 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
               cellClassName: 'px-3 py-2 text-right font-mono',
               cell: (tier: (typeof tiers)[number]) => {
                 const value = Number(tier.unitPrices[field] || 0)
+                const freeQuantity =
+                  definition.unit === 'count'
+                    ? Math.max(Number(tier.freeQuantities?.[field] || 0), 0)
+                    : 0
                 let unitLabel = t('credit')
                 if (definition.unit === 'token') unitLabel = t('1M tokens')
                 else if (definition.unit === 'second') unitLabel = t('seconds')
@@ -170,6 +181,10 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
                     t('Count')
                   )
                 }
+                if (freeQuantity > 0 && value > 0) {
+                  return `${t('First')} ${freeQuantity} ${unitLabel} ${t('free')}; ${t('then')} ${formatTaskPrice(value * ratio, props)} / ${unitLabel}`
+                }
+                if (freeQuantity > 0) return t('Free')
                 return value > 0
                   ? `${formatTaskPrice(value * ratio, props)} / ${unitLabel}`
                   : '-'

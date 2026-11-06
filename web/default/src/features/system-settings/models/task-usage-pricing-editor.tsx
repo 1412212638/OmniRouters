@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -78,6 +78,26 @@ export function TaskUsagePricingEditor({
     })
   }
 
+  const updateFreeQuantity = (
+    rowIndex: number,
+    field: string,
+    value: string
+  ) => {
+    const numeric = Number(value)
+    const safeValue =
+      Number.isFinite(numeric) && numeric >= 0 ? Math.floor(numeric) : 0
+    updateConfig({
+      rows: config.rows.map((row, index) =>
+        index === rowIndex
+          ? {
+              ...row,
+              freeQuantities: { ...row.freeQuantities, [field]: safeValue },
+            }
+          : row
+      ),
+    })
+  }
+
   const updateConstant = (rowIndex: number, value: string) => {
     const numeric = Number(value)
     const safeValue = Number.isFinite(numeric) && numeric >= 0 ? numeric : 0
@@ -114,17 +134,31 @@ export function TaskUsagePricingEditor({
                 {t('Fixed price')}
               </th>
               {numberFields.map(([field, definition]) => (
-                <th key={field} className='px-3 py-2 text-right font-medium'>
-                  {taskPriceLabel(definition.description, field, i18n.language)}
-                  <span className='text-muted-foreground ml-1 text-xs font-normal'>
-                    /
-                    {taskUsageUnitLabel(
-                      definition,
-                      i18n.language,
-                      definition.unit || t('unit')
+                <Fragment key={field}>
+                  <th key={field} className='px-3 py-2 text-right font-medium'>
+                    {taskPriceLabel(
+                      definition.description,
+                      field,
+                      i18n.language
                     )}
-                  </span>
-                </th>
+                    <span className='text-muted-foreground ml-1 text-xs font-normal'>
+                      /
+                      {taskUsageUnitLabel(
+                        definition,
+                        i18n.language,
+                        definition.unit || t('unit')
+                      )}
+                    </span>
+                  </th>
+                  {definition.unit === 'count' && (
+                    <th
+                      key={`${field}-free`}
+                      className='px-3 py-2 text-right font-medium'
+                    >
+                      {t('Free quantity')}
+                    </th>
+                  )}
+                </Fragment>
               ))}
             </tr>
           </thead>
@@ -149,17 +183,34 @@ export function TaskUsagePricingEditor({
                   />
                 </td>
                 {numberFields.map(([field]) => (
-                  <td key={field} className='px-3 py-2'>
-                    <Input
-                      inputMode='decimal'
-                      className='h-8 min-w-24 text-right font-mono'
-                      value={String(row.unitPrices[field] || 0)}
-                      onChange={(event) =>
-                        updatePrice(index, field, event.target.value)
-                      }
-                      aria-label={`${field} ${taskMatrixRowLabel(row.combination)}`}
-                    />
-                  </td>
+                  <Fragment key={field}>
+                    <td key={field} className='px-3 py-2'>
+                      <Input
+                        inputMode='decimal'
+                        className='h-8 min-w-24 text-right font-mono'
+                        value={String(row.unitPrices[field] || 0)}
+                        onChange={(event) =>
+                          updatePrice(index, field, event.target.value)
+                        }
+                        aria-label={`${field} ${taskMatrixRowLabel(row.combination)}`}
+                      />
+                    </td>
+                    {schema[field].unit === 'count' && (
+                      <td key={`${field}-free`} className='px-3 py-2'>
+                        <Input
+                          inputMode='numeric'
+                          min={0}
+                          step={1}
+                          className='h-8 min-w-20 text-right font-mono'
+                          value={String(row.freeQuantities[field] || 0)}
+                          onChange={(event) =>
+                            updateFreeQuantity(index, field, event.target.value)
+                          }
+                          aria-label={`${t('Free quantity')} ${field} ${taskMatrixRowLabel(row.combination)}`}
+                        />
+                      </td>
+                    )}
+                  </Fragment>
                 ))}
               </tr>
             ))}

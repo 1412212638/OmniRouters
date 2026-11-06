@@ -45,6 +45,7 @@ const IMAGE_MODELS = {
     background: true,
     tools: false,
     fastPromptMode: true,
+    freeInputImages: 1,
   },
   "doubao-seedream-5-0-flash-260915": {
     presets: ["1K", "1.5K", "2K"],
@@ -220,7 +221,12 @@ function seedreamUsageSchema(profile) {
   } else {
     schema.images_above_1_5k = { ...IMAGE_USAGE_SCHEMA.images_above_1_5k, description: { en: "Image generation unit price", zh: "图片生成单价" } };
   }
-  schema.input_images = IMAGE_USAGE_SCHEMA.input_images;
+  schema.input_images = {
+    ...IMAGE_USAGE_SCHEMA.input_images,
+    ...(profile.freeInputImages
+      ? { freeQuantity: profile.freeInputImages }
+      : {}),
+  };
   if (profile.layers) schema.layer_decomposition = IMAGE_USAGE_SCHEMA.layer_decomposition;
   return schema;
 }
@@ -709,17 +715,22 @@ function imageURLEntries(body) {
 }
 
 // Delivered image payloads of a synchronous result. Payloads are counted,
-// never entries: failed group members carry only `error`. A
-// usage.generated_images count that is fractional, negative, oversized or
-// inconsistent with the delivered payloads means the response is not
-// understood; the host then keeps the reservation instead of settling on a guess.
+// never entries: failed group members carry only `error`. Some Seedream
+// responses expose only a subset of generated payloads in `data` while
+// `usage.generated_images` reports the complete output count, so the two
+// values are intentionally handled separately.
 function imagePayloads(body) {
   const payloads = imageEntries(body).filter((item) => trimmed(item.url) || trimmed(item.b64_json));
   if (payloads.length > MAX_IMAGE_OUTPUTS) throw new Error("too many output images");
-  const count = (body.usage || {}).generated_images;
-  if (count !== undefined && (!Number.isInteger(count) || count < 0 || count > MAX_IMAGE_OUTPUTS || count !== payloads.length))
-    throw new Error("invalid upstream generated_images");
   return payloads;
+}
+
+function imageOutputCount(body, payloads) {
+  const count = (body.usage || {}).generated_images;
+  if (count === undefined) return payloads.length;
+  if (!Number.isInteger(count) || count < 0 || count > MAX_IMAGE_OUTPUTS || count < payloads.length)
+    throw new Error("invalid upstream generated_images");
+  return count;
 }
 
 // Completion facts. Each successful image is counted at its own pixel tier from
@@ -729,6 +740,7 @@ function imagePayloads(body) {
 function imageUsage(body, profile) {
   const usage = body.usage || {};
   const payloads = imagePayloads(body);
+  const outputCount = imageOutputCount(body, payloads);
   const facts = {};
   if (hasLowerImageTier(profile)) {
     let lower = 0,
@@ -743,12 +755,16 @@ function imageUsage(body, profile) {
       if (dims.pixels > IMAGE_TIER_MAX_PIXELS) higher += 1;
       else lower += 1;
     }
-    if (sized) {
+    if (sized && payloads.length === outputCount) {
       facts.images_up_to_1_5k = lower;
       facts.images_above_1_5k = higher;
+    } else {
+      // Unknown output payloads are conservatively placed in the higher tier.
+      facts.images_up_to_1_5k = lower;
+      facts.images_above_1_5k = higher + Math.max(outputCount - lower - higher, 0);
     }
   } else {
-    facts.images_above_1_5k = payloads.length;
+    facts.images_above_1_5k = outputCount;
   }
   if (Number.isInteger(usage.input_images) && usage.input_images >= 0 && usage.input_images <= MAX_REFERENCE_IMAGES) facts.input_images = usage.input_images;
   return facts;
@@ -997,7 +1013,8 @@ export function extractUsageOnSubmit(ctx, body) {
   // the delivered output count alone. Task expressions settle the tiered
   // facts through extractUsageOnComplete instead.
   if (!imageTask(ctx)) return null;
-  const count = imagePayloads(body || {}).length;
+  const payloads = imagePayloads(body || {});
+  const count = imageOutputCount(body || {}, payloads);
   return count ? { image_count: count } : {};
 }
 

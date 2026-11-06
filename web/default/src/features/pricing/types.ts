@@ -159,6 +159,8 @@ export type BillingUsageFieldSchema = {
   unit?: BillingUsageUnit
   unitLabel?: string | Record<string, string>
   pricingDisplay?: 'input_output_video_seconds'
+  /** Suggested free quantity for count fields when creating new task pricing. */
+  freeQuantity?: number
   enum?: string[]
   enumLabels?: Record<string, string | Record<string, string>>
   description?: string | Record<string, string>

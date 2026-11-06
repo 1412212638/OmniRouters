@@ -8,11 +8,26 @@ const VIDEO_SECONDS_FIELD = {
 
 const RESOLUTION_DESCRIPTION = { en: "Output video resolution", zh: "输出视频分辨率" };
 
-// MiniMax-H3 allows duration 4 to 15 and renders 768P or 2K.
+// MiniMax-H3 family models use the same multimodal contract.  Keep the
+// resolution list in a per-model map so a provider-specific capability can be
+// narrowed without changing the other H3 variants.
+const H3_MODEL_PROFILES = {
+  "minimax-h3": { resolutions: ["480P", "768P", "1080P", "2K"] },
+  "minimax-h3-fast": { resolutions: ["480P", "768P", "1080P", "2K"] },
+  "minimax-h3-lite": { resolutions: ["480P", "768P", "1080P", "2K"] },
+  "minimax-h3-highspeed": { resolutions: ["480P", "768P", "1080P", "2K"] },
+  "minimax-h3-mini": { resolutions: ["480P", "768P", "1080P", "2K"] },
+  "minimax-h3-max": { resolutions: ["480P", "768P", "1080P", "2K"] },
+};
+const H3_MODELS = Object.keys(H3_MODEL_PROFILES);
+
+// H3 allows duration 4 to 15.  The resolution enum is the union of the
+// model-specific profiles above; request validation uses the selected model's
+// profile rather than this union.
 const H3_USAGE_SCHEMA = {
   seconds: VIDEO_SECONDS_FIELD,
   resolution: {
-    enum: ["768P", "2K"],
+    enum: ["480P", "768P", "1080P", "2K"],
     description: RESOLUTION_DESCRIPTION,
   },
   // Input image count (estimated at submit, actual on completion).
@@ -66,7 +81,7 @@ export const meta = {
   author: { name: "QuantumNous" },
   channelTypes: [35],
   models: [
-    "MiniMax-H3",
+    ...H3_MODELS,
     "MiniMax-Hailuo-2.3",
     "MiniMax-Hailuo-2.3-Fast",
     "MiniMax-Hailuo-02",
@@ -98,16 +113,29 @@ export const meta = {
     { label: "H3 2K 5s · input video", facts: { seconds: 5, resolution: "2K", input_images: 0, input_video_seconds: 15 } },
   ],
   usageProfiles: [
-    {
-      models: ["MiniMax-H3"],
-      schema: H3_USAGE_SCHEMA,
-      examples: [
-        { label: "H3 768P 5s", facts: { seconds: 5, resolution: "768P", input_images: 0, input_video_seconds: 0 } },
-        { label: "H3 2K 5s", facts: { seconds: 5, resolution: "2K", input_images: 0, input_video_seconds: 0 } },
-        { label: "H3 2K 5s · 9 images", facts: { seconds: 5, resolution: "2K", input_images: 9, input_video_seconds: 0 } },
-        { label: "H3 2K 5s · input video", facts: { seconds: 5, resolution: "2K", input_images: 0, input_video_seconds: 15 } },
-      ],
-    },
+    ...H3_MODELS.map(function (model) {
+      const profile = H3_MODEL_PROFILES[model];
+      return {
+        models: model === "minimax-h3" ? [model, "MiniMax-H3"] : [model],
+        schema: {
+          ...H3_USAGE_SCHEMA,
+          resolution: {
+            ...H3_USAGE_SCHEMA.resolution,
+            enum: profile.resolutions,
+          },
+        },
+        examples: [
+          { label: "H3 480P 5s", facts: { seconds: 5, resolution: "480P", input_images: 0, input_video_seconds: 0 } },
+          { label: "H3 768P 5s", facts: { seconds: 5, resolution: "768P", input_images: 0, input_video_seconds: 0 } },
+          { label: "H3 1080P 5s", facts: { seconds: 5, resolution: "1080P", input_images: 0, input_video_seconds: 0 } },
+          { label: "H3 2K 5s", facts: { seconds: 5, resolution: "2K", input_images: 0, input_video_seconds: 0 } },
+          { label: "H3 2K 5s · 9 images", facts: { seconds: 5, resolution: "2K", input_images: 9, input_video_seconds: 0 } },
+          { label: "H3 2K 5s · input video", facts: { seconds: 5, resolution: "2K", input_images: 0, input_video_seconds: 15 } },
+        ].filter(function (example) {
+          return profile.resolutions.includes(example.facts.resolution);
+        }),
+      };
+    }),
     {
       models: ["MiniMax-Hailuo-2.3", "MiniMax-Hailuo-2.3-Fast"],
       schema: HAILUO_23_USAGE_SCHEMA,
@@ -201,7 +229,11 @@ const H3_RATIOS = ["adaptive", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16"];
 // array instead of flat frame fields, an explicit `ratio`, 768P/2K resolutions,
 // a task id path parameter on query, and a `{task: {...}}` query envelope.
 function isH3(model) {
-  return model === H3_MODEL;
+  return H3_MODELS.includes(trimmed(model).toLowerCase());
+}
+
+function h3Profile(model) {
+  return H3_MODEL_PROFILES[trimmed(model).toLowerCase()] || H3_MODEL_PROFILES[H3_MODELS[0]];
 }
 
 function h3Duration(req) {
@@ -214,14 +246,17 @@ function h3Duration(req) {
   return seconds;
 }
 
-function h3Resolution(req) {
+function h3Resolution(req, model) {
   const metadata = req.metadata || {};
   const raw = trimmed(metadata.resolution) || trimmed(req.resolution) || trimmed(req.size);
-  if (!raw) return "768P";
+  const profile = h3Profile(model || req.model);
+  if (!raw) return profile.resolutions.includes("768P") ? "768P" : profile.resolutions[0];
   const value = raw.toUpperCase();
-  if (value.includes("2K")) return "2K";
-  if (value.includes("768")) return "768P";
-  throw new Error(H3_MODEL + " resolution must be 768P or 2K");
+  const resolution = value.includes("2K") ? "2K" : value.includes("1080") ? "1080P" : value.includes("768") ? "768P" : value.includes("480") ? "480P" : "";
+  if (!resolution || !profile.resolutions.includes(resolution)) {
+    throw new Error(H3_MODEL + " resolution must be one of " + profile.resolutions.join(", "));
+  }
+  return resolution;
 }
 
 function h3MediaItem(type, url, role) {
@@ -446,7 +481,7 @@ export function buildSubmitRequest(ctx) {
     const h3Body = {
       model: model,
       content: content,
-      resolution: h3Resolution(req),
+      resolution: h3Resolution(req, model),
       duration: h3Duration(req),
       ratio: h3Ratio(req, content),
     };
@@ -505,7 +540,7 @@ export function extractUsage(ctx) {
     const content = h3Content(req);
     return {
       seconds: h3Duration(req),
-      resolution: h3Resolution(req),
+      resolution: h3Resolution(req, model),
       input_images: content.filter(function (item) {
         return item && item.type === "image_url";
       }).length,
@@ -603,9 +638,10 @@ export function buildContentRequest(ctx) {
 export function extractUsageOnComplete(_task, _taskResult, body) {
   const h3Task = h3QueryTask(body);
   if (h3Task) {
+    const model = trimmed((_task && (_task.upstreamModel || _task.model)) || h3Task.model);
     const resolution = trimmed(h3Task.resolution).toUpperCase();
     const facts = {};
-    if (resolution === "2K" || resolution === "768P") facts.resolution = resolution;
+    if (h3Profile(model).resolutions.includes(resolution)) facts.resolution = resolution;
     const usage = h3Task.usage && typeof h3Task.usage === "object" && !Array.isArray(h3Task.usage) ? h3Task.usage : {};
     const fields = [
       { key: "seconds", value: usage.output_seconds, minimum: H3_MIN_DURATION, maximum: H3_MAX_DURATION, integer: false },

@@ -38,7 +38,7 @@ export interface ModelCardProps {
 }
 
 export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { copyToClipboard } = useCopyToClipboard()
   const tokenUnit = props.tokenUnit ?? DEFAULT_TOKEN_UNIT
   const priceRate = props.priceRate ?? 1
@@ -166,6 +166,8 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             i18n.language
           ),
           inputPrice: formatCardPriceRange(inputImagePrice?.formatted || ''),
+          inputPriceValue: inputImagePrice.value,
+          inputFreeQuantity: inputImagePrice.freeQuantity,
           outputPrice:
             lowestOutputImagePrice === highestOutputImagePrice
               ? formatCardPriceRange(lowestOutputImagePrice.formatted)
@@ -176,6 +178,23 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   const taskVideoPrice = dynamicSummary
     ? getTaskVideoPriceEntry(displayPricingModel, dynamicSummary.entries)
     : null
+  const taskInputVideoPrice =
+    taskVideoPrice &&
+    Object.values(displayPricingModel.billing_usage_schema || {}).some(
+      (definition) => definition.pricingDisplay === 'input_output_video_seconds'
+    )
+      ? taskVideoPrice
+      : null
+  const taskInputImagePrice = dynamicSummary?.entries.find((entry) =>
+    ['input_images', 'input_image_count'].includes(entry.field)
+  )
+  const taskInputImageDefinition =
+    displayPricingModel.billing_usage_schema?.[taskInputImagePrice?.field || '']
+  const taskInputImageUnit = taskUsageUnitLabel(
+    taskInputImageDefinition,
+    i18n.language,
+    t('Count')
+  )
 
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -224,9 +243,17 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           <span className='text-muted-foreground whitespace-nowrap'>
             {taskImageSummary.inputLabel}:{' '}
             <span className='text-foreground font-mono font-semibold'>
-              {taskImageSummary.inputPrice}
-            </span>{' '}
-            /{taskImageSummary.unit}
+              {taskImageSummary.inputFreeQuantity &&
+              taskImageSummary.inputFreeQuantity > 0
+                ? taskImageSummary.inputPriceValue === 0
+                  ? `${t('First')} ${taskImageSummary.inputFreeQuantity} ${taskImageSummary.unit} ${t('free')}`
+                  : `${t('First')} ${taskImageSummary.inputFreeQuantity} ${taskImageSummary.unit} ${t('free')}; ${t('then')} ${taskImageSummary.inputPrice} /${taskImageSummary.unit}`
+                : taskImageSummary.inputPrice}
+            </span>
+            {!(
+              taskImageSummary.inputFreeQuantity &&
+              taskImageSummary.inputFreeQuantity > 0
+            ) && ` /${taskImageSummary.unit}`}
           </span>
           <span className='text-muted-foreground whitespace-nowrap'>
             {t('Output')}:{' '}
@@ -238,11 +265,26 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
         </>
       )
     } else if (taskVideoPrice) {
+      const inputImageText = taskInputImagePrice
+        ? taskInputImagePrice.freeQuantity &&
+          taskInputImagePrice.freeQuantity > 0
+          ? taskInputImagePrice.value > 0
+            ? `${t('First')} ${taskInputImagePrice.freeQuantity} ${taskInputImageUnit} ${t('free')}; ${t('then')} ${formatCardPriceRange(taskInputImagePrice.formatted)} / ${taskInputImageUnit}`
+            : `${t('First')} ${taskInputImagePrice.freeQuantity} ${taskInputImageUnit} ${t('free')}`
+          : `${formatCardPriceRange(taskInputImagePrice.formatted)} / ${taskInputImageUnit}`
+        : '-'
+      const referenceVideoText = taskInputVideoPrice
+        ? `${formatCardPriceRange(taskInputVideoPrice.formatted)} / ${t('seconds')}`
+        : ''
       priceSummary = (
         <>
           <span className='text-muted-foreground whitespace-nowrap'>
             {t('Input')}:{' '}
-            <span className='text-foreground font-mono font-semibold'>-</span>
+            <span className='text-foreground font-mono font-semibold'>
+              {inputImageText}
+              {referenceVideoText &&
+                `; ${t('Reference video')} ${referenceVideoText}`}
+            </span>
           </span>
           <span className='text-muted-foreground whitespace-nowrap'>
             {t('Output')}:{' '}

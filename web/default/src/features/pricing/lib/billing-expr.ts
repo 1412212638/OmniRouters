@@ -291,6 +291,7 @@ export type ParsedTaskTier = {
   conditions: TaskTierCondition[]
   constant: number
   unitPrices: Record<string, number>
+  freeQuantities?: Record<string, number>
 }
 
 // ---------------------------------------------------------------------------
