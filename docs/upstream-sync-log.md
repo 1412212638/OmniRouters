@@ -5331,4 +5331,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Local reason: the GHCR plugin validation rejected the Hailuo usage profile because `minimax-h3` and `MiniMax-H3` were declared together even though model profile matching is already case-insensitive.
 - Changed: kept only the canonical lowercase H3 model in the profile; legacy `MiniMax-H3` requests continue to resolve to it through case-insensitive lookup.
 - Preserved: H3 model aliases, resolution profiles, billing facts, and all non-H3 Hailuo profiles.
-- Validation: plugin syntax and targeted frontend pricing tests pass; Go/container plugin checks are unavailable locally. Commit and push: pending.
+- Validation: plugin syntax and targeted frontend pricing tests pass; Go/container plugin checks are unavailable locally. Commit and push: included in `4fbccbb3b` (`fix: remove duplicate H3 profile alias`); pushed to `origin/main` on 2026-11-07.
