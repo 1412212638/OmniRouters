@@ -185,7 +185,7 @@ type UsageFieldSchema struct {
 	EnumLabels     map[string]LocalizedText `json:"enumLabels,omitempty"`
 	// FreeQuantity is a display/editor default for count-based task pricing.
 	// The generated billing expression remains the source of truth.
-	FreeQuantity   float64                  `json:"freeQuantity,omitempty"`
+	FreeQuantity   int                      `json:"freeQuantity,omitempty"`
 }
 
 type LoadedPlugin struct {
@@ -1494,7 +1494,7 @@ func decodeUsageSchema(value any) (map[string]UsageFieldSchema, error) {
 		}
 		for key := range fieldObject {
 			switch key {
-			case "type", "unit", "unitLabel", "pricingDisplay", "enum", "description", "enumLabels":
+			case "type", "unit", "unitLabel", "pricingDisplay", "enum", "description", "enumLabels", "freeQuantity":
 			default:
 				return nil, fmt.Errorf("plugin meta usageSchema field %q has unknown property %q", name, key)
 			}
@@ -1508,6 +1508,9 @@ func decodeUsageSchema(value any) (map[string]UsageFieldSchema, error) {
 			return nil, err
 		}
 		if field.PricingDisplay, err = stringMetaField(fieldObject, "pricingDisplay"); err != nil {
+			return nil, err
+		}
+		if field.FreeQuantity, err = integerMetaField(fieldObject, "freeQuantity"); err != nil {
 			return nil, err
 		}
 		if field.UnitLabel, err = localizedTextMetaField(fieldObject, "unitLabel", maxUsageFieldDescriptionRunes); err != nil {
@@ -1544,6 +1547,12 @@ func decodeUsageSchema(value any) (map[string]UsageFieldSchema, error) {
 }
 
 func validateUsageFieldSchema(name string, field UsageFieldSchema) error {
+	if field.FreeQuantity < 0 || field.FreeQuantity > 128 {
+		return fmt.Errorf("plugin meta usageSchema field %q freeQuantity must be between 0 and 128", name)
+	}
+	if field.FreeQuantity > 0 && (field.Type != "number" || field.Unit != "count") {
+		return fmt.Errorf("plugin meta usageSchema field %q freeQuantity requires a number field with count unit", name)
+	}
 	if field.PricingDisplay != "" &&
 		(field.Type != "number" || field.Unit != "second" || field.PricingDisplay != "input_output_video_seconds") {
 		return fmt.Errorf("plugin meta usageSchema field %q pricingDisplay must be input_output_video_seconds on a second field", name)

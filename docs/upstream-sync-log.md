@@ -5318,3 +5318,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: the Doubao task plugin marks one input image as a count-pricing editor default for `doubao-seedream-5.0-pro`; the generic task pricing UI carries that suggestion into the generated `max(u("input_images") - 1, 0) * price` expression and the model-card/detail display. Completion settlement now honors `usage.generated_images` even when `data` contains only a subset of output payloads, conservatively assigning unknown-size outputs to the higher pixel tier.
 - Preserved: the expression remains the only billing source after saving, other Seedream models keep their existing input-image behavior, and output pricing still uses the actual `generated_images`/`data[].size` facts returned by upstream.
 - Validation: plugin syntax and targeted frontend pricing tests pass; Go tests cannot run locally because Go is not installed. Commit and push: included in `0bcfc0f77` (`feat: extend image task usage billing`); pushed to `origin/main` on 2026-11-07.
+
+## 2026-11-07 - Allow plugin free-quantity metadata in embedded validation
+
+- Local reason: the GHCR plugin validation failed because `freeQuantity` was intentionally added to the Doubao usage schema but the embedded metadata decoder still rejected it as an unknown property.
+- Changed: added an integer, count-field-only `freeQuantity` metadata property with a 0–128 bound to the plugin usage schema decoder and validation.
+- Preserved: free quantity remains editor metadata only; saved billing expressions remain the source of truth, and all existing plugin usage fields keep their validation rules.
+- Validation: Doubao plugin syntax and frontend pricing tests pass; the local Go toolchain is unavailable, so the container plugin check could not run locally. Commit and push: pending.

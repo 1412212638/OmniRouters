@@ -31,7 +31,7 @@ func TestDoubaoSeedreamProfiles(t *testing.T) {
 		assert.NotEmpty(t, examples, model)
 	}
 	proSchema, _ := plugin.Meta.UsageForModel("doubao-seedream-5.0-pro")
-	assert.Equal(t, float64(1), proSchema["input_images"].FreeQuantity)
+	assert.Equal(t, 1, proSchema["input_images"].FreeQuantity)
 	flashSchema, _ := plugin.Meta.UsageForModel("doubao-seedream-5.0-flash")
 	assert.Zero(t, flashSchema["input_images"].FreeQuantity)
 	for model, want := range map[string][]string{
