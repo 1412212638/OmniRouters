@@ -116,7 +116,7 @@ export const meta = {
     ...H3_MODELS.map(function (model) {
       const profile = H3_MODEL_PROFILES[model];
       return {
-        models: model === "minimax-h3" ? [model, "MiniMax-H3"] : [model],
+        models: [model],
         schema: {
           ...H3_USAGE_SCHEMA,
           resolution: {

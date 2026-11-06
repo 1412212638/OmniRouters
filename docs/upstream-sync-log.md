@@ -5325,3 +5325,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: added an integer, count-field-only `freeQuantity` metadata property with a 0–128 bound to the plugin usage schema decoder and validation.
 - Preserved: free quantity remains editor metadata only; saved billing expressions remain the source of truth, and all existing plugin usage fields keep their validation rules.
 - Validation: Doubao plugin syntax and frontend pricing tests pass; the local Go toolchain is unavailable, so the container plugin check could not run locally. Commit and push: included in `d6a88a1b6` (`fix: accept task free quantity metadata`); pushed to `origin/main` on 2026-11-07.
+
+## 2026-11-07 - Remove duplicate case-insensitive H3 profile model declaration
+
+- Local reason: the GHCR plugin validation rejected the Hailuo usage profile because `minimax-h3` and `MiniMax-H3` were declared together even though model profile matching is already case-insensitive.
+- Changed: kept only the canonical lowercase H3 model in the profile; legacy `MiniMax-H3` requests continue to resolve to it through case-insensitive lookup.
+- Preserved: H3 model aliases, resolution profiles, billing facts, and all non-H3 Hailuo profiles.
+- Validation: plugin syntax and targeted frontend pricing tests pass; Go/container plugin checks are unavailable locally. Commit and push: pending.
