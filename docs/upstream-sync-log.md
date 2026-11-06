@@ -5324,4 +5324,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Local reason: the GHCR plugin validation failed because `freeQuantity` was intentionally added to the Doubao usage schema but the embedded metadata decoder still rejected it as an unknown property.
 - Changed: added an integer, count-field-only `freeQuantity` metadata property with a 0–128 bound to the plugin usage schema decoder and validation.
 - Preserved: free quantity remains editor metadata only; saved billing expressions remain the source of truth, and all existing plugin usage fields keep their validation rules.
-- Validation: Doubao plugin syntax and frontend pricing tests pass; the local Go toolchain is unavailable, so the container plugin check could not run locally. Commit and push: pending.
+- Validation: Doubao plugin syntax and frontend pricing tests pass; the local Go toolchain is unavailable, so the container plugin check could not run locally. Commit and push: included in `d6a88a1b6` (`fix: accept task free quantity metadata`); pushed to `origin/main` on 2026-11-07.
