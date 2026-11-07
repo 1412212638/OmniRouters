@@ -1453,9 +1453,10 @@ function PresetSection({ applyPreset }: PresetSectionProps) {
 
 type EstimatorProps = {
   effectiveExpr: string
+  usageFields?: readonly string[]
 }
 
-function CostEstimator({ effectiveExpr }: EstimatorProps) {
+function CostEstimator({ effectiveExpr, usageFields = [] }: EstimatorProps) {
   const { t } = useTranslation()
   const [promptTokens, setPromptTokens] = useState(0)
   const [completionTokens, setCompletionTokens] = useState(0)
@@ -1484,7 +1485,8 @@ function CostEstimator({ effectiveExpr }: EstimatorProps) {
         promptTokens,
         completionTokens,
         extras,
-        requestParams
+        requestParams,
+        usageFields
       )
     } catch {
       return {
@@ -1499,6 +1501,7 @@ function CostEstimator({ effectiveExpr }: EstimatorProps) {
     completionTokens,
     extras,
     requestParamsText,
+    usageFields,
     t,
   ])
 
@@ -1757,6 +1760,7 @@ export type TieredPricingEditorProps = {
   modelName?: string
   billingExpr: string
   requestRuleExpr: string
+  usageFields?: readonly string[]
   onBillingExprChange: (next: string) => void
   onRequestRuleExprChange: (next: string) => void
 }
@@ -1767,6 +1771,7 @@ export const TieredPricingEditor = memo(function TieredPricingEditor({
   modelName,
   billingExpr: currentExpr,
   requestRuleExpr: currentRequestRuleExpr,
+  usageFields = [],
   onBillingExprChange,
   onRequestRuleExprChange,
 }: TieredPricingEditorProps) {
@@ -2013,7 +2018,7 @@ export const TieredPricingEditor = memo(function TieredPricingEditor({
         )}
       </div>
 
-      <CostEstimator effectiveExpr={effectiveExpr} />
+      <CostEstimator effectiveExpr={effectiveExpr} usageFields={usageFields} />
     </div>
   )
 })

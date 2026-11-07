@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-11-08 - Allow task usage fields in the pricing preview estimator
+
+- Local reason: the model pricing editor rejected valid Seedream fields such as `images_above_1_5k` in its local preview with `Unsupported task usage field`.
+- Changed: the frontend estimator now receives the model's declared task usage fields and evaluates them as zero-valued preview inputs, while keeping server-side expression and billing validation authoritative.
+- Preserved: actual billing, task usage settlement, unsupported-field validation on the server, and token estimator behavior.
+- Validation: `bun run build` passed. Frontend typecheck remains blocked by existing unrelated repository errors and missing test dependencies; `git diff --check` passed.
+- Commit and push: pending.
+
 ## 2026-11-08 - Fix Seedream billing build errors
 
 - Local reason: the GHCR build reported an undefined `gjson.Array` symbol and a duplicate `cloneAnyMap` declaration in the Seedream billing helper.

@@ -1096,6 +1096,7 @@ export const ModelPricingEditorPanel = forwardRef<
                         modelName={watchedValues.name}
                         billingExpr={billingExpr}
                         requestRuleExpr={requestRuleExpr}
+                        usageFields={Object.keys(taskUsageSchema || {})}
                         onBillingExprChange={setBillingExpr}
                         onRequestRuleExprChange={setRequestRuleExpr}
                       />

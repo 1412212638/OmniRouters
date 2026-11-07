@@ -291,7 +291,8 @@ export function evalExprLocally(
   promptTokens: number,
   completionTokens: number,
   extraTokenValues: ExtraTokenValues,
-  requestParams: unknown = {}
+  requestParams: unknown = {},
+  usageFields: readonly string[] = []
 ): EvalResult {
   try {
     if (!exprStr || !exprStr.trim()) {
@@ -331,6 +332,7 @@ export function evalExprLocally(
       u: (name: string) => {
         if (name === 'input_tokens') return promptTokens
         if (name === 'output_tokens') return completionTokens
+        if (usageFields.includes(name)) return 0
         throw new Error(`Unsupported task usage field: ${name}`)
       },
       fixed: (amount: number) => amount * 1_000_000,
