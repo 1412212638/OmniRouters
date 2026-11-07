@@ -5938,6 +5938,7 @@
     "Usage based": "Usage based",
     "Prices are charged according to the task usage fields shown below.": "Prices are charged according to the task usage fields shown below.",
     "Reference video input": "Reference video input",
+    "Reference image input": "Reference image input",
     "Generated video output": "Generated video output",
     "With a reference video, its duration and the generated video duration are billed together.": "With a reference video, its duration and the generated video duration are billed together.",
     "Task condition": "Task condition",

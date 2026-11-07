@@ -119,6 +119,10 @@ export const meta = {
         models: [model],
         schema: {
           ...H3_USAGE_SCHEMA,
+          seconds: {
+            ...H3_USAGE_SCHEMA.seconds,
+            pricingDisplay: "input_output_video_seconds",
+          },
           resolution: {
             ...H3_USAGE_SCHEMA.resolution,
             enum: profile.resolutions,

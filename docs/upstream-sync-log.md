@@ -5332,3 +5332,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: kept only the canonical lowercase H3 model in the profile; legacy `MiniMax-H3` requests continue to resolve to it through case-insensitive lookup.
 - Preserved: H3 model aliases, resolution profiles, billing facts, and all non-H3 Hailuo profiles.
 - Validation: plugin syntax and targeted frontend pricing tests pass; Go/container plugin checks are unavailable locally. Commit and push: included in `4fbccbb3b` (`fix: remove duplicate H3 profile alias`); pushed to `origin/main` on 2026-11-07.
+
+## 2026-11-07 - Hide unpriced task tiers from public details
+
+- Local reason: task pricing details rendered every condition row, including resolutions with no configured price, as rows containing only dashes.
+- Changed: public task pricing tables now include only tiers with a fixed price, unit price, or free quantity; unconfigured condition rows are omitted.
+- Preserved: configured tiers, billing expressions, and the task pricing editor remain unchanged.
+- Validation: targeted frontend pricing tests and Oxfmt passed; `git diff --check` passed. Commit and push: pending.

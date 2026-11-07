@@ -5938,6 +5938,7 @@
     "Usage based": "按用量计费",
     "Prices are charged according to the task usage fields shown below.": "价格根据下方显示的任务用量字段计费。",
     "Reference video input": "参考视频输入",
+    "Reference image input": "参考图片输入",
     "Generated video output": "生成视频输出",
     "With a reference video, its duration and the generated video duration are billed together.": "使用参考视频时，按参考视频时长与生成视频时长之和计费。",
     "Task condition": "任务条件",

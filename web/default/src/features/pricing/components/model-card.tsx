@@ -272,20 +272,34 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             ? `${t('First')} ${taskInputImagePrice.freeQuantity} ${taskInputImageUnit} ${t('free')}; ${t('then')} ${formatCardPriceRange(taskInputImagePrice.formatted)} / ${taskInputImageUnit}`
             : `${t('First')} ${taskInputImagePrice.freeQuantity} ${taskInputImageUnit} ${t('free')}`
           : `${formatCardPriceRange(taskInputImagePrice.formatted)} / ${taskInputImageUnit}`
-        : '-'
+        : null
       const referenceVideoText = taskInputVideoPrice
         ? `${formatCardPriceRange(taskInputVideoPrice.formatted)} / ${t('seconds')}`
-        : ''
+        : null
       priceSummary = (
         <>
-          <span className='text-muted-foreground whitespace-nowrap'>
-            {t('Input')}:{' '}
-            <span className='text-foreground font-mono font-semibold'>
-              {inputImageText}
-              {referenceVideoText &&
-                `; ${t('Reference video')} ${referenceVideoText}`}
+          {inputImageText && (
+            <span className='text-muted-foreground whitespace-nowrap'>
+              {t('Reference image input')}:{' '}
+              <span className='text-foreground font-mono font-semibold'>
+                {inputImageText}
+              </span>
             </span>
-          </span>
+          )}
+          {referenceVideoText && (
+            <span className='text-muted-foreground whitespace-nowrap'>
+              {t('Reference video input')}:{' '}
+              <span className='text-foreground font-mono font-semibold'>
+                {referenceVideoText}
+              </span>
+            </span>
+          )}
+          {!inputImageText && !referenceVideoText && (
+            <span className='text-muted-foreground whitespace-nowrap'>
+              {t('Input')}:{' '}
+              <span className='text-foreground font-mono font-semibold'>-</span>
+            </span>
+          )}
           <span className='text-muted-foreground whitespace-nowrap'>
             {t('Output')}:{' '}
             <span className='text-foreground font-mono font-semibold'>

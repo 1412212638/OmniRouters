@@ -54,15 +54,17 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
   const tiers = useMemo(() => {
     if (!schema || !expression) return []
     const { billingExpr } = splitBillingExprAndRequestRules(expression)
-    return getTaskPricingDisplayTiers(billingExpr, schema).filter(
-      (tier) =>
-        tier.conditions.length > 0 ||
+    return getTaskPricingDisplayTiers(billingExpr, schema).filter((tier) => {
+      // Conditions describe a possible tier, but an unpriced tier should not
+      // appear as a row full of dashes in the public pricing table.
+      return (
         tier.constant > 0 ||
         Object.values(tier.unitPrices).some((price) => Number(price) > 0) ||
         Object.values(tier.freeQuantities || {}).some(
           (quantity) => Number(quantity) > 0
         )
-    )
+      )
+    })
   }, [expression, schema])
   const numberFields = useMemo(() => {
     return Object.entries(schema || {}).filter(
