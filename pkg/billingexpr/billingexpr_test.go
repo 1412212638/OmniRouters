@@ -99,6 +99,24 @@ func TestFixedPriceQuotaBoundariesAndUnsupportedTaskSnapshots(t *testing.T) {
 	assert.Nil(t, trace.FixedPrice)
 }
 
+func TestResponseUsageBillingUsesDirectUsageUnits(t *testing.T) {
+	expression := `tier("images", u("generated_images") * 0.2)`
+	snapshot := &billingexpr.BillingSnapshot{
+		BillingMode:          "tiered_expr",
+		ExprString:           expression,
+		ExprHash:             billingexpr.ExprHashString(expression),
+		GroupRatio:           1,
+		QuotaPerUnit:         500000,
+		ResponseUsageBilling: true,
+	}
+	result, err := billingexpr.ComputeTieredQuotaWithRequest(snapshot, billingexpr.TokenParams{}, billingexpr.RequestInput{
+		Usage: map[string]any{"generated_images": float64(2)},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, 200000, result.ActualQuotaAfterGroup)
+	assert.Equal(t, billingexpr.BillingUnitToken, result.BillingUnit)
+}
+
 // ---------------------------------------------------------------------------
 // Claude-style: fixed tiers, input > 200K changes both input & output price
 // ---------------------------------------------------------------------------

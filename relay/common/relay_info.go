@@ -173,6 +173,8 @@ type RelayInfo struct {
 	TieredBillingSnapshot *billingexpr.BillingSnapshot
 	BillingRequestInput   *billingexpr.RequestInput
 	BillingImageCount     *int
+	SeedreamImageBilling  bool `json:"-"`
+	seedreamBillingBase   *seedreamImageBillingBase
 	// ImageRequestCount is the effective quantity sent on the current attempt;
 	// ImageQuotaBeforeGroup is the frozen legacy estimate before request ratios.
 	ImageRequestCount     int
@@ -230,6 +232,59 @@ type RelayInfo struct {
 	*ResponsesUsageInfo
 	*ChannelMeta
 	*TaskRelayInfo
+}
+
+type seedreamImageBillingBase struct {
+	snapshot       *billingexpr.BillingSnapshot
+	requestInput   *billingexpr.RequestInput
+	imageCount     *int
+	preConsume     int
+	freeModel      bool
+}
+
+// BeginSeedreamImageBilling temporarily selects the ordinary Seedream
+// response-usage snapshot for one eligible OpenAI image attempt while
+// preserving the request's normal billing state for a possible retry through
+// another channel.
+func (info *RelayInfo) BeginSeedreamImageBilling(snapshot *billingexpr.BillingSnapshot, input *billingexpr.RequestInput) {
+	if info == nil {
+		return
+	}
+	if info.seedreamBillingBase == nil {
+		var imageCount *int
+		if info.BillingImageCount != nil {
+			value := *info.BillingImageCount
+			imageCount = &value
+		}
+		info.seedreamBillingBase = &seedreamImageBillingBase{
+			snapshot:     info.TieredBillingSnapshot,
+			requestInput: info.BillingRequestInput,
+			imageCount:   imageCount,
+			preConsume:   info.PriceData.QuotaToPreConsume,
+			freeModel:    info.PriceData.FreeModel,
+		}
+	}
+	info.SeedreamImageBilling = true
+	info.TieredBillingSnapshot = snapshot
+	info.BillingRequestInput = input
+	info.BillingImageCount = nil
+}
+
+// ResetSeedreamImageBilling restores the billing state captured before the
+// compatibility layer was selected. This is called at the start of each
+// channel attempt so retries through unrelated channels use their own pricing.
+func (info *RelayInfo) ResetSeedreamImageBilling() {
+	if info == nil || info.seedreamBillingBase == nil {
+		return
+	}
+	base := info.seedreamBillingBase
+	info.SeedreamImageBilling = false
+	info.TieredBillingSnapshot = base.snapshot
+	info.BillingRequestInput = base.requestInput
+	info.BillingImageCount = base.imageCount
+	info.PriceData.QuotaToPreConsume = base.preConsume
+	info.PriceData.FreeModel = base.freeModel
+	info.seedreamBillingBase = nil
 }
 
 // UpdateImageCount replaces the billable quantity without changing the frozen

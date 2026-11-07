@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/QuantumNous/new-api/pkg/billingexpr"
 	"github.com/QuantumNous/new-api/relay/constant"
 	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/relaykit/relayconvert/convmeta"
@@ -90,4 +91,35 @@ func TestRelayInfoResponsesToolStateRoundTrip(t *testing.T) {
 	info.SetResponsesToolState(nil)
 	assert.Nil(t, info.ResponsesToolState())
 	assert.False(t, convmeta.ResponsesToolStateOf(info).IsCustomTool("exec"))
+}
+
+func TestSeedreamImageBillingRestoresBaseStateForChannelRetry(t *testing.T) {
+	baseSnapshot := &billingexpr.BillingSnapshot{ModelName: "base-model"}
+	baseInput := &billingexpr.RequestInput{Body: []byte(`{"size":"2K"}`)}
+	baseImageCount := 3
+	info := &RelayInfo{
+		TieredBillingSnapshot: baseSnapshot,
+		BillingRequestInput:   baseInput,
+		BillingImageCount:     &baseImageCount,
+	}
+	info.PriceData.QuotaToPreConsume = 42
+	info.PriceData.FreeModel = true
+	compatSnapshot := &billingexpr.BillingSnapshot{ModelName: "doubao-seedream-5.0-pro", TaskUsageBilling: true}
+	compatInput := &billingexpr.RequestInput{Usage: map[string]any{"images_above_1_5k": float64(1)}}
+
+	info.BeginSeedreamImageBilling(compatSnapshot, compatInput)
+	require.True(t, info.SeedreamImageBilling)
+	require.Same(t, compatSnapshot, info.TieredBillingSnapshot)
+	info.PriceData.QuotaToPreConsume = 99
+	info.PriceData.FreeModel = false
+
+	info.ResetSeedreamImageBilling()
+
+	require.False(t, info.SeedreamImageBilling)
+	require.Same(t, baseSnapshot, info.TieredBillingSnapshot)
+	require.Same(t, baseInput, info.BillingRequestInput)
+	require.NotNil(t, info.BillingImageCount)
+	require.Equal(t, baseImageCount, *info.BillingImageCount)
+	require.Equal(t, 42, info.PriceData.QuotaToPreConsume)
+	require.True(t, info.PriceData.FreeModel)
 }

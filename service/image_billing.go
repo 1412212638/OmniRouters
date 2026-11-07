@@ -27,14 +27,18 @@ func PrepareImageBillingForRequest(c *gin.Context, info *relaycommon.RelayInfo, 
 	var err error
 	if snap := info.TieredBillingSnapshot; snap != nil && snap.BillingMode == "tiered_expr" {
 		// Token-only image expressions must not acquire a quantity multiplier.
-		if snap.EstimatedImageCount == nil {
+		if snap.EstimatedImageCount == nil && !snap.UsesDirectUsageBilling() {
 			return nil
 		}
 		request := billingexpr.RequestInput{}
 		if info.BillingRequestInput != nil {
 			request = *info.BillingRequestInput
 		}
-		request.ImageCount = &count
+		if info.BillingImageCount != nil {
+			request.ImageCount = info.BillingImageCount
+		} else if !snap.UsesDirectUsageBilling() {
+			request.ImageCount = &count
+		}
 		cost, trace, runErr := billingexpr.RunExprByHashWithRequest(snap.ExprString, snap.ExprHash, billingexpr.TokenParams{
 			P: float64(snap.EstimatedPromptTokens), C: float64(snap.EstimatedCompletionTokens), Len: float64(snap.EstimatedPromptTokens),
 		}, request)
@@ -42,9 +46,14 @@ func PrepareImageBillingForRequest(c *gin.Context, info *relaycommon.RelayInfo, 
 			return types.NewErrorWithStatusCode(runErr, types.ErrorCodeModelPriceError, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
 		}
 		beforeGroup := cost / 1_000_000 * snap.QuotaPerUnit
+		if snap.UsesDirectUsageBilling() {
+			beforeGroup = cost * snap.QuotaPerUnit
+		}
 		quota, err = billingexpr.QuotaRoundStrict(beforeGroup * info.PriceData.GroupRatioInfo.GroupRatio)
 		if err == nil {
-			snap.EstimatedImageCount = trace.ImageCount
+			if trace.ImageCount != nil {
+				snap.EstimatedImageCount = trace.ImageCount
+			}
 			snap.EstimatedQuotaBeforeGroup = beforeGroup
 			snap.EstimatedQuotaAfterGroup = quota
 			snap.EstimatedTier = trace.MatchedTier

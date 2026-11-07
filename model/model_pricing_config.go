@@ -294,7 +294,7 @@ func GetModelPricingSnapshot(names []string) (*ModelPricingSnapshot, error) {
 		}
 		plugins := generation.PluginsByModel(name)
 		configuredVariants, _ := configured[billing_setting.PluginBillingExprOption].(map[string]any)
-		if len(plugins) >= 2 || len(configuredVariants) > 0 {
+		if len(plugins) > 0 || len(configuredVariants) > 0 {
 			keys := make(map[string]bool, len(plugins)+len(configuredVariants))
 			for _, plugin := range plugins {
 				keys[plugin.Meta.Key] = true
@@ -325,10 +325,14 @@ func GetModelPricingSnapshot(names []string) (*ModelPricingSnapshot, error) {
 				if !overridden && entry.Effective["billing_setting.billing_mode"] == billing_setting.BillingModeTieredExpr {
 					expression, _ = entry.Effective["billing_setting.billing_expr"].(string)
 				}
+				compatible := billing_setting.TaskExprCompatible(expression, schema)
+				if !overridden {
+					compatible = billing_setting.UsageExprCompatibleWithTaskSchema(name, expression, schema)
+				}
 				entry.PluginVariants = append(entry.PluginVariants, ModelPricingPluginVariant{
 					PluginKey: plugin.Meta.Key, PluginName: plugin.Meta.Name, Icon: plugin.Meta.Icon,
 					UsageSchema: schema, UsageExamples: examples, Configured: configuredExpr, Effective: expression,
-					Compatible: billing_setting.TaskExprCompatible(expression, schema),
+					Compatible: compatible,
 				})
 			}
 		}
@@ -432,30 +436,53 @@ func validateModelPricing(name string, values, previous PricingValues) error {
 			if _, err := billingexpr.CompileFromCache(expression); err != nil {
 				return fmt.Errorf("model %s: %w", name, err)
 			}
+			ordinaryResponseUsage := false
+			if len(billingexpr.UsedUsageKeys(expression)) > 0 {
+				if _, profile := billing_setting.OrdinaryResponseUsageSchema(name); profile {
+					if err := billing_setting.ValidateOrdinaryResponseUsageExpr(name, expression); err != nil {
+						return fmt.Errorf("model %s: %w", name, err)
+					}
+					ordinaryResponseUsage = true
+				}
+			}
 			unchanged := previous[key] == expression
 			var err error
 			if plugins := generation.PluginsByModel(name); len(plugins) > 0 {
 				for _, plugin := range plugins {
 					_, overridden := variants[plugin.Meta.Key]
 					_, wasOverridden := previousVariants[plugin.Meta.Key]
-					if overridden || (unchanged && !wasOverridden && len(plugins) == 1) {
+					if overridden || (!ordinaryResponseUsage && unchanged && !wasOverridden && len(plugins) == 1) {
 						continue
 					}
 					schema, _ := plugin.Meta.UsageForModel(name)
-					if err = billing_setting.SmokeTestTaskExpr(expression, schema); err != nil {
+					if ordinaryResponseUsage {
+						if !billing_setting.UsageExprCompatibleWithTaskSchema(name, expression, schema) {
+							err = fmt.Errorf("plugin %s usage schema is incompatible with the ordinary response usage expression", plugin.Meta.Key)
+						}
+					} else {
+						err = billing_setting.SmokeTestTaskExpr(expression, schema)
+					}
+					if err != nil {
 						return fmt.Errorf("model %s: plugin %s: %w", name, plugin.Meta.Key, err)
 					}
 				}
 			} else if target, resolved := ResolveTaskModelAlias(generation, name); resolved {
 				if plugin, ok := generation.Get(target.PluginKey); ok {
-					if !unchanged || generation.SharedModel(target.Declared) {
+					_, overridden := variants[target.PluginKey]
+					if !overridden && (!unchanged || generation.SharedModel(target.Declared) || ordinaryResponseUsage) {
 						schema, _ := plugin.Meta.UsageForModel(target.Declared)
-						err = billing_setting.SmokeTestTaskExpr(expression, schema)
+						if ordinaryResponseUsage {
+							if !billing_setting.UsageExprCompatibleWithTaskSchema(name, expression, schema) {
+								err = fmt.Errorf("plugin %s usage schema is incompatible with the ordinary response usage expression", plugin.Meta.Key)
+							}
+						} else {
+							err = billing_setting.SmokeTestTaskExpr(expression, schema)
+						}
 					}
 				} else {
 					err = billing_setting.SmokeTestExpr(expression)
 				}
-			} else if previous[key] != expression || len(billingexpr.UsedUsageKeys(expression)) == 0 {
+			} else if !ordinaryResponseUsage && (previous[key] != expression || len(billingexpr.UsedUsageKeys(expression)) == 0) {
 				err = billing_setting.SmokeTestExpr(expression)
 			}
 			// With no remaining plugin, an unchanged stored usage expression has

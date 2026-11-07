@@ -629,8 +629,14 @@ func updatePricing() {
 				if hasExpression || billing_setting.GetBillingMode(model) == billing_setting.BillingModeTieredExpr {
 					mode = billing_setting.BillingModeTieredExpr
 				}
-				if mode == billing_setting.BillingModeTieredExpr && !billing_setting.TaskExprCompatible(expression, schema) {
-					expression = ""
+				if mode == billing_setting.BillingModeTieredExpr {
+					compatible := billing_setting.TaskExprCompatible(expression, schema)
+					if _, pluginOverride := billing_setting.GetPluginBillingExpr(provider.Meta.Key, model); !pluginOverride {
+						compatible = billing_setting.UsageExprCompatibleWithTaskSchema(model, expression, schema)
+					}
+					if !compatible {
+						expression = ""
+					}
 				}
 				pricing.BillingPluginVariants = append(pricing.BillingPluginVariants, PricingPluginVariant{
 					PluginKey: provider.Meta.Key, PluginName: provider.Meta.Name, Icon: provider.Meta.Icon,

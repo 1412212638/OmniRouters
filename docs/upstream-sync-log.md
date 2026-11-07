@@ -1,5 +1,21 @@
 # Upstream Sync Log
 
+## 2026-11-08 - Allow compatible ordinary and task usage expressions to share pricing
+
+- Local reason: an OpenAI-compatible channel and a task plugin can expose the same model and the same response usage facts, so requiring duplicate plugin pricing created unnecessary configuration while unrelated token pricing must remain isolated.
+- Changed: ordinary `u(...)` expressions now inherit to a shared task endpoint only when every plugin candidate without a plugin-specific override declares the referenced fields with matching types and units; incompatible candidates still require `plugin::model` pricing. Applied the same compatibility result to task validation and pricing snapshots, including the single-plugin ordinary/task case, while preserving existing plugin override precedence.
+- Preserved: ordinary token expressions, fixed pricing, task-plugin-specific overrides, provider routing, and all existing billing/pre-consume/settlement paths keep their previous behavior. No model plaza display or price fallback behavior was changed.
+- Validation: `git diff --check` and source inspection; Go tests and `gofmt` are unavailable because the Go toolchain is not installed in the environment.
+- Commit and push: not committed or pushed.
+
+## 2026-11-08 - Isolate ordinary response-usage billing from task plugins
+
+- Local reason: OpenAI-compatible Seedream 5.0 channels return image usage facts (`input_images`, `generated_images`, and output pixel sizes), while native VolcEngine channels and the Doubao task plugin already have their own billing contracts.
+- Changed: recognized synchronous OpenAI Seedream image requests may use the model's ordinary expression with validated `u(...)` fields. The request path estimates output tiers and references, then settles from bounded upstream usage and pixel-size facts. A separate `response_usage_billing` snapshot flag converts these direct usage prices to quota without changing task-plugin conversion. Shared endpoints with incompatible usage schemas require an explicit plugin pricing override instead of silently inheriting ordinary pricing.
+- Preserved: task-plugin expressions, native VolcEngine/Ark billing, ordinary models without a response-usage profile, retries, and existing token/ratio pricing remain on their original paths. Async ordinary requests using a response-usage expression are rejected before submission because their response usage is unavailable to the synchronous settlement path. Invalid or missing output usage retains the reservation estimate, and request payloads are excluded from stored billing context.
+- Validation: added unit coverage for direct response-usage quota conversion, Seedream model/channel scoping, estimated and actual image facts, malformed usage fallback, and cross-channel billing-state restoration. `git diff --check` passed. Go tests and `gofmt` could not run because the Go toolchain is not installed in this environment.
+- Commit and push: not committed or pushed.
+
 ## 2026-11-07 - Document active model-plaza component ownership
 
 - Local reason: a prior pricing-card fix changed the legacy card component while the reported page used the default catalog card, so the visible model-plaza behavior did not change.

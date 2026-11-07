@@ -41,6 +41,7 @@ func OpenaiImageHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.
 	}
 
 	info.UpdateImageCount(openaiImageResponseCount(responseBody))
+	helper.UpdateSeedreamOpenAIImageUsage(info, responseBody, 0)
 
 	// 写入新的 response body
 	service.IOCopyBytesGracefully(c, resp, responseBody)
@@ -140,11 +141,15 @@ func OpenaiImageStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp 
 	// field (real OpenAI image events keep event == type).
 	usage := &dto.Usage{}
 	var lastStreamData []byte
+	var lastSeedreamUsageData []byte
 	var completedImages int64
 
 	helper.StreamScannerHandler(c, resp, info, func(data string, sr *helper.StreamResult) {
 		raw := common.StringToByteSlice(data)
 		lastStreamData = raw
+		if info != nil && info.SeedreamImageBilling && gjson.GetBytes(raw, "usage").Exists() {
+			lastSeedreamUsageData = append(lastSeedreamUsageData[:0], raw...)
+		}
 		if isOpenAIImageStreamErrorEvent(raw) {
 			// Record the error as a soft error; the scanner drives the final
 			// EndReason. HasErrors() flags the failure for logging/handling.
@@ -182,12 +187,16 @@ func OpenaiImageStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp 
 	// image by disconnecting right after the first completed event. The abort
 	// guard only blocks lowering the charge: if completed events already
 	// exceed the recorded n, bill the higher actual count regardless.
+	upstreamFinished := false
 	if info.StreamStatus != nil {
-		upstreamFinished := info.StreamStatus.EndReason == relaycommon.StreamEndReasonDone ||
+		upstreamFinished = info.StreamStatus.EndReason == relaycommon.StreamEndReasonDone ||
 			info.StreamStatus.EndReason == relaycommon.StreamEndReasonEOF
 		if upstreamFinished || completedImages > int64(info.RequestedImageCount()) {
 			info.UpdateImageCount(completedImages)
 		}
+	}
+	if upstreamFinished && (info.StreamStatus == nil || !info.StreamStatus.HasErrors()) {
+		helper.UpdateSeedreamOpenAIImageUsage(info, lastSeedreamUsageData, completedImages)
 	}
 	return usage, nil
 }
@@ -278,6 +287,7 @@ func openaiImageJSONAsStreamHandler(c *gin.Context, info *relaycommon.RelayInfo,
 	applyUsagePostProcessing(info, &usageResp.Usage, responseBody)
 
 	info.UpdateImageCount(openaiImageResponseCount(responseBody))
+	helper.UpdateSeedreamOpenAIImageUsage(info, responseBody, 0)
 
 	helper.SetEventStreamHeaders(c)
 	c.Status(http.StatusOK)

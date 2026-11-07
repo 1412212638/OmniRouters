@@ -84,7 +84,18 @@ type BillingSnapshot struct {
 	QuotaPerUnit              float64        `json:"quota_per_unit"`
 	ExprVersion               int            `json:"expr_version"`
 	TaskUsageBilling          bool           `json:"task_usage_billing,omitempty"`
+	// ResponseUsageBilling marks an ordinary relay expression whose values are
+	// direct usage units (for example generated image counts), rather than
+	// USD-per-million-token coefficients. It is intentionally separate from
+	// TaskUsageBilling so plugin and ordinary-channel pricing cannot cross over.
+	ResponseUsageBilling       bool           `json:"response_usage_billing,omitempty"`
 	UsageFacts                map[string]any `json:"usage_facts,omitempty"`
+}
+
+// UsesDirectUsageBilling reports whether expression output is already a
+// direct dollar amount before quota conversion.
+func (s *BillingSnapshot) UsesDirectUsageBilling() bool {
+	return s != nil && (s.TaskUsageBilling || s.ResponseUsageBilling)
 }
 
 // TieredResult holds everything needed after running tiered settlement.

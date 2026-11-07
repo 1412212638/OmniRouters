@@ -268,10 +268,28 @@ func RelayTaskSubmit(c *gin.Context, info *relaycommon.RelayInfo) (*TaskSubmitRe
 		if !exists || !supported {
 			return nil, service.TaskErrorWrapper(fmt.Errorf("task model %s has no usage expression or meter", modelName), "model_price_error", http.StatusBadRequest)
 		}
+		pluginOverride := false
+		if pluginKey != "" {
+			_, pluginOverride = billing_setting.GetPluginBillingExpr(pluginKey, modelName)
+			if !pluginOverride && info.UpstreamModelName != "" && info.UpstreamModelName != modelName {
+				_, pluginOverride = billing_setting.GetPluginBillingExpr(pluginKey, info.UpstreamModelName)
+			}
+		}
 		sharedModel := pinnedPlugin.Generation.SharedModel(modelName) || pinnedPlugin.Generation.SharedModel(info.UpstreamModelName)
-		if sharedModel && pinnedPlugin.Plugin != nil {
+		ordinaryUsageExpr := !pluginOverride && len(billingexpr.UsedUsageKeys(exprStr)) > 0 &&
+			(billing_setting.CanonicalOrdinaryResponseUsageModel(modelName) != "" ||
+				billing_setting.CanonicalOrdinaryResponseUsageModel(info.UpstreamModelName) != "")
+		if (sharedModel || ordinaryUsageExpr) && pinnedPlugin.Plugin != nil {
 			schema, _ := pinnedPlugin.Plugin.Meta.UsageForModel(info.UpstreamModelName)
-			if !billing_setting.TaskExprCompatible(exprStr, schema) {
+			compatible := billing_setting.TaskExprCompatible(exprStr, schema)
+			if !pluginOverride && ordinaryUsageExpr {
+				usageBillingModel := modelName
+				if billing_setting.CanonicalOrdinaryResponseUsageModel(usageBillingModel) == "" {
+					usageBillingModel = info.UpstreamModelName
+				}
+				compatible = billing_setting.UsageExprCompatibleWithTaskSchema(usageBillingModel, exprStr, schema)
+			}
+			if !compatible {
 				return nil, service.TaskErrorWrapper(fmt.Errorf("task model %s pricing is not configured for plugin %s", modelName, pluginKey), "model_price_error", http.StatusBadRequest)
 			}
 		}

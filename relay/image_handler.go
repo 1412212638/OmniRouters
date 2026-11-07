@@ -11,6 +11,7 @@ import (
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/logger"
+	"github.com/QuantumNous/new-api/pkg/billingexpr"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	relayconstant "github.com/QuantumNous/new-api/relay/constant"
 	"github.com/QuantumNous/new-api/relay/helper"
@@ -25,12 +26,21 @@ import (
 
 func ImageHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *types.NewAPIError) {
 	info.InitChannelMeta(c)
+	info.ResetSeedreamImageBilling()
 	info.BillingImageCount = nil
 	info.ImageRequestCount = 0
 
 	imageReq, ok := info.Request.(*dto.ImageRequest)
 	if !ok {
 		return types.NewErrorWithStatusCode(fmt.Errorf("invalid request type, expected dto.ImageRequest, got %T", info.Request), types.ErrorCodeInvalidRequest, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
+	}
+	if snap := info.TieredBillingSnapshot; snap != nil && len(billingexpr.UsedUsageKeys(snap.ExprString)) > 0 {
+		if info.ChannelMeta == nil || info.ChannelMeta.ChannelType != constant.ChannelTypeOpenAI {
+			return types.NewErrorWithStatusCode(fmt.Errorf("ordinary response usage billing is only supported by OpenAI-compatible image channels"), types.ErrorCodeModelPriceError, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
+		}
+		if strings.EqualFold(c.Query("async"), "true") {
+			return types.NewErrorWithStatusCode(fmt.Errorf("ordinary response usage billing requires a synchronous image response"), types.ErrorCodeModelPriceError, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
+		}
 	}
 
 	request, err := common.DeepCopy(imageReq)
@@ -142,6 +152,11 @@ func ImageHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *type
 		}
 		defer closer.Close()
 		requestBody = body
+	}
+	if !strings.EqualFold(c.Query("async"), "true") {
+		if err := helper.PrepareSeedreamOpenAIImageBilling(info, request, jsonData, imageCount); err != nil {
+			return types.NewErrorWithStatusCode(err, types.ErrorCodeModelPriceError, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
+		}
 	}
 	if billingErr := service.PrepareImageBillingForRequest(c, info, imageCount, promptExtend); billingErr != nil {
 		return billingErr

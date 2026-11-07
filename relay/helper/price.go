@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/QuantumNous/new-api/logger"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/pkg/billingexpr"
+	"github.com/QuantumNous/new-api/pkg/jsplugin"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/relaykit/relayconvert/reasoning"
@@ -385,8 +387,23 @@ func modelPriceHelperTiered(c *gin.Context, info *relaycommon.RelayInfo, billing
 		return hosttypes.PriceData{}, fmt.Errorf("model %s is configured as tiered_expr but has no billing expression", billingModelName)
 	}
 	exprHash := billingexpr.ExprHashString(exprStr)
+	usedUsageKeys := billingexpr.UsedUsageKeys(exprStr)
+	if len(usedUsageKeys) > 0 {
+		if seedreamModelName(billingModelName) == "" {
+			return hosttypes.PriceData{}, errors.New("ordinary channel pricing cannot use task usage fields; configure a channel-specific response usage profile")
+		}
+		if _, ok := info.Request.(*dto.ImageRequest); !ok {
+			return hosttypes.PriceData{}, errors.New("ordinary response usage billing is only supported for image requests")
+		}
+		if err := billing_setting.ValidateOrdinaryResponseUsageExpr(billingModelName, exprStr); err != nil {
+			return hosttypes.PriceData{}, err
+		}
+	}
 	if info.RelayFormat == types.RelayFormatOpenAIRealtime && billingexpr.UsesFixedPricingByHash(exprStr, exprHash) {
 		return hosttypes.PriceData{}, fmt.Errorf("fixed pricing is not supported for Realtime requests")
+	}
+	if err := validateSharedTaskPriceOverride(c, billingModelName, exprStr, billingexpr.UsesFixedPricingByHash(exprStr, exprHash)); err != nil {
+		return hosttypes.PriceData{}, err
 	}
 
 	estimatedCompletionTokens := meta.MaxTokens
@@ -460,4 +477,72 @@ func modelPriceHelperTiered(c *gin.Context, info *relaycommon.RelayInfo, billing
 
 	info.PriceData = priceData
 	return priceData, nil
+}
+
+// validateSharedTaskPriceOverride prevents an ordinary channel from silently
+// inheriting a task plugin's expression when both providers claim the same
+// endpoint. Token expressions still require a plugin-specific override. An
+// ordinary response usage expression may be inherited only when every plugin
+// candidate without an override declares the same usage fields with compatible
+// types and units. The check is intentionally limited to a pinned shared
+// endpoint; unrelated ordinary models keep their existing behavior.
+func validateSharedTaskPriceOverride(c *gin.Context, billingModelName, expression string, fixedPricing bool) error {
+	if fixedPricing || c == nil {
+		return nil
+	}
+	value, exists := c.Get(jsplugin.ContextKeyPinnedEndpoint)
+	endpoint, ok := value.(jsplugin.PinnedEndpoint)
+	if !exists || !ok {
+		return nil
+	}
+	candidates := endpoint.Candidates
+	if len(candidates) == 0 && endpoint.Plugin != nil {
+		candidates = []jsplugin.ProtocolBinding{{Plugin: endpoint.Plugin, Model: endpoint.MappedModel}}
+	}
+	usedUsageKeys := billingexpr.UsedUsageKeys(expression)
+	for _, candidate := range candidates {
+		if candidate.Plugin == nil {
+			continue
+		}
+		pluginKey := candidate.Plugin.Meta.Key
+		if _, overridden := billing_setting.GetPluginBillingExpr(pluginKey, endpoint.Model); overridden {
+			continue
+		}
+		if endpoint.MappedModel != "" {
+			if _, overridden := billing_setting.GetPluginBillingExpr(pluginKey, endpoint.MappedModel); overridden {
+				continue
+			}
+		}
+		taskBillingModel := endpoint.Model
+		if billing_setting.GetBillingMode(taskBillingModel) != billing_setting.BillingModeTieredExpr {
+			taskBillingModel = endpoint.MappedModel
+		}
+		modelMatches := taskBillingModel == billingModelName
+		if !modelMatches && len(usedUsageKeys) > 0 {
+			ordinaryModel := billing_setting.CanonicalOrdinaryResponseUsageModel(billingModelName)
+			modelMatches = ordinaryModel != "" &&
+				(billing_setting.CanonicalOrdinaryResponseUsageModel(endpoint.Model) == ordinaryModel ||
+					billing_setting.CanonicalOrdinaryResponseUsageModel(endpoint.MappedModel) == ordinaryModel)
+		}
+		if modelMatches {
+			if len(usedUsageKeys) > 0 &&
+				billing_setting.UsageExprCompatibleWithTaskSchema(billingModelName, expression, taskUsageSchema(candidate, endpoint)) {
+				continue
+			}
+			return fmt.Errorf("model %s is shared with task plugin %s; configure a plugin-specific billing expression before using ordinary pricing", billingModelName, pluginKey)
+		}
+	}
+	return nil
+}
+
+func taskUsageSchema(candidate jsplugin.ProtocolBinding, endpoint jsplugin.PinnedEndpoint) map[string]jsplugin.UsageFieldSchema {
+	model := candidate.Model
+	if model == "" {
+		model = endpoint.MappedModel
+	}
+	if model == "" {
+		model = endpoint.Model
+	}
+	schema, _ := candidate.Plugin.Meta.UsageForModel(model)
+	return schema
 }
