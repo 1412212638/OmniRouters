@@ -155,6 +155,9 @@ export const ModelPricingEditorPanel = forwardRef<
 ) {
   const { t } = useTranslation()
   const [pricingMode, setPricingMode] = useState<PricingMode>('per-token')
+  const [pricingScope, setPricingScope] = useState<'ordinary' | 'plugin'>(
+    'ordinary'
+  )
   const [promptPrice, setPromptPrice] = useState('')
   const [lanePrices, setLanePrices] = useState<Record<LaneKey, string>>({
     ...EMPTY_LANE_PRICES,
@@ -225,6 +228,7 @@ export const ModelPricingEditorPanel = forwardRef<
         nextPricingMode = 'per-request'
       }
       setPricingMode(nextPricingMode)
+      setPricingScope('ordinary')
       setSoraPerRequestPricingEnabled(
         Boolean(editData.soraPerRequestPricingEnabled)
       )
@@ -255,6 +259,7 @@ export const ModelPricingEditorPanel = forwardRef<
         audioCompletionRatio: '',
       })
       setPricingMode('per-token')
+      setPricingScope('ordinary')
       setSoraPerRequestPricingEnabled(false)
       setSoraResolutionTiers([])
       setSoraAudioGenerationSurcharge('')
@@ -310,6 +315,19 @@ export const ModelPricingEditorPanel = forwardRef<
       left.name.localeCompare(right.name)
     )
   }, [pluginBillingExpressions, taskPluginOptionsQuery.data, watchedModelName])
+
+  const hasTaskPluginPricing =
+    taskPluginOptionsQuery.isLoading || pluginRows.length > 0
+
+  useEffect(() => {
+    if (
+      pricingScope === 'plugin' &&
+      !taskPluginOptionsQuery.isLoading &&
+      pluginRows.length === 0
+    ) {
+      setPricingScope('ordinary')
+    }
+  }, [pluginRows.length, pricingScope, taskPluginOptionsQuery.isLoading])
 
   const setFormValue = (field: keyof ModelPricingFormValues, value: string) => {
     form.setValue(field, value, {
@@ -845,10 +863,52 @@ export const ModelPricingEditorPanel = forwardRef<
                   )}
                 />
 
+                {hasTaskPluginPricing && (
+                  <div
+                    role='tablist'
+                    aria-label={t('Pricing mode')}
+                    className='bg-muted grid h-9 w-full grid-cols-2 rounded-lg p-1'
+                  >
+                    <button
+                      type='button'
+                      role='tab'
+                      aria-selected={pricingScope === 'ordinary'}
+                      onClick={() => setPricingScope('ordinary')}
+                      className={cn(
+                        'rounded-md px-2 text-sm font-medium transition-colors',
+                        pricingScope === 'ordinary'
+                          ? 'bg-background text-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
+                      )}
+                    >
+                      {t('OpenAI Compatible')}
+                    </button>
+                    <button
+                      type='button'
+                      role='tab'
+                      aria-selected={pricingScope === 'plugin'}
+                      onClick={() => setPricingScope('plugin')}
+                      className={cn(
+                        'rounded-md px-2 text-sm font-medium transition-colors',
+                        pricingScope === 'plugin'
+                          ? 'bg-background text-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
+                      )}
+                    >
+                      {t('Task plugin pricing')}
+                    </button>
+                  </div>
+                )}
+
                 <Tabs
                   value={pricingMode}
                   onValueChange={handleModeChange}
-                  className='gap-4'
+                  className={cn(
+                    'gap-4',
+                    hasTaskPluginPricing &&
+                      pricingScope !== 'ordinary' &&
+                      'hidden'
+                  )}
                 >
                   <TabsList className='grid w-full grid-cols-3'>
                     <TabsTrigger value='per-token'>
@@ -1106,7 +1166,12 @@ export const ModelPricingEditorPanel = forwardRef<
 
                 {(pluginRows.length > 0 ||
                   taskPluginOptionsQuery.isLoading) && (
-                  <Field className='rounded-lg border p-4'>
+                  <Field
+                    className={cn(
+                      'rounded-lg border p-4',
+                      pricingScope !== 'plugin' && 'hidden'
+                    )}
+                  >
                     <FieldContent>
                       <FieldTitle>{t('Task plugin pricing')}</FieldTitle>
                       <FieldDescription>

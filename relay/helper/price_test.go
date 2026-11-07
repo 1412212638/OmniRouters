@@ -8,6 +8,7 @@ import (
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/pkg/billingexpr"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
+	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/relaykit/types"
 	"github.com/QuantumNous/new-api/setting/billing_setting"
 	"github.com/QuantumNous/new-api/setting/config"
@@ -110,6 +111,54 @@ func TestModelPriceHelperTieredUsesPreloadedRequestInput(t *testing.T) {
 	require.Equal(t, "stream", info.TieredBillingSnapshot.EstimatedTier)
 	require.Equal(t, billing_setting.BillingModeTieredExpr, info.TieredBillingSnapshot.BillingMode)
 	require.Equal(t, common.QuotaPerUnit, info.TieredBillingSnapshot.QuotaPerUnit)
+}
+
+func TestModelPriceHelperTieredSeedsSeedreamUsageBeforePreConsume(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	saved := map[string]string{}
+	require.NoError(t, config.GlobalConfig.SaveToDB(func(key, value string) error {
+		saved[key] = value
+		return nil
+	}))
+	t.Cleanup(func() {
+		require.NoError(t, config.GlobalConfig.LoadFromDB(saved))
+	})
+
+	expression := `tier("base", u("images_up_to_1_5k") * 0.3 + u("images_above_1_5k") * 0.6 + max(u("input_images") - 1, 0) * 0.02)`
+	billingExprJSON, err := common.Marshal(map[string]string{"doubao-seedream-5.0-pro": expression})
+	require.NoError(t, err)
+	require.NoError(t, config.GlobalConfig.LoadFromDB(map[string]string{
+		"billing_setting.billing_mode":    `{"doubao-seedream-5.0-pro":"tiered_expr"}`,
+		"billing_setting.billing_expr":    string(billingExprJSON),
+		"group_ratio_setting.group_ratio": `{"default":1}`,
+	}))
+
+	request := &dto.ImageRequest{
+		Model:  "doubao-seedream-5.0-pro",
+		Prompt: "generate an image",
+		N:      common.GetPointer(uint(1)),
+		Size:   "1K",
+	}
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	ctx.Request = httptest.NewRequest(http.MethodPost, "/v1/images/generations", nil)
+	ctx.Request.Header.Set("Content-Type", "application/json")
+	ctx.Set("group", "default")
+	info := &relaycommon.RelayInfo{
+		OriginModelName: "doubao-seedream-5.0-pro",
+		UserGroup:       "default",
+		UsingGroup:      "default",
+		RequestHeaders:  map[string]string{"Content-Type": "application/json"},
+		Request:         request,
+	}
+
+	priceData, err := ModelPriceHelper(ctx, info, 0, &types.TokenCountMeta{})
+	require.NoError(t, err)
+	require.Equal(t, common.QuotaRound(0.3*common.QuotaPerUnit), priceData.QuotaToPreConsume)
+	require.NotNil(t, info.BillingRequestInput)
+	require.Equal(t, float64(1), info.BillingRequestInput.Usage["images_up_to_1_5k"])
+	require.Equal(t, float64(0), info.BillingRequestInput.Usage["images_above_1_5k"])
+	require.Equal(t, float64(0), info.BillingRequestInput.Usage["input_images"])
 }
 
 func TestModelPriceHelperTieredPreConsumeMaxTokensFallback(t *testing.T) {

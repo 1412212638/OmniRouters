@@ -415,6 +415,32 @@ func modelPriceHelperTiered(c *gin.Context, info *relaycommon.RelayInfo, billing
 	if err != nil {
 		return hosttypes.PriceData{}, err
 	}
+	// Ordinary Seedream response-usage expressions are settled from the
+	// provider's response, but the first pre-consume happens before the
+	// response exists. Populate the bounded request-side estimate here so
+	// u("images_*"), u("input_images"), and related fields are numeric during
+	// the initial expression run. The image handler later replaces this
+	// estimate with the validated upstream usage facts before settlement.
+	if len(usedUsageKeys) > 0 && seedreamModelName(billingModelName) != "" {
+		imageRequest, ok := info.Request.(*dto.ImageRequest)
+		if !ok {
+			return hosttypes.PriceData{}, errors.New("ordinary response usage billing is only supported for image requests")
+		}
+		requestedCount, err := imageRequest.ImageCount(false)
+		if err != nil {
+			return hosttypes.PriceData{}, err
+		}
+		facts, _, _, err := seedreamImageEstimate(
+			seedreamModelName(billingModelName),
+			imageRequest,
+			nil,
+			requestedCount,
+		)
+		if err != nil {
+			return hosttypes.PriceData{}, fmt.Errorf("Seedream image usage estimate failed: %w", err)
+		}
+		requestInput.Usage = facts
+	}
 	if billingexpr.UsedVarsByHash(exprStr, exprHash)["image_count"] {
 		requestInput, err = ResolveImageBillingRequestInput(c, info, requestInput)
 		if err != nil {

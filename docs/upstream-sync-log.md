@@ -1,5 +1,29 @@
 # Upstream Sync Log
 
+## 2026-11-08 - Collapse duplicate model-detail task pricing
+
+- Local reason: the model detail page rendered two task-pricing tables when the model-level and plugin-level configurations produced the same visible usage prices.
+- Changed: task-pricing section deduplication now compares the normalized usage schema and parsed display tiers, so equivalent expressions and schema metadata render once even when their raw expression formatting or object key order differs. Distinct prices or usage definitions remain separate.
+- Preserved: group ratios, plugin-specific overrides, model-level dynamic pricing, task pricing units, and all billing calculations remain unchanged; this only affects the public model-detail display.
+- Validation: `bun run build`, targeted Oxfmt checks, and `git diff --check` passed.
+- Commit and push: not committed or pushed (per current task instruction).
+
+## 2026-11-08 - Separate ordinary and task-plugin pricing editor views
+
+- Local reason: the model pricing editor rendered model-level pricing and task-plugin overrides together, making the two billing scopes difficult to distinguish.
+- Changed: added a segmented switch for `OpenAI Compatible` and `Task plugin pricing`; the selected scope controls which editor is visible, while the existing pricing fields, plugin rows, draft state, and save payload remain unchanged. The switch appears only when task-plugin pricing is loading or available and resets to the ordinary view when no plugin matches the model.
+- Preserved: all pricing calculations, expression serialization, plugin override precedence, model plaza display, and the existing per-token/per-request/expression tabs.
+- Validation: `bunx oxfmt --check src/features/system-settings/models/model-pricing-sheet.tsx`, `bun run build`, and `git diff --check` passed.
+- Commit and push: not committed or pushed (per current task instruction).
+
+## 2026-11-08 - Seed ordinary OpenAI Seedream usage before pre-consume
+
+- Local reason: ordinary OpenAI-compatible Seedream image requests failed before submission when their tiered expression referenced response usage fields such as `images_above_1_5k`; the initial pre-consume ran before the upstream response and evaluated those fields as `nil`.
+- Changed: the tiered pricing path now derives a bounded Seedream estimate from the validated image request (`n`, `size`, and reference-image count) before the first expression run. The image relay still replaces this estimate with validated upstream `usage` and output-size facts for final settlement.
+- Preserved: task-plugin billing, native VolcEngine/Ark image billing, ordinary token expressions, response-usage settlement, request payload redaction, and all unrelated models remain on their existing paths.
+- Validation: added a regression test covering the ordinary Seedream pre-consume expression and passed `git diff --check`. Go tests and `gofmt` are unavailable because the Go toolchain is not installed in this environment.
+- Commit and push: not committed or pushed (per current task instruction).
+
 ## 2026-11-08 - Allow task usage fields in the pricing preview estimator
 
 - Local reason: the model pricing editor rejected valid Seedream fields such as `images_above_1_5k` in its local preview with `Unsupported task usage field`.

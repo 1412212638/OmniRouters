@@ -62,6 +62,7 @@ import {
   isSoraPerRequestPricingModel,
   stripTrailingZeros,
 } from '../lib/price'
+import { getTaskPricingDisplayTiers } from '../lib/task-matrix-display'
 import { formatToolPrice, getPricingToolPrices } from '../lib/tool-price'
 import type {
   PriceType,
@@ -363,12 +364,22 @@ function getSimpleTaskPricingFields(model: PricingModel): string[] {
   )
 }
 
+function stablePricingValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(stablePricingValue)
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, nested]) => [key, stablePricingValue(nested)])
+    )
+  }
+  return value
+}
+
 function getTaskPricingSignature(model: PricingModel): string {
   const schema = model.billing_usage_schema ?? {}
-  const fields = Object.keys(schema)
-    .sort()
-    .map((field) => [field, schema[field]])
-  return JSON.stringify([model.billing_mode, model.billing_expr, fields])
+  const tiers = getTaskPricingDisplayTiers(model.billing_expr, schema)
+  return JSON.stringify([stablePricingValue(schema), stablePricingValue(tiers)])
 }
 
 function getTaskPricingSections(model: PricingModel, taskPricingTitle: string) {
