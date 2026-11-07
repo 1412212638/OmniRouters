@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-11-07 - Document active model-plaza component ownership
+
+- Local reason: a prior pricing-card fix changed the legacy card component while the reported page used the default catalog card, so the visible model-plaza behavior did not change.
+- Changed: added a frontend architecture rule to `AGENTS.md` requiring route/component tracing before UI edits and documenting the default model-plaza `CatalogModelCard` versus the separate classic card path.
+- Preserved: existing frontend behavior and all protected project identity information.
+- Validation: reviewed the active route and component references with `rg`; no runtime code changed.
+- Source commit and push status: `54d378f12` (`docs: document active model plaza component`); pushed successfully to `origin/main`.
+
 ## 2026-11-07 - Show configured reference media pricing on active model cards
 
 - Local reason: the active model plaza uses `features/pricing/index.tsx`; earlier reference-media card work only covered the legacy card, so configured H3 input prices still appeared as `输入：-`.

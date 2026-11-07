@@ -127,6 +127,10 @@ By default, local work should be source-level only: edit source/config/docs, the
 
 Every source-level change must leave a trace in `docs/upstream-sync-log.md` before it is pushed. This applies to upstream syncs, local fixes, feature work, dependency changes, and build-failure fixes. Each entry must record the date, upstream commit(s) or local reason, files or behavior changed, local functionality deliberately preserved, validation performed and any limitations, plus the resulting local commit and push status. Do not claim an upstream change is integrated until the entry distinguishes integrated, already-present, deferred, and intentionally skipped items.
 
+### Rule 3.3: Verify the Active Frontend Surface Before Editing
+
+Before changing a frontend feature, trace its route and rendered component to the active theme and page. For the default model plaza, the production card is `web/default/src/features/pricing/index.tsx` and its `CatalogModelCard`; `web/default/src/features/pricing/components/model-card.tsx` is a separate card path used by the classic pricing composition. Do not fix only the legacy/classic component when the reported behavior is in the default model plaza. If both surfaces are intentionally supported, update and test both explicitly.
+
 ### Rule 4: New Channel StreamOptions Support
 
 When implementing a new channel:
