@@ -12,6 +12,14 @@ export type CatalogTaskPriceRows = {
   inputUnit: string
   inputFreeQuantity?: number
   inputFreeQuantityMax?: number
+  referenceImageLabel?: string
+  referenceImageValue?: string
+  referenceImageUnit?: string
+  referenceImageFreeQuantity?: number
+  referenceImageFreeQuantityMax?: number
+  referenceVideoLabel?: string
+  referenceVideoValue?: string
+  referenceVideoUnit?: string
   outputLabel?: string
   outputValue: string
   outputUnit: string
@@ -32,7 +40,8 @@ export function getCatalogTaskPriceRows(
   countFallback: string,
   secondUnit: string,
   referenceVideoLabel = 'Reference video input',
-  generatedVideoLabel = 'Generated video output'
+  generatedVideoLabel = 'Generated video output',
+  referenceImageLabel = 'Reference image input'
 ): CatalogTaskPriceRows | null {
   const outputImagePrices = getTaskImageOutputPriceEntries(model, entries)
   if (outputImagePrices.length > 0) {
@@ -84,14 +93,54 @@ export function getCatalogTaskPriceRows(
 
   const videoPrice = getTaskVideoPriceEntry(model, entries)
   if (!videoPrice) return null
-  if (
-    model.billing_usage_schema?.[videoPrice.field]?.pricingDisplay ===
-    'input_output_video_seconds'
-  ) {
+  const schema = model.billing_usage_schema || {}
+  const inputImage = entries.find((entry) =>
+    ['input_images', 'input_image_count'].includes(entry.field)
+  )
+  const inputImageDefinition = inputImage ? schema[inputImage.field] : undefined
+  const inputVideo = entries.find((entry) => {
+    if (entry.field === videoPrice.field) return false
+    const definition = schema[entry.field]
+    if (definition?.unit !== 'second') return false
+    return /input.*video|video.*input/i.test(entry.field)
+  })
+  const inputVideoDefinition = inputVideo ? schema[inputVideo.field] : undefined
+  const pricingDisplay = schema[videoPrice.field]?.pricingDisplay
+  const referenceVideo =
+    inputVideo || pricingDisplay === 'input_output_video_seconds'
+      ? inputVideo || videoPrice
+      : undefined
+  const referenceVideoDefinition =
+    inputVideoDefinition || schema[videoPrice.field]
+
+  if (inputImage || referenceVideo) {
     return {
-      inputLabel: referenceVideoLabel,
-      inputValue: formatCardPriceRange(videoPrice.formatted),
-      inputUnit: secondUnit,
+      inputValue: '',
+      inputUnit: '',
+      ...(inputImage && {
+        referenceImageLabel,
+        referenceImageValue: formatCardPriceRange(inputImage.formatted),
+        referenceImageUnit: taskUsageUnitLabel(
+          inputImageDefinition,
+          language,
+          countFallback
+        ),
+        ...(inputImage.freeQuantity != null && {
+          referenceImageFreeQuantity: inputImage.freeQuantity,
+          ...(inputImage.freeQuantityMax != null && {
+            referenceImageFreeQuantityMax: inputImage.freeQuantityMax,
+          }),
+        }),
+      }),
+      ...(referenceVideo && {
+        referenceVideoLabel,
+        referenceVideoValue: formatCardPriceRange(referenceVideo.formatted),
+        referenceVideoUnit: taskUsageUnitLabel(
+          referenceVideoDefinition,
+          language,
+          secondUnit
+        ),
+      }),
       outputLabel: generatedVideoLabel,
       outputValue: formatCardPriceRange(videoPrice.formatted),
       outputUnit: secondUnit,

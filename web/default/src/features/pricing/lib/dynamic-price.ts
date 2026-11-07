@@ -288,9 +288,13 @@ export function getTaskVideoPriceEntry(
     }
   )
   if (!hasOutputDimension) return null
-  const durationField = Object.entries(schema).find(
+  const durationEntries = Object.entries(schema).filter(
     ([, definition]) => definition.unit === 'second'
-  )?.[0]
+  )
+  const durationField =
+    durationEntries.find(
+      ([field]) => !/input.*video|video.*input/i.test(field)
+    )?.[0] || durationEntries[0]?.[0]
   if (!durationField) return null
   return entries.find((entry) => entry.field === durationField) ?? null
 }

@@ -813,6 +813,16 @@ type CatalogPriceSummary =
       inputValue: string
       outputValue: string
       inputUnit: string
+      inputFreeQuantity?: number
+      inputFreeQuantityMax?: number
+      referenceImageLabel?: string
+      referenceImageValue?: string
+      referenceImageUnit?: string
+      referenceImageFreeQuantity?: number
+      referenceImageFreeQuantityMax?: number
+      referenceVideoLabel?: string
+      referenceVideoValue?: string
+      referenceVideoUnit?: string
       outputLabel?: string
       outputUnit: string
       cacheValue?: string
@@ -885,7 +895,8 @@ function usePriceRows(props: {
         t('Count'),
         t('seconds'),
         t('Reference video input'),
-        t('Generated video output')
+        t('Generated video output'),
+        t('Reference image input')
       )
     : null
   const catalogPriceRanges = dynamicSummary?.hasRequestRules
@@ -1310,26 +1321,79 @@ function CatalogModelCard(props: {
         <InfoLine label={`${t('Output Types')}:`}>
           <TinyModalities modalities={props.model.output_modalities} />
         </InfoLine>
-        {priceRows.kind === 'paired' && (
-          <InfoLine
-            label={`${priceRows.inputLabel || t('Input')}:`}
-            valueClassName='truncate'
-          >
-            <span
-              className={cn(
-                'font-mono font-medium',
-                hasDiscount && 'text-success'
+        {priceRows.kind === 'paired' &&
+          (priceRows.referenceImageValue || priceRows.referenceVideoValue ? (
+            <>
+              {priceRows.referenceImageValue && (
+                <InfoLine
+                  label={`${priceRows.referenceImageLabel || t('Reference image input')}:`}
+                  valueClassName='truncate'
+                >
+                  <span
+                    className={cn(
+                      'font-mono font-medium',
+                      hasDiscount && 'text-success'
+                    )}
+                  >
+                    {priceRows.referenceImageFreeQuantity &&
+                    priceRows.referenceImageFreeQuantity > 0
+                      ? `${t('First')} ${priceRows.referenceImageFreeQuantity} ${priceRows.referenceImageUnit || t('Count')} ${t('free')}; ${t('then')} ${priceRows.referenceImageValue}/${priceRows.referenceImageUnit || t('Count')}`
+                      : priceRows.referenceImageValue}
+                  </span>
+                  {priceRows.referenceImageUnit &&
+                    !(
+                      priceRows.referenceImageFreeQuantity &&
+                      priceRows.referenceImageFreeQuantity > 0
+                    ) && (
+                      <span className='text-muted-foreground ml-1 text-xs'>
+                        /{priceRows.referenceImageUnit}
+                      </span>
+                    )}
+                </InfoLine>
               )}
+              {priceRows.referenceVideoValue && (
+                <InfoLine
+                  label={`${priceRows.referenceVideoLabel || t('Reference video input')}:`}
+                  valueClassName='truncate'
+                >
+                  <span
+                    className={cn(
+                      'font-mono font-medium',
+                      hasDiscount && 'text-success'
+                    )}
+                  >
+                    {priceRows.referenceVideoValue}
+                  </span>
+                  {priceRows.referenceVideoUnit && (
+                    <span className='text-muted-foreground ml-1 text-xs'>
+                      /{priceRows.referenceVideoUnit}
+                    </span>
+                  )}
+                </InfoLine>
+              )}
+            </>
+          ) : (
+            <InfoLine
+              label={`${priceRows.inputLabel || t('Input')}:`}
+              valueClassName='truncate'
             >
-              {priceRows.inputValue}
-            </span>
-            {priceRows.inputUnit && (
-              <span className='text-muted-foreground ml-1 text-xs'>
-                /{priceRows.inputUnit}
+              <span
+                className={cn(
+                  'font-mono font-medium',
+                  hasDiscount && 'text-success'
+                )}
+              >
+                {priceRows.inputFreeQuantity && priceRows.inputFreeQuantity > 0
+                  ? `${t('First')} ${priceRows.inputFreeQuantity} ${priceRows.inputUnit || t('Count')} ${t('free')}; ${t('then')} ${priceRows.inputValue}/${priceRows.inputUnit || t('Count')}`
+                  : priceRows.inputValue}
               </span>
-            )}
-          </InfoLine>
-        )}
+              {priceRows.inputUnit && (
+                <span className='text-muted-foreground ml-1 text-xs'>
+                  /{priceRows.inputUnit}
+                </span>
+              )}
+            </InfoLine>
+          ))}
         {priceRows.kind === 'paired' && (
           <InfoLine
             label={`${priceRows.outputLabel || t('Output')}:`}

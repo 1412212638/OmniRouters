@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-11-07 - Show configured reference media pricing on active model cards
+
+- Local reason: the active model plaza uses `features/pricing/index.tsx`; earlier reference-media card work only covered the legacy card, so configured H3 input prices still appeared as `输入：-`.
+- Changed: the active catalog card now renders configured reference image and reference video prices separately from generated video output, including localized `张`/`秒` units and free image quantities. Video duration detection now prefers the output duration field when a schema also contains an input-video duration field, and the H3 task schema declares image count as `张`.
+- Preserved: billing expressions, usage extraction, pre-consumption, settlement, unconfigured input display, model details, and unrelated model cards remain unchanged. When no input-media price is configured, the card still shows `输入：-`.
+- Validation: targeted dynamic pricing and task-plugin tests passed (20 tests); the Rsbuild production build passed; Oxfmt, `node --check plugins/tasks/hailuo/plugin.js`, and `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable in this environment.
+- Source commit and push status: `40a6c927b` (`fix: show task input pricing on catalog cards`); pushed successfully to `origin/main`.
+
 ## 2026-11-03 - Return provider video URL alongside gateway proxy
 
 - Local reason: clients using `/v1/videos/{id}` need the upstream result URL in the response metadata as well as the gateway's content proxy URL.

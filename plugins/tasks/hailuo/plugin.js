@@ -34,6 +34,7 @@ const H3_USAGE_SCHEMA = {
   input_images: {
     type: "number",
     unit: "count",
+    unitLabel: { en: "image", zh: "张" },
     description: { en: "Input image unit price", zh: "输入图片单价" },
   },
   // Input video duration in seconds (reserved at the request maximum, actual on completion).

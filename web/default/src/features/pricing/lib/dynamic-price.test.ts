@@ -377,11 +377,73 @@ describe('task image price entries', () => {
         '生成视频输出'
       ),
       {
-        inputLabel: '参考视频输入',
-        inputValue: '¥0.3–¥1.2',
-        inputUnit: '秒',
+        inputValue: '',
+        inputUnit: '',
+        referenceVideoLabel: '参考视频输入',
+        referenceVideoValue: '¥0.3–¥1.2',
+        referenceVideoUnit: '秒',
         outputLabel: '生成视频输出',
         outputValue: '¥0.3–¥1.2',
+        outputUnit: '秒',
+      }
+    )
+  })
+
+  test('shows H3 reference image and video input prices separately', () => {
+    const model = testPricingModel({
+      billing_usage_schema: {
+        seconds: { type: 'number', unit: 'second' },
+        resolution: { enum: ['480P', '768P', '1080P', '2K'] },
+        input_images: {
+          type: 'number',
+          unit: 'count',
+          description: { en: 'Input image unit price', zh: '输入图片单价' },
+        },
+        input_video_seconds: {
+          type: 'number',
+          unit: 'second',
+          description: { en: 'Input video unit price', zh: '输入视频单价' },
+        },
+      },
+    })
+    const entries = [
+      { field: 'seconds', value: 0.5, formatted: '¥0.5-¥0.8' },
+      {
+        field: 'input_images',
+        value: 0.2,
+        formatted: '¥0.2',
+        freeQuantity: 5,
+      },
+      {
+        field: 'input_video_seconds',
+        value: 0.5,
+        formatted: '¥0.5-¥0.8',
+      },
+    ] as Parameters<typeof getCatalogTaskPriceRows>[1]
+
+    assert.deepEqual(
+      getCatalogTaskPriceRows(
+        model,
+        entries,
+        'zh',
+        '数量',
+        '秒',
+        '参考视频输入',
+        '生成视频输出',
+        '参考图片输入'
+      ),
+      {
+        inputValue: '',
+        inputUnit: '',
+        referenceImageLabel: '参考图片输入',
+        referenceImageValue: '¥0.2',
+        referenceImageUnit: '数量',
+        referenceImageFreeQuantity: 5,
+        referenceVideoLabel: '参考视频输入',
+        referenceVideoValue: '¥0.5–¥0.8',
+        referenceVideoUnit: '秒',
+        outputLabel: '生成视频输出',
+        outputValue: '¥0.5–¥0.8',
         outputUnit: '秒',
       }
     )
