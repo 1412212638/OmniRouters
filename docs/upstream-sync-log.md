@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-11-08 - Fix Seedream billing build errors
+
+- Local reason: the GHCR build reported an undefined `gjson.Array` symbol and a duplicate `cloneAnyMap` declaration in the Seedream billing helper.
+- Changed: switched array detection to `gjson.Result.IsArray()` and reused the existing helper implementation from `billing_expr_request.go`.
+- Preserved: Seedream usage estimation, response settlement, and all other billing behavior.
+- Validation: `git diff --check` and source inspection; Go tests/build remain unavailable locally because the Go toolchain is not installed.
+- Commit and push: pending.
+
 ## 2026-11-08 - Allow compatible ordinary and task usage expressions to share pricing
 
 - Local reason: an OpenAI-compatible channel and a task plugin can expose the same model and the same response usage facts, so requiring duplicate plugin pricing created unnecessary configuration while unrelated token pricing must remain isolated.

@@ -235,9 +235,10 @@ func seedreamReferenceImageCount(request *dto.ImageRequest, outboundBody []byte)
 		if !value.Exists() || value.Type == gjson.Null {
 			continue
 		}
-		switch value.Type {
-		case gjson.Array:
+		if value.IsArray() {
 			return len(value.Array())
+		}
+		switch value.Type {
 		case gjson.String:
 			if strings.TrimSpace(value.String()) != "" {
 				return 1
@@ -385,15 +386,4 @@ func boundedJSONInteger(value gjson.Result, maximum int) (int64, bool) {
 		return 0, false
 	}
 	return int64(number), true
-}
-
-func cloneAnyMap(source map[string]any) map[string]any {
-	if len(source) == 0 {
-		return nil
-	}
-	copy := make(map[string]any, len(source))
-	for key, value := range source {
-		copy[key] = value
-	}
-	return copy
 }
