@@ -5338,4 +5338,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Local reason: task pricing details rendered every condition row, including resolutions with no configured price, as rows containing only dashes.
 - Changed: public task pricing tables now include only tiers with a fixed price, unit price, or free quantity; unconfigured condition rows are omitted.
 - Preserved: configured tiers, billing expressions, and the task pricing editor remain unchanged.
-- Validation: targeted frontend pricing tests and Oxfmt passed; `git diff --check` passed. Commit and push: pending.
+- Validation: targeted frontend pricing tests and Oxfmt passed; `git diff --check` passed. Commit and push: included in `c65e9c278` (`fix: show task input media pricing on cards`); pushed to `origin/main` on 2026-11-07.
