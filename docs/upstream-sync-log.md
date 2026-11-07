@@ -6,7 +6,7 @@
 - Changed: added a frontend architecture rule to `AGENTS.md` requiring route/component tracing before UI edits and documenting the default model-plaza `CatalogModelCard` versus the separate classic card path.
 - Preserved: existing frontend behavior and all protected project identity information.
 - Validation: reviewed the active route and component references with `rg`; no runtime code changed.
-- Source commit and push status: `54d378f12` (`docs: document active model plaza component`); pushed successfully to `origin/main`.
+- Source commit and push status: `765c7ce76` (`docs: document active model plaza component`); pushed successfully to `origin/main`.
 
 ## 2026-11-07 - Show configured reference media pricing on active model cards
 
