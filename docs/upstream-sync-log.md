@@ -5454,7 +5454,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: optional dashboard authentication now delegates requests carrying Authorization to the existing full user-authentication path, including signature, active-session/version, user-status, and user-ID checks. Public pricing responses return `Cache-Control: private, no-store` and vary by authentication headers/cookies so shared caches cannot reuse customer prices.
 - Preserved: anonymous access without credentials, legacy-cookie behavior, the active default catalog card/detail rendering and account/workspace query keys, all configured multipliers, billing expressions, quota deductions, and task/plugin customization are unchanged.
 - Validation: existing frontend pricing-data tests passed (3 cases). Added a regression test through the actual public pricing middleware/controller with dashboard tokens: customer 0.6 versus general 0.8, interleaved users/anonymous requests, a spoofed user-ID header, mismatched/missing user-ID headers, and revoked sessions. Backend tests and Go formatting could not run because the local Go toolchain is unavailable; `git diff --check` passed.
-- Commit and push: pending; this fix has not been pushed.
+- Commit and push: included in `06950bc2f` (`fix: restore dashboard login and personalized responsive catalog`); pushed to `origin/main` on 2026-11-10.
 
 ## 2026-11-10 - Keep default catalog cards within mobile screens
 
@@ -5462,7 +5462,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: traced the production route to `CatalogPricing` / `CatalogModelCard` in `web/default/src/features/pricing/index.tsx`; defined explicit single-column mobile tracks and shrinkable cards, carousel, price/info rows, and skeletons. The mobile skeleton now hides the desktop filter sidebar, matching the loaded page. Cleaned existing lint errors in the touched page with equivalent display-unit/filter/style logic and stable decorative keys.
 - Preserved: desktop sidebar/three-column breakpoints, carousel artwork cropping, modality-tab horizontal scrolling, pricing and customer-discount data, task-plugin pricing, and backend billing behavior. The separate classic card path was deliberately unchanged.
 - Validation: reproduced a roughly 418px-wide card column inside 320/375/390px viewports before the fix. Browser checks using the actual page with local API fixtures, both with and without a carousel, found zero overflowing cards at 320, 375, 390, 430, 768, and 1440px afterward; inspected the mobile screenshot. Production build, all 24 pricing-library tests, targeted Oxlint/Oxfmt, and `git diff --check` passed. Full typecheck remains blocked by existing unrelated diagnostics and missing test dependencies; neither changed frontend file reported a type error.
-- Commit and push: pending; not pushed.
+- Commit and push: included in `06950bc2f` (`fix: restore dashboard login and personalized responsive catalog`); pushed to `origin/main` on 2026-11-10.
 
 ## 2026-11-10 - Stop CORS from rejecting this deployment's login requests
 
@@ -5470,4 +5470,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: dashboard CORS now accepts the deployment's exact host/port origin, the configured ServerAddress origin, and explicitly trusted session origins in addition to existing first-party origins. Same-host HTTPS requests forwarded over HTTP are recognized without trusting forwarded-host/proto headers. The refresh/logout origin guard shares the same exact-host reverse-proxy handling. Rejected CORS requests now return `CORS_ORIGIN_FORBIDDEN` with a descriptive message instead of an empty body.
 - Preserved: public `/v1/*` disabled/allowlist/wildcard policies, explicit-origin dashboard credentials, foreign-origin blocking, refresh/logout origin protection, login/session validation, billing, and all earlier pending catalog fixes. No wildcard was added to dashboard origins.
 - Validation: added middleware regression coverage for login and refresh with direct HTTPS, proxy TLS termination, trusted origins with internal hosts, configured ServerAddress, spoofed forwarded hosts, wrong ports, HTTP downgrade, malformed/null origins, and public wildcard isolation from dashboard routes. `git diff --check` passed. Go tests/gofmt cannot run because the local Go toolchain is absent; production deployment and actual browser recovery remain unverified.
-- Commit and push: pending; not pushed.
+- Commit and push: included in `06950bc2f` (`fix: restore dashboard login and personalized responsive catalog`); pushed to `origin/main` on 2026-11-10. Production recovery still requires deployment and browser verification.
