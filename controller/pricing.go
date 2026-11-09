@@ -96,6 +96,10 @@ func filterVisibleModelRatioExpiry(expiry map[string]map[string]int64, usableGro
 }
 
 func GetPricing(c *gin.Context) {
+	// This public endpoint also returns customer-specific prices when logged in.
+	// Never let a browser or shared proxy reuse one identity's prices for another.
+	c.Header("Cache-Control", "private, no-store")
+	c.Writer.Header().Add("Vary", "Authorization, Cookie, New-Api-User")
 	pricing := model.GetPricing()
 	userId, exists := c.Get("id")
 	usableGroup := map[string]string{}

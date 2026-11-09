@@ -30,7 +30,7 @@ export function ModelSquareCarousel({
   if (!activeItems.length) return null
   const item = activeItems[index % activeItems.length]
   return (
-    <article className='group bg-muted/20 relative min-h-[260px] overflow-hidden border-r border-b sm:min-h-[300px] lg:min-h-[340px]'>
+    <article className='group bg-muted/20 relative min-h-[260px] min-w-0 overflow-hidden border-r border-b sm:min-h-[300px] lg:min-h-[340px]'>
       <img
         src={item.image}
         alt=''

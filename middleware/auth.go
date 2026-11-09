@@ -297,6 +297,14 @@ func GetSessionAuthIdentity(c *gin.Context) (service.AuthIdentity, bool) {
 
 func TryUserAuth() func(c *gin.Context) {
 	return func(c *gin.Context) {
+		// Public dashboard endpoints still need the current user's identity for
+		// personalized data. Reuse full authentication (including session/version
+		// checks) when a login token is supplied; invalid tokens must not silently
+		// fall back to anonymous pricing or bypass the client's refresh flow.
+		if strings.TrimSpace(c.GetHeader("Authorization")) != "" {
+			UserAuth()(c)
+			return
+		}
 		session := sessions.Default(c)
 		id := session.Get("id")
 		if id != nil {

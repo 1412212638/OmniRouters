@@ -406,7 +406,7 @@ function normalizeVendorIconName(icon: string | undefined): string | undefined {
   }
 
   const [base, ...rest] = trimmed.split('.')
-  const aliasKey = base.toLowerCase().replace(/[\s_-]+/g, '')
+  const aliasKey = base.toLowerCase().replaceAll(/[\s_-]+/g, '')
   const normalizedBase = VENDOR_ICON_ALIASES[aliasKey] || base
   return [normalizedBase, ...rest].join('.')
 }
@@ -499,9 +499,8 @@ function FilterSection(props: {
   const selectedOptionIsPreviewed =
     selectedOption &&
     visibleOptions.some((option) => option.value === selectedOption.value)
-  const options = selectedOptionIsPreviewed
-    ? visibleOptions
-    : selectedOption
+  const options =
+    !selectedOptionIsPreviewed && selectedOption
       ? [...visibleOptions, selectedOption]
       : visibleOptions
   const hiddenOptionCount = Math.max(props.options.length - visibleCount, 0)
@@ -605,6 +604,10 @@ function ContextLengthFilter(props: {
   const label = (value: number) =>
     value === 0 ? t('All') : formatCardTokens(value)
   const marks = [...new Set([0, Math.floor(max / 2), max])]
+  const getMarkTransform = (index: number) => {
+    if (index === 0) return undefined
+    return index === max ? 'translateX(-100%)' : 'translateX(-50%)'
+  }
 
   return (
     <section className='flex flex-col gap-2'>
@@ -648,12 +651,7 @@ function ContextLengthFilter(props: {
               className='absolute whitespace-nowrap'
               style={{
                 left: `${max ? (index / max) * 100 : 0}%`,
-                transform:
-                  index === 0
-                    ? undefined
-                    : index === max
-                      ? 'translateX(-100%)'
-                      : 'translateX(-50%)',
+                transform: getMarkTransform(index),
               }}
             >
               {label(steps[index])}
@@ -736,21 +734,23 @@ function SuccessRateStrip(props: { perf?: PerfModelSummary }) {
   const segments = 36
   const filled =
     normalized === null ? 0 : Math.round((normalized / 100) * segments)
-  const tone =
-    normalized === null
-      ? 'bg-muted'
-      : normalized >= 90
-        ? 'bg-emerald-500'
-        : normalized >= 80
-          ? 'bg-amber-500'
-          : 'bg-destructive'
+  let tone = 'bg-muted'
+  if (normalized !== null) {
+    if (normalized >= 90) tone = 'bg-emerald-500'
+    else if (normalized >= 80) tone = 'bg-amber-500'
+    else tone = 'bg-destructive'
+  }
+  const segmentIds = Array.from(
+    { length: segments },
+    (_, index) => `segment-${index}`
+  )
 
   return (
     <div className='min-w-0'>
       <div className='grid grid-cols-[repeat(36,minmax(0,1fr))] gap-0.5'>
-        {Array.from({ length: segments }).map((_, index) => (
+        {segmentIds.map((id, index) => (
           <span
-            key={index}
+            key={id}
             className={cn(
               'h-2 rounded-[2px]',
               index < filled ? tone : 'bg-muted'
@@ -795,7 +795,7 @@ function InfoLine(props: {
   valueClassName?: string
 }) {
   return (
-    <div className='grid min-h-5 grid-cols-[max-content_minmax(0,1fr)] items-center gap-1 text-sm'>
+    <div className='grid min-h-5 min-w-0 grid-cols-[max-content_minmax(0,1fr)] items-center gap-1 text-sm'>
       <span className='text-muted-foreground shrink-0 whitespace-nowrap'>
         {props.label}
       </span>
@@ -1030,22 +1030,18 @@ function usePriceRows(props: {
       }
     }
 
+    const getEntryUnit = (entry: typeof inputEntry) => {
+      if (entry?.displayUnit === 'request') return t('request')
+      if (entry?.displayUnit === 'custom') return entry.unit || ''
+      return tokenUnitLabel
+    }
+
     return {
       kind: 'paired',
       inputValue: inputEntry?.formatted || t('Dynamic Pricing'),
       outputValue: outputEntry?.formatted || '-',
-      inputUnit:
-        inputEntry?.displayUnit === 'request'
-          ? t('request')
-          : inputEntry?.displayUnit === 'custom'
-            ? inputEntry.unit || ''
-            : tokenUnitLabel,
-      outputUnit:
-        outputEntry?.displayUnit === 'request'
-          ? t('request')
-          : outputEntry?.displayUnit === 'custom'
-            ? outputEntry.unit || ''
-            : tokenUnitLabel,
+      inputUnit: getEntryUnit(inputEntry),
+      outputUnit: getEntryUnit(outputEntry),
       cacheValue: cacheEntry?.formatted,
       cacheUnit:
         cacheEntry?.displayUnit === 'token' ? tokenUnitLabel : undefined,
@@ -1139,8 +1135,9 @@ function formatCardTokens(value?: number): string {
     [1e6, 'M'],
     [1e3, 'K'],
   ] as const) {
-    if (value >= divisor)
+    if (value >= divisor) {
       return `${Number((value / divisor).toFixed(2))}${suffix}`
+    }
   }
   return String(value)
 }
@@ -1193,7 +1190,7 @@ function CatalogModelCard(props: {
   const hiddenVendors = availableVendors.slice(4)
 
   return (
-    <article className='group bg-background hover:bg-muted/20 flex min-h-[260px] flex-col border-b p-4 transition-colors sm:min-h-[300px] lg:min-h-[340px] lg:border-r 2xl:p-5 dark:border-white/10 dark:hover:bg-white/[0.03]'>
+    <article className='group bg-background hover:bg-muted/20 flex min-h-[260px] min-w-0 flex-col border-b p-4 transition-colors sm:min-h-[300px] lg:min-h-[340px] lg:border-r 2xl:p-5 dark:border-white/10 dark:hover:bg-white/[0.03]'>
       <div className='flex items-start justify-between gap-3'>
         <div className='flex min-w-0 items-start gap-3'>
           <div className='bg-muted/60 flex size-10 shrink-0 items-center justify-center rounded-lg dark:bg-white/5'>
@@ -1314,7 +1311,7 @@ function CatalogModelCard(props: {
         {props.model.description || t('No description available.')}
       </p>
 
-      <div className='mt-4 grid gap-x-3 gap-y-2.5 sm:grid-cols-2 2xl:gap-x-5'>
+      <div className='mt-4 grid min-w-0 grid-cols-1 gap-x-3 gap-y-2.5 sm:grid-cols-2 2xl:gap-x-5'>
         <InfoLine label={`${t('Input Types')}:`}>
           <TinyModalities modalities={props.model.input_modalities} />
         </InfoLine>
@@ -1469,7 +1466,7 @@ function CatalogModelCard(props: {
         )}
       </div>
 
-      <div className='mt-auto grid gap-x-3 gap-y-2.5 pt-2.5 sm:grid-cols-2'>
+      <div className='mt-auto grid min-w-0 grid-cols-1 gap-x-3 gap-y-2.5 pt-2.5 sm:grid-cols-2'>
         <InfoLine label={`${t('Context')}:`}>
           {props.model.context_length_display ||
             formatCardTokens(props.model.context_length)}
@@ -1480,7 +1477,7 @@ function CatalogModelCard(props: {
         </InfoLine>
       </div>
 
-      <div className='mt-2.5 grid gap-4 pt-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(158px,50%)]'>
+      <div className='mt-2.5 grid min-w-0 grid-cols-1 gap-4 pt-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(158px,50%)]'>
         <div className='min-w-0 space-y-2'>
           <div className='text-muted-foreground text-sm'>
             {t('Available from {{count}} providers', {
@@ -1566,12 +1563,14 @@ function CatalogModelCard(props: {
 }
 
 function CatalogSkeleton() {
+  const filterIds = ['input', 'context', 'vendor', 'group', 'other']
+  const cardIds = Array.from({ length: 9 }, (_, index) => `model-${index}`)
   return (
-    <div className='bg-background grid min-h-[calc(100svh-4rem)] pt-16 lg:grid-cols-[248px_minmax(0,1fr)]'>
-      <aside className='border-r p-4'>
+    <div className='bg-background grid min-h-[calc(100svh-4rem)] grid-cols-1 pt-16 lg:grid-cols-[248px_minmax(0,1fr)]'>
+      <aside className='hidden border-r p-4 lg:block'>
         <div className='space-y-7'>
-          {Array.from({ length: 5 }).map((_, index) => (
-            <div key={index} className='space-y-2'>
+          {filterIds.map((id) => (
+            <div key={id} className='space-y-2'>
               <Skeleton className='h-4 w-24' />
               <Skeleton className='h-8 w-full' />
               <Skeleton className='h-8 w-full' />
@@ -1585,9 +1584,9 @@ function CatalogSkeleton() {
           <Skeleton className='h-8 w-36' />
           <Skeleton className='mt-3 h-4 w-24' />
         </div>
-        <div className='grid xl:grid-cols-3'>
-          {Array.from({ length: 9 }).map((_, index) => (
-            <div key={index} className='space-y-4 border-r border-b p-5'>
+        <div className='grid min-w-0 grid-cols-1 xl:grid-cols-3'>
+          {cardIds.map((id) => (
+            <div key={id} className='min-w-0 space-y-4 border-r border-b p-5'>
               <Skeleton className='h-10 w-3/4' />
               <Skeleton className='h-10 w-full' />
               <Skeleton className='h-16 w-full' />
@@ -1915,7 +1914,7 @@ function CatalogPricing() {
   return (
     <PublicLayout showMainContainer={false}>
       <PageTransition className='bg-background text-foreground min-h-svh pt-16'>
-        <div className='grid min-h-[calc(100svh-4rem)] lg:grid-cols-[248px_minmax(0,1fr)]'>
+        <div className='grid min-h-[calc(100svh-4rem)] grid-cols-1 lg:grid-cols-[248px_minmax(0,1fr)]'>
           <aside className='bg-background/95 hidden border-b p-4 lg:sticky lg:top-16 lg:block lg:h-[calc(100svh-4rem)] lg:overflow-y-auto lg:border-r lg:border-b-0'>
             <div className='space-y-7'>
               <FilterSection
@@ -2228,7 +2227,7 @@ function CatalogPricing() {
               </div>
             ) : (
               <>
-                <div className='grid min-w-0 xl:grid-cols-3'>
+                <div className='grid min-w-0 grid-cols-1 xl:grid-cols-3'>
                   <ModelSquareCarousel
                     items={
                       (status?.model_square_carousel as

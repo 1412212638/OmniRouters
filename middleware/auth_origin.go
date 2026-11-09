@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/setting/system_setting"
 	"github.com/gin-gonic/gin"
 )
 
@@ -59,12 +60,7 @@ func requestBrowserOrigin(request *http.Request) (string, bool) {
 }
 
 func isAllowedSessionOrigin(request *http.Request, origin string) bool {
-	requestScheme := "http"
-	if request.TLS != nil {
-		requestScheme = "https"
-	}
-	requestOrigin, err := common.NormalizeOrigin(requestScheme + "://" + request.Host)
-	if err == nil && subtle.ConstantTimeCompare([]byte(origin), []byte(requestOrigin)) == 1 {
+	if isSameDeploymentOrigin(request, origin) {
 		return true
 	}
 	for _, trustedOrigin := range common.SessionCookieTrustedURLs {
@@ -72,5 +68,6 @@ func isAllowedSessionOrigin(request *http.Request, origin string) bool {
 			return true
 		}
 	}
-	return false
+	configuredOrigin, err := common.NormalizeOrigin(system_setting.ServerAddress)
+	return err == nil && subtle.ConstantTimeCompare([]byte(origin), []byte(configuredOrigin)) == 1
 }

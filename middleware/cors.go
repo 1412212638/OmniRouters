@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
-	"github.com/gin-gonic/gin"
 	"github.com/QuantumNous/new-api/setting/system_setting"
+	"github.com/gin-gonic/gin"
 )
 
 var corsAllowedMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
@@ -46,12 +46,16 @@ func CORS() gin.HandlerFunc {
 				allowed = originAllowed(origin, settings.AllowedOrigins)
 			}
 		} else {
-			allowed = originAllowed(origin, system_setting.DefaultCORSOrigins)
+			allowed = isDashboardCORSOriginAllowed(c.Request, origin)
 			allowCredentials = true
 		}
 
 		if !allowed {
-			c.AbortWithStatus(http.StatusForbidden)
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+				"success": false,
+				"code":    "CORS_ORIGIN_FORBIDDEN",
+				"message": "request origin is not allowed",
+			})
 			return
 		}
 
@@ -89,6 +93,36 @@ func CORS() gin.HandlerFunc {
 		}
 		c.Next()
 	}
+}
+
+// Dashboard POSTs carry Origin even when the page and API are on the same
+// site. A deployment's own origin must not depend on the public relay list.
+func isDashboardCORSOriginAllowed(request *http.Request, rawOrigin string) bool {
+	origin, err := common.NormalizeOrigin(rawOrigin)
+	if err != nil {
+		return false
+	}
+	return isAllowedSessionOrigin(request, origin) ||
+		originAllowed(origin, system_setting.DefaultCORSOrigins)
+}
+
+// TLS is commonly terminated by the reverse proxy. With the original Host
+// preserved, HTTPS for that exact host is still this deployment's origin.
+// Do not trust arbitrary forwarded-host/proto headers or relax host/port checks.
+func isSameDeploymentOrigin(request *http.Request, origin string) bool {
+	scheme := "http"
+	if request.TLS != nil {
+		scheme = "https"
+	}
+	requestOrigin, err := common.NormalizeOrigin(scheme + "://" + request.Host)
+	if err == nil && origin == requestOrigin {
+		return true
+	}
+	if request.TLS == nil {
+		secureOrigin, err := common.NormalizeOrigin("https://" + request.Host)
+		return err == nil && origin == secureOrigin
+	}
+	return false
 }
 
 func normalizeCORSRequestHeaders(requested string) (string, bool) {
