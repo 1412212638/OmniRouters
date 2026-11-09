@@ -30,7 +30,7 @@
 - Changed: the frontend estimator now receives the model's declared task usage fields and evaluates them as zero-valued preview inputs, while keeping server-side expression and billing validation authoritative.
 - Preserved: actual billing, task usage settlement, unsupported-field validation on the server, and token estimator behavior.
 - Validation: `bun run build` passed. Frontend typecheck remains blocked by existing unrelated repository errors and missing test dependencies; `git diff --check` passed.
-- Commit and push: pending.
+- Commit and push: committed in `3baee757c` (`feat: configure public API CORS policy`) and pushed to `origin/main` on 2026-11-09.
 
 ## 2026-11-08 - Fix Seedream billing build errors
 
@@ -5411,3 +5411,39 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: public task pricing tables now include only tiers with a fixed price, unit price, or free quantity; unconfigured condition rows are omitted.
 - Preserved: configured tiers, billing expressions, and the task pricing editor remain unchanged.
 - Validation: targeted frontend pricing tests and Oxfmt passed; `git diff --check` passed. Commit and push: included in `c65e9c278` (`fix: show task input media pricing on cards`); pushed to `origin/main` on 2026-11-07.
+
+## 2026-11-09 - Hide billing expressions from user log details
+
+- Local reason: regular users should see the amount they paid without needing to interpret the stored dynamic billing expression, while administrators retain the detailed pricing breakdown.
+- Changed: tiered billing logs now record the rounded pre-group quota as `original_quota` for the billing detail view, falling back to the pre-consume estimate when settlement usage is unavailable. The default usage-log details dialog renders the dynamic expression section only for administrators and adds a localized Original Cost row when the field is present.
+- Preserved: actual deductions, group multipliers, expression evaluation, admin raw-data access, and historical logs without `original_quota` are unchanged.
+- Validation: added focused backend coverage for settled and estimated original quotas; frontend production build and `git diff --check` passed. The Go toolchain is unavailable locally, and full Oxlint remains blocked by pre-existing repository diagnostics (including an unchanged details-dialog warning). Commit and push: pending.
+
+## 2026-11-09 - Avoid false no-match billing labels in usage logs
+
+- Local reason: image/video and other usage-based expressions can settle correctly without the token-oriented tier parser producing a matched tier label, which made normal charges appear as “No matching results”.
+- Changed: usage-log summaries now suppress the no-match label when no runtime match is available, preserve explicit request-rule/base-tier matches, and safely use the sole parsed tier when an expression has only one tier. The billing dialog likewise omits an empty matched-tier row.
+- Preserved: billing expressions, runtime tier selection, quota calculation, and DeepSeek peak/off-peak display behavior are unchanged.
+- Validation: targeted dynamic-pricing tests (13 cases), frontend production build, and `git diff --check` passed; Go tests remain unavailable because the local Go toolchain is missing. Commit and push: pending.
+
+## 2026-11-09 - Show user-specific model multipliers in the catalog
+
+- Local reason: model cards and details showed the generic multiplier instead of a user's configured per-model override because the frontend recomputed an effective multiplier from separate values, despite the pricing API already returning the resolved per-model multiplier.
+- Changed: default-theme pricing data now prefers the backend-resolved `model_group_ratio` for each model and isolates React Query pricing entries by user and active organization.
+- Preserved: older API responses without per-model resolved ratios keep the previous fallback calculation; billing and quota deduction logic are unchanged.
+- Validation: focused pricing-data tests (3 cases), frontend production build, formatting, and `git diff --check` passed. Full typecheck remains blocked by existing repository errors and missing test dependencies; no new diagnostics were reported in the changed pricing files. Commit and push: pending.
+
+## 2026-11-09 - Restore task result previews in usage logs
+
+- Local reason: successful asynchronous image, video, and audio tasks only exposed a video link in the task log, and the link opened outside the dashboard instead of previewing the result in place.
+- Changed: task logs now detect image/video/audio outputs and show a media preview dialog with native image, video, and audio controls. A session-authenticated dashboard endpoint returns signed task artifact URLs so browser media elements can play proxied content without an API key; stored task result URLs remain a video fallback when a plugin does not enumerate artifacts. Results already pointing to the gateway video proxy reuse its channel-aware proxy flow to avoid a self-request loop. Added localized video playback failure text.
+- Preserved: existing task details and failure dialogs, audio result URLs, the public task artifact API response shape, and upstream credential isolation remain unchanged.
+- Validation: task media extraction tests (4 cases), frontend production build, and `git diff --check` passed. Full frontend typecheck remains blocked by pre-existing repository errors and missing test dependencies; Go formatting/tests could not run because the Go toolchain is unavailable. Commit and push: pending.
+
+## 2026-11-09 - Configure browser CORS for public APIs
+
+- Local reason: customers need browser applications on external domains to call public relay APIs without adding each origin to a compiled-in allowlist.
+- Changed: added a Security settings policy for `/v1/*` with disabled, allowlist, and allow-all modes; allowlist entries are validated HTTP(S) origins, wildcard access returns `Access-Control-Allow-Origin: *` without cookies, and preflight methods/headers remain explicitly bounded. `/api/*` and dashboard routes keep the existing first-party origin list and credential behavior.
+- Preserved: existing first-party CORS behavior by default, API-key authentication, backend and admin route authorization, and non-browser API requests.
+- Validation: frontend production build, targeted media/pricing tests (7 cases), Oxlint/Oxfmt on the changed CORS UI, and `git diff --check` passed. Full frontend typecheck remains blocked by pre-existing repository diagnostics and missing test dependencies; Go tests could not run because the local Go toolchain is unavailable.
+- Commit and push: pending.

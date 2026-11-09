@@ -4787,6 +4787,7 @@
     "Total consumed quota": "Total amount spent",
     "Total cost": "Total cost",
     "Total Cost": "Total Cost",
+    "Original Cost": "Original Cost",
     "Total Count": "Total Count",
     "Total earned": "Total earned",
     "Total Earned": "Total Earned",
@@ -5090,6 +5091,7 @@
     "Vertex AI Key Format": "Vertex AI Key Format",
     "Vertex AI service account key must be valid JSON": "Vertex AI service account key must be valid JSON",
     "Video": "Video",
+    "Video playback failed": "Video playback failed",
     "Video length in seconds": "Video length in seconds",
     "Video Remix": "Video Remix",
     "Vidu": "Vidu",
@@ -6234,6 +6236,17 @@
     "Starts on": "Starts on",
     "Subject": "Subject",
     "Subject and content are required": "Subject and content are required",
-    "Users with successful top-ups": "Users with successful top-ups"
+    "Users with successful top-ups": "Users with successful top-ups",
+    "API Cross-Origin Access": "API Cross-Origin Access",
+    "Configure browser cross-origin access for public API endpoints under /v1. Admin dashboard APIs keep their existing origin policy.": "Configure browser cross-origin access for public API endpoints under /v1. Admin dashboard APIs keep their existing origin policy.",
+    "API CORS policy": "API CORS policy",
+    "Allow listed origins": "Allow listed origins",
+    "Allow all origins": "Allow all origins",
+    "Any website can read public API responses. Cookie credentials are not allowed; API keys are still required.": "Any website can read public API responses. Cookie credentials are not allowed; API keys are still required.",
+    "Browser cross-origin access to /v1 is disabled.": "Browser cross-origin access to /v1 is disabled.",
+    "Only the listed website origins can read public API responses.": "Only the listed website origins can read public API responses.",
+    "Allowed website origins": "Allowed website origins",
+    "Enter one full origin per line, including http:// or https://. Do not include a path, query, or fragment.": "Enter one full origin per line, including http:// or https://. Do not include a path, query, or fragment.",
+    "This policy only affects /v1 APIs. Admin and dashboard endpoints under /api keep the existing allowlist and cookie behavior.": "This policy only affects /v1 APIs. Admin and dashboard endpoints under /api keep the existing allowlist and cookie behavior."
   }
 }

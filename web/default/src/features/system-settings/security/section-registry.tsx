@@ -4,6 +4,7 @@ import { SSRFSection } from '../request-limits/ssrf-section'
 import { TokenLimitSection } from '../request-limits/token-limit-section'
 import type { SecuritySettings } from '../types'
 import { createSectionRegistry } from '../utils/section-registry'
+import { APICORSSection } from './api-cors-section'
 
 const SECURITY_SECTIONS = [
   {
@@ -54,6 +55,19 @@ const SECURITY_SECTIONS = [
             settings['fetch_setting.allowed_ports'],
           'fetch_setting.apply_ip_filter_for_domain':
             settings['fetch_setting.apply_ip_filter_for_domain'],
+        }}
+      />
+    ),
+  },
+  {
+    id: 'api-cors',
+    titleKey: 'API Cross-Origin Access',
+    build: (settings: SecuritySettings) => (
+      <APICORSSection
+        defaultValues={{
+          'cors_setting.mode': settings['cors_setting.mode'],
+          'cors_setting.allowed_origins':
+            settings['cors_setting.allowed_origins'],
         }}
       />
     ),

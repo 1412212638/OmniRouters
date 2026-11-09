@@ -3,6 +3,7 @@ import { describe, test } from 'node:test'
 
 import type { PricingModel } from '../types'
 import { parseTiersFromExpr } from './billing-expr'
+import { getTieredBillingSummary } from '../../usage-logs/lib/format'
 import { getCatalogTaskPriceRows } from './catalog-task-price'
 import {
   getDynamicPriceEntries,
@@ -44,6 +45,16 @@ describe('dynamic fixed request prices', () => {
     const summary = getDynamicPricingSummary(model, { tokenUnit: 'M' })
 
     assert.equal(summary?.requestPriceRange, '$0.005')
+  })
+
+  test('uses the only tier when a legacy log has no matched label', () => {
+    const expression = 'tier("base", p * 2 + c * 8)'
+    const summary = getTieredBillingSummary({
+      billing_mode: 'tiered_expr',
+      expr_b64: Buffer.from(expression).toString('base64'),
+    })
+
+    assert.equal(summary?.tier.label, 'base')
   })
 })
 

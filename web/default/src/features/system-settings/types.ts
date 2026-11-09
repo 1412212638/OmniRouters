@@ -481,6 +481,8 @@ export type SecuritySettings = {
   'fetch_setting.allowed_ports': number[]
   'fetch_setting.apply_ip_filter_for_domain': boolean
   'token_setting.max_user_tokens': number
+  'cors_setting.mode': 'disabled' | 'allowlist' | 'all'
+  'cors_setting.allowed_origins': string[]
 }
 
 export type UpstreamChannel = {

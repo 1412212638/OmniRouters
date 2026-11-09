@@ -205,17 +205,22 @@ function buildTypeDetailSegments(
       const matchedMultiplierText = matchedRequestRules
         .map((rule) => `${rule.multiplier}x`)
         .join(' / ')
-      segments.push({
-        text:
-          matchedRequestRules.length > 0
-            ? `${t('Dynamic Pricing')} · ${t('Matched')} ${matchedMultiplierText}`
-            : `${t('Dynamic Pricing')} · ${t(
-                isBaseTierFallback
-                  ? 'Base tier / off-peak fallback'
-                  : 'No matching results'
-              )}`,
-        muted: true,
-      })
+      if (matchedRequestRules.length > 0) {
+        segments.push({
+          text: `${t('Dynamic Pricing')} · ${t('Matched')} ${matchedMultiplierText}`,
+          muted: true,
+        })
+      } else if (isBaseTierFallback) {
+        segments.push({
+          text: `${t('Dynamic Pricing')} · ${t('Base tier / off-peak fallback')}`,
+          muted: true,
+        })
+      } else if (other.matched_tier?.trim()) {
+        segments.push({
+          text: `${t('Dynamic Pricing')} · ${t('Matched')} ${other.matched_tier.trim()}`,
+          muted: true,
+        })
+      }
     }
   } else {
     const isPerCall = isPerCallBilling(other.model_price)

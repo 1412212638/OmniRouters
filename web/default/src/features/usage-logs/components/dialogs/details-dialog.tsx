@@ -220,12 +220,14 @@ function BillingBreakdown(props: {
         other.request_rules.every((rule) => rule.matched !== true)
       const matchedTier = other.matched_tier?.trim()
       const isBaseTierFallback = hasOnlyUnmatchedRequestRules
-      rows.push({
-        label: t('Matched Tier'),
-        value: isBaseTierFallback
-          ? t('Base tier / off-peak fallback')
-          : matchedTier || t('No matching results'),
-      })
+      if (isBaseTierFallback || matchedTier) {
+        rows.push({
+          label: t('Matched Tier'),
+          value: isBaseTierFallback
+            ? t('Base tier / off-peak fallback')
+            : matchedTier || '',
+        })
+      }
     }
   } else if (isPerCall) {
     rows.push({ label: t('Billing Mode'), value: t('Per-call') })
@@ -384,6 +386,13 @@ function BillingBreakdown(props: {
     rows.push({
       label: t('Billing Path'),
       value: getUsageBillingPathLabel(t, other.admin_info),
+    })
+  }
+
+  if (other.original_quota != null && Number.isFinite(other.original_quota)) {
+    rows.push({
+      label: t('Original Cost'),
+      value: formatLogQuota(other.original_quota),
     })
   }
 
@@ -1225,7 +1234,7 @@ export function DetailsDialog(props: DetailsDialogProps) {
             )}
 
             {/* Tiered pricing breakdown (when billing_mode is tiered_expr) */}
-            {isTieredBilling && other?.expr_b64 && (
+            {props.isAdmin && isTieredBilling && other?.expr_b64 && (
               <DetailSection label={t('Dynamic Pricing')}>
                 <DynamicPricingBreakdown
                   compact

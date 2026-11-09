@@ -507,6 +507,16 @@ func UpdateOption(c *gin.Context) {
 			})
 			return
 		}
+	case "cors_setting.mode":
+		if err = system_setting.ValidateCORSMode(option.Value.(string)); err != nil {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
+			return
+		}
+	case "cors_setting.allowed_origins":
+		if err = system_setting.ValidateCORSOrigins(option.Value.(string)); err != nil {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
+			return
+		}
 	case "console_setting.api_info":
 		err = console_setting.ValidateConsoleSettings(option.Value.(string), "ApiInfo")
 		if err != nil {

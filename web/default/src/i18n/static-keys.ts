@@ -57,6 +57,7 @@ export const STATIC_I18N_KEYS = [
   'Image',
   'Embeddings',
   'Video',
+  'Video playback failed',
   'Sort',
   'All',
   'All Vendors',

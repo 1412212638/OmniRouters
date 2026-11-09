@@ -24,6 +24,12 @@ const defaultSecuritySettings: SecuritySettings = {
   'fetch_setting.allowed_ports': [],
   'fetch_setting.apply_ip_filter_for_domain': false,
   'token_setting.max_user_tokens': 1000,
+  'cors_setting.mode': 'allowlist',
+  'cors_setting.allowed_origins': [
+    'https://tokenplan.omnirouters.com',
+    'https://omnirouters.com.cn',
+    'https://www.omnirouters.com.cn',
+  ],
 }
 
 export function SecuritySettings() {

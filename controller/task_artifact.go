@@ -3,6 +3,7 @@ package controller
 import (
 	"io"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -48,19 +49,64 @@ func GetTaskArtifacts(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"code": "artifact_not_found", "message": "Task or artifact not found"}})
 		return
 	}
+	writeTaskArtifacts(c, task, false)
+}
+
+func GetDashboardTaskArtifacts(c *gin.Context) {
+	taskID := c.Param("task_id")
+	var task *model.Task
+	var exists bool
+	var err error
+	if c.GetInt("role") >= common.RoleAdminUser {
+		task, exists, err = model.GetByOnlyTaskId(taskID)
+	} else {
+		task, exists, err = model.GetByTaskId(c.GetInt("id"), taskID, common.GetContextKeyInt(c, constant.ContextKeyOrganizationId))
+	}
+	if err != nil || !exists {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Task not found"})
+		return
+	}
+	writeTaskArtifacts(c, task, true)
+}
+
+func writeTaskArtifacts(c *gin.Context, task *model.Task, dashboard bool) {
 	artifacts, err := projectTaskArtifacts(task)
 	if err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"error": gin.H{"code": "artifact_plugin_error", "message": err.Error()}})
+		if dashboard {
+			c.JSON(http.StatusBadGateway, gin.H{"success": false, "message": "Failed to resolve task media"})
+		} else {
+			c.JSON(http.StatusBadGateway, gin.H{"error": gin.H{"code": "artifact_plugin_error", "message": err.Error()}})
+		}
 		return
+	}
+	if task != nil && task.Status == model.TaskStatusSuccess && task.GetResultURL() != "" {
+		hasVideo := false
+		for _, artifact := range artifacts {
+			if artifact.Type == "video" {
+				hasVideo = true
+				break
+			}
+		}
+		if !hasVideo {
+			artifacts = append(artifacts, relaychannel.TaskArtifact{Key: "video", Type: "video"})
+		}
 	}
 	items := make([]taskArtifactResponse, 0, len(artifacts))
 	for _, artifact := range artifacts {
 		contentURL, urlErr := service.BuildTaskArtifactContentURL(task.TaskID, artifact.Key)
 		if urlErr != nil {
-			c.Status(http.StatusInternalServerError)
+			if dashboard {
+				c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to create task media URL"})
+			} else {
+				c.Status(http.StatusInternalServerError)
+			}
 			return
 		}
 		items = append(items, taskArtifactResponse{Key: artifact.Key, Type: artifact.Type, MimeType: artifact.MimeType, ContentURL: contentURL})
+	}
+	if dashboard {
+		c.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{"task_id": task.TaskID, "artifacts": items}})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{"task_id": task.TaskID, "artifacts": items})
 }
@@ -95,10 +141,18 @@ func TaskArtifactContent(c *gin.Context) {
 		c.Status(http.StatusNotFound)
 		return
 	}
+	if artifactKey == "video" && isGatewayVideoContentURL(task.GetResultURL(), task.TaskID) {
+		proxyVideoTaskContent(c, task)
+		return
+	}
 	adaptor := relay.GetTaskAdaptor(task.Platform)
 	provider, ok := adaptor.(relaychannel.TaskContentRequestProvider)
 	if !ok {
 		if artifactKey == "video" && task.GetResultURL() != "" {
+			if isGatewayVideoContentURL(task.GetResultURL(), task.TaskID) {
+				proxyVideoTaskContent(c, task)
+				return
+			}
 			proxyTaskArtifact(c, task.GetResultURL(), nil)
 			return
 		}
@@ -106,11 +160,30 @@ func TaskArtifactContent(c *gin.Context) {
 		return
 	}
 	descriptor, err := provider.BuildContentRequest(task, artifactKey, relaychannel.TaskArtifactClientRequest{Method: c.Request.Method})
-	if err != nil || descriptor == nil {
+	if err != nil || descriptor == nil || strings.TrimSpace(descriptor.URL) == "" {
+		if artifactKey == "video" && task.GetResultURL() != "" {
+			if isGatewayVideoContentURL(task.GetResultURL(), task.TaskID) {
+				proxyVideoTaskContent(c, task)
+				return
+			}
+			proxyTaskArtifact(c, task.GetResultURL(), nil)
+			return
+		}
 		c.Status(http.StatusBadGateway)
 		return
 	}
 	proxyTaskArtifact(c, descriptor.URL, descriptor)
+}
+
+func isGatewayVideoContentURL(rawURL, taskID string) bool {
+	if rawURL == "" || taskID == "" {
+		return false
+	}
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return false
+	}
+	return strings.HasSuffix(strings.TrimRight(parsed.Path, "/"), "/v1/videos/"+taskID+"/content")
 }
 
 func proxyTaskArtifact(c *gin.Context, rawURL string, descriptor *relaychannel.TaskContentRequest) {

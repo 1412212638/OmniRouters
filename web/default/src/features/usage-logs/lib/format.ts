@@ -314,7 +314,13 @@ export function getTieredBillingSummary(
   const exprStr = decodeBillingExprB64(other.expr_b64)
   if (!exprStr) return null
   const tiers = parseTiersFromExpr(exprStr)
-  const tier = resolveMatchedTier(tiers, other.matched_tier)
+  // A single-tier expression has no ambiguity when older logs or usage-based
+  // billing paths do not persist a matched label. Multi-tier expressions still
+  // require the runtime label so the UI never guesses a price.
+  const matchedTier = resolveMatchedTier(tiers, other.matched_tier)
+  const tier =
+    matchedTier ??
+    (!other.matched_tier?.trim() && tiers.length === 1 ? tiers[0] : null)
   if (!tier) return null
 
   const cacheTokensPresent = hasAnyCacheTokens(other)

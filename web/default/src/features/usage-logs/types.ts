@@ -196,6 +196,7 @@ export interface LogOtherData {
   // settlement run.
   billing_mode?: string
   expr_b64?: string
+  original_quota?: number
   matched_tier?: string
   request_rules?: RequestRuleTrace[]
   usage_facts?: Record<string, string | number>
@@ -310,6 +311,7 @@ export interface TaskLog {
     origin_model_name?: string
   }
   legacy_video_available?: boolean
+  result_url?: string
   fail_reason?: string
   status: string // NOT_START, SUBMITTED, IN_PROGRESS, SUCCESS, FAILURE, QUEUED, UNKNOWN
   admin_info?: {

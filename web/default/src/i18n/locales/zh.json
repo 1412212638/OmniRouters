@@ -4787,6 +4787,7 @@
     "Total consumed quota": "累计消费金额",
     "Total cost": "总成本",
     "Total Cost": "总费用",
+    "Original Cost": "原始费用",
     "Total Count": "总数",
     "Total earned": "累计获得",
     "Total Earned": "总收入",
@@ -5090,6 +5091,7 @@
     "Vertex AI Key Format": "Vertex AI 密钥格式",
     "Vertex AI service account key must be valid JSON": "Vertex AI 服务账号密钥必须是有效 JSON",
     "Video": "视频",
+    "Video playback failed": "视频播放失败",
     "Video length in seconds": "视频时长（秒）",
     "Video Remix": "视频 Remix",
     "Vidu": "Vidu",
@@ -6234,6 +6236,17 @@
     "Starts on": "开始日期",
     "Subject": "邮件主题",
     "Subject and content are required": "请填写邮件主题和内容",
-    "Users with successful top-ups": "有成功充值记录的用户"
+    "Users with successful top-ups": "有成功充值记录的用户",
+    "API Cross-Origin Access": "API 跨域访问",
+    "Configure browser cross-origin access for public API endpoints under /v1. Admin dashboard APIs keep their existing origin policy.": "配置 /v1 公共 API 的浏览器跨域访问。管理后台 API 继续使用现有的来源策略。",
+    "API CORS policy": "API 跨域策略",
+    "Allow listed origins": "允许指定来源",
+    "Allow all origins": "允许所有来源",
+    "Any website can read public API responses. Cookie credentials are not allowed; API keys are still required.": "任何网站都可以读取公共 API 响应。不允许携带 Cookie，但仍需要 API Key。",
+    "Browser cross-origin access to /v1 is disabled.": "已关闭浏览器对 /v1 的跨域访问。",
+    "Only the listed website origins can read public API responses.": "只有列出的网页来源可以读取公共 API 响应。",
+    "Allowed website origins": "允许的网页来源",
+    "Enter one full origin per line, including http:// or https://. Do not include a path, query, or fragment.": "每行填写一个完整来源，必须包含 http:// 或 https://。不要包含路径、查询参数或片段。",
+    "This policy only affects /v1 APIs. Admin and dashboard endpoints under /api keep the existing allowlist and cookie behavior.": "此策略只影响 /v1 API。/api 下的管理和控制台接口继续使用现有白名单和 Cookie 行为。"
   }
 }

@@ -19,15 +19,23 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useMemo } from 'react'
 
+import { useActiveOrganizationId } from '@/features/organizations/workspace-store'
 import { useStatus } from '@/hooks/use-status'
+import { useAuthStore } from '@/stores/auth-store'
 
 import { getPricing } from '../api'
+import {
+  getPricingQueryKey,
+  resolveModelGroupRatios,
+} from '../lib/pricing-data'
 
 export function usePricingData() {
   const { status } = useStatus()
+  const userId = useAuthStore((state) => state.auth.user?.id)
+  const organizationId = useActiveOrganizationId()
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['pricing'],
+    queryKey: getPricingQueryKey(userId, organizationId),
     queryFn: getPricing,
     staleTime: 5 * 60 * 1000,
   })
@@ -64,11 +72,10 @@ export function usePricingData() {
         vendor_icon: availableVendors[0]?.icon || vendor?.icon,
         vendor_description:
           availableVendors[0]?.description || vendor?.description,
-        group_ratio: Object.fromEntries(
-          Object.entries(data.group_ratio).map(([group, ratio]) => [
-            group,
-            ratio * (data.group_model_ratio?.[group]?.[model.model_name] ?? 1),
-          ])
+        group_ratio: resolveModelGroupRatios(
+          model,
+          data.group_ratio,
+          data.group_model_ratio ?? {}
         ),
       }
     })

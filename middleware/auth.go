@@ -232,7 +232,7 @@ func setupDashboardOrganizationContext(c *gin.Context) error {
 		path == "/api/user/models" || path == "/api/user/self/groups" ||
 		path == "/api/log/self" || path == "/api/log/self/stat" ||
 		path == "/api/data/self" || path == "/api/data/flow/self" ||
-		path == "/api/task/self" || path == "/api/mj/self" ||
+		strings.HasPrefix(path, "/api/task/") || path == "/api/mj/self" ||
 		path == "/api/user/pay" || path == "/api/user/stripe/pay" ||
 		path == "/api/user/creem/pay" || path == "/api/user/waffo/pay" ||
 		path == "/api/user/waffo-pancake/pay" || path == "/api/user/amount" ||

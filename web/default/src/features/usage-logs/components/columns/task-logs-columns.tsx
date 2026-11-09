@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { Music } from 'lucide-react'
+import { FileImage, Music, Video } from 'lucide-react'
 /* eslint-disable react-refresh/only-export-components */
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -7,18 +7,23 @@ import { useTranslation } from 'react-i18next'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { StatusBadge } from '@/components/status-badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { api } from '@/lib/api'
 import { getUserAvatarFallback, getUserAvatarStyle } from '@/lib/avatar'
 import { formatTimestampToDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 import { TASK_ACTIONS, TASK_STATUS } from '../../constants'
 import { taskActionMapper, taskStatusMapper } from '../../lib/mappers'
-import type { TaskLog } from '../../types'
 import {
-  AudioPreviewDialog,
-  type AudioClip,
-} from '../dialogs/audio-preview-dialog'
+  getDashboardTaskArtifactsURL,
+  getTaskPreviewMedia,
+} from '../../lib/task-media'
+import type { TaskLog } from '../../types'
 import { FailReasonDialog } from '../dialogs/fail-reason-dialog'
+import {
+  MediaPreviewDialog,
+  type PreviewMedia,
+} from '../dialogs/media-preview-dialog'
 import { TaskDetailsDialog } from '../dialogs/task-details-dialog'
 import { ModelBadge } from '../model-badge'
 import { useUsageLogsContext } from '../usage-logs-provider'
@@ -28,17 +33,14 @@ import {
   createProgressColumn,
 } from './column-helpers'
 
-function parseTaskData(data: unknown): unknown[] {
-  if (Array.isArray(data)) return data
-  if (typeof data === 'string') {
-    try {
-      const parsed = JSON.parse(data)
-      return Array.isArray(parsed) ? parsed : []
-    } catch {
-      return []
-    }
-  }
-  return []
+function isVideoTask(log: TaskLog): boolean {
+  return (
+    log.action === TASK_ACTIONS.GENERATE ||
+    log.action === TASK_ACTIONS.TEXT_GENERATE ||
+    log.action === TASK_ACTIONS.FIRST_TAIL_GENERATE ||
+    log.action === TASK_ACTIONS.REFERENCE_GENERATE ||
+    log.action === TASK_ACTIONS.REMIX_GENERATE
+  )
 }
 
 function getTaskModelInfo(log: TaskLog): {
@@ -76,35 +78,80 @@ function getTaskModelInfo(log: TaskLog): {
   }
 }
 
-function AudioPreviewCell({ log }: { log: TaskLog }) {
+function DashboardTaskMediaPreviewCell({
+  log,
+  media,
+}: {
+  log: TaskLog
+  media: PreviewMedia[]
+}) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
-  const clips = useMemo(() => {
-    const data = parseTaskData(log.data)
-    return data.filter(
-      (c) =>
-        c && typeof c === 'object' && (c as Record<string, unknown>).audio_url
-    )
-  }, [log.data])
+  const [resolvedMedia, setResolvedMedia] = useState<PreviewMedia[]>(media)
+  const [loading, setLoading] = useState(false)
 
-  if (clips.length === 0) return null
+  const loadArtifacts = async () => {
+    if (loading) return
+    setLoading(true)
+    try {
+      const response = await api.get(getDashboardTaskArtifactsURL(log.task_id))
+      const payload = response.data as {
+        data?: { artifacts?: Array<{ type?: string; content_url?: string }> }
+      }
+      const artifacts = payload.data?.artifacts ?? []
+      const fetched = artifacts
+        .filter(
+          (artifact) =>
+            (artifact.type === 'image' ||
+              artifact.type === 'video' ||
+              artifact.type === 'audio') &&
+            typeof artifact.content_url === 'string'
+        )
+        .map((artifact) => ({
+          kind: artifact.type as PreviewMedia['kind'],
+          url: artifact.content_url as string,
+        }))
+      if (fetched.length > 0) setResolvedMedia(fetched)
+      setOpen(true)
+    } catch {
+      setOpen(true)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const primaryKind = resolvedMedia[0]?.kind
+  const Icon =
+    primaryKind === 'video'
+      ? Video
+      : primaryKind === 'audio'
+        ? Music
+        : FileImage
+  const label =
+    primaryKind === 'video'
+      ? t('Click to preview video')
+      : primaryKind === 'audio'
+        ? t('Click to preview audio')
+        : t('Preview')
 
   return (
     <>
       <button
         type='button'
-        className='group flex items-center gap-1 text-left text-xs'
-        onClick={() => setOpen(true)}
+        className='group flex items-center gap-1 text-left text-xs disabled:opacity-60'
+        onClick={loadArtifacts}
+        disabled={loading}
       >
-        <Music className='text-muted-foreground size-3' />
+        <Icon className='text-muted-foreground size-3' />
         <span className='text-foreground leading-snug group-hover:underline'>
-          {t('Click to preview audio')}
+          {loading ? t('Loading') : label}
         </span>
       </button>
-      <AudioPreviewDialog
+      <MediaPreviewDialog
         open={open}
         onOpenChange={setOpen}
-        clips={clips as AudioClip[]}
+        media={resolvedMedia}
+        taskId={log.task_id}
       />
     </>
   )
@@ -263,43 +310,16 @@ export function useTaskLogsColumns(isAdmin: boolean): ColumnDef<TaskLog>[] {
         const failReason = row.getValue('fail_reason') as string
         const status = log.status
         const [dialogOpen, setDialogOpen] = useState(false)
+        const previewMedia = useMemo(
+          () => getTaskPreviewMedia(log, TASK_STATUS.SUCCESS, isVideoTask(log)),
+          [log]
+        )
 
-        const isSunoSuccess =
-          log.platform === 'suno' && status === TASK_STATUS.SUCCESS
-        if (isSunoSuccess) {
-          const data = parseTaskData(log.data)
-          if (
-            data.some(
-              (c) =>
-                c &&
-                typeof c === 'object' &&
-                (c as Record<string, unknown>).audio_url
-            )
-          ) {
-            return <AudioPreviewCell log={log} />
-          }
-        }
-
-        const isVideoTask =
-          log.action === TASK_ACTIONS.GENERATE ||
-          log.action === TASK_ACTIONS.TEXT_GENERATE ||
-          log.action === TASK_ACTIONS.FIRST_TAIL_GENERATE ||
-          log.action === TASK_ACTIONS.REFERENCE_GENERATE ||
-          log.action === TASK_ACTIONS.REMIX_GENERATE
         const isSuccess = status === TASK_STATUS.SUCCESS
-        const isUrl = failReason?.startsWith('http')
 
-        if (isSuccess && isVideoTask && isUrl) {
-          const videoUrl = `/v1/videos/${log.task_id}/content`
+        if (isSuccess && previewMedia.length > 0) {
           return (
-            <a
-              href={videoUrl}
-              target='_blank'
-              rel='noopener noreferrer'
-              className='text-foreground text-xs hover:underline'
-            >
-              {t('Click to preview video')}
-            </a>
+            <DashboardTaskMediaPreviewCell log={log} media={previewMedia} />
           )
         }
 

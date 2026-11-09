@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/base64"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
@@ -389,6 +390,17 @@ func InjectTieredBillingInfo(other *model.LogOther, relayInfo *relaycommon.Relay
 	}
 	other.SetPublic("billing_mode", "tiered_expr")
 	other.SetPublic("expr_b64", base64.StdEncoding.EncodeToString([]byte(snap.ExprString)))
+	// Keep the pre-group amount available for the billing detail view. This is
+	// display metadata only; the settled quota remains the source of truth for
+	// the actual deduction.
+	originalQuota := snap.EstimatedQuotaBeforeGroup
+	if result != nil {
+		originalQuota = result.ActualQuotaBeforeGroup
+	}
+	if !math.IsNaN(originalQuota) && !math.IsInf(originalQuota, 0) &&
+		originalQuota >= 0 && originalQuota <= float64(common.MaxQuota) {
+		other.SetPublic("original_quota", common.QuotaRound(originalQuota))
+	}
 	if result != nil {
 		if tokens := result.BillingTokens; tokens != nil && result.BillingUnit == billingexpr.BillingUnitToken {
 			other.SetPublic("image_cache_tokens", tokens.ImgCR)

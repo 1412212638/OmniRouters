@@ -5,8 +5,36 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/QuantumNous/new-api/common"
 	"github.com/gin-gonic/gin"
 )
+
+func setTestCORSOptions(t *testing.T, mode, origins string) {
+	t.Helper()
+	common.OptionMapRWMutex.Lock()
+	if common.OptionMap == nil {
+		common.OptionMap = make(map[string]string)
+	}
+	oldMode, hadMode := common.OptionMap["cors_setting.mode"]
+	oldOrigins, hadOrigins := common.OptionMap["cors_setting.allowed_origins"]
+	common.OptionMap["cors_setting.mode"] = mode
+	common.OptionMap["cors_setting.allowed_origins"] = origins
+	common.OptionMapRWMutex.Unlock()
+	t.Cleanup(func() {
+		common.OptionMapRWMutex.Lock()
+		if hadMode {
+			common.OptionMap["cors_setting.mode"] = oldMode
+		} else {
+			delete(common.OptionMap, "cors_setting.mode")
+		}
+		if hadOrigins {
+			common.OptionMap["cors_setting.allowed_origins"] = oldOrigins
+		} else {
+			delete(common.OptionMap, "cors_setting.allowed_origins")
+		}
+		common.OptionMapRWMutex.Unlock()
+	})
+}
 
 func TestCORSAllowsTokenPlanWithCredentials(t *testing.T) {
 	gin.SetMode(gin.TestMode)
@@ -130,5 +158,59 @@ func TestCORSRejectsUntrustedOrigin(t *testing.T) {
 
 	if recorder.Code != http.StatusForbidden {
 		t.Fatalf("expected status %d, got %d", http.StatusForbidden, recorder.Code)
+	}
+}
+
+func TestCORSAllowsConfiguredPublicAPIOrigin(t *testing.T) {
+	setTestCORSOptions(t, "allowlist", `["https://client.example.com"]`)
+	gIn := gin.New()
+	gIn.Use(CORS())
+	gIn.POST("/v1/chat/completions", func(c *gin.Context) { c.Status(http.StatusNoContent) })
+
+	request := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", nil)
+	request.Header.Set("Origin", "https://client.example.com")
+	recorder := httptest.NewRecorder()
+	gIn.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusNoContent || recorder.Header().Get("Access-Control-Allow-Origin") != "https://client.example.com" {
+		t.Fatalf("expected configured public API origin to be allowed, status=%d origin=%q", recorder.Code, recorder.Header().Get("Access-Control-Allow-Origin"))
+	}
+	if recorder.Header().Get("Access-Control-Allow-Credentials") != "" {
+		t.Fatal("public API CORS must not allow credentials")
+	}
+}
+
+func TestCORSAllowsAllPublicAPIOriginsWithoutCredentials(t *testing.T) {
+	setTestCORSOptions(t, "all", `[]`)
+	gIn := gin.New()
+	gIn.Use(CORS())
+	gIn.GET("/v1/models", func(c *gin.Context) { c.Status(http.StatusNoContent) })
+
+	request := httptest.NewRequest(http.MethodGet, "/v1/models", nil)
+	request.Header.Set("Origin", "https://any.example.com")
+	recorder := httptest.NewRecorder()
+	gIn.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusNoContent || recorder.Header().Get("Access-Control-Allow-Origin") != "*" {
+		t.Fatalf("expected all public API origins to be allowed, status=%d origin=%q", recorder.Code, recorder.Header().Get("Access-Control-Allow-Origin"))
+	}
+	if recorder.Header().Get("Access-Control-Allow-Credentials") != "" {
+		t.Fatal("public API wildcard CORS must not allow credentials")
+	}
+}
+
+func TestCORSDisablesPublicAPIAccess(t *testing.T) {
+	setTestCORSOptions(t, "disabled", `[]`)
+	gIn := gin.New()
+	gIn.Use(CORS())
+	gIn.GET("/v1/models", func(c *gin.Context) { c.Status(http.StatusNoContent) })
+
+	request := httptest.NewRequest(http.MethodGet, "/v1/models", nil)
+	request.Header.Set("Origin", "https://client.example.com")
+	recorder := httptest.NewRecorder()
+	gIn.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusNoContent || recorder.Header().Get("Access-Control-Allow-Origin") != "" {
+		t.Fatalf("expected public API CORS to be disabled, status=%d origin=%q", recorder.Code, recorder.Header().Get("Access-Control-Allow-Origin"))
 	}
 }
