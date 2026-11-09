@@ -30,7 +30,7 @@
 - Changed: the frontend estimator now receives the model's declared task usage fields and evaluates them as zero-valued preview inputs, while keeping server-side expression and billing validation authoritative.
 - Preserved: actual billing, task usage settlement, unsupported-field validation on the server, and token estimator behavior.
 - Validation: `bun run build` passed. Frontend typecheck remains blocked by existing unrelated repository errors and missing test dependencies; `git diff --check` passed.
-- Commit and push: committed in `3baee757c` (`feat: configure public API CORS policy`) and pushed to `origin/main` on 2026-11-09.
+- Commit and push: committed in `dd55501fb` (`feat: configure public API CORS policy`) and pushed to `origin/main` on 2026-11-09.
 
 ## 2026-11-08 - Fix Seedream billing build errors
 
