@@ -5546,4 +5546,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: AstraFlow's three Omni usage labels now read 输入 Tokens, 文本输出 Tokens, and 视频输出 Tokens. Bumped the factory plugin to 1.1.1 so installed plugins can receive the metadata correction; aligned the integration guide's labels and USD / 1M Tokens unit.
 - Preserved: usage field keys, internal `token` unit, expressions, million-token conversion, precharge, settlement, enhancement model behavior, and subscription/plaza terminology outside these plugin labels. No frontend rendering or accounting code changed.
 - Validation: plugin syntax, the six existing Node contract tests, and `git diff --check` passed. This metadata/documentation-only correction does not require a frontend build or live upstream call.
-- Commit and push: pending.
+- Commit and push: included in `693fec817` (`fix: retain Tokens terminology in AstraFlow pricing`); pushed to `origin/main` on 2026-11-11.
