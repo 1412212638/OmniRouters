@@ -5,9 +5,9 @@ const OMNI_MODEL = "gemini-omni-1.2-flash";
 const OMNI_ACTION = "omni_video";
 const OMNI_TOKEN_LIMIT = 2147483647;
 const OMNI_SCHEMA = {
-  input_tokens: { type: "number", unit: "token", description: { en: "Input tokens", zh: "输入词元" } },
-  text_output_tokens: { type: "number", unit: "token", description: { en: "Text output tokens", zh: "文本输出词元" } },
-  video_output_tokens: { type: "number", unit: "token", description: { en: "Video output tokens", zh: "视频输出词元" } },
+  input_tokens: { type: "number", unit: "token", description: { en: "Input tokens", zh: "输入 Tokens" } },
+  text_output_tokens: { type: "number", unit: "token", description: { en: "Text output tokens", zh: "文本输出 Tokens" } },
+  video_output_tokens: { type: "number", unit: "token", description: { en: "Video output tokens", zh: "视频输出 Tokens" } },
 };
 const RESOLUTIONS = ["720p", "1080p", "2k", "4k", "6k", "8k"];
 const FPS_OPTIONS = [30, 60, 120];
@@ -145,7 +145,7 @@ export const meta = {
     en: "AstraFlow video enhancement and Omni video generation",
     zh: "AstraFlow 视频增强与 Omni 视频生成",
   },
-  version: "1.1.0",
+  version: "1.1.1",
   author: { name: "QuantumNous" },
   models: [MODEL, OMNI_MODEL],
   fetchMode: "per_task",

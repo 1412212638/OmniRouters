@@ -1,8 +1,8 @@
 # AstraFlow Omni 视频生成
 
-AstraFlow 插件 1.1.0 新增 `gemini-omni-1.2-flash`。已有的视频增强模型
+AstraFlow 插件自 1.1.0 新增 `gemini-omni-1.2-flash`，当前版本为 1.1.1。已有的视频增强模型
 `ai-mediakit-video-enhancement-std` 保留原有分辨率、FPS、按秒定价和 10 秒预扣。
-如果后台已经安装过旧版 AstraFlow 插件，更新至 1.1.0 后再添加新模型。
+如果后台已经安装过旧版 AstraFlow 插件，更新至 1.1.1 以使用最新的定价标签。
 
 ## 渠道与请求
 
@@ -49,13 +49,13 @@ Authorization: Bearer 平台API_KEY
 ## 定价
 
 在任务插件定价中选择 AstraFlow / `gemini-omni-1.2-flash`。
-配置三个价格，单位均为 **USD / 百万词元**：
+配置三个价格，单位均为 **USD / 1M Tokens**：
 
 | 价格项 | 示例价格 | 结算数据 |
 | --- | ---: | --- |
-| 输入词元 | 1.5 | `usage.total_input_tokens` |
-| 文本输出词元 | 9 | `output_tokens_by_modality` 中 `text` 的词元总数 |
-| 视频输出词元 | 12 | `output_tokens_by_modality` 中 `video` 的词元总数 |
+| 输入 Tokens | 1.5 | `usage.total_input_tokens` |
+| 文本输出 Tokens | 9 | `output_tokens_by_modality` 中 `text` 的 Tokens 总数 |
+| 视频输出 Tokens | 12 | `output_tokens_by_modality` 中 `video` 的 Tokens 总数 |
 
 可视化价格编辑器支持直接填写三个单价。表达式编辑器等价配置：
 
@@ -68,7 +68,7 @@ tier("base", u("input_tokens") * 1.5 / 1000000 + u("text_output_tokens") * 9 / 1
 `total_output_tokens` 用于核对模态总数；`total_tokens`、思考和工具用量保留在结果里，
 不额外叠加收费。输入按 `total_input_tokens` 收费，不依赖可能不完整的输入模态明细。
 
-提交时预估输入 65,536、文本输出 4,096、视频输出 65,536 词元进行预扣；
+提交时预估输入 65,536、文本输出 4,096、视频输出 65,536 Tokens 进行预扣；
 这些是预扣估值，不是生成时长或输出上限，客户端无需增加估算字段。
 成功后按实际用量在原有结算机制中多退少补，失败按原有任务退款规则处理。
 如果完成结果缺少用量、缺少输出模态明细、模态总数不一致或包含非法数量，
