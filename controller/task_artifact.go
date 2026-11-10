@@ -1,11 +1,13 @@
 package controller
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
@@ -160,6 +162,10 @@ func TaskArtifactContent(c *gin.Context) {
 		return
 	}
 	descriptor, err := provider.BuildContentRequest(task, artifactKey, relaychannel.TaskArtifactClientRequest{Method: c.Request.Method})
+	if err == nil && descriptor != nil && len(descriptor.InlineData) > 0 {
+		serveInlineTaskContent(c, descriptor)
+		return
+	}
 	if err != nil || descriptor == nil || strings.TrimSpace(descriptor.URL) == "" {
 		if artifactKey == "video" && task.GetResultURL() != "" {
 			if isGatewayVideoContentURL(task.GetResultURL(), task.TaskID) {
@@ -173,6 +179,13 @@ func TaskArtifactContent(c *gin.Context) {
 		return
 	}
 	proxyTaskArtifact(c, descriptor.URL, descriptor)
+}
+
+func serveInlineTaskContent(c *gin.Context, descriptor *relaychannel.TaskContentRequest) {
+	c.Header("Content-Type", descriptor.MimeType)
+	c.Header("Cache-Control", "private, no-store")
+	c.Header("X-Content-Type-Options", "nosniff")
+	http.ServeContent(c.Writer, c.Request, "video", time.Time{}, bytes.NewReader(descriptor.InlineData))
 }
 
 func isGatewayVideoContentURL(rawURL, taskID string) bool {

@@ -28,8 +28,7 @@ type FundingSource interface {
 // ---------------------------------------------------------------------------
 
 // ErrInsufficientWalletQuota 钱包原子预扣失败（余额不足），未发生任何扣减。
-// BillingSession 据此映射为 ErrorCodeInsufficientUserQuota，
-// 使 wallet_first 等计费偏好可以回退到订阅。
+// BillingSession 据此映射为 ErrorCodeInsufficientUserQuota。
 var ErrInsufficientWalletQuota = errors.New("wallet quota insufficient")
 
 // OrganizationFunding charges a shared organization wallet and the member's

@@ -1,9 +1,9 @@
 {
   "translation": {
-    "Playground uses your personal balance. Use an organization API key for organization billing.": "Playground использует ваш личный баланс. Для оплаты со счёта организации используйте её API-ключ.",
     "360": "360",
     "1000": "1000",
     "10000": "10000",
+    "Playground uses your personal balance. Use an organization API key for organization billing.": "Playground использует ваш личный баланс. Для оплаты со счёта организации используйте её API-ключ.",
     "Decisions": "Решения",
     "Mapped Model": "Модель после сопоставления",
     "Returned Model": "Возвращённая модель",
@@ -2880,6 +2880,7 @@
     "Must be a valid URL": "Должен быть действительный URL",
     "Must be at least 8 characters": "Должно быть не менее 8 символов",
     "My Subscriptions": "Мои подписки",
+    "Subscription plans are billed only through their dedicated keys. General API keys use wallet balance.": "Подписки списываются только через выделенные ключи подписки. Обычные API-ключи используют баланс кошелька.",
     "my-status": "мой-статус",
     "MySQL detected": "Обнаружен MySQL",
     "MySQL is a production-ready relational database. Keep your credentials secure.": "MySQL — реляционная база данных, готовая к продакшену. Храните учётные данные в безопасности.",
@@ -6107,6 +6108,7 @@
     "Transfer in": "Входящий перевод",
     "Transfer from personal balance": "Перевод с личного баланса",
     "Only organization owners and admins can manage the shared wallet.": "Только владельцы и администраторы организации могут управлять общим кошельком.",
-    "Payments made here are credited directly to this organization. Personal balances remain separate.": "Платежи зачисляются напрямую этой организации. Личный баланс учитывается отдельно."
+    "Payments made here are credited directly to this organization. Personal balances remain separate.": "Платежи зачисляются напрямую этой организации. Личный баланс учитывается отдельно.",
+    "Text output": "Текстовый вывод"
   }
 }

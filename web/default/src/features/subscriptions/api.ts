@@ -206,15 +206,6 @@ export async function getPublicPlans(): Promise<ApiResponse<PlanRecord[]>> {
   return res.data
 }
 
-export async function updateBillingPreference(
-  preference: string
-): Promise<ApiResponse<{ billing_preference?: string }>> {
-  const res = await api.put('/api/subscription/self/preference', {
-    billing_preference: preference,
-  })
-  return res.data
-}
-
 export async function createSubscriptionToken(
   subscriptionId: number,
   name: string

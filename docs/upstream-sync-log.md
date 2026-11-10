@@ -5471,3 +5471,71 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: public `/v1/*` disabled/allowlist/wildcard policies, explicit-origin dashboard credentials, foreign-origin blocking, refresh/logout origin protection, login/session validation, billing, and all earlier pending catalog fixes. No wildcard was added to dashboard origins.
 - Validation: added middleware regression coverage for login and refresh with direct HTTPS, proxy TLS termination, trusted origins with internal hosts, configured ServerAddress, spoofed forwarded hosts, wrong ports, HTTP downgrade, malformed/null origins, and public wildcard isolation from dashboard routes. `git diff --check` passed. Go tests/gofmt cannot run because the local Go toolchain is absent; production deployment and actual browser recovery remain unverified.
 - Commit and push: included in `06950bc2f` (`fix: restore dashboard login and personalized responsive catalog`); pushed to `origin/main` on 2026-11-10. Production recovery still requires deployment and browser verification.
+# 2026-11-10 - Color discounted task prices in model details
+
+- Local reason: task pricing rows applied the group multiplier numerically but rendered the discounted values with the default text color, unlike token and image pricing rows.
+- Changed: task pricing fixed prices, usage-unit prices, and free-quantity labels now use the success color whenever the active group multiplier is below 1.
+- Preserved: original-price groups, billing calculations, displayed amounts, task conditions, and all non-task pricing presentation remain unchanged.
+- Validation: targeted frontend lint, production build, and `git diff --check` passed. No backend changes; commit and push: pending.
+# 2026-11-10 - Move user subscriptions to a dedicated Credits/Tokens page
+
+- Local reason: subscription plans were embedded in the wallet, mixing balance top-ups with recurring model-access plans.
+- Changed: added an authenticated `/subscription-plans` page, moved the full plan browser and purchase flow there, added a `Credits | Tokens` segmented switch, and documented `1 quota = 1 Credit`. The wallet now keeps a compact link to the subscription page. Added personal sidebar visibility/configuration for the new entry and retained the existing admin subscription-management route.
+- Preserved: quota and token billing modes, payment methods, purchase limits, subscription preference, subscription keys, backend `quota` storage, deduction logic, organization wallet behavior, and the existing purchase dialog/API contracts.
+- Validation: frontend production build, targeted Oxfmt, and `git diff --check` passed. Targeted Oxlint still reports the repository's existing React Compiler diagnostics in the touched wallet, purchase-dialog, and sidebar-settings files; no new build or type errors were reported. Typecheck is pending; commit and push: pending.
+# 2026-11-10 - Add local preview authentication fixtures
+
+- Local reason: the standalone subscription page requires an authenticated session, while the frontend mock server had no login, self-user, or subscription-plan endpoints for local preview.
+- Changed: added a clearly local-only demo account (`demo@example.com` / `demo123456`), bearer-token session responses, and representative Credits/Tokens plans to `web/default/mock/server.mjs`.
+- Preserved: production authentication, subscription APIs, payment behavior, and all non-mock server code are unchanged.
+- Validation: `node --check mock/server.mjs` and local login/plan endpoint requests passed. This fixture is for local preview only; commit and push: pending.
+# 2026-11-10 - Localize subscription token terminology and expand preview plans
+
+- Local reason: Chinese subscription billing should distinguish model tokens from API access tokens, and the local preview needed enough plan variety to review the Credits/Tokens switch.
+- Changed: subscription-specific token labels now use “词元” in Chinese while API key and general usage terminology remains unchanged; local mock data now includes three Credits plans and three token plans with varied periods, resets, limits, and group/model scopes.
+- Preserved: production subscription billing contracts, internal `billing_mode` values, quota/token accounting, and non-subscription translations remain unchanged.
+- Validation: targeted formatting, `node --check web/default/mock/server.mjs`, frontend production build, and `git diff --check` passed. Commit and push: pending.
+# 2026-11-11 - Require dedicated keys for subscription usage
+
+- Local reason: wallet-versus-subscription billing preference allowed ordinary API keys to consume quota plans automatically, making usage ambiguous now that subscriptions issue dedicated keys.
+- Changed: ordinary API keys now bill only the wallet; subscription keys remain bound to their specific quota or token plan. Removed the billing preference selector and update API from both frontend themes, removed the backend preference endpoint and log field, and clarified the key behavior in the subscription page. The persisted user-setting field remains for backward compatibility but is ignored.
+- Preserved: subscription-key group/model restrictions, plan purchase and settlement behavior, token-based billing, standalone Web Tools wallet charges, wallet accounting, and legacy serialized user settings.
+- Validation: default-theme production build passed; classic-theme ESLint and Prettier checks passed; Oxfmt, mock syntax validation, and `git diff --check` passed. Added a service regression test proving a general key ignores a legacy `subscription_only` setting and uses wallet funds, while a dedicated subscription key still consumes its bound plan. Go tests could not run because Go is not installed. Classic-theme production build is blocked by the installed `date-fns-tz` package importing subpaths not exported by the installed `date-fns` version. Commit and push: pending.
+
+# 2026-11-11 - Show subscription model restrictions and preview examples
+
+- Local reason: the preview's multi-model token plan already contained an allowlist, but the active default subscription cards did not display it; two other token fixtures omitted the model restrictions required by real plans.
+- Changed: traced `/subscription-plans` to `SubscriptionPlansPage` and `SubscriptionPlansCard`; show token-plan model allowlists in plan cards, owned subscriptions, and purchase confirmation, with wrapping for long names. Local preview now includes a GPT-4.1-only plan, a GPT-4.1/Claude plan, and a plan with unlimited token allowance restricted to three named models.
+- Preserved: real plan storage, model authorization, dedicated-key billing, Credits plans, pricing, and all pending source changes. No production plans were created or edited.
+- Validation: targeted Oxlint and Oxfmt, mock syntax check, and default production build passed. Full typecheck remains blocked by existing unrelated errors and missing test dependencies; no diagnostics in the two changed subscription components. Commit and push: pending.
+
+# 2026-11-11 - Display subscription purchase wallet amounts as money
+
+- Local reason: the active default purchase dialog appended Credits to the wallet cost and available balance even though they represent money used to buy the plan.
+- Changed: the purchase dialog now converts the required and available wallet quota through the existing billing currency formatter and displays monetary values without the Credits suffix, including in token-display mode.
+- Preserved: plan Credits/token entitlements, stored wallet quota, exchange rates, payment cost calculation, balance validation, and subscription payment APIs.
+- Validation: targeted Oxfmt/Oxlint, default production build, and `git diff --check` passed. Full typecheck remains blocked by existing unrelated errors and missing test dependencies, with no diagnostics in the changed purchase dialog. Commit and push: pending.
+
+# 2026-11-11 - Add a test organization to the local preview
+
+- Local reason: the user requested a local test organization, but the mock API had no organization endpoints to populate the existing organization selector and workspace.
+- Changed: added a local-only “测试组织” fixture owned by the demo account, with one owner and zero balance. Added authenticated mock organization list/create/detail and the member, invitation, key, usage, transaction, and log reads required by the existing organization page. Initial fixture is recreated on mock restart; additional organizations are in memory only.
+- Preserved: production organization APIs, memberships, wallets, billing, organization UI, and all pending subscription changes. No production organization or funding was created.
+- Validation: mock syntax check and targeted formatting passed; targeted lint has only the existing server console warning. Restarted the local mock and verified organization name/owner, all six workspace subresource responses, anonymous rejection, and HTTP 200 from the frontend organization route. Browser rendering was not verified. `git diff --check` passed. Commit and push: pending.
+
+# 2026-11-11 - Keep organization management accessible from the workspace sidebar
+
+- Local reason: the organization workspace sidebar exposed only Wallet, leaving no direct way back to organization management after navigating away.
+- Changed: traced the active default sidebar through `useSidebarView` to `useSidebarData`; added “Manage organizations” below Wallet in organization space. Added `/organizations/manage` to reuse the current organization's management view without resetting the selected workspace. The route retains the organization feature guard and redirects users without an active organization to the existing selector; generated route metadata was updated.
+- Preserved: personal-space `/organizations` selection behavior, organization creation and invitations, top workspace switching, existing management permissions, billing, classic frontend, and all pending changes.
+- Validation: default production build and targeted Oxfmt/Oxlint passed. Full typecheck remains blocked by existing unrelated diagnostics and missing test libraries, with none in the changed files. `git diff --check` passed. Browser interaction was not verified. Commit and push: pending.
+
+## 2026-11-11 - Add AstraFlow Omni video generation and modality pricing
+
+- Local reason: add the actual `gemini-omni-1.2-flash` model to AstraFlow using the provider's native interaction API and separate input/text-output/video-output token prices. The older documentation model `gemini-omni-1.1-flash-preview` is deliberately not substituted.
+- Changed: AstraFlow factory version 1.1.0 declares model-specific usage profiles, native POST `/v1beta/models/interactions` and GET `/v1beta/models/interactions/:id`, all four task types, native multimodal/multiturn pass-through, synchronous immediate completion and asynchronous polling. Completion usage validates and splits modalities instead of treating all output tokens as video. Three bounded token estimates reserve quota; existing checked expression conversion, settlement/refund and terminal-task guards perform the accounting. Missing/invalid modality usage retains the reservation and records an anomaly.
+- Changed: avoid a Gin wildcard collision by dispatching native submits through the existing Gemini POST namespace before distribution; ordinary Gemini requests keep their existing relay. Added the public model name to the narrow task view. Omni alone allows bounded 64 MiB JSON video responses and bounded inline artifact decoding. Range/HEAD content and authenticated task-log previews reuse existing ownership and artifact access checks; dashboard lists omit binary media without modifying native results. Successful accepted Omni responses are not retried after parsing/read errors.
+- Changed: traced the production default plaza to `features/pricing/index.tsx` / `CatalogModelCard`; show three modality token prices and preserve customer multipliers/discount colors. Existing schema-based model detail tables display the same columns. Added translated text-output labels and `docs/astraflow-omni.md` with API, price, precharge and payload-limit configuration.
+- Preserved: enhancement model native paths, all existing resolution/FPS combinations, ten-second precharge and duration settlement; ordinary OpenAI billing, other task plugins and their response limits; pricing overrides, group/customer ratios, quota saturation auditing, organization ownership and subscription key isolation. No upstream price history, new wallet currency, database migration or protected project identity changes were introduced.
+- Validation: six Node plugin contract/regression tests, all 26 default pricing-library tests and five task-media tests passed; default production build, targeted frontend Oxlint/Oxfmt, plugin/mock syntax checks and `git diff --check` passed. Added Go regressions for route coexistence, plugin/profile registration, token usage, scoped limits, inline-content validation, media omission and Range/HEAD; Go tests and gofmt could not run because no local Go toolchain is installed. Full frontend lint/typecheck remain blocked by pre-existing unrelated errors/missing testing libraries; this round's changed files have no typecheck diagnostics. No live paid upstream request or browser playback was performed. Classic's pre-existing date-fns dependency build failure remains outside this round.
+- Commit and push: pending; user authorized bundling this with the preceding subscription, price-color, local-preview and organization-navigation changes. GitHub Actions remains responsible for building/publishing the deployment image after push.

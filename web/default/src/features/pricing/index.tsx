@@ -89,7 +89,10 @@ import {
   FILTER_ALL,
 } from './constants'
 import { usePricingData } from './hooks/use-pricing-data'
-import { getCatalogTaskPriceRows } from './lib/catalog-task-price'
+import {
+  getCatalogTaskPriceRows,
+  getCatalogTokenModalityRows,
+} from './lib/catalog-task-price'
 import {
   getCardExamplePrice,
   getDynamicCatalogPriceRanges,
@@ -825,6 +828,9 @@ type CatalogPriceSummary =
       referenceVideoUnit?: string
       outputLabel?: string
       outputUnit: string
+      textOutputLabel?: string
+      textOutputValue?: string
+      textOutputUnit?: string
       cacheValue?: string
       cacheUnit?: string
       cacheWriteValue?: string
@@ -928,6 +934,16 @@ function usePriceRows(props: {
       value: t('Dynamic Pricing'),
     }
   }
+
+  const modalityRows = dynamicSummary
+    ? getCatalogTokenModalityRows(
+        dynamicSummary.entries,
+        tokenUnitLabel,
+        t('Text output'),
+        t('Video output')
+      )
+    : null
+  if (modalityRows) return { kind: 'paired', ...modalityRows }
 
   if (taskInputEntry || taskOutputEntry) {
     return {
@@ -1391,6 +1407,26 @@ function CatalogModelCard(props: {
               )}
             </InfoLine>
           ))}
+        {priceRows.kind === 'paired' && priceRows.textOutputValue && (
+          <InfoLine
+            label={`${priceRows.textOutputLabel || t('Text output')}:`}
+            valueClassName='truncate'
+          >
+            <span
+              className={cn(
+                'font-mono font-medium',
+                hasDiscount && 'text-success'
+              )}
+            >
+              {priceRows.textOutputValue}
+            </span>
+            {priceRows.textOutputUnit && (
+              <span className='text-muted-foreground ml-1 text-xs'>
+                /{priceRows.textOutputUnit}
+              </span>
+            )}
+          </InfoLine>
+        )}
         {priceRows.kind === 'paired' && (
           <InfoLine
             label={`${priceRows.outputLabel || t('Output')}:`}

@@ -357,7 +357,7 @@ export function SubscriptionsMutateDrawer({
                     <FormItem>
                       <FormLabel>
                         {billingMode === 'token'
-                          ? t('Total Tokens')
+                          ? t('Total Subscription Tokens')
                           : t('Subscription Amount')}
                       </FormLabel>
                       <FormControl>
@@ -391,7 +391,10 @@ export function SubscriptionsMutateDrawer({
                     <Select
                       items={[
                         { value: 'quota', label: t('Quota based') },
-                        { value: 'token', label: t('Token based') },
+                        {
+                          value: 'token',
+                          label: t('Subscription Token based'),
+                        },
                       ]}
                       value={field.value}
                       onValueChange={field.onChange}
@@ -407,7 +410,7 @@ export function SubscriptionsMutateDrawer({
                             {t('Quota based')}
                           </SelectItem>
                           <SelectItem value='token'>
-                            {t('Token based')}
+                            {t('Subscription Token based')}
                           </SelectItem>
                         </SelectGroup>
                       </SelectContent>

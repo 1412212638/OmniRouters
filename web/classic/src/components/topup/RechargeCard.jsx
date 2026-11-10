@@ -95,8 +95,6 @@ const RechargeCard = ({
   enableWaffoPancakeTopUp,
   subscriptionLoading = false,
   subscriptionPlans = [],
-  billingPreference,
-  onChangeBillingPreference,
   activeSubscriptions = [],
   allSubscriptions = [],
   reloadSubscriptionSelf,
@@ -313,7 +311,8 @@ const RechargeCard = ({
                               size='small'
                               style={{ display: 'block', marginTop: 4 }}
                             >
-                              {translatePaymentLabel('手续费')} {feeRatePercent}%
+                              {translatePaymentLabel('手续费')} {feeRatePercent}
+                              %
                             </Text>
                           ) : null}
                         </Skeleton>
@@ -691,8 +690,6 @@ const RechargeCard = ({
                 enableOnlineTopUp={enableOnlineTopUp}
                 enableStripeTopUp={enableStripeTopUp}
                 enableCreemTopUp={enableCreemTopUp}
-                billingPreference={billingPreference}
-                onChangeBillingPreference={onChangeBillingPreference}
                 activeSubscriptions={activeSubscriptions}
                 allSubscriptions={allSubscriptions}
                 reloadSubscriptionSelf={reloadSubscriptionSelf}

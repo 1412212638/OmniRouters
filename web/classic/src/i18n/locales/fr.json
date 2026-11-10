@@ -1600,6 +1600,7 @@
     "我已了解禁用两步验证将永久删除所有相关设置和备用码，此操作不可撤销": "J'ai compris que la désactivation de l'authentification à deux facteurs supprimera définitivement tous les paramètres et codes de sauvegarde associés, cette opération ne peut pas être annulée",
     "我已阅读并同意": "J'ai lu et j'accepte",
     "我的订阅": "Mes abonnements",
+    "订阅套餐仅通过对应的专属 Key 扣费；普通 API Key 使用钱包余额。": "Les abonnements sont facturés uniquement avec leurs clés dédiées. Les clés API générales utilisent le solde du portefeuille.",
     "或": "Ou",
     "或其兼容OmniRouters Worker格式的其他版本": "ou d'autres versions compatibles avec le format OmniRouters Worker",
     "或手动输入密钥：": "Ou saisissez manuellement le secret :",

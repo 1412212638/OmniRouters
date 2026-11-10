@@ -1,9 +1,9 @@
 {
   "translation": {
-    "Playground uses your personal balance. Use an organization API key for organization billing.": "Playground sử dụng số dư cá nhân của bạn. Hãy dùng khóa API của tổ chức để tính phí vào số dư tổ chức.",
     "360": "360",
     "1000": "1000",
     "10000": "10000",
+    "Playground uses your personal balance. Use an organization API key for organization billing.": "Playground sử dụng số dư cá nhân của bạn. Hãy dùng khóa API của tổ chức để tính phí vào số dư tổ chức.",
     "Decisions": "Quyết định",
     "Mapped Model": "Mô hình được ánh xạ",
     "Returned Model": "Mô hình trả về",
@@ -2880,6 +2880,7 @@
     "Must be a valid URL": "Phải là URL hợp lệ",
     "Must be at least 8 characters": "Phải có ít nhất 8 ký tự",
     "My Subscriptions": "Gói đăng ký của tôi",
+    "Subscription plans are billed only through their dedicated keys. General API keys use wallet balance.": "Gói đăng ký chỉ được tính phí qua khóa riêng của gói. Khóa API thông thường sử dụng số dư ví.",
     "my-status": "trạng thái của tôi",
     "MySQL detected": "Đã phát hiện MySQL",
     "MySQL is a production-ready relational database. Keep your credentials secure.": "MySQL là cơ sở dữ liệu quan hệ sẵn sàng cho production. Hãy giữ thông tin đăng nhập an toàn.",
@@ -6107,6 +6108,7 @@
     "Transfer in": "Chuyển vào",
     "Transfer from personal balance": "Chuyển từ số dư cá nhân",
     "Only organization owners and admins can manage the shared wallet.": "Chỉ chủ sở hữu và quản trị viên tổ chức có thể quản lý ví chung.",
-    "Payments made here are credited directly to this organization. Personal balances remain separate.": "Khoản thanh toán được ghi có trực tiếp cho tổ chức này. Số dư cá nhân được quản lý riêng."
+    "Payments made here are credited directly to this organization. Personal balances remain separate.": "Khoản thanh toán được ghi có trực tiếp cho tổ chức này. Số dư cá nhân được quản lý riêng.",
+    "Text output": "Đầu ra văn bản"
   }
 }

@@ -1,9 +1,9 @@
 {
   "translation": {
-    "Playground uses your personal balance. Use an organization API key for organization billing.": "Playground 使用个人余额。如需从组织余额扣费，请使用组织 API Key 调用接口。",
     "360": "360",
     "1000": "1000",
     "10000": "10000",
+    "Playground uses your personal balance. Use an organization API key for organization billing.": "Playground 使用个人余额。如需从组织余额扣费，请使用组织 API Key 调用接口。",
     "Decisions": "决策",
     "Mapped Model": "映射模型",
     "Returned Model": "返回模型",
@@ -2886,6 +2886,7 @@
     "Must be a valid URL": "必须是有效的 URL",
     "Must be at least 8 characters": "必须至少 8 个字符",
     "My Subscriptions": "我的订阅",
+    "Subscription plans are billed only through their dedicated keys. General API keys use wallet balance.": "订阅套餐仅通过对应的专属 Key 扣费；普通 API Key 使用钱包余额。",
     "my-status": "我的状态",
     "MySQL detected": "检测到 MySQL",
     "MySQL is a production-ready relational database. Keep your credentials secure.": "MySQL 是生产就绪的关系数据库。请确保凭据安全。",
@@ -4383,6 +4384,15 @@
     "Subscription Management": "订阅管理",
     "Subscription Only": "仅用订阅",
     "Subscription plan creation and changes are locked until the administrator confirms compliance terms in Payment Gateway settings.": "管理员在支付网关设置中确认合规条款之前，订阅套餐的创建和修改会被锁定。",
+    "Billing unit": "计费单位",
+    "Credits": "Credits",
+    "Subscription Tokens": "词元",
+    "Total Subscription Tokens": "总词元数",
+    "Subscription Token based": "按词元计费",
+    "1 quota = 1 Credit": "1 额度 = 1 Credit",
+    "Choose a billing unit and subscribe to a plan for model access.": "选择计费单位并订阅套餐，以获得模型访问权限。",
+    "View subscription plans": "查看订阅套餐",
+    "No plans available for this billing unit": "当前计费单位暂无可用套餐",
     "Subscription Plans": "订阅套餐",
     "Subscription plans do NOT use the bound Product — each plan has its own dedicated Pancake product, set in the Subscriptions admin (or auto-minted via the \"+ Create\" button there).": "订阅套餐不会使用已绑定的产品。每个套餐都有独立的 Pancake 产品，可在订阅管理中设置，或通过其中的“+ 创建”按钮自动生成。",
     "Subscription purchased successfully": "订阅购买成功",
@@ -6247,6 +6257,7 @@
     "Only the listed website origins can read public API responses.": "只有列出的网页来源可以读取公共 API 响应。",
     "Allowed website origins": "允许的网页来源",
     "Enter one full origin per line, including http:// or https://. Do not include a path, query, or fragment.": "每行填写一个完整来源，必须包含 http:// 或 https://。不要包含路径、查询参数或片段。",
-    "This policy only affects /v1 APIs. Admin and dashboard endpoints under /api keep the existing allowlist and cookie behavior.": "此策略只影响 /v1 API。/api 下的管理和控制台接口继续使用现有白名单和 Cookie 行为。"
+    "This policy only affects /v1 APIs. Admin and dashboard endpoints under /api keep the existing allowlist and cookie behavior.": "此策略只影响 /v1 API。/api 下的管理和控制台接口继续使用现有白名单和 Cookie 行为。",
+    "Text output": "文本输出"
   }
 }

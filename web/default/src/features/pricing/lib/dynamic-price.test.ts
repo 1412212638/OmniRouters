@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
+import { getTieredBillingSummary } from '../../usage-logs/lib/format'
 import type { PricingModel } from '../types'
 import { parseTiersFromExpr } from './billing-expr'
-import { getTieredBillingSummary } from '../../usage-logs/lib/format'
-import { getCatalogTaskPriceRows } from './catalog-task-price'
+import {
+  getCatalogTaskPriceRows,
+  getCatalogTokenModalityRows,
+} from './catalog-task-price'
 import {
   getDynamicPriceEntries,
   getDynamicPricingSummary,
@@ -25,6 +28,49 @@ function testPricingModel(model: Partial<PricingModel>): PricingModel {
     ...model,
   }
 }
+
+describe('Omni input, text output and video output pricing', () => {
+  test('displays the three token prices independently and applies customer discount', () => {
+    const model = testPricingModel({
+      billing_mode: 'tiered_expr',
+      billing_expr:
+        'tier("base", u("input_tokens") * 1.5 / 1000000 + u("text_output_tokens") * 9 / 1000000 + u("video_output_tokens") * 12 / 1000000)',
+      billing_usage_schema: {
+        input_tokens: { type: 'number', unit: 'token' },
+        text_output_tokens: { type: 'number', unit: 'token' },
+        video_output_tokens: { type: 'number', unit: 'token' },
+      },
+    })
+    for (const discount of [1, 0.6]) {
+      const entries = getTaskPriceEntries(model, {
+        tokenUnit: 'M',
+        groupRatioMultiplier: discount,
+      })
+      assert.deepEqual(
+        entries.map((entry) => entry.value),
+        [1.5, 9, 12]
+      )
+      const rows = getCatalogTokenModalityRows(
+        entries,
+        '1M tokens',
+        '文本输出',
+        '视频输出'
+      )
+      assert.equal(rows?.inputValue, discount === 1 ? '$1.50' : '$0.90')
+      assert.equal(rows?.textOutputValue, discount === 1 ? '$9.00' : '$5.40')
+      assert.equal(rows?.outputValue, discount === 1 ? '$12' : '$7.20')
+      assert.equal(rows?.textOutputLabel, '文本输出')
+      assert.equal(rows?.outputLabel, '视频输出')
+      assert.equal(rows?.outputUnit, '1M tokens')
+    }
+  })
+  test('leaves existing token cards on their original rendering path', () => {
+    assert.equal(
+      getCatalogTokenModalityRows([], '1M tokens', 'text', 'video'),
+      null
+    )
+  })
+})
 
 describe('dynamic fixed request prices', () => {
   test('displays fixed prices as USD per request without token scaling', () => {

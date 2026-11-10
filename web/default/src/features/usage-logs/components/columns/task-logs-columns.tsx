@@ -35,6 +35,7 @@ import {
 
 function isVideoTask(log: TaskLog): boolean {
   return (
+    log.action === 'omni_video' ||
     log.action === TASK_ACTIONS.GENERATE ||
     log.action === TASK_ACTIONS.TEXT_GENERATE ||
     log.action === TASK_ACTIONS.FIRST_TAIL_GENERATE ||
@@ -121,18 +122,12 @@ function DashboardTaskMediaPreviewCell({
   }
 
   const primaryKind = resolvedMedia[0]?.kind
-  const Icon =
-    primaryKind === 'video'
-      ? Video
-      : primaryKind === 'audio'
-        ? Music
-        : FileImage
-  const label =
-    primaryKind === 'video'
-      ? t('Click to preview video')
-      : primaryKind === 'audio'
-        ? t('Click to preview audio')
-        : t('Preview')
+  const presentation = {
+    video: { icon: Video, label: t('Click to preview video') },
+    audio: { icon: Music, label: t('Click to preview audio') },
+    image: { icon: FileImage, label: t('Preview') },
+  }
+  const { icon: Icon, label } = presentation[primaryKind ?? 'image']
 
   return (
     <>

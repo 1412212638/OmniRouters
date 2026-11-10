@@ -14,6 +14,8 @@ import (
 	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/logger"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/relay"
+	relaychannel "github.com/QuantumNous/new-api/relay/channel"
 	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting/system_setting"
 
@@ -60,6 +62,20 @@ func proxyVideoTaskContent(c *gin.Context, task *model.Task) {
 	if task.Status != model.TaskStatusSuccess {
 		videoProxyError(c, http.StatusBadRequest, "invalid_request_error",
 			fmt.Sprintf("Task is not completed yet, current status: %s", task.Status))
+		return
+	}
+	if string(task.Platform) == "astraflow" && task.Action == "omni_video" {
+		provider, ok := relay.GetTaskAdaptor(task.Platform).(relaychannel.TaskContentRequestProvider)
+		if !ok {
+			videoProxyError(c, http.StatusBadGateway, "server_error", "Video plugin is unavailable")
+			return
+		}
+		descriptor, err := provider.BuildContentRequest(task, "video", relaychannel.TaskArtifactClientRequest{Method: c.Request.Method})
+		if err != nil || descriptor == nil || len(descriptor.InlineData) == 0 {
+			videoProxyError(c, http.StatusBadGateway, "server_error", "Video content is unavailable")
+			return
+		}
+		serveInlineTaskContent(c, descriptor)
 		return
 	}
 

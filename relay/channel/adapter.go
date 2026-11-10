@@ -106,6 +106,8 @@ type TaskArtifactProvider interface {
 }
 
 type TaskContentRequest struct {
+	InlineData     []byte
+	MimeType       string
 	URL            string
 	Method         string
 	Headers        map[string]string

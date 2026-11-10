@@ -1485,6 +1485,7 @@
     "我已了解禁用两步验证将永久删除所有相关设置和备用码，此操作不可撤销": "I have understood that disabling two-factor authentication will permanently delete all related settings and backup codes, this operation cannot be undone",
     "我已阅读并同意": "I have read and agree to",
     "我的订阅": "My Subscriptions",
+    "订阅套餐仅通过对应的专属 Key 扣费；普通 API Key 使用钱包余额。": "Subscription plans are billed only through their dedicated keys. General API keys use wallet balance.",
     "我确认开启高危重试": "I confirm enabling high-risk retry",
     "或": "or",
     "或其兼容OmniRouters Worker格式的其他版本": "or other versions compatible with OmniRouters Worker format",

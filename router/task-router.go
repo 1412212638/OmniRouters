@@ -24,4 +24,6 @@ func registerAstraFlowNativeRoutes(router *gin.Engine) {
 	)
 	router.POST(astraFlowSubmitPath, astraFlowNativeSubmitHandlers(astraFlowSubmitPath)...)
 	router.GET(astraFlowStatusPath, astraFlowNativeQueryHandlers(astraFlowStatusPath)...)
+	const interactionQueryPath = "/v1beta/models/interactions/:id"
+	router.GET(interactionQueryPath, astraFlowNativeQueryHandlers(interactionQueryPath)...)
 }

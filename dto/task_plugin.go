@@ -12,6 +12,7 @@ type TaskPluginError struct {
 // upstream identifiers.
 type TaskView struct {
 	TaskID     string `json:"task_id"`
+	Model      string `json:"model,omitempty"`
 	Platform   string `json:"platform"`
 	Status     string `json:"status"`
 	Progress   string `json:"progress"`

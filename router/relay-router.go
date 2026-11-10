@@ -212,11 +212,18 @@ func SetRelayRouter(router *gin.Engine) {
 	relayGeminiRouter.Use(middleware.RouteTag("relay"))
 	relayGeminiRouter.Use(middleware.SystemPerformanceCheck())
 	relayGeminiRouter.Use(middleware.TokenAuth())
+	// /models/*path already owns this POST namespace in Gin. Dispatch the
+	// native interaction route here rather than register a conflicting leaf.
+	relayGeminiRouter.Use(prepareAstraFlowInteraction)
 	relayGeminiRouter.Use(middleware.ModelRequestRateLimit())
 	relayGeminiRouter.Use(middleware.Distribute())
 	{
 		// Gemini API 路径格式: /v1beta/models/{model_name}:{action}
 		relayGeminiRouter.POST("/models/*path", func(c *gin.Context) {
+			if isAstraFlowInteraction(c) {
+				controller.RelayTask(c)
+				return
+			}
 			controller.Relay(c, types.RelayFormatGemini)
 		})
 	}

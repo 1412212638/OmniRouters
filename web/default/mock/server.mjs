@@ -67,7 +67,8 @@ const vendors = [
     id: 8,
     name: 'SiliconFlow',
     icon: 'siliconcloud',
-    description: 'Open model inference across text, image, and embedding tasks.',
+    description:
+      'Open model inference across text, image, and embedding tasks.',
   },
   {
     id: 9,
@@ -88,6 +89,162 @@ const usableGroup = {
   premium: { desc: 'Premium', ratio: 0.85 },
   research: { desc: 'Research', ratio: 0.6 },
 }
+
+// Local-only credentials used by `bun run dev:mock` previews.
+const demoUser = {
+  id: 1,
+  username: 'demo',
+  display_name: 'Demo User',
+  email: 'demo@example.com',
+  role: 1,
+  status: 1,
+  group: 'default',
+  quota: 500000,
+  used_quota: 0,
+  request_count: 0,
+}
+const demoAccessToken = 'local-preview-token'
+
+function demoOrganization(id, name) {
+  const now = Math.floor(Date.now() / 1000)
+  return {
+    organization: {
+      id,
+      name,
+      owner_user_id: demoUser.id,
+      group: demoUser.group,
+      quota: 0,
+      used_quota: 0,
+      request_count: 0,
+      created_at: now,
+      updated_at: now,
+    },
+    membership: {
+      organization_id: id,
+      user_id: demoUser.id,
+      role: 'owner',
+      status: 'active',
+      monthly_quota_limit: 0,
+    },
+    monthly_used_quota: 0,
+    period: new Date().toISOString().slice(0, 7),
+    member_count: 1,
+  }
+}
+
+// Preview data only; the initial organization is recreated on mock restart.
+const demoOrganizations = [demoOrganization(1, '测试组织')]
+
+const demoPlans = [
+  {
+    id: 1,
+    title: 'Starter Credits',
+    subtitle: 'For trying the model catalog',
+    price_amount: 5,
+    currency: 'USD',
+    duration_unit: 'month',
+    duration_value: 1,
+    quota_reset_period: 'never',
+    enabled: true,
+    sort_order: 1,
+    allow_balance_pay: true,
+    max_purchase_per_user: 0,
+    total_amount: 500000,
+    billing_mode: 'quota',
+    allowed_models: [],
+    allowed_groups: [],
+  },
+  {
+    id: 2,
+    title: 'Growth Credits',
+    subtitle: 'More room for regular projects',
+    price_amount: 15,
+    currency: 'USD',
+    duration_unit: 'month',
+    duration_value: 1,
+    quota_reset_period: 'monthly',
+    enabled: true,
+    sort_order: 2,
+    allow_balance_pay: true,
+    max_purchase_per_user: 3,
+    total_amount: 2000000,
+    billing_mode: 'quota',
+    allowed_models: [],
+    allowed_groups: [],
+  },
+  {
+    id: 3,
+    title: 'Team Credits',
+    subtitle: 'A larger shared allowance',
+    price_amount: 40,
+    currency: 'USD',
+    duration_unit: 'month',
+    duration_value: 3,
+    quota_reset_period: 'never',
+    enabled: true,
+    sort_order: 3,
+    allow_balance_pay: true,
+    max_purchase_per_user: 0,
+    total_amount: 8000000,
+    billing_mode: 'quota',
+    allowed_models: [],
+    allowed_groups: ['default', 'premium'],
+  },
+  {
+    id: 4,
+    title: 'GPT-4.1 专属套餐',
+    subtitle: '仅限 GPT-4.1，每月重置词元数量',
+    price_amount: 12,
+    currency: 'USD',
+    duration_unit: 'month',
+    duration_value: 1,
+    quota_reset_period: 'monthly',
+    enabled: true,
+    sort_order: 4,
+    allow_balance_pay: true,
+    max_purchase_per_user: 0,
+    total_amount: 1000000,
+    billing_mode: 'token',
+    allowed_models: ['gpt-4.1'],
+    allowed_groups: [],
+  },
+  {
+    id: 5,
+    title: '双模型词元套餐',
+    subtitle: 'GPT-4.1 与 Claude Sonnet 共享词元数量',
+    price_amount: 30,
+    currency: 'USD',
+    duration_unit: 'month',
+    duration_value: 1,
+    quota_reset_period: 'never',
+    enabled: true,
+    sort_order: 5,
+    allow_balance_pay: true,
+    max_purchase_per_user: 2,
+    total_amount: 5000000,
+    billing_mode: 'token',
+    allowed_models: ['gpt-4.1', 'claude-4-sonnet'],
+    allowed_groups: ['premium'],
+  },
+  {
+    id: 6,
+    title: '多模型不限词元套餐',
+    subtitle: '不限词元数量，仍仅可使用指定模型',
+    price_amount: 60,
+    currency: 'USD',
+    duration_unit: 'month',
+    duration_value: 1,
+    quota_reset_period: 'never',
+    enabled: true,
+    sort_order: 6,
+    allow_balance_pay: true,
+    max_purchase_per_user: 0,
+    total_amount: 0,
+    billing_mode: 'token',
+    allowed_models: ['gpt-4.1', 'claude-4-sonnet', 'gemini-2.5-pro'],
+    allowed_groups: [],
+  },
+]
 
 const supportedEndpoint = {
   openai: { path: '/v1/chat/completions', method: 'POST' },
@@ -123,7 +280,17 @@ const modelMetadata = {
     knowledge_cutoff: '2024-06',
     release_date: '2025-04',
     parameter_count: 'Proprietary',
-    capabilities: ['function_calling', 'streaming', 'vision', 'json_mode', 'structured_output', 'tools', 'web_search', 'code_interpreter', 'caching'],
+    capabilities: [
+      'function_calling',
+      'streaming',
+      'vision',
+      'json_mode',
+      'structured_output',
+      'tools',
+      'web_search',
+      'code_interpreter',
+      'caching',
+    ],
   },
   'gpt-4.1-mini': {
     context_length: 1047576,
@@ -131,7 +298,15 @@ const modelMetadata = {
     knowledge_cutoff: '2024-06',
     release_date: '2025-04',
     parameter_count: 'Proprietary',
-    capabilities: ['function_calling', 'streaming', 'vision', 'json_mode', 'structured_output', 'tools', 'caching'],
+    capabilities: [
+      'function_calling',
+      'streaming',
+      'vision',
+      'json_mode',
+      'structured_output',
+      'tools',
+      'caching',
+    ],
   },
   o3: {
     context_length: 200000,
@@ -139,7 +314,16 @@ const modelMetadata = {
     knowledge_cutoff: '2024-06',
     release_date: '2025-04',
     parameter_count: 'Proprietary',
-    capabilities: ['reasoning', 'function_calling', 'streaming', 'vision', 'structured_output', 'tools', 'web_search', 'code_interpreter'],
+    capabilities: [
+      'reasoning',
+      'function_calling',
+      'streaming',
+      'vision',
+      'structured_output',
+      'tools',
+      'web_search',
+      'code_interpreter',
+    ],
   },
   'claude-4-sonnet': {
     context_length: 200000,
@@ -147,7 +331,14 @@ const modelMetadata = {
     knowledge_cutoff: '2025-03',
     release_date: '2025-05',
     parameter_count: 'Proprietary',
-    capabilities: ['reasoning', 'function_calling', 'streaming', 'vision', 'tools', 'caching'],
+    capabilities: [
+      'reasoning',
+      'function_calling',
+      'streaming',
+      'vision',
+      'tools',
+      'caching',
+    ],
   },
   'claude-4-opus': {
     context_length: 200000,
@@ -155,7 +346,14 @@ const modelMetadata = {
     knowledge_cutoff: '2025-03',
     release_date: '2025-05',
     parameter_count: 'Proprietary',
-    capabilities: ['reasoning', 'function_calling', 'streaming', 'vision', 'tools', 'caching'],
+    capabilities: [
+      'reasoning',
+      'function_calling',
+      'streaming',
+      'vision',
+      'tools',
+      'caching',
+    ],
   },
   'gemini-2.5-pro': {
     context_length: 1048576,
@@ -163,7 +361,16 @@ const modelMetadata = {
     knowledge_cutoff: '2025-01',
     release_date: '2025-03',
     parameter_count: 'Proprietary',
-    capabilities: ['reasoning', 'function_calling', 'streaming', 'vision', 'json_mode', 'structured_output', 'tools', 'caching'],
+    capabilities: [
+      'reasoning',
+      'function_calling',
+      'streaming',
+      'vision',
+      'json_mode',
+      'structured_output',
+      'tools',
+      'caching',
+    ],
   },
   'gemini-2.5-flash': {
     context_length: 1048576,
@@ -171,7 +378,16 @@ const modelMetadata = {
     knowledge_cutoff: '2025-01',
     release_date: '2025-04',
     parameter_count: 'Proprietary',
-    capabilities: ['reasoning', 'function_calling', 'streaming', 'vision', 'json_mode', 'structured_output', 'tools', 'caching'],
+    capabilities: [
+      'reasoning',
+      'function_calling',
+      'streaming',
+      'vision',
+      'json_mode',
+      'structured_output',
+      'tools',
+      'caching',
+    ],
   },
   'deepseek-r1': {
     context_length: 128000,
@@ -243,9 +459,17 @@ const models = [
     tags: 'chat,tools,vision,reasoning',
     supported_endpoint_types: ['openai', 'openai-response'],
     tool_prices: [
-      { name: 'web_search_preview', label: 'Web Search Preview', price_per_1k: 25 },
+      {
+        name: 'web_search_preview',
+        label: 'Web Search Preview',
+        price_per_1k: 25,
+      },
       { name: 'file_search', label: 'File Search', price_per_1k: 2.5 },
-      { name: 'image_generation', label: 'Image Generation', price_per_1k: 150 },
+      {
+        name: 'image_generation',
+        label: 'Image Generation',
+        price_per_1k: 150,
+      },
     ],
   },
   {
@@ -261,7 +485,11 @@ const models = [
     tags: 'chat,fast,tools',
     supported_endpoint_types: ['openai', 'openai-response'],
     tool_prices: [
-      { name: 'web_search_preview', label: 'Web Search Preview', price_per_1k: 25 },
+      {
+        name: 'web_search_preview',
+        label: 'Web Search Preview',
+        price_per_1k: 25,
+      },
       { name: 'file_search', label: 'File Search', price_per_1k: 2.5 },
     ],
   },
@@ -281,7 +509,11 @@ const models = [
       'tier(p, 0, 100000, 10) + tier(c, 0, 100000, 40) * if(reasoning_tokens > 0, 1.2, 1)',
     pricing_version: 'mock-2026-06',
     tool_prices: [
-      { name: 'web_search_preview', label: 'Web Search Preview', price_per_1k: 10 },
+      {
+        name: 'web_search_preview',
+        label: 'Web Search Preview',
+        price_per_1k: 10,
+      },
       { name: 'file_search', label: 'File Search', price_per_1k: 2.5 },
     ],
   },
@@ -535,8 +767,7 @@ const models = [
     tags: 'task,plugin,structured-output,jev',
     supported_endpoint_types: ['openai'],
     billing_mode: 'tiered_expr',
-    billing_expr:
-      'tier("base", u("input_tokens") * 0.042 / 1000000)',
+    billing_expr: 'tier("base", u("input_tokens") * 0.042 / 1000000)',
     billing_usage_schema: {
       input_tokens: {
         type: 'number',
@@ -596,7 +827,9 @@ for (const [index, model] of models.entries()) {
   const tags = String(model.tags || '').split(/[,;|\s]+/)
   const baseModelName = model.model_name.replace(/-mock-\d+$/, '')
   const metadata = modelMetadata[baseModelName] || {}
-  const listedVendors = availableVendorsByModel[baseModelName] || [model.vendor_id]
+  const listedVendors = availableVendorsByModel[baseModelName] || [
+    model.vendor_id,
+  ]
 
   model.created_time = baseCreatedTime - index * 60 * 60
   model.context_length = metadata.context_length ?? 128000
@@ -606,9 +839,14 @@ for (const [index, model] of models.entries()) {
   model.knowledge_cutoff = metadata.knowledge_cutoff ?? '2025-01'
   model.release_date = metadata.release_date ?? '2025-06'
   model.parameter_count = metadata.parameter_count ?? 'Open weights'
-  model.capabilities = metadata.capabilities ?? ['streaming', 'function_calling']
+  model.capabilities = metadata.capabilities ?? [
+    'streaming',
+    'function_calling',
+  ]
   model.available_vendors = listedVendors
-    .filter((vendorId) => vendorId && vendors.some((vendor) => vendor.id === vendorId))
+    .filter(
+      (vendorId) => vendorId && vendors.some((vendor) => vendor.id === vendorId)
+    )
     .map((vendorId) => vendors.find((vendor) => vendor.id === vendorId))
   model.rate_limits = {
     default: { rpm: 60, tpm: 120000, rpd: 10000 },
@@ -749,6 +987,31 @@ function json(res, status, payload) {
   res.end(body)
 }
 
+function isDemoAuthenticated(req) {
+  const authorization = req.headers.authorization || ''
+  return authorization === `Bearer ${demoAccessToken}`
+}
+
+function readJson(req) {
+  return new Promise((resolve) => {
+    let body = ''
+    req.on('data', (chunk) => {
+      body += chunk
+    })
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {})
+      } catch {
+        resolve({})
+      }
+    })
+  })
+}
+
+function authRequired(res) {
+  json(res, 401, { success: false, message: 'Please sign in' })
+}
+
 function notFound(res, pathname) {
   json(res, 404, {
     success: false,
@@ -764,7 +1027,8 @@ const server = http.createServer((req, res) => {
       'access-control-allow-origin': 'http://localhost:8080',
       'access-control-allow-credentials': 'true',
       'access-control-allow-methods': 'GET,POST,OPTIONS',
-      'access-control-allow-headers': 'content-type,new-api-user',
+      'access-control-allow-headers':
+        'content-type,authorization,new-api-user,new-api-organization',
     })
     res.end()
     return
@@ -791,6 +1055,138 @@ const server = http.createServer((req, res) => {
   if (url.pathname === '/api/pricing') return json(res, 200, pricingResponse())
   if (url.pathname === '/api/notice') {
     return json(res, 200, { success: true, data: '' })
+  }
+  if (url.pathname === '/api/user/login' && req.method === 'POST') {
+    return readJson(req).then((body) => {
+      const username = String(body.username || '')
+        .trim()
+        .toLowerCase()
+      const password = String(body.password || '')
+      if (
+        (username === 'demo' || username === demoUser.email) &&
+        password === 'demo123456'
+      ) {
+        return json(res, 200, {
+          success: true,
+          message: 'Login successful',
+          data: {
+            id: demoUser.id,
+            user: demoUser,
+            access_token: demoAccessToken,
+            token_type: 'Bearer',
+          },
+        })
+      }
+      return json(res, 401, {
+        success: false,
+        message: 'Invalid demo credentials',
+      })
+    })
+  }
+  if (url.pathname === '/api/user/self' && req.method === 'GET') {
+    return isDemoAuthenticated(req)
+      ? json(res, 200, { success: true, data: demoUser })
+      : authRequired(res)
+  }
+  if (url.pathname === '/api/user/auth/refresh' && req.method === 'POST') {
+    return isDemoAuthenticated(req)
+      ? json(res, 200, {
+          success: true,
+          data: {
+            user: demoUser,
+            access_token: demoAccessToken,
+            token_type: 'Bearer',
+          },
+        })
+      : authRequired(res)
+  }
+  if (
+    url.pathname === '/api/organizations' ||
+    url.pathname.startsWith('/api/organizations/')
+  ) {
+    if (!isDemoAuthenticated(req)) return authRequired(res)
+    if (url.pathname === '/api/organizations') {
+      if (req.method === 'GET') {
+        return json(res, 200, { success: true, data: demoOrganizations })
+      }
+      if (req.method === 'POST') {
+        return readJson(req).then((body) => {
+          const name = typeof body.name === 'string' ? body.name.trim() : ''
+          if (!name || Buffer.byteLength(name, 'utf8') > 128) {
+            return json(res, 400, {
+              success: false,
+              message: 'Organization name must be between 1 and 128 bytes',
+            })
+          }
+          if (demoOrganizations.length >= 20) {
+            return json(res, 400, {
+              success: false,
+              message: 'Organization limit reached',
+            })
+          }
+          const workspace = demoOrganization(demoOrganizations.length + 1, name)
+          demoOrganizations.push(workspace)
+          return json(res, 200, { success: true, data: workspace })
+        })
+      }
+    }
+    if (req.method === 'GET') {
+      if (url.pathname === '/api/organizations/invitations') {
+        return json(res, 200, { success: true, data: [] })
+      }
+      const match = url.pathname.match(
+        /^\/api\/organizations\/(\d+)(?:\/(.+))?$/
+      )
+      const workspace = demoOrganizations.find(
+        (entry) => entry.organization.id === Number(match?.[1])
+      )
+      if (!workspace) return notFound(res, url.pathname)
+      const section = match[2]
+      if (!section) return json(res, 200, { success: true, data: workspace })
+      if (section === 'members') {
+        return json(res, 200, {
+          success: true,
+          data: [
+            { ...workspace.membership, ...demoUser, monthly_used_quota: 0 },
+          ],
+        })
+      }
+      if (section === 'usage') {
+        return json(res, 200, {
+          success: true,
+          data: {
+            used_quota: 0,
+            request_count: 0,
+            monthly_used_quota: 0,
+            total_tokens: 0,
+          },
+        })
+      }
+      if (section === 'logs') {
+        return json(res, 200, { success: true, data: { items: [], total: 0 } })
+      }
+      if (['invitations', 'tokens', 'wallet/transactions'].includes(section)) {
+        return json(res, 200, { success: true, data: [] })
+      }
+    }
+    return notFound(res, url.pathname)
+  }
+  if (url.pathname === '/api/subscription/plans' && req.method === 'GET') {
+    return json(res, 200, {
+      success: true,
+      data: demoPlans.map((plan) => ({ plan })),
+    })
+  }
+  if (url.pathname === '/api/subscription/self' && req.method === 'GET') {
+    return isDemoAuthenticated(req)
+      ? json(res, 200, {
+          success: true,
+          data: {
+            subscriptions: [],
+            all_subscriptions: [],
+          },
+        })
+      : authRequired(res)
   }
   if (url.pathname === '/api/perf-metrics/summary') {
     return json(res, 200, perfSummaryResponse())

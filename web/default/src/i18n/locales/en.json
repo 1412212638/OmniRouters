@@ -1,9 +1,9 @@
 {
   "translation": {
-    "Playground uses your personal balance. Use an organization API key for organization billing.": "Playground uses your personal balance. Use an organization API key for organization billing.",
     "360": "360",
     "1000": "1000",
     "10000": "10000",
+    "Playground uses your personal balance. Use an organization API key for organization billing.": "Playground uses your personal balance. Use an organization API key for organization billing.",
     "Decisions": "Decisions",
     "Mapped Model": "Mapped Model",
     "Returned Model": "Returned Model",
@@ -2886,6 +2886,7 @@
     "Must be a valid URL": "Must be a valid URL",
     "Must be at least 8 characters": "Must be at least 8 characters",
     "My Subscriptions": "My Subscriptions",
+    "Subscription plans are billed only through their dedicated keys. General API keys use wallet balance.": "Subscription plans are billed only through their dedicated keys. General API keys use wallet balance.",
     "my-status": "my-status",
     "MySQL detected": "MySQL detected",
     "MySQL is a production-ready relational database. Keep your credentials secure.": "MySQL is a production-ready relational database. Keep your credentials secure.",
@@ -4383,6 +4384,15 @@
     "Subscription Management": "Subscription Management",
     "Subscription Only": "Subscription Only",
     "Subscription plan creation and changes are locked until the administrator confirms compliance terms in Payment Gateway settings.": "Subscription plan creation and changes are locked until the administrator confirms compliance terms in Payment Gateway settings.",
+    "Billing unit": "Billing unit",
+    "Credits": "Credits",
+    "Subscription Tokens": "Tokens",
+    "Total Subscription Tokens": "Total Tokens",
+    "Subscription Token based": "Token based",
+    "1 quota = 1 Credit": "1 quota = 1 Credit",
+    "Choose a billing unit and subscribe to a plan for model access.": "Choose a billing unit and subscribe to a plan for model access.",
+    "View subscription plans": "View subscription plans",
+    "No plans available for this billing unit": "No plans available for this billing unit",
     "Subscription Plans": "Subscription Plans",
     "Subscription plans do NOT use the bound Product — each plan has its own dedicated Pancake product, set in the Subscriptions admin (or auto-minted via the \"+ Create\" button there).": "Subscription plans do NOT use the bound Product — each plan has its own dedicated Pancake product, set in the Subscriptions admin (or auto-minted via the \"+ Create\" button there).",
     "Subscription purchased successfully": "Subscription purchased successfully",
@@ -6247,6 +6257,7 @@
     "Only the listed website origins can read public API responses.": "Only the listed website origins can read public API responses.",
     "Allowed website origins": "Allowed website origins",
     "Enter one full origin per line, including http:// or https://. Do not include a path, query, or fragment.": "Enter one full origin per line, including http:// or https://. Do not include a path, query, or fragment.",
-    "This policy only affects /v1 APIs. Admin and dashboard endpoints under /api keep the existing allowlist and cookie behavior.": "This policy only affects /v1 APIs. Admin and dashboard endpoints under /api keep the existing allowlist and cookie behavior."
+    "This policy only affects /v1 APIs. Admin and dashboard endpoints under /api keep the existing allowlist and cookie behavior.": "This policy only affects /v1 APIs. Admin and dashboard endpoints under /api keep the existing allowlist and cookie behavior.",
+    "Text output": "Text output"
   }
 }

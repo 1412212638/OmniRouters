@@ -94,6 +94,7 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
       definition.pricingDisplay === 'input_output_video_seconds'
   )?.[0]
   const ratio = props.groupRatio ?? 1
+  const discountedPriceClassName = ratio < 1 ? 'text-success' : undefined
   const title = props.title || t('Task pricing')
   return (
     <section className='space-y-3'>
@@ -136,10 +137,13 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
                   header: t('Fixed price'),
                   className: 'text-muted-foreground px-3 py-2 text-right',
                   cellClassName: 'px-3 py-2 text-right font-mono',
-                  cell: (tier: (typeof tiers)[number]) =>
-                    tier.constant > 0
-                      ? formatTaskPrice(tier.constant * ratio, props)
-                      : '-',
+                  cell: (tier: (typeof tiers)[number]) => (
+                    <span className={discountedPriceClassName}>
+                      {tier.constant > 0
+                        ? formatTaskPrice(tier.constant * ratio, props)
+                        : '-'}
+                    </span>
+                  ),
                 },
               ]
             : []),
@@ -184,12 +188,26 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
                   )
                 }
                 if (freeQuantity > 0 && value > 0) {
-                  return `${t('First')} ${freeQuantity} ${unitLabel} ${t('free')}; ${t('then')} ${formatTaskPrice(value * ratio, props)} / ${unitLabel}`
+                  return (
+                    <span className={discountedPriceClassName}>
+                      {`${t('First')} ${freeQuantity} ${unitLabel} ${t('free')}; ${t('then')} ${formatTaskPrice(value * ratio, props)} / ${unitLabel}`}
+                    </span>
+                  )
                 }
-                if (freeQuantity > 0) return t('Free')
-                return value > 0
-                  ? `${formatTaskPrice(value * ratio, props)} / ${unitLabel}`
-                  : '-'
+                if (freeQuantity > 0) {
+                  return (
+                    <span className={discountedPriceClassName}>
+                      {t('Free')}
+                    </span>
+                  )
+                }
+                return (
+                  <span className={discountedPriceClassName}>
+                    {value > 0
+                      ? `${formatTaskPrice(value * ratio, props)} / ${unitLabel}`
+                      : '-'}
+                  </span>
+                )
               },
             }))
           }),

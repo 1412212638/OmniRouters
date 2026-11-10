@@ -4,6 +4,29 @@ import { describe, test } from 'node:test'
 import { extractTaskMedia, getTaskPreviewMedia } from './task-media'
 
 describe('task media preview extraction', () => {
+  test('offers Omni preview without copying Base64 into the task list', () => {
+    const log = {
+      data: {
+        steps: [
+          {
+            type: 'model_output',
+            content: [{ type: 'video', mime_type: 'video/mp4' }],
+          },
+        ],
+      },
+      status: 'SUCCESS',
+      action: 'omni_video',
+      task_id: 'public-id',
+      fail_reason: '',
+    }
+    assert.deepEqual(getTaskPreviewMedia(log, 'SUCCESS', true), [
+      { kind: 'video', url: '/v1/videos/public-id/content' },
+    ])
+    assert.deepEqual(
+      getTaskPreviewMedia({ ...log, status: 'FAILURE' }, 'SUCCESS', true),
+      []
+    )
+  })
   test('extracts image outputs using output format metadata', () => {
     assert.deepEqual(
       extractTaskMedia({

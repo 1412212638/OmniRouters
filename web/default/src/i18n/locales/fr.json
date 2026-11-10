@@ -1,9 +1,9 @@
 {
   "translation": {
-    "Playground uses your personal balance. Use an organization API key for organization billing.": "Playground utilise votre solde personnel. Utilisez une clé API de l’organisation pour facturer celle-ci.",
     "360": "360",
     "1000": "1000",
     "10000": "10000",
+    "Playground uses your personal balance. Use an organization API key for organization billing.": "Playground utilise votre solde personnel. Utilisez une clé API de l’organisation pour facturer celle-ci.",
     "Decisions": "Décisions",
     "Mapped Model": "Modèle mappé",
     "Returned Model": "Modèle renvoyé",
@@ -2880,6 +2880,7 @@
     "Must be a valid URL": "Doit être une URL valide",
     "Must be at least 8 characters": "Doit contenir au moins 8 caractères",
     "My Subscriptions": "Mes abonnements",
+    "Subscription plans are billed only through their dedicated keys. General API keys use wallet balance.": "Les abonnements sont facturés uniquement avec leurs clés dédiées. Les clés API générales utilisent le solde du portefeuille.",
     "my-status": "mon-statut",
     "MySQL detected": "MySQL détecté",
     "MySQL is a production-ready relational database. Keep your credentials secure.": "MySQL est une base de données relationnelle prête pour la production. Gardez vos identifiants en sécurité.",
@@ -6107,6 +6108,7 @@
     "Transfer in": "Transfert entrant",
     "Transfer from personal balance": "Transfert depuis le solde personnel",
     "Only organization owners and admins can manage the shared wallet.": "Seuls les propriétaires et administrateurs peuvent gérer le portefeuille partagé.",
-    "Payments made here are credited directly to this organization. Personal balances remain separate.": "Les paiements sont crédités directement à cette organisation. Les soldes personnels restent séparés."
+    "Payments made here are credited directly to this organization. Personal balances remain separate.": "Les paiements sont crédités directement à cette organisation. Les soldes personnels restent séparés.",
+    "Text output": "Sortie texte"
   }
 }

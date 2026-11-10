@@ -167,7 +167,7 @@ export function useSubscriptionsColumns(): ColumnDef<PlanRecord>[] {
         header: t('Billing Mode'),
         cell: ({ row }) =>
           row.original.plan.billing_mode === 'token'
-            ? t('Token based')
+            ? t('Subscription Token based')
             : t('Quota based'),
         size: 120,
       },

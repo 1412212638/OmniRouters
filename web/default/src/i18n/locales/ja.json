@@ -1,9 +1,9 @@
 {
   "translation": {
-    "Playground uses your personal balance. Use an organization API key for organization billing.": "Playground では個人の残高を使用します。組織の残高で支払う場合は、組織の API キーを使用してください。",
     "360": "360",
     "1000": "1000",
     "10000": "10000",
+    "Playground uses your personal balance. Use an organization API key for organization billing.": "Playground では個人の残高を使用します。組織の残高で支払う場合は、組織の API キーを使用してください。",
     "Decisions": "意思決定",
     "Mapped Model": "マッピング先モデル",
     "Returned Model": "返却モデル",
@@ -2880,6 +2880,7 @@
     "Must be a valid URL": "有効な URL を入力してください",
     "Must be at least 8 characters": "8文字以上である必要があります",
     "My Subscriptions": "マイサブスクリプション",
+    "Subscription plans are billed only through their dedicated keys. General API keys use wallet balance.": "サブスクリプションは専用キーでのみ請求されます。通常の API キーはウォレット残高を使用します。",
     "my-status": "my-status",
     "MySQL detected": "MySQLが検出されました",
     "MySQL is a production-ready relational database. Keep your credentials secure.": "MySQL は本番環境対応のリレーショナルデータベースです。認証情報を安全に管理してください。",
@@ -6107,6 +6108,7 @@
     "Transfer in": "入金",
     "Transfer from personal balance": "個人残高からの振替",
     "Only organization owners and admins can manage the shared wallet.": "組織のオーナーと管理者のみが共有ウォレットを管理できます。",
-    "Payments made here are credited directly to this organization. Personal balances remain separate.": "ここでの支払いはこの組織に直接入金されます。個人残高は別に管理されます。"
+    "Payments made here are credited directly to this organization. Personal balances remain separate.": "ここでの支払いはこの組織に直接入金されます。個人残高は別に管理されます。",
+    "Text output": "テキスト出力"
   }
 }

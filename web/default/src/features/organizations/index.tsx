@@ -89,7 +89,7 @@ import {
 import type { OrganizationMember } from './types'
 import { useActiveOrganizationId, useWorkspaceStore } from './workspace-store'
 
-export function Organizations() {
+export function Organizations(props: { manageCurrent?: boolean }) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const userId = useAuthStore((state) => state.auth.user?.id)
@@ -128,10 +128,11 @@ export function Organizations() {
     )
   }, [organizationSearch, organizations.data])
   useEffect(() => {
+    if (props.manageCurrent) return
     if (selectorEntry.current) return
     selectorEntry.current = true
     if (userId && activeId !== null) selectOrganization(userId, null)
-  }, [activeId, selectOrganization, userId])
+  }, [activeId, props.manageCurrent, selectOrganization, userId])
   const organization = useQuery({
     queryKey: ['organization', userId, selectedId],
     queryFn: () => getOrganization(selectedId as number),

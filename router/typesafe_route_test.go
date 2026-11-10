@@ -52,7 +52,7 @@ func TestAstraFlowNativeRoutesRegistered(t *testing.T) {
 	SetTaskRouter(router)
 	want := map[string]map[string]bool{
 		http.MethodPost: {"/v1/tasks/submit": false},
-		http.MethodGet:  {"/v1/tasks/status": false},
+		http.MethodGet:  {"/v1/tasks/status": false, "/v1beta/models/interactions/:id": false},
 	}
 	for _, route := range router.Routes() {
 		if paths, ok := want[route.Method]; ok {
@@ -67,6 +67,22 @@ func TestAstraFlowNativeRoutesRegistered(t *testing.T) {
 				t.Fatalf("AstraFlow native %s route %s must be registered", method, path)
 			}
 		}
+	}
+}
+
+func TestAstraFlowInteractionsCoexistWithGeminiWildcard(t *testing.T) {
+	router := gin.New()
+	SetRelayRouter(router)
+	SetTaskRouter(router)
+	request := httptest.NewRequest(http.MethodPost, "/v1beta/models/interactions", nil)
+	context, _ := gin.CreateTestContext(httptest.NewRecorder())
+	context.Request = request
+	if !isAstraFlowInteraction(context) {
+		t.Fatal("native interaction submit must enter the task-plugin pipeline")
+	}
+	context.Request = httptest.NewRequest(http.MethodPost, "/v1beta/models/gemini-3-pro:generateContent", nil)
+	if isAstraFlowInteraction(context) {
+		t.Fatal("ordinary Gemini requests must retain the Gemini relay")
 	}
 }
 

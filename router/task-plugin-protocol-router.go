@@ -48,6 +48,20 @@ func astraFlowNativeQueryHandlers(declaredPath string) []gin.HandlerFunc {
 	}
 }
 
+func isAstraFlowInteraction(c *gin.Context) bool {
+	return c.Request.Method == http.MethodPost && c.Request.URL.Path == "/v1beta/models/interactions"
+}
+
+func prepareAstraFlowInteraction(c *gin.Context) {
+	if !isAstraFlowInteraction(c) {
+		return
+	}
+	pinDeclaredTaskPluginRoute(http.MethodPost, "/v1beta/models/interactions")(c)
+	if !c.IsAborted() {
+		middleware.PrepareTaskPluginRoute()(c)
+	}
+}
+
 // registerDoubaoNativeRoutes keeps the historical /doubao-prefixed Ark task
 // API available alongside the official /api/v3 aliases registered in the API
 // router. Both paths enter the same task-plugin pipeline and are pinned to the
@@ -82,7 +96,7 @@ func pinDeclaredTaskPluginRoute(method, declaredPath string) gin.HandlerFunc {
 		binding, ok := generation.LookupDeclaredRoute(method, declaredPath)
 		if !ok || binding.Plugin == nil {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": gin.H{
-				"message": "Doubao native route is unavailable; install and enable the Doubao plugin",
+				"message": "Native task route is unavailable; install and enable its task plugin",
 				"type":    "new_api_error", "code": "task_plugin_route_unavailable",
 			}})
 			return

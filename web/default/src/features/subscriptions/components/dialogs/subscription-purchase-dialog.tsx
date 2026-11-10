@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { useSystemConfig } from '@/hooks/use-system-config'
-import { formatQuota } from '@/lib/format'
+import { formatBillingCurrencyFromUSD } from '@/lib/currency'
 import { DEFAULT_CURRENCY_CONFIG } from '@/stores/system-config-store'
 
 import {
@@ -48,6 +48,12 @@ interface Props {
   purchaseCount?: number
   userQuota?: number
   onPurchaseSuccess?: () => void | Promise<void>
+}
+
+function formatCredits(value: number): string {
+  return new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: 0,
+  }).format(Math.max(0, Math.round(value)))
 }
 
 export function SubscriptionPurchaseDialog(props: Props) {
@@ -95,6 +101,10 @@ export function SubscriptionPurchaseDialog(props: Props) {
   const limitReached =
     (props.purchaseLimit || 0) > 0 &&
     (props.purchaseCount || 0) >= (props.purchaseLimit || 0)
+  let receivedAmount = t('Unlimited')
+  if (totalAmount > 0) {
+    receivedAmount = formatCredits(totalAmount)
+  }
 
   const handlePayStripe = async () => {
     setPaying(true)
@@ -281,13 +291,26 @@ export function SubscriptionPurchaseDialog(props: Props) {
           )}
           <div className='flex items-center justify-between'>
             <span className='text-muted-foreground text-sm'>
-              {t('Received amount')}
+              {plan.billing_mode === 'token'
+                ? t('Total Subscription Tokens')
+                : t('Credits')}
             </span>
             <span className='flex items-center gap-1 text-sm'>
               <Package className='h-3.5 w-3.5' />
-              {totalAmount > 0 ? formatQuota(totalAmount) : t('Unlimited')}
+              {receivedAmount}
             </span>
           </div>
+          {plan.billing_mode === 'token' &&
+            (plan.allowed_models || []).length > 0 && (
+              <div className='flex flex-col gap-1'>
+                <span className='text-muted-foreground text-sm'>
+                  {t('Allowed Models')}
+                </span>
+                <span className='text-sm wrap-anywhere'>
+                  {plan.allowed_models?.join(', ')}
+                </span>
+              </div>
+            )}
           {plan.upgrade_group && (
             <div className='flex items-center justify-between'>
               <span className='text-muted-foreground text-sm'>
@@ -315,11 +338,19 @@ export function SubscriptionPurchaseDialog(props: Props) {
         <div className='flex flex-col gap-2 rounded-md border p-3'>
           <div className='flex items-center justify-between gap-2 text-xs'>
             <span className='text-muted-foreground'>{t('Required')}</span>
-            <span>{formatQuota(balanceCost)}</span>
+            <span>
+              {formatBillingCurrencyFromUSD(balanceCost / quotaPerUnit, {
+                minimumFractionDigits: 2,
+              })}
+            </span>
           </div>
           <div className='flex items-center justify-between gap-2 text-xs'>
             <span className='text-muted-foreground'>{t('Available')}</span>
-            <span>{formatQuota(userQuota)}</span>
+            <span>
+              {formatBillingCurrencyFromUSD(userQuota / quotaPerUnit, {
+                minimumFractionDigits: 2,
+              })}
+            </span>
           </div>
           {!allowBalancePay ? (
             <Alert variant='destructive'>
@@ -387,12 +418,10 @@ export function SubscriptionPurchaseDialog(props: Props) {
             {hasEpay && (
               <div className='grid grid-cols-[minmax(0,1fr)_auto] gap-2'>
                 <Select
-                  items={[
-                    ...(props.epayMethods || []).map((m) => ({
-                      value: m.type,
-                      label: m.name || m.type,
-                    })),
-                  ]}
+                  items={(props.epayMethods || []).map((m) => ({
+                    value: m.type,
+                    label: m.name || m.type,
+                  }))}
                   value={selectedEpayMethod}
                   onValueChange={(v) => v !== null && setSelectedEpayMethod(v)}
                   disabled={limitReached}

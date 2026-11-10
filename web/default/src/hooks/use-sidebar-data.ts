@@ -47,6 +47,15 @@ export function useSidebarData(): SidebarData {
       url: '/wallet',
       icon: Wallet,
     },
+    ...(status?.organization_enabled === false
+      ? []
+      : [
+          {
+            title: t('Manage organizations'),
+            url: '/organizations/manage',
+            icon: Building2,
+          },
+        ]),
   ]
 
   return {
@@ -123,6 +132,11 @@ export function useSidebarData(): SidebarData {
                 title: t('Wallet'),
                 url: '/wallet',
                 icon: Wallet,
+              },
+              {
+                title: t('Subscription Plans'),
+                url: '/subscription-plans',
+                icon: CreditCard,
               },
               {
                 title: t('Friends Hub'),

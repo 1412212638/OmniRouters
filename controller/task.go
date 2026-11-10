@@ -95,8 +95,42 @@ func tasksToDto(tasks []*model.Task, fillUser bool) []*dto.TaskDto {
 				result[i].FailReason = strings.ReplaceAll(task.FailReason, task.Properties.UpstreamModelName, task.Properties.OriginModelName)
 			}
 		}
+		if string(task.Platform) == "astraflow" && task.Action == "omni_video" {
+			result[i].Data = omitOmniTaskMedia(result[i].Data)
+		}
 	}
 	return result
+}
+
+// Native retrieval keeps the full interaction. Dashboard lists must not carry
+// megabytes of Base64 input/output media (for administrators or users).
+func omitOmniTaskMedia(data json.RawMessage) json.RawMessage {
+	var value any
+	if common.Unmarshal(data, &value) != nil {
+		return json.RawMessage("null")
+	}
+	var visit func(any)
+	visit = func(item any) {
+		switch typed := item.(type) {
+		case map[string]any:
+			if typed["type"] == "video" || typed["type"] == "image" || typed["type"] == "audio" {
+				delete(typed, "data")
+			}
+			for _, child := range typed {
+				visit(child)
+			}
+		case []any:
+			for _, child := range typed {
+				visit(child)
+			}
+		}
+	}
+	visit(value)
+	encoded, err := common.Marshal(value)
+	if err != nil {
+		return json.RawMessage("null")
+	}
+	return encoded
 }
 
 func sanitizeUserTaskData(data json.RawMessage, upstreamModelName, publicModelName string) json.RawMessage {

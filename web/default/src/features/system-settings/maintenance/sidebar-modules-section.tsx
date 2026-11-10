@@ -110,6 +110,10 @@ export function SidebarModulesSection({
         title: t('Wallet'),
         description: t('Top up balance and view billing history.'),
       },
+      subscription: {
+        title: t('Subscription Plans'),
+        description: t('Browse and purchase user subscription plans.'),
+      },
       tiers: {
         title: t('Member Tiers'),
         description: t('View tier progress and group-based benefits.'),

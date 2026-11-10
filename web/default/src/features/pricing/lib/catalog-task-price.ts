@@ -23,6 +23,31 @@ export type CatalogTaskPriceRows = {
   outputLabel?: string
   outputValue: string
   outputUnit: string
+  textOutputValue?: string
+  textOutputUnit?: string
+  textOutputLabel?: string
+}
+
+export function getCatalogTokenModalityRows(
+  entries: DynamicPriceEntry[],
+  tokenUnit: string,
+  textLabel: string,
+  videoLabel: string
+): CatalogTaskPriceRows | null {
+  const text = entries.find((entry) => entry.field === 'text_output_tokens')
+  const video = entries.find((entry) => entry.field === 'video_output_tokens')
+  if (!text && !video) return null
+  const input = entries.find((entry) => entry.field === 'input_tokens')
+  return {
+    inputValue: input ? formatCardPriceRange(input.formatted) : '-',
+    inputUnit: input ? tokenUnit : '',
+    textOutputLabel: textLabel,
+    textOutputValue: text ? formatCardPriceRange(text.formatted) : '-',
+    textOutputUnit: text ? tokenUnit : '',
+    outputLabel: videoLabel,
+    outputValue: video ? formatCardPriceRange(video.formatted) : '-',
+    outputUnit: video ? tokenUnit : '',
+  }
 }
 
 function formatCardPriceRange(value: string): string {

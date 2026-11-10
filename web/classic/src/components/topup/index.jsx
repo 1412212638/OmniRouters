@@ -42,19 +42,22 @@ import PaymentConfirmModal from './modals/PaymentConfirmModal';
 import TopupHistoryModal from './modals/TopupHistoryModal';
 
 const PAYMENT_LABEL_FALLBACKS = {
-  en: { '基础金额': 'Base amount', '手续费': 'Handling fee' },
-  fr: { '基础金额': 'Montant de base', '手续费': 'Frais de traitement' },
-  ja: { '基础金额': '基本金額', '手续费': '手数料' },
-  ru: { '基础金额': 'Базовая сумма', '手续费': 'Комиссия' },
-  vi: { '基础金额': 'So tien co ban', '手续费': 'Phi xu ly' },
-  'zh-cn': { '基础金额': '基础金额', '手续费': '手续费' },
-  'zh-tw': { '基础金额': '基礎金額', '手续费': '手續費' },
+  en: { 基础金额: 'Base amount', 手续费: 'Handling fee' },
+  fr: { 基础金额: 'Montant de base', 手续费: 'Frais de traitement' },
+  ja: { 基础金额: '基本金額', 手续费: '手数料' },
+  ru: { 基础金额: 'Базовая сумма', 手续费: 'Комиссия' },
+  vi: { 基础金额: 'So tien co ban', 手续费: 'Phi xu ly' },
+  'zh-cn': { 基础金额: '基础金额', 手续费: '手续费' },
+  'zh-tw': { 基础金额: '基礎金額', 手续费: '手續費' },
 };
 
 const getPaymentLabelText = (t, i18n, key) => {
   const translated = t(key);
-  const language = (i18n?.resolvedLanguage || i18n?.language || 'zh-CN')
-    .toLowerCase();
+  const language = (
+    i18n?.resolvedLanguage ||
+    i18n?.language ||
+    'zh-CN'
+  ).toLowerCase();
   if (language.startsWith('zh')) {
     return translated;
   }
@@ -141,8 +144,6 @@ const TopUp = () => {
   // 订阅相关
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
-  const [billingPreference, setBillingPreference] =
-    useState('subscription_first');
   const [activeSubscriptions, setActiveSubscriptions] = useState([]);
   const [allSubscriptions, setAllSubscriptions] = useState([]);
 
@@ -581,9 +582,6 @@ const TopUp = () => {
     try {
       const res = await API.get('/api/subscription/self');
       if (res.data?.success) {
-        setBillingPreference(
-          res.data.data?.billing_preference || 'subscription_first',
-        );
         // Active subscriptions
         const activeSubs = res.data.data?.subscriptions || [];
         setActiveSubscriptions(activeSubs);
@@ -593,28 +591,6 @@ const TopUp = () => {
       }
     } catch (e) {
       // ignore
-    }
-  };
-
-  const updateBillingPreference = async (pref) => {
-    const previousPref = billingPreference;
-    setBillingPreference(pref);
-    try {
-      const res = await API.put('/api/subscription/self/preference', {
-        billing_preference: pref,
-      });
-      if (res.data?.success) {
-        showSuccess(t('更新成功'));
-        const normalizedPref =
-          res.data?.data?.billing_preference || pref || previousPref;
-        setBillingPreference(normalizedPref);
-      } else {
-        showError(res.data?.message || t('更新失败'));
-        setBillingPreference(previousPref);
-      }
-    } catch (e) {
-      showError(t('请求失败'));
-      setBillingPreference(previousPref);
     }
   };
 
@@ -695,7 +671,7 @@ const TopUp = () => {
                 ? data.waffo_min_topup
                 : enableWaffoPancakeTopUp
                   ? data.waffo_pancake_min_topup
-                : 1;
+                  : 1;
           setEnableOnlineTopUp(enableOnlineTopUp);
           setEnableStripeTopUp(enableStripeTopUp);
           setEnableCreemTopUp(enableCreemTopUp);
@@ -1071,8 +1047,6 @@ const TopUp = () => {
           onOpenHistory={handleOpenHistory}
           subscriptionLoading={subscriptionLoading}
           subscriptionPlans={subscriptionPlans}
-          billingPreference={billingPreference}
-          onChangeBillingPreference={updateBillingPreference}
           activeSubscriptions={activeSubscriptions}
           allSubscriptions={allSubscriptions}
           reloadSubscriptionSelf={getSubscriptionSelf}

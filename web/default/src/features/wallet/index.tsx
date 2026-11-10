@@ -1,9 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
+import { CreditCard } from 'lucide-react'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { SectionPageLayout } from '@/components/layout'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { getOrganization } from '@/features/organizations/api'
 import type { OrganizationWorkspace } from '@/features/organizations/types'
@@ -22,7 +26,6 @@ import { PaymentConfirmDialog } from './components/dialogs/payment-confirm-dialo
 import { TransferDialog } from './components/dialogs/transfer-dialog'
 import { InvoiceProfileCard } from './components/invoice-profile-card'
 import { RechargeFormCard } from './components/recharge-form-card'
-import { SubscriptionPlansCard } from './components/subscription-plans-card'
 import { WalletStatsCard } from './components/wallet-stats-card'
 import { DEFAULT_DISCOUNT_RATE } from './constants'
 import {
@@ -109,7 +112,6 @@ function WalletContent(
   const [creemDialogOpen, setCreemDialogOpen] = useState(false)
   const [selectedCreemProduct, setSelectedCreemProduct] =
     useState<CreemProduct | null>(null)
-  const [showSubscriptionPanel, setShowSubscriptionPanel] = useState(true)
 
   const { status } = useStatus()
   const { currency, invoiceProfileEnabled = true } = useSystemConfig()
@@ -313,13 +315,6 @@ function WalletContent(
     return topupInfo?.discount?.[topupAmount] || DEFAULT_DISCOUNT_RATE
   }, [topupInfo, topupAmount])
 
-  const handleSubscriptionAvailabilityChange = useCallback(
-    (available: boolean) => {
-      setShowSubscriptionPanel(available)
-    },
-    []
-  )
-
   return (
     <>
       <SectionPageLayout>
@@ -353,13 +348,7 @@ function WalletContent(
               />
             )}
 
-            <div
-              className={
-                !isOrganization && showSubscriptionPanel
-                  ? 'grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] xl:items-start'
-                  : 'grid gap-4'
-              }
-            >
+            <div className='grid gap-4'>
               <div id='wallet-add-funds' className='scroll-mt-4'>
                 <RechargeFormCard
                   allowRedemption={!isOrganization}
@@ -407,16 +396,33 @@ function WalletContent(
                   </div>
                 )}
               </div>
-
-              {!isOrganization && (
-                <SubscriptionPlansCard
-                  topupInfo={topupInfo}
-                  onAvailabilityChange={handleSubscriptionAvailabilityChange}
-                  userQuota={user?.quota}
-                  onPurchaseSuccess={fetchUser}
-                />
-              )}
             </div>
+
+            {!isOrganization && (
+              <Card data-card-hover='false'>
+                <CardContent className='flex flex-wrap items-center justify-between gap-3 p-4'>
+                  <div className='flex min-w-0 items-center gap-3'>
+                    <span className='bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-lg'>
+                      <CreditCard className='size-4' aria-hidden='true' />
+                    </span>
+                    <div className='min-w-0'>
+                      <p className='font-medium'>{t('Subscription Plans')}</p>
+                      <p className='text-muted-foreground text-xs'>
+                        {t(
+                          'Choose a billing unit and subscribe to a plan for model access.'
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant='outline'
+                    render={<Link to='/subscription-plans' />}
+                  >
+                    {t('View subscription plans')}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
             {!isOrganization && (
               <AffiliateRewardsCard

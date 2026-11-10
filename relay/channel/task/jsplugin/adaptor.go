@@ -110,6 +110,21 @@ const maxTaskArtifacts = 64
 // maxTaskPluginPersistedJSONBytes is the shared ceiling for taskData and plugin state.
 const maxTaskPluginPersistedJSONBytes = 1 << 20
 
+// Omni returns the actual video as Base64 JSON. Keep its larger bound isolated
+// from other plugins and retain the existing small plugin-state ceiling.
+const maxAstraFlowOmniJSONBytes = 64 << 20
+
+func (a *TaskAdaptor) isAstraFlowOmni(action string) bool {
+	return a.plugin != nil && a.plugin.Meta.Key == "astraflow" && action == "omni_video"
+}
+
+func (a *TaskAdaptor) submitJSONLimit() int {
+	if a.info != nil && a.info.TaskRelayInfo != nil && a.isAstraFlowOmni(a.info.Action) {
+		return maxAstraFlowOmniJSONBytes
+	}
+	return maxTaskPluginPersistedJSONBytes
+}
+
 type TaskAdaptor struct {
 	plugin         *pluginruntime.LoadedPlugin
 	info           *relaycommon.RelayInfo
@@ -577,8 +592,9 @@ func (a *TaskAdaptor) ParseResponse(c *gin.Context, resp *http.Response, info *r
 	streaming := a.submit != nil && a.submit.ResponseType == "sse"
 	mediaType, _, _ := mime.ParseMediaType(resp.Header.Get("Content-Type"))
 	acceptedStream := streaming || mediaType == "text/event-stream"
+	acceptedOmni := info.TaskRelayInfo != nil && a.isAstraFlowOmni(info.Action) && resp.StatusCode >= 200 && resp.StatusCode < 300
 	defer func() {
-		if acceptedStream && taskErr != nil {
+		if (acceptedStream || acceptedOmni) && taskErr != nil {
 			taskErr.NoRetry = true
 		}
 	}()
@@ -592,8 +608,8 @@ func (a *TaskAdaptor) ParseResponse(c *gin.Context, resp *http.Response, info *r
 		responseBody, err = a.readSubmitEvents(c.Request.Context(), resp, a.submitContext(c, info))
 	} else {
 		var body []byte
-		body, err = io.ReadAll(io.LimitReader(resp.Body, maxTaskPluginPersistedJSONBytes+1))
-		if err == nil && len(body) > maxTaskPluginPersistedJSONBytes {
+		body, err = io.ReadAll(io.LimitReader(resp.Body, int64(a.submitJSONLimit())+1))
+		if err == nil && len(body) > a.submitJSONLimit() {
 			err = fmt.Errorf("task submit response exceeds size limit")
 		}
 		responseBody = string(body)
@@ -642,7 +658,7 @@ func (a *TaskAdaptor) ParseResponse(c *gin.Context, resp *http.Response, info *r
 	var taskData []byte
 	if parsed.TaskData != nil {
 		taskData, err = common.Marshal(parsed.TaskData)
-		if err != nil || len(taskData) > maxTaskPluginPersistedJSONBytes {
+		if err != nil || len(taskData) > a.submitJSONLimit() {
 			if err == nil {
 				err = fmt.Errorf("task data exceeds size limit")
 			}
@@ -728,7 +744,11 @@ func (a *TaskAdaptor) FetchTask(baseURL, key string, task *model.Task, proxy str
 	if err != nil {
 		return nil, err
 	}
-	return a.doFetchDescriptor(baseURL, proxy, value)
+	resp, err := a.doFetchDescriptor(baseURL, proxy, value)
+	if err == nil && resp != nil && task != nil && a.isAstraFlowOmni(task.Action) {
+		resp.Body = http.MaxBytesReader(nil, resp.Body, maxAstraFlowOmniJSONBytes)
+	}
+	return resp, err
 }
 
 func (a *TaskAdaptor) doFetchDescriptor(baseURL, proxy string, value any) (*http.Response, error) {
@@ -928,6 +948,8 @@ func (a *TaskAdaptor) ParseTaskResult(task *model.Task, resp *http.Response, bod
 		if hookErr == nil {
 			usageModel, _ := ctx["upstreamModel"].(string)
 			a.applyCompletionUsageFacts(result, facts, usageModel)
+		} else if task != nil && a.isAstraFlowOmni(task.Action) && result.Status == string(model.TaskStatusSuccess) {
+			logger.LogWarn(context.Background(), fmt.Sprintf("AstraFlow Omni task %s has invalid completion usage; retaining reserved quota", task.TaskID))
 		}
 	}
 	taskStatus := model.TaskStatus(result.Status)
@@ -1035,6 +1057,9 @@ func (a *TaskAdaptor) BuildContentRequest(task *model.Task, artifactKey string, 
 	if !a.hasHook(context.Background(), "buildContentRequest") {
 		return nil, nil
 	}
+	if task != nil && a.isAstraFlowOmni(task.Action) {
+		return a.buildOmniInlineContent(task, artifactKey, clientRequest)
+	}
 	if a.info == nil {
 		return nil, fmt.Errorf("plugin adaptor is not initialized")
 	}
@@ -1102,6 +1127,48 @@ func (a *TaskAdaptor) BuildContentRequest(task *model.Task, artifactKey string, 
 		Body:           body,
 		Credentialless: descriptor.Credentialless,
 	}, nil
+}
+
+func (a *TaskAdaptor) buildOmniInlineContent(task *model.Task, artifactKey string, clientRequest channel.TaskArtifactClientRequest) (*channel.TaskContentRequest, error) {
+	if artifactKey != "video" || (clientRequest.Method != http.MethodGet && clientRequest.Method != http.MethodHead) {
+		return nil, fmt.Errorf("invalid inline artifact request")
+	}
+	if len(task.Data) > maxAstraFlowOmniJSONBytes {
+		return nil, fmt.Errorf("inline artifact exceeds size limit")
+	}
+	ctx, err := taskArtifactContext(task)
+	if err != nil {
+		return nil, err
+	}
+	ctx["artifactKey"] = artifactKey
+	ctx["clientRequest"] = jsonValue(clientRequest)
+	value, err := a.plugin.Engine.Call(context.Background(), "buildContentRequest", ctx)
+	if err != nil {
+		return nil, err
+	}
+	var descriptor struct {
+		InlineBase64 string `json:"inlineBase64"`
+		MimeType     string `json:"mimeType"`
+	}
+	if err = convert(value, &descriptor); err != nil {
+		return nil, err
+	}
+	if descriptor.InlineBase64 == "" || len(descriptor.InlineBase64) > maxAstraFlowOmniJSONBytes {
+		return nil, fmt.Errorf("invalid inline video size")
+	}
+	switch descriptor.MimeType {
+	case "video/mp4", "video/webm", "video/quicktime":
+	default:
+		return nil, fmt.Errorf("unsupported inline video MIME type")
+	}
+	data, err := base64.StdEncoding.DecodeString(descriptor.InlineBase64)
+	if err != nil {
+		data, err = base64.RawStdEncoding.DecodeString(descriptor.InlineBase64)
+	}
+	if err != nil || len(data) == 0 {
+		return nil, fmt.Errorf("invalid inline video Base64")
+	}
+	return &channel.TaskContentRequest{InlineData: data, MimeType: descriptor.MimeType, Method: clientRequest.Method}, nil
 }
 
 func taskArtifactContext(task *model.Task) (map[string]any, error) {

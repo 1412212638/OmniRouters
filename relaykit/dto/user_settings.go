@@ -15,7 +15,7 @@ type UserSetting struct {
 	RecordIpLog                      bool    `json:"record_ip_log,omitempty"`                        // 是否记录请求和错误日志IP
 	MarketingEmailEnabled            *bool   `json:"marketing_email_enabled,omitempty"`              // nil defaults to enabled; explicit false preserves opt-out
 	SidebarModules                   string  `json:"sidebar_modules,omitempty"`                      // SidebarModules 左侧边栏模块配置
-	BillingPreference                string  `json:"billing_preference,omitempty"`                   // BillingPreference 扣费策略（订阅/钱包）
+	BillingPreference                string  `json:"billing_preference,omitempty"`                   // Legacy setting retained for compatibility; ignored by subscription billing.
 	Language                         string  `json:"language,omitempty"`                             // Language 用户语言偏好 (zh, en)
 }
 

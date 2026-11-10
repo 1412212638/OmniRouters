@@ -36,6 +36,7 @@ const DEFAULT_SIDEBAR_MODULES: SidebarModulesAdminConfig = {
   personal: {
     enabled: true,
     topup: true,
+    subscription: true,
     tiers: true,
     ticket: true,
     personal: true,
@@ -94,6 +95,7 @@ const URL_TO_CONFIG_MAP: Record<string, { section: string; module: string }> = {
   '/usage-logs/drawing': { section: 'console', module: 'midjourney' },
   '/usage-logs/task': { section: 'console', module: 'task' },
   '/wallet': { section: 'personal', module: 'topup' },
+  '/subscription-plans': { section: 'personal', module: 'subscription' },
   '/friends-hub': { section: 'personal', module: 'topup' },
   '/member-tiers': { section: 'personal', module: 'tiers' },
   '/tickets': { section: 'personal', module: 'ticket' },

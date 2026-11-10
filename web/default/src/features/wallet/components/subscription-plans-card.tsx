@@ -20,17 +20,10 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TitledCard } from '@/components/ui/titled-card'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   Tooltip,
   TooltipContent,
@@ -39,7 +32,6 @@ import {
 import {
   getPublicPlans,
   getSelfSubscriptionFull,
-  updateBillingPreference,
   createSubscriptionToken,
 } from '@/features/subscriptions/api'
 import { SubscriptionPurchaseDialog } from '@/features/subscriptions/components/dialogs/subscription-purchase-dialog'
@@ -48,7 +40,6 @@ import type {
   PlanRecord,
   UserSubscriptionRecord,
 } from '@/features/subscriptions/types'
-import { formatQuota } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 import type { PaymentMethod, TopupInfo } from '../types'
@@ -58,30 +49,15 @@ interface SubscriptionPlansCardProps {
   onAvailabilityChange?: (available: boolean) => void
   userQuota?: number
   onPurchaseSuccess?: () => void | Promise<void>
+  standalone?: boolean
 }
+
+type SubscriptionBillingMode = 'quota' | 'token'
 
 function getEpayMethods(payMethods: PaymentMethod[] = []): PaymentMethod[] {
   return payMethods.filter(
     (m) => m?.type && m.type !== 'stripe' && m.type !== 'creem'
   )
-}
-
-function getBillingPreferenceLabel(
-  preference: string,
-  t: (key: string) => string
-): string {
-  switch (preference) {
-    case 'subscription_first':
-      return t('Subscription First')
-    case 'wallet_first':
-      return t('Wallet First')
-    case 'subscription_only':
-      return t('Subscription Only')
-    case 'wallet_only':
-      return t('Wallet Only')
-    default:
-      return preference
-  }
 }
 
 function formatTokenCount(value: number): string {
@@ -96,6 +72,7 @@ export function SubscriptionPlansCard({
   onAvailabilityChange,
   userQuota,
   onPurchaseSuccess,
+  standalone = false,
 }: SubscriptionPlansCardProps) {
   const { t } = useTranslation()
 
@@ -106,8 +83,6 @@ export function SubscriptionPlansCard({
   const [allSubscriptions, setAllSubscriptions] = useState<
     UserSubscriptionRecord[]
   >([])
-  const [billingPreference, setBillingPreference] =
-    useState('subscription_first')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -119,6 +94,8 @@ export function SubscriptionPlansCard({
   const [tokenName, setTokenName] = useState('')
   const [createdToken, setCreatedToken] = useState<string | null>(null)
   const [creatingToken, setCreatingToken] = useState(false)
+  const [billingMode, setBillingMode] =
+    useState<SubscriptionBillingMode>('quota')
 
   const enableStripe = !!topupInfo?.enable_stripe_topup
   const enableCreem = !!topupInfo?.enable_creem_topup
@@ -144,9 +121,6 @@ export function SubscriptionPlansCard({
     try {
       const res = await getSelfSubscriptionFull()
       if (res.success && res.data) {
-        setBillingPreference(
-          res.data.billing_preference || 'subscription_first'
-        )
         setActiveSubscriptions(res.data.subscriptions || [])
         setAllSubscriptions(res.data.all_subscriptions || [])
       }
@@ -173,34 +147,9 @@ export function SubscriptionPlansCard({
     }
   }
 
-  const handlePreferenceChange = async (pref: string) => {
-    const previous = billingPreference
-    setBillingPreference(pref)
-    try {
-      const res = await updateBillingPreference(pref)
-      if (res.success) {
-        toast.success(t('Updated successfully'))
-        const normalized = res.data?.billing_preference || pref
-        setBillingPreference(normalized)
-      } else {
-        toast.error(res.message || t('Update failed'))
-        setBillingPreference(previous)
-      }
-    } catch {
-      toast.error(t('Request failed'))
-      setBillingPreference(previous)
-    }
-  }
-
   const hasActive = activeSubscriptions.length > 0
   const hasAny = allSubscriptions.length > 0
   const isAvailable = loading || plans.length > 0 || hasAny
-  const disablePref = !hasActive
-  const isSubPref =
-    billingPreference === 'subscription_first' ||
-    billingPreference === 'subscription_only'
-  const displayPref =
-    disablePref && isSubPref ? 'wallet_first' : billingPreference
 
   const planPurchaseCountMap = useMemo(() => {
     const map = new Map<number, number>()
@@ -211,6 +160,32 @@ export function SubscriptionPlansCard({
     }
     return map
   }, [allSubscriptions])
+
+  const hasQuotaPlans = useMemo(
+    () => plans.some((item) => item?.plan?.billing_mode !== 'token'),
+    [plans]
+  )
+  const hasTokenPlans = useMemo(
+    () => plans.some((item) => item?.plan?.billing_mode === 'token'),
+    [plans]
+  )
+  const visiblePlans = useMemo(
+    () =>
+      plans.filter((item) =>
+        billingMode === 'token'
+          ? item?.plan?.billing_mode === 'token'
+          : item?.plan?.billing_mode !== 'token'
+      ),
+    [billingMode, plans]
+  )
+
+  useEffect(() => {
+    if (billingMode === 'quota' && !hasQuotaPlans && hasTokenPlans) {
+      setBillingMode('token')
+    } else if (billingMode === 'token' && !hasTokenPlans && hasQuotaPlans) {
+      setBillingMode('quota')
+    }
+  }, [billingMode, hasQuotaPlans, hasTokenPlans])
 
   useEffect(() => {
     onAvailabilityChange?.(isAvailable)
@@ -240,6 +215,11 @@ export function SubscriptionPlansCard({
     return Math.round((used / total) * 100)
   }
 
+  const formatCredits = (value: number): string =>
+    new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(
+      Math.max(0, Math.round(value))
+    )
+
   if (loading) {
     return (
       <Card data-card-hover='false' className='gap-0 overflow-hidden py-0'>
@@ -249,8 +229,11 @@ export function SubscriptionPlansCard({
         <CardContent className='space-y-4 p-3 sm:p-5'>
           <Skeleton className='h-20 w-full' />
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3'>
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className='h-48 w-full' />
+            {[1, 2, 3].map((skeleton) => (
+              <Skeleton
+                key={`subscription-skeleton-${skeleton}`}
+                className='h-48 w-full'
+              />
             ))}
           </div>
         </CardContent>
@@ -258,7 +241,7 @@ export function SubscriptionPlansCard({
     )
   }
 
-  if (plans.length === 0 && !hasAny) {
+  if (plans.length === 0 && !hasAny && !standalone) {
     return null
   }
 
@@ -271,104 +254,84 @@ export function SubscriptionPlansCard({
         disableHoverEffect
         contentClassName='space-y-4 sm:space-y-5'
       >
-        {/* My subscriptions & billing preference */}
+        <div className='bg-muted/20 flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3 sm:p-4'>
+          <div className='min-w-0'>
+            <p className='text-sm font-medium'>{t('Billing unit')}</p>
+            <p className='text-muted-foreground mt-1 text-xs'>
+              {t('1 quota = 1 Credit')}
+            </p>
+          </div>
+          <ToggleGroup
+            value={[billingMode]}
+            onValueChange={(value) => {
+              const nextMode = value[0] as SubscriptionBillingMode | undefined
+              if (nextMode) setBillingMode(nextMode)
+            }}
+            variant='default'
+            size='sm'
+            aria-label={t('Billing unit')}
+            className='bg-background h-8 rounded-[6px] border p-0.5'
+          >
+            <ToggleGroupItem
+              value='quota'
+              disabled={!hasQuotaPlans}
+              className='aria-pressed:bg-muted h-7 rounded-[4px] px-3 aria-pressed:shadow-sm'
+            >
+              {t('Credits')}
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value='token'
+              disabled={!hasTokenPlans}
+              className='aria-pressed:bg-muted h-7 rounded-[4px] px-3 aria-pressed:shadow-sm'
+            >
+              {t('Subscription Tokens')}
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+
+        {/* Subscription balances are accessed through subscription keys only. */}
         <div className='rounded-xl border p-3 sm:p-4'>
           <div className='flex flex-wrap items-center justify-between gap-2.5 sm:gap-3'>
-            <div className='flex min-w-0 flex-wrap items-center gap-2'>
-              <span className='text-sm font-medium'>
-                {t('My Subscriptions')}
-              </span>
-              <span className='flex items-center gap-1.5 text-xs font-medium'>
-                <span
-                  className={cn(
-                    'size-1.5 shrink-0 rounded-full',
-                    hasActive ? dotColorMap.success : dotColorMap.neutral
-                  )}
-                  aria-hidden='true'
-                />
-                {hasActive ? (
-                  <span className={cn(textColorMap.success)}>
-                    {activeSubscriptions.length} {t('active')}
-                  </span>
-                ) : (
-                  <span className='text-muted-foreground'>
-                    {t('No Active')}
-                  </span>
-                )}
-                {allSubscriptions.length > activeSubscriptions.length && (
-                  <>
-                    <span className='text-muted-foreground/30'>·</span>
-                    <span className='text-muted-foreground'>
-                      {allSubscriptions.length - activeSubscriptions.length}{' '}
-                      {t('expired')}
+            <div className='flex min-w-0 flex-col gap-1'>
+              <div className='flex flex-wrap items-center gap-2'>
+                <span className='text-sm font-medium'>
+                  {t('My Subscriptions')}
+                </span>
+                <span className='flex items-center gap-1.5 text-xs font-medium'>
+                  <span
+                    className={cn(
+                      'size-1.5 shrink-0 rounded-full',
+                      hasActive ? dotColorMap.success : dotColorMap.neutral
+                    )}
+                    aria-hidden='true'
+                  />
+                  {hasActive ? (
+                    <span className={cn(textColorMap.success)}>
+                      {activeSubscriptions.length} {t('active')}
                     </span>
-                  </>
+                  ) : (
+                    <span className='text-muted-foreground'>
+                      {t('No Active')}
+                    </span>
+                  )}
+                  {allSubscriptions.length > activeSubscriptions.length && (
+                    <>
+                      <span className='text-muted-foreground/30'>·</span>
+                      <span className='text-muted-foreground'>
+                        {allSubscriptions.length - activeSubscriptions.length}{' '}
+                        {t('expired')}
+                      </span>
+                    </>
+                  )}
+                </span>
+              </div>
+              <p className='text-muted-foreground text-xs'>
+                {t(
+                  'Subscription plans are billed only through their dedicated keys. General API keys use wallet balance.'
                 )}
-              </span>
+              </p>
             </div>
-            <div className='flex w-full items-center gap-2 sm:w-auto'>
-              <Select
-                items={[
-                  {
-                    value: 'subscription_first',
-                    label: (
-                      <>
-                        {getBillingPreferenceLabel('subscription_first', t)}
-                        {disablePref ? ` (${t('No Active')})` : ''}
-                      </>
-                    ),
-                  },
-                  {
-                    value: 'wallet_first',
-                    label: getBillingPreferenceLabel('wallet_first', t),
-                  },
-                  {
-                    value: 'subscription_only',
-                    label: (
-                      <>
-                        {getBillingPreferenceLabel('subscription_only', t)}
-                        {disablePref ? ` (${t('No Active')})` : ''}
-                      </>
-                    ),
-                  },
-                  {
-                    value: 'wallet_only',
-                    label: getBillingPreferenceLabel('wallet_only', t),
-                  },
-                ]}
-                value={displayPref}
-                onValueChange={(v) => v !== null && handlePreferenceChange(v)}
-              >
-                <SelectTrigger className='h-8 flex-1 text-xs sm:w-[140px] sm:flex-none'>
-                  <SelectValue>
-                    {getBillingPreferenceLabel(displayPref, t)}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent alignItemWithTrigger={false}>
-                  <SelectGroup>
-                    <SelectItem
-                      value='subscription_first'
-                      disabled={disablePref}
-                    >
-                      {getBillingPreferenceLabel('subscription_first', t)}
-                      {disablePref ? ` (${t('No Active')})` : ''}
-                    </SelectItem>
-                    <SelectItem value='wallet_first'>
-                      {getBillingPreferenceLabel('wallet_first', t)}
-                    </SelectItem>
-                    <SelectItem
-                      value='subscription_only'
-                      disabled={disablePref}
-                    >
-                      {getBillingPreferenceLabel('subscription_only', t)}
-                      {disablePref ? ` (${t('No Active')})` : ''}
-                    </SelectItem>
-                    <SelectItem value='wallet_only'>
-                      {getBillingPreferenceLabel('wallet_only', t)}
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+            <div className='flex items-center gap-2'>
               <Button
                 variant='ghost'
                 size='icon'
@@ -382,20 +345,6 @@ export function SubscriptionPlansCard({
               </Button>
             </div>
           </div>
-
-          {disablePref && isSubPref && (
-            <p className='text-muted-foreground mt-2 text-xs'>
-              {t(
-                'Preference saved as {{pref}}, but no active subscription. Wallet will be used automatically.',
-                {
-                  pref:
-                    billingPreference === 'subscription_only'
-                      ? t('Subscription Only')
-                      : t('Subscription First'),
-                }
-              )}
-            </p>
-          )}
 
           {hasAny && (
             <>
@@ -416,6 +365,15 @@ export function SubscriptionPlansCard({
                   const isCancelled = subscription?.status === 'cancelled'
                   const isActive =
                     subscription?.status === 'active' && !isExpired
+                  let statusLabel = t('Expired')
+                  let timeLabel = t('Expired at')
+                  if (isActive) {
+                    statusLabel = t('Active')
+                    timeLabel = t('Until')
+                  } else if (isCancelled) {
+                    statusLabel = t('Cancelled')
+                    timeLabel = t('Cancelled at')
+                  }
 
                   return (
                     <div
@@ -429,25 +387,11 @@ export function SubscriptionPlansCard({
                               ? `${planTitle} · ${t('Subscription')} #${subscription?.id}`
                               : `${t('Subscription')} #${subscription?.id}`}
                           </span>
-                          {isActive ? (
-                            <StatusBadge
-                              label={t('Active')}
-                              variant='success'
-                              copyable={false}
-                            />
-                          ) : isCancelled ? (
-                            <StatusBadge
-                              label={t('Cancelled')}
-                              variant='neutral'
-                              copyable={false}
-                            />
-                          ) : (
-                            <StatusBadge
-                              label={t('Expired')}
-                              variant='neutral'
-                              copyable={false}
-                            />
-                          )}
+                          <StatusBadge
+                            label={statusLabel}
+                            variant={isActive ? 'success' : 'neutral'}
+                            copyable={false}
+                          />
                         </div>
                         {isActive && (
                           <span className='text-muted-foreground'>
@@ -458,11 +402,7 @@ export function SubscriptionPlansCard({
                         )}
                       </div>
                       <div className='text-muted-foreground mt-1.5'>
-                        {isActive
-                          ? t('Until')
-                          : isCancelled
-                            ? t('Cancelled at')
-                            : t('Expired at')}{' '}
+                        {timeLabel}{' '}
                         {new Date(
                           (subscription?.end_time || 0) * 1000
                         ).toLocaleString()}
@@ -471,7 +411,7 @@ export function SubscriptionPlansCard({
                         <div className='text-muted-foreground mt-1'>
                           {t('Next reset')}:{' '}
                           {new Date(
-                            subscription!.next_reset_time! * 1000
+                            (subscription?.next_reset_time ?? 0) * 1000
                           ).toLocaleString()}
                         </div>
                       )}
@@ -481,6 +421,13 @@ export function SubscriptionPlansCard({
                           ? subscription?.allowed_groups?.join(', ')
                           : t('All groups')}
                       </div>
+                      {subscription?.billing_mode === 'token' &&
+                        (subscription.allowed_models || []).length > 0 && (
+                          <div className='text-muted-foreground mt-1 wrap-anywhere'>
+                            {t('Allowed Models')}:{' '}
+                            {subscription.allowed_models?.join(', ')}
+                          </div>
+                        )}
                       {isActive && subscription && (
                         <div className='mt-2 flex items-center justify-between gap-2'>
                           <span className='text-muted-foreground'>
@@ -503,8 +450,8 @@ export function SubscriptionPlansCard({
                       )}
                       <div className='text-muted-foreground mt-1'>
                         {subscription?.billing_mode === 'token'
-                          ? t('Total Tokens')
-                          : t('Total Quota')}
+                          ? t('Total Subscription Tokens')
+                          : t('Credits')}
                         :{' '}
                         {totalAmount > 0 ? (
                           <Tooltip>
@@ -513,12 +460,12 @@ export function SubscriptionPlansCard({
                             >
                               {subscription?.billing_mode === 'token'
                                 ? `${formatTokenCount(usedAmount)}/${formatTokenCount(totalAmount)} · ${t('Remaining')} ${formatTokenCount(remainAmount)}`
-                                : `${formatQuota(usedAmount)}/${formatQuota(totalAmount)} · ${t('Remaining')} ${formatQuota(remainAmount)}`}
+                                : `${formatCredits(usedAmount)}/${formatCredits(totalAmount)} · ${t('Remaining')} ${formatCredits(remainAmount)}`}
                             </TooltipTrigger>
                             <TooltipContent>
                               {subscription?.billing_mode === 'token'
-                                ? t('Total Tokens')
-                                : t('Raw Quota')}
+                                ? t('Total Subscription Tokens')
+                                : t('Credits')}
                               : {usedAmount}/{totalAmount} · {t('Remaining')}{' '}
                               {remainAmount}
                             </TooltipContent>
@@ -550,14 +497,14 @@ export function SubscriptionPlansCard({
         </div>
 
         {/* Available plans grid */}
-        {plans.length > 0 ? (
+        {visiblePlans.length > 0 ? (
           <div className='grid grid-cols-1 gap-3 2xl:grid-cols-2 2xl:gap-4'>
-            {plans.map((p, index) => {
+            {visiblePlans.map((p, index) => {
               const plan = p?.plan
               if (!plan) return null
               const totalAmount = Number(plan.total_amount || 0)
               const price = Number(plan.price_amount || 0).toFixed(2)
-              const isPopular = index === 0 && plans.length > 1
+              const isPopular = index === 0 && visiblePlans.length > 1
               const limit = Number(plan.max_purchase_per_user || 0)
               const count = planPurchaseCountMap.get(plan.id) || 0
               const reached = limit > 0 && count >= limit
@@ -568,8 +515,8 @@ export function SubscriptionPlansCard({
                   ? `${t('Quota Reset')}: ${formatResetPeriod(plan, t)}`
                   : null,
                 totalAmount > 0
-                  ? `${plan.billing_mode === 'token' ? t('Total Tokens') : t('Total Quota')}: ${plan.billing_mode === 'token' ? formatTokenCount(totalAmount) : formatQuota(totalAmount)}`
-                  : `${plan.billing_mode === 'token' ? t('Total Tokens') : t('Total Quota')}: ${t('Unlimited')}`,
+                  ? `${plan.billing_mode === 'token' ? t('Total Subscription Tokens') : t('Credits')}: ${plan.billing_mode === 'token' ? formatTokenCount(totalAmount) : formatCredits(totalAmount)}`
+                  : `${plan.billing_mode === 'token' ? t('Total Subscription Tokens') : t('Credits')}: ${t('Unlimited')}`,
                 limit > 0 ? `${t('Purchase Limit')}: ${limit}` : null,
                 plan.upgrade_group
                   ? `${t('Upgrade Group')}: ${plan.upgrade_group}`
@@ -577,6 +524,10 @@ export function SubscriptionPlansCard({
                 (plan.allowed_groups || []).length > 0
                   ? `${t('Allowed Groups')}: ${(plan.allowed_groups || []).join(', ')}`
                   : `${t('Allowed Groups')}: ${t('All groups')}`,
+                plan.billing_mode === 'token' &&
+                (plan.allowed_models || []).length > 0
+                  ? `${t('Allowed Models')}: ${(plan.allowed_models || []).join(', ')}`
+                  : null,
               ].filter(Boolean) as string[]
 
               return (
@@ -622,7 +573,7 @@ export function SubscriptionPlansCard({
                           className='text-muted-foreground flex items-center gap-2 text-xs'
                         >
                           <Check className='text-primary h-3 w-3 shrink-0' />
-                          <span>{label}</span>
+                          <span className='min-w-0 wrap-anywhere'>{label}</span>
                         </div>
                       ))}
                     </div>
@@ -659,7 +610,7 @@ export function SubscriptionPlansCard({
           </div>
         ) : (
           <p className='text-muted-foreground py-4 text-center text-sm'>
-            {t('No plans available')}
+            {t('No plans available for this billing unit')}
           </p>
         )}
       </TitledCard>

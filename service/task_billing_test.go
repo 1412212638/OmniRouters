@@ -15,6 +15,7 @@ import (
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/pkg/billingexpr"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
+	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/QuantumNous/new-api/types"
 	"github.com/gin-gonic/gin"
@@ -52,7 +53,9 @@ func TestMain(m *testing.M) {
 		&model.Channel{},
 		&model.Midjourney{},
 		&model.TopUp{},
+		&model.SubscriptionPlan{},
 		&model.UserSubscription{},
+		&model.SubscriptionPreConsumeRecord{},
 		&model.SystemTask{},
 		&model.SystemTaskLock{},
 	); err != nil {
@@ -77,9 +80,73 @@ func truncate(t *testing.T) {
 		model.DB.Exec("DELETE FROM midjourneys")
 		model.DB.Exec("DELETE FROM top_ups")
 		model.DB.Exec("DELETE FROM user_subscriptions")
+		model.DB.Exec("DELETE FROM subscription_pre_consume_records")
+		model.DB.Exec("DELETE FROM subscription_plans")
 		model.DB.Exec("DELETE FROM system_task_locks")
 		model.DB.Exec("DELETE FROM system_tasks")
 	})
+}
+
+func TestNewBillingSessionUsesDedicatedSubscriptionKeys(t *testing.T) {
+	truncate(t)
+
+	const generalUserID, generalTokenID, generalSubID, generalPlanID = 941, 941, 941, 941
+	const subscriptionUserID, subscriptionTokenID, subscriptionID, subscriptionPlanID = 942, 942, 942, 942
+
+	plan := &model.SubscriptionPlan{
+		Id:            generalPlanID,
+		Title:         "General key must not use this",
+		Enabled:       true,
+		BillingMode:   model.SubscriptionBillingModeQuota,
+		DurationUnit:  model.SubscriptionDurationMonth,
+		DurationValue: 1,
+	}
+	require.NoError(t, model.DB.Create(plan).Error)
+	plan = &model.SubscriptionPlan{
+		Id:            subscriptionPlanID,
+		Title:         "Dedicated key plan",
+		Enabled:       true,
+		BillingMode:   model.SubscriptionBillingModeQuota,
+		DurationUnit:  model.SubscriptionDurationMonth,
+		DurationValue: 1,
+	}
+	require.NoError(t, model.DB.Create(plan).Error)
+
+	seedUser(t, generalUserID, 5_000)
+	seedToken(t, generalTokenID, generalUserID, "sk-general-sub-pref", 5_000)
+	seedSubscription(t, generalSubID, generalUserID, 10_000, 0)
+	require.NoError(t, model.DB.Model(&model.UserSubscription{}).Where("id = ?", generalSubID).Update("plan_id", generalPlanID).Error)
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	generalInfo := &relaycommon.RelayInfo{
+		UserId: generalUserID, TokenId: generalTokenID, TokenKey: "sk-general-sub-pref",
+		RequestId: "req-general-sub-pref", UsingGroup: "default", OriginModelName: "test-model",
+		ForcePreConsume: true, UserSetting: dto.UserSetting{BillingPreference: "subscription_only"},
+	}
+	generalSession, apiErr := NewBillingSession(ctx, generalInfo, 100)
+	require.Nil(t, apiErr)
+	assert.Equal(t, BillingSourceWallet, generalSession.funding.Source())
+	assert.Equal(t, int64(0), getSubscriptionUsed(t, generalSubID), "general keys must not consume a subscription even with the legacy subscription_only preference")
+	assert.Equal(t, 4_900, getUserQuota(t, generalUserID))
+
+	seedUser(t, subscriptionUserID, 5_000)
+	seedToken(t, subscriptionTokenID, subscriptionUserID, "sk-dedicated-sub", 5_000)
+	seedSubscription(t, subscriptionID, subscriptionUserID, 10_000, 0)
+	require.NoError(t, model.DB.Model(&model.UserSubscription{}).Where("id = ?", subscriptionID).Update("plan_id", subscriptionPlanID).Error)
+
+	ctx, _ = gin.CreateTestContext(httptest.NewRecorder())
+	dedicatedInfo := &relaycommon.RelayInfo{
+		UserId: subscriptionUserID, TokenId: subscriptionTokenID, TokenKey: "sk-dedicated-sub",
+		TokenKeyType: model.TokenKeyTypeSubscription, SubscriptionId: subscriptionID,
+		SubscriptionBillingMode: model.SubscriptionBillingModeQuota,
+		RequestId: "req-dedicated-sub", UsingGroup: "default", OriginModelName: "test-model",
+		ForcePreConsume: true, UserSetting: dto.UserSetting{BillingPreference: "wallet_only"},
+	}
+	dedicatedSession, apiErr := NewBillingSession(ctx, dedicatedInfo, 200)
+	require.Nil(t, apiErr)
+	assert.Equal(t, BillingSourceSubscription, dedicatedSession.funding.Source())
+	assert.Equal(t, int64(200), getSubscriptionUsed(t, subscriptionID), "dedicated subscription keys must continue to consume their bound plan")
+	assert.Equal(t, 5_000, getUserQuota(t, subscriptionUserID), "dedicated subscription keys must not consume wallet balance")
 }
 
 func seedUser(t *testing.T, id int, quota int) {

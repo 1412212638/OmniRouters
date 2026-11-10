@@ -87,16 +87,13 @@ export function extractTaskMedia(
     const mime = record.mime_type ?? record.content_type ?? record.output_format
     const metadataKind =
       typeof mime === 'string' ? mediaKindFromValue('mime', mime) : null
-    const title =
-      typeof record.title === 'string'
-        ? record.title
-        : typeof record.name === 'string'
-          ? record.name
-          : undefined
+    let title: string | undefined
+    if (typeof record.title === 'string') title = record.title
+    else if (typeof record.name === 'string') title = record.name
 
     for (const [childKey, childValue] of Object.entries(record)) {
       const childPath = `${path}.${childKey}`.toLowerCase()
-      if (/\.((input)|(reference))([._\[]|$)/.test(childPath)) continue
+      if (/\.((input)|(reference))([._]|\[|$)/.test(childPath)) continue
       if (typeof childValue === 'string' && /^https?:\/\//i.test(childValue)) {
         const isGenericUrl = childKey === 'url' || childKey === 'urls'
         const inferredKind =
@@ -132,7 +129,9 @@ export function getTaskPreviewMedia(
   if (log.status !== successfulStatus || !isVideoAction) return extracted
 
   const resultURL = log.result_url || log.fail_reason
-  if (resultURL && log.task_id) {
+  // Omni stores Base64 in its native result; dashboard lists intentionally
+  // omit it. Offer preview so the cell can resolve its signed artifact URL.
+  if ((resultURL || log.action === 'omni_video') && log.task_id) {
     return [
       {
         kind: 'video',

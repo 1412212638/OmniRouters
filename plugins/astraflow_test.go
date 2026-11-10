@@ -18,6 +18,18 @@ func TestAstraFlowTaskPlugin(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("declares native routes and usage facts", func(t *testing.T) {
+		interaction, found := registry.Generation().LookupDeclaredRoute("POST", "/v1beta/models/interactions")
+		require.True(t, found)
+		assert.Equal(t, []string{"gemini-omni-1.2-flash"}, interaction.Route.Models)
+		query, found := registry.Generation().LookupDeclaredRoute("GET", "/v1beta/models/interactions/:id")
+		require.True(t, found)
+		assert.Equal(t, "id", query.Route.TaskIDParam)
+		omniSchema, _ := plugin.Meta.UsageForModel("gemini-omni-1.2-flash")
+		assert.Len(t, omniSchema, 3)
+		assert.Equal(t, "token", omniSchema["video_output_tokens"].Unit)
+		enhancementSchema, _ := plugin.Meta.UsageForModel("ai-mediakit-video-enhancement-std")
+		assert.Len(t, enhancementSchema, 3)
+		assert.Equal(t, "second", enhancementSchema["seconds"].Unit)
 		binding, found := registry.Generation().LookupDeclaredRoute("POST", "/v1/tasks/submit")
 		require.True(t, found)
 		assert.Same(t, plugin, binding.Plugin)
@@ -82,12 +94,10 @@ func TestAstraFlowTaskPlugin(t *testing.T) {
 	})
 
 	t.Run("parses successful status and completion usage", func(t *testing.T) {
-		value, callErr := plugin.Engine.Call(t.Context(), "parseTaskResult", map[string]any{
-			"body": map[string]any{
-				"output": map[string]any{
-					"task_status": "Success",
-					"urls": []any{"https://cdn.example/output.mp4"},
-				},
+		value, callErr := plugin.Engine.Call(t.Context(), "parseTaskResult", map[string]any{}, map[string]any{
+			"output": map[string]any{
+				"task_status": "Success",
+				"urls":        []any{"https://cdn.example/output.mp4"},
 			},
 		})
 		require.NoError(t, callErr)
@@ -108,5 +118,22 @@ func TestAstraFlowTaskPlugin(t *testing.T) {
 		var completion map[string]any
 		require.NoError(t, common.Unmarshal(encoded, &completion))
 		assert.Equal(t, map[string]any{"seconds": float64(15), "resolution": "1080p", "fps": "30"}, completion)
+	})
+
+	t.Run("splits Omni token modalities without total-output double billing", func(t *testing.T) {
+		value, callErr := plugin.Engine.Call(t.Context(), "extractUsageOnComplete",
+			map[string]any{"model": "gemini-omni-1.2-flash", "action": "omni_video"}, map[string]any{},
+			map[string]any{"usage": map[string]any{
+				"total_input_tokens": 19, "total_output_tokens": 57930, "total_tokens": 58295,
+				"output_tokens_by_modality": []any{map[string]any{"modality": "text", "tokens": 10}, map[string]any{"modality": "video", "tokens": 57920}},
+			}})
+		require.NoError(t, callErr)
+		encoded, marshalErr := common.Marshal(value)
+		require.NoError(t, marshalErr)
+		var facts map[string]any
+		require.NoError(t, common.Unmarshal(encoded, &facts))
+		assert.Equal(t, float64(19), facts["input_tokens"])
+		assert.Equal(t, float64(10), facts["text_output_tokens"])
+		assert.Equal(t, float64(57920), facts["video_output_tokens"])
 	})
 }

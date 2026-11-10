@@ -102,6 +102,11 @@ export function SidebarModulesCard() {
           description: t('Balance and top-up management'),
         },
         {
+          key: 'subscription',
+          title: t('Subscription Plans'),
+          description: t('Browse and purchase subscription plans'),
+        },
+        {
           key: 'tiers',
           title: t('Member Tiers'),
           description: t('Tier progress and group-based benefits'),
