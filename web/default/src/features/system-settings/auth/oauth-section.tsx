@@ -83,6 +83,7 @@ const oauthSchema = z.object({
   WeChatOfficialToken: z.string(),
   WeChatOfficialSubscribeReplyEnabled: z.boolean(),
   WeChatOfficialSubscribeReply: z.string(),
+  WeChatOfficialScanReply: z.string(),
   WeChatOfficialMenu: z.string(),
 })
 
@@ -121,6 +122,7 @@ type FlatOAuthDefaults = {
   WeChatOfficialToken: string
   WeChatOfficialSubscribeReplyEnabled: boolean
   WeChatOfficialSubscribeReply: string
+  WeChatOfficialScanReply: string
   WeChatOfficialMenu: string
 }
 
@@ -214,6 +216,7 @@ const buildFormDefaults = (defaults: FlatOAuthDefaults): OAuthFormValues => ({
   WeChatOfficialSubscribeReplyEnabled:
     defaults.WeChatOfficialSubscribeReplyEnabled,
   WeChatOfficialSubscribeReply: defaults.WeChatOfficialSubscribeReply ?? '',
+  WeChatOfficialScanReply: defaults.WeChatOfficialScanReply ?? '',
   WeChatOfficialMenu: defaults.WeChatOfficialMenu ?? '{"button":[]}',
 })
 
@@ -251,6 +254,7 @@ const normalizeFormValues = (values: OAuthFormValues): FlatOAuthDefaults => ({
   WeChatOfficialSubscribeReplyEnabled:
     values.WeChatOfficialSubscribeReplyEnabled,
   WeChatOfficialSubscribeReply: values.WeChatOfficialSubscribeReply,
+  WeChatOfficialScanReply: values.WeChatOfficialScanReply,
   WeChatOfficialMenu: values.WeChatOfficialMenu,
 })
 
@@ -1259,6 +1263,37 @@ export function OAuthSection(props: OAuthSectionProps) {
                           placeholder={t('Reply sent after a user follows')}
                         />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='WeChatOfficialScanReply'
+                  render={({ field }) => (
+                    <FormItem className='lg:col-span-2'>
+                      <FormLabel>{t('QR scan success reply')}</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          value={field.value ?? ''}
+                          onChange={(event) =>
+                            field.onChange(event.target.value)
+                          }
+                          name={field.name}
+                          onBlur={field.onBlur}
+                          ref={field.ref}
+                          rows={3}
+                          placeholder={t(
+                            'Leave blank to use the default QR scan reply'
+                          )}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {t(
+                          'Sent after a user scans a login or binding QR code'
+                        )}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

@@ -24,7 +24,7 @@ func TestVerifyWeChatOfficialSignature(t *testing.T) {
 
 func TestWeChatOfficialCallbackUpdatesScannedLoginState(t *testing.T) {
 	previousEnabled, previousName, previousAppID, previousSecret, previousToken, previousRedis, previousRDB := common.WeChatOfficialEnabled, common.WeChatOfficialName, common.WeChatOfficialAppID, common.WeChatOfficialAppSecret, common.WeChatOfficialToken, common.RedisEnabled, common.RDB
-	previousReplyEnabled, previousReply := common.WeChatOfficialSubscribeReplyEnabled, common.WeChatOfficialSubscribeReply
+	previousReplyEnabled, previousReply, previousScanReply := common.WeChatOfficialSubscribeReplyEnabled, common.WeChatOfficialSubscribeReply, common.WeChatOfficialScanReply
 	t.Cleanup(func() {
 		common.WeChatOfficialEnabled = previousEnabled
 		common.WeChatOfficialName = previousName
@@ -33,7 +33,7 @@ func TestWeChatOfficialCallbackUpdatesScannedLoginState(t *testing.T) {
 		common.WeChatOfficialToken = previousToken
 		common.RedisEnabled = previousRedis
 		common.RDB = previousRDB
-		common.WeChatOfficialSubscribeReplyEnabled, common.WeChatOfficialSubscribeReply = previousReplyEnabled, previousReply
+		common.WeChatOfficialSubscribeReplyEnabled, common.WeChatOfficialSubscribeReply, common.WeChatOfficialScanReply = previousReplyEnabled, previousReply, previousScanReply
 	})
 	// The platform handshake must work before the administrator enables login.
 	common.WeChatOfficialEnabled = false
@@ -42,6 +42,7 @@ func TestWeChatOfficialCallbackUpdatesScannedLoginState(t *testing.T) {
 	common.WeChatOfficialAppSecret = "app-secret"
 	common.WeChatOfficialSubscribeReplyEnabled = true
 	common.WeChatOfficialSubscribeReply = "普通关注回复"
+	common.WeChatOfficialScanReply = "你的自定义扫码回复"
 	common.RedisEnabled = false
 	common.RDB = nil
 
@@ -60,7 +61,7 @@ func TestWeChatOfficialCallbackUpdatesScannedLoginState(t *testing.T) {
 	WeChatOfficialCallback(ctx)
 
 	require.Equal(t, http.StatusOK, res.Code)
-	require.Contains(t, res.Body.String(), "扫码成功")
+	require.Contains(t, res.Body.String(), "你的自定义扫码回复")
 	require.NotContains(t, res.Body.String(), "普通关注回复")
 	state, err := loadWeChatOfficialState(code)
 	require.NoError(t, err)

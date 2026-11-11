@@ -56,6 +56,7 @@ const defaultAuthSettings: AuthSettings = {
   WeChatOfficialToken: '',
   WeChatOfficialSubscribeReplyEnabled: false,
   WeChatOfficialSubscribeReply: '',
+  WeChatOfficialScanReply: '',
   WeChatOfficialMenu: '{"button":[]}',
   TurnstileCheckEnabled: false,
   TurnstileSiteKey: '',

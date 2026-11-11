@@ -171,6 +171,7 @@ func InitOptionMap() {
 	common.OptionMap["WeChatOfficialToken"] = ""
 	common.OptionMap["WeChatOfficialSubscribeReplyEnabled"] = strconv.FormatBool(common.WeChatOfficialSubscribeReplyEnabled)
 	common.OptionMap["WeChatOfficialSubscribeReply"] = common.WeChatOfficialSubscribeReply
+	common.OptionMap["WeChatOfficialScanReply"] = common.WeChatOfficialScanReply
 	common.OptionMap["WeChatOfficialMenu"] = common.WeChatOfficialMenu
 	common.OptionMap["TurnstileSiteKey"] = ""
 	common.OptionMap["TurnstileSecretKey"] = ""
@@ -671,6 +672,8 @@ func updateOptionMap(key string, value string) (err error) {
 		common.WeChatOfficialToken = value
 	case "WeChatOfficialSubscribeReply":
 		common.WeChatOfficialSubscribeReply = value
+	case "WeChatOfficialScanReply":
+		common.WeChatOfficialScanReply = value
 	case "WeChatOfficialMenu":
 		common.WeChatOfficialMenu = value
 	case "TelegramBotToken":

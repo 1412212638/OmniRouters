@@ -16,6 +16,7 @@ import {
   getTaskVideoPriceEntry,
 } from './dynamic-price'
 import { getDisplayedModelName } from './model-helpers'
+import { getSimpleTaskTokenFields } from './task-price-display'
 
 function testPricingModel(model: Partial<PricingModel>): PricingModel {
   return {
@@ -30,6 +31,32 @@ function testPricingModel(model: Partial<PricingModel>): PricingModel {
 }
 
 describe('Omni input, text output and video output pricing', () => {
+  test('keeps multimodal token schemas out of the simple input/output pricing view', () => {
+    assert.deepEqual(
+      getSimpleTaskTokenFields({
+        input_tokens: { type: 'number', unit: 'token' },
+        text_output_tokens: { type: 'number', unit: 'token' },
+        video_output_tokens: { type: 'number', unit: 'token' },
+      }),
+      null
+    )
+    assert.deepEqual(
+      getSimpleTaskTokenFields({
+        input_tokens: { type: 'number', unit: 'token' },
+        output_tokens: { type: 'number', unit: 'token' },
+      }),
+      ['input_tokens', 'output_tokens']
+    )
+    assert.equal(
+      getSimpleTaskTokenFields({
+        input_tokens: { type: 'number', unit: 'token' },
+        output_tokens: { type: 'number', unit: 'token' },
+        resolution: { type: 'string', enum: ['720p'] },
+      }),
+      null
+    )
+  })
+
   test('displays the three token prices independently and applies customer discount', () => {
     const model = testPricingModel({
       billing_mode: 'tiered_expr',

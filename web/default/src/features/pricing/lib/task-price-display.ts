@@ -33,6 +33,29 @@ import { compileBillingExpression } from './billing-expression/parser'
 import { visitExpression } from './billing-expression/types'
 import { getTaskPricingDisplayTiers } from './task-matrix-display'
 
+const SIMPLE_TASK_TOKEN_FIELDS = new Set(['input_tokens', 'output_tokens'])
+
+export function getSimpleTaskTokenFields(
+  schema: BillingUsageSchema | undefined
+): string[] | null {
+  if (!schema) return null
+  const fields = Object.entries(schema)
+  const tokenFields = fields.map(([field]) => field)
+
+  if (
+    tokenFields.length === 0 ||
+    fields.some(
+      ([, definition]) =>
+        definition.type !== 'number' || definition.unit !== 'token'
+    ) ||
+    tokenFields.some((field) => !SIMPLE_TASK_TOKEN_FIELDS.has(field))
+  ) {
+    return null
+  }
+
+  return tokenFields
+}
+
 function resolveTaskLocalizedText(
   value: LocalizedText,
   language: string

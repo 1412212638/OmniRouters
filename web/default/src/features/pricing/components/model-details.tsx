@@ -64,6 +64,7 @@ import {
   stripTrailingZeros,
 } from '../lib/price'
 import { getTaskPricingDisplayTiers } from '../lib/task-matrix-display'
+import { getSimpleTaskTokenFields } from '../lib/task-price-display'
 import { formatToolPrice, getPricingToolPrices } from '../lib/tool-price'
 import type {
   PriceType,
@@ -328,18 +329,8 @@ function getSimpleTaskPricingModel(model: PricingModel): PricingModel | null {
     const billingExpr = candidate.billingExpr?.trim()
     if (!schema || !billingExpr) continue
 
-    const fields = Object.keys(schema).filter((field) =>
-      ['input_tokens', 'output_tokens'].includes(field)
-    )
-    if (
-      fields.length === 0 ||
-      !fields.every(
-        (field) =>
-          schema[field]?.type === 'number' && schema[field]?.unit === 'token'
-      )
-    ) {
-      continue
-    }
+    const fields = getSimpleTaskTokenFields(schema)
+    if (!fields) continue
 
     const simpleModel = {
       ...model,
@@ -360,8 +351,10 @@ function getSimpleTaskPricingFields(model: PricingModel): string[] {
   const entries = getTaskPriceEntries(model, {
     tokenUnit: 'M',
   })
-  return ['input_tokens', 'output_tokens'].filter((field) =>
-    entries.some((entry) => entry.field === field)
+  return (
+    getSimpleTaskTokenFields(model.billing_usage_schema)?.filter((field) =>
+      entries.some((entry) => entry.field === field)
+    ) ?? []
   )
 }
 

@@ -48,6 +48,14 @@
 - Validation: `git diff --check` and source inspection; Go tests and `gofmt` are unavailable because the Go toolchain is not installed in the environment.
 - Commit and push: not committed or pushed.
 
+# 2026-11-11 - Configure Official WeChat QR scan reply
+
+- Local reason: administrators need to customize the message sent after a user scans the Official WeChat login or binding QR code.
+- Changed: added a persisted `WeChatOfficialScanReply` setting to the authentication settings page and use it in the callback. An empty value preserves the existing purpose-aware default message.
+- Preserved: QR login/binding state transitions, callback signature verification, subscription auto-reply, custom menu replies, and the existing default scan message.
+- Validation: default frontend production build, translation JSON validation, formatting, and `git diff --check` passed. The controller callback regression test was updated to assert the configured reply; Go tests could not run because the Go toolchain is unavailable in the environment.
+- Commit and push: included in the local commit for these changes; pushing to origin/main.
+
 ## 2026-11-08 - Isolate ordinary response-usage billing from task plugins
 
 - Local reason: OpenAI-compatible Seedream 5.0 channels return image usage facts (`input_images`, `generated_images`, and output pixel sizes), while native VolcEngine channels and the Doubao task plugin already have their own billing contracts.
@@ -5592,3 +5600,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: removed the AstraFlow and generic task-plugin protocol groups from the user-facing endpoint drawer. Admin-only model editor endpoint templates remain available for configuring supported model calls.
 - Preserved: backend task routes, plugin execution, model editor configuration, all public OpenAI/Anthropic/Gemini/media endpoints, authentication, and billing behavior.
 - Validation: targeted Oxfmt, default frontend production build, and `git diff --check` passed. Go tests/build were not run because the local Go toolchain is unavailable.
+# 2026-11-11 - Display all multimodal token prices in model details
+
+- Local reason: Gemini Omni model details incorrectly classified `input_tokens`, `text_output_tokens`, and `video_output_tokens` as the simple input/output token view, hiding its text and video output prices.
+- Changed: simple task token pricing now applies only when all token usage fields are the conventional input/output pair; multimodal token schemas remain in the task pricing table so each configured field is shown.
+- Preserved: ordinary input/output token pricing, catalog card display, group discounts, plugin variant selection, and all billing calculations.
+- Validation: the focused pricing regression suite passed (18 tests), Oxfmt and the default-theme production build passed, and `git diff --check` passed after formatting the log. No live backend/catalog data was required.
+- Commit and push: included in the local commit for these changes; pushing to origin/main.

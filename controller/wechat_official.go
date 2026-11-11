@@ -568,7 +568,11 @@ func WeChatOfficialCallback(c *gin.Context) {
 	// Only acknowledge the login QR scan with a user-visible reply. Ordinary
 	// account messages and unrelated QR events are acknowledged with "success".
 	if validLoginScan && isWeChatScene && message.FromUserName != "" {
-		replyWeChatOfficialText(c, message, fmt.Sprintf("扫码成功。你正在%s %s，请确认这是你本人打开的网页后返回完成%s。", map[string]string{"bind": "绑定微信号至", "login": "登录"}[purpose], common.SystemName, map[string]string{"bind": "绑定", "login": "登录"}[purpose]))
+		reply := strings.TrimSpace(common.WeChatOfficialScanReply)
+		if reply == "" {
+			reply = fmt.Sprintf("扫码成功。你正在%s %s，请确认这是你本人打开的网页后返回完成%s。", map[string]string{"bind": "绑定微信号至", "login": "登录"}[purpose], common.SystemName, map[string]string{"bind": "绑定", "login": "登录"}[purpose])
+		}
+		replyWeChatOfficialText(c, message, reply)
 		return
 	}
 	if strings.EqualFold(strings.TrimSpace(message.Event), "subscribe") && common.WeChatOfficialSubscribeReplyEnabled {

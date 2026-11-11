@@ -67,6 +67,7 @@ const AUTH_SECTIONS = [
           WeChatOfficialSubscribeReplyEnabled:
             settings.WeChatOfficialSubscribeReplyEnabled,
           WeChatOfficialSubscribeReply: settings.WeChatOfficialSubscribeReply,
+          WeChatOfficialScanReply: settings.WeChatOfficialScanReply,
           WeChatOfficialMenu: settings.WeChatOfficialMenu,
         }}
       />
