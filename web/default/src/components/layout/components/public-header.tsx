@@ -45,6 +45,7 @@ export interface PublicHeaderProps {
   showBrand?: boolean
   showAuthButtons?: boolean
   showNotifications?: boolean
+  stickyHeader?: boolean
   className?: string
 }
 
@@ -82,12 +83,13 @@ export function PublicHeader(props: PublicHeaderProps) {
   const notifications = useNotifications()
   const routerState = useRouterState()
   const pathname = routerState.location.pathname
+  const stickyHeader = props.stickyHeader ?? false
 
   const user = auth.user
   const isAuthenticated = !!user
   const displaySiteName = customSiteName || systemName
   const links = dynamicLinks.length > 0 ? dynamicLinks : navLinks
-  const scrolled = pageScrolled || embeddedScrollY > 20
+  const scrolled = !stickyHeader && (pageScrolled || embeddedScrollY > 20)
 
   useEffect(() => {
     const onScroll = () => setPageScrolled(window.scrollY > 20)
@@ -188,28 +190,59 @@ export function PublicHeader(props: PublicHeaderProps) {
 
   return (
     <>
-      <header className='pointer-events-none fixed inset-x-0 top-0 z-50'>
+      <header
+        className={cn(
+          'pointer-events-none top-0 z-50',
+          stickyHeader
+            ? 'sticky h-[var(--app-header-height,3rem)] bg-background'
+            : 'fixed inset-x-0'
+        )}
+      >
         <div
           className={cn(
-            'pointer-events-auto mx-auto transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
-            scrolled ? 'max-w-[52rem] px-3 pt-3' : 'max-w-7xl px-4 pt-0 md:px-6'
+            'pointer-events-auto',
+            stickyHeader
+              ? 'h-full w-full px-2 sm:px-3'
+              : cn(
+                  'mx-auto transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
+                  scrolled
+                    ? 'max-w-[52rem] px-3 pt-3'
+                    : 'max-w-7xl px-4 pt-0 md:px-6'
+                )
           )}
         >
           <nav
             className={cn(
-              'flex items-center justify-between transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
-              scrolled
-                ? 'bg-background/60 ring-border/50 h-12 rounded-2xl pr-1.5 pl-4 shadow-[0_2px_16px_-6px_rgba(0,0,0,0.08),0_0_0_0.5px_rgba(0,0,0,0.02)] ring-[0.5px] backdrop-blur-2xl dark:shadow-[0_2px_16px_-6px_rgba(0,0,0,0.4)]'
-                : 'h-16 px-2'
+              'flex items-center justify-between',
+              stickyHeader
+                ? 'h-full gap-1.5 sm:gap-2'
+                : cn(
+                    'transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]',
+                    scrolled
+                      ? 'bg-background/60 ring-border/50 h-12 rounded-2xl pr-1.5 pl-4 shadow-[0_2px_16px_-6px_rgba(0,0,0,0.08),0_0_0_0.5px_rgba(0,0,0,0.02)] ring-[0.5px] backdrop-blur-2xl dark:shadow-[0_2px_16px_-6px_rgba(0,0,0,0.4)]'
+                      : 'h-16 px-2'
+                  )
             )}
           >
             {/* Logo */}
             {showBrand ? (
               <Link
                 to={homeUrl}
-                className='group flex shrink-0 items-center gap-2.5'
+                className={cn(
+                  'group flex shrink-0 items-center',
+                  stickyHeader
+                    ? 'h-7 gap-1.5 rounded-md px-1.5 text-sm font-medium transition-colors hover:bg-accent'
+                    : 'gap-2.5'
+                )}
               >
-                <div className='flex size-7 shrink-0 items-center justify-center transition-all duration-300 group-hover:scale-105'>
+                <div
+                  className={cn(
+                    'flex shrink-0 items-center justify-center',
+                    stickyHeader
+                      ? 'size-5'
+                      : 'size-7 transition-all duration-300 group-hover:scale-105'
+                  )}
+                >
                   {loading ? (
                     <Skeleton className='size-full rounded-lg' />
                   ) : customLogo ? (
@@ -223,7 +256,14 @@ export function PublicHeader(props: PublicHeaderProps) {
                     />
                   )}
                 </div>
-                <span className='text-sm font-semibold tracking-tight'>
+                <span
+                  className={cn(
+                    'text-sm',
+                    stickyHeader
+                      ? 'max-w-[8rem] truncate font-medium sm:max-w-[12rem]'
+                      : 'font-semibold tracking-tight'
+                  )}
+                >
                   {loading ? (
                     <Skeleton className='h-4 w-16' />
                   ) : (
@@ -236,7 +276,12 @@ export function PublicHeader(props: PublicHeaderProps) {
             )}
 
             {/* Desktop nav */}
-            <div className='hidden items-center gap-0.5 sm:flex'>
+            <div
+              className={cn(
+                'ms-auto hidden items-center gap-1 sm:gap-2',
+                stickyHeader ? 'lg:flex' : 'sm:flex'
+              )}
+            >
               {showNavigation &&
                 links.map((link, i) => {
                   const isActive = pathname === link.href
@@ -251,7 +296,8 @@ export function PublicHeader(props: PublicHeaderProps) {
                         tabIndex={link.disabled ? -1 : undefined}
                         onClick={(event) => handleNavLinkClick(event, link)}
                         className={cn(
-                          'text-muted-foreground hover:text-foreground rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors duration-200',
+                          'text-muted-foreground hover:text-foreground rounded-lg py-1.5 font-medium transition-colors duration-200',
+                          stickyHeader ? 'px-2 text-sm' : 'px-3 text-[13px]',
                           link.disabled && 'pointer-events-none opacity-50'
                         )}
                       >
@@ -266,7 +312,8 @@ export function PublicHeader(props: PublicHeaderProps) {
                       disabled={link.disabled}
                       onClick={(event) => handleNavLinkClick(event, link)}
                       className={cn(
-                        'rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors duration-200',
+                        'rounded-lg py-1.5 font-medium transition-colors duration-200',
+                        stickyHeader ? 'px-2 text-sm' : 'px-3 text-[13px]',
                         isActive
                           ? 'text-foreground'
                           : 'text-muted-foreground hover:text-foreground',
@@ -322,7 +369,12 @@ export function PublicHeader(props: PublicHeaderProps) {
             </div>
 
             {/* Mobile: compact actions + hamburger */}
-            <div className='flex items-center gap-2 sm:hidden'>
+            <div
+              className={cn(
+                'ms-auto flex items-center',
+                stickyHeader ? 'gap-1 sm:gap-2 lg:hidden' : 'gap-2 sm:hidden'
+              )}
+            >
               {showLanguageSwitcher && <LanguageSwitcher />}
               {showThemeSwitch && <ThemeSwitch />}
               {showAuthButtons && !loading && isAuthenticated && (
@@ -362,13 +414,22 @@ export function PublicHeader(props: PublicHeaderProps) {
             </div>
           </nav>
         </div>
+        {stickyHeader && (
+          <div
+            aria-hidden='true'
+            className='bg-border/60 pointer-events-none absolute inset-x-0 bottom-0 h-px'
+          />
+        )}
       </header>
 
       {/* Mobile full-screen overlay */}
       {showNavigation && (
         <div
           className={cn(
-            'bg-background/98 fixed inset-0 z-40 backdrop-blur-2xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] sm:pointer-events-none sm:hidden',
+            'bg-background/98 fixed inset-0 z-40 backdrop-blur-2xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
+            stickyHeader
+              ? 'lg:pointer-events-none lg:hidden'
+              : 'sm:pointer-events-none sm:hidden',
             mobileOpen
               ? 'pointer-events-auto opacity-100'
               : 'pointer-events-none opacity-0'

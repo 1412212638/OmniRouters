@@ -42,6 +42,11 @@ import {
   ZENMUX_MODALITY_ICONS,
   type ZenMuxIconComponent,
 } from '@/assets/custom/zenmux-modality-icons'
+import {
+  DATA_TABLE_VIEW_MODES,
+  DataTableViewModeToggle,
+  useDataTableViewMode,
+} from '@/components/data-table'
 import { PublicLayout } from '@/components/layout'
 import { PageTransition } from '@/components/page-transition'
 import { Button } from '@/components/ui/button'
@@ -66,6 +71,14 @@ import {
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Slider } from '@/components/ui/slider'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   Tooltip,
@@ -98,6 +111,7 @@ import {
   getDynamicCatalogPriceRanges,
   getDynamicDisplayGroupRatio,
   getDynamicPricingSummary,
+  type DynamicPriceEntry,
 } from './lib/dynamic-price'
 import {
   getAvailableGroups,
@@ -114,6 +128,8 @@ import {
   getSoraPricingDisplay,
   stripTrailingZeros,
 } from './lib/price'
+import { taskPriceLabel } from './lib/task-price-display'
+import { formatToolPrice, getPricingToolPrices } from './lib/tool-price'
 import type {
   Modality,
   PricingModel,
@@ -1158,6 +1174,45 @@ function formatCardTokens(value?: number): string {
   return String(value)
 }
 
+function CatalogModelDiscountBadge(props: { isFree: boolean; ratio: number }) {
+  const { t } = useTranslation()
+  if (!props.isFree && !(props.ratio >= 0 && props.ratio < 1)) return null
+
+  return (
+    <span
+      className={cn(
+        'inline-flex h-[22px] shrink-0 flex-nowrap items-center gap-1 whitespace-nowrap rounded px-2 text-[11px] font-medium',
+        props.isFree ? 'font-bold text-white' : 'text-[#8b5e00]'
+      )}
+      style={
+        props.isFree
+          ? {
+              background:
+                'linear-gradient(284deg, rgb(232, 210, 13) -9.23%, rgb(252, 184, 11) -4.09%, rgb(231, 110, 14) 12.83%, rgb(242, 119, 37) 52.07%, rgb(245, 113, 36) 99.75%)',
+            }
+          : {
+              background:
+                'linear-gradient(135deg, rgb(255, 249, 227) 0%, rgb(251, 238, 205) 50%, rgb(248, 212, 128) 100%)',
+            }
+      }
+    >
+      {props.isFree && (
+        <img
+          alt=''
+          className='size-[10px] shrink-0'
+          src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0ibm9uZSI+PHBhdGggZD0iTTQuNDQ0IDQuMjkySC43NFY4LjcxYzAgLjM0NS4yOC42MjMuNjI2LjYyM2gzLjA3N3YtNS4wNFptLjQ5NCAwSDguNjRWOC43MWEuNjI1LjYyNSAwIDAgMS0uNjI3LjYyM0g0LjkzOHYtNS4wNFptLS40OTQtMi4zNjlILjYyM0EuNjI2LjYyNiAwIDAgMCAwIDIuNTV2LjcyN2MwIC4zNDcuMjc5LjYyNi42MjMuNjI2aDMuODJ2LTEuOThabS40OTQgMGgzLjgyYy4zNDUgMCAuNjIzLjI4LjYyMy42Mjd2LjcyN2EuNjI2LjYyNiAwIDAgMS0uNjIzLjYyNmgtMy44MnYtMS45OFptLS40OTQtLjUzNEwzLjEzLjI2MmExLjEwMyAxLjEwMyAwIDAgMC0xLjMzOC0uMDNsLjIxMy0uMTY3Yy0uMjY5LjIxLS40OTEuNjYyLS40OTEgMS4wMDh2LjYxMWgyLjkyOVYxLjM5Wm0uNDk0LS4wMjRMNi4wNTguMjk2Yy4zNDQtLjMzLjk1My0uMzk0IDEuMzU5LS4xNDRMNy4zNjQuMTJjLjI5NC4xOC41MzMuNjA4LjUzMy45NTN2LjYxMWgtMi45NnYtLjMxOVoiIGZpbGw9IiNmZmYiLz48L3N2Zz4='
+        />
+      )}
+      {props.isFree
+        ? t('Free pricing')
+        : t('Model discount badge', {
+            percent: Number(((1 - props.ratio) * 100).toFixed(1)),
+            fold: Number((props.ratio * 10).toFixed(1)),
+          })}
+    </span>
+  )
+}
+
 function CatalogModelCard(props: {
   model: PricingModel
   perf?: PerfModelSummary
@@ -1191,8 +1246,6 @@ function CatalogModelCard(props: {
   const isFree = isFreePricingModel(props.model, displayGroupRatio)
   const hasDiscount =
     isFree || (displayGroupRatio >= 0 && displayGroupRatio < 1)
-  const discountFold = Number((displayGroupRatio * 10).toFixed(1))
-  const discountPercent = Number(((1 - displayGroupRatio) * 100).toFixed(1))
   const availableVendors = props.model.available_vendors?.length
     ? props.model.available_vendors
     : [
@@ -1289,37 +1342,10 @@ function CatalogModelCard(props: {
 
       <div className='mt-3 flex h-[22px] justify-end'>
         {hasDiscount && (
-          <span
-            className={cn(
-              'inline-flex h-[22px] shrink-0 flex-nowrap items-center gap-1 whitespace-nowrap rounded px-2 text-[11px] font-medium',
-              isFree ? 'font-bold text-white' : 'text-[#8b5e00]'
-            )}
-            style={
-              isFree
-                ? {
-                    background:
-                      'linear-gradient(284deg, rgb(232, 210, 13) -9.23%, rgb(252, 184, 11) -4.09%, rgb(231, 110, 14) 12.83%, rgb(242, 119, 37) 52.07%, rgb(245, 113, 36) 99.75%)',
-                  }
-                : {
-                    background:
-                      'linear-gradient(135deg, rgb(255, 249, 227) 0%, rgb(251, 238, 205) 50%, rgb(248, 212, 128) 100%)',
-                  }
-            }
-          >
-            {isFree && (
-              <img
-                alt=''
-                className='size-[10px] shrink-0'
-                src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0ibm9uZSI+PHBhdGggZD0iTTQuNDQ0IDQuMjkySC43NFY4LjcxYzAgLjM0NS4yOC42MjMuNjI2LjYyM2gzLjA3N3YtNS4wNFptLjQ5NCAwSDguNjRWOC43MWEuNjI1LjYyNSAwIDAgMS0uNjI3LjYyM0g0LjkzOHYtNS4wNFptLS40OTQtMi4zNjlILjYyM0EuNjI2LjYyNiAwIDAgMCAwIDIuNTV2LjcyN2MwIC4zNDcuMjc5LjYyNi42MjMuNjI2aDMuODJ2LTEuOThabS40OTQgMGgzLjgyYy4zNDUgMCAuNjIzLjI4LjYyMy42Mjd2LjcyN2EuNjI2LjYyNiAwIDAgMS0uNjIzLjYyNmgtMy44MnYtMS45OFptLS40OTQtLjUzNEwzLjEzLjI2MmExLjEwMyAxLjEwMyAwIDAgMC0xLjMzOC0uMDNsLjIxMy0uMTY3Yy0uMjY5LjIxLS40OTEuNjYyLS40OTEgMS4wMDh2LjYxMWgyLjkyOVYxLjM5Wm0uNDk0LS4wMjRMNi4wNTguMjk2Yy4zNDQtLjMzLjk1My0uMzk0IDEuMzU5LS4xNDRMNy4zNjQuMTJjLjI5NC4xOC41MzMuNjA4LjUzMy45NTN2LjYxMWgtMi45NnYtLjMxOVoiIGZpbGw9IiNmZmYiLz48L3N2Zz4='
-              />
-            )}
-            {isFree
-              ? t('Free pricing')
-              : t('Model discount badge', {
-                  percent: discountPercent,
-                  fold: discountFold,
-                })}
-          </span>
+          <CatalogModelDiscountBadge
+            isFree={isFree}
+            ratio={displayGroupRatio}
+          />
         )}
       </div>
 
@@ -1598,11 +1624,21 @@ function CatalogModelCard(props: {
   )
 }
 
-function CatalogSkeleton() {
+function CatalogSkeleton(props: { viewMode: 'card' | 'table' }) {
   const filterIds = ['input', 'context', 'vendor', 'group', 'other']
   const cardIds = Array.from({ length: 9 }, (_, index) => `model-${index}`)
+  const tableColumns = [
+    { key: 'model', width: 220 },
+    { key: 'provider', width: 110 },
+    { key: 'input-type', width: 90 },
+    { key: 'output-type', width: 90 },
+    { key: 'input-price', width: 150 },
+    { key: 'output-price', width: 160 },
+    { key: 'context', width: 110 },
+    { key: 'max-output', width: 100 },
+  ]
   return (
-    <div className='bg-background grid min-h-[calc(100svh-4rem)] grid-cols-1 pt-16 lg:grid-cols-[248px_minmax(0,1fr)]'>
+    <div className='bg-background grid min-h-[calc(100svh-4rem)] grid-cols-1 lg:grid-cols-[248px_minmax(0,1fr)]'>
       <aside className='hidden border-r p-4 lg:block'>
         <div className='space-y-7'>
           {filterIds.map((id) => (
@@ -1620,18 +1656,707 @@ function CatalogSkeleton() {
           <Skeleton className='h-8 w-36' />
           <Skeleton className='mt-3 h-4 w-24' />
         </div>
-        <div className='grid min-w-0 grid-cols-1 xl:grid-cols-3'>
-          {cardIds.map((id) => (
-            <div key={id} className='min-w-0 space-y-4 border-r border-b p-5'>
-              <Skeleton className='h-10 w-3/4' />
-              <Skeleton className='h-10 w-full' />
-              <Skeleton className='h-16 w-full' />
-              <Skeleton className='h-8 w-full' />
+        {props.viewMode === 'table' ? (
+          <div className='overflow-x-auto rounded-md border'>
+            <div className='bg-muted/30 flex min-w-[1050px] gap-6 border-b px-4 py-3'>
+              {tableColumns.map(({ key, width }) => (
+                <Skeleton
+                  key={key}
+                  className='h-4 shrink-0'
+                  style={{ width }}
+                />
+              ))}
             </div>
-          ))}
-        </div>
+            {cardIds.map((id) => (
+              <div
+                key={id}
+                className='flex min-w-[1050px] items-center gap-6 border-b px-4 py-4 last:border-0'
+              >
+                {tableColumns.map(({ key, width }) => (
+                  <Skeleton
+                    key={key}
+                    className='h-5 shrink-0'
+                    style={{ width }}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className='grid min-w-0 grid-cols-1 xl:grid-cols-3'>
+            {cardIds.map((id) => (
+              <div key={id} className='min-w-0 space-y-4 border-r border-b p-5'>
+                <Skeleton className='h-10 w-3/4' />
+                <Skeleton className='h-10 w-full' />
+                <Skeleton className='h-16 w-full' />
+                <Skeleton className='h-8 w-full' />
+              </div>
+            ))}
+          </div>
+        )}
       </main>
     </div>
+  )
+}
+
+type CatalogTablePriceColumn = {
+  id: string
+  label: string
+  group: 'input' | 'output' | 'cache' | 'media' | 'usage' | 'tools'
+  toolName?: string
+}
+
+function getCatalogTableDynamicEntries(
+  model: PricingModel,
+  options: {
+    priceRate: number
+    usdExchangeRate: number
+    selectedGroup?: string
+    usableGroup: PricingUsableGroup
+  }
+): DynamicPriceEntry[] {
+  const pricingModel = {
+    ...model,
+    enable_groups: getAvailableGroups(model, options.usableGroup),
+  }
+  const taskPricingVariant = pricingModel.billing_plugin_variants?.find(
+    (variant) =>
+      variant.billing_mode === 'tiered_expr' &&
+      Boolean(variant.billing_expr) &&
+      Object.keys(variant.billing_usage_schema ?? {}).length > 0
+  )
+  const effectivePricingModel = taskPricingVariant
+    ? withPluginPricing(pricingModel, taskPricingVariant)
+    : pricingModel
+  return (
+    getDynamicPricingSummary(effectivePricingModel, {
+      tokenUnit: TOKEN_UNIT,
+      priceRate: options.priceRate,
+      usdExchangeRate: options.usdExchangeRate,
+      groupRatioMultiplier: getDynamicDisplayGroupRatio(
+        pricingModel,
+        options.selectedGroup
+      ),
+    })?.entries ?? []
+  )
+}
+
+function getCatalogTablePriceColumns(
+  models: PricingModel[],
+  options: {
+    priceRate: number
+    usdExchangeRate: number
+    selectedGroup?: string
+    usableGroup: PricingUsableGroup
+  },
+  t: (key: string) => string,
+  language: string
+): CatalogTablePriceColumn[] {
+  const columns = new Map<string, CatalogTablePriceColumn>()
+  const add = (column: CatalogTablePriceColumn) => {
+    if (!columns.has(column.id)) columns.set(column.id, column)
+  }
+
+  add({ id: 'input', label: t('Input'), group: 'input' })
+  add({ id: 'output', label: t('Output'), group: 'output' })
+  const cachePriceLabels: Record<string, string> = {
+    cacheReadPrice: t('General Cache Read'),
+    cacheCreatePrice: t('General Cache Write'),
+    imageCachePrice: t('Image Cache'),
+    cacheCreate1hPrice: t('Cache Write (1h)'),
+    cacheCreate12hPrice: t('Cache Write (12h)'),
+  }
+
+  for (const model of models) {
+    const entries = getCatalogTableDynamicEntries(model, options)
+    for (const entry of entries) {
+      if (
+        [
+          'inputPrice',
+          'outputPrice',
+          'input_tokens',
+          'prompt_tokens',
+          'output_tokens',
+          'completion_tokens',
+          'text_output_tokens',
+          'video_output_tokens',
+          'fixedPrice',
+        ].includes(entry.field)
+      ) {
+        continue
+      }
+      const definition = model.billing_usage_schema?.[entry.field]
+      const label =
+        cachePriceLabels[entry.field] ||
+        (definition?.description
+          ? taskPriceLabel(definition.description, entry.field, language)
+          : t(entry.label))
+      let group: CatalogTablePriceColumn['group'] = 'usage'
+      if (/cache/i.test(entry.field)) {
+        group = 'cache'
+      } else if (/image|audio|video/i.test(entry.field)) {
+        group = 'media'
+      } else if (/input|prompt/i.test(entry.field)) {
+        group = 'input'
+      } else if (/output|completion|generated/i.test(entry.field)) {
+        group = 'output'
+      }
+      add({ id: entry.field, label, group })
+    }
+
+    if (model.cache_ratio != null) {
+      add({
+        id: 'cacheReadPrice',
+        label: cachePriceLabels.cacheReadPrice,
+        group: 'cache',
+      })
+    }
+    if (model.create_cache_ratio != null) {
+      add({
+        id: 'cacheCreatePrice',
+        label: cachePriceLabels.cacheCreatePrice,
+        group: 'cache',
+      })
+    }
+    if (model.image_ratio != null) {
+      add({ id: 'image_ratio', label: t('Image input'), group: 'media' })
+    }
+    if (model.audio_ratio != null) {
+      add({ id: 'audio_input_ratio', label: t('Audio input'), group: 'media' })
+    }
+    if (model.audio_ratio != null && model.audio_completion_ratio != null) {
+      add({
+        id: 'audio_output_ratio',
+        label: t('Audio output'),
+        group: 'media',
+      })
+    }
+    for (const tool of getPricingToolPrices(model)) {
+      add({
+        id: `tool:${tool.name}`,
+        label: t(tool.label),
+        group: 'tools',
+        toolName: tool.name,
+      })
+    }
+  }
+
+  return [...columns.values()]
+}
+
+function CatalogTablePriceCell(props: {
+  value?: string
+  unit?: string
+  freeQuantity?: number
+  discounted: boolean
+  emptyAsDash?: boolean
+}) {
+  const { t } = useTranslation()
+  if (!props.value && !props.emptyAsDash) return null
+  const unit = props.unit || t('Count')
+  const hasFreeQuantity = Number(props.freeQuantity) > 0
+  return (
+    <div className='min-w-[100px] text-right tabular-nums'>
+      <span
+        className={cn(
+          'block whitespace-nowrap font-mono text-xs font-semibold',
+          props.discounted && 'text-success'
+        )}
+      >
+        {props.value || '-'}
+      </span>
+      {hasFreeQuantity && (
+        <span className='text-muted-foreground block text-[10px] whitespace-nowrap'>
+          {t('First')} {props.freeQuantity} {unit} {t('free')}
+        </span>
+      )}
+      {props.unit && (
+        <span className='text-muted-foreground block text-[10px] whitespace-nowrap'>
+          /{props.unit}
+        </span>
+      )}
+    </div>
+  )
+}
+
+function getCatalogDynamicEntryUnit(
+  entry: DynamicPriceEntry,
+  model: PricingModel,
+  language: string,
+  t: (key: string) => string
+): string | undefined {
+  if (entry.displayUnit === 'token') {
+    return TOKEN_UNIT === 'K' ? '1K tokens' : '1M tokens'
+  }
+  if (entry.displayUnit === 'request') return t('request')
+  const definition = model.billing_usage_schema?.[entry.field]
+  if (entry.unitLabel) {
+    return taskPriceLabel(entry.unitLabel, entry.unit || entry.field, language)
+  }
+  if (entry.unit === 'second') return t('seconds')
+  if (entry.unit === 'count') return t('Count')
+  return entry.unit
+    ? taskPriceLabel(definition?.unitLabel, entry.unit, language) || entry.unit
+    : undefined
+}
+
+function CatalogModelTableRow(props: {
+  model: PricingModel
+  perf?: PerfModelSummary
+  priceColumns: CatalogTablePriceColumn[]
+  priceRate: number
+  usdExchangeRate: number
+  selectedGroup?: string
+  usableGroup: PricingUsableGroup
+  onOpen: () => void
+  showUsageMetrics: boolean
+}) {
+  const { t, i18n } = useTranslation()
+  const priceOptions = {
+    priceRate: props.priceRate,
+    usdExchangeRate: props.usdExchangeRate,
+    selectedGroup: props.selectedGroup,
+    usableGroup: props.usableGroup,
+  }
+  const priceRows = usePriceRows({
+    model: props.model,
+    tokenUnit: TOKEN_UNIT,
+    ...priceOptions,
+  })
+  const dynamicEntries = getCatalogTableDynamicEntries(
+    props.model,
+    priceOptions
+  )
+  const dynamicEntryMap = new Map(
+    dynamicEntries.map((entry) => [entry.field, entry])
+  )
+  const effectiveModel = {
+    ...props.model,
+    enable_groups: getAvailableGroups(props.model, props.usableGroup),
+  }
+  const displayGroupRatio = getDisplayGroupRatio(
+    effectiveModel,
+    props.selectedGroup,
+    props.usableGroup
+  )
+  const isFree = isFreePricingModel(props.model, displayGroupRatio)
+  const hasDiscount =
+    isFree || (displayGroupRatio >= 0 && displayGroupRatio < 1)
+  const modelIconKey =
+    props.model.icon || props.model.developer_icon || props.model.vendor_icon
+  const modelIcon = modelIconKey ? getLobeIcon(modelIconKey, 24) : null
+  const initial = props.model.model_name?.charAt(0).toUpperCase() || '?'
+  const modelTitle = getDisplayedModelName(props.model)
+  const vendors = props.model.available_vendors?.length
+    ? props.model.available_vendors
+    : []
+  const vendorNames = vendors.map((vendor) => vendor.name).filter(Boolean)
+  const providerName =
+    vendorNames[0] ||
+    props.model.vendor_name ||
+    props.model.developer_name ||
+    '-'
+  const providerCount = vendors.length || (props.model.vendor_id ? 1 : 0)
+
+  const renderPriceColumn = (column: CatalogTablePriceColumn) => {
+    if (column.id === 'input') {
+      if (priceRows.kind === 'single') {
+        if (
+          priceRows.label === t('Cache Read') &&
+          dynamicEntryMap.has('cacheReadPrice')
+        ) {
+          return null
+        }
+        return (
+          <CatalogTablePriceCell
+            value={priceRows.value}
+            unit={priceRows.unit}
+            discounted={hasDiscount}
+          />
+        )
+      }
+      const hasReferencePrice =
+        priceRows.referenceImageValue || priceRows.referenceVideoValue
+      return hasReferencePrice ? (
+        <div className='space-y-1'>
+          {priceRows.referenceImageValue && (
+            <CatalogTablePriceCell
+              value={priceRows.referenceImageValue}
+              unit={priceRows.referenceImageUnit}
+              freeQuantity={priceRows.referenceImageFreeQuantity}
+              discounted={hasDiscount}
+            />
+          )}
+          {priceRows.referenceVideoValue && (
+            <CatalogTablePriceCell
+              value={priceRows.referenceVideoValue}
+              unit={priceRows.referenceVideoUnit}
+              discounted={hasDiscount}
+            />
+          )}
+        </div>
+      ) : (
+        <CatalogTablePriceCell
+          value={priceRows.inputValue}
+          unit={priceRows.inputUnit}
+          freeQuantity={priceRows.inputFreeQuantity}
+          discounted={hasDiscount}
+          emptyAsDash
+        />
+      )
+    }
+
+    if (column.id === 'output') {
+      if (priceRows.kind === 'single') return null
+      return (
+        <div className='space-y-1'>
+          {priceRows.textOutputValue && (
+            <CatalogTablePriceCell
+              value={priceRows.textOutputValue}
+              unit={priceRows.textOutputUnit}
+              discounted={hasDiscount}
+            />
+          )}
+          <CatalogTablePriceCell
+            value={priceRows.outputValue}
+            unit={priceRows.outputUnit}
+            discounted={hasDiscount}
+            emptyAsDash
+          />
+        </div>
+      )
+    }
+
+    if (column.id.startsWith('tool:')) {
+      const tool = getPricingToolPrices(props.model).find(
+        (item) => item.name === column.toolName
+      )
+      return tool ? (
+        <CatalogTablePriceCell
+          value={`${formatToolPrice(tool.price_per_1k, displayGroupRatio)}/${t('1K calls')}`}
+          discounted={hasDiscount}
+        />
+      ) : null
+    }
+
+    const entry = dynamicEntryMap.get(column.id)
+    if (entry) {
+      return (
+        <CatalogTablePriceCell
+          value={entry.formatted}
+          unit={getCatalogDynamicEntryUnit(
+            entry,
+            props.model,
+            i18n.language,
+            t
+          )}
+          freeQuantity={entry.freeQuantity}
+          discounted={hasDiscount}
+        />
+      )
+    }
+
+    if (column.id === 'cacheReadPrice' && priceRows.kind === 'paired') {
+      return (
+        <CatalogTablePriceCell
+          value={priceRows.cacheValue}
+          unit={priceRows.cacheUnit}
+          discounted={hasDiscount}
+          emptyAsDash
+        />
+      )
+    }
+    if (column.id === 'cacheCreatePrice' && priceRows.kind === 'paired') {
+      return (
+        <CatalogTablePriceCell
+          value={priceRows.cacheWriteValue}
+          unit={priceRows.cacheWriteUnit}
+          discounted={hasDiscount}
+          emptyAsDash
+        />
+      )
+    }
+
+    const tokenUnit = TOKEN_UNIT
+    if (column.id === 'image_ratio' && props.model.image_ratio != null) {
+      return (
+        <CatalogTablePriceCell
+          value={formatPrice(
+            effectiveModel,
+            'image',
+            tokenUnit,
+            false,
+            props.priceRate,
+            props.usdExchangeRate,
+            props.selectedGroup
+          )}
+          unit={tokenUnit === 'K' ? '1K tokens' : '1M tokens'}
+          discounted={hasDiscount}
+        />
+      )
+    }
+    if (column.id === 'audio_input_ratio' && props.model.audio_ratio != null) {
+      return (
+        <CatalogTablePriceCell
+          value={formatPrice(
+            effectiveModel,
+            'audio_input',
+            tokenUnit,
+            false,
+            props.priceRate,
+            props.usdExchangeRate,
+            props.selectedGroup
+          )}
+          unit={tokenUnit === 'K' ? '1K tokens' : '1M tokens'}
+          discounted={hasDiscount}
+        />
+      )
+    }
+    if (
+      column.id === 'audio_output_ratio' &&
+      props.model.audio_ratio != null &&
+      props.model.audio_completion_ratio != null
+    ) {
+      return (
+        <CatalogTablePriceCell
+          value={formatPrice(
+            effectiveModel,
+            'audio_output',
+            tokenUnit,
+            false,
+            props.priceRate,
+            props.usdExchangeRate,
+            props.selectedGroup
+          )}
+          unit={tokenUnit === 'K' ? '1K tokens' : '1M tokens'}
+          discounted={hasDiscount}
+        />
+      )
+    }
+
+    return null
+  }
+
+  return (
+    <TableRow className='align-middle'>
+      <TableCell className='bg-background sticky left-0 z-10 max-w-[280px] min-w-[240px] border-r py-3 shadow-[4px_0_8px_-8px_color-mix(in_oklch,var(--foreground)_45%,transparent)]'>
+        <div className='flex min-w-0 items-center gap-2.5'>
+          <div className='bg-muted/60 flex size-8 shrink-0 items-center justify-center rounded-md dark:bg-white/5'>
+            {modelIcon || (
+              <span className='text-muted-foreground text-xs font-bold'>
+                {initial}
+              </span>
+            )}
+          </div>
+          <div className='min-w-0'>
+            <button
+              type='button'
+              onClick={props.onOpen}
+              title={modelTitle}
+              className='text-foreground block max-w-full truncate text-left font-mono text-sm font-semibold underline-offset-2 hover:underline focus-visible:rounded-sm focus-visible:outline-2'
+            >
+              {modelTitle}
+            </button>
+            <span className='text-muted-foreground block truncate font-mono text-xs'>
+              {props.model.model_name}
+            </span>
+          </div>
+        </div>
+      </TableCell>
+      <TableCell className='border-border/60 min-w-[140px] border-r'>
+        <span
+          className='text-foreground block truncate text-xs'
+          title={vendorNames.join(', ') || providerName}
+        >
+          {providerName}
+        </span>
+        {providerCount > 1 && (
+          <span className='text-muted-foreground block text-[10px]'>
+            {t('Available from {{count}} providers', { count: providerCount })}
+          </span>
+        )}
+      </TableCell>
+      {props.priceColumns.map((column) => (
+        <TableCell
+          key={column.id}
+          className='border-border/60 min-w-[148px] border-r px-3 py-2'
+        >
+          {renderPriceColumn(column)}
+        </TableCell>
+      ))}
+      <TableCell className='border-border/60 min-w-[100px] border-r text-right text-xs tabular-nums'>
+        {props.model.context_length_display ||
+          formatCardTokens(props.model.context_length)}
+      </TableCell>
+      <TableCell className='border-border/60 min-w-[100px] border-r text-right text-xs tabular-nums'>
+        {props.model.max_output_tokens_display ||
+          formatCardTokens(props.model.max_output_tokens)}
+      </TableCell>
+      <TableCell className='border-border/60 min-w-[112px] border-r'>
+        <CatalogModelDiscountBadge isFree={isFree} ratio={displayGroupRatio} />
+      </TableCell>
+      {props.showUsageMetrics && (
+        <TableCell className='border-border/60 min-w-[114px] border-r'>
+          <div className='flex flex-col gap-1 text-xs tabular-nums'>
+            <span>
+              <span className='text-muted-foreground'>
+                {t('Success rate')}:{' '}
+              </span>
+              {formatSuccessRate(props.perf?.success_rate)}
+            </span>
+            <span>
+              <span className='text-muted-foreground'>
+                {t('Cache hit rate')}:{' '}
+              </span>
+              {props.perf?.cache_rate !== undefined &&
+              Number.isFinite(props.perf.cache_rate)
+                ? `${props.perf.cache_rate.toFixed(2)}%`
+                : '-'}
+            </span>
+          </div>
+        </TableCell>
+      )}
+    </TableRow>
+  )
+}
+
+function CatalogModelTable(props: {
+  models: PricingModel[]
+  columnModels: PricingModel[]
+  perfMap: Map<string, PerfModelSummary>
+  priceRate: number
+  usdExchangeRate: number
+  selectedGroup?: string
+  usableGroup: PricingUsableGroup
+  onModelClick: (modelName: string) => void
+  showUsageMetrics: boolean
+}) {
+  const { t, i18n } = useTranslation()
+  const priceColumns = getCatalogTablePriceColumns(
+    props.columnModels,
+    props,
+    t,
+    i18n.language
+  )
+  const groupedPriceColumns = [
+    {
+      id: 'input',
+      label: t('Input'),
+      columns: priceColumns.filter((column) => column.group === 'input'),
+    },
+    {
+      id: 'output',
+      label: t('Output'),
+      columns: priceColumns.filter((column) => column.group === 'output'),
+    },
+    {
+      id: 'cache',
+      label: t('Cache'),
+      columns: priceColumns.filter((column) => column.group === 'cache'),
+    },
+    {
+      id: 'media',
+      label: t('Modality'),
+      columns: priceColumns.filter((column) => column.group === 'media'),
+    },
+    {
+      id: 'usage',
+      label: t('Usage'),
+      columns: priceColumns.filter((column) => column.group === 'usage'),
+    },
+    {
+      id: 'tools',
+      label: t('Tools'),
+      columns: priceColumns.filter((column) => column.group === 'tools'),
+    },
+  ].filter((group) => group.columns.length > 0)
+  const displayPriceColumns = groupedPriceColumns.flatMap(
+    (group) => group.columns
+  )
+  const trailingColumns = [
+    { id: 'context', label: t('Context'), className: 'min-w-[100px]' },
+    { id: 'max-output', label: t('Max output'), className: 'min-w-[100px]' },
+    { id: 'discount', label: t('Discount'), className: 'min-w-[112px]' },
+    ...(props.showUsageMetrics
+      ? [
+          {
+            id: 'performance',
+            label: t('Performance'),
+            className: 'min-w-[114px]',
+          },
+        ]
+      : []),
+  ]
+
+  return (
+    <Table
+      aria-label={t('Models')}
+      className='min-w-max border-separate border-spacing-0'
+    >
+      <TableHeader className='bg-muted'>
+        <TableRow className='hover:bg-transparent'>
+          <TableHead
+            rowSpan={2}
+            className='bg-muted sticky left-0 z-30 min-w-[240px] border-r'
+          >
+            {t('Model')}
+          </TableHead>
+          <TableHead
+            rowSpan={2}
+            className='border-border/60 min-w-[140px] border-r'
+          >
+            {t('Provider')}
+          </TableHead>
+          {groupedPriceColumns.map((group) => (
+            <TableHead
+              key={group.id}
+              colSpan={group.columns.length}
+              className='border-border/60 border-r border-b text-center'
+            >
+              {group.label}
+            </TableHead>
+          ))}
+          {trailingColumns.map((column) => (
+            <TableHead
+              key={column.id}
+              rowSpan={2}
+              className={cn(
+                column.className,
+                'border-r border-border/60 text-right'
+              )}
+            >
+              {column.label}
+            </TableHead>
+          ))}
+        </TableRow>
+        <TableRow className='hover:bg-transparent'>
+          {displayPriceColumns.map((column) => (
+            <TableHead
+              key={column.id}
+              className='border-border/60 min-w-[148px] border-r text-right text-xs'
+            >
+              {column.label}
+            </TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {props.models.map((model) => (
+          <CatalogModelTableRow
+            key={model.model_name}
+            model={model}
+            perf={props.perfMap.get(model.model_name || '')}
+            priceColumns={displayPriceColumns}
+            priceRate={props.priceRate}
+            usdExchangeRate={props.usdExchangeRate}
+            selectedGroup={props.selectedGroup}
+            usableGroup={props.usableGroup}
+            onOpen={() => props.onModelClick(model.model_name || '')}
+            showUsageMetrics={props.showUsageMetrics}
+          />
+        ))}
+      </TableBody>
+    </Table>
   )
 }
 
@@ -1655,6 +2380,10 @@ function CatalogPricing() {
   const { t } = useTranslation()
   const { status } = useStatus()
   const showUsageMetrics = status?.model_square_show_usage_metrics === true
+  const [viewMode, setViewMode] = useDataTableViewMode({
+    storageKey: 'model-square-view-mode',
+    defaultMode: DATA_TABLE_VIEW_MODES.CARD,
+  })
   const navigate = useNavigate()
   const [searchInput, setSearchInput] = useState('')
   const [inputFilter, setInputFilter] = useState<string>(FILTER_ALL)
@@ -1941,17 +2670,17 @@ function CatalogPricing() {
 
   if (isLoading) {
     return (
-      <PublicLayout showMainContainer={false}>
-        <CatalogSkeleton />
+      <PublicLayout stickyHeader showMainContainer={false}>
+        <CatalogSkeleton viewMode={viewMode} />
       </PublicLayout>
     )
   }
 
   return (
-    <PublicLayout showMainContainer={false}>
-      <PageTransition className='bg-background text-foreground min-h-svh pt-16'>
-        <div className='grid min-h-[calc(100svh-4rem)] grid-cols-1 lg:grid-cols-[248px_minmax(0,1fr)]'>
-          <aside className='bg-background/95 hidden border-b p-4 lg:sticky lg:top-16 lg:block lg:h-[calc(100svh-4rem)] lg:overflow-y-auto lg:border-r lg:border-b-0'>
+    <PublicLayout stickyHeader showMainContainer={false}>
+      <PageTransition className='bg-background text-foreground min-h-svh'>
+        <div className='grid min-h-[calc(100svh-var(--app-header-height,3rem))] grid-cols-1 lg:grid-cols-[248px_minmax(0,1fr)]'>
+          <aside className='bg-background/95 hidden border-b p-4 lg:sticky lg:top-[var(--app-header-height,3rem)] lg:block lg:h-[calc(100svh-var(--app-header-height,3rem))] lg:overflow-y-auto lg:border-r lg:border-b-0'>
             <div className='space-y-7'>
               <FilterSection
                 title={t('Input Types')}
@@ -2140,6 +2869,11 @@ function CatalogPricing() {
                     </DropdownMenuContent>
                   </DropdownMenu>
 
+                  <DataTableViewModeToggle
+                    value={viewMode}
+                    onChange={setViewMode}
+                  />
+
                   <Button
                     type='button'
                     variant='outline'
@@ -2263,28 +2997,44 @@ function CatalogPricing() {
               </div>
             ) : (
               <>
-                <div className='grid min-w-0 grid-cols-1 xl:grid-cols-3'>
-                  <ModelSquareCarousel
-                    items={
-                      (status?.model_square_carousel as
-                        | import('@/features/auth/types').ModelSquareCarouselItem[]
-                        | undefined) ?? []
-                    }
-                  />
-                  {visibleModels.map((model) => (
-                    <CatalogModelCard
-                      key={model.model_name}
-                      model={model}
-                      perf={perfMap.get(model.model_name || '')}
+                {viewMode === DATA_TABLE_VIEW_MODES.CARD ? (
+                  <div className='grid min-w-0 grid-cols-1 xl:grid-cols-3'>
+                    <ModelSquareCarousel
+                      items={
+                        (status?.model_square_carousel as
+                          | import('@/features/auth/types').ModelSquareCarouselItem[]
+                          | undefined) ?? []
+                      }
+                    />
+                    {visibleModels.map((model) => (
+                      <CatalogModelCard
+                        key={model.model_name}
+                        model={model}
+                        perf={perfMap.get(model.model_name || '')}
+                        priceRate={priceRate}
+                        usdExchangeRate={usdExchangeRate}
+                        selectedGroup={groupFilter}
+                        usableGroup={usableGroup}
+                        onOpen={() => handleModelClick(model.model_name || '')}
+                        showUsageMetrics={showUsageMetrics}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className='min-w-0 overflow-hidden rounded-md border'>
+                    <CatalogModelTable
+                      models={visibleModels}
+                      columnModels={filteredModels}
+                      perfMap={perfMap}
                       priceRate={priceRate}
                       usdExchangeRate={usdExchangeRate}
                       selectedGroup={groupFilter}
                       usableGroup={usableGroup}
-                      onOpen={() => handleModelClick(model.model_name || '')}
+                      onModelClick={handleModelClick}
                       showUsageMetrics={showUsageMetrics}
                     />
-                  ))}
-                </div>
+                  </div>
+                )}
 
                 <div
                   ref={sentinelRef}

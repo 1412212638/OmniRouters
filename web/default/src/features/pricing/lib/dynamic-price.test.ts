@@ -104,6 +104,25 @@ describe('dynamic fixed request prices', () => {
   })
 })
 
+describe('cache price tiers', () => {
+  test('exposes generic, image, 1h, and 12h cache prices independently', () => {
+    const [tier] = parseTiersFromExpr(
+      'tier("base", p * 5 + c * 25 + cr * 0.5 + cc * 6.25 + img_cr * 1.75 + cc1h * 10 + cc12h * 12.5)'
+    )
+    const cacheEntries = getDynamicPriceEntries(tier, { tokenUnit: 'M' })
+      .filter((entry) => entry.variable?.group === 'cache')
+      .map((entry) => entry.field)
+
+    assert.deepEqual(cacheEntries, [
+      'cacheReadPrice',
+      'cacheCreatePrice',
+      'imageCachePrice',
+      'cacheCreate1hPrice',
+      'cacheCreate12hPrice',
+    ])
+  })
+})
+
 describe('task image price entries', () => {
   test('keeps input and output image prices and localized unit metadata', () => {
     const model = testPricingModel({

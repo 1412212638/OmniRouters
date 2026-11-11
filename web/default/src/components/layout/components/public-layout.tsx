@@ -4,6 +4,7 @@ import { PublicHeader, type PublicHeaderProps } from './public-header'
 type PublicLayoutProps = {
   children: React.ReactNode
   showMainContainer?: boolean
+  stickyHeader?: boolean
   navContent?: React.ReactNode
   headerProps?: Omit<PublicHeaderProps, 'navContent'>
   navLinks?: TopNavLink[]
@@ -18,6 +19,7 @@ export function PublicLayout(props: PublicLayoutProps) {
   return (
     <div className='bg-background text-foreground relative min-h-svh overflow-x-clip'>
       <PublicHeader
+        stickyHeader={props.stickyHeader}
         navContent={props.navContent}
         navLinks={props.navLinks}
         showThemeSwitch={props.showThemeSwitch}
