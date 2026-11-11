@@ -5585,3 +5585,10 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: added model endpoint templates for image edit/query, OpenAI Responses retrieval, OpenAI video generation/query/content, AstraFlow submit/status and Gemini interaction retrieval, plus generic task-plugin submission, query, and artifact routes. Added the same user-callable routes to the API-key endpoint drawer.
 - Preserved: endpoint routing, authentication, plugin selection, model mappings, and billing behavior; upstream-only provider URLs are not presented as gateway endpoints.
 - Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed. Targeted Oxlint reports the existing `no-import-type-side-effects` diagnostic at `models/constants.ts:1`; no new diagnostics were introduced by these endpoint entries. Go tests/build were not run because the local Go toolchain is unavailable.
+
+# 2026-11-11 - Hide internal task-plugin routes from public endpoint viewer
+
+- Local reason: the API-key endpoint viewer exposed AstraFlow's internal task protocol and generic task-plugin routes to external users.
+- Changed: removed the AstraFlow and generic task-plugin protocol groups from the user-facing endpoint drawer. Admin-only model editor endpoint templates remain available for configuring supported model calls.
+- Preserved: backend task routes, plugin execution, model editor configuration, all public OpenAI/Anthropic/Gemini/media endpoints, authentication, and billing behavior.
+- Validation: targeted Oxfmt, default frontend production build, and `git diff --check` passed. Go tests/build were not run because the local Go toolchain is unavailable.

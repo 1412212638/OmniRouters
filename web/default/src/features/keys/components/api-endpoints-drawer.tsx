@@ -246,56 +246,6 @@ const PROTOCOLS: Protocol[] = [
     ],
   },
   {
-    id: 'astraflow',
-    label: 'AstraFlow Tasks',
-    description: 'AstraFlow native task API',
-    endpoints: [
-      {
-        id: 'tasks-submit',
-        method: 'POST',
-        path: '/v1/tasks/submit',
-        label: 'Submit a Task',
-      },
-      {
-        id: 'tasks-status',
-        method: 'GET',
-        path: '/v1/tasks/status?task_id={task_id}',
-        label: 'Get Task Status',
-      },
-    ],
-  },
-  {
-    id: 'task-plugins',
-    label: 'Task Plugins',
-    description: 'Gateway task plugin endpoints',
-    endpoints: [
-      {
-        id: 'task-submit',
-        method: 'POST',
-        path: '/v1/tasks/{plugin_key}',
-        label: 'Submit a Task Plugin Request',
-      },
-      {
-        id: 'task-query',
-        method: 'GET',
-        path: '/v1/tasks/{plugin_key}/{task_id}',
-        label: 'Get a Task Plugin Result',
-      },
-      {
-        id: 'task-artifacts',
-        method: 'GET',
-        path: '/v1/tasks/{plugin_key}/{task_id}/artifacts',
-        label: 'List Task Artifacts',
-      },
-      {
-        id: 'task-artifact-content',
-        method: 'GET',
-        path: '/v1/tasks/{plugin_key}/{task_id}/artifacts/{artifact_key}/content',
-        label: 'Get Task Artifact Content',
-      },
-    ],
-  },
-  {
     id: 'doubao',
     label: 'Doubao Native',
     description: 'Volcengine native video task API',
