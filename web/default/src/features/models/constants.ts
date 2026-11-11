@@ -144,13 +144,31 @@ export const ENDPOINT_TEMPLATES: Record<
 > = {
   openai: { path: '/v1/chat/completions', method: 'POST' },
   'openai-response': { path: '/v1/responses', method: 'POST' },
+  'openai-response-retrieve': {
+    path: '/v1/responses/{response_id}',
+    method: 'GET',
+  },
   anthropic: { path: '/v1/messages', method: 'POST' },
   gemini: { path: '/v1beta/models/{model}:generateContent', method: 'POST' },
   'jina-rerank': { path: '/rerank', method: 'POST' },
   'image-generation': { path: '/v1/images/generations', method: 'POST' },
+  'image-generation-query': {
+    path: '/v1/images/generations/{task_id}',
+    method: 'GET',
+  },
+  'image-edit': { path: '/v1/images/edits', method: 'POST' },
   embeddings: { path: '/v1/embeddings', method: 'POST' },
   'video-generation': { path: '/v1/video/generations', method: 'POST' },
+  'video-generation-query': {
+    path: '/v1/video/generations/{task_id}',
+    method: 'GET',
+  },
   'openai-video': { path: '/v1/videos', method: 'POST' },
+  'openai-video-query': { path: '/v1/videos/{task_id}', method: 'GET' },
+  'openai-video-content': {
+    path: '/v1/videos/{task_id}/content',
+    method: 'GET',
+  },
   decision: { path: '/v1/systemone', method: 'POST' },
   'deepseek-search': { path: '/v1/tools/search', method: 'POST' },
   'deepseek-fetch': { path: '/v1/tools/fetch', method: 'POST' },
@@ -160,6 +178,22 @@ export const ENDPOINT_TEMPLATES: Record<
   },
   'doubao-video-query': {
     path: '/api/v3/contents/generations/tasks/{task_id}',
+    method: 'GET',
+  },
+  'astraflow-submit': { path: '/v1/tasks/submit', method: 'POST' },
+  'astraflow-status': { path: '/v1/tasks/status', method: 'GET' },
+  'gemini-interaction-query': {
+    path: '/v1beta/models/interactions/{id}',
+    method: 'GET',
+  },
+  'task-plugin-submit': { path: '/v1/tasks/{key}', method: 'POST' },
+  'task-plugin-query': { path: '/v1/tasks/{key}/{task_id}', method: 'GET' },
+  'task-plugin-artifacts': {
+    path: '/v1/tasks/{key}/{task_id}/artifacts',
+    method: 'GET',
+  },
+  'task-plugin-artifact-content': {
+    path: '/v1/tasks/{key}/{task_id}/artifacts/{artifact_key}/content',
     method: 'GET',
   },
 }

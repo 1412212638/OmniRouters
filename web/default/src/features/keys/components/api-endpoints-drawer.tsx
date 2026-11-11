@@ -75,6 +75,12 @@ const PROTOCOLS: Protocol[] = [
         label: 'Create a Model Response',
       },
       {
+        id: 'response-retrieve',
+        method: 'GET',
+        path: '/v1/responses/{response_id}',
+        label: 'Get a Model Response',
+      },
+      {
         id: 'embeddings',
         method: 'POST',
         path: '/v1/embeddings',
@@ -91,6 +97,42 @@ const PROTOCOLS: Protocol[] = [
         method: 'POST',
         path: '/v1/images/edits',
         label: 'Edit an Image',
+      },
+      {
+        id: 'images-generation-query',
+        method: 'GET',
+        path: '/v1/images/generations/{task_id}',
+        label: 'Get an Image Task',
+      },
+      {
+        id: 'video-generation-create',
+        method: 'POST',
+        path: '/v1/video/generations',
+        label: 'Create a Video Generation Task',
+      },
+      {
+        id: 'video-generation-query',
+        method: 'GET',
+        path: '/v1/video/generations/{task_id}',
+        label: 'Get a Video Generation Task',
+      },
+      {
+        id: 'videos-create',
+        method: 'POST',
+        path: '/v1/videos',
+        label: 'Create a Video Task',
+      },
+      {
+        id: 'videos-query',
+        method: 'GET',
+        path: '/v1/videos/{task_id}',
+        label: 'Get a Video Task',
+      },
+      {
+        id: 'videos-content',
+        method: 'GET',
+        path: '/v1/videos/{task_id}/content',
+        label: 'Get Video Content',
       },
       {
         id: 'audio-speech',
@@ -181,6 +223,12 @@ const PROTOCOLS: Protocol[] = [
         path: '/v1beta/models',
         label: 'List Models',
       },
+      {
+        id: 'interaction-query',
+        method: 'GET',
+        path: '/v1beta/models/interactions/{id}',
+        label: 'Get an Interaction',
+      },
     ],
   },
   {
@@ -194,6 +242,56 @@ const PROTOCOLS: Protocol[] = [
         path: '/v1/systemone',
         label: 'Decision Model',
         description: 'Requires the TypeSafe plugin',
+      },
+    ],
+  },
+  {
+    id: 'astraflow',
+    label: 'AstraFlow Tasks',
+    description: 'AstraFlow native task API',
+    endpoints: [
+      {
+        id: 'tasks-submit',
+        method: 'POST',
+        path: '/v1/tasks/submit',
+        label: 'Submit a Task',
+      },
+      {
+        id: 'tasks-status',
+        method: 'GET',
+        path: '/v1/tasks/status?task_id={task_id}',
+        label: 'Get Task Status',
+      },
+    ],
+  },
+  {
+    id: 'task-plugins',
+    label: 'Task Plugins',
+    description: 'Gateway task plugin endpoints',
+    endpoints: [
+      {
+        id: 'task-submit',
+        method: 'POST',
+        path: '/v1/tasks/{plugin_key}',
+        label: 'Submit a Task Plugin Request',
+      },
+      {
+        id: 'task-query',
+        method: 'GET',
+        path: '/v1/tasks/{plugin_key}/{task_id}',
+        label: 'Get a Task Plugin Result',
+      },
+      {
+        id: 'task-artifacts',
+        method: 'GET',
+        path: '/v1/tasks/{plugin_key}/{task_id}/artifacts',
+        label: 'List Task Artifacts',
+      },
+      {
+        id: 'task-artifact-content',
+        method: 'GET',
+        path: '/v1/tasks/{plugin_key}/{task_id}/artifacts/{artifact_key}/content',
+        label: 'Get Task Artifact Content',
       },
     ],
   },

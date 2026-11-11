@@ -70,6 +70,25 @@ describe('Omni input, text output and video output pricing', () => {
       null
     )
   })
+
+  test('preserves configured token prices beyond two decimal places', () => {
+    const model = testPricingModel({
+      billing_mode: 'tiered_expr',
+      billing_expr:
+        'tier("base", u("input_tokens") * 0.042 / 1000000 + u("output_tokens") * 0.04 / 1000000)',
+      billing_usage_schema: {
+        input_tokens: { type: 'number', unit: 'token' },
+        output_tokens: { type: 'number', unit: 'token' },
+      },
+    })
+
+    const entries = getTaskPriceEntries(model, { tokenUnit: 'M' })
+
+    assert.deepEqual(
+      entries.map((entry) => entry.formatted),
+      ['$0.042', '$0.04']
+    )
+  })
 })
 
 describe('dynamic fixed request prices', () => {

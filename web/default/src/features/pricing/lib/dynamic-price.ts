@@ -158,8 +158,8 @@ function formatTaskUnitPrice(
       meta.kind === 'currency' || meta.kind === 'custom' ? meta.exchangeRate : 1
     const displayAmount = amountUSD * displayExchangeRate
     return formatBillingCurrencyFromUSD(amountUSD, {
-      digitsLarge: 2,
-      digitsSmall: 2,
+      digitsLarge: 6,
+      digitsSmall: 6,
       abbreviate: false,
       minimumFractionDigits: Math.abs(displayAmount) < 10 ? 2 : 0,
     })

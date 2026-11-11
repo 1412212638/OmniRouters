@@ -5564,3 +5564,24 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: existing Official WeChat QR login, QR binding, callback signature verification, plaintext callback mode, legacy WeChat login fields, server-side AppSecret/Token handling, and all unrelated OAuth providers. Menu drafts are local until an administrator explicitly syncs them; empty drafts delete the remote menu.
 - Validation: default frontend production build, targeted Oxlint, Oxfmt, and `git diff --check` passed. Full TypeScript checking remains blocked by pre-existing missing test dependencies and unrelated diagnostics. Go tests/gofmt could not run because the local Go toolchain is unavailable; controller regression tests were added for subscription replies, menu click replies, validation limits, URL validation, and QR behavior remains covered by existing tests.
 - Commit and push: feature implementation committed as `17606ad5e` (`feat: add official WeChat account operations`) and pushed to `origin/main` on 2026-11-11. This push-status update is included in the following documentation-only commit.
+
+# 2026-11-11 - Align AstraFlow Omni model detail pricing
+
+- Local reason: `google/gemini-omni-1.2-flash` showed AstraFlow token prices on the catalog card but ordinary Gemini input and Google Search prices in model details.
+- Changed: the active default model detail view now selects the same configured tiered task-plugin pricing variant as the catalog card for its billing label and group pricing table. It omits built-in tool surcharges tied to regular-channel pricing while a task-plugin variant is displayed.
+- Preserved: model capability metadata, descriptions, context limits, API details, performance metrics, ordinary model pricing when no configured task-plugin variant exists, and all backend billing behavior.
+- Validation: targeted Oxfmt, default-theme production build, and `git diff --check` passed. Targeted Oxlint reported existing diagnostics elsewhere in `model-details.tsx`; none point to the changed lines. This local fix has not been committed or pushed.
+
+# 2026-11-11 - Preserve precision for task token prices
+
+- Local reason: task token prices such as `jev-1.14` at `0.042` were rounded to `0.04` in the catalog card and model detail view.
+- Changed: shared task token-price formatting now preserves up to six fractional digits while removing insignificant trailing zeros; added a regression test for both `0.042` and `0.04`.
+- Preserved: stored price values, billing expressions, quota calculations, non-token task-price formatting, and actual billing behavior.
+- Validation: 17 targeted pricing tests, Oxfmt, default-theme production build, and `git diff --check` passed. Targeted Oxlint still reports one pre-existing `curly` diagnostic at `dynamic-price.ts:215`, outside this change. This local fix has not been committed or pushed.
+
+# 2026-11-11 - Refresh model and API-key endpoint catalogs
+
+- Local reason: recently registered model APIs were missing from the model editor endpoint templates and the API-key endpoint drawer.
+- Changed: added model endpoint templates for image edit/query, OpenAI Responses retrieval, OpenAI video generation/query/content, AstraFlow submit/status and Gemini interaction retrieval, plus generic task-plugin submission, query, and artifact routes. Added the same user-callable routes to the API-key endpoint drawer.
+- Preserved: endpoint routing, authentication, plugin selection, model mappings, and billing behavior; upstream-only provider URLs are not presented as gateway endpoints.
+- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed. Targeted Oxlint reports the existing `no-import-type-side-effects` diagnostic at `models/constants.ts:1`; no new diagnostics were introduced by these endpoint entries. Go tests/build were not run because the local Go toolchain is unavailable.

@@ -55,6 +55,7 @@ import {
   getDisplayedModelName,
   isTokenBasedModel,
 } from '../lib/model-helpers'
+import { withPluginPricing } from '../lib/plugin-pricing'
 import {
   formatFixedPrice,
   formatGroupPrice,
@@ -1452,10 +1453,24 @@ export interface ModelDetailsContentProps {
 export function ModelDetailsContent(props: ModelDetailsContentProps) {
   const { t } = useTranslation()
   const showRechargePrice = props.showRechargePrice ?? false
+  const taskPricingVariant = props.model.billing_plugin_variants?.find(
+    (variant) =>
+      variant.billing_mode === 'tiered_expr' &&
+      Boolean(variant.billing_expr) &&
+      Object.keys(variant.billing_usage_schema ?? {}).length > 0
+  )
+  const pricingModel = taskPricingVariant
+    ? {
+        ...withPluginPricing(props.model, taskPricingVariant),
+        // Built-in tool surcharges describe the regular channel's pricing,
+        // while this view is displaying the selected task plugin's prices.
+        tool_prices: [],
+      }
+    : props.model
 
   return (
     <div className='@container/details space-y-4'>
-      <ModelHeader model={props.model} />
+      <ModelHeader model={pricingModel} />
 
       <Tabs defaultValue='overview' className='gap-4'>
         <TabsList className='bg-muted/60 grid w-full grid-cols-3 gap-1 rounded-lg p-1 group-data-horizontal/tabs:h-auto'>
@@ -1477,7 +1492,7 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
         <TabsContent value='overview' className='space-y-6 outline-none'>
           <section className='bg-card/60 space-y-5 rounded-xl border p-4 shadow-sm'>
             <GroupPricingSection
-              model={props.model}
+              model={pricingModel}
               groupRatio={props.groupRatio}
               usableGroup={props.usableGroup}
               autoGroups={props.autoGroups}
