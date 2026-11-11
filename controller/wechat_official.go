@@ -73,8 +73,11 @@ func BuildWeChatOfficialSignature(token, timestamp, nonce string) string {
 }
 
 func wechatOfficialConfigured() bool {
-	return common.WeChatOfficialEnabled &&
-		strings.TrimSpace(common.WeChatOfficialAppID) != "" &&
+	return common.WeChatOfficialEnabled && wechatOfficialCredentialsConfigured()
+}
+
+func wechatOfficialCredentialsConfigured() bool {
+	return strings.TrimSpace(common.WeChatOfficialAppID) != "" &&
 		strings.TrimSpace(common.WeChatOfficialAppSecret) != "" &&
 		strings.TrimSpace(common.WeChatOfficialToken) != ""
 }
@@ -516,6 +519,7 @@ type wechatOfficialCallbackMessage struct {
 	FromUserName string   `xml:"FromUserName"`
 	CreateTime   int64    `xml:"CreateTime"`
 	MsgType      string   `xml:"MsgType"`
+	Content      string   `xml:"Content"`
 	Event        string   `xml:"Event"`
 	EventKey     string   `xml:"EventKey"`
 }
@@ -564,16 +568,18 @@ func WeChatOfficialCallback(c *gin.Context) {
 	// Only acknowledge the login QR scan with a user-visible reply. Ordinary
 	// account messages and unrelated QR events are acknowledged with "success".
 	if validLoginScan && isWeChatScene && message.FromUserName != "" {
-		response := struct {
-			XMLName      xml.Name `xml:"xml"`
-			ToUserName   string   `xml:"ToUserName"`
-			FromUserName string   `xml:"FromUserName"`
-			CreateTime   int64    `xml:"CreateTime"`
-			MsgType      string   `xml:"MsgType"`
-			Content      string   `xml:"Content"`
-		}{ToUserName: message.FromUserName, FromUserName: message.ToUserName, CreateTime: time.Now().Unix(), MsgType: "text", Content: fmt.Sprintf("扫码成功。你正在%s %s，请确认这是你本人打开的网页后返回完成%s。", map[string]string{"bind": "绑定微信号至", "login": "登录"}[purpose], common.SystemName, map[string]string{"bind": "绑定", "login": "登录"}[purpose])}
-		c.XML(http.StatusOK, response)
+		replyWeChatOfficialText(c, message, fmt.Sprintf("扫码成功。你正在%s %s，请确认这是你本人打开的网页后返回完成%s。", map[string]string{"bind": "绑定微信号至", "login": "登录"}[purpose], common.SystemName, map[string]string{"bind": "绑定", "login": "登录"}[purpose]))
 		return
+	}
+	if strings.EqualFold(strings.TrimSpace(message.Event), "subscribe") && common.WeChatOfficialSubscribeReplyEnabled {
+		replyWeChatOfficialText(c, message, common.WeChatOfficialSubscribeReply)
+		return
+	}
+	if strings.EqualFold(strings.TrimSpace(message.Event), "CLICK") {
+		if menu, menuErr := parseWeChatOfficialMenu(common.WeChatOfficialMenu); menuErr == nil {
+			replyWeChatOfficialText(c, message, findWeChatOfficialMenuReply(menu.Button, strings.TrimSpace(message.EventKey)))
+			return
+		}
 	}
 	c.String(http.StatusOK, "success")
 }

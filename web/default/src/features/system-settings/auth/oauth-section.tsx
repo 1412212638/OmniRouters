@@ -21,7 +21,9 @@ import {
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
 
+import { syncWeChatOfficialMenu } from '../api'
 import { FormDirtyIndicator } from '../components/form-dirty-indicator'
 import { FormNavigationGuard } from '../components/form-navigation-guard'
 import {
@@ -36,6 +38,7 @@ import {
   buildOAuthCallbackUrl,
   resolveOAuthSiteUrl,
 } from './oauth-callback-url'
+import { WeChatOfficialMenuEditor } from './wechat-official-menu-editor'
 
 /**
  * react-hook-form 7 treats dotted `name` strings as nested paths. To keep
@@ -78,6 +81,9 @@ const oauthSchema = z.object({
   WeChatOfficialAppID: z.string(),
   WeChatOfficialAppSecret: z.string(),
   WeChatOfficialToken: z.string(),
+  WeChatOfficialSubscribeReplyEnabled: z.boolean(),
+  WeChatOfficialSubscribeReply: z.string(),
+  WeChatOfficialMenu: z.string(),
 })
 
 type OAuthFormValues = z.infer<typeof oauthSchema>
@@ -113,6 +119,9 @@ type FlatOAuthDefaults = {
   WeChatOfficialAppID: string
   WeChatOfficialAppSecret: string
   WeChatOfficialToken: string
+  WeChatOfficialSubscribeReplyEnabled: boolean
+  WeChatOfficialSubscribeReply: string
+  WeChatOfficialMenu: string
 }
 
 const oauthTabContentClassName =
@@ -202,6 +211,10 @@ const buildFormDefaults = (defaults: FlatOAuthDefaults): OAuthFormValues => ({
   WeChatOfficialAppID: defaults.WeChatOfficialAppID ?? '',
   WeChatOfficialAppSecret: defaults.WeChatOfficialAppSecret ?? '',
   WeChatOfficialToken: defaults.WeChatOfficialToken ?? '',
+  WeChatOfficialSubscribeReplyEnabled:
+    defaults.WeChatOfficialSubscribeReplyEnabled,
+  WeChatOfficialSubscribeReply: defaults.WeChatOfficialSubscribeReply ?? '',
+  WeChatOfficialMenu: defaults.WeChatOfficialMenu ?? '{"button":[]}',
 })
 
 const normalizeFormValues = (values: OAuthFormValues): FlatOAuthDefaults => ({
@@ -235,6 +248,10 @@ const normalizeFormValues = (values: OAuthFormValues): FlatOAuthDefaults => ({
   WeChatOfficialAppID: values.WeChatOfficialAppID,
   WeChatOfficialAppSecret: values.WeChatOfficialAppSecret,
   WeChatOfficialToken: values.WeChatOfficialToken,
+  WeChatOfficialSubscribeReplyEnabled:
+    values.WeChatOfficialSubscribeReplyEnabled,
+  WeChatOfficialSubscribeReply: values.WeChatOfficialSubscribeReply,
+  WeChatOfficialMenu: values.WeChatOfficialMenu,
 })
 
 type OAuthSectionProps = {
@@ -246,6 +263,7 @@ export function OAuthSection(props: OAuthSectionProps) {
   const { t } = useTranslation()
   const updateOption = useUpdateOption()
   const [activeTab, setActiveTab] = useState('github')
+  const [isSyncingWeChatMenu, setIsSyncingWeChatMenu] = useState(false)
   const siteUrl = resolveOAuthSiteUrl(props.serverAddress, t('Site URL'))
   const githubCallbackUrl = buildOAuthCallbackUrl(
     props.serverAddress,
@@ -379,6 +397,30 @@ export function OAuthSection(props: OAuthSectionProps) {
   const handleReset = () => {
     form.reset(buildFormDefaults(baselineRef.current))
     toast.success(t('Form reset to saved values'))
+  }
+
+  const handleSyncWeChatMenu = async () => {
+    if (form.formState.isDirty) {
+      toast.error(t('Save the form before syncing the menu'))
+      return
+    }
+    setIsSyncingWeChatMenu(true)
+    try {
+      const result = await syncWeChatOfficialMenu()
+      if (result.success) {
+        toast.success(result.message || t('Official WeChat menu synced'))
+      } else {
+        toast.error(result.message || t('Official WeChat menu sync failed'))
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t('Official WeChat menu sync failed')
+      )
+    } finally {
+      setIsSyncingWeChatMenu(false)
+    }
   }
 
   return (
@@ -1170,6 +1212,70 @@ export function OAuthSection(props: OAuthSectionProps) {
                           ref={field.ref}
                         />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='WeChatOfficialSubscribeReplyEnabled'
+                  render={({ field }) => (
+                    <SettingsSwitchItem>
+                      <SettingsSwitchContent>
+                        <FormLabel>{t('Enable subscription reply')}</FormLabel>
+                        <FormDescription>
+                          {t(
+                            'Reply to users after they follow the official account'
+                          )}
+                        </FormDescription>
+                      </SettingsSwitchContent>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </SettingsSwitchItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='WeChatOfficialSubscribeReply'
+                  render={({ field }) => (
+                    <FormItem className='lg:col-span-2'>
+                      <FormLabel>{t('Subscription reply content')}</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          value={field.value ?? ''}
+                          onChange={(event) =>
+                            field.onChange(event.target.value)
+                          }
+                          name={field.name}
+                          onBlur={field.onBlur}
+                          ref={field.ref}
+                          rows={3}
+                          placeholder={t('Reply sent after a user follows')}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='WeChatOfficialMenu'
+                  render={({ field }) => (
+                    <FormItem className='lg:col-span-2'>
+                      <WeChatOfficialMenuEditor
+                        value={field.value ?? '{"button":[]}'}
+                        onChange={field.onChange}
+                        isDirty={form.formState.isDirty}
+                        isSyncing={isSyncingWeChatMenu}
+                        onSync={handleSyncWeChatMenu}
+                      />
                       <FormMessage />
                     </FormItem>
                   )}

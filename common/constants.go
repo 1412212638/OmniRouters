@@ -162,6 +162,9 @@ var WeChatOfficialName = ""
 var WeChatOfficialAppID = ""
 var WeChatOfficialAppSecret = ""
 var WeChatOfficialToken = ""
+var WeChatOfficialSubscribeReplyEnabled = false
+var WeChatOfficialSubscribeReply = ""
+var WeChatOfficialMenu = `{"button":[]}`
 
 var TurnstileSiteKey = ""
 var TurnstileSecretKey = ""

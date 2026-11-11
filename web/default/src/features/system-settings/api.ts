@@ -58,6 +58,13 @@ export async function updateSystemOption(request: UpdateOptionRequest) {
   return res.data
 }
 
+export async function syncWeChatOfficialMenu() {
+  const res = await api.post<{ success: boolean; message?: string }>(
+    '/api/oauth/wechat/official/menu/sync'
+  )
+  return res.data
+}
+
 export async function getEmailSettingsOptions() {
   const res = await api.get<SystemOptionsResponse>(
     '/api/email_settings/options'

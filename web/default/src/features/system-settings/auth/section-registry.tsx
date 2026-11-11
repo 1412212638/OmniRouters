@@ -64,6 +64,10 @@ const AUTH_SECTIONS = [
           WeChatOfficialAppID: settings.WeChatOfficialAppID,
           WeChatOfficialAppSecret: settings.WeChatOfficialAppSecret,
           WeChatOfficialToken: settings.WeChatOfficialToken,
+          WeChatOfficialSubscribeReplyEnabled:
+            settings.WeChatOfficialSubscribeReplyEnabled,
+          WeChatOfficialSubscribeReply: settings.WeChatOfficialSubscribeReply,
+          WeChatOfficialMenu: settings.WeChatOfficialMenu,
         }}
       />
     ),
@@ -74,14 +78,22 @@ const AUTH_SECTIONS = [
     build: (settings: AuthSettings) => (
       <RealNameSection
         defaultValues={{
-          'real_name_verification.enabled': settings['real_name_verification.enabled'],
-          'real_name_verification.enforcement_enabled': settings['real_name_verification.enforcement_enabled'],
-          'real_name_verification.personal_enabled': settings['real_name_verification.personal_enabled'],
-          'real_name_verification.personal_app_code': settings['real_name_verification.personal_app_code'],
-          'real_name_verification.personal_app_code_configured': settings['real_name_verification.personal_app_code_configured'],
-          'real_name_verification.enterprise_enabled': settings['real_name_verification.enterprise_enabled'],
-          'real_name_verification.enterprise_app_code': settings['real_name_verification.enterprise_app_code'],
-          'real_name_verification.enterprise_app_code_configured': settings['real_name_verification.enterprise_app_code_configured'],
+          'real_name_verification.enabled':
+            settings['real_name_verification.enabled'],
+          'real_name_verification.enforcement_enabled':
+            settings['real_name_verification.enforcement_enabled'],
+          'real_name_verification.personal_enabled':
+            settings['real_name_verification.personal_enabled'],
+          'real_name_verification.personal_app_code':
+            settings['real_name_verification.personal_app_code'],
+          'real_name_verification.personal_app_code_configured':
+            settings['real_name_verification.personal_app_code_configured'],
+          'real_name_verification.enterprise_enabled':
+            settings['real_name_verification.enterprise_enabled'],
+          'real_name_verification.enterprise_app_code':
+            settings['real_name_verification.enterprise_app_code'],
+          'real_name_verification.enterprise_app_code_configured':
+            settings['real_name_verification.enterprise_app_code_configured'],
         }}
       />
     ),

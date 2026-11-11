@@ -24,6 +24,7 @@ func TestVerifyWeChatOfficialSignature(t *testing.T) {
 
 func TestWeChatOfficialCallbackUpdatesScannedLoginState(t *testing.T) {
 	previousEnabled, previousName, previousAppID, previousSecret, previousToken, previousRedis, previousRDB := common.WeChatOfficialEnabled, common.WeChatOfficialName, common.WeChatOfficialAppID, common.WeChatOfficialAppSecret, common.WeChatOfficialToken, common.RedisEnabled, common.RDB
+	previousReplyEnabled, previousReply := common.WeChatOfficialSubscribeReplyEnabled, common.WeChatOfficialSubscribeReply
 	t.Cleanup(func() {
 		common.WeChatOfficialEnabled = previousEnabled
 		common.WeChatOfficialName = previousName
@@ -32,12 +33,15 @@ func TestWeChatOfficialCallbackUpdatesScannedLoginState(t *testing.T) {
 		common.WeChatOfficialToken = previousToken
 		common.RedisEnabled = previousRedis
 		common.RDB = previousRDB
+		common.WeChatOfficialSubscribeReplyEnabled, common.WeChatOfficialSubscribeReply = previousReplyEnabled, previousReply
 	})
 	// The platform handshake must work before the administrator enables login.
 	common.WeChatOfficialEnabled = false
 	common.WeChatOfficialToken = "callback-token"
 	common.WeChatOfficialAppID = "app-id"
 	common.WeChatOfficialAppSecret = "app-secret"
+	common.WeChatOfficialSubscribeReplyEnabled = true
+	common.WeChatOfficialSubscribeReply = "普通关注回复"
 	common.RedisEnabled = false
 	common.RDB = nil
 
@@ -57,6 +61,7 @@ func TestWeChatOfficialCallbackUpdatesScannedLoginState(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, res.Code)
 	require.Contains(t, res.Body.String(), "扫码成功")
+	require.NotContains(t, res.Body.String(), "普通关注回复")
 	state, err := loadWeChatOfficialState(code)
 	require.NoError(t, err)
 	require.Equal(t, "openid-123", state.OpenID)
@@ -103,4 +108,53 @@ func TestWeChatOfficialCallbackEchoesHandshakeChallenge(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, res.Code)
 	require.Equal(t, "challenge", res.Body.String())
+}
+
+func TestWeChatOfficialCallbackRepliesToSubscription(t *testing.T) {
+	previousEnabled, previousAppID, previousSecret, previousToken := common.WeChatOfficialEnabled, common.WeChatOfficialAppID, common.WeChatOfficialAppSecret, common.WeChatOfficialToken
+	previousReplyEnabled, previousReply, previousMenu := common.WeChatOfficialSubscribeReplyEnabled, common.WeChatOfficialSubscribeReply, common.WeChatOfficialMenu
+	t.Cleanup(func() {
+		common.WeChatOfficialEnabled, common.WeChatOfficialAppID, common.WeChatOfficialAppSecret, common.WeChatOfficialToken = previousEnabled, previousAppID, previousSecret, previousToken
+		common.WeChatOfficialSubscribeReplyEnabled, common.WeChatOfficialSubscribeReply, common.WeChatOfficialMenu = previousReplyEnabled, previousReply, previousMenu
+	})
+	common.WeChatOfficialEnabled = true
+	common.WeChatOfficialAppID = "app-id"
+	common.WeChatOfficialAppSecret = "app-secret"
+	common.WeChatOfficialToken = "callback-token"
+	common.WeChatOfficialSubscribeReplyEnabled = true
+	common.WeChatOfficialSubscribeReply = "欢迎关注"
+	common.WeChatOfficialMenu = `{"button":[]}`
+	timestamp, nonce := "1700000000", "nonce"
+	body := `<xml><ToUserName><![CDATA[gh_account]]></ToUserName><FromUserName><![CDATA[openid-123]]></FromUserName><CreateTime>1700000000</CreateTime><MsgType><![CDATA[event]]></MsgType><Event><![CDATA[subscribe]]></Event></xml>`
+	req := httptest.NewRequest(http.MethodPost, "/api/oauth/wechat/official/callback?timestamp="+timestamp+"&nonce="+nonce+"&signature="+BuildWeChatOfficialSignature(common.WeChatOfficialToken, timestamp, nonce), strings.NewReader(body))
+	res := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(res)
+	ctx.Request = req
+	WeChatOfficialCallback(ctx)
+
+	require.Equal(t, http.StatusOK, res.Code)
+	require.Contains(t, res.Body.String(), "欢迎关注")
+	require.Contains(t, res.Body.String(), "<MsgType>text</MsgType>")
+}
+
+func TestWeChatOfficialCallbackRepliesToMenuClick(t *testing.T) {
+	previousEnabled, previousAppID, previousSecret, previousToken, previousMenu := common.WeChatOfficialEnabled, common.WeChatOfficialAppID, common.WeChatOfficialAppSecret, common.WeChatOfficialToken, common.WeChatOfficialMenu
+	t.Cleanup(func() {
+		common.WeChatOfficialEnabled, common.WeChatOfficialAppID, common.WeChatOfficialAppSecret, common.WeChatOfficialToken, common.WeChatOfficialMenu = previousEnabled, previousAppID, previousSecret, previousToken, previousMenu
+	})
+	common.WeChatOfficialEnabled = true
+	common.WeChatOfficialAppID = "app-id"
+	common.WeChatOfficialAppSecret = "app-secret"
+	common.WeChatOfficialToken = "callback-token"
+	common.WeChatOfficialMenu = `{"button":[{"name":"帮助","type":"click","key":"help","reply":"这是帮助"}]}`
+	timestamp, nonce := "1700000000", "nonce"
+	body := `<xml><ToUserName><![CDATA[gh_account]]></ToUserName><FromUserName><![CDATA[openid-123]]></FromUserName><CreateTime>1700000000</CreateTime><MsgType><![CDATA[event]]></MsgType><Event><![CDATA[CLICK]]></Event><EventKey><![CDATA[help]]></EventKey></xml>`
+	req := httptest.NewRequest(http.MethodPost, "/api/oauth/wechat/official/callback?timestamp="+timestamp+"&nonce="+nonce+"&signature="+BuildWeChatOfficialSignature(common.WeChatOfficialToken, timestamp, nonce), strings.NewReader(body))
+	res := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(res)
+	ctx.Request = req
+	WeChatOfficialCallback(ctx)
+
+	require.Equal(t, http.StatusOK, res.Code)
+	require.Contains(t, res.Body.String(), "这是帮助")
 }

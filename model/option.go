@@ -169,6 +169,9 @@ func InitOptionMap() {
 	common.OptionMap["WeChatOfficialAppID"] = common.WeChatOfficialAppID
 	common.OptionMap["WeChatOfficialAppSecret"] = ""
 	common.OptionMap["WeChatOfficialToken"] = ""
+	common.OptionMap["WeChatOfficialSubscribeReplyEnabled"] = strconv.FormatBool(common.WeChatOfficialSubscribeReplyEnabled)
+	common.OptionMap["WeChatOfficialSubscribeReply"] = common.WeChatOfficialSubscribeReply
+	common.OptionMap["WeChatOfficialMenu"] = common.WeChatOfficialMenu
 	common.OptionMap["TurnstileSiteKey"] = ""
 	common.OptionMap["TurnstileSecretKey"] = ""
 	common.OptionMap["QuotaForNewUser"] = strconv.Itoa(common.QuotaForNewUser)
@@ -412,6 +415,8 @@ func updateOptionMap(key string, value string) (err error) {
 			common.WeChatAuthEnabled = boolValue
 		case "WeChatOfficialEnabled":
 			common.WeChatOfficialEnabled = boolValue
+		case "WeChatOfficialSubscribeReplyEnabled":
+			common.WeChatOfficialSubscribeReplyEnabled = boolValue
 		case "TelegramOAuthEnabled":
 			common.TelegramOAuthEnabled = boolValue
 		case "TurnstileCheckEnabled":
@@ -664,6 +669,10 @@ func updateOptionMap(key string, value string) (err error) {
 		common.WeChatOfficialAppSecret = value
 	case "WeChatOfficialToken":
 		common.WeChatOfficialToken = value
+	case "WeChatOfficialSubscribeReply":
+		common.WeChatOfficialSubscribeReply = value
+	case "WeChatOfficialMenu":
+		common.WeChatOfficialMenu = value
 	case "TelegramBotToken":
 		common.TelegramBotToken = value
 	case "TelegramBotName":

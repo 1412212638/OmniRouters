@@ -65,6 +65,7 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/oauth/wechat/official/qr", middleware.ScopedCriticalRateLimit("login"), controller.WeChatOfficialQR)
 		apiRouter.GET("/oauth/wechat/official/poll", middleware.WeChatOfficialPollRateLimit(), controller.WeChatOfficialPoll)
 		apiRouter.GET("/oauth/wechat/official/login", middleware.ScopedCriticalRateLimit("login"), controller.WeChatOfficialLogin)
+		apiRouter.POST("/oauth/wechat/official/menu/sync", middleware.AdminAuth(), middleware.CriticalRateLimit(), controller.SyncWeChatOfficialMenu)
 		apiRouter.GET("/oauth/telegram/login", middleware.ScopedCriticalRateLimit("login"), controller.TelegramLogin)
 		apiRouter.GET("/oauth/telegram/bind", middleware.CriticalRateLimit(), controller.TelegramBind)
 		apiRouter.GET("/oauth/telegram/start", middleware.ScopedCriticalRateLimit("login"), controller.StartTelegramOAuth)
