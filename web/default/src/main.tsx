@@ -12,7 +12,6 @@ import { toast } from 'sonner'
 
 import { getStatus } from '@/lib/api'
 import { installBuildMetadata } from '@/lib/build-metadata'
-import { DEFAULT_SYSTEM_NAME } from '@/lib/constants'
 import { applyFaviconToDom } from '@/lib/dom-utils'
 import '@/lib/dayjs'
 import { handleServerError } from '@/lib/handle-server-error'
@@ -97,56 +96,22 @@ declare module '@tanstack/react-router' {
 }
 
 // Render the app
-const rootElement = document.getElementById('root')!
+const rootElement = document.querySelector<HTMLElement>('#root')
 // The Go web router includes crawlable public-page HTML beside #root.
 // Remove it before mounting the interactive React page to avoid duplicate UI.
-document.querySelectorAll('[data-seo-fallback]').forEach((node) => node.remove())
-// Set document.title and favicon from cached status, then refresh from network
+document
+  .querySelectorAll('[data-seo-fallback]')
+  .forEach((node) => node.remove())
+// Initialize favicon from cached status, then refresh from network.
+// DocumentTitle owns route titles, including after delayed status responses.
 ;(function initSystemBranding() {
   try {
     if (typeof window === 'undefined' || typeof document === 'undefined') return
-    const apply = (name: string) => {
-      const publicPageMeta: Record<
-        string,
-        { title: string; description: string }
-      > = {
-        '/openai-compatible-api': {
-          title: `OpenAI-Compatible API for Multiple Models | ${name}`,
-          description: `Use the OpenAI SDK with a compatible API endpoint to access supported AI models through ${name}. Check model availability and pricing before you send requests.`,
-        },
-        '/multi-provider-ai-api': {
-          title: `Multi-Provider AI API Gateway | ${name}`,
-          description: `Access supported OpenAI-compatible, Anthropic-compatible, and Gemini-compatible AI endpoints through one account. Compare available models and usage pricing on ${name}.`,
-        },
-      }
-      const routeMeta = publicPageMeta[window.location.pathname]
-      const title = routeMeta?.title ?? name
-      document.title = title
-      const metaTitle = document.querySelector(
-        'meta[name="title"]'
-      ) as HTMLMetaElement | null
-      if (metaTitle) metaTitle.setAttribute('content', title)
-      const description = document.querySelector(
-        'meta[name="description"]'
-      ) as HTMLMetaElement | null
-      if (description && routeMeta) {
-        description.setAttribute('content', routeMeta.description)
-      }
-    }
-    if (
-      window.location.pathname === '/openai-compatible-api' ||
-      window.location.pathname === '/multi-provider-ai-api'
-    ) {
-      const titleParts = document.title.split('|')
-      const inferredBrand = titleParts[titleParts.length - 1]?.trim()
-      apply(inferredBrand || DEFAULT_SYSTEM_NAME)
-    }
     // Cache-first
     try {
       const saved = localStorage.getItem('status')
       if (saved) {
         const s = JSON.parse(saved)
-        if (s?.system_name) apply(s.system_name)
         if (s?.logo) applyFaviconToDom(s.logo)
       }
     } catch {
@@ -156,7 +121,6 @@ document.querySelectorAll('[data-seo-fallback]').forEach((node) => node.remove()
     getStatus()
       .then((s) => {
         if (s?.system_name) {
-          apply(s.system_name as string)
           try {
             localStorage.setItem('status', JSON.stringify(s))
           } catch {
@@ -172,7 +136,7 @@ document.querySelectorAll('[data-seo-fallback]').forEach((node) => node.remove()
     /* empty */
   }
 })()
-if (!rootElement.innerHTML) {
+if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>

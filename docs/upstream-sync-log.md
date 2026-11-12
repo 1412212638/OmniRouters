@@ -5607,3 +5607,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: ordinary input/output token pricing, catalog card display, group discounts, plugin variant selection, and all billing calculations.
 - Validation: the focused pricing regression suite passed (18 tests), Oxfmt and the default-theme production build passed, and `git diff --check` passed after formatting the log. No live backend/catalog data was required.
 - Commit and push: included in the local commit for these changes; pushing to origin/main.
+
+# 2026-11-12 - Show the current page in browser tab titles
+
+- Local reason: every default-theme page kept the site name as its browser title, making open tabs difficult to distinguish.
+- Changed: mounted a single reactive document-title component in the default root route. Public pages, authentication pages, console pages, organization pages, logs and individual settings sections now use `Page name | System name`, as requested. Navigation, back navigation, language changes and site-name updates refresh the title. Removed competing asynchronous startup title writes; route metadata stays lightweight without importing settings forms into the public entry point.
+- Preserved: homepage site-name title, branded public SEO titles/descriptions, favicon initialization, cached status refresh, protected project identifiers, classic theme, routing, authentication, and all API/billing behavior. Dynamic detail titles do not include query parameters or task/user identifiers.
+- Validation: targeted Oxlint and Oxfmt, default production build, and git diff --check passed. Browser verification against the local mock confirmed Chinese/English titles, client-side navigation, back navigation, the homepage title and the OpenAI-compatible public SEO title. Route coverage audit found title mappings or dynamic rules for all 59 rendered page routes, plus 13 redirect-only routes; all configured page-title keys already have Chinese translations. Full TypeScript checking reports 34 existing errors in unrelated files, including missing test dependencies; no edited file reports a type error. No production service was changed.
+- Commit and push: included in the local commit `fix: update browser tab titles on navigation`; user authorized pushing these changes to origin/main on 2026-11-12. Push pending verification.
