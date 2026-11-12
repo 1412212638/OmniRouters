@@ -5632,3 +5632,11 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: upstream refusal handling, admin reject-reason logging, billing, usage accounting, retry behavior, non-refusal finish reasons, and existing wallet funding changes in the working tree.
 - Validation: the focused Playground compatibility test passed (4 tests), targeted Oxlint and Oxfmt passed, the default frontend production build passed, and `git diff --check` passed. Full TypeScript checking remains blocked by pre-existing missing test dependencies and unrelated existing diagnostics. Go tests/build were not run because no Go toolchain is installed in the workspace.
 - Commit and push: committed as `910891a91` (`feat: track wallet funding sources and show chat refusals`) and pushed to `origin/main` on 2026-11-12. This confirmed status is recorded in the following documentation-only commit.
+
+# 2026-11-12 - Fix GHCR Go build import error
+
+- Local reason: the GHCR Docker build failed because `model/checkin.go` retained an unused `common` import after the wallet funding refactor.
+- Changed: removed the unused import; no runtime behavior changes.
+- Preserved: check-in rewards, wallet funding ledger behavior, relay billing, and all frontend changes.
+- Validation: inspected the failing compiler diagnostic, verified the import is no longer referenced, and ran `git diff --check`. The local Go toolchain is unavailable, so a local Go build was not possible; GHCR is the authoritative build check.
+- Commit and push: this fix is being committed and pushed to `origin/main` at the user's request.
