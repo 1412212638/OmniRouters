@@ -1,6 +1,11 @@
 import { t } from 'i18next'
 
-import { ERROR_MESSAGES, MESSAGE_ROLES, MESSAGE_STATUS } from '../../constants'
+import {
+  ERROR_MESSAGES,
+  MESSAGE_ROLES,
+  MESSAGE_STATUS,
+  PLAYGROUND_MESSAGES,
+} from '../../constants'
 import type { ChatCompletionResponse, Message } from '../../types'
 import { parseThinkTags } from './message-reasoning-utils'
 import {
@@ -137,6 +142,15 @@ export function completeAssistantMessage(message: Message): Message {
   })
 }
 
+export function applyEmptyRefusalNotice(message: Message): Message {
+  if (message.status === MESSAGE_STATUS.ERROR) return message
+  const finalized = finalizeMessage(message)
+  if (hasMessageContent(finalized)) return finalized
+  const notice =
+    t(PLAYGROUND_MESSAGES.MODEL_REFUSAL) || PLAYGROUND_MESSAGES.MODEL_REFUSAL
+  return updateCurrentVersionContent(finalized, notice)
+}
+
 export function isAssistantMessageFinal(message: Message): boolean {
   return (
     message.status === MESSAGE_STATUS.COMPLETE ||
@@ -170,11 +184,14 @@ export function applyChatCompletionChoice(
   message: Message,
   choice: ChatCompletionChoice
 ): Message {
+  const finalized = finalizeMessage(
+    updateCurrentVersionContent(message, choice.message?.content || ''),
+    choice.message?.reasoning_content ?? choice.message?.reasoning
+  )
   return completeAssistantTiming({
-    ...finalizeMessage(
-      updateCurrentVersionContent(message, choice.message?.content || ''),
-      choice.message?.reasoning_content ?? choice.message?.reasoning
-    ),
+    ...(choice.finish_reason === 'content_filter'
+      ? applyEmptyRefusalNotice(finalized)
+      : finalized),
     status: MESSAGE_STATUS.COMPLETE,
   })
 }

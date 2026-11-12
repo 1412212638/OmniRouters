@@ -104,6 +104,7 @@ func SetApiRouter(router *gin.Engine) {
 			{
 				selfRoute.GET("/self/groups", controller.GetUserGroups)
 				selfRoute.GET("/self", controller.GetSelf)
+				selfRoute.GET("/self/wallet/funding", controller.GetSelfWalletFunding)
 				selfRoute.GET("/identity-verification", controller.GetIdentityVerification)
 				selfRoute.POST("/identity-verification/individual", middleware.CriticalRateLimit(), controller.SavePersonalVerification)
 				selfRoute.POST("/identity-verification/enterprise", middleware.CriticalRateLimit(), controller.SaveEnterpriseVerification)
@@ -173,6 +174,7 @@ func SetApiRouter(router *gin.Engine) {
 				adminRoute.DELETE("/:id/oauth/bindings/:provider_id", controller.UnbindCustomOAuthByAdmin)
 				adminRoute.DELETE("/:id/bindings/:binding_type", controller.AdminClearUserBinding)
 				adminRoute.GET("/:id", controller.GetUser)
+				adminRoute.GET("/:id/wallet/funding", controller.GetUserWalletFunding)
 				adminRoute.GET("/:id/identity-verification", controller.GetIdentityVerificationByAdmin)
 				adminRoute.POST("/:id/identity-verification/view", controller.ViewIdentityVerificationByAdmin)
 				adminRoute.POST("/:id/identity-verification/reset", controller.ResetIdentityVerificationByAdmin)

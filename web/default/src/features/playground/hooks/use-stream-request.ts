@@ -10,6 +10,7 @@ import {
   isStreamDoneMessage,
   parseStreamErrorDetails,
   parseStreamMessageUpdates,
+  type StreamUpdateType,
 } from '../lib'
 import type { ChatCompletionRequest } from '../types'
 
@@ -34,7 +35,7 @@ export function useStreamRequest() {
   const sendStreamRequest = useCallback(
     (
       payload: ChatCompletionRequest,
-      onUpdate: (type: 'reasoning' | 'content', chunk: string) => void,
+      onUpdate: (type: StreamUpdateType, chunk: string) => void,
       onComplete: () => void,
       onError: (error: string, errorCode?: string) => void
     ) => {

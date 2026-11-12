@@ -1,14 +1,23 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { Dialog } from '@/components/dialog'
 import { Button } from '@/components/ui/button'
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { FundingKindSelect } from '@/features/wallet/components/funding-kind-select'
+import type { FundingKind } from '@/features/wallet/funding'
 import { getCurrencyDisplay, getCurrencyLabel } from '@/lib/currency'
 import { formatQuota, parseQuotaFromDollars } from '@/lib/format'
-import { cn } from '@/lib/utils'
 
 import { adjustUserQuota } from '../api'
 import type { QuotaAdjustMode } from '../types'
@@ -24,6 +33,9 @@ interface UserQuotaDialogProps {
 export function UserQuotaDialog(props: UserQuotaDialogProps) {
   const { t } = useTranslation()
   const [mode, setMode] = useState<QuotaAdjustMode>('add')
+  const queryClient = useQueryClient()
+  const [kind, setKind] = useState<FundingKind>('adjustment')
+  const [note, setNote] = useState('')
   const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -31,7 +43,7 @@ export function UserQuotaDialog(props: UserQuotaDialogProps) {
   const currencyLabel = getCurrencyLabel()
   const tokensOnly = currencyMeta.kind === 'tokens'
 
-  const amountValue = parseFloat(amount) || 0
+  const amountValue = Number.parseFloat(amount) || 0
   const quotaValue = parseQuotaFromDollars(Math.abs(amountValue))
 
   const getPreviewText = () => {
@@ -52,6 +64,7 @@ export function UserQuotaDialog(props: UserQuotaDialogProps) {
   }
 
   const handleConfirm = async () => {
+    if (!Number.isFinite(Number(amount)) || Number(amount) < 0) return
     if (!amount && mode !== 'override') return
     if (quotaValue <= 0 && mode !== 'override') return
 
@@ -63,12 +76,23 @@ export function UserQuotaDialog(props: UserQuotaDialogProps) {
         id: props.userId,
         action: 'add_quota',
         mode,
+        funding_kind:
+          mode === 'add' && kind !== 'unclassified' ? kind : 'adjustment',
+        note,
         value: mode === 'override' ? value : Math.abs(value),
       })
       if (result.success) {
         toast.success(t('Quota adjusted successfully'))
         setAmount('')
         setMode('add')
+        setKind('adjustment')
+        setNote('')
+        void queryClient.invalidateQueries({
+          queryKey: ['wallet-funding-ledger'],
+        })
+        void queryClient.invalidateQueries({
+          queryKey: ['wallet-funding-summary'],
+        })
         props.onOpenChange(false)
         props.onSuccess()
       } else {
@@ -84,6 +108,8 @@ export function UserQuotaDialog(props: UserQuotaDialogProps) {
   const handleCancel = () => {
     setAmount('')
     setMode('add')
+    setKind('adjustment')
+    setNote('')
     props.onOpenChange(false)
   }
 
@@ -94,11 +120,16 @@ export function UserQuotaDialog(props: UserQuotaDialogProps) {
   return (
     <Dialog
       open={props.open}
-      onOpenChange={props.onOpenChange}
+      onOpenChange={(open) => {
+        if (!loading) {
+          if (open) props.onOpenChange(true)
+          else handleCancel()
+        }
+      }}
       title={t('Adjust Quota')}
       description={t('Select an operation mode and enter the amount')}
       contentHeight='auto'
-      bodyClassName='space-y-4'
+      bodyClassName='flex flex-col gap-4'
       footer={
         <>
           <Button variant='outline' onClick={handleCancel}>
@@ -110,54 +141,73 @@ export function UserQuotaDialog(props: UserQuotaDialogProps) {
         </>
       }
     >
-      <div className='space-y-4'>
-        <div className='text-muted-foreground text-sm'>{getPreviewText()}</div>
-
-        <div className='space-y-2'>
-          <Label>{t('Mode')}</Label>
-          <div className='flex gap-1'>
-            {(['add', 'subtract', 'override'] as const).map((m) => (
-              <Button
-                key={m}
-                type='button'
-                variant='outline'
-                size='sm'
-                className={cn(
-                  mode === m &&
-                    'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
-                )}
-                onClick={() => {
-                  setMode(m)
-                  setAmount('')
-                }}
-              >
-                {m === 'add'
-                  ? t('Add')
-                  : m === 'subtract'
-                    ? t('Subtract')
-                    : t('Override')}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        <div className='space-y-2'>
-          <Label>
+      <FieldGroup>
+        <p className='text-muted-foreground text-sm'>{getPreviewText()}</p>
+        <Field>
+          <FieldLabel>{t('Mode')}</FieldLabel>
+          <ToggleGroup
+            value={[mode]}
+            onValueChange={(values) => {
+              const next = values[0] as QuotaAdjustMode | undefined
+              if (next) {
+                setMode(next)
+                setAmount('')
+              }
+            }}
+            variant='outline'
+            disabled={loading}
+            aria-label={t('Mode')}
+          >
+            <ToggleGroupItem value='add'>{t('Add')}</ToggleGroupItem>
+            <ToggleGroupItem value='subtract'>{t('Subtract')}</ToggleGroupItem>
+            <ToggleGroupItem value='override'>{t('Override')}</ToggleGroupItem>
+          </ToggleGroup>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor='quota-adjust-amount'>
             {t('Amount')} ({currencyLabel})
-          </Label>
+          </FieldLabel>
           <Input
+            id='quota-adjust-amount'
             type='number'
             step={tokensOnly ? 1 : 0.000001}
-            min={mode === 'override' ? undefined : 0}
+            min={0}
             placeholder={placeholder}
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleConfirm()
+            disabled={loading}
+            onChange={(event) => setAmount(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') void handleConfirm()
             }}
           />
-        </div>
-      </div>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor='quota-funding-kind'>
+            {t('Funding classification')}
+          </FieldLabel>
+          <FundingKindSelect
+            id='quota-funding-kind'
+            value={mode === 'add' ? kind : 'adjustment'}
+            onChange={setKind}
+            disabled={mode !== 'add' || loading}
+          />
+          <FieldDescription>
+            {t(
+              'Only additions classified as paid or gift affect cumulative funding totals. Subtractions and replacements are adjustments.'
+            )}
+          </FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor='quota-funding-note'>{t('Note')}</FieldLabel>
+          <Textarea
+            id='quota-funding-note'
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            maxLength={500}
+            disabled={loading}
+          />
+        </Field>
+      </FieldGroup>
     </Dialog>
   )
 }

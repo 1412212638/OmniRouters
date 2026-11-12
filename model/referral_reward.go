@@ -188,6 +188,9 @@ func TransferPendingReferralCashback(userID int, rewardIDs []int) (int, int, err
 		for _, reward := range rewards {
 			if reward.RewardQuota > 0 {
 				ids = append(ids, reward.Id)
+				if err := RecordWalletFundingTx(tx, WalletFundingEntry{UserId: userID, Amount: int64(reward.RewardQuota), Kind: FundingGift, Source: "referral_cashback", EventKey: fmt.Sprintf("referral:%d", reward.Id), Reference: reward.SourceTradeNo, CreatedAt: now}); err != nil {
+					return err
+				}
 			}
 		}
 		if err := tx.Model(&ReferralReward{}).Where("id IN ? AND status = ?", ids, ReferralRewardStatusPending).Updates(map[string]interface{}{"status": ReferralRewardStatusCredited, "credited_at": now}).Error; err != nil {

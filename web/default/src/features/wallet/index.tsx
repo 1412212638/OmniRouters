@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { CreditCard } from 'lucide-react'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
@@ -24,10 +24,12 @@ import { BillingHistoryDialog } from './components/dialogs/billing-history-dialo
 import { CreemConfirmDialog } from './components/dialogs/creem-confirm-dialog'
 import { PaymentConfirmDialog } from './components/dialogs/payment-confirm-dialog'
 import { TransferDialog } from './components/dialogs/transfer-dialog'
+import { WalletFundingSummary } from './components/funding-summary'
 import { InvoiceProfileCard } from './components/invoice-profile-card'
 import { RechargeFormCard } from './components/recharge-form-card'
 import { WalletStatsCard } from './components/wallet-stats-card'
 import { DEFAULT_DISCOUNT_RATE } from './constants'
+import { getFundingSummary } from './funding'
 import {
   useTopupInfo,
   usePayment,
@@ -96,6 +98,13 @@ function WalletContent(
   props: WalletProps & { workspace?: OrganizationWorkspace }
 ) {
   const isOrganization = Boolean(props.workspace)
+  const queryClient = useQueryClient()
+  const viewerId = useAuthStore((state) => state.auth.user?.id)
+  const funding = useQuery({
+    queryKey: ['wallet-funding-summary', viewerId],
+    queryFn: getFundingSummary,
+    enabled: !isOrganization,
+  })
 
   const { t } = useTranslation()
   const [user, setUser] = useState<UserWalletData | null>(null)
@@ -163,6 +172,9 @@ function WalletContent(
         })
         return
       }
+      void queryClient.invalidateQueries({
+        queryKey: ['wallet-funding-summary', viewerId],
+      })
       const response = await getSelf()
       const invoiceResponse = invoiceProfileEnabled
         ? await getInvoiceProfile().catch(() => null)
@@ -181,7 +193,7 @@ function WalletContent(
     } finally {
       setUserLoading(false)
     }
-  }, [invoiceProfileEnabled, props.workspace])
+  }, [invoiceProfileEnabled, props.workspace, queryClient, viewerId])
 
   useEffect(() => {
     fetchUser()
@@ -335,6 +347,13 @@ function WalletContent(
               </Alert>
             )}
             <WalletStatsCard user={user} loading={userLoading} />
+            {!isOrganization && (
+              <WalletFundingSummary
+                summary={funding.data}
+                loading={funding.isPending}
+                failed={funding.isError}
+              />
+            )}
             {!isOrganization && invoiceProfileEnabled && (
               <InvoiceProfileCard
                 profile={user?.invoice_profile}

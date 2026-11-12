@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/QuantumNous/new-api/common"
 	"gorm.io/gorm"
@@ -33,7 +34,10 @@ func ValidateOrganizationTopUp(organizationId, userId, quota int) error {
 
 func creditTopUpWallet(tx *gorm.DB, topUp *TopUp, quota int, updates map[string]interface{}) error {
 	if topUp.OrganizationId == 0 {
-		return creditTopUpQuota(tx, topUp.UserId, quota, updates)
+		if err := creditTopUpQuota(tx, topUp.UserId, quota, updates); err != nil {
+			return err
+		}
+		return RecordWalletFundingTx(tx, WalletFundingEntry{UserId: topUp.UserId, Amount: int64(quota), Kind: FundingPaid, Source: "topup", EventKey: fmt.Sprintf("topup:%d", topUp.Id), Reference: topUp.TradeNo})
 	}
 	maxCurrent, err := topUpQuotaMaxCurrent(quota)
 	if err != nil {

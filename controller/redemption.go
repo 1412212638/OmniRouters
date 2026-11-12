@@ -101,6 +101,7 @@ func AddRedemption(c *gin.Context) {
 			Key:         key,
 			CreatedTime: common.GetTimestamp(),
 			Quota:       redemption.Quota,
+			FundingKind: redemption.FundingKind,
 			ExpiredTime: redemption.ExpiredTime,
 		}
 		err = cleanRedemption.Insert()
@@ -186,6 +187,9 @@ func UpdateRedemption(c *gin.Context) {
 			return
 		}
 		// If you add more fields, please also update redemption.Update()
+		if redemption.FundingKind != "" {
+			cleanRedemption.FundingKind = redemption.FundingKind
+		}
 		cleanRedemption.Name = redemption.Name
 		cleanRedemption.Quota = redemption.Quota
 		cleanRedemption.ExpiredTime = redemption.ExpiredTime

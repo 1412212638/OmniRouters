@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { sendChatCompletion } from '../api'
 import { ERROR_MESSAGES } from '../constants'
 import {
+  applyEmptyRefusalNotice,
   applyStreamingChunk,
   buildChatCompletionPayload,
   updateAssistantMessageWithError,
@@ -15,6 +16,7 @@ import {
   hasChatCompletionChoice,
   isAssistantMessageFinal,
   isAssistantMessagePending,
+  type StreamUpdateType,
 } from '../lib'
 import type { Message, PlaygroundConfig, ParameterEnabled } from '../types'
 import { useStreamRequest } from './use-stream-request'
@@ -140,14 +142,21 @@ export function useChatHandler({
 
   // Handle stream update
   const handleStreamUpdate = useCallback(
-    (type: 'reasoning' | 'content', chunk: string) => {
+    (type: StreamUpdateType, chunk: string) => {
+      if (type === 'refusal') {
+        flushStreamUpdates()
+        onMessageUpdate((prev) =>
+          updateLastAssistantMessage(prev, applyEmptyRefusalNotice)
+        )
+        return
+      }
       pendingStreamChunksRef.current[type] = mergePendingStreamChunk(
         pendingStreamChunksRef.current[type],
         chunk
       )
       scheduleStreamFlush()
     },
-    [scheduleStreamFlush]
+    [flushStreamUpdates, onMessageUpdate, scheduleStreamFlush]
   )
 
   // Handle stream complete

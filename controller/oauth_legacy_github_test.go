@@ -23,7 +23,7 @@ func TestGitHubLegacyLoginRequiresIndependentAuthentication(t *testing.T) {
 		raw, _ := db.DB()
 		_ = raw.Close()
 	})
-	require.NoError(t, db.AutoMigrate(&model.User{}, &model.AuditLog{}))
+	require.NoError(t, db.AutoMigrate(&model.User{}, &model.WalletFundingEntry{}, &model.AuditLog{}))
 	legacy := model.User{Username: "legacy-owner", GitHubId: "reused-login"}
 	permanent := model.User{Username: "numeric-owner", GitHubId: "12345"}
 	require.NoError(t, db.Create(&legacy).Error)

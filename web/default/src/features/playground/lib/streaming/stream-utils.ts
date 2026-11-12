@@ -4,7 +4,7 @@ import type { ChatCompletionChunk } from '../../types'
 const STREAM_DONE_MESSAGE = '[DONE]'
 const STREAM_CLOSED_READY_STATE = 2
 
-export type StreamUpdateType = 'reasoning' | 'content'
+export type StreamUpdateType = 'reasoning' | 'content' | 'refusal'
 
 export type StreamMessageUpdate = {
   type: StreamUpdateType
@@ -48,21 +48,26 @@ export function parseStreamErrorDetails(data?: string): StreamErrorDetails {
 
 export function parseStreamMessageUpdates(data: string): StreamMessageUpdate[] {
   const chunk = JSON.parse(data) as ChatCompletionChunk
-  const delta = chunk.choices?.[0]?.delta
+  const choice = chunk.choices?.[0]
 
-  if (!delta) {
+  if (!choice) {
     return []
   }
 
+  const delta = choice.delta
   const updates: StreamMessageUpdate[] = []
-  const reasoning = delta.reasoning_content ?? delta.reasoning
+  const reasoning = delta?.reasoning_content ?? delta?.reasoning
 
   if (reasoning) {
     updates.push({ type: 'reasoning', chunk: reasoning })
   }
 
-  if (delta.content) {
+  if (delta?.content) {
     updates.push({ type: 'content', chunk: delta.content })
+  }
+
+  if (choice.finish_reason === 'content_filter') {
+    updates.push({ type: 'refusal', chunk: '' })
   }
 
   return updates

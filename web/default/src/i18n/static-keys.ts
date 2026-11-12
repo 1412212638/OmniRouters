@@ -1,6 +1,7 @@
 // Static translation keys that don't get picked up by the t('...') regex.
 // These cover dynamic labels (e.g. constants, configs) that are passed into t at runtime.
 export const STATIC_I18N_KEYS = [
+  'The model refused to answer this request. Try rephrasing your prompt.',
   // Header navigation
   'Home',
   'Console',

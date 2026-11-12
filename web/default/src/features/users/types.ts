@@ -129,6 +129,8 @@ export type QuotaAdjustMode = 'add' | 'subtract' | 'override'
 export interface ManageUserQuotaPayload {
   id: number
   action: 'add_quota'
+  funding_kind?: 'paid' | 'gift' | 'adjustment'
+  note?: string
   mode: QuotaAdjustMode
   value: number
 }

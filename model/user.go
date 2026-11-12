@@ -548,6 +548,12 @@ func (user *User) TransferAffQuotaToQuota(quota int) error {
 		return errors.New("邀请额度不足！")
 	}
 
+	if err := common.ValidateWalletQuota(quota); err != nil {
+		return err
+	}
+	if user.Quota > common.MaxWalletQuota-quota {
+		return ErrWalletQuotaLimitExceeded
+	}
 	// 更新用户额度
 	user.AffQuota -= quota
 	user.Quota += quota
@@ -557,8 +563,16 @@ func (user *User) TransferAffQuotaToQuota(quota int) error {
 		return err
 	}
 
-	// 提交事务
-	return tx.Commit().Error
+	if err := RecordWalletFundingTx(tx, WalletFundingEntry{UserId: user.Id, Amount: int64(quota), Kind: FundingGift, Source: "affiliate_transfer", EventKey: "affiliate:" + common.GetUUID()}); err != nil {
+		return err
+	}
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+	if err := InvalidateUserCache(user.Id); err != nil {
+		common.SysError("failed to invalidate referral transfer wallet cache: " + err.Error())
+	}
+	return nil
 }
 
 func (user *User) prepareForInsert(tx *gorm.DB) error {
@@ -628,7 +642,13 @@ func (user *User) Insert(inviterId int) error {
 				user.SetSetting(defaultSetting)
 			}
 
-			return tx.Create(user).Error
+			if err := common.ValidateWalletQuota(user.Quota); err != nil {
+				return err
+			}
+			if err := tx.Create(user).Error; err != nil {
+				return err
+			}
+			return RecordWalletFundingTx(tx, WalletFundingEntry{UserId: user.Id, Amount: int64(user.Quota), Kind: FundingGift, Source: "registration", EventKey: fmt.Sprintf("registration:%d", user.Id)})
 		})
 	}); err != nil {
 		return err
@@ -659,8 +679,11 @@ func (user *User) finishInsert(inviterId int) {
 	}
 	if inviterId != 0 {
 		if common.QuotaForInvitee > 0 {
-			_ = IncreaseUserQuota(user.Id, common.QuotaForInvitee, true)
-			RecordLog(user.Id, LogTypeSystem, fmt.Sprintf("使用邀请码赠送 %s", logger.LogQuota(common.QuotaForInvitee)))
+			if err := CreditUserFunding(user.Id, common.QuotaForInvitee, FundingGift, "invitation", fmt.Sprintf("invitee:%d", user.Id), fmt.Sprint(inviterId), 0, ""); err != nil {
+				common.SysError("failed to credit invitee gift: " + err.Error())
+			} else {
+				RecordLog(user.Id, LogTypeSystem, fmt.Sprintf("使用邀请码赠送 %s", logger.LogQuota(common.QuotaForInvitee)))
+			}
 		}
 		if common.QuotaForInviter > 0 {
 			//_ = IncreaseUserQuota(inviterId, common.QuotaForInviter)
@@ -691,7 +714,13 @@ func (user *User) InsertWithTx(tx *gorm.DB, inviterId int) error {
 			user.SetSetting(defaultSetting)
 		}
 
-		return tx.Create(user).Error
+		if err := common.ValidateWalletQuota(user.Quota); err != nil {
+			return err
+		}
+		if err := tx.Create(user).Error; err != nil {
+			return err
+		}
+		return RecordWalletFundingTx(tx, WalletFundingEntry{UserId: user.Id, Amount: int64(user.Quota), Kind: FundingGift, Source: "registration", EventKey: fmt.Sprintf("registration:%d", user.Id)})
 	})
 }
 
@@ -716,8 +745,11 @@ func (user *User) FinalizeOAuthUserCreation(inviterId int) {
 	}
 	if inviterId != 0 {
 		if common.QuotaForInvitee > 0 {
-			_ = IncreaseUserQuota(user.Id, common.QuotaForInvitee, true)
-			RecordLog(user.Id, LogTypeSystem, fmt.Sprintf("使用邀请码赠送 %s", logger.LogQuota(common.QuotaForInvitee)))
+			if err := CreditUserFunding(user.Id, common.QuotaForInvitee, FundingGift, "invitation", fmt.Sprintf("invitee:%d", user.Id), fmt.Sprint(inviterId), 0, ""); err != nil {
+				common.SysError("failed to credit invitee gift: " + err.Error())
+			} else {
+				RecordLog(user.Id, LogTypeSystem, fmt.Sprintf("使用邀请码赠送 %s", logger.LogQuota(common.QuotaForInvitee)))
+			}
 		}
 		if common.QuotaForInviter > 0 {
 			RecordLog(inviterId, LogTypeSystem, fmt.Sprintf("邀请用户赠送 %s", logger.LogQuota(common.QuotaForInviter)))

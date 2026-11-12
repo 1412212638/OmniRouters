@@ -5573,6 +5573,7 @@
     "Error establishing connection": "建立連接失敗",
     "Error parsing response data": "解析回應數據失敗",
     "Generation was interrupted": "生成已中斷",
+    "The model refused to answer this request. Try rephrasing your prompt.": "模型拒絕回答此請求，請嘗試調整提示詞。",
     "Get advice": "獲取建議",
     "Image not available": "圖片不可用",
     "Loading conversation...": "正在載入對話...",

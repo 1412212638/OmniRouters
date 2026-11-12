@@ -47,6 +47,7 @@ import {
 } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
 import { parseUserSettings } from '@/features/profile/lib/format'
+import { FundingLedgerDialog } from '@/features/wallet/components/funding-ledger-dialog'
 import {
   ADMIN_PERMISSION_ACTIONS,
   ADMIN_PERMISSION_RESOURCES,
@@ -291,7 +292,8 @@ export function UsersMutateDrawer({
                             { value: '10', label: t('Admin') },
                           ]}
                           onValueChange={(value) =>
-                            value !== null && field.onChange(parseInt(value))
+                            value !== null &&
+                            field.onChange(Number.parseInt(value))
                           }
                           value={String(field.value)}
                         >
@@ -477,6 +479,13 @@ export function UsersMutateDrawer({
                       </FormItem>
                     )}
                   />
+
+                  {currentRow && (
+                    <FundingLedgerDialog
+                      key={currentRow.id}
+                      userId={currentRow.id}
+                    />
+                  )}
 
                   <FormField
                     control={form.control}

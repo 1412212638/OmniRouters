@@ -65,6 +65,11 @@ export const ERROR_MESSAGES = {
   INTERRUPTED: 'Generation was interrupted',
 } as const
 
+export const PLAYGROUND_MESSAGES = {
+  MODEL_REFUSAL:
+    'The model refused to answer this request. Try rephrasing your prompt.',
+} as const
+
 // Message action button styles
 export const MESSAGE_ACTION_BUTTON_STYLES = {
   BASE: 'size-7 text-muted-foreground hover:text-foreground',

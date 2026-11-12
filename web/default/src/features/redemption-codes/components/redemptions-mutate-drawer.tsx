@@ -32,15 +32,14 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { FundingKindSelect } from '@/features/wallet/components/funding-kind-select'
 import { getCurrencyDisplay, getCurrencyLabel } from '@/lib/currency'
-import { formatQuota, parseQuotaFromDollars } from '@/lib/format'
 import {
   formatQuota,
   getEditableQuotaStep,
   parseQuotaFromDollars,
 } from '@/lib/format'
 import { handleServerError } from '@/lib/handle-server-error'
-import { addTimeToDate } from '@/lib/time'
 import { addTimeToDate } from '@/lib/time'
 
 import { createRedemption, updateRedemption, getRedemption } from '../api'
@@ -270,6 +269,32 @@ export function RedemptionsMutateDrawer({
                   )}
                 />
 
+                <FormField
+                  control={form.control}
+                  name='funding_kind'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('Funding classification')}</FormLabel>
+                      <FormControl>
+                        <FundingKindSelect
+                          value={field.value}
+                          onChange={field.onChange}
+                          disabled={Boolean(
+                            loadedRedemption?.used_user_id ||
+                            loadedRedemption?.redeemed_time
+                          )}
+                          allowUnclassified={isUpdate}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {t(
+                          'The classification is recorded when redeemed. Used codes cannot be reclassified.'
+                        )}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name='quota_dollars'

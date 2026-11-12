@@ -11,6 +11,9 @@ export const redemptionSchema = z.object({
   key: z.string(),
   status: z.number(), // 1: enabled, 2: disabled, 3: used
   quota: z.number(),
+  funding_kind: z
+    .enum(['paid', 'gift', 'adjustment', 'unclassified', ''])
+    .optional(),
   created_time: z.number(),
   redeemed_time: z.number(),
   expired_time: z.number(), // 0 for never expires
@@ -53,6 +56,7 @@ export interface SearchRedemptionsParams {
 }
 
 export interface RedemptionFormData {
+  funding_kind?: 'paid' | 'gift' | 'adjustment' | 'unclassified'
   id?: number
   name: string
   quota: number

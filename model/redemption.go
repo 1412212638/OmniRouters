@@ -12,6 +12,7 @@ import (
 )
 
 type Redemption struct {
+	FundingKind  string         `json:"funding_kind" gorm:"type:varchar(32);default:''"`
 	Id           int            `json:"id"`
 	UserId       int            `json:"user_id"`
 	Key          string         `json:"key" gorm:"type:char(32);uniqueIndex"`
@@ -175,7 +176,10 @@ func Redeem(key string, userId int) (quota int, err error) {
 		if result.RowsAffected == 0 {
 			return errors.New("该兑换码已被使用")
 		}
-		return creditTopUpQuota(tx, userId, redemption.Quota, nil)
+		if err := creditTopUpQuota(tx, userId, redemption.Quota, nil); err != nil {
+			return err
+		}
+		return RecordWalletFundingTx(tx, WalletFundingEntry{UserId: userId, Amount: int64(redemption.Quota), Kind: redemption.FundingKind, Source: "redemption", EventKey: fmt.Sprintf("redemption:%d", redemption.Id), Reference: fmt.Sprint(redemption.Id), OperatorId: redemption.UserId})
 	})
 	if err != nil {
 		common.SysError("redemption failed: " + err.Error())
@@ -193,9 +197,12 @@ func (redemption *Redemption) Insert() error {
 	if err := common.ValidateWalletQuota(redemption.Quota); err != nil {
 		return err
 	}
-	var err error
-	err = DB.Create(redemption).Error
-	return err
+	kind, err := NormalizeFundingKind(redemption.FundingKind, FundingUnclassified)
+	if err != nil {
+		return err
+	}
+	redemption.FundingKind = kind
+	return DB.Create(redemption).Error
 }
 
 func (redemption *Redemption) SelectUpdate() error {
@@ -211,9 +218,24 @@ func (redemption *Redemption) Update() error {
 	if err := common.ValidateWalletQuota(redemption.Quota); err != nil {
 		return err
 	}
-	var err error
-	err = DB.Model(redemption).Select("name", "status", "quota", "redeemed_time", "expired_time").Updates(redemption).Error
-	return err
+	return DB.Transaction(func(tx *gorm.DB) error {
+		var current Redemption
+		if err := lockForUpdate(tx).First(&current, redemption.Id).Error; err != nil {
+			return err
+		}
+		kind, err := NormalizeFundingKind(redemption.FundingKind, FundingUnclassified)
+		if err != nil {
+			return err
+		}
+		oldKind, _ := NormalizeFundingKind(current.FundingKind, FundingUnclassified)
+		if current.UsedUserId != 0 || current.RedeemedTime != 0 {
+			if kind != oldKind || current.Quota != redemption.Quota || current.Status != redemption.Status {
+				return errors.New("used redemption credits cannot be changed")
+			}
+		}
+		redemption.FundingKind = kind
+		return tx.Model(&current).Select("name", "status", "quota", "expired_time", "funding_kind").Updates(redemption).Error
+	})
 }
 
 func (redemption *Redemption) Delete() error {
