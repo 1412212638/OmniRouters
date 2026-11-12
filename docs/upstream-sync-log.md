@@ -5639,4 +5639,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: removed the unused import; no runtime behavior changes.
 - Preserved: check-in rewards, wallet funding ledger behavior, relay billing, and all frontend changes.
 - Validation: inspected the failing compiler diagnostic, verified the import is no longer referenced, and ran `git diff --check`. The local Go toolchain is unavailable, so a local Go build was not possible; GHCR is the authoritative build check.
-- Commit and push: this fix is being committed and pushed to `origin/main` at the user's request.
+- Commit and push: committed as `de89700cc` (`fix: remove unused checkin import`) and pushed to `origin/main` on 2026-11-12. This confirmed status is recorded in the following documentation-only commit.
