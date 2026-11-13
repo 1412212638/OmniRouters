@@ -245,6 +245,11 @@ func GetAndValidOpenAIImageRequest(c *gin.Context, relayMode int) (*dto.ImageReq
 				"style":              &imageRequest.Style,
 				"user":               &imageRequest.User,
 				"input_fidelity":     &imageRequest.InputFidelity,
+				"complexity":         &imageRequest.Complexity,
+				"markup":             &imageRequest.Markup,
+				"svg":                &imageRequest.Svg,
+				"frame_count":        &imageRequest.FrameCount,
+				"frame_duration_ms":  &imageRequest.FrameDurationMs,
 			} {
 				if value := strings.TrimSpace(formData.Get(key)); value != "" {
 					if json.Valid([]byte(value)) {
@@ -264,6 +269,8 @@ func GetAndValidOpenAIImageRequest(c *gin.Context, relayMode int) (*dto.ImageReq
 					key == "response_format" || key == "background" || key == "moderation" ||
 					key == "output_format" || key == "output_compression" || key == "partial_images" ||
 					key == "style" || key == "user" || key == "input_fidelity" ||
+					key == "complexity" || key == "markup" || key == "svg" ||
+					key == "frame_count" || key == "frame_duration_ms" ||
 					key == "parameters" || key == "extra_fields" || key == "watermark" {
 					continue
 				}

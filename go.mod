@@ -4,8 +4,9 @@ module github.com/QuantumNous/new-api
 go 1.26.10
 
 require (
-	github.com/Calcium-Ion/go-epay v0.0.4
+	github.com/Calcium-Ion/go-epay v0.0.6
 	github.com/abema/go-mp4 v1.4.1
+	github.com/alicebob/miniredis/v2 v2.38.0
 	github.com/andybalholm/brotli v1.1.1
 	github.com/anknown/ahocorasick v0.0.0-20190904063843-d75dbd5169c0
 	github.com/aws/aws-sdk-go-v2 v1.41.5
@@ -84,13 +85,13 @@ require (
 )
 
 require (
-	github.com/coreos/go-oidc/v3 v3.21.0
-	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
-	golang.org/x/oauth2 v0.36.0
 	github.com/Azure/go-ntlmssp v0.1.1
+	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/dlclark/regexp2/v2 v2.2.2 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/google/pprof v0.0.0-20250317173921-a4b03ec1a45e // indirect
+	golang.org/x/oauth2 v0.36.0
 )
 
 require github.com/grafana/sobek v0.0.0-20260708062710-267a0e055bb4
@@ -174,5 +175,7 @@ require (
 )
 
 require github.com/QuantumNous/new-api/relaykit v0.0.0
+
+require github.com/yuin/gopher-lua v1.1.1 // indirect
 
 replace github.com/QuantumNous/new-api/relaykit => ./relaykit

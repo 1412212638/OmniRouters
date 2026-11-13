@@ -21,8 +21,8 @@ import (
 )
 
 type Channel struct {
-	Id                 int     `json:"id"`
-	Type               int     `json:"type" gorm:"default:0"`
+	Id   int `json:"id"`
+	Type int `json:"type" gorm:"default:0"`
 	// Keep this field in every channel response so clients can distinguish an
 	// unbound channel from a response that omitted the binding accidentally.
 	VendorID           *int    `json:"vendor_id" gorm:"index"`
@@ -758,6 +758,9 @@ func UpdateChannelStatus(channelId int, usingKey string, status int, reason stri
 		if channelCache == nil {
 			return false
 		}
+		if status == common.ChannelStatusAutoDisabled && channelCache.Status == common.ChannelStatusManuallyDisabled {
+			return false
+		}
 		if channelCache.ChannelInfo.IsMultiKey {
 			beforeStatus := channelCache.Status
 			// 如果是多Key模式，更新缓存中的状态
@@ -789,6 +792,9 @@ func UpdateChannelStatus(channelId int, usingKey string, status int, reason stri
 	if err != nil {
 		return false
 	} else {
+		if status == common.ChannelStatusAutoDisabled && channel.Status == common.ChannelStatusManuallyDisabled {
+			return false
+		}
 		if channel.Status == status {
 			return false
 		}

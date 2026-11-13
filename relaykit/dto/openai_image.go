@@ -18,10 +18,10 @@ import (
 const MaxImageN = 128
 
 const (
-	MaxGPTImageN       = 10
-	GPTImageMaxSide    = int64(3840)
-	GPTImageMinPixels  = int64(655360)
-	GPTImageMaxPixels  = int64(8294400)
+	MaxGPTImageN      = 10
+	GPTImageMaxSide   = int64(3840)
+	GPTImageMinPixels = int64(655360)
+	GPTImageMaxPixels = int64(8294400)
 )
 
 var gptImageQualities = map[string]struct{}{
@@ -54,7 +54,14 @@ type ImageRequest struct {
 	Images            json.RawMessage `json:"images,omitempty"`
 	Mask              json.RawMessage `json:"mask,omitempty"`
 	InputFidelity     json.RawMessage `json:"input_fidelity,omitempty"`
-	Watermark         *bool           `json:"watermark,omitempty"`
+	// Opaque provider JSON preserves objects (svg/markup) and explicit zero or
+	// false values without imposing a schema on OpenAI-compatible providers.
+	Complexity      json.RawMessage `json:"complexity,omitempty"`
+	Markup          json.RawMessage `json:"markup,omitempty"`
+	Svg             json.RawMessage `json:"svg,omitempty"`
+	FrameCount      json.RawMessage `json:"frame_count,omitempty"`
+	FrameDurationMs json.RawMessage `json:"frame_duration_ms,omitempty"`
+	Watermark       *bool           `json:"watermark,omitempty"`
 	// zhipu 4v
 	WatermarkEnabled json.RawMessage `json:"watermark_enabled,omitempty"`
 	UserId           json.RawMessage `json:"user_id,omitempty"`

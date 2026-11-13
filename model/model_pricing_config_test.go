@@ -45,20 +45,20 @@ func TestValidateModelPricingKeepsUnchangedSingleProviderPricesAfterProfileNarro
 	}, previousBase), "not declared")
 
 	previousOverride := PricingValues{
-		"billing_setting.billing_expr": expression,
+		"billing_setting.billing_expr":          expression,
 		billing_setting.PluginBillingExprOption: map[string]any{pluginKey: expression},
 	}
 	unchangedOverride := PricingValues{
-		"billing_setting.billing_expr": expression,
+		"billing_setting.billing_expr":          expression,
 		billing_setting.PluginBillingExprOption: map[string]any{pluginKey: expression},
 	}
 	require.NoError(t, validateModelPricing(modelName, unchangedOverride, previousOverride))
 
 	edited := PricingValues{
-		"billing_setting.billing_expr": `u("image_count") * 2`,
+		"billing_setting.billing_expr":          `u("image_count") * 2`,
 		billing_setting.PluginBillingExprOption: map[string]any{pluginKey: `u("image_count") * 2`},
 	}
-	require.ErrorContains(t, validateModelPricing(modelName, edited, previous), "not declared")
+	require.ErrorContains(t, validateModelPricing(modelName, edited, previousOverride), "not declared")
 }
 
 func TestValidateModelPricingStillChecksUnchangedSharedProviderPrices(t *testing.T) {

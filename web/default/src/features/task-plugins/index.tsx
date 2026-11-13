@@ -24,6 +24,7 @@ import {
 import { MarketplacePanel } from './components/marketplace-panel'
 import { PluginDetailSheet } from './components/plugin-detail-sheet'
 import { PluginsTable } from './components/plugins-table'
+import { TaskPricingWarnings } from './components/pricing-warnings'
 import { UploadDialog } from './components/upload-dialog'
 import type { TaskPluginListItem } from './types'
 
@@ -121,6 +122,7 @@ export function TaskPlugins() {
             onValueChange={setTab}
             className='flex h-full min-h-0 flex-col gap-3'
           >
+            <TaskPricingWarnings />
             <TabsList className='max-w-full flex-wrap justify-start group-data-horizontal/tabs:h-auto'>
               <TabsTrigger value='installed'>{t('Installed')}</TabsTrigger>
               <TabsTrigger value='marketplace'>{t('Marketplace')}</TabsTrigger>

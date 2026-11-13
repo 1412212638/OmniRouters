@@ -24,9 +24,9 @@ func TestReferralCashbackRateAndQuotaUseBasisPoints(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 525, rateBps)
 
-	quota, err := referralCashbackQuota(common.QuotaPerUnit*10, rateBps)
+	quota, err := referralCashbackQuota(common.QuotaRound(common.QuotaPerUnit*10), rateBps)
 	require.NoError(t, err)
-	assert.Equal(t, common.QuotaPerUnit*10*525/10000, quota)
+	assert.Equal(t, common.QuotaRound(common.QuotaPerUnit*10*525/10000), quota)
 }
 
 func TestReferralCashbackRateRejectsInvalidValues(t *testing.T) {

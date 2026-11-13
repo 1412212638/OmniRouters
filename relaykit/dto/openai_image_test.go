@@ -1,6 +1,28 @@
 package dto
 
-import "testing"
+import (
+	"testing"
+
+	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
+	"github.com/stretchr/testify/require"
+)
+
+func TestImageRequestPreservesGPTImage26ProviderFields(t *testing.T) {
+	for _, raw := range []string{
+		`{"model":"gpt-image-2.6","prompt":"vector logo","complexity":"low","svg":{"model":"vector"},"markup":{"image_url":"https://example.com/layer.png"},"frame_count":2,"frame_duration_ms":100,"output_format":"gif"}`,
+		`{"model":"gpt-image-2.6-flare","prompt":"p","complexity":"","svg":false,"markup":null,"frame_count":0,"frame_duration_ms":0}`,
+		`{"model":"gpt-image-1","prompt":"p"}`,
+	} {
+		var request ImageRequest
+		require.NoError(t, kitutil.Unmarshal([]byte(raw), &request))
+		for _, key := range []string{"complexity", "svg", "markup", "frame_count", "frame_duration_ms"} {
+			require.NotContains(t, request.Extra, key)
+		}
+		encoded, err := kitutil.Marshal(request)
+		require.NoError(t, err)
+		require.JSONEq(t, raw, string(encoded))
+	}
+}
 
 func TestValidateGPTImageParameters(t *testing.T) {
 	tests := []struct {

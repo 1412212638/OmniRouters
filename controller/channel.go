@@ -73,6 +73,29 @@ func clearChannelInfo(channel *model.Channel) {
 	}
 }
 
+// A request failure can disable the whole channel once its last key fails.
+// Only that automatic state is reversible by enabling a key: a later manual
+// channel disable must remain in force even if its old reason is still stored.
+func restoreAutoDisabledMultiKeyChannel(channel *model.Channel) {
+	if channel == nil || !channel.ChannelInfo.IsMultiKey || channel.Status != common.ChannelStatusAutoDisabled {
+		return
+	}
+	info := channel.GetOtherInfo()
+	if info["status_reason"] != "All keys are disabled" {
+		return
+	}
+	for i := range channel.GetKeys() {
+		status, disabled := channel.ChannelInfo.MultiKeyStatusList[i]
+		if !disabled || status == common.ChannelStatusEnabled {
+			channel.Status = common.ChannelStatusEnabled
+			info["status_reason"] = ""
+			info["status_time"] = common.GetTimestamp()
+			channel.SetOtherInfo(info)
+			return
+		}
+	}
+}
+
 func applyChannelStatusFilter(query *gorm.DB, statusFilter int) *gorm.DB {
 	if statusFilter == common.ChannelStatusEnabled {
 		return query.Where("status = ?", common.ChannelStatusEnabled)
@@ -1617,6 +1640,13 @@ func ManageMultiKeys(c *gin.Context) {
 	lock := model.GetChannelPollingLock(channel.Id)
 	lock.Lock()
 	defer lock.Unlock()
+	// Refresh after acquiring the lock so a concurrent request failure or
+	// manual status change is not overwritten by the earlier snapshot.
+	channel, err = model.GetChannelById(request.ChannelId, true)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
 
 	switch request.Action {
 	case "get_key_status":
@@ -1804,6 +1834,7 @@ func ManageMultiKeys(c *gin.Context) {
 		if channel.ChannelInfo.MultiKeyDisabledReason != nil {
 			delete(channel.ChannelInfo.MultiKeyDisabledReason, keyIndex)
 		}
+		restoreAutoDisabledMultiKeyChannel(channel)
 
 		err = channel.Update()
 		if err != nil {
@@ -1828,6 +1859,7 @@ func ManageMultiKeys(c *gin.Context) {
 		channel.ChannelInfo.MultiKeyStatusList = make(map[int]int)
 		channel.ChannelInfo.MultiKeyDisabledTime = make(map[int]int64)
 		channel.ChannelInfo.MultiKeyDisabledReason = make(map[int]string)
+		restoreAutoDisabledMultiKeyChannel(channel)
 
 		err = channel.Update()
 		if err != nil {

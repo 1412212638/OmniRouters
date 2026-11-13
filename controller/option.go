@@ -33,18 +33,18 @@ var completionRatioMetaOptionKeys = []string{
 }
 
 var pricingOptionKeys = map[string]struct{}{
-	"ModelPrice":                   {},
-	"ModelRatio":                   {},
-	"CompletionRatio":              {},
-	"CacheRatio":                   {},
-	"CreateCacheRatio":             {},
-	"ImageRatio":                   {},
-	"AudioRatio":                   {},
-	"AudioCompletionRatio":         {},
-	"billing_setting.billing_mode": {},
-	"billing_setting.billing_expr": {},
-	billing_setting.PluginBillingExprOption: {},
-	"billing_setting.sora_per_request_pricing":   {},
+	"ModelPrice":                                   {},
+	"ModelRatio":                                   {},
+	"CompletionRatio":                              {},
+	"CacheRatio":                                   {},
+	"CreateCacheRatio":                             {},
+	"ImageRatio":                                   {},
+	"AudioRatio":                                   {},
+	"AudioCompletionRatio":                         {},
+	"billing_setting.billing_mode":                 {},
+	"billing_setting.billing_expr":                 {},
+	billing_setting.PluginBillingExprOption:        {},
+	"billing_setting.sora_per_request_pricing":     {},
 	"group_ratio_setting.group_model_ratio":        {},
 	"group_ratio_setting.group_model_user_ratio":   {},
 	"group_ratio_setting.group_model_ratio_expiry": {},
@@ -72,7 +72,8 @@ func isSensitiveOptionKey(key string) bool {
 		strings.HasSuffix(key, "Secret") ||
 		strings.HasSuffix(key, "Key") ||
 		strings.HasSuffix(key, "secret") ||
-		strings.HasSuffix(key, "api_key")
+		strings.HasSuffix(key, "api_key") ||
+		strings.HasSuffix(key, "private_key")
 }
 
 func normalizeOptionUpdateValue(value any) string {

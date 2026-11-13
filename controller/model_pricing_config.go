@@ -9,6 +9,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func GetTaskPricingWarnings(c *gin.Context) {
+	warnings, err := model.GetTaskPricingWarnings()
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	common.ApiSuccess(c, warnings)
+}
+
 func GetModelPricingConfig(c *gin.Context) {
 	snapshot, err := model.GetModelPricingSnapshot(c.QueryArray("model"))
 	if err != nil {

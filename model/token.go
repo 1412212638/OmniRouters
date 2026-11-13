@@ -40,10 +40,12 @@ type Token struct {
 	KeyType            string `json:"key_type" gorm:"type:varchar(16);default:'general'"`
 	UserSubscriptionId int    `json:"user_subscription_id" gorm:"index;default:0"`
 	// Transient subscription snapshot loaded during token authentication.
-	SubscriptionBillingMode   string     `json:"-" gorm:"-"`
-	SubscriptionAllowedModels StringList `json:"-" gorm:"-"`
+	SubscriptionBillingMode   string                `json:"-" gorm:"-"`
+	SubscriptionAllowedModels StringList            `json:"-" gorm:"-"`
 	SubscriptionAllowedGroups SubscriptionGroupList `json:"-" gorm:"-"`
-	CacheSchema               int        `json:"-" gorm:"-"`
+	CacheSchema               int                   `json:"-" gorm:"-"`
+	CacheExpiresAt            int64                 `json:"-" gorm:"-"`
+	CacheMAC                  string                `json:"-" gorm:"-"`
 }
 
 const (
@@ -138,7 +140,7 @@ func CreateSubscriptionToken(userId, subscriptionId int, name string) (*Token, e
 		Status: common.TokenStatusEnabled, CreatedTime: common.GetTimestamp(), AccessedTime: common.GetTimestamp(),
 		ExpiredTime: sub.EndTime, UnlimitedQuota: true, KeyType: TokenKeyTypeSubscription,
 		UserSubscriptionId: subscriptionId, Group: group,
-		CrossGroupRetry: len(allowedGroups) > 1,
+		CrossGroupRetry:     len(allowedGroups) > 1,
 		AllowUserQuotaQuery: false,
 	}
 	if len(allowedGroups) > 1 {

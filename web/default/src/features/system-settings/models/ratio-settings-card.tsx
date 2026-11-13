@@ -26,6 +26,7 @@ import * as z from 'zod'
 
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { TaskPricingWarnings } from '@/features/task-plugins/components/pricing-warnings'
 
 import { getModelPricingSnapshot, resetModelRatios } from '../api'
 import { SettingsPageTitleStatusPortal } from '../components/settings-page-context'
@@ -427,7 +428,7 @@ export function RatioSettingsCard({
       modelNormalizedDefaults.current = normalized
       setSavedModelValues(normalized)
     },
-    [t, updateOption]
+    [t, updateOption, queryClient]
   )
 
   const saveGroupRatios = useCallback(
@@ -567,6 +568,9 @@ export function RatioSettingsCard({
     <>
       {visibleTabs.length === 1 ? (
         <SettingsSection title={t(titleKey)}>
+          {visibleTabs.includes('models') && (
+            <TaskPricingWarnings showPricingLink={false} />
+          )}
           {renderTabContent(defaultTab)}
         </SettingsSection>
       ) : (
@@ -576,6 +580,9 @@ export function RatioSettingsCard({
           </SettingsPageTitleStatusPortal>
 
           <SettingsSection title={t(titleKey)} className='min-h-0 flex-1'>
+            {visibleTabs.includes('models') && (
+              <TaskPricingWarnings showPricingLink={false} />
+            )}
             {visibleTabs.map((tab) => (
               <TabsContent key={tab} value={tab} className='min-h-0'>
                 {renderTabContent(tab)}

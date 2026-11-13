@@ -21,6 +21,8 @@ import {
 } from '@/features/pricing/lib/task-price-display'
 import type { BillingUsageSchema } from '@/features/pricing/types'
 
+import { DraftNumberInput } from './pricing-number-input'
+
 function normalizeConfig(config: TaskMatrixConfig, schema: BillingUsageSchema) {
   return {
     rows:
@@ -66,9 +68,8 @@ export function TaskUsagePricingEditor({
     if (nextExpression) onExpressionChange(nextExpression)
   }
 
-  const updatePrice = (rowIndex: number, field: string, value: string) => {
-    const numeric = Number(value)
-    const safeValue = Number.isFinite(numeric) && numeric >= 0 ? numeric : 0
+  const updatePrice = (rowIndex: number, field: string, value: number) => {
+    const safeValue = Number.isFinite(value) && value >= 0 ? value : 0
     updateConfig({
       rows: config.rows.map((row, index) =>
         index === rowIndex
@@ -98,9 +99,8 @@ export function TaskUsagePricingEditor({
     })
   }
 
-  const updateConstant = (rowIndex: number, value: string) => {
-    const numeric = Number(value)
-    const safeValue = Number.isFinite(numeric) && numeric >= 0 ? numeric : 0
+  const updateConstant = (rowIndex: number, value: number) => {
+    const safeValue = Number.isFinite(value) && value >= 0 ? value : 0
     updateConfig({
       rows: config.rows.map((row, index) =>
         index === rowIndex ? { ...row, constant: safeValue } : row
@@ -165,32 +165,32 @@ export function TaskUsagePricingEditor({
           <tbody>
             {config.rows.map((row, index) => (
               <tr
-                key={`${taskMatrixRowLabel(row.combination)}-${index}`}
+                key={JSON.stringify(row.combination)}
                 className='border-b last:border-b-0'
               >
                 <td className='px-3 py-2 font-medium'>
                   {taskMatrixRowLabel(row.combination)}
                 </td>
                 <td className='px-3 py-2'>
-                  <Input
+                  <DraftNumberInput
+                    type='text'
                     inputMode='decimal'
                     className='h-8 min-w-24 text-right font-mono'
-                    value={String(row.constant || 0)}
-                    onChange={(event) =>
-                      updateConstant(index, event.target.value)
-                    }
+                    value={row.constant || 0}
+                    onValueChange={(value) => updateConstant(index, value)}
                     aria-label={`${t('Fixed price')} ${taskMatrixRowLabel(row.combination)}`}
                   />
                 </td>
                 {numberFields.map(([field]) => (
                   <Fragment key={field}>
                     <td key={field} className='px-3 py-2'>
-                      <Input
+                      <DraftNumberInput
+                        type='text'
                         inputMode='decimal'
                         className='h-8 min-w-24 text-right font-mono'
-                        value={String(row.unitPrices[field] || 0)}
-                        onChange={(event) =>
-                          updatePrice(index, field, event.target.value)
+                        value={row.unitPrices[field] || 0}
+                        onValueChange={(value) =>
+                          updatePrice(index, field, value)
                         }
                         aria-label={`${field} ${taskMatrixRowLabel(row.combination)}`}
                       />

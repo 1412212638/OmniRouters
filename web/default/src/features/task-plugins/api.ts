@@ -14,6 +14,26 @@ const mutationConfig: ApiRequestConfig = {
   skipBusinessError: true,
   skipErrorHandler: true,
 }
+
+export type TaskPricingWarningsResult = {
+  enabled: boolean
+  warnings: Array<{
+    model_name: string
+    plugin_key: string
+    plugin_name: string
+    channel_ids: number[]
+    reason: string
+  }>
+  skipped_channels: number[]
+}
+
+export async function getTaskPricingWarnings() {
+  const response = await api.get<ApiResponse<TaskPricingWarningsResult>>(
+    '/api/option/model_pricing/task_warnings',
+    { skipBusinessError: true, skipErrorHandler: true }
+  )
+  return requireSuccess(response.data)
+}
 export async function dryRunTaskPlugin(
   key: string,
   request: TaskPluginDryRunRequest

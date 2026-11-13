@@ -24,6 +24,7 @@ export type VisualTier = {
   output_unit_cost: number
   cache_mode: CacheMode
   cache_read_unit_cost?: number
+  image_cache_unit_cost?: number
   cache_create_unit_cost?: number
   cache_create_1h_unit_cost?: number
   cache_create_12h_unit_cost?: number
@@ -51,7 +52,7 @@ export function getTierCacheMode(
 export function normalizeVisualTier(
   tier: Partial<VisualTier> = {}
 ): VisualTier {
-  return {
+  const normalized: VisualTier = {
     label: tier.label ?? '',
     billing_unit: tier.billing_unit === 'request' ? 'request' : 'token',
     fixed_price: Number(tier.fixed_price) || 0,
@@ -60,15 +61,15 @@ export function normalizeVisualTier(
     cache_mode: getTierCacheMode(tier),
     conditions: Array.isArray(tier.conditions) ? tier.conditions : [],
     ...tier,
-    cache_read_unit_cost: Number(tier.cache_read_unit_cost) || 0,
-    cache_create_unit_cost: Number(tier.cache_create_unit_cost) || 0,
-    cache_create_1h_unit_cost: Number(tier.cache_create_1h_unit_cost) || 0,
-    cache_create_12h_unit_cost: Number(tier.cache_create_12h_unit_cost) || 0,
-    image_unit_cost: Number(tier.image_unit_cost) || 0,
-    image_output_unit_cost: Number(tier.image_output_unit_cost) || 0,
-    audio_input_unit_cost: Number(tier.audio_input_unit_cost) || 0,
-    audio_output_unit_cost: Number(tier.audio_output_unit_cost) || 0,
   }
+  // Missing categories inherit base pricing; explicit zero opts into free
+  // category pricing. Never materialize absent fields as zero.
+  for (const variable of BILLING_CACHE_VAR_MAP) {
+    const value = tier[variable.field]
+    if (value == null) delete normalized[variable.field]
+    else normalized[variable.field] = Number(value) || 0
+  }
+  return normalized
 }
 
 export function createDefaultVisualConfig(): VisualConfig {
@@ -115,8 +116,8 @@ function buildTierBodyExpr(tier: VisualTier): string {
   parts.push(`p * ${ic}`)
   parts.push(`c * ${oc}`)
   for (const cv of BILLING_CACHE_VAR_MAP) {
-    const v = Number((tier as Record<string, unknown>)[cv.field]) || 0
-    if (v !== 0) parts.push(`${cv.exprVar} * ${v}`)
+    const raw = tier[cv.field]
+    if (raw != null) parts.push(`${cv.exprVar} * ${Number(raw) || 0}`)
   }
   return parts.join(' + ')
 }
@@ -266,6 +267,7 @@ export function tryParseVisualConfig(
 
 const ESTIMATOR_VARS = [
   { var: 'cr', stateKey: 'cacheReadTokens' },
+  { var: 'img_cr', stateKey: 'imageCacheTokens' },
   { var: 'cc', stateKey: 'cacheCreateTokens' },
   { var: 'cc1h', stateKey: 'cacheCreate1hTokens' },
   { var: 'cc12h', stateKey: 'cacheCreate12hTokens' },

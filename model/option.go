@@ -258,6 +258,9 @@ func SyncOptions(frequency int) {
 }
 
 func validateOptionValue(key string, value string) error {
+	if err := operation_setting.ValidateEpaySignOption(key, value); err != nil {
+		return err
+	}
 	if key == "ClientGoneDrainTimeout" {
 		seconds, err := strconv.Atoi(strings.TrimSpace(value))
 		if err != nil || seconds < operation_setting.MinClientGoneDrainTimeoutSeconds || seconds > operation_setting.MaxClientGoneDrainTimeoutSeconds {
