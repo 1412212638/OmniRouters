@@ -6200,6 +6200,9 @@
     "Image cache input price": "Giá ảnh đầu vào lưu đệm",
     "Cache create (12h) price": "Giá tạo bộ nhớ đệm (12 giờ)",
     "Image Cache": "Bộ nhớ đệm ảnh",
-    "Per token": "Theo token"
+    "Per token": "Theo token",
+    "MiniMax H3 Create API": "API tạo video MiniMax H3",
+    "MiniMax H3 Query API": "API truy vấn video MiniMax H3",
+    "MiniMax H3 native video task API": "API tác vụ video gốc MiniMax H3"
   }
 }

@@ -6376,6 +6376,9 @@
     "pricingEditor.aoHelp": "按上游报告的音频输出 Tokens（ao）计价，不是按音频时长。",
     "Image cache input price": "图片缓存输入价格",
     "Cache create (12h) price": "缓存写入价格（12 小时）",
-    "Per token": "按 Tokens 计费"
+    "Per token": "按 Tokens 计费",
+    "MiniMax H3 Create API": "MiniMax H3 视频提交接口",
+    "MiniMax H3 Query API": "MiniMax H3 视频查询接口",
+    "MiniMax H3 native video task API": "MiniMax H3 原生视频任务接口"
   }
 }

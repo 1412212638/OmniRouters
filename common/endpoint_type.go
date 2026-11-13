@@ -149,7 +149,9 @@ func isNonChatEndpointType(endpointType constant.EndpointType) bool {
 		constant.EndpointTypeJinaRerank,
 		constant.EndpointTypeOpenAIVideo,
 		constant.EndpointTypeDoubaoVideoCreate,
-		constant.EndpointTypeDoubaoVideoQuery:
+		constant.EndpointTypeDoubaoVideoQuery,
+		constant.EndpointTypeMiniMaxH3Create,
+		constant.EndpointTypeMiniMaxH3Query:
 		return true
 	default:
 		return false

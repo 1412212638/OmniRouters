@@ -22,6 +22,8 @@ const (
 	EndpointTypeOpenAIVideo           = types.EndpointTypeOpenAIVideo
 	EndpointTypeDoubaoVideoCreate     = types.EndpointTypeDoubaoVideoCreate
 	EndpointTypeDoubaoVideoQuery      = types.EndpointTypeDoubaoVideoQuery
+	EndpointTypeMiniMaxH3Create       = types.EndpointTypeMiniMaxH3Create
+	EndpointTypeMiniMaxH3Query        = types.EndpointTypeMiniMaxH3Query
 )
 
 // Model names the distributor assigns to /v1/tools/search and /v1/tools/fetch,

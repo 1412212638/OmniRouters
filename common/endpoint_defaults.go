@@ -32,6 +32,8 @@ var defaultEndpointInfoMap = map[constant.EndpointType]EndpointInfo{
 	constant.EndpointTypeOpenAIVideo:           {Path: "/v1/videos", Method: "POST"},
 	constant.EndpointTypeDoubaoVideoCreate:     {Path: "/api/v3/contents/generations/tasks", Method: "POST"},
 	constant.EndpointTypeDoubaoVideoQuery:      {Path: "/api/v3/contents/generations/tasks/{task_id}", Method: "GET"},
+	constant.EndpointTypeMiniMaxH3Create:       {Path: "/v2/video_generation", Method: "POST"},
+	constant.EndpointTypeMiniMaxH3Query:        {Path: "/v2/query/video_generation/{task_id}", Method: "GET"},
 }
 
 // GetDefaultEndpointInfo 返回指定端点类型的默认信息以及是否存在

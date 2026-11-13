@@ -154,6 +154,12 @@ func originAllowed(origin string, allowedOrigins []string) bool {
 }
 
 func isPublicAPIPath(path string) bool {
+	if path == "/v2/video_generation" {
+		return true
+	}
+	if taskID, ok := strings.CutPrefix(path, "/v2/query/video_generation/"); ok {
+		return taskID != "" && !strings.Contains(taskID, "/")
+	}
 	return (path == "/v1" || strings.HasPrefix(path, "/v1/")) &&
 		path != "/v1/dashboard" && !strings.HasPrefix(path, "/v1/dashboard/")
 }

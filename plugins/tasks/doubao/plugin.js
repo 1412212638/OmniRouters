@@ -111,10 +111,8 @@ const IMAGE_MODELS = {
 const IMAGE_MODEL_ALIASES = {
   "doubao-seedream-5.0-pro": "doubao-seedream-5-0-pro-260628",
   "doubao-seedream-5.0-flash": "doubao-seedream-5-0-flash-260915",
+  "doubao-seedream-5.5": "doubao-seedream-5-5-261028",
 };
-for (const [alias, upstreamModel] of Object.entries(IMAGE_MODEL_ALIASES)) {
-  IMAGE_MODELS[alias] = IMAGE_MODELS[upstreamModel];
-}
 const IMAGE_RESOLUTIONS = ["1K", "1.5K", "2K", "3K", "4K"];
 // Square pixel area of each preset, used only for the submit-time tier estimate.
 const IMAGE_PRESET_PIXELS = { "1K": 1048576, "1.5K": 2359296, "2K": 4194304, "3K": 9437184, "4K": 16777216 };
@@ -131,6 +129,13 @@ const DEFAULT_IMAGE_PROFILE = {
   tools: true,
   fastPromptMode: true,
 };
+// Seedream 5.5 shares 5.0 pro's pixel-tier billing and first-reference allowance.
+// Keep the existing newer-model protocol defaults rather than assuming that
+// its accepted sizes and generation options have 5.0 pro's restrictions.
+IMAGE_MODELS["doubao-seedream-5-5-261028"] = { ...DEFAULT_IMAGE_PROFILE, freeInputImages: 1 };
+for (const [alias, upstreamModel] of Object.entries(IMAGE_MODEL_ALIASES)) {
+  IMAGE_MODELS[alias] = IMAGE_MODELS[upstreamModel];
+}
 const LAYER_SIZE_PRESETS = ["1K", "1.5K", "2K"];
 const IMAGE_ACTIONS = ["text_to_image", "image_to_image"];
 // Official Seedream pricing boundary: every output image at or below 2.61
@@ -375,7 +380,7 @@ export const meta = {
     en: "Volcengine Doubao Seedance video generation and Seedream image generation",
     zh: "火山引擎豆包 Seedance 视频生成与 Seedream 图片生成",
   },
-  version: "1.3.0",
+  version: "1.4.0",
   author: { name: "QuantumNous" },
   channelTypes: [54, 45], // VolcEngine-type channels serve Ark video models with the same wire format
   models: Object.keys(VIDEO_MODELS).concat(Object.keys(IMAGE_MODELS)),

@@ -6200,6 +6200,9 @@
     "Image cache input price": "Prix des images en cache en entrée",
     "Cache create (12h) price": "Prix de création du cache (12 h)",
     "Image Cache": "Cache image",
-    "Per token": "Par token"
+    "Per token": "Par token",
+    "MiniMax H3 Create API": "API de création vidéo MiniMax H3",
+    "MiniMax H3 Query API": "API de consultation vidéo MiniMax H3",
+    "MiniMax H3 native video task API": "API native de tâches vidéo MiniMax H3"
   }
 }

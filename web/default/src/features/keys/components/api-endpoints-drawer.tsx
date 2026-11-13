@@ -265,6 +265,26 @@ const PROTOCOLS: Protocol[] = [
       },
     ],
   },
+  {
+    id: 'minimax-h3',
+    label: 'MiniMax H3',
+    description: 'MiniMax H3 native video task API',
+    basePath: '/v2',
+    endpoints: [
+      {
+        id: 'minimax-h3-create',
+        method: 'POST',
+        path: '/v2/video_generation',
+        label: 'MiniMax H3 Create API',
+      },
+      {
+        id: 'minimax-h3-query',
+        method: 'GET',
+        path: '/v2/query/video_generation/{task_id}',
+        label: 'MiniMax H3 Query API',
+      },
+    ],
+  },
 ]
 
 type ApiEndpointsDrawerProps = {
@@ -360,7 +380,7 @@ export function ApiEndpointsDrawer({
   function getProtocolBaseUrl(protocol: Protocol): string {
     if (!selectedNode) return getProtocolPrefix(protocol)
     const root = normalizeBaseUrl(selectedNode.url).replace(
-      /\/(?:v1beta|v1|api\/v3)$/i,
+      /\/(?:v1beta|v1|v2|api\/v3)$/i,
       ''
     )
     return `${root}${getProtocolPrefix(protocol)}`

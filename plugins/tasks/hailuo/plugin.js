@@ -78,7 +78,7 @@ export const meta = {
     en: "MiniMax Hailuo video generation (text-to-video, image-to-video, and MiniMax-H3 multimodal reference)",
     zh: "MiniMax 海螺视频生成（文生视频、图生视频、MiniMax-H3 多模态参考生视频）",
   },
-  version: "1.2.0",
+  version: "1.3.0",
   author: { name: "QuantumNous" },
   channelTypes: [35],
   models: [
@@ -166,6 +166,10 @@ export const meta = {
       schema: HAILUO_01_USAGE_SCHEMA,
       examples: [{ label: "01-series 720P 6s", facts: { seconds: 6 } }],
     },
+  ],
+  routes: [
+    { method: "POST", path: "/v2/video_generation", type: "submit", models: H3_MODELS, decode: "createH3Task", render: "h3TaskCreated" },
+    { method: "GET", path: "/v2/query/video_generation/:task_id", type: "query", render: "h3TaskStatus" },
   ],
   protocols: [{ name: "openai_responses", supports: ["stream", "sync", "background"] }, "openai_video"],
 };
@@ -406,6 +410,61 @@ function h3APIError(body) {
   return { message: message, statusCode: Number.isInteger(statusCode) ? statusCode : 0 };
 }
 
+// Keep the native wire body separate from the canonical request used for
+// routing and billing. Revalidate it in the driver too, since other protocols
+// can contain arbitrary extra fields with the same internal marker name.
+function h3NativeRequest(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("JSON object required");
+  const model = trimmed(body.model);
+  if (!isH3(model)) throw new Error("this endpoint supports minimax-h3 models only");
+  if (!Array.isArray(body.content)) throw new Error("content must be an array");
+  const request = { model: model, metadata: body };
+  if (body.duration !== undefined) request.duration = body.duration;
+  if (body.resolution !== undefined) request.resolution = body.resolution;
+  const content = h3Content(request);
+  h3Duration(request);
+  h3Resolution(request, model);
+  h3Ratio(request, content);
+  return request;
+}
+
+export const native = {
+  createH3Task: function (ctx) {
+    if (!ctx.body || ctx.body.kind !== "json") throw new Error("JSON body required");
+    const body = ctx.body.value;
+    const request = h3NativeRequest(body);
+    request.__hailuo_h3_native_body = body;
+    return {
+      kind: "submit", model: request.model,
+      action: h3HasVisualContent(body.content) ? "image_to_video" : "text_to_video",
+      requestBody: request,
+    };
+  },
+  h3TaskCreated: function (_ctx, task) {
+    return { task_id: task.task_id };
+  },
+  h3TaskStatus: function (_ctx, task) {
+    const upstream = h3QueryTask(artifactData(task)) || {};
+    const output = {};
+    // Preserve native result and usage fields, but never echo internal model,
+    // channel or plugin metadata from an arbitrary upstream envelope.
+    for (const key of ["content", "duration", "modality", "ratio", "resolution", "task_type", "usage"]) {
+      if (upstream[key] !== undefined) output[key] = upstream[key];
+    }
+    const statuses = { NOT_START: "queued", SUBMITTED: "queued", QUEUED: "queued", IN_PROGRESS: "running", SUCCESS: "succeeded", FAILURE: "failed" };
+    output.id = task.task_id;
+    output.model = task.model;
+    output.status = statuses[task.status] || "queued";
+    if (task.status === "FAILURE" && upstream.status === "cancelled") output.status = "cancelled";
+    output.created_at = upstream.created_at === undefined ? task.created_at : upstream.created_at;
+    if (upstream.updated_at !== undefined || task.updated_at) output.updated_at = upstream.updated_at === undefined ? task.updated_at : upstream.updated_at;
+    if (task.status === "FAILURE") {
+      output.error = upstream.error || { code: "task_failed", message: task.fail_reason || "task failed" };
+    }
+    return { task: output };
+  },
+};
+
 // Older T2V-01*/I2V-01*/S2V-01 official tables disagree on 1080P support (research: 未验证).
 // Keep those models permissive: duration 6 only, resolution optional.
 function validateHailuoCombo(model, duration, resolution, hasImage) {
@@ -478,10 +537,12 @@ function responsesVideoText(ctx) {
 }
 
 export function buildSubmitRequest(ctx) {
-  const req = ctx.requestBody || {};
+  let req = ctx.requestBody || {};
+  const nativeBody = req.__hailuo_h3_native_body;
+  if (nativeBody !== undefined) req = h3NativeRequest(nativeBody);
   const model = ctx.upstreamModel;
   const metadata = req.metadata || {};
-  if (isH3(model)) {
+  if (nativeBody !== undefined || isH3(model)) {
     const content = h3Content(req);
     const h3Body = {
       model: model,
@@ -497,7 +558,7 @@ export function buildSubmitRequest(ctx) {
       url: ctx.baseUrl + "/v2/video_generation",
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: "Bearer " + ctx.apiKey },
-      body: h3Body,
+      body: nativeBody === undefined ? h3Body : Object.assign({}, nativeBody, h3Body),
       action: h3HasVisualContent(content) ? "image_to_video" : "text_to_video",
     };
   }
@@ -523,14 +584,15 @@ export function buildSubmitRequest(ctx) {
 
 export function parseSubmitResponse(ctx, resp) {
   const body = resp.body || {};
-  const apiError = isH3(ctx.upstreamModel) ? h3APIError(body) : null;
+  const h3 = isH3(ctx.upstreamModel) || isH3(ctx.model);
+  const apiError = h3 ? h3APIError(body) : null;
   if (apiError) throw new Error(apiError.message);
   const base = body.base_resp;
   // /v1 always wraps the create response in a base_resp envelope; /v2 returns a
   // bare task_id and only adds base_resp when the call is rejected.
   if (base) {
     if (base.status_code !== 0) throw new Error(base.status_msg || "hailuo submit failed");
-  } else if (!isH3(ctx.upstreamModel)) {
+  } else if (!h3) {
     throw new Error("hailuo submit failed");
   }
   if (!body.task_id) throw new Error("missing task_id");
@@ -539,9 +601,11 @@ export function parseSubmitResponse(ctx, resp) {
 
 export function extractUsage(ctx) {
   if (ctx.usagePurpose === "billing_ratios") return null;
-  const req = ctx.requestBody || {};
+  let req = ctx.requestBody || {};
+  const nativeBody = req.__hailuo_h3_native_body;
+  if (nativeBody !== undefined) req = h3NativeRequest(nativeBody);
   const model = ctx.upstreamModel || req.model;
-  if (isH3(model)) {
+  if (nativeBody !== undefined || isH3(model)) {
     const content = h3Content(req);
     return {
       seconds: h3Duration(req),
@@ -564,7 +628,7 @@ export function extractUsage(ctx) {
 export function buildQueryRequest(ctx) {
   // Polling carries no relay info; the host fills these identities from the
   // persisted task properties.
-  const path = isH3(ctx.upstreamModel || ctx.model)
+  const path = isH3(ctx.upstreamModel) || isH3(ctx.model)
     ? "/v2/query/video_generation/" + encodeURIComponent(ctx.taskId)
     : "/v1/query/video_generation?task_id=" + encodeURIComponent(ctx.taskId);
   return {

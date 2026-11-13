@@ -21,6 +21,8 @@ const (
 	EndpointTypeOpenAIVideo           EndpointType = "openai-video"
 	EndpointTypeDoubaoVideoCreate     EndpointType = "doubao-video-create"
 	EndpointTypeDoubaoVideoQuery      EndpointType = "doubao-video-query"
+	EndpointTypeMiniMaxH3Create       EndpointType = "minimax-h3-create"
+	EndpointTypeMiniMaxH3Query        EndpointType = "minimax-h3-query"
 )
 
 // Finish reasons shared by the OpenAI-compatible response formats.

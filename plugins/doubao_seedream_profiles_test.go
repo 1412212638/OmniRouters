@@ -5,6 +5,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/QuantumNous/new-api/pkg/billingexpr"
 	"github.com/QuantumNous/new-api/pkg/jsplugin"
 	builtinplugins "github.com/QuantumNous/new-api/plugins"
 	"github.com/stretchr/testify/assert"
@@ -56,6 +57,8 @@ func TestDoubaoSeedreamFriendlyAliasesRedirectToDatedUpstreamModels(t *testing.T
 	}{
 		{alias: "doubao-seedream-5.0-pro", upstream: "doubao-seedream-5-0-pro-260628"},
 		{alias: "doubao-seedream-5.0-flash", upstream: "doubao-seedream-5-0-flash-260915"},
+		{alias: "doubao-seedream-5.5", upstream: "doubao-seedream-5-5-261028"},
+		{alias: "doubao-seedream-5-5-261028", upstream: "doubao-seedream-5-5-261028"},
 	} {
 		t.Run(test.alias, func(t *testing.T) {
 			value, err := plugin.Engine.Call(t.Context(), "buildSubmitRequest", map[string]any{
@@ -80,19 +83,71 @@ func TestDoubaoSeedreamFriendlyAliasesRedirectToDatedUpstreamModels(t *testing.T
 	}
 }
 
+func TestDoubaoSeedream55SharesProBilling(t *testing.T) {
+	plugin := newDoubaoProfilePlugin(t)
+	proSchema, _ := plugin.Meta.UsageForModel("doubao-seedream-5.0-pro")
+	for _, model := range []string{"doubao-seedream-5.5", "doubao-seedream-5-5-261028"} {
+		t.Run(model, func(t *testing.T) {
+			require.Contains(t, plugin.Meta.Models, model)
+			schema, examples := plugin.Meta.UsageForModel(model)
+			require.Equal(t, proSchema, schema)
+			require.NotEmpty(t, examples)
+			ctx := map[string]any{
+				"model": model, "upstreamModel": model, "action": "image_to_image",
+				"usagePurpose": "facts",
+				"requestBody": map[string]any{
+					"model": model, "prompt": "a product photo", "size": "2K",
+					"image": []any{"https://cdn.example/ref1.png", "https://cdn.example/ref2.png"},
+				},
+			}
+			intent, err := plugin.Engine.CallPath(t.Context(), "protocols", []string{"openai_image", "decodeRequest"}, map[string]any{
+				"model": model, "operation": "generate",
+				"body": map[string]any{"kind": "json", "value": ctx["requestBody"]},
+			})
+			require.NoError(t, err)
+			assert.Equal(t, "image_to_image", intent.(map[string]any)["action"])
+			facts, err := plugin.Engine.Call(t.Context(), "extractUsage", ctx)
+			require.NoError(t, err)
+			assert.Equal(t, map[string]any{
+				"images_up_to_1_5k": int64(0), "images_above_1_5k": int64(1),
+				"input_images": int64(2), "layer_decomposition": false,
+			}, facts)
+			// Completion uses each output's pixel tier and the upstream counts;
+			// the expression, not usage extraction, subtracts the free reference.
+			completed, err := plugin.Engine.Call(t.Context(), "extractUsageOnComplete", ctx, nil, map[string]any{
+				"data": []any{
+					map[string]any{"url": "https://cdn.example/base.png", "size": "2048x2048"},
+					map[string]any{"url": "https://cdn.example/layer.png", "size": "1273x265"},
+				},
+				"usage": map[string]any{"input_images": 2, "generated_images": 8},
+			})
+			require.NoError(t, err)
+			assert.Equal(t, map[string]any{
+				"images_up_to_1_5k": int64(1), "images_above_1_5k": int64(7), "input_images": int64(2),
+			}, completed)
+			cost, _, err := billingexpr.RunExprWithRequest(
+				`tier("base", u("images_up_to_1_5k") * 0.3 + u("images_above_1_5k") * 0.6 + max(u("input_images") - 1.0, 0.0) * 0.02)`,
+				billingexpr.TokenParams{}, billingexpr.RequestInput{Usage: completed.(map[string]any)},
+			)
+			require.NoError(t, err)
+			assert.InDelta(t, 4.52, cost, 1e-10)
+		})
+	}
+}
+
 func TestDoubaoSeedreamOpenAIImageProtocolUsesPixelBillingFacts(t *testing.T) {
 	plugin := newDoubaoProfilePlugin(t)
 	requestBody := map[string]any{
-		"model": "doubao-seedream-5.0-pro",
-		"prompt": "a product photo",
-		"size": "2K",
-		"n": float64(1),
+		"model":           "doubao-seedream-5.0-pro",
+		"prompt":          "a product photo",
+		"size":            "2K",
+		"n":               float64(1),
 		"response_format": "url",
 	}
 	value, err := plugin.Engine.CallPath(t.Context(), "protocols", []string{"openai_image", "decodeRequest"}, map[string]any{
-		"model": "doubao-seedream-5.0-pro",
+		"model":     "doubao-seedream-5.0-pro",
 		"operation": "generate",
-		"body": map[string]any{"kind": "json", "value": requestBody},
+		"body":      map[string]any{"kind": "json", "value": requestBody},
 	})
 	require.NoError(t, err)
 	intent, ok := value.(map[string]any)
@@ -102,24 +157,24 @@ func TestDoubaoSeedreamOpenAIImageProtocolUsesPixelBillingFacts(t *testing.T) {
 	require.True(t, ok)
 
 	usage, err := plugin.Engine.Call(t.Context(), "extractUsage", map[string]any{
-		"model": "doubao-seedream-5.0-pro",
+		"model":         "doubao-seedream-5.0-pro",
 		"upstreamModel": "doubao-seedream-5-0-pro-260628",
-		"action": intent["action"],
-		"usagePurpose": "facts",
-		"requestBody": decoded,
+		"action":        intent["action"],
+		"usagePurpose":  "facts",
+		"requestBody":   decoded,
 	})
 	require.NoError(t, err)
 	assert.Equal(t, map[string]any{
-		"images_above_1_5k": float64(1),
-		"images_up_to_1_5k": float64(0),
-		"input_images": float64(0),
+		"images_above_1_5k":   float64(1),
+		"images_up_to_1_5k":   float64(0),
+		"input_images":        float64(0),
 		"layer_decomposition": false,
 	}, usage)
 
 	value, err = plugin.Engine.Call(t.Context(), "extractUsageOnComplete", map[string]any{
-		"model": "doubao-seedream-5.0-pro",
+		"model":         "doubao-seedream-5.0-pro",
 		"upstreamModel": "doubao-seedream-5-0-pro-260628",
-		"action": intent["action"],
+		"action":        intent["action"],
 	}, map[string]any{"data": []any{
 		map[string]any{"url": "https://cdn.example/1.png", "size": "1024x1024"},
 		map[string]any{"url": "https://cdn.example/2.png", "size": "2048x2048"},
@@ -206,7 +261,7 @@ func TestDoubaoSeedanceAliasesExposeProfilesAndBillingRatios(t *testing.T) {
 		_, err := plugin.Engine.Call(t.Context(), "buildSubmitRequest", map[string]any{
 			"model":         model,
 			"upstreamModel": model,
-			"requestBody":   map[string]any{
+			"requestBody": map[string]any{
 				"model":    model,
 				"prompt":   "a short video",
 				"metadata": map[string]any{"resolution": "1080p"},
@@ -269,7 +324,7 @@ func TestDoubaoSeedreamCompletionUsesGeneratedImageCount(t *testing.T) {
 func TestDoubaoNativeVideoBodyPreservesProviderFields(t *testing.T) {
 	plugin := newDoubaoProfilePlugin(t)
 	original := map[string]any{
-		"model":    "doubao-seedance-2.0",
+		"model": "doubao-seedance-2.0",
 		"content": []any{
 			map[string]any{"type": "text", "text": "keep this exact item"},
 			map[string]any{"type": "image_url", "image_url": map[string]any{"url": "https://example.com/input.png"}},
@@ -293,7 +348,7 @@ func TestDoubaoNativeVideoBodyPreservesProviderFields(t *testing.T) {
 	require.Equal(t, "16:9", nativeBody["ratio"])
 	require.Equal(t, map[string]any{"preserve": true}, nativeBody["x_vendor"])
 
-	value, err = plugin.Engine.CallPath(t.Context(), "buildSubmitRequest", map[string]any{
+	value, err = plugin.Engine.Call(t.Context(), "buildSubmitRequest", map[string]any{
 		"model":         "doubao-seedance-2.0",
 		"action":        intent["action"],
 		"upstreamModel": "ark-video-id",
@@ -338,7 +393,7 @@ func TestDoubaoNativeVideoAutomaticDuration(t *testing.T) {
 	requestBody := value.(map[string]any)["requestBody"].(map[string]any)
 	assert.NotContains(t, requestBody, "seconds")
 	ctx := map[string]any{"model": "doubao-seedance-2.0", "requestBody": requestBody, "baseUrl": "https://ark.example"}
-	value, err = plugin.Engine.CallPath(t.Context(), "buildSubmitRequest", ctx)
+	value, err = plugin.Engine.Call(t.Context(), "buildSubmitRequest", ctx)
 	require.NoError(t, err)
 	assert.Equal(t, float64(-1), value.(map[string]any)["body"].(map[string]any)["duration"])
 	value, err = plugin.Engine.Call(t.Context(), "extractUsage", ctx)

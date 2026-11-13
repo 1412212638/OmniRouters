@@ -6376,6 +6376,9 @@
     "pricingEditor.aoHelp": "Uses reported audio-output Tokens (ao), not audio duration.",
     "Image cache input price": "Image cache input price",
     "Cache create (12h) price": "Cache create (12h) price",
-    "Per token": "Per token"
+    "Per token": "Per token",
+    "MiniMax H3 Create API": "MiniMax H3 Create API",
+    "MiniMax H3 Query API": "MiniMax H3 Query API",
+    "MiniMax H3 native video task API": "MiniMax H3 native video task API"
   }
 }

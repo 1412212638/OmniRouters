@@ -6200,6 +6200,9 @@
     "Image cache input price": "Цена входных изображений в кэше",
     "Cache create (12h) price": "Цена создания кэша (12 ч)",
     "Image Cache": "Кэш изображений",
-    "Per token": "За токен"
+    "Per token": "За токен",
+    "MiniMax H3 Create API": "API создания видео MiniMax H3",
+    "MiniMax H3 Query API": "API проверки видео MiniMax H3",
+    "MiniMax H3 native video task API": "Нативный API видеозадач MiniMax H3"
   }
 }

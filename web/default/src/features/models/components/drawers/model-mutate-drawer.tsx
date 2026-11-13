@@ -110,6 +110,8 @@ const ENDPOINT_TEMPLATE_LABELS: Record<string, string> = {
   'openai-video': 'OpenAI Videos API',
   'doubao-video-create': 'Doubao Video Create Task',
   'doubao-video-query': 'Doubao Video Query Task',
+  'minimax-h3-create': 'MiniMax H3 Create API',
+  'minimax-h3-query': 'MiniMax H3 Query API',
 }
 
 // Extended schema for ratio configuration (internal form state only)

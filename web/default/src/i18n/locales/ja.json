@@ -6200,6 +6200,9 @@
     "Image cache input price": "画像キャッシュ入力価格",
     "Cache create (12h) price": "キャッシュ作成価格（12時間）",
     "Image Cache": "画像キャッシュ",
-    "Per token": "Tokens 単位"
+    "Per token": "Tokens 単位",
+    "MiniMax H3 Create API": "MiniMax H3 動画作成 API",
+    "MiniMax H3 Query API": "MiniMax H3 動画照会 API",
+    "MiniMax H3 native video task API": "MiniMax H3 ネイティブ動画タスク API"
   }
 }

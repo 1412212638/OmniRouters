@@ -181,6 +181,11 @@ export const ENDPOINT_TEMPLATES: Record<
     method: 'GET',
   },
   'astraflow-submit': { path: '/v1/tasks/submit', method: 'POST' },
+  'minimax-h3-create': { path: '/v2/video_generation', method: 'POST' },
+  'minimax-h3-query': {
+    path: '/v2/query/video_generation/{task_id}',
+    method: 'GET',
+  },
   'astraflow-status': { path: '/v1/tasks/status', method: 'GET' },
   'gemini-interaction-query': {
     path: '/v1beta/models/interactions/{id}',

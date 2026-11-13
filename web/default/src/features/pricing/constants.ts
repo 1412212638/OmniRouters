@@ -68,6 +68,8 @@ export const ENDPOINT_TYPES = {
   OPENAI_VIDEO: 'openai-video',
   DOUBAO_VIDEO_CREATE: 'doubao-video-create',
   DOUBAO_VIDEO_QUERY: 'doubao-video-query',
+  MINIMAX_H3_CREATE: 'minimax-h3-create',
+  MINIMAX_H3_QUERY: 'minimax-h3-query',
 } as const
 
 export type EndpointTypeOption =
@@ -90,6 +92,8 @@ export function getEndpointTypeLabels(
     [ENDPOINT_TYPES.OPENAI_VIDEO]: t('OpenAI Videos API'),
     [ENDPOINT_TYPES.DOUBAO_VIDEO_CREATE]: t('Doubao Video Create API'),
     [ENDPOINT_TYPES.DOUBAO_VIDEO_QUERY]: t('Doubao Video Query API'),
+    [ENDPOINT_TYPES.MINIMAX_H3_CREATE]: t('MiniMax H3 Create API'),
+    [ENDPOINT_TYPES.MINIMAX_H3_QUERY]: t('MiniMax H3 Query API'),
   }
 }
 

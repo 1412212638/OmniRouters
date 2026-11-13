@@ -6153,6 +6153,9 @@
     "Image cache input price": "圖片快取輸入價格",
     "Cache create (12h) price": "快取寫入價格（12 小時）",
     "Image Cache": "圖片快取",
-    "Per token": "依 Tokens 計費"
+    "Per token": "依 Tokens 計費",
+    "MiniMax H3 Create API": "MiniMax H3 影片提交介面",
+    "MiniMax H3 Query API": "MiniMax H3 影片查詢介面",
+    "MiniMax H3 native video task API": "MiniMax H3 原生影片任務介面"
   }
 }

@@ -31,6 +31,21 @@ func SetTaskPluginProtocolRouter(router *gin.Engine) {
 		}
 	}
 	registerDoubaoNativeRoutes(router)
+	registerHailuoNativeRoutes(router)
+}
+
+func registerHailuoNativeRoutes(router *gin.Engine) {
+	const createPath = "/v2/video_generation"
+	const queryPath = "/v2/query/video_generation/:task_id"
+	router.POST(createPath,
+		middleware.RouteTag("relay"), middleware.TokenAuth(), middleware.SystemPerformanceCheck(),
+		pinDeclaredTaskPluginRoute(http.MethodPost, createPath), middleware.ModelRequestRateLimit(),
+		middleware.PrepareTaskPluginRoute(), middleware.Distribute(), controller.RelayTask,
+	)
+	router.GET(queryPath,
+		middleware.RouteTag("relay"), middleware.TokenAuth(), middleware.SystemPerformanceCheck(),
+		pinDeclaredTaskPluginRoute(http.MethodGet, queryPath), middleware.PrepareTaskPluginRoute(),
+	)
 }
 
 func astraFlowNativeSubmitHandlers(declaredPath string) []gin.HandlerFunc {

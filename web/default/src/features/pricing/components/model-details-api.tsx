@@ -581,8 +581,11 @@ function buildDecisionModelSample(lang: Lang, ctx: SampleContext): string {
   ].join('\n')
 }
 
-function buildDoubaoVideoSample(lang: Lang, ctx: SampleContext): string {
-  const isQuery = ctx.endpointType === 'doubao-video-query'
+function buildNativeVideoSample(lang: Lang, ctx: SampleContext): string {
+  const isMiniMax = ctx.endpointType.startsWith('minimax-h3-')
+  const isQuery =
+    ctx.endpointType === 'doubao-video-query' ||
+    ctx.endpointType === 'minimax-h3-query'
   const endpointPath = isQuery
     ? ctx.endpointPath.replace('{task_id}', '<TASK_ID>')
     : ctx.endpointPath
@@ -596,9 +599,9 @@ function buildDoubaoVideoSample(lang: Lang, ctx: SampleContext): string {
       },
     ],
     duration: 5,
-    resolution: '720p',
+    resolution: isMiniMax ? '768P' : '720p',
     ratio: '16:9',
-    generate_audio: true,
+    ...(!isMiniMax ? { generate_audio: true } : {}),
   }
   const bodyJson = JSON.stringify(body, null, 2)
   const requestMethod = isQuery ? 'GET' : 'POST'
@@ -752,9 +755,11 @@ function buildSample(
   }
   if (
     endpointType === 'doubao-video-create' ||
-    endpointType === 'doubao-video-query'
+    endpointType === 'doubao-video-query' ||
+    endpointType === 'minimax-h3-create' ||
+    endpointType === 'minimax-h3-query'
   ) {
-    return buildDoubaoVideoSample(lang, ctx)
+    return buildNativeVideoSample(lang, ctx)
   }
   if (
     endpointType === 'deepseek-tools-search' ||
@@ -860,6 +865,8 @@ function CodeSamplesSection(props: {
     'openai-video-query': t('OpenAI Videos Query API'),
     'doubao-video-create': t('Doubao Video Create API'),
     'doubao-video-query': t('Doubao Video Query API'),
+    'minimax-h3-create': t('MiniMax H3 Create API'),
+    'minimax-h3-query': t('MiniMax H3 Query API'),
   }
 
   return (
