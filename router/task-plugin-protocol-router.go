@@ -155,6 +155,28 @@ func taskPluginProtocolHandlers(protocol, operation string) ([]gin.HandlerFunc, 
 				controller.RelayTaskPluginEndpoint(c, func(c *gin.Context) { controller.Relay(c, types.RelayFormatOpenAIImage) })
 			},
 		}, nil
+	case pluginruntime.ProtocolOpenAIAudio + ".create":
+		return []gin.HandlerFunc{
+			middleware.RouteTag("relay"), middleware.SystemPerformanceCheck(), middleware.TokenAuth(),
+			middleware.ModelRequestRateLimit(), middleware.RouteTaskPluginEndpoint(), middleware.PrepareTaskPluginEndpoint(), middleware.Distribute(),
+			func(c *gin.Context) {
+				controller.RelayTaskPluginEndpoint(c, func(c *gin.Context) { controller.Relay(c, types.RelayFormatOpenAIAudio) })
+			},
+		}, nil
+	case pluginruntime.ProtocolMiniMaxT2A + ".create":
+		return []gin.HandlerFunc{
+			middleware.RouteTag("relay"), middleware.SystemPerformanceCheck(), middleware.TokenAuth(),
+			middleware.ModelRequestRateLimit(), middleware.RouteTaskPluginEndpoint(), middleware.PrepareTaskPluginEndpoint(), middleware.Distribute(),
+			func(c *gin.Context) {
+				controller.RelayTaskPluginEndpoint(c, func(c *gin.Context) {
+					c.JSON(http.StatusNotFound, gin.H{"error": gin.H{
+						"message": "MiniMax native speech task plugin is unavailable for this model",
+						"type":    "invalid_request_error",
+						"code":    "task_plugin_route_unavailable",
+					}})
+				})
+			},
+		}, nil
 	case "openai_video.create":
 		return []gin.HandlerFunc{
 			middleware.RouteTag("relay"), middleware.TokenAuth(), middleware.SystemPerformanceCheck(),

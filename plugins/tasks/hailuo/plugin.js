@@ -649,7 +649,8 @@ export function parseTaskResult(ctx, body) {
   const h3Task = h3QueryTask(body);
   if (h3Task) {
     const h3Statuses = { queued: "QUEUED", running: "IN_PROGRESS", succeeded: "SUCCESS", failed: "FAILURE", cancelled: "FAILURE" };
-    const h3Status = h3Statuses[h3Task.status] || "IN_PROGRESS";
+    const h3Status = Object.prototype.hasOwnProperty.call(h3Statuses, h3Task.status) ? h3Statuses[h3Task.status] : "";
+    if (!h3Status) return { status: "UNKNOWN", reason: "unrecognized status: " + String(h3Task.status || "") };
     const h3Result = { code: 0, status: h3Status, progress: h3Status === "QUEUED" ? "30%" : h3Status === "IN_PROGRESS" ? "50%" : "100%" };
     if (h3Status === "SUCCESS") {
       const url = trimmed(h3Task.content && h3Task.content.url);
@@ -661,10 +662,14 @@ export function parseTaskResult(ctx, body) {
     return h3Result;
   }
   const base = body.base_resp || {};
+  if (base.status_code !== undefined && base.status_code !== null && base.status_code !== 0) {
+    return { code: base.status_code || 0, status: "FAILURE", progress: "100%", reason: base.status_msg || "hailuo query failed" };
+  }
   const statuses = { Preparing: "IN_PROGRESS", Queueing: "IN_PROGRESS", Processing: "IN_PROGRESS", Success: "SUCCESS", Fail: "FAILURE" };
-  const status = statuses[body.status] || "IN_PROGRESS";
+  const status = Object.prototype.hasOwnProperty.call(statuses, body.status) ? statuses[body.status] : "";
+  if (!status) return { status: "UNKNOWN", reason: "unrecognized status: " + String(body.status || "") };
   const progress = status === "SUCCESS" || status === "FAILURE" ? "100%" : body.status === "Processing" ? "50%" : "30%";
-  const reason = base.status_code !== 0 ? base.status_msg || "" : status === "FAILURE" ? "task failed" : "";
+  const reason = status === "FAILURE" ? "task failed" : "";
   return { code: base.status_code || 0, status: status, progress: progress, reason: reason };
 }
 
@@ -697,10 +702,13 @@ export function buildContentRequest(ctx) {
     if (!url) throw new Error("artifact_not_found");
     return { url: url, method: ctx.clientRequest.method, credentialless: true };
   }
+  // The host resolves this bounded JSON lookup; the plugin has no network API.
+  // MiniMax signs the resulting download URL for GET, including HEAD clients.
   return {
-    url: ctx.baseUrl + "/v1/files/download?file_id=" + encodeURIComponent(fileID),
-    method: ctx.clientRequest.method,
-    headers: { Accept: "video/*", Authorization: "Bearer " + ctx.apiKey },
+    url: ctx.baseUrl.replace(/\/$/, "") + "/v1/files/retrieve?file_id=" + encodeURIComponent(fileID),
+    method: "GET",
+    headers: { Accept: "application/json", Authorization: "Bearer " + ctx.apiKey },
+    responseType: "json",
   };
 }
 

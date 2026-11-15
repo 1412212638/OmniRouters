@@ -143,6 +143,10 @@ func TaskArtifactContent(c *gin.Context) {
 		c.Status(http.StatusNotFound)
 		return
 	}
+	if artifactKey == "video" && isHailuoFileTask(task) {
+		serveHailuoFileTaskContent(c, task)
+		return
+	}
 	if artifactKey == "video" && isGatewayVideoContentURL(task.GetResultURL(), task.TaskID) {
 		proxyVideoTaskContent(c, task)
 		return
@@ -230,7 +234,7 @@ func proxyTaskArtifact(c *gin.Context, rawURL string, descriptor *relaychannel.T
 	}
 	c.Header("Cache-Control", "private, no-store")
 	c.Status(resp.StatusCode)
-	if method != http.MethodHead {
+	if c.Request.Method != http.MethodHead {
 		_, _ = io.Copy(c.Writer, resp.Body)
 	}
 }

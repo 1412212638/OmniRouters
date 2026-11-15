@@ -81,6 +81,12 @@ type HostProtocolDefinition struct {
 }
 
 var hostProtocols = []HostProtocolDefinition{
+	{Name: ProtocolOpenAIAudio, Operations: []HostProtocolOperation{
+		{Name: "create", Methods: []string{http.MethodPost}, Path: "/v1/audio/speech", BodyKinds: []BodyKind{BodyJSON}, ModelField: "model", RequiredProtocolMembers: []string{"decodeRequest"}, Modes: []ProtocolMode{{Name: "sync", Hook: "render"}}},
+	}},
+	{Name: ProtocolMiniMaxT2A, Operations: []HostProtocolOperation{
+		{Name: "create", Methods: []string{http.MethodPost}, Path: "/v1/t2a_v2", BodyKinds: []BodyKind{BodyJSON}, ModelField: "model", RequiredProtocolMembers: []string{"decodeRequest"}, Modes: []ProtocolMode{{Name: "sync", Hook: "render"}}},
+	}},
 	{Name: "openai_responses", Operations: []HostProtocolOperation{
 		{Name: "create", Methods: []string{http.MethodPost}, Path: "/v1/responses", BodyKinds: []BodyKind{BodyJSON}, ModelField: "model", RequiredProtocolMembers: []string{"decodeRequest"}, Modes: []ProtocolMode{{Name: "stream", Hook: "renderEvents"}, {Name: "sync", Hook: "renderFinal"}, {Name: "background", Hook: "renderFinal"}}},
 		{Name: "retrieve", Methods: []string{http.MethodGet}, Path: "/v1/responses/:response_id", BodyKinds: []BodyKind{BodyNone}},
@@ -98,6 +104,14 @@ var hostProtocols = []HostProtocolDefinition{
 
 // ProtocolOpenAIImage is the host protocol serving the OpenAI Images API.
 const ProtocolOpenAIImage = "openai_image"
+
+// ProtocolOpenAIAudio is the host protocol serving OpenAI-compatible speech
+// synthesis requests. The host owns the binary response while plugins own
+// request conversion and provider response shaping.
+const ProtocolOpenAIAudio = "openai_audio"
+
+// ProtocolMiniMaxT2A is MiniMax's native synchronous text-to-audio API.
+const ProtocolMiniMaxT2A = "minimax_t2a"
 
 func HostProtocol(name string) (HostProtocolDefinition, bool) {
 	for _, definition := range hostProtocols {

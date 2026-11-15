@@ -110,6 +110,11 @@ const maxTaskArtifacts = 64
 // maxTaskPluginPersistedJSONBytes is the shared ceiling for taskData and plugin state.
 const maxTaskPluginPersistedJSONBytes = 1 << 20
 
+// Speech responses contain the provider's hex-encoded audio in taskData. Keep
+// their bound larger than ordinary task metadata while still bounding memory
+// and database writes.
+const maxMiniMaxSpeechJSONBytes = 32 << 20
+
 // Omni returns the actual video as Base64 JSON. Keep its larger bound isolated
 // from other plugins and retain the existing small plugin-state ceiling.
 const maxAstraFlowOmniJSONBytes = 64 << 20
@@ -121,6 +126,9 @@ func (a *TaskAdaptor) isAstraFlowOmni(action string) bool {
 func (a *TaskAdaptor) submitJSONLimit() int {
 	if a.info != nil && a.info.TaskRelayInfo != nil && a.isAstraFlowOmni(a.info.Action) {
 		return maxAstraFlowOmniJSONBytes
+	}
+	if a.plugin != nil && a.plugin.Meta.Key == "minimax-speech" {
+		return maxMiniMaxSpeechJSONBytes
 	}
 	return maxTaskPluginPersistedJSONBytes
 }
@@ -1084,6 +1092,11 @@ func (a *TaskAdaptor) BuildContentRequest(task *model.Task, artifactKey string, 
 	var descriptor requestDescriptor
 	if err = convert(value, &descriptor); err != nil {
 		return nil, err
+	}
+	// Only the local Hailuo file descriptor opts into a metadata lookup. Other
+	// plugins and the existing credentialless H3 URL keep the ordinary path.
+	if a.plugin.Meta.Key == "hailuo" && descriptor.ResponseType == "json" {
+		return a.resolveHailuoFileContent(artifactKey, clientRequest, descriptor)
 	}
 	method := strings.ToUpper(strings.TrimSpace(descriptor.Method))
 	if method == "" {

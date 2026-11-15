@@ -64,6 +64,10 @@ func proxyVideoTaskContent(c *gin.Context, task *model.Task) {
 			fmt.Sprintf("Task is not completed yet, current status: %s", task.Status))
 		return
 	}
+	if isHailuoFileTask(task) {
+		serveHailuoFileTaskContent(c, task)
+		return
+	}
 	if string(task.Platform) == "astraflow" && task.Action == "omni_video" {
 		provider, ok := relay.GetTaskAdaptor(task.Platform).(relaychannel.TaskContentRequestProvider)
 		if !ok {

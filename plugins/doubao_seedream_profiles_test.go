@@ -189,10 +189,12 @@ func TestDoubaoSeedreamOpenAIImageProtocolUsesPixelBillingFacts(t *testing.T) {
 func TestDoubaoSeedanceAliasesExposeProfilesAndBillingRatios(t *testing.T) {
 	plugin := newDoubaoProfilePlugin(t)
 	profiles := map[string][]string{
-		"doubao-seedance-2.0":      {"480p", "720p", "1080p", "4k"},
-		"doubao-seedance-2.0-fast": {"480p", "720p"},
-		"doubao-seedance-2.0-mini": {"480p", "720p"},
-		"doubao-seedance-2.5":      {"480p", "720p", "1080p"},
+		"doubao-seedance-2.0":              {"480p", "720p", "1080p", "4k"},
+		"doubao-seedance-2.0-fast":         {"480p", "720p"},
+		"doubao-seedance-2.0-mini":         {"480p", "720p"},
+		"doubao-seedance-2.5":              {"480p", "720p", "1080p"},
+		"doubao-seedance-2-5-flash-261115": {"480p", "720p"},
+		"doubao-seedance-2.5-flash":        {"480p", "720p"},
 	}
 	for model, resolutions := range profiles {
 		assert.Contains(t, plugin.Meta.Models, model)
@@ -269,6 +271,88 @@ func TestDoubaoSeedanceAliasesExposeProfilesAndBillingRatios(t *testing.T) {
 		})
 		assert.ErrorContains(t, err, "resolution must be one of 480p, 720p")
 	}
+}
+
+func TestDoubaoSeedanceFlashAliasBuildsDatedArkRequest(t *testing.T) {
+	plugin := newDoubaoProfilePlugin(t)
+	request := map[string]any{
+		"model":         "doubao-seedance-2.5-flash",
+		"upstreamModel": "doubao-seedance-2.5-flash",
+		"baseUrl":       "https://ark.example",
+		"apiKey":        "fixture-key",
+		"requestBody": map[string]any{
+			"model":  "doubao-seedance-2.5-flash",
+			"prompt": "a short video",
+			"metadata": map[string]any{
+				"resolution": "720p",
+				"content":    []any{},
+			},
+		},
+	}
+
+	value, err := plugin.Engine.Call(t.Context(), "buildSubmitRequest", request)
+	require.NoError(t, err)
+	descriptor, ok := value.(map[string]any)
+	require.True(t, ok)
+	body, ok := descriptor["body"].(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "doubao-seedance-2-5-flash-261115", body["model"])
+	assert.Equal(t, "doubao-seedance-2-5-flash-261115", descriptor["rewriteModel"])
+	assert.Equal(t, "https://ark.example/api/v3/contents/generations/tasks", descriptor["url"])
+
+	_, err = plugin.Engine.Call(t.Context(), "buildSubmitRequest", map[string]any{
+		"model":         "doubao-seedance-2.5-flash",
+		"upstreamModel": "doubao-seedance-2.5-flash",
+		"requestBody": map[string]any{
+			"model":  "doubao-seedance-2.5-flash",
+			"prompt": "a short video",
+			"metadata": map[string]any{
+				"resolution": "1080p",
+				"content":    []any{},
+			},
+		},
+	})
+	assert.ErrorContains(t, err, "resolution must be one of 480p, 720p")
+}
+
+func TestDoubaoSeedanceFlashUsageSeparatesReferenceVideo(t *testing.T) {
+	plugin := newDoubaoProfilePlugin(t)
+	base := func(content []any) map[string]any {
+		return map[string]any{
+			"model":         "doubao-seedance-2-5-flash-261115",
+			"upstreamModel": "doubao-seedance-2-5-flash-261115",
+			"usagePurpose":  "facts",
+			"requestBody": map[string]any{
+				"model":   "doubao-seedance-2-5-flash-261115",
+				"seconds": 5,
+				"metadata": map[string]any{
+					"resolution": "480p",
+					"content":    content,
+				},
+			},
+		}
+	}
+
+	value, err := plugin.Engine.Call(t.Context(), "extractUsage", base([]any{}))
+	require.NoError(t, err)
+	withoutVideo, ok := value.(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "480p", withoutVideo["resolution"])
+	assert.Equal(t, "none", withoutVideo["video_input"])
+	assert.Greater(t, withoutVideo["tokens"], float64(0))
+
+	value, err = plugin.Engine.Call(t.Context(), "extractUsage", base([]any{
+		map[string]any{
+			"type":      "video_url",
+			"video_url": map[string]any{"url": "https://cdn.example/reference.mp4"},
+		},
+	}))
+	require.NoError(t, err)
+	withVideo, ok := value.(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "480p", withVideo["resolution"])
+	assert.Equal(t, "video", withVideo["video_input"])
+	assert.Greater(t, withVideo["tokens"], float64(0))
 }
 
 func TestDoubaoSeedreamFlashBoundsAndBillingFacts(t *testing.T) {

@@ -1268,6 +1268,11 @@ export const native = {
   taskStatus: function (ctx, task) {
     const data = task.data || {},
       output = Object.assign({}, data.output || {}, { task_id: task.task_id });
+    if (task.status === "FAILURE" && ["PENDING", "RUNNING", undefined].includes(output.task_status)) {
+      output.task_status = "FAILED";
+      output.code = "InternalError";
+      output.message = task.fail_reason || "task failed";
+    }
     return Object.assign({}, data, { output: output });
   },
   error: function (ctx, error) {

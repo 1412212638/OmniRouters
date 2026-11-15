@@ -144,9 +144,9 @@ func SetRelayRouter(router *gin.Engine) {
 		httpRouter.POST("/audio/translations", func(c *gin.Context) {
 			controller.Relay(c, types.RelayFormatOpenAIAudio)
 		})
-		httpRouter.POST("/audio/speech", func(c *gin.Context) {
-			controller.Relay(c, types.RelayFormatOpenAIAudio)
-		})
+		// POST /audio/speech is registered by SetTaskPluginProtocolRouter so
+		// claimed task-plugin models can use the same endpoint. Unclaimed
+		// models fall back to the ordinary audio relay there.
 
 		// rerank related routes
 		httpRouter.POST("/rerank", func(c *gin.Context) {

@@ -789,7 +789,11 @@ func PrepareTaskPluginEndpoint() gin.HandlerFunc {
 		c.Set("task_plugin_key", pinned.Plugin.Meta.Key)
 		c.Set("platform", pinned.Plugin.Meta.Key)
 		service.AppendTaskPluginIdentityFilter(c, pinned.Plugin.Meta.Key)
-		c.Set("relay_mode", relayconstant.RelayModeVideoSubmit)
+		relayMode := relayconstant.RelayModeVideoSubmit
+		if pinned.Protocol == pluginruntime.ProtocolOpenAIAudio || pinned.Protocol == pluginruntime.ProtocolMiniMaxT2A {
+			relayMode = relayconstant.RelayModeAudioSpeech
+		}
+		c.Set("relay_mode", relayMode)
 		if strings.TrimSpace(action) != "" {
 			c.Set("task_action", action)
 		}
