@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
+import { useSystemConfigStore } from '@/stores/system-config-store'
+
 import { getTieredBillingSummary } from '../../usage-logs/lib/format'
 import type { PricingModel } from '../types'
 import { parseTiersFromExpr } from './billing-expr'
@@ -29,6 +31,49 @@ function testPricingModel(model: Partial<PricingModel>): PricingModel {
     ...model,
   }
 }
+
+test('speech prices display per 10K characters without changing saved per-character rates', () => {
+  const previous = useSystemConfigStore.getState().config
+  useSystemConfigStore.getState().setConfig({
+    currency: {
+      ...previous.currency,
+      quotaDisplayType: 'CNY',
+      usdExchangeRate: 1,
+    },
+  })
+  try {
+    const model = testPricingModel({
+      billing_mode: 'tiered_expr',
+      billing_expr: 'tier("base", u("characters") * 0.00035)',
+      billing_usage_schema: {
+        characters: {
+          type: 'number',
+          unit: 'count',
+          unitLabel: { en: 'characters', zh: '字符' },
+        },
+      },
+    })
+    for (const ratio of [1, 0.6]) {
+      const entries = getTaskPriceEntries(model, {
+        tokenUnit: 'M',
+        groupRatioMultiplier: ratio,
+      })
+      assert.equal(entries[0].value, 0.00035)
+      assert.equal(entries[0].formatted, ratio === 1 ? '¥3.5' : '¥2.1')
+      const rows = getCatalogTaskPriceRows(model, entries, 'zh', '数量', '秒')
+      assert.equal(rows?.inputValue, '-')
+      assert.equal(rows?.outputValue, entries[0].formatted)
+      assert.equal(rows?.outputUnit, '万字符')
+      assert.equal(
+        getCatalogTaskPriceRows(model, entries, 'en', 'Count', 'seconds')
+          ?.outputUnit,
+        '10K characters'
+      )
+    }
+  } finally {
+    useSystemConfigStore.getState().setConfig(previous)
+  }
+})
 
 describe('Omni input, text output and video output pricing', () => {
   test('keeps multimodal token schemas out of the simple input/output pricing view', () => {

@@ -32,6 +32,9 @@ const { createRoot } = await import('react-dom/client')
 const { createInstance } = await import('i18next')
 const { I18nextProvider } = await import('react-i18next')
 const { TaskUsagePricingEditor } = await import('./task-usage-pricing-editor')
+const { TaskPricingSection } =
+  await import('@/features/pricing/components/task-pricing-section')
+const { renderToStaticMarkup } = await import('react-dom/server')
 const {
   tryParseTaskMatrixConfig,
   evaluateTaskVisualConfig,
@@ -41,6 +44,123 @@ const i18n = createInstance()
 await i18n.init({ lng: 'en', resources: {} })
 
 after(() => dom.close())
+
+test('speech model details render output per 10K characters with customer discounts', () => {
+  for (const [ratio, expected] of [
+    [1, '$3.5'],
+    [0.6, '$2.1'],
+  ]) {
+    const html = renderToStaticMarkup(
+      <I18nextProvider i18n={i18n}>
+        <TaskPricingSection
+          model={{
+            id: 0,
+            model_name: 'speech-2.8-hd',
+            quota_type: 0,
+            model_ratio: 1,
+            completion_ratio: 1,
+            enable_groups: [],
+            billing_expr: 'tier("base", u("characters") * 0.00035)',
+            billing_usage_schema: {
+              characters: { type: 'number', unit: 'count' },
+            },
+          }}
+          priceRate={1}
+          usdExchangeRate={1}
+          groupRatio={ratio}
+        />
+      </I18nextProvider>
+    )
+    assert.ok(html.includes('Output'))
+    assert.ok(html.includes(`${expected} / 10K characters`))
+  }
+})
+
+test('speech editor loads legacy prices per 10K characters and saves equivalent actual-character billing', async () => {
+  const schema: BillingUsageSchema = {
+    characters: {
+      type: 'number',
+      unit: 'count',
+      unitLabel: { en: 'characters' },
+    },
+  }
+  let saved = 'tier("base", u("characters") * 0.00035)'
+  function Harness() {
+    const [expression, setExpression] = useState(saved)
+    return (
+      <TaskUsagePricingEditor
+        schema={schema}
+        expression={expression}
+        onExpressionChange={(next) => {
+          saved = next
+          setExpression(next)
+        }}
+      />
+    )
+  }
+  const host = document.createElement('div')
+  document.body.append(host)
+  const root = createRoot(host)
+  try {
+    const render = async (key: string) => {
+      await act(async () =>
+        root.render(
+          <I18nextProvider i18n={i18n}>
+            <Harness key={key} />
+          </I18nextProvider>
+        )
+      )
+    }
+    const inputFor = () => {
+      const input = host.querySelector<HTMLInputElement>(
+        'input[aria-label="characters base"]'
+      )
+      assert.ok(input)
+      return input
+    }
+    await render('initial')
+    assert.equal(inputFor().value, '3.5')
+    assert.ok(host.textContent?.includes('10K characters'))
+    assert.equal(
+      saved,
+      'tier("base", u("characters") * 0.00035)',
+      'opening must preserve stored prices'
+    )
+    const setter = Object.getOwnPropertyDescriptor(
+      dom.HTMLInputElement.prototype,
+      'value'
+    )?.set
+    assert.ok(setter)
+    const input = inputFor()
+    await act(async () => {
+      input.focus()
+      setter.call(input, '7')
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    await act(async () => input.blur())
+    const config = tryParseTaskMatrixConfig(saved, schema)
+    assert.ok(config)
+    assert.equal(config.rows[0].unitPrices.characters, 0.0007)
+    for (const [characters, expected] of [
+      [100, 0.07],
+      [1000, 0.7],
+      [10000, 7],
+    ]) {
+      const result = evaluateTaskVisualConfig(
+        { tiers: taskMatrixToTiers(config, schema) },
+        { characters },
+        schema
+      )
+      assert.ok(result)
+      assert.ok(Math.abs(result.total - expected) < 1e-10)
+    }
+    await render('reopened')
+    assert.equal(inputFor().value, '7')
+  } finally {
+    await act(async () => root.unmount())
+    host.remove()
+  }
+})
 
 test('task prices retain typed decimals through expression updates, blur and reopening', async () => {
   const schema: BillingUsageSchema = {

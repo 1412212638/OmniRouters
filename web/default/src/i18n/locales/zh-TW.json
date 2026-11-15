@@ -1,5 +1,6 @@
 {
   "translation": {
+    "Speech prices are per 10K characters. Enter 3.5 for 3.5 per 10K characters. Free quantity is counted in individual characters.": "語音價格按每萬字元填寫。例如每萬字元 3.5，則填寫 3.5。免費數量仍按單個字元填寫。",
     "Playground uses your personal balance. Use an organization API key for organization billing.": "Playground 使用個人餘額。如需從組織餘額扣費，請使用組織 API Key 呼叫介面。",
     "360": "360",
     "1000": "1000",

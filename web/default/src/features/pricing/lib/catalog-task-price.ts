@@ -4,6 +4,10 @@ import {
   getTaskVideoPriceEntry,
   type DynamicPriceEntry,
 } from './dynamic-price'
+import {
+  isTaskCharacterField,
+  TASK_CHARACTER_PRICE_UNIT,
+} from './task-character-pricing'
 import { taskPriceLabel, taskUsageUnitLabel } from './task-price-display'
 
 export type CatalogTaskPriceRows = {
@@ -68,6 +72,21 @@ export function getCatalogTaskPriceRows(
   generatedVideoLabel = 'Generated video output',
   referenceImageLabel = 'Reference image input'
 ): CatalogTaskPriceRows | null {
+  const characters = entries.find((entry) =>
+    isTaskCharacterField(entry.field, model.billing_usage_schema?.[entry.field])
+  )
+  if (characters) {
+    return {
+      inputValue: '-',
+      inputUnit: '',
+      outputValue: formatCardPriceRange(characters.formatted),
+      outputUnit: taskPriceLabel(
+        TASK_CHARACTER_PRICE_UNIT,
+        'characters',
+        language
+      ),
+    }
+  }
   const outputImagePrices = getTaskImageOutputPriceEntries(model, entries)
   if (outputImagePrices.length > 0) {
     const schema = model.billing_usage_schema || {}

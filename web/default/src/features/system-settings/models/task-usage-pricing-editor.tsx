@@ -6,6 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
+  isTaskCharacterField,
+  taskCharacterPriceScale,
+  TASK_CHARACTER_PRICE_UNIT,
+} from '@/features/pricing/lib/task-character-pricing'
+import {
   createDefaultTaskMatrixConfig,
   generateTaskExprFromConfig,
   getTaskEnumFields,
@@ -73,7 +78,14 @@ export function TaskUsagePricingEditor({
     updateConfig({
       rows: config.rows.map((row, index) =>
         index === rowIndex
-          ? { ...row, unitPrices: { ...row.unitPrices, [field]: safeValue } }
+          ? {
+              ...row,
+              unitPrices: {
+                ...row.unitPrices,
+                [field]:
+                  safeValue / taskCharacterPriceScale(field, schema[field]),
+              },
+            }
           : row
       ),
     })
@@ -123,6 +135,15 @@ export function TaskUsagePricingEditor({
           )}
         </AlertDescription>
       </Alert>
+      {numberFields.some(([field, definition]) =>
+        isTaskCharacterField(field, definition)
+      ) && (
+        <FieldDescription className='mt-2'>
+          {t(
+            'Speech prices are per 10K characters. Enter 3.5 for 3.5 per 10K characters. Free quantity is counted in individual characters.'
+          )}
+        </FieldDescription>
+      )}
       <div className='mt-4 overflow-x-auto rounded-md border'>
         <table className='w-full min-w-[620px] text-sm'>
           <thead className='bg-muted/40'>
@@ -143,11 +164,17 @@ export function TaskUsagePricingEditor({
                     )}
                     <span className='text-muted-foreground ml-1 text-xs font-normal'>
                       /
-                      {taskUsageUnitLabel(
-                        definition,
-                        i18n.language,
-                        definition.unit || t('unit')
-                      )}
+                      {isTaskCharacterField(field, definition)
+                        ? taskPriceLabel(
+                            TASK_CHARACTER_PRICE_UNIT,
+                            field,
+                            i18n.language
+                          )
+                        : taskUsageUnitLabel(
+                            definition,
+                            i18n.language,
+                            definition.unit || t('unit')
+                          )}
                     </span>
                   </th>
                   {definition.unit === 'count' && (
@@ -188,7 +215,10 @@ export function TaskUsagePricingEditor({
                         type='text'
                         inputMode='decimal'
                         className='h-8 min-w-24 text-right font-mono'
-                        value={row.unitPrices[field] || 0}
+                        value={
+                          (row.unitPrices[field] || 0) *
+                          taskCharacterPriceScale(field, schema[field])
+                        }
                         onValueChange={(value) =>
                           updatePrice(index, field, value)
                         }

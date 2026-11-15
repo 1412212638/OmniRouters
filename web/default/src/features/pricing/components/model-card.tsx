@@ -22,6 +22,7 @@ import {
   getSoraPricingDisplay,
   stripTrailingZeros,
 } from '../lib/price'
+import { isTaskCharacterField } from '../lib/task-character-pricing'
 import { taskPriceLabel, taskUsageUnitLabel } from '../lib/task-price-display'
 import type { PricingModel, TokenUnit } from '../types'
 import { ModelPerfBadge, type ModelPerfBadgeData } from './model-perf-badge'
@@ -88,6 +89,12 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
         ),
       })
     : null
+  const speechPrice = dynamicSummary?.entries.find((entry) =>
+    isTaskCharacterField(
+      entry.field,
+      displayPricingModel.billing_usage_schema?.[entry.field]
+    )
+  )
   const soraSummary = getSoraPricingDisplay(props.model, {
     showRechargePrice,
     priceRate,
@@ -237,7 +244,17 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       ...cacheReadEntries,
       ...(cacheWriteEntry ? [cacheWriteEntry] : []),
     ]
-    if (taskImageSummary) {
+    if (speechPrice) {
+      priceSummary = (
+        <span className='text-muted-foreground whitespace-nowrap'>
+          {t('Output')}:{' '}
+          <span className='text-foreground font-mono font-semibold'>
+            {speechPrice.formatted}
+          </span>
+          /{taskPriceLabel(speechPrice.unitLabel, 'characters', i18n.language)}
+        </span>
+      )
+    } else if (taskImageSummary) {
       priceSummary = (
         <>
           <span className='text-muted-foreground whitespace-nowrap'>

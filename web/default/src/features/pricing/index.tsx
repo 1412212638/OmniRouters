@@ -1781,6 +1781,7 @@ function getCatalogTablePriceColumns(
           'text_output_tokens',
           'video_output_tokens',
           'fixedPrice',
+          'characters',
         ].includes(entry.field)
       ) {
         continue

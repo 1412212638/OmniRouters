@@ -19,6 +19,7 @@ var corsAllowedHeaders = map[string]string{
 	"new-api-organization": "New-Api-Organization",
 	"origin":               "Origin",
 	"x-requested-with":     "X-Requested-With",
+	"x-dashscope-async":    "X-DashScope-Async",
 }
 
 func CORS() gin.HandlerFunc {
@@ -154,6 +155,15 @@ func originAllowed(origin string, allowedOrigins []string) bool {
 }
 
 func isPublicAPIPath(path string) bool {
+	// Only these host-owned DashScope aliases use relay CORS. Other /api
+	// routes retain the dashboard's exact-origin credential policy.
+	if path == "/api/v1/services/aigc/video-generation/video-synthesis" ||
+		path == "/api/v1/services/aigc/image2video/video-synthesis" {
+		return true
+	}
+	if taskID, ok := strings.CutPrefix(path, "/api/v1/tasks/"); ok {
+		return taskID != "" && !strings.Contains(taskID, "/")
+	}
 	if path == "/v2/video_generation" {
 		return true
 	}

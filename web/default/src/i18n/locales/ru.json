@@ -1,5 +1,6 @@
 {
   "translation": {
+    "Speech prices are per 10K characters. Enter 3.5 for 3.5 per 10K characters. Free quantity is counted in individual characters.": "Цена речи указывается за 10 000 символов. Введите 3.5 для цены 3,5 за 10 000 символов. Бесплатное количество указывается в отдельных символах.",
     "360": "360",
     "1000": "1000",
     "10000": "10000",

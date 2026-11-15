@@ -16,6 +16,11 @@ import {
 } from './billing-expr'
 import { getDisplayGroupRatio } from './model-helpers'
 import { withPluginPricing } from './plugin-pricing'
+import {
+  isTaskCharacterField,
+  taskCharacterPriceScale,
+  TASK_CHARACTER_PRICE_UNIT,
+} from './task-character-pricing'
 import { evaluateTaskUsageExamples } from './task-expr'
 import { getTaskPricingDisplayTiers } from './task-matrix-display'
 
@@ -215,8 +220,17 @@ export function getTaskPriceEntries(
       return []
     const min = values.length > 0 ? Math.min(...values) : 0
     const max = values.length > 0 ? Math.max(...values) : 0
-    const formattedMin = formatTaskUnitPrice(min, definition.unit, options)
-    const formattedMax = formatTaskUnitPrice(max, definition.unit, options)
+    const scale = taskCharacterPriceScale(field, definition)
+    const formattedMin = formatTaskUnitPrice(
+      min * scale,
+      definition.unit,
+      options
+    )
+    const formattedMax = formatTaskUnitPrice(
+      max * scale,
+      definition.unit,
+      options
+    )
     const displayUnit = definition.unit === 'token' ? 'token' : 'custom'
     return [
       {
@@ -229,7 +243,9 @@ export function getTaskPriceEntries(
           min === max ? formattedMin : `${formattedMin}-${formattedMax}`,
         displayUnit,
         unit: definition.unit,
-        unitLabel: definition.unitLabel,
+        unitLabel: isTaskCharacterField(field, definition)
+          ? TASK_CHARACTER_PRICE_UNIT
+          : definition.unitLabel,
         ...(freeValues.length > 0 && {
           freeQuantity: Math.min(...freeValues),
           freeQuantityMax: Math.max(...freeValues),

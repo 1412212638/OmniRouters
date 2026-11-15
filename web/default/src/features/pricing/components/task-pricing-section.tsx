@@ -6,6 +6,11 @@ import { Badge } from '@/components/ui/badge'
 import { formatBillingCurrencyFromUSD } from '@/lib/currency'
 
 import { splitBillingExprAndRequestRules } from '../lib/billing-expr'
+import {
+  isTaskCharacterField,
+  taskCharacterPriceScale,
+  TASK_CHARACTER_PRICE_UNIT,
+} from '../lib/task-character-pricing'
 import { getTaskPricingDisplayTiers } from '../lib/task-matrix-display'
 import {
   taskPriceLabel,
@@ -42,8 +47,9 @@ function TaskUsageHeader({
   schema: BillingUsageSchema
   field: string
 }) {
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
   const definition = schema[field]
+  if (isTaskCharacterField(field, definition)) return t('Output')
   return taskPriceLabel(definition?.description, field, i18n.language)
 }
 
@@ -187,10 +193,19 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
                     t('Count')
                   )
                 }
+                const priceUnit = isTaskCharacterField(field, definition)
+                  ? taskPriceLabel(
+                      TASK_CHARACTER_PRICE_UNIT,
+                      field,
+                      i18n.language
+                    )
+                  : unitLabel
+                const displayValue =
+                  value * taskCharacterPriceScale(field, definition)
                 if (freeQuantity > 0 && value > 0) {
                   return (
                     <span className={discountedPriceClassName}>
-                      {`${t('First')} ${freeQuantity} ${unitLabel} ${t('free')}; ${t('then')} ${formatTaskPrice(value * ratio, props)} / ${unitLabel}`}
+                      {`${t('First')} ${freeQuantity} ${unitLabel} ${t('free')}; ${t('then')} ${formatTaskPrice(displayValue * ratio, props)} / ${priceUnit}`}
                     </span>
                   )
                 }
@@ -204,7 +219,7 @@ export function TaskPricingSection(props: TaskPricingSectionProps) {
                 return (
                   <span className={discountedPriceClassName}>
                     {value > 0
-                      ? `${formatTaskPrice(value * ratio, props)} / ${unitLabel}`
+                      ? `${formatTaskPrice(displayValue * ratio, props)} / ${priceUnit}`
                       : '-'}
                   </span>
                 )

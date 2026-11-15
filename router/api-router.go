@@ -24,6 +24,7 @@ func SetApiRouter(router *gin.Engine) {
 	apiRouter.Use(middleware.CORS())
 	apiRouter.POST("/v3/contents/generations/tasks", doubaoNativeSubmitHandlers(http.MethodPost, "/doubao/api/v3/contents/generations/tasks")...)
 	apiRouter.GET("/v3/contents/generations/tasks/:task_id", doubaoNativeQueryHandlers(http.MethodGet, "/doubao/api/v3/contents/generations/tasks/:task_id")...)
+	registerAlibabaNativeAPIRoutes(apiRouter)
 	anonymousRequestBodyLimit := middleware.AnonymousRequestBodyLimit()
 	{
 		apiRouter.GET("/setup", controller.GetSetup)

@@ -1,5 +1,21 @@
 # Upstream Sync Log
 
+## 2026-11-15 - Expose official DashScope video task paths without the /ali prefix
+
+- Local reason: native Wan video clients should use the official submit/query paths by changing the base URL and API key.
+- Changed: host-owned aliases for `POST /api/v1/services/aigc/video-generation/video-synthesis`, `POST /api/v1/services/aigc/image2video/video-synthesis`, and `GET /api/v1/tasks/{task_id}` resolve the existing Alibaba plugin declarations on every request. Only these new paths use the configured public API CORS policy; preflight accepts the native `X-DashScope-Async` header.
+- Preserved: historical `/ali` endpoints, plugin installation/activation behavior, reserved `/api` namespace protection, Bearer authentication, task ownership and organization isolation, channel/model selection, native decoding/rendering, administrator pricing expressions, reference-video charges, duration validation, precharge/settlement/refunds, subscription billing, and gateway-to-gateway upstream routing. No plugin metadata, stored configuration, database schema, or frontend was changed by this endpoint addition. Dashboard CORS/session rules remain intact.
+- Validation: targeted router/middleware tests (`TestAlibabaNative`, `TestDashboardCORS`, `TestDoubaoNative`, and `TestH3Native`), `go build ./router ./middleware`, gofmt and `git diff --check` passed using the already cached Go 1.26.10 toolchain offline. Tests cover authentication, plugin availability without restart, equal prepared inputs for old/new submit paths, native query responses and ownership checks without extra billing, and narrowly scoped CORS in disabled/allowlist/all modes. The broader CORS selection exposes the existing `TestCORSRejectsUntrustedOrigin` failure (httptest's default `example.com` target is the same origin as the test's purported foreign origin); the identical failure was reproduced with the HEAD `middleware/cors.go` through a temporary Go overlay. No full-suite pass, live provider request or production deployment is claimed.
+- Source commit and push status: local changes are uncommitted and not pushed.
+
+## 2026-11-15 - Align speech price editing and public display with 10K characters
+
+- Local reason: MiniMax publishes speech prices per 10,000 characters, while the task editor and model plaza used per-character prices, making configuration unnecessarily difficult.
+- Changed: the task editor converts the numeric `characters` count field between a per-character stored expression and a per-10K-character input. The default catalog card/table and model details display this as output pricing per 10K characters; the alternate card path uses the same presentation. Added localized unit labels and editor guidance in all seven frontend languages.
+- Preserved: existing expressions retain their exact meaning and opening the editor does not write configuration. Actual request/upstream character counts, free character quantities, precharge/settlement/refunds, currency conversion, customer/group multipliers, image/video/token pricing, and plugin metadata remain unchanged. This is a frontend unit conversion, without database migration or hidden backend billing factors.
+- Validation: 22 targeted Bun regression tests passed, including old-expression readback, price edits/reopening, actual-character cost simulation, CNY 1:1 catalog display, six-tenths customer pricing, detail rendering, and unchanged image/video/token price cases. `bun run build`, targeted formatting, all-seven-locale JSON checks, and `git diff --check` passed. Targeted Oxlint passed for the editor, tests, helper, catalog mapper, detail section and active catalog; the other two touched files retain four lint findings, all reproduced against their HEAD versions in temporary copies. No live upstream call or browser visual verification was performed.
+- Source commit and push status: local changes are uncommitted and not pushed.
+
 ## 2026-11-15 - Allow task usage fields to declare their own safe maximum
 
 - Local reason: the GHCR plugin validation treated every `unit: "count"` field as an image count and rejected MiniMax Speech examples with more than the image batch limit.

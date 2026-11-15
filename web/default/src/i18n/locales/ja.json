@@ -1,5 +1,6 @@
 {
   "translation": {
+    "Speech prices are per 10K characters. Enter 3.5 for 3.5 per 10K characters. Free quantity is counted in individual characters.": "音声の価格は1万文字単位で入力します。1万文字あたり3.5の場合は3.5と入力してください。無料数量は引き続き1文字単位です。",
     "360": "360",
     "1000": "1000",
     "10000": "10000",
