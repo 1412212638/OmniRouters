@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-11-15 - Allow task usage fields to declare their own safe maximum
+
+- Local reason: the GHCR plugin validation treated every `unit: "count"` field as an image count and rejected MiniMax Speech examples with more than the image batch limit.
+- Changed: added the optional numeric `usageSchema.max` metadata property, bounded by the host quota ceiling, and applied it consistently to plugin metadata examples plus request and completion usage validation. MiniMax Speech declares a 10,000-character maximum, matching its request and upstream usage validation. Updated the plugin API documentation and JSON schema.
+- Preserved: undeclared fields retain the existing image-count, task-duration, and token/credit safety ceilings; billing expressions, pre-consumption, settlement, and all other plugin metadata are unchanged.
+- Validation: `node --check plugins/tasks/minimax-speech/plugin.js`, plugin API JSON parsing, and `git diff --check` passed. Added targeted Go coverage for metadata decoding and field-specific usage limits; Go tests and build could not run because Go/gofmt are unavailable in this session. No live provider request was made.
+- Source commit and push status: pending commit and push.
+
 ## 2026-11-15 - Selectively backport Alibaba and Hailuo task fixes
 
 - Upstream reference: reviewed the Alibaba Bailian 1.5.0 and Hailuo Video 1.4.0 marketplace sources against their official 1.4.2/1.3.0 baselines and the locally customized plugins. This is a partial behavior backport, not an official plugin replacement or a claim that either full release is integrated; existing local plugin versions and metadata are retained.

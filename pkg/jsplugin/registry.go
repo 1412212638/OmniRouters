@@ -178,6 +178,9 @@ type AuthMeta struct {
 type UsageFieldSchema struct {
 	Type           string                   `json:"type,omitempty"`
 	Unit           string                   `json:"unit,omitempty"`
+	// Max overrides the host's default safety ceiling for this numeric usage
+	// field. It is bounded by MaxQuota when plugin metadata is validated.
+	Max            *float64                 `json:"max,omitempty"`
 	UnitLabel      LocalizedText            `json:"unitLabel,omitempty"`
 	PricingDisplay string                   `json:"pricingDisplay,omitempty"`
 	Enum           []string                 `json:"enum,omitempty"`
@@ -886,6 +889,10 @@ func CloneUsageSchema(schema map[string]UsageFieldSchema) map[string]UsageFieldS
 	}
 	cloned := make(map[string]UsageFieldSchema, len(schema))
 	for key, field := range schema {
+		if field.Max != nil {
+			max := *field.Max
+			field.Max = &max
+		}
 		if field.Enum != nil {
 			field.Enum = append([]string{}, field.Enum...)
 		}
@@ -1494,7 +1501,7 @@ func decodeUsageSchema(value any) (map[string]UsageFieldSchema, error) {
 		}
 		for key := range fieldObject {
 			switch key {
-			case "type", "unit", "unitLabel", "pricingDisplay", "enum", "description", "enumLabels", "freeQuantity":
+			case "type", "unit", "max", "unitLabel", "pricingDisplay", "enum", "description", "enumLabels", "freeQuantity":
 			default:
 				return nil, fmt.Errorf("plugin meta usageSchema field %q has unknown property %q", name, key)
 			}
@@ -1506,6 +1513,13 @@ func decodeUsageSchema(value any) (map[string]UsageFieldSchema, error) {
 		}
 		if field.Unit, err = stringMetaField(fieldObject, "unit"); err != nil {
 			return nil, err
+		}
+		if _, exists := fieldObject["max"]; exists {
+			max, maxErr := numberMetaField(fieldObject, "max")
+			if maxErr != nil {
+				return nil, maxErr
+			}
+			field.Max = &max
 		}
 		if field.PricingDisplay, err = stringMetaField(fieldObject, "pricingDisplay"); err != nil {
 			return nil, err
@@ -1547,6 +1561,14 @@ func decodeUsageSchema(value any) (map[string]UsageFieldSchema, error) {
 }
 
 func validateUsageFieldSchema(name string, field UsageFieldSchema) error {
+	if field.Max != nil {
+		if field.Type != "number" || field.Enum != nil {
+			return fmt.Errorf("plugin meta usageSchema field %q max requires a number field", name)
+		}
+		if math.IsNaN(*field.Max) || math.IsInf(*field.Max, 0) || *field.Max <= 0 || *field.Max > float64(common.MaxQuota) {
+			return fmt.Errorf("plugin meta usageSchema field %q max must be greater than 0 and no greater than %d", name, common.MaxQuota)
+		}
+	}
 	if field.FreeQuantity < 0 || field.FreeQuantity > 128 {
 		return fmt.Errorf("plugin meta usageSchema field %q freeQuantity must be between 0 and 128", name)
 	}
@@ -1731,6 +1753,12 @@ func validateUsageExampleValue(value any, field UsageFieldSchema) error {
 	if math.IsNaN(number) || math.IsInf(number, 0) || number < 0 {
 		return fmt.Errorf("must be a finite non-negative number")
 	}
+	if field.Max != nil {
+		if number > *field.Max {
+			return fmt.Errorf("exceeds the host limit")
+		}
+		return nil
+	}
 	limit := float64(relaycommon.MaxTaskDurationSeconds)
 	if field.Unit == "count" {
 		limit = float64(dto.MaxImageN)
@@ -1906,6 +1934,26 @@ func integerMetaField(object map[string]any, name string) (int, error) {
 		return converted, nil
 	default:
 		return 0, fmt.Errorf("plugin meta %s must be an integer", name)
+	}
+}
+
+func numberMetaField(object map[string]any, name string) (float64, error) {
+	value, exists := object[name]
+	if !exists {
+		return 0, nil
+	}
+	switch number := value.(type) {
+	case int:
+		return float64(number), nil
+	case int64:
+		return float64(number), nil
+	case float64:
+		if math.IsNaN(number) || math.IsInf(number, 0) {
+			return 0, fmt.Errorf("plugin meta %s must be a finite number", name)
+		}
+		return number, nil
+	default:
+		return 0, fmt.Errorf("plugin meta %s must be a number", name)
 	}
 }
 

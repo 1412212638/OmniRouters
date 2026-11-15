@@ -141,6 +141,7 @@ export const meta = {
     characters: {
       type: "number",
       unit: "count",
+      max: MAX_TEXT_CHARACTERS,
       unitLabel: { en: "characters", zh: "字符" },
       description: { en: "Characters synthesized", zh: "合成的字符数" },
     },

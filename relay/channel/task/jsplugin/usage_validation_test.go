@@ -28,6 +28,21 @@ func TestCompletionUsageEnumRemainsStringOnly(t *testing.T) {
 	require.ErrorContains(t, err, "plugin usage enum must be a string")
 }
 
+func TestUsageValueUsesFieldSpecificMaximum(t *testing.T) {
+	max := 10000.0
+	schema := pluginruntime.UsageFieldSchema{Type: "number", Unit: "count", Max: &max}
+
+	value, err := validateUsageValue(float64(1000), schema, false)
+	require.NoError(t, err)
+	require.Equal(t, 1000.0, value)
+
+	_, err = validateUsageValue(float64(10001), schema, false)
+	require.ErrorContains(t, err, "exceeds the host limit")
+
+	_, err = validateUsageValue(float64(17), pluginruntime.UsageFieldSchema{Type: "number", Unit: "count"}, false)
+	require.ErrorContains(t, err, "exceeds the host limit")
+}
+
 func TestDoubaoNativeAutomaticDurationSkipsBillingValidationOnly(t *testing.T) {
 	adaptor := &TaskAdaptor{plugin: &pluginruntime.LoadedPlugin{Meta: pluginruntime.Meta{Key: "doubao"}}}
 	request := map[string]any{

@@ -1793,10 +1793,16 @@ func validateUsageValue(value any, schema pluginruntime.UsageFieldSchema, allowN
 	if !ok {
 		return 0, fmt.Errorf("plugin usage value must be a number")
 	}
-	if schema.Unit == "token" || schema.Unit == "credit" {
-		if math.IsNaN(number) || math.IsInf(number, 0) || number < 0 {
-			return 0, fmt.Errorf("plugin usage value must be a finite non-negative number")
+	if math.IsNaN(number) || math.IsInf(number, 0) || number < 0 {
+		return 0, fmt.Errorf("plugin usage value must be a finite non-negative number")
+	}
+	if schema.Max != nil {
+		if err := validateUsageNumberMax(number, *schema.Max); err != nil {
+			return 0, err
 		}
+		return number, nil
+	}
+	if schema.Unit == "token" || schema.Unit == "credit" {
 		// Bound-check with QuotaFromFloatChecked (int32 saturation) but keep
 		// the original fractional part so credit facts like 3.5 survive.
 		if quota, clamp := common.QuotaFromFloatChecked(number); clamp != nil {
@@ -1823,6 +1829,10 @@ func validateUsageLimit(value any, limit int, allowNumericString bool) error {
 }
 
 func validateUsageNumberLimit(number float64, limit int) error {
+	return validateUsageNumberMax(number, float64(limit))
+}
+
+func validateUsageNumberMax(number float64, limit float64) error {
 	if math.IsNaN(number) || math.IsInf(number, 0) || number < 0 {
 		return fmt.Errorf("plugin usage value must be a finite non-negative number")
 	}
