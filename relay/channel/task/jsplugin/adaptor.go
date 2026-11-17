@@ -170,6 +170,9 @@ func (a *TaskAdaptor) ValidateRequestAndSetAction(c *gin.Context, info *relaycom
 			}
 		}
 	}
+	if action := strings.TrimSpace(c.GetString("task_action")); action != "" {
+		info.Action = action
+	}
 	if _, exists := c.Get("task_request"); !exists {
 		decoded, taskErr := a.decodeSoraFallbackRequest(c, info)
 		if taskErr != nil {

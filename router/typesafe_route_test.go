@@ -47,6 +47,34 @@ func TestDoubaoNativeRoutesRegistered(t *testing.T) {
 	}
 }
 
+func TestSunoNativeRoutesRegistered(t *testing.T) {
+	router := gin.New()
+	SetRelayRouter(router)
+	want := map[string]map[string]bool{
+		http.MethodPost: {
+			"/suno/submit/:action": false,
+			"/suno/fetch":          false,
+		},
+		http.MethodGet: {
+			"/suno/fetch/:task_id": false,
+		},
+	}
+	for _, route := range router.Routes() {
+		if paths, ok := want[route.Method]; ok {
+			if _, exists := paths[route.Path]; exists {
+				paths[route.Path] = true
+			}
+		}
+	}
+	for method, paths := range want {
+		for path, found := range paths {
+			if !found {
+				t.Fatalf("Suno native %s route %s must be registered", method, path)
+			}
+		}
+	}
+}
+
 func TestAstraFlowNativeRoutesRegistered(t *testing.T) {
 	router := gin.New()
 	SetTaskRouter(router)

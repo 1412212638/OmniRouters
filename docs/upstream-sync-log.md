@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-11-17 - Route Suno native requests through the declared plugin hooks
+
+- Local reason: after the API key's `auto` group can see a Suno channel, the legacy task path can select channel type 36 but fail to resolve it to the `sunoapi` task plugin, returning `invalid_api_platform: 36`. This is separate from the earlier `503 No available channel` caused by channel/group eligibility.
+- Changed: `/suno/submit/{action}`, `/suno/fetch`, and `/suno/fetch/{task_id}` now pin and execute the installed Suno plugin's declared native route. The submit action prepared by the plugin is passed into the task adaptor, legacy tasks stored with numeric Suno channel platform `36` resolve to `sunoapi` for polling, and the plugin infers the model from the action while omitting the gateway-only `model` field from the upstream body. Upstream submit paths stay lowercase (`/suno/submit/music` or `/suno/submit/lyrics`).
+- Preserved: request fields and upstream payload conventions, native response shapes, task ownership and organization isolation, Suno channel type/model list, task billing and settlement, polling semantics, all other task plugins and channel mappings. No database schema or saved channel configuration changed.
+- Validation: `gofmt`, `go build ./router ./middleware ./relay`, `go test ./router -run '^TestSunoNativeRoutesRegistered$'`, and `go test ./plugins -run '^TestSunoNativeSubmitInfersModelAndUsesLowercaseUpstreamPath$'` passed. The broader `go test ./router ./relay` is blocked by failures in untouched tests: existing missing imports / stale adaptor signatures in `relay/chat_completions_via_responses_test.go` and unrelated router test setup failures. `go test ./relay/channel/task/jsplugin` also has two existing usage-validation assertion failures. No paid upstream request was made.
+- Source commit and push status: `fix: route Suno native tasks through plugin adaptor` pushed to `origin/main`.
+
 ## 2026-11-15 - Expose official DashScope video task paths without the /ali prefix
 
 - Local reason: native Wan video clients should use the official submit/query paths by changing the base URL and API key.

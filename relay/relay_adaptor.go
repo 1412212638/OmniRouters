@@ -139,7 +139,8 @@ func GetTaskPlatform(c *gin.Context) constant.TaskPlatform {
 }
 
 var taskPluginKeys = map[constant.TaskPlatform]string{
-	constant.TaskPlatformSuno:                                            "sunoapi",
+	constant.TaskPlatformSuno: "sunoapi",
+	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeSunoAPI)):     "sunoapi",
 	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeAli)):         "alibaba",
 	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeKling)):       "kling",
 	constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeJimeng)):      "jimeng",

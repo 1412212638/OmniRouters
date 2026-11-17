@@ -195,12 +195,8 @@ func SetRelayRouter(router *gin.Engine) {
 	relaySunoRouter := router.Group("/suno")
 	relaySunoRouter.Use(middleware.RouteTag("relay"))
 	relaySunoRouter.Use(middleware.SystemPerformanceCheck())
-	relaySunoRouter.Use(middleware.TokenAuth(), middleware.Distribute())
-	{
-		relaySunoRouter.POST("/submit/:action", controller.RelayTask)
-		relaySunoRouter.POST("/fetch", controller.RelayTaskFetch)
-		relaySunoRouter.GET("/fetch/:id", controller.RelayTaskFetch)
-	}
+	relaySunoRouter.Use(middleware.TokenAuth())
+	registerSunoNativeRoutes(relaySunoRouter)
 
 	relayGeminiRouter := router.Group("/v1beta")
 	relayGeminiRouter.Use(func(c *gin.Context) {

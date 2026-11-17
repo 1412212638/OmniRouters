@@ -48,6 +48,24 @@ func registerHailuoNativeRoutes(router *gin.Engine) {
 	)
 }
 
+func registerSunoNativeRoutes(router *gin.RouterGroup) {
+	const submitPath = "/suno/submit/:action"
+	const batchQueryPath = "/suno/fetch"
+	const queryPath = "/suno/fetch/:task_id"
+
+	router.POST("/submit/:action",
+		pinDeclaredTaskPluginRoute(http.MethodPost, submitPath),
+		middleware.PrepareTaskPluginRoute(), middleware.ModelRequestRateLimit(),
+		middleware.Distribute(), controller.RelayTask,
+	)
+	router.POST("/fetch",
+		pinDeclaredTaskPluginRoute(http.MethodPost, batchQueryPath), middleware.PrepareTaskPluginRoute(),
+	)
+	router.GET("/fetch/:task_id",
+		pinDeclaredTaskPluginRoute(http.MethodGet, queryPath), middleware.PrepareTaskPluginRoute(),
+	)
+}
+
 func astraFlowNativeSubmitHandlers(declaredPath string) []gin.HandlerFunc {
 	return []gin.HandlerFunc{
 		middleware.RouteTag("relay"), middleware.TokenAuth(), middleware.SystemPerformanceCheck(),

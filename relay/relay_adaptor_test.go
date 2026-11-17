@@ -71,6 +71,19 @@ func TestGetTaskAdaptorUsesResolvedPlugin(t *testing.T) {
 	}
 }
 
+func TestResolveTaskPluginForSunoAPIChannelType(t *testing.T) {
+	registry := taskPluginTestRegistry(t, "sunoapi")
+	platform := constant.TaskPlatform(strconv.Itoa(constant.ChannelTypeSunoAPI))
+
+	plugin, ok := ResolveTaskPluginForPlatform(registry.Generation(), platform)
+	if !ok {
+		t.Fatal("Suno API channel type must resolve to its task plugin")
+	}
+	if plugin.Meta.Key != "sunoapi" {
+		t.Fatalf("expected sunoapi plugin, got %q", plugin.Meta.Key)
+	}
+}
+
 func TestGetTaskAdaptorFallsBackForMissingOrDisabledPlugin(t *testing.T) {
 	registry := taskPluginTestRegistry(t, "sora")
 	factoryCalled := false

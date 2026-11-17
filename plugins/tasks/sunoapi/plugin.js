@@ -71,11 +71,13 @@ function decodeNativeSubmit(ctx) {
   if (!ctx.body || ctx.body.kind !== "json") throw new Error("JSON body required");
   const action = actionName(ctx);
   if (action !== "MUSIC" && action !== "LYRICS") throw new Error("invalid_action");
+  const requestBody = Object.assign({}, ctx.body.value || {});
+  delete requestBody.model;
   return {
     kind: "submit",
     model: action === "MUSIC" ? "suno_music" : "suno_lyrics",
     action: action,
-    requestBody: ctx.body.value,
+    requestBody: requestBody,
   };
 }
 
@@ -106,7 +108,7 @@ export function buildSubmitRequest(ctx) {
   if (typeof incoming["Content-Type"] === "string" && incoming["Content-Type"]) headers["Content-Type"] = incoming["Content-Type"];
   if (typeof incoming.Accept === "string" && incoming.Accept) headers.Accept = incoming.Accept;
   return {
-    url: ctx.baseUrl + "/suno/submit/" + normalized.action,
+    url: ctx.baseUrl + "/suno/submit/" + normalized.action.toLowerCase(),
     method: "POST",
     headers: headers,
     body: normalized.body,
