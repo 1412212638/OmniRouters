@@ -1468,6 +1468,21 @@ func (a *TaskAdaptor) buildSubmit(c *gin.Context, info *relaycommon.RelayInfo) (
 	if descriptor.RewriteModel != "" {
 		info.UpstreamModelName = descriptor.RewriteModel
 	}
+	if a.plugin.Meta.Key == "doubao" && strings.HasSuffix(descriptor.URL, "/api/v3/contents/generations/tasks") {
+		if body, ok := descriptor.Body.(map[string]any); ok {
+			if raw, exists := body["callback_url"]; exists && raw != nil && raw != "" {
+				target, ok := raw.(string)
+				if !ok {
+					return nil, fmt.Errorf("callback_url must be a string")
+				}
+				callback, err := service.PrepareDoubaoCallback(info.PublicTaskID, target)
+				if err != nil {
+					return nil, err
+				}
+				body["callback_url"] = callback
+			}
+		}
+	}
 	a.submit = &descriptor
 	method := strings.ToUpper(strings.TrimSpace(descriptor.Method))
 	if method == "" {
@@ -1571,6 +1586,7 @@ func (a *TaskAdaptor) submitContext(c *gin.Context, info *relaycommon.RelayInfo)
 				"action":         ref.Action,
 				"status":         ref.Status,
 				"data":           data,
+				"billingFacts":   ref.BillingFacts,
 			})
 		}
 		ctx["originTasks"] = originTasks

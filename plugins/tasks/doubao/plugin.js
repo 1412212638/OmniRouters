@@ -14,8 +14,8 @@ const VIDEO_MODELS = {
   "doubao-seedance-2.0-fast": { resolutions: ["480p", "720p"], videoInput: true },
   "doubao-seedance-2-0-mini-260615": { resolutions: ["480p", "720p"], videoInput: true },
   "doubao-seedance-2.0-mini": { resolutions: ["480p", "720p"], videoInput: true },
-  "doubao-seedance-2-5-260628": { resolutions: ["480p", "720p", "1080p"], videoInput: true },
-  "doubao-seedance-2.5": { resolutions: ["480p", "720p", "1080p"], videoInput: true },
+  "doubao-seedance-2-5-260628": { resolutions: ["480p", "720p", "1080p", "4k"], videoInput: true },
+  "doubao-seedance-2.5": { resolutions: ["480p", "720p", "1080p", "4k"], videoInput: true },
   "doubao-seedance-2-5-flash-261115": { resolutions: ["480p", "720p"], videoInput: true },
   "doubao-seedance-2.5-flash": { resolutions: ["480p", "720p"], videoInput: true },
 };
@@ -383,7 +383,7 @@ export const meta = {
     en: "Volcengine Doubao Seedance video generation and Seedream image generation",
     zh: "火山引擎豆包 Seedance 视频生成与 Seedream 图片生成",
   },
-  version: "1.5.0",
+  version: "1.6.0",
   author: { name: "QuantumNous" },
   channelTypes: [54, 45], // VolcEngine-type channels serve Ark video models with the same wire format
   models: Object.keys(VIDEO_MODELS).concat(Object.keys(IMAGE_MODELS)),
@@ -492,6 +492,24 @@ function normalizeResolution(value) {
 
 function hasVideo(content) {
   return Array.isArray(content) && content.some((item) => item && (item.type === "video_url" || Object.prototype.hasOwnProperty.call(item, "video_url")));
+}
+
+// Draft finalization omits the original materials. Use the gateway's frozen
+// billing facts, never client-supplied metadata, to retain its input price tier.
+function videoBillingInput(ctx) {
+  const metadata = (ctx.requestBody || {}).metadata || {};
+  const ids = draftTaskIds(metadata.content);
+  if (!ids.length) return hasVideo(metadata.content) ? "video" : "none";
+  const origins = Array.isArray(ctx.originTasks) ? ctx.originTasks : [];
+  let input = "none";
+  for (const id of ids) {
+    const origin = origins.find((task) => task && task.taskId === id);
+    const facts = origin && origin.billingFacts;
+    if (!facts || !["none", "video"].includes(facts.video_input))
+      throw new Error("draft reference billing information is unavailable");
+    if (facts.video_input === "video") input = "video";
+  }
+  return input;
 }
 
 function hasVisualReference(content) {
@@ -887,10 +905,16 @@ export const native = {
   },
   taskCreated: function (ctx, task) {
     const data = task.data && typeof task.data === "object" && !Array.isArray(task.data) ? task.data : {};
-    return Object.assign({}, data, { id: task.task_id });
+    const output = Object.assign({}, data, { id: task.task_id });
+    delete output.callback_url;
+    return output;
   },
   taskStatus: function (ctx, task) {
-    if (task.data && typeof task.data === "object" && !Array.isArray(task.data)) return Object.assign({}, task.data, { id: task.task_id });
+    if (task.data && typeof task.data === "object" && !Array.isArray(task.data)) {
+      const output = Object.assign({}, task.data, { id: task.task_id });
+      delete output.callback_url;
+      return output;
+    }
     const statusMap = { NOT_START: "queued", SUBMITTED: "queued", QUEUED: "queued", IN_PROGRESS: "running", SUCCESS: "succeeded", FAILURE: "failed" };
     const output = { id: task.task_id, status: statusMap[task.status] || "queued" };
     if (task.fail_reason) output.error = { message: task.fail_reason };
@@ -987,7 +1011,7 @@ export function parseSubmitResponse(ctx, resp) {
     return { taskId: taskId, taskData: body, immediate: { status: "SUCCESS", progress: "100%", url: trimmed(urls[0].url) } };
   }
   if (!resp.body || !resp.body.id) throw new Error("task_id is empty");
-  return { taskId: resp.body.id, taskData: resp.body };
+  return { taskId: resp.body.id, taskData: resp.body, state: { seedance_video_input: videoBillingInput(ctx) } };
 }
 
 export function extractUsage(ctx) {
@@ -1002,13 +1026,16 @@ export function extractUsage(ctx) {
   const req = ctx.requestBody || {};
   const metadata = req.metadata || {};
   if (ctx.usagePurpose === "billing_ratios") {
-    const ratio = videoInputRatio(ctx.upstreamModel || ctx.model, metadata.resolution, metadata.content);
+    const input = videoBillingInput(ctx);
+    const ratio = videoInputRatio(ctx.upstreamModel || ctx.model, metadata.resolution, input === "video" ? [{ type: "video_url" }] : []);
     return ratio === 1 ? null : { video_input_ratio: ratio };
   }
   let seconds = Number(req.seconds || req.duration || metadata.duration || 0);
   if (!Number.isFinite(seconds) || seconds <= 0) {
     const frames = Number(metadata.frames);
-    seconds = Number.isFinite(frames) && frames > 0 ? Math.floor(frames / 24) : 15;
+    const model = canonicalVideoModel(ctx.model);
+    const maximum = model.startsWith("doubao-seedance-2-5-") ? 30 : 15;
+    seconds = Number.isFinite(frames) && frames > 0 ? Math.floor(frames / 24) : maximum;
   }
   if (seconds <= 0) seconds = 5;
   seconds = Math.min(seconds, 3600);
@@ -1017,7 +1044,7 @@ export function extractUsage(ctx) {
   const facts = { tokens: estimateTokens(seconds, resolution), resolution: resolution };
   // Preserve the shared video_input fact for expressions saved before the
   // capability profiles narrowed this field to selected Seedance models.
-  facts.video_input = hasVideo(metadata.content) ? "video" : "none";
+  facts.video_input = videoBillingInput(ctx);
   if (profile.audio) facts.generate_audio = metadata.generate_audio !== false;
   return facts;
 }
@@ -1080,7 +1107,7 @@ export function listArtifacts(task) {
   const content = data.content || {};
   const artifacts = [];
   if (trimmed(content.video_url)) artifacts.push({ key: "video", type: "video" });
-  if (trimmed(content.last_frame_url)) artifacts.push({ key: "last_frame", type: "image", mimeType: "image/png" });
+  if (trimmed(content.last_frame_url)) artifacts.push({ key: "last_frame", type: "image", mimeType: "image/jpeg" });
   return artifacts;
 }
 

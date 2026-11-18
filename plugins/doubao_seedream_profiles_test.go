@@ -192,7 +192,7 @@ func TestDoubaoSeedanceAliasesExposeProfilesAndBillingRatios(t *testing.T) {
 		"doubao-seedance-2.0":              {"480p", "720p", "1080p", "4k"},
 		"doubao-seedance-2.0-fast":         {"480p", "720p"},
 		"doubao-seedance-2.0-mini":         {"480p", "720p"},
-		"doubao-seedance-2.5":              {"480p", "720p", "1080p"},
+		"doubao-seedance-2.5":              {"480p", "720p", "1080p", "4k"},
 		"doubao-seedance-2-5-flash-261115": {"480p", "720p"},
 		"doubao-seedance-2.5-flash":        {"480p", "720p"},
 	}
@@ -253,8 +253,7 @@ func TestDoubaoSeedanceAliasesExposeProfilesAndBillingRatios(t *testing.T) {
 			require.True(t, ok)
 			assert.Equal(t, alias.resolution, usage["resolution"])
 			assert.Equal(t, "video", usage["video_input"])
-			tokens, ok := usage["tokens"].(float64)
-			require.True(t, ok)
+			tokens := seedanceObject(t, usage)["tokens"].(float64)
 			assert.Greater(t, tokens, 0.0)
 		})
 	}

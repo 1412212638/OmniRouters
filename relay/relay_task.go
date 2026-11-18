@@ -167,6 +167,7 @@ func ApplyChannelPin(c *gin.Context, info *relaycommon.RelayInfo) *dto.TaskError
 				Action:         task.Action,
 				Status:         string(task.Status),
 				Data:           append([]byte(nil), task.Data...),
+				BillingFacts:   originTaskBillingFacts(task),
 			})
 		}
 		info.OriginTasks = refs
@@ -183,6 +184,19 @@ func ApplyChannelPin(c *gin.Context, info *relaycommon.RelayInfo) *dto.TaskError
 		return service.TaskErrorWrapperLocal(errors.New("the channel of the origin task is disabled"), "origin_task_channel_disabled", http.StatusBadRequest)
 	}
 	info.LockedChannel = ch
+	return nil
+}
+
+func originTaskBillingFacts(task *model.Task) map[string]any {
+	if bc := task.PrivateData.BillingContext; bc != nil && bc.TieredSnapshot != nil {
+		return bc.TieredSnapshot.UsageFacts
+	}
+	var state struct {
+		VideoInput string `json:"seedance_video_input"`
+	}
+	if common.Unmarshal(task.PrivateData.PluginState, &state) == nil && (state.VideoInput == "video" || state.VideoInput == "none") {
+		return map[string]any{"video_input": state.VideoInput}
+	}
 	return nil
 }
 

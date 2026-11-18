@@ -118,7 +118,7 @@ func TestDoubaoNativeAPIRoutesRegisteredInAPIGroup(t *testing.T) {
 	router := gin.New()
 	SetApiRouter(router)
 	want := map[string]map[string]bool{
-		http.MethodPost: {"/api/v3/contents/generations/tasks": false},
+		http.MethodPost: {"/api/v3/contents/generations/tasks": false, "/api/v3/task-notifications/:task_id": false},
 		http.MethodGet:  {"/api/v3/contents/generations/tasks/:task_id": false},
 	}
 	for _, route := range router.Routes() {

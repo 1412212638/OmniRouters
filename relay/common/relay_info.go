@@ -235,11 +235,11 @@ type RelayInfo struct {
 }
 
 type seedreamImageBillingBase struct {
-	snapshot       *billingexpr.BillingSnapshot
-	requestInput   *billingexpr.RequestInput
-	imageCount     *int
-	preConsume     int
-	freeModel      bool
+	snapshot     *billingexpr.BillingSnapshot
+	requestInput *billingexpr.RequestInput
+	imageCount   *int
+	preConsume   int
+	freeModel    bool
 }
 
 // BeginSeedreamImageBilling temporarily selects the ordinary Seedream
@@ -1026,6 +1026,7 @@ type OriginTaskRef struct {
 	Action         string
 	Status         string
 	Data           []byte
+	BillingFacts   map[string]any
 }
 
 type TaskSubmitReq struct {

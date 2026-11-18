@@ -752,6 +752,7 @@ func RelayTask(c *gin.Context) {
 			common.SysError("insert task error: " + insertErr.Error())
 		}
 		service.LogTaskConsumption(c, relayInfo, task)
+		service.ActivateDoubaoCallback(task)
 		presentTaskSubmission(c, &taskSubmissionOutcome{Result: result, Task: task, RelayInfo: relayInfo})
 	}
 
@@ -867,6 +868,7 @@ func executeTaskSubmission(c *gin.Context, relayInfo *relaycommon.RelayInfo) (*t
 		common.SysError("settle task billing error: " + settleErr.Error())
 	}
 	service.LogTaskConsumption(c, relayInfo, task)
+	service.ActivateDoubaoCallback(task)
 	return &taskSubmissionOutcome{Result: result, Task: task, RelayInfo: relayInfo}, nil
 }
 

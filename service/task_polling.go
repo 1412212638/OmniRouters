@@ -139,6 +139,7 @@ func RunTaskPollingOnce(ctx context.Context, report func(processed, total int)) 
 	if ctx == nil {
 		ctx = context.Background()
 	}
+	defer DispatchDoubaoCallbacks(ctx)
 
 	common.SysLog("任务进度轮询开始")
 	sweepTimedOutTasks(ctx)
