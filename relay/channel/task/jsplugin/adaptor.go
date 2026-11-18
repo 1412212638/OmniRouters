@@ -1071,9 +1071,6 @@ func (a *TaskAdaptor) BuildContentRequest(task *model.Task, artifactKey string, 
 	if task != nil && a.isAstraFlowOmni(task.Action) {
 		return a.buildOmniInlineContent(task, artifactKey, clientRequest)
 	}
-	if a.info == nil {
-		return nil, fmt.Errorf("plugin adaptor is not initialized")
-	}
 	if !taskArtifactKeyPattern.MatchString(artifactKey) {
 		return nil, fmt.Errorf("invalid artifact key")
 	}
@@ -1083,10 +1080,16 @@ func (a *TaskAdaptor) BuildContentRequest(task *model.Task, artifactKey string, 
 	}
 	ctx["upstreamTaskId"] = task.GetUpstreamTaskID()
 	ctx["artifactKey"] = artifactKey
-	ctx["baseUrl"] = a.info.ChannelBaseUrl
+	if a.info != nil {
+		ctx["baseUrl"] = a.info.ChannelBaseUrl
+	} else {
+		ctx["baseUrl"] = ""
+	}
 	ctx["clientRequest"] = jsonValue(clientRequest)
-	if err = a.applyUpstreamCredentials(ctx, a.info.ChannelType, a.info.ApiKey, a.info.ChannelSetting.Proxy); err != nil {
-		return nil, err
+	if a.info != nil {
+		if err = a.applyUpstreamCredentials(ctx, a.info.ChannelType, a.info.ApiKey, a.info.ChannelSetting.Proxy); err != nil {
+			return nil, err
+		}
 	}
 	value, err := a.plugin.Engine.Call(context.Background(), "buildContentRequest", ctx)
 	if err != nil {
@@ -1122,6 +1125,8 @@ func (a *TaskAdaptor) BuildContentRequest(task *model.Task, artifactKey string, 
 		if parseErr != nil || parsedURL.Host == "" || (parsedURL.Scheme != "http" && parsedURL.Scheme != "https") {
 			return nil, fmt.Errorf("credentialless artifact request URL must be absolute HTTP(S)")
 		}
+	} else if a.info == nil {
+		return nil, fmt.Errorf("plugin adaptor is not initialized")
 	} else if err = pluginruntime.ValidateRequestURL(descriptor.URL, a.info.ChannelBaseUrl, a.plugin.Meta.AllowedHosts); err != nil {
 		return nil, err
 	}

@@ -175,10 +175,15 @@ export function parseTaskResult(ctx, body) {
 }
 
 function artifactData(ctx) {
-  const data = (ctx && ctx.data) || [];
-  if (data.data && typeof data.data === "object" && data.data.task_id && Object.prototype.hasOwnProperty.call(data.data, "data")) {
-    const nested = data.data.data;
-    return Array.isArray(nested) ? nested : nested && typeof nested === "object" ? [nested] : [];
+  let data = (ctx && ctx.data) || [];
+  for (let depth = 0; depth < 3; depth++) {
+    if (Array.isArray(data)) return data;
+    if (!data || typeof data !== "object") return [];
+    if (!Object.prototype.hasOwnProperty.call(data, "data")) return [data];
+    const nested = data.data;
+    if (Array.isArray(nested)) return nested;
+    if (!nested || typeof nested !== "object") return [data];
+    data = nested;
   }
   return Array.isArray(data) ? data : data && typeof data === "object" ? [data] : [];
 }
@@ -216,7 +221,7 @@ export function buildContentRequest(ctx) {
 }
 
 export function extractUsageOnComplete(task, taskResult, body) {
-  const values = Array.isArray(body) ? body : body && typeof body === "object" ? [body] : [];
+  const values = artifactData({ data: body });
   if (values.length === 0) return {};
   const music = values.some(function (item) {
     return item && (trimmed(item.audio_url) || trimmed(item.video_url));

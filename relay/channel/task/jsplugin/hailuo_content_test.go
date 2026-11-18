@@ -156,3 +156,21 @@ export function buildContentRequest() {
 	require.Equal(t, map[string]string{"Accept": "application/json"}, result.Headers)
 	require.False(t, result.Credentialless)
 }
+
+func TestCredentiallessArtifactDoesNotRequireChannelInitialization(t *testing.T) {
+	plugin, err := pluginruntime.NewRegistry().RegisterFactory(`
+export const meta = {apiVersion:1,key:"credentialless-content",name:"fixture",version:"1.0.0",author:{name:"fixture"},models:["fixture"],fetchMode:"per_task"};
+export function buildSubmitRequest() {return {};}
+export function parseSubmitResponse() {return {taskId:"fixture"};}
+export function buildQueryRequest() {return {};}
+export function parseTaskResult() {return {status:"SUCCESS"};}
+export function listArtifacts() {return [{key:"audio",type:"audio"}];}
+export function buildContentRequest(ctx) {return {url:"https://cdn.example/audio.mp3",method:ctx.clientRequest.method,credentialless:true};}
+`, pluginruntime.Options{Key: "credentialless-content"})
+	require.NoError(t, err)
+	result, err := New(plugin).BuildContentRequest(&model.Task{}, "audio", channel.TaskArtifactClientRequest{Method: http.MethodGet})
+	require.NoError(t, err)
+	require.Equal(t, "https://cdn.example/audio.mp3", result.URL)
+	require.Equal(t, http.MethodGet, result.Method)
+	require.True(t, result.Credentialless)
+}
