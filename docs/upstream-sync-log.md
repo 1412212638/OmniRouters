@@ -6,7 +6,7 @@
 - Changed: Suno music keeps the two-clip submit estimate and completion settlement now uses the actual number of returned clips, so a three-clip response settles as three units. The plugin also unwraps nested provider `data` envelopes before usage extraction and artifact URL resolution. Credentialless task-plugin artifact requests can now be built without a submission-time `RelayInfo`, while credentialed artifact requests still require initialized channel context and URL validation.
 - Preserved: Suno request payloads, native response shapes, upstream polling, task ownership, signed artifact access, configured expressions and prices, group multipliers, pre-consume/settlement/refunds, all other task plugins, and protected project attributions. Existing saved expressions continue to use the `clips` field as the per-clip unit.
 - Validation: added Suno plugin regressions for nested task envelopes, two-clip submit estimation, three-clip completion settlement, audio/cover artifact extraction and credentialless content requests. `node --check plugins/tasks/sunoapi/plugin.js`, the five-case Bun task-media test, `bun run build`, and `git diff --check` passed previously; Go/gofmt are unavailable in this session, so targeted Go tests and formatting remain to be run in a Go-enabled environment; no paid upstream request was made.
-- Source commit and push status: local changes are not committed or pushed.
+- Source commit and push status: behavior change committed as `9d3635eef` and pushed to `origin/main`; this log correction is included in the follow-up documentation commit.
 
 ## 2026-11-17 - Route Suno native requests through the declared plugin hooks
 
