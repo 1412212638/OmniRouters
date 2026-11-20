@@ -6216,6 +6216,27 @@
     "Per token": "Par token",
     "MiniMax H3 Create API": "API de création vidéo MiniMax H3",
     "MiniMax H3 Query API": "API de consultation vidéo MiniMax H3",
-    "MiniMax H3 native video task API": "API native de tâches vidéo MiniMax H3"
+    "MiniMax H3 native video task API": "API native de tâches vidéo MiniMax H3",
+    "Marketing email delivery": "Envoi des e-mails marketing",
+    "Use system delivery": "Utiliser l’envoi système",
+    "Independent SMTP": "SMTP indépendant",
+    "SMTP server": "Serveur SMTP",
+    "SMTP account": "Compte SMTP",
+    "Marketing sender address": "Adresse d’expédition marketing",
+    "Reply-To address": "Adresse de réponse",
+    "SMTP password": "Mot de passe SMTP",
+    "Configured · leave blank to keep": "Configuré · laisser vide pour conserver",
+    "SMTP port (SSL/TLS)": "Port SMTP (SSL/TLS)",
+    "Tencent Cloud SES callback URL": "URL de rappel Tencent Cloud SES",
+    "Emails per second": "E-mails par seconde",
+    "Save marketing delivery": "Enregistrer les paramètres d’envoi marketing",
+    "Test recipient address": "Adresse de test",
+    "Send test email": "Envoyer un e-mail de test",
+    "Marketing delivery settings saved": "Paramètres d’envoi marketing enregistrés",
+    "Failed to save marketing delivery settings": "Impossible d’enregistrer les paramètres d’envoi marketing",
+    "Failed to load marketing delivery settings": "Impossible de charger les paramètres d’envoi marketing",
+    "Test email submitted": "E-mail de test soumis",
+    "Failed to send test email": "Échec de l’envoi de l’e-mail de test",
+    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "Soumis {{sent}} · Ignorés {{skipped}} · Échecs {{failed}} · Non confirmés {{unconfirmed}}"
   }
 }

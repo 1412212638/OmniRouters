@@ -1,6 +1,7 @@
 package service
 
 import (
+	"html"
 	"strings"
 	"testing"
 
@@ -34,9 +35,12 @@ func TestMarketingEmailHonorsOptOutAndIncludesUnsubscribeLink(t *testing.T) {
 	require.NoError(t, SendMarketingEmailToUser(user, "{{system_name}} update", "<p>Hello {{username}}</p>", send))
 	assert.Equal(t, "user@example.com", sentTo)
 	assert.Contains(t, sentContent, "marketing-user")
-	assert.Contains(t, sentContent, "https://platform.example/api/marketing_email/unsubscribe?user_id=42&token=")
-	assert.True(t, VerifyMarketingEmailUnsubscribeToken(42, strings.Split(strings.Split(sentContent, "token=")[1], "\"")[0]))
-	assert.False(t, VerifyMarketingEmailUnsubscribeToken(43, strings.Split(strings.Split(sentContent, "token=")[1], "\"")[0]))
+	assert.Contains(t, html.UnescapeString(sentContent), "https://platform.example/api/marketing_email/unsubscribe?user_id=42&token=")
+	_, tokenAndRest, found := strings.Cut(sentContent, "token=")
+	require.True(t, found)
+	token, _, _ := strings.Cut(tokenAndRest, "\"")
+	assert.True(t, VerifyMarketingEmailUnsubscribeToken(42, token))
+	assert.False(t, VerifyMarketingEmailUnsubscribeToken(43, token))
 
 	enabled := false
 	user.SetSetting(dto.UserSetting{MarketingEmailEnabled: &enabled})
@@ -47,4 +51,3 @@ func TestMarketingEmailHonorsOptOutAndIncludesUnsubscribeLink(t *testing.T) {
 	assert.Empty(t, sentTo)
 	assert.Empty(t, sentContent)
 }
-

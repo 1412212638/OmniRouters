@@ -12,12 +12,14 @@ import (
 )
 
 func ShowMarketingEmailUnsubscribe(c *gin.Context) {
+	c.Header("Cache-Control", "no-store")
+	c.Header("Referrer-Policy", "no-referrer")
 	userID, err := strconv.Atoi(c.Query("user_id"))
 	if err != nil || !service.VerifyMarketingEmailUnsubscribeToken(userID, c.Query("token")) {
 		c.String(http.StatusBadRequest, "This unsubscribe link is invalid.")
 		return
 	}
-	if _, err := model.GetUserById(userID, true); err != nil {
+	if _, err := model.GetUserById(userID, false); err != nil {
 		c.String(http.StatusNotFound, "This account could not be found.")
 		return
 	}
@@ -26,8 +28,15 @@ func ShowMarketingEmailUnsubscribe(c *gin.Context) {
 }
 
 func ApplyMarketingEmailUnsubscribe(c *gin.Context) {
-	userID, err := strconv.Atoi(c.PostForm("user_id"))
-	if err != nil || !service.VerifyMarketingEmailUnsubscribeToken(userID, c.PostForm("token")) {
+	c.Header("Cache-Control", "no-store")
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 8192)
+	oneClick := c.PostForm("List-Unsubscribe") == "One-Click"
+	id, token := c.PostForm("user_id"), c.PostForm("token")
+	if oneClick {
+		id, token = c.Query("user_id"), c.Query("token")
+	}
+	userID, err := strconv.Atoi(id)
+	if err != nil || !service.VerifyMarketingEmailUnsubscribeToken(userID, token) {
 		c.String(http.StatusBadRequest, "This unsubscribe link is invalid.")
 		return
 	}
@@ -37,6 +46,10 @@ func ApplyMarketingEmailUnsubscribe(c *gin.Context) {
 			return
 		}
 		c.String(http.StatusInternalServerError, "Could not update email preferences.")
+		return
+	}
+	if oneClick {
+		c.Status(http.StatusOK)
 		return
 	}
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte("<!doctype html><html><head><meta charset=\"utf-8\"><title>Email preferences</title></head><body style=\"font-family:system-ui,sans-serif;max-width:520px;margin:12vh auto;padding:24px;color:#1f2937\"><h1>Unsubscribed</h1><p>You will no longer receive marketing emails and offers.</p></body></html>"))

@@ -119,7 +119,7 @@ export type SystemTaskResponse<TTask = SystemTask | null> = {
 export type MarketingEmailSendTask = SystemTask<
   Record<string, unknown>,
   { total: number; processed: number; progress: number },
-  { total: number; sent: number; skipped: number; failed: number }
+  { total: number; sent: number; skipped: number; failed: number; unconfirmed?: number }
 >
 
 export type SystemTaskListResponse = {

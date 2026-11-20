@@ -6169,6 +6169,27 @@
     "Per token": "依 Tokens 計費",
     "MiniMax H3 Create API": "MiniMax H3 影片提交介面",
     "MiniMax H3 Query API": "MiniMax H3 影片查詢介面",
-    "MiniMax H3 native video task API": "MiniMax H3 原生影片任務介面"
+    "MiniMax H3 native video task API": "MiniMax H3 原生影片任務介面",
+    "Marketing email delivery": "行銷郵件寄送",
+    "Use system delivery": "沿用系統寄送設定",
+    "Independent SMTP": "獨立 SMTP",
+    "SMTP server": "SMTP 伺服器",
+    "SMTP account": "SMTP 帳號",
+    "Marketing sender address": "行銷寄件地址",
+    "Reply-To address": "回覆信箱",
+    "SMTP password": "SMTP 密碼",
+    "Configured · leave blank to keep": "已設定，留空即可保留",
+    "SMTP port (SSL/TLS)": "SMTP 連接埠（SSL/TLS）",
+    "Tencent Cloud SES callback URL": "騰訊雲 SES 回呼網址",
+    "Emails per second": "每秒寄送封數",
+    "Save marketing delivery": "儲存行銷寄送設定",
+    "Test recipient address": "測試收件地址",
+    "Send test email": "寄送測試郵件",
+    "Marketing delivery settings saved": "已儲存行銷寄送設定",
+    "Failed to save marketing delivery settings": "無法儲存行銷寄送設定",
+    "Failed to load marketing delivery settings": "無法載入行銷寄送設定",
+    "Test email submitted": "已提交測試郵件",
+    "Failed to send test email": "測試郵件寄送失敗",
+    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "已提交 {{sent}} · 已略過 {{skipped}} · 失敗 {{failed}} · 未確認 {{unconfirmed}}"
   }
 }

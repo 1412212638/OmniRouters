@@ -43,6 +43,8 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/about", controller.GetAbout)
 		apiRouter.GET("/marketing_email/unsubscribe", controller.ShowMarketingEmailUnsubscribe)
 		apiRouter.POST("/marketing_email/unsubscribe", controller.ApplyMarketingEmailUnsubscribe)
+		apiRouter.GET("/marketing_email/ses_callback", controller.MarketingSESEvent)
+		apiRouter.POST("/marketing_email/ses_callback", controller.MarketingSESEvent)
 		//apiRouter.GET("/midjourney", controller.GetMidjourney)
 		apiRouter.GET("/home_page_content", controller.GetHomePageContent)
 		apiRouter.GET("/pricing", middleware.HeaderNavModuleAuth("pricing"), controller.GetPricing)
@@ -302,6 +304,10 @@ func SetApiRouter(router *gin.Engine) {
 			emailSettingsRoute.PUT("/option", controller.UpdateEmailSettingOption)
 			emailSettingsRoute.POST("/marketing_email/send", middleware.CriticalRateLimit(), controller.SendMarketingEmail)
 			emailSettingsRoute.GET("/marketing_email/audience", controller.GetMarketingEmailAudience)
+			emailSettingsRoute.GET("/marketing_email/tasks/:task_id", controller.GetMarketingEmailSendTask)
+			emailSettingsRoute.GET("/marketing_email/delivery", controller.GetMarketingSMTPSettings)
+			emailSettingsRoute.PUT("/marketing_email/delivery", controller.UpdateMarketingSMTPSettings)
+			emailSettingsRoute.POST("/marketing_email/delivery/test", middleware.CriticalRateLimit(), controller.TestMarketingSMTPSettings)
 		}
 
 		taskPluginRoute := apiRouter.Group("/plugin/task")

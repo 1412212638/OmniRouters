@@ -1,10 +1,50 @@
 package model
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"strings"
 
 	"github.com/QuantumNous/new-api/common"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
+
+func GetMarketingSMTPConfig() (common.MarketingSMTPConfig, error) {
+	var option Option
+	err := DB.Where(&Option{Key: common.MarketingSMTPOption}).Take(&option).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return common.DecodeMarketingSMTPConfig("")
+	}
+	if err != nil {
+		return common.MarketingSMTPConfig{}, err
+	}
+	return common.DecodeMarketingSMTPConfig(option.Value)
+}
+
+type MarketingEmailSuppression struct {
+	AddressHash string `gorm:"type:varchar(64);primaryKey"`
+	Reason      string `gorm:"type:varchar(32)"`
+	CreatedAt   int64
+}
+
+func marketingEmailAddressHash(address string) string {
+	hash := sha256.Sum256([]byte(strings.ToLower(strings.TrimSpace(address))))
+	return hex.EncodeToString(hash[:])
+}
+
+func IsMarketingEmailSuppressed(address string) (bool, error) {
+	var count int64
+	err := DB.Model(&MarketingEmailSuppression{}).Where("address_hash = ?", marketingEmailAddressHash(address)).Count(&count).Error
+	return count != 0, err
+}
+
+func SuppressMarketingEmail(address, reason string) error {
+	return DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&MarketingEmailSuppression{
+		AddressHash: marketingEmailAddressHash(address), Reason: reason,
+	}).Error
+}
 
 func GetMarketingEmailAudienceUserIDs(audienceType, group string, userIDs []int, max int) ([]int, error) {
 	if max <= 0 {
@@ -32,7 +72,7 @@ func GetMarketingEmailAudienceUserIDs(audienceType, group string, userIDs []int,
 		return nil, errors.New("invalid audience type")
 	}
 	var result []int
-	if err := query.Order("id ASC").Limit(max + 1).Pluck("id", &result).Error; err != nil {
+	if err := query.Order("id ASC").Limit(max+1).Pluck("id", &result).Error; err != nil {
 		return nil, err
 	}
 	if len(result) > max {
@@ -42,14 +82,13 @@ func GetMarketingEmailAudienceUserIDs(audienceType, group string, userIDs []int,
 }
 
 func UpdateMarketingEmailPreference(userID int, enabled bool) error {
-	user, err := GetUserById(userID, true)
+	user, err := GetUserById(userID, false)
 	if err != nil {
 		return err
 	}
 	setting := user.GetSetting()
 	setting.MarketingEmailEnabled = &enabled
-	user.SetSetting(setting)
-	return user.Update(false)
+	return UpdateUserSetting(userID, setting)
 }
 
 func IsMarketingEmailUserEligible(user *User) bool {

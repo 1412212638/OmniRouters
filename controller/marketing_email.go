@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
@@ -17,6 +18,21 @@ type marketingEmailSendRequest struct {
 	UserIds         []int  `json:"user_ids"`
 	SubjectTemplate string `json:"subject_template"`
 	ContentTemplate string `json:"content_template"`
+}
+
+func GetMarketingEmailSendTask(c *gin.Context) {
+	task, err := model.GetSystemTaskByTaskID(c.Param("task_id"))
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	if task == nil || task.Type != model.SystemTaskTypeMarketingEmailSend {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "task not found"})
+		return
+	}
+	response := task.ToResponse()
+	response.Payload = nil
+	common.ApiSuccess(c, response)
 }
 
 func SendMarketingEmail(c *gin.Context) {

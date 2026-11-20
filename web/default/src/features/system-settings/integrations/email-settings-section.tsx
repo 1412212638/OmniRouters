@@ -49,6 +49,7 @@ import type {
   UpdateOptionRequest,
   UpdateOptionResponse,
 } from '../types'
+import { MarketingDeliverySection } from './marketing-delivery-section'
 
 const templateOptionKeys = [
   'EmailVerificationSubjectTemplate',
@@ -687,18 +688,21 @@ export function EmailSettingsSection({
             total: task.state.total,
           })
         }
-        if (task.status === 'succeeded') {
-          toast.success(
-            t('Sent: {{sent}}, skipped: {{skipped}}, failed: {{failed}}', {
-              sent: task.result?.sent || 0,
-              skipped: task.result?.skipped || 0,
-              failed: task.result?.failed || 0,
+        if (task.status === 'succeeded' || task.status === 'failed') {
+          const summary = task.result
+            ? t(
+                'Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}',
+                { ...task.result, unconfirmed: task.result.unconfirmed ?? 0 }
+              )
+            : undefined
+          if (task.status === 'failed') {
+            toast.error(task.error || t('Marketing email task failed'), {
+              description: summary,
             })
-          )
+          } else if (summary) {
+            toast.success(summary)
+          }
           break
-        }
-        if (task.status === 'failed') {
-          throw new Error(task.error || t('Marketing email task failed'))
         }
       }
     } catch (error) {
@@ -990,6 +994,7 @@ export function EmailSettingsSection({
           onSubmit={form.handleSubmit(onSubmit)}
           className='space-y-8'
           autoComplete='off'
+          noValidate
         >
           <FormField
             control={form.control}
@@ -1392,6 +1397,7 @@ export function EmailSettingsSection({
               </TabsList>
               {templateGroups.map((group) => (
                 <TabsContent key={group.id} value={group.id} className='mt-4'>
+                  {group.marketing && <MarketingDeliverySection />}
                   {renderTemplateFields(group)}
                 </TabsContent>
               ))}

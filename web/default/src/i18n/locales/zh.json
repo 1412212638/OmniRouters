@@ -6352,6 +6352,27 @@
     "Per token": "按 Tokens 计费",
     "MiniMax H3 Create API": "MiniMax H3 视频提交接口",
     "MiniMax H3 Query API": "MiniMax H3 视频查询接口",
-    "MiniMax H3 native video task API": "MiniMax H3 原生视频任务接口"
+    "MiniMax H3 native video task API": "MiniMax H3 原生视频任务接口",
+    "Marketing email delivery": "营销邮件发信",
+    "Use system delivery": "继承系统发信",
+    "Independent SMTP": "独立 SMTP",
+    "SMTP server": "SMTP 服务器",
+    "SMTP account": "SMTP 账号",
+    "Marketing sender address": "营销发件地址",
+    "Reply-To address": "回复邮箱",
+    "SMTP password": "SMTP 密码",
+    "Configured · leave blank to keep": "已配置，留空则保留",
+    "SMTP port (SSL/TLS)": "SMTP 端口（SSL/TLS）",
+    "Tencent Cloud SES callback URL": "腾讯云 SES 回调地址",
+    "Emails per second": "每秒发送封数",
+    "Save marketing delivery": "保存营销发信配置",
+    "Test recipient address": "试发收件地址",
+    "Send test email": "发送测试邮件",
+    "Marketing delivery settings saved": "营销发信配置已保存",
+    "Failed to save marketing delivery settings": "保存营销发信配置失败",
+    "Failed to load marketing delivery settings": "加载营销发信配置失败",
+    "Test email submitted": "测试邮件已提交",
+    "Failed to send test email": "发送测试邮件失败",
+    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "已提交 {{sent}} · 已跳过 {{skipped}} · 失败 {{failed}} · 未确认 {{unconfirmed}}"
   }
 }

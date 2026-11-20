@@ -32,7 +32,7 @@ func TestMarketingEmailAudienceFilters(t *testing.T) {
 
 	active, err := GetMarketingEmailAudienceUserIDs("active", "", nil, 100)
 	require.NoError(t, err)
-	require.Equal(t, []int{1, 2, 4}, active)
+	require.Equal(t, []int{1, 2}, active)
 
 	group, err := GetMarketingEmailAudienceUserIDs("group", "premium", nil, 100)
 	require.NoError(t, err)

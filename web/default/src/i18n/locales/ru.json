@@ -6216,6 +6216,27 @@
     "Per token": "За токен",
     "MiniMax H3 Create API": "API создания видео MiniMax H3",
     "MiniMax H3 Query API": "API проверки видео MiniMax H3",
-    "MiniMax H3 native video task API": "Нативный API видеозадач MiniMax H3"
+    "MiniMax H3 native video task API": "Нативный API видеозадач MiniMax H3",
+    "Marketing email delivery": "Отправка маркетинговых писем",
+    "Use system delivery": "Использовать системные настройки",
+    "Independent SMTP": "Отдельный SMTP",
+    "SMTP server": "SMTP-сервер",
+    "SMTP account": "Учётная запись SMTP",
+    "Marketing sender address": "Адрес отправителя рассылки",
+    "Reply-To address": "Адрес для ответов",
+    "SMTP password": "Пароль SMTP",
+    "Configured · leave blank to keep": "Настроено · оставьте пустым для сохранения",
+    "SMTP port (SSL/TLS)": "Порт SMTP (SSL/TLS)",
+    "Tencent Cloud SES callback URL": "URL обратного вызова Tencent Cloud SES",
+    "Emails per second": "Писем в секунду",
+    "Save marketing delivery": "Сохранить настройки рассылки",
+    "Test recipient address": "Адрес получателя тестового письма",
+    "Send test email": "Отправить тестовое письмо",
+    "Marketing delivery settings saved": "Настройки рассылки сохранены",
+    "Failed to save marketing delivery settings": "Не удалось сохранить настройки рассылки",
+    "Failed to load marketing delivery settings": "Не удалось загрузить настройки рассылки",
+    "Test email submitted": "Тестовое письмо передано для отправки",
+    "Failed to send test email": "Не удалось отправить тестовое письмо",
+    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "Передано {{sent}} · Пропущено {{skipped}} · Ошибки {{failed}} · Не подтверждено {{unconfirmed}}"
   }
 }

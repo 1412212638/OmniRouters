@@ -6216,6 +6216,27 @@
     "Per token": "Theo token",
     "MiniMax H3 Create API": "API tạo video MiniMax H3",
     "MiniMax H3 Query API": "API truy vấn video MiniMax H3",
-    "MiniMax H3 native video task API": "API tác vụ video gốc MiniMax H3"
+    "MiniMax H3 native video task API": "API tác vụ video gốc MiniMax H3",
+    "Marketing email delivery": "Gửi email tiếp thị",
+    "Use system delivery": "Dùng cấu hình gửi của hệ thống",
+    "Independent SMTP": "SMTP riêng",
+    "SMTP server": "Máy chủ SMTP",
+    "SMTP account": "Tài khoản SMTP",
+    "Marketing sender address": "Địa chỉ gửi email tiếp thị",
+    "Reply-To address": "Địa chỉ nhận phản hồi",
+    "SMTP password": "Mật khẩu SMTP",
+    "Configured · leave blank to keep": "Đã cấu hình · để trống để giữ nguyên",
+    "SMTP port (SSL/TLS)": "Cổng SMTP (SSL/TLS)",
+    "Tencent Cloud SES callback URL": "URL webhook Tencent Cloud SES",
+    "Emails per second": "Số email mỗi giây",
+    "Save marketing delivery": "Lưu cấu hình gửi email tiếp thị",
+    "Test recipient address": "Địa chỉ nhận email thử",
+    "Send test email": "Gửi email thử",
+    "Marketing delivery settings saved": "Đã lưu cấu hình gửi email tiếp thị",
+    "Failed to save marketing delivery settings": "Không thể lưu cấu hình gửi email tiếp thị",
+    "Failed to load marketing delivery settings": "Không thể tải cấu hình gửi email tiếp thị",
+    "Test email submitted": "Đã chuyển email thử cho máy chủ gửi",
+    "Failed to send test email": "Không thể gửi email thử",
+    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "Đã chuyển {{sent}} · Bỏ qua {{skipped}} · Thất bại {{failed}} · Chưa xác nhận {{unconfirmed}}"
   }
 }

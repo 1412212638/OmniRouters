@@ -148,9 +148,45 @@ export async function getMarketingEmailAudienceCount(params: {
 
 export async function getMarketingEmailSendTask(taskId: string) {
   const res = await api.get<SystemTaskResponse<MarketingEmailSendTask>>(
-    `/api/system-task/${taskId}`
+    `/api/email_settings/marketing_email/tasks/${encodeURIComponent(taskId)}`
   )
   return res.data
+}
+
+export type MarketingDeliverySettings = {
+  mode: 'inherit' | 'smtp'
+  server: string
+  port: number
+  account: string
+  password?: string
+  from: string
+  display_name: string
+  reply_to: string
+  per_second: number
+}
+
+type MarketingDeliveryResponse = {
+  success: boolean
+  message?: string
+  data?: {
+    settings: MarketingDeliverySettings
+    password_configured: boolean
+    callback_url: string
+  }
+}
+
+const marketingDeliveryPath = '/api/email_settings/marketing_email/delivery'
+
+export async function getMarketingDeliverySettings() {
+  return (await api.get<MarketingDeliveryResponse>(marketingDeliveryPath)).data
+}
+
+export async function saveMarketingDeliverySettings(settings: MarketingDeliverySettings) {
+  return (await api.put<MarketingDeliveryResponse>(marketingDeliveryPath, settings)).data
+}
+
+export async function testMarketingDelivery(recipient: string) {
+  return (await api.post<UpdateOptionResponse>(`${marketingDeliveryPath}/test`, { recipient })).data
 }
 
 
