@@ -5815,6 +5815,14 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Validation: `bun run build` passed for `web/default`; `git diff --check` passed. Changed frontend files had no new targeted Oxlint errors. Repository `bun run typecheck` remains blocked by existing unrelated errors in auth, channel, image playground, model settings, pricing and task-plugin files, plus missing test-library declarations. Go tests and gofmt could not run because no Go toolchain is available in this environment. No live email was sent. The backend change therefore still needs Go-enabled CI validation.
 - Commit and push: source commit `a129d2979` is included in the push to `origin/main` alongside this log update.
 
+## 2026-11-20 - Restore profile email binding after dashboard login
+
+- Local reason: the dashboard now signs users in with a Bearer token. The email binding handler still read the legacy session cookie and could return HTTP 500 after verifying the code.
+- Changed: `POST /api/oauth/email/bind` now runs the standard user authentication middleware and binds the email to the authenticated account. Personal access tokens cannot change the login email.
+- Preserved: the shared endpoint and request format used by both themes, support for authenticated legacy browser sessions, verification code validation, email uniqueness, rate limiting, and audit logging.
+- Validation: the SQLite route regression passed for dashboard login without a legacy cookie, missing login credentials, personal access tokens, invalid verification codes, normalized email persistence, and success auditing. The router, middleware, and controller packages built successfully. Broader tests reported failures in unrelated router and CORS cases and compilation errors in existing controller tests. The live service was not exercised.
+- Commit and push: source fix in the commit that adds this entry. Push to `origin/main` pending.
+
 ## 2026-11-20 - Add independent marketing SMTP and Tencent Cloud SES feedback
 
 - Local reason: send marketing campaigns through a dedicated, editable sender and SMTP credential while keeping transactional mail on its existing delivery configuration.
