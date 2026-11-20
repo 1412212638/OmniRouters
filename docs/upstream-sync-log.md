@@ -5813,7 +5813,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: removed the product digest and promotion screens, API handlers/routes, scheduled generation and delivery handlers, digest-specific options, model registrations and service code. Manual marketing mail now supports all enabled users, users with successful personal top-ups, users active in the last 30 days, and manually selected users. A recipient count is shown before sending. Sends run as a durable system task, report progress, and process recipients in bounded batches. Account status, marketing opt-out preference and email availability are rechecked before each send.
 - Preserved: marketing email templates, unsubscribe links and preference storage remain in place. Existing saved digest/promotion tables are left untouched as historical data and are no longer migrated or exposed by the application. No billing, account balance, subscription, channel, or model-pricing code changed.
 - Validation: `bun run build` passed for `web/default`; `git diff --check` passed. Changed frontend files had no new targeted Oxlint errors. Repository `bun run typecheck` remains blocked by existing unrelated errors in auth, channel, image playground, model settings, pricing and task-plugin files, plus missing test-library declarations. Go tests and gofmt could not run because no Go toolchain is available in this environment. No live email was sent. The backend change therefore still needs Go-enabled CI validation.
-- Commit and push: not committed and not pushed.
+- Commit and push: source commit `a129d2979` is included in the push to `origin/main` alongside this log update.
 
 ## 2026-11-20 - Enable ordinary-channel Seedream 5.5 usage billing
 
@@ -5821,4 +5821,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: registered `doubao-seedream-5.5` and `doubao-seedream-5-5-261028` as aliases of the Seedream 5.5 ordinary response-usage profile. They reuse the bounded Seedream image usage schema and existing request-side reservation plus response settlement path. Added regression coverage for both names and a Seedream 5.5 image-tier/reference-image expression.
 - Preserved: task-plugin expression resolution, plugin-vs-ordinary channel separation, pre-consume/settlement and all account, group, customer and subscription billing behavior. No pricing expression or stored configuration is changed automatically.
 - Validation: `git diff --check` passed. Go tests and gofmt could not run because the Go toolchain is unavailable in this environment. No live provider request was made.
-- Commit and push: not committed and not pushed.
+- Commit and push: source commit `a129d2979` is included in the push to `origin/main` alongside this log update.
