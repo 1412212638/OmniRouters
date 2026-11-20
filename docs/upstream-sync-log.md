@@ -5846,7 +5846,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: add a localized unsubscribe link inside the body of a complete HTML message, or at the end of a fragment. Preserve templates that already include an anchor to the recipient's unsubscribe URL.
 - Preserved: unsubscribe token verification, user preferences, the SES transport and callback, and the SMTP connection test.
 - Validation: isolated marketing service tests, gofmt and `git diff --check` passed. The production email and QQ Mail rendering were not retested.
-- Commit and push: pending.
+- Commit and push: source commit `26638b058` is included in the push to `origin/main` alongside this log update.
 
 ## 2026-11-20 - Allow signed unsubscribe form submissions with an opaque origin
 
@@ -5854,7 +5854,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: register only the unsubscribe POST before the dashboard CORS middleware. Its existing signature verification authorizes the preference update without a session.
 - Preserved: the unsubscribe URL, confirmation page, one-click POST, referrer policy, rate limiting, SES callback, and CORS enforcement for the dashboard and relay.
 - Validation: focused router tests and `git diff --check` passed. A signed form POST with `Origin: null` updates the preference, an invalid signature leaves it intact, and another API still rejects that origin. Full router tests failed in TypeSafe and public SEO cases, and the middleware CORS test run failed in `TestCORSRejectsUntrustedOrigin`. Live deployment was not tested.
-- Commit and push: pending.
+- Commit and push: source commit `26638b058` is included in the push to `origin/main` alongside this log update.
 
 ## 2026-11-20 - Accept custom marketing email recipients
 
@@ -5862,4 +5862,4 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Changed: the default email settings now offer a custom email audience. Limit each request to 100 addresses, validate and deduplicate addresses, check account opt-outs and address suppression before delivery, and generate signed address-level unsubscribe links without including the plaintext address. Both confirmation form and mail client one-click requests can suppress future marketing sends to an address.
 - Preserved: registered-user audiences, account-level unsubscribe links, SMTP test sends, and the existing campaign delivery and retry policies. Custom campaigns use the existing public HTTPS server address for unsubscribe links.
 - Validation: focused marketing router and service tests, backend package builds, and the default frontend production build passed. Repository typecheck and the changed email settings file's lint still report pre-existing errors. No live mail was sent.
-- Commit and push: pending.
+- Commit and push: source commit `26638b058` is included in the push to `origin/main` alongside this log update.
