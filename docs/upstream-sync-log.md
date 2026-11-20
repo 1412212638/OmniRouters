@@ -5822,7 +5822,7 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: system mail configuration and send callers, marketing templates, audience selection, body unsubscribe confirmation, and account marketing preferences. Upgrades default to inheriting the existing system delivery method. The new configuration controls are in the default theme and apply to campaigns from either theme.
 - Operations: set a public HTTPS server address and a stable `CRYPTO_SECRET` (or `SESSION_SECRET`) shared by all instances. In Default theme > Email Settings > Marketing, choose Independent SMTP, fill the SES host and port (Guangzhou: `gz-smtp.qcloudmail.com:465`), the SES SMTP account and password, the sender, and the reply address. Use the provided private callback URL in Tencent Cloud SES under the marketing sender's address-level callback settings. Configure the same callback for each sender address used in SES. Treat the URL as a credential. Verify the sender domain in SES, send a test, and confirm DKIM covers both unsubscribe headers before a live campaign.
 - Validation: production Go build of the touched packages, targeted common SMTP and Resend tests, isolated marketing controller/model/service tests, and default frontend build passed. Full package Go tests and frontend typecheck encounter existing unrelated compilation errors. No live SES send or webhook was exercised.
-- Commit and push: pending.
+- Commit and push: source commit `bdbd45642` is included in the push to `origin/main` alongside this log update.
 
 ## 2026-11-20 - Enable ordinary-channel Seedream 5.5 usage billing
 
