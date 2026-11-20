@@ -15,10 +15,12 @@ import (
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/setting/system_setting"
+	htmlparser "golang.org/x/net/html"
 )
 
 const (
 	MaxMarketingEmailRecipients  = 100000
+	maxCustomMarketingEmails     = 100
 	marketingEmailCountBatchSize = 500
 )
 
@@ -55,13 +57,14 @@ func GetMarketingEmailAudienceCount(audienceType, group string) (int, error) {
 }
 
 type MarketingEmailSendPayload struct {
-	UserIDs          []int  `json:"user_ids"`
-	SubjectTemplate  string `json:"subject_template"`
-	ContentTemplate  string `json:"content_template"`
-	DeliveryRevision string `json:"delivery_revision,omitempty"`
+	UserIDs          []int    `json:"user_ids"`
+	Emails           []string `json:"emails,omitempty"`
+	SubjectTemplate  string   `json:"subject_template"`
+	ContentTemplate  string   `json:"content_template"`
+	DeliveryRevision string   `json:"delivery_revision,omitempty"`
 }
 
-func StartMarketingEmailSend(audienceType, group string, userIds []int, subjectTemplate, contentTemplate string) (*model.SystemTask, error) {
+func StartMarketingEmailSend(audienceType, group string, userIds []int, emails []string, subjectTemplate, contentTemplate string) (*model.SystemTask, error) {
 	cfg, err := model.GetMarketingSMTPConfig()
 	if err != nil {
 		return nil, err
@@ -69,23 +72,33 @@ func StartMarketingEmailSend(audienceType, group string, userIds []int, subjectT
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
-	if err := validateMarketingUnsubscribeBase(cfg); err != nil {
-		return nil, err
+	if cfg.Mode == "smtp" || audienceType == "custom" {
+		if err := validateMarketingUnsubscribeBase(); err != nil {
+			return nil, err
+		}
 	}
-	ids := uniquePositiveUserIds(userIds)
-	if audienceType == "manual" && len(ids) > MaxMarketingEmailRecipients {
-		return nil, fmt.Errorf("单次最多发送 %d 个用户", MaxMarketingEmailRecipients)
+	payload := MarketingEmailSendPayload{
+		SubjectTemplate: subjectTemplate, ContentTemplate: contentTemplate, DeliveryRevision: marketingDeliveryRevision(cfg),
 	}
-	ids, err = model.GetMarketingEmailAudienceUserIDs(audienceType, group, ids, MaxMarketingEmailRecipients)
-	if err != nil {
-		return nil, err
+	if audienceType == "custom" {
+		payload.Emails, err = normalizeCustomMarketingEmails(emails)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		ids := uniquePositiveUserIds(userIds)
+		if audienceType == "manual" && len(ids) > MaxMarketingEmailRecipients {
+			return nil, fmt.Errorf("单次最多发送 %d 个用户", MaxMarketingEmailRecipients)
+		}
+		payload.UserIDs, err = model.GetMarketingEmailAudienceUserIDs(audienceType, group, ids, MaxMarketingEmailRecipients)
+		if err != nil {
+			return nil, err
+		}
+		if len(payload.UserIDs) == 0 {
+			return nil, errors.New("没有符合条件的收件人")
+		}
 	}
-	if len(ids) == 0 {
-		return nil, errors.New("没有符合条件的收件人")
-	}
-	task, created, err := EnqueueSystemTask(model.SystemTaskTypeMarketingEmailSend, MarketingEmailSendPayload{
-		UserIDs: ids, SubjectTemplate: subjectTemplate, ContentTemplate: contentTemplate, DeliveryRevision: marketingDeliveryRevision(cfg),
-	})
+	task, created, err := EnqueueSystemTask(model.SystemTaskTypeMarketingEmailSend, payload)
 	if err != nil {
 		return nil, err
 	}
@@ -95,15 +108,32 @@ func StartMarketingEmailSend(audienceType, group string, userIds []int, subjectT
 	return task, nil
 }
 
-func validateMarketingUnsubscribeBase(cfg common.MarketingSMTPConfig) error {
-	if cfg.Mode != "smtp" {
-		return nil
-	}
+func validateMarketingUnsubscribeBase() error {
 	base, err := url.Parse(strings.TrimSpace(system_setting.ServerAddress))
 	if err != nil || base.Scheme != "https" || base.Hostname() == "" || base.User != nil || base.RawQuery != "" || base.Fragment != "" {
 		return errors.New("configure a public HTTPS server address for marketing unsubscribe links")
 	}
 	return nil
+}
+
+func normalizeCustomMarketingEmails(emails []string) ([]string, error) {
+	if len(emails) == 0 || len(emails) > maxCustomMarketingEmails {
+		return nil, fmt.Errorf("enter between 1 and %d email addresses", maxCustomMarketingEmails)
+	}
+	unique := make([]string, 0, len(emails))
+	seen := make(map[string]struct{}, len(emails))
+	for _, raw := range emails {
+		address := strings.TrimSpace(raw)
+		if len(address) > 254 || !common.IsPlainEmailAddress(address) {
+			return nil, errors.New("invalid custom recipient email address")
+		}
+		key := strings.ToLower(address)
+		if _, exists := seen[key]; !exists {
+			seen[key] = struct{}{}
+			unique = append(unique, address)
+		}
+	}
+	return unique, nil
 }
 
 func marketingDeliveryRevision(cfg common.MarketingSMTPConfig) string {
@@ -150,12 +180,35 @@ func MarketingEmailUnsubscribeURL(userID int) string {
 	if userID <= 0 {
 		return ""
 	}
+	token := common.GenerateHMAC("marketing-unsubscribe:" + strconv.Itoa(userID))
+	return marketingUnsubscribeURL("user_id=" + strconv.Itoa(userID) + "&token=" + token)
+}
+
+func marketingAddressUnsubscribeURL(address string) string {
+	hash := model.MarketingEmailAddressHash(address)
+	query := url.Values{
+		"email_hash": {hash}, "token": {common.GenerateHMAC("marketing-address-unsubscribe:" + hash)},
+	}
+	return marketingUnsubscribeURL(query.Encode())
+}
+
+func marketingUnsubscribeURL(query string) string {
 	base := strings.TrimRight(strings.TrimSpace(system_setting.ServerAddress), "/")
 	if base == "" {
 		base = "http://localhost:3000"
 	}
-	token := common.GenerateHMAC("marketing-unsubscribe:" + strconv.Itoa(userID))
-	return fmt.Sprintf("%s/api/marketing_email/unsubscribe?user_id=%d&token=%s", base, userID, token)
+	return base + "/api/marketing_email/unsubscribe?" + query
+}
+
+func VerifyMarketingAddressUnsubscribeToken(hash, token string) bool {
+	if len(hash) != 64 {
+		return false
+	}
+	if _, err := hex.DecodeString(hash); err != nil || hash != strings.ToLower(hash) {
+		return false
+	}
+	expected := common.GenerateHMAC("marketing-address-unsubscribe:" + hash)
+	return hmac.Equal([]byte(token), []byte(expected))
 }
 
 func VerifyMarketingEmailUnsubscribeToken(userID int, token string) bool {
@@ -187,20 +240,64 @@ func SendMarketingEmailToUser(user *model.User, subjectTemplate, contentTemplate
 		}
 	}
 	unsubscribeURL := MarketingEmailUnsubscribeURL(user.Id)
-	subject, content := common.BuildMarketingMail(common.MarketingMailParams{
-		SystemName:      common.SystemName,
-		Username:        user.Username,
-		DisplayName:     user.DisplayName,
-		Email:           emailToUse,
-		UserId:          strconv.Itoa(user.Id),
-		UnsubscribeURL:  unsubscribeURL,
-		SubjectTemplate: subjectTemplate,
-		ContentTemplate: contentTemplate,
-	})
-	if unsubscribeURL != "" && !strings.Contains(content, unsubscribeURL) {
-		content += `<p style="margin-top:24px;color:#6b7280;font-size:12px">To stop receiving marketing emails, <a href="` + html.EscapeString(unsubscribeURL) + `">unsubscribe here</a>.</p>`
-	}
+	subject, content := buildMarketingRecipientMail(user, emailToUse, unsubscribeURL, subjectTemplate, contentTemplate)
 	return send(subject, emailToUse, content)
+}
+
+func buildMarketingRecipientMail(user *model.User, address, unsubscribeURL, subjectTemplate, contentTemplate string) (string, string) {
+	params := common.MarketingMailParams{
+		Email: address, Username: address, UnsubscribeURL: unsubscribeURL,
+		SubjectTemplate: subjectTemplate, ContentTemplate: contentTemplate,
+	}
+	if user != nil {
+		params.Username, params.DisplayName, params.UserId = user.Username, user.DisplayName, strconv.Itoa(user.Id)
+	}
+	subject, content := common.BuildMarketingMail(params)
+	return subject, addMarketingUnsubscribeFooter(content, unsubscribeURL)
+}
+
+func addMarketingUnsubscribeFooter(content, unsubscribeURL string) string {
+	if unsubscribeURL == "" {
+		return content
+	}
+	tokens := htmlparser.NewTokenizer(strings.NewReader(content))
+	offset, bodyEnd, documentEnd := 0, -1, -1
+	for kind := tokens.Next(); kind != htmlparser.ErrorToken; kind = tokens.Next() {
+		start := offset
+		offset += len(tokens.Raw())
+		switch kind {
+		case htmlparser.StartTagToken:
+			tag := tokens.Token()
+			if tag.Data != "a" {
+				continue
+			}
+			for _, attr := range tag.Attr {
+				if attr.Key == "href" && attr.Val == unsubscribeURL {
+					return content
+				}
+			}
+		case htmlparser.EndTagToken:
+			switch tokens.Token().Data {
+			case "body":
+				bodyEnd = start
+			case "html":
+				documentEnd = start
+			}
+		}
+	}
+	insertAt := len(content)
+	if bodyEnd >= 0 {
+		insertAt = bodyEnd
+	} else if documentEnd >= 0 {
+		insertAt = documentEnd
+	}
+	label := "退订营销邮件"
+	if common.IsEmailLanguageEnglish() {
+		label = "Unsubscribe from marketing emails"
+	}
+	footer := `<p style="max-width:560px;margin:20px auto;padding:0 16px;text-align:center;font-size:13px;line-height:1.5"><a style="color:#1d4ed8;text-decoration:underline" href="` +
+		html.EscapeString(unsubscribeURL) + `">` + label + `</a></p>`
+	return content[:insertAt] + footer + content[insertAt:]
 }
 
 func uniquePositiveUserIds(userIds []int) []int {

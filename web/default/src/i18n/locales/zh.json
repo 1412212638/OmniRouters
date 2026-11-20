@@ -6373,6 +6373,9 @@
     "Failed to load marketing delivery settings": "加载营销发信配置失败",
     "Test email submitted": "测试邮件已提交",
     "Failed to send test email": "发送测试邮件失败",
-    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "已提交 {{sent}} · 已跳过 {{skipped}} · 失败 {{failed}} · 未确认 {{unconfirmed}}"
+    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "已提交 {{sent}} · 已跳过 {{skipped}} · 失败 {{failed}} · 未确认 {{unconfirmed}}",
+    "Custom email addresses": "自定义邮箱",
+    "Enter up to {{count}} email addresses": "最多填写 {{count}} 个邮箱地址",
+    "Check the format of the email addresses": "请检查邮箱地址格式"
   }
 }

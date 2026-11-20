@@ -6237,6 +6237,9 @@
     "Failed to load marketing delivery settings": "Не удалось загрузить настройки рассылки",
     "Test email submitted": "Тестовое письмо передано для отправки",
     "Failed to send test email": "Не удалось отправить тестовое письмо",
-    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "Передано {{sent}} · Пропущено {{skipped}} · Ошибки {{failed}} · Не подтверждено {{unconfirmed}}"
+    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "Передано {{sent}} · Пропущено {{skipped}} · Ошибки {{failed}} · Не подтверждено {{unconfirmed}}",
+    "Custom email addresses": "Указанные вручную адреса",
+    "Enter up to {{count}} email addresses": "Введите не более {{count}} адресов электронной почты",
+    "Check the format of the email addresses": "Проверьте формат адресов электронной почты"
   }
 }

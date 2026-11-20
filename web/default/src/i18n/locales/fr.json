@@ -6237,6 +6237,9 @@
     "Failed to load marketing delivery settings": "Impossible de charger les paramètres d’envoi marketing",
     "Test email submitted": "E-mail de test soumis",
     "Failed to send test email": "Échec de l’envoi de l’e-mail de test",
-    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "Soumis {{sent}} · Ignorés {{skipped}} · Échecs {{failed}} · Non confirmés {{unconfirmed}}"
+    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "Soumis {{sent}} · Ignorés {{skipped}} · Échecs {{failed}} · Non confirmés {{unconfirmed}}",
+    "Custom email addresses": "Adresses e-mail personnalisées",
+    "Enter up to {{count}} email addresses": "Saisissez jusqu’à {{count}} adresses e-mail",
+    "Check the format of the email addresses": "Vérifiez le format des adresses e-mail"
   }
 }

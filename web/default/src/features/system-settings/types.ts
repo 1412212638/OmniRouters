@@ -47,9 +47,10 @@ export type SearchMarketingEmailUsersResponse = {
 }
 
 export type SendMarketingEmailRequest = {
-  audience_type: 'all' | 'topup' | 'active' | 'group' | 'manual'
+  audience_type: 'all' | 'topup' | 'active' | 'group' | 'manual' | 'custom'
   audience_group?: string
   user_ids?: number[]
+  emails?: string[]
   subject_template: string
   content_template: string
 }

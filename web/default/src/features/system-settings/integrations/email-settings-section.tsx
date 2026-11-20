@@ -10,6 +10,7 @@ import { TagInput } from '@/components/tag-input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import {
   Form,
   FormControl,
@@ -67,6 +68,9 @@ const templateOptionKeys = [
 ] as const
 
 type TemplateOptionKey = (typeof templateOptionKeys)[number]
+
+const customRecipientEmailSchema = z.email().max(254)
+const maxCustomRecipients = 100
 
 type TemplateGroup = {
   id: string
@@ -382,8 +386,27 @@ export function EmailSettingsSection({
   const [activeTemplate, setActiveTemplate] = useState(templateGroups[0].id)
   const [userKeyword, setUserKeyword] = useState('')
   const [marketingAudience, setMarketingAudience] = useState<
-    'all' | 'topup' | 'active' | 'manual'
+    'all' | 'topup' | 'active' | 'manual' | 'custom'
   >('manual')
+  const [customRecipientInput, setCustomRecipientInput] = useState('')
+  const customRecipients = new Map<string, string>()
+  const enteredEmails = customRecipientInput.split(/[\s,;，；]+/).filter(Boolean)
+  for (const address of enteredEmails) {
+    const key = address.toLowerCase()
+    if (!customRecipients.has(key)) customRecipients.set(key, address)
+  }
+  let customEmailError = ''
+  if (customRecipients.size > maxCustomRecipients) {
+    customEmailError = t('Enter up to {{count}} email addresses', {
+      count: maxCustomRecipients,
+    })
+  } else if (
+    enteredEmails.some(
+      (address) => !customRecipientEmailSchema.safeParse(address).success
+    )
+  ) {
+    customEmailError = t('Check the format of the email addresses')
+  }
   const [audienceCount, setAudienceCount] = useState<number | null>(null)
   const [loadingAudienceCount, setLoadingAudienceCount] = useState(false)
   const [userOptions, setUserOptions] = useState<MarketingEmailUser[]>([])
@@ -406,6 +429,10 @@ export function EmailSettingsSection({
   const watchedValues = form.watch()
 
   useEffect(() => {
+    if (marketingAudience === 'custom') {
+      setLoadingAudienceCount(false)
+      return
+    }
     if (marketingAudience === 'manual') {
       setAudienceCount(selectedUsers.length)
       setLoadingAudienceCount(false)
@@ -653,6 +680,13 @@ export function EmailSettingsSection({
       toast.error(t('Select at least one recipient'))
       return
     }
+    if (
+      marketingAudience === 'custom' &&
+      (customEmailError || customRecipients.size === 0)
+    ) {
+      toast.error(customEmailError || t('Select at least one recipient'))
+      return
+    }
     if (!subjectTemplate.trim() || !contentTemplate.trim()) {
       toast.error(t('Marketing email subject and content are required'))
       return
@@ -665,6 +699,10 @@ export function EmailSettingsSection({
         user_ids:
           marketingAudience === 'manual'
             ? selectedUsers.map((user) => user.id)
+            : undefined,
+        emails:
+          marketingAudience === 'custom'
+            ? [...customRecipients.values()]
             : undefined,
         subject_template: subjectTemplate,
         content_template: contentTemplate,
@@ -726,7 +764,11 @@ export function EmailSettingsSection({
       previewValues
     )
     let audienceCountText = ''
-    if (loadingAudienceCount) {
+    if (marketingAudience === 'custom') {
+      audienceCountText = t('{{count}} selected recipients', {
+        count: customRecipients.size,
+      })
+    } else if (loadingAudienceCount) {
       audienceCountText = t('Counting eligible recipients...')
     } else if (audienceCount === null) {
       audienceCountText = t('Unable to count recipients')
@@ -850,11 +892,9 @@ export function EmailSettingsSection({
               <label className='text-sm font-medium'>{t('Recipient group')}</label>
               <Select
                 value={marketingAudience}
-                onValueChange={(value) =>
-                  setMarketingAudience(
-                    value as 'all' | 'topup' | 'active' | 'manual'
-                  )
-                }
+                onValueChange={(value) => {
+                  if (value) setMarketingAudience(value)
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -864,6 +904,9 @@ export function EmailSettingsSection({
                   <SelectItem value='topup'>{t('Users who have topped up')}</SelectItem>
                   <SelectItem value='active'>{t('Active users (last 30 days)')}</SelectItem>
                   <SelectItem value='manual'>{t('Select users manually')}</SelectItem>
+                  <SelectItem value='custom'>
+                    {t('Custom email addresses')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <p className='text-muted-foreground text-sm' aria-live='polite'>
@@ -878,6 +921,31 @@ export function EmailSettingsSection({
                 </p>
               )}
             </div>
+
+            {marketingAudience === 'custom' && (
+              <Field data-invalid={!!customEmailError}>
+                <FieldLabel htmlFor='marketing-custom-recipients'>
+                  {t('Custom email addresses')}
+                </FieldLabel>
+                <Textarea
+                  id='marketing-custom-recipients'
+                  rows={3}
+                  maxLength={30_000}
+                  placeholder={'name@example.com\nname@gmail.com'}
+                  value={customRecipientInput}
+                  onChange={(event) => setCustomRecipientInput(event.target.value)}
+                  aria-invalid={!!customEmailError}
+                  aria-describedby={
+                    customEmailError ? 'marketing-custom-recipient-error' : undefined
+                  }
+                />
+                {customEmailError && (
+                  <FieldError id='marketing-custom-recipient-error' aria-live='polite'>
+                    {customEmailError}
+                  </FieldError>
+                )}
+              </Field>
+            )}
 
             {marketingAudience === 'manual' && <>
             <div className='flex flex-col gap-2 sm:flex-row'>
@@ -964,9 +1032,9 @@ export function EmailSettingsSection({
               onClick={handleSendMarketingEmail}
               disabled={
                 sendingMarketing ||
-                loadingAudienceCount ||
-                audienceCount === 0 ||
-                (marketingAudience !== 'manual' && audienceCount === null)
+                (marketingAudience === 'custom'
+                  ? !!customEmailError || customRecipients.size === 0
+                  : loadingAudienceCount || !audienceCount)
               }
             >
               {sendingMarketing ? (

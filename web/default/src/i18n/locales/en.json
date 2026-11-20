@@ -6413,6 +6413,9 @@
     "Failed to load marketing delivery settings": "Failed to load marketing delivery settings",
     "Test email submitted": "Test email submitted",
     "Failed to send test email": "Failed to send test email",
-    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}"
+    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}",
+    "Custom email addresses": "Custom email addresses",
+    "Enter up to {{count}} email addresses": "Enter up to {{count}} email addresses",
+    "Check the format of the email addresses": "Check the format of the email addresses"
   }
 }

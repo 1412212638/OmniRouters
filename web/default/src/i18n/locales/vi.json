@@ -6237,6 +6237,9 @@
     "Failed to load marketing delivery settings": "Không thể tải cấu hình gửi email tiếp thị",
     "Test email submitted": "Đã chuyển email thử cho máy chủ gửi",
     "Failed to send test email": "Không thể gửi email thử",
-    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "Đã chuyển {{sent}} · Bỏ qua {{skipped}} · Thất bại {{failed}} · Chưa xác nhận {{unconfirmed}}"
+    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "Đã chuyển {{sent}} · Bỏ qua {{skipped}} · Thất bại {{failed}} · Chưa xác nhận {{unconfirmed}}",
+    "Custom email addresses": "Địa chỉ email tùy chỉnh",
+    "Enter up to {{count}} email addresses": "Nhập tối đa {{count}} địa chỉ email",
+    "Check the format of the email addresses": "Kiểm tra định dạng của các địa chỉ email"
   }
 }

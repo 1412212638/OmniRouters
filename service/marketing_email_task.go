@@ -25,7 +25,8 @@ func (marketingEmailSendHandler) Run(ctx context.Context, task *model.SystemTask
 		failSystemTask(task, runnerID, err)
 		return
 	}
-	if len(payload.UserIDs) == 0 {
+	total := len(payload.UserIDs) + len(payload.Emails)
+	if total == 0 {
 		failSystemTask(task, runnerID, errors.New("marketing email audience is empty"))
 		return
 	}
@@ -40,20 +41,26 @@ func (marketingEmailSendHandler) Run(ctx context.Context, task *model.SystemTask
 	if err == nil && payload.DeliveryRevision == "" && cfg.Mode != "inherit" {
 		err = errors.New("campaign was queued before independent marketing delivery was configured")
 	}
-	if err == nil {
-		err = validateMarketingUnsubscribeBase(cfg)
+	if err == nil && (cfg.Mode == "smtp" || len(payload.Emails) > 0) {
+		err = validateMarketingUnsubscribeBase()
 	}
 	if err != nil {
 		failSystemTask(task, runnerID, err)
 		return
 	}
 
-	result := &MarketingEmailResult{Total: len(payload.UserIDs)}
+	result := &MarketingEmailResult{Total: total}
 	interval := time.Second / time.Duration(cfg.PerSecond)
 	var nextSend time.Time
 	lastProgress := time.Now()
-	for i, userID := range payload.UserIDs {
-		if err := deliverCampaignEmail(ctx, cfg, interval, &nextSend, userID, payload, result); err != nil {
+	for i := range total {
+		var recipient marketingEmailRecipient
+		if i < len(payload.UserIDs) {
+			recipient.userID = payload.UserIDs[i]
+		} else {
+			recipient.address = payload.Emails[i-len(payload.UserIDs)]
+		}
+		if err := deliverCampaignEmail(ctx, cfg, interval, &nextSend, recipient, payload, result); err != nil {
 			if finishErr := model.FinishSystemTask(task.TaskID, runnerID, model.SystemTaskStatusFailed, result, err.Error()); finishErr != nil {
 				logSystemTaskLockError(ctx, task, finishErr)
 			}
@@ -76,20 +83,53 @@ func (marketingEmailSendHandler) Run(ctx context.Context, task *model.SystemTask
 	}
 }
 
-func deliverCampaignEmail(ctx context.Context, cfg common.MarketingSMTPConfig, interval time.Duration, nextSend *time.Time, userID int, payload MarketingEmailSendPayload, result *MarketingEmailResult) error {
+type marketingEmailRecipient struct {
+	userID  int
+	address string
+}
+
+// Resolve again on each attempt so an opt-out takes effect during a campaign.
+func (recipient marketingEmailRecipient) resolve() (user *model.User, address, unsubscribe string, err error) {
+	if recipient.userID != 0 {
+		user, err = model.GetUserById(recipient.userID, false)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, "", "", nil
+		}
+		if err != nil || !marketingEmailUserHasDestination(user) {
+			return nil, "", "", err
+		}
+		return user, marketingEmailDestination(user), MarketingEmailUnsubscribeURL(user.Id), nil
+	}
+	address = recipient.address
+	users, err := model.GetMarketingEmailUsersByAddress(address)
+	if err != nil {
+		return nil, "", "", err
+	}
+	for i := range users {
+		if !model.IsMarketingEmailUserEligible(&users[i]) {
+			return nil, "", "", nil
+		}
+	}
+	if len(users) == 1 {
+		user = &users[0]
+	}
+	return user, address, marketingAddressUnsubscribeURL(address), nil
+}
+
+func deliverCampaignEmail(ctx context.Context, cfg common.MarketingSMTPConfig, interval time.Duration, nextSend *time.Time, recipient marketingEmailRecipient, payload MarketingEmailSendPayload, result *MarketingEmailResult) error {
 	for attempt := 0; ; attempt++ {
 		if err := waitMarketingEmail(ctx, time.Until(*nextSend)); err != nil {
 			return err
 		}
-		user, err := model.GetUserById(userID, false)
-		if errors.Is(err, gorm.ErrRecordNotFound) || (err == nil && !marketingEmailUserHasDestination(user)) {
-			result.Skipped++
-			return nil
-		}
+		user, address, unsubscribe, err := recipient.resolve()
 		if err != nil {
 			return err
 		}
-		suppressed, err := model.IsMarketingEmailSuppressed(marketingEmailDestination(user))
+		if address == "" {
+			result.Skipped++
+			return nil
+		}
+		suppressed, err := model.IsMarketingEmailSuppressed(address)
 		if err != nil {
 			return err
 		}
@@ -97,10 +137,16 @@ func deliverCampaignEmail(ctx context.Context, cfg common.MarketingSMTPConfig, i
 			result.Skipped++
 			return nil
 		}
-		err = SendMarketingEmailToUser(user, payload.SubjectTemplate, payload.ContentTemplate, func(subject, recipient, content string) error {
+		send := func(subject, to, content string) error {
 			*nextSend = time.Now().Add(interval)
-			return SendMarketingMessage(ctx, cfg, subject, recipient, content, MarketingEmailUnsubscribeURL(userID))
-		})
+			return SendMarketingMessage(ctx, cfg, subject, to, content, unsubscribe)
+		}
+		if recipient.userID != 0 {
+			err = SendMarketingEmailToUser(user, payload.SubjectTemplate, payload.ContentTemplate, send)
+		} else {
+			subject, content := buildMarketingRecipientMail(user, address, unsubscribe, payload.SubjectTemplate, payload.ContentTemplate)
+			err = send(subject, address, content)
+		}
 		if err == nil {
 			result.Sent++
 			return nil

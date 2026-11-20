@@ -6237,6 +6237,9 @@
     "Failed to load marketing delivery settings": "マーケティング配信設定を読み込めませんでした",
     "Test email submitted": "テストメールを送信サーバーに渡しました",
     "Failed to send test email": "テストメールを送信できませんでした",
-    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "提出済み {{sent}} · スキップ {{skipped}} · 失敗 {{failed}} · 未確認 {{unconfirmed}}"
+    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "提出済み {{sent}} · スキップ {{skipped}} · 失敗 {{failed}} · 未確認 {{unconfirmed}}",
+    "Custom email addresses": "メールアドレスを直接入力",
+    "Enter up to {{count}} email addresses": "メールアドレスは {{count}} 件まで入力できます",
+    "Check the format of the email addresses": "メールアドレスの形式を確認してください"
   }
 }

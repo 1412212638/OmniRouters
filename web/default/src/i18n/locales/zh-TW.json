@@ -6190,6 +6190,9 @@
     "Failed to load marketing delivery settings": "無法載入行銷寄送設定",
     "Test email submitted": "已提交測試郵件",
     "Failed to send test email": "測試郵件寄送失敗",
-    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "已提交 {{sent}} · 已略過 {{skipped}} · 失敗 {{failed}} · 未確認 {{unconfirmed}}"
+    "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "已提交 {{sent}} · 已略過 {{skipped}} · 失敗 {{failed}} · 未確認 {{unconfirmed}}",
+    "Custom email addresses": "自訂電子郵件地址",
+    "Enter up to {{count}} email addresses": "最多可輸入 {{count}} 個電子郵件地址",
+    "Check the format of the email addresses": "請檢查電子郵件地址格式"
   }
 }

@@ -21,6 +21,9 @@ func SetApiRouter(router *gin.Engine) {
 	apiRouter.Use(middleware.AuditRequests())
 	apiRouter.Use(middleware.BodyStorageCleanup()) // 清理请求体存储
 	apiRouter.Use(middleware.GlobalAPIRateLimit())
+	// Referrer-Policy can give the public unsubscribe form an opaque origin.
+	// The POST is authorized by its signed link and does not use a session.
+	apiRouter.POST("/marketing_email/unsubscribe", controller.ApplyMarketingEmailUnsubscribe)
 	apiRouter.Use(middleware.CORS())
 	apiRouter.POST("/v3/contents/generations/tasks", doubaoNativeSubmitHandlers(http.MethodPost, "/doubao/api/v3/contents/generations/tasks")...)
 	apiRouter.GET("/v3/contents/generations/tasks/:task_id", doubaoNativeQueryHandlers(http.MethodGet, "/doubao/api/v3/contents/generations/tasks/:task_id")...)
@@ -42,7 +45,6 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/privacy-policy", controller.GetPrivacyPolicy)
 		apiRouter.GET("/about", controller.GetAbout)
 		apiRouter.GET("/marketing_email/unsubscribe", controller.ShowMarketingEmailUnsubscribe)
-		apiRouter.POST("/marketing_email/unsubscribe", controller.ApplyMarketingEmailUnsubscribe)
 		apiRouter.GET("/marketing_email/ses_callback", controller.MarketingSESEvent)
 		apiRouter.POST("/marketing_email/ses_callback", controller.MarketingSESEvent)
 		//apiRouter.GET("/midjourney", controller.GetMidjourney)

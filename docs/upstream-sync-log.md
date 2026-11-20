@@ -5839,3 +5839,27 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: task-plugin expression resolution, plugin-vs-ordinary channel separation, pre-consume/settlement and all account, group, customer and subscription billing behavior. No pricing expression or stored configuration is changed automatically.
 - Validation: `git diff --check` passed. Go tests and gofmt could not run because the Go toolchain is unavailable in this environment. No live provider request was made.
 - Commit and push: source commit `a129d2979` is included in the push to `origin/main` alongside this log update.
+
+## 2026-11-20 - Keep the marketing unsubscribe link inside the email body
+
+- Local reason: a marketing email shown in QQ Mail had no visible unsubscribe link in the captured area. Complete HTML templates could place the fallback footer outside the body, and a bare occurrence of the unsubscribe URL could prevent the footer from being added.
+- Changed: add a localized unsubscribe link inside the body of a complete HTML message, or at the end of a fragment. Preserve templates that already include an anchor to the recipient's unsubscribe URL.
+- Preserved: unsubscribe token verification, user preferences, the SES transport and callback, and the SMTP connection test.
+- Validation: isolated marketing service tests, gofmt and `git diff --check` passed. The production email and QQ Mail rendering were not retested.
+- Commit and push: pending.
+
+## 2026-11-20 - Allow signed unsubscribe form submissions with an opaque origin
+
+- Local reason: opening the marketing email unsubscribe page worked, but its form POST was rejected by dashboard CORS. The page's referrer policy and email client context can cause the browser to submit with `Origin: null`.
+- Changed: register only the unsubscribe POST before the dashboard CORS middleware. Its existing signature verification authorizes the preference update without a session.
+- Preserved: the unsubscribe URL, confirmation page, one-click POST, referrer policy, rate limiting, SES callback, and CORS enforcement for the dashboard and relay.
+- Validation: focused router tests and `git diff --check` passed. A signed form POST with `Origin: null` updates the preference, an invalid signature leaves it intact, and another API still rejects that origin. Full router tests failed in TypeSafe and public SEO cases, and the middleware CORS test run failed in `TestCORSRejectsUntrustedOrigin`. Live deployment was not tested.
+- Commit and push: pending.
+
+## 2026-11-20 - Accept custom marketing email recipients
+
+- Local reason: let administrators send a marketing template to specified addresses, including recipients without an account.
+- Changed: the default email settings now offer a custom email audience. Limit each request to 100 addresses, validate and deduplicate addresses, check account opt-outs and address suppression before delivery, and generate signed address-level unsubscribe links without including the plaintext address. Both confirmation form and mail client one-click requests can suppress future marketing sends to an address.
+- Preserved: registered-user audiences, account-level unsubscribe links, SMTP test sends, and the existing campaign delivery and retry policies. Custom campaigns use the existing public HTTPS server address for unsubscribe links.
+- Validation: focused marketing router and service tests, backend package builds, and the default frontend production build passed. Repository typecheck and the changed email settings file's lint still report pre-existing errors. No live mail was sent.
+- Commit and push: pending.

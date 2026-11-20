@@ -29,21 +29,51 @@ type MarketingEmailSuppression struct {
 	CreatedAt   int64
 }
 
-func marketingEmailAddressHash(address string) string {
+func MarketingEmailAddressHash(address string) string {
 	hash := sha256.Sum256([]byte(strings.ToLower(strings.TrimSpace(address))))
 	return hex.EncodeToString(hash[:])
 }
 
 func IsMarketingEmailSuppressed(address string) (bool, error) {
 	var count int64
-	err := DB.Model(&MarketingEmailSuppression{}).Where("address_hash = ?", marketingEmailAddressHash(address)).Count(&count).Error
+	err := DB.Model(&MarketingEmailSuppression{}).Where("address_hash = ?", MarketingEmailAddressHash(address)).Count(&count).Error
 	return count != 0, err
 }
 
 func SuppressMarketingEmail(address, reason string) error {
+	return SuppressMarketingEmailHash(MarketingEmailAddressHash(address), reason)
+}
+
+func SuppressMarketingEmailHash(addressHash, reason string) error {
 	return DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&MarketingEmailSuppression{
-		AddressHash: marketingEmailAddressHash(address), Reason: reason,
+		AddressHash: addressHash, Reason: reason,
 	}).Error
+}
+
+func GetMarketingEmailUsersByAddress(address string) ([]User, error) {
+	address = strings.ToLower(address)
+	encodedAddress, err := common.Marshal(address)
+	if err != nil {
+		return nil, err
+	}
+	// Settings are stored as text on all supported databases. Match candidates
+	// here and check the actual notification address after decoding.
+	escape := strings.NewReplacer("!", "!!", "%", "!%", "_", "!_")
+	var users []User
+	err = DB.Select("id", "username", "display_name", "email", "status", "setting").
+		Where("LOWER(TRIM(email)) = ? OR LOWER(setting) LIKE ? ESCAPE '!'", address, "%"+escape.Replace(strings.Trim(string(encodedAddress), `"`))+"%").
+		Order("id").Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	matched := users[:0]
+	for _, user := range users {
+		if strings.EqualFold(strings.TrimSpace(user.Email), address) ||
+			strings.EqualFold(strings.TrimSpace(user.GetSetting().NotificationEmail), address) {
+			matched = append(matched, user)
+		}
+	}
+	return matched, nil
 }
 
 func GetMarketingEmailAudienceUserIDs(audienceType, group string, userIDs []int, max int) ([]int, error) {

@@ -13,11 +13,12 @@ import (
 )
 
 type marketingEmailSendRequest struct {
-	AudienceType    string `json:"audience_type"`
-	AudienceGroup   string `json:"audience_group"`
-	UserIds         []int  `json:"user_ids"`
-	SubjectTemplate string `json:"subject_template"`
-	ContentTemplate string `json:"content_template"`
+	AudienceType    string   `json:"audience_type"`
+	AudienceGroup   string   `json:"audience_group"`
+	UserIds         []int    `json:"user_ids"`
+	Emails          []string `json:"emails"`
+	SubjectTemplate string   `json:"subject_template"`
+	ContentTemplate string   `json:"content_template"`
 }
 
 func GetMarketingEmailSendTask(c *gin.Context) {
@@ -57,7 +58,7 @@ func SendMarketingEmail(c *gin.Context) {
 		return
 	}
 
-	task, err := service.StartMarketingEmailSend(req.AudienceType, req.AudienceGroup, req.UserIds, req.SubjectTemplate, req.ContentTemplate)
+	task, err := service.StartMarketingEmailSend(req.AudienceType, req.AudienceGroup, req.UserIds, req.Emails, req.SubjectTemplate, req.ContentTemplate)
 	if err != nil {
 		common.ApiError(c, err)
 		return
