@@ -301,17 +301,7 @@ func SetApiRouter(router *gin.Engine) {
 			emailSettingsRoute.GET("/options", controller.GetEmailSettingsOptions)
 			emailSettingsRoute.PUT("/option", controller.UpdateEmailSettingOption)
 			emailSettingsRoute.POST("/marketing_email/send", middleware.CriticalRateLimit(), controller.SendMarketingEmail)
-			emailSettingsRoute.GET("/newsletter/promotions", controller.ListMarketingDigestPromotions)
-			emailSettingsRoute.POST("/newsletter/promotions", controller.SaveMarketingDigestPromotion)
-			emailSettingsRoute.PUT("/newsletter/promotions", controller.SaveMarketingDigestPromotion)
-			emailSettingsRoute.DELETE("/newsletter/promotions/:id", controller.DeleteMarketingDigestPromotion)
-			emailSettingsRoute.GET("/newsletter/digests", controller.ListMarketingDigests)
-			emailSettingsRoute.POST("/newsletter/digests/generate", controller.GenerateMarketingDigest)
-			emailSettingsRoute.GET("/newsletter/digests/:id", controller.GetMarketingDigest)
-			emailSettingsRoute.PUT("/newsletter/digests/:id", controller.UpdateMarketingDigest)
-			emailSettingsRoute.POST("/newsletter/digests/:id/send", controller.SendMarketingDigest)
-			emailSettingsRoute.POST("/newsletter/digests/:id/retry", controller.RetryMarketingDigest)
-			emailSettingsRoute.GET("/newsletter/digests/:id/recipients", controller.ListMarketingDigestRecipients)
+			emailSettingsRoute.GET("/marketing_email/audience", controller.GetMarketingEmailAudience)
 		}
 
 		taskPluginRoute := apiRouter.Group("/plugin/task")

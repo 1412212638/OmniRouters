@@ -9,8 +9,11 @@ import (
 
 func TestOrdinaryResponseUsageProfileIsModelScoped(t *testing.T) {
 	require.Equal(t, "doubao-seedream-5.0-pro", CanonicalOrdinaryResponseUsageModel("doubao-seedream-5-0-pro-260628"))
+	require.Equal(t, "doubao-seedream-5.5", CanonicalOrdinaryResponseUsageModel("doubao-seedream-5-5-261028"))
+	require.Equal(t, "doubao-seedream-5.5", CanonicalOrdinaryResponseUsageModel("DOUBAO-SEEDREAM-5.5"))
 	require.Empty(t, CanonicalOrdinaryResponseUsageModel("minimax-h3"))
 	require.NoError(t, ValidateOrdinaryResponseUsageExpr("doubao-seedream-5.0-pro", `u("generated_images") * 0.2`))
+	require.NoError(t, ValidateOrdinaryResponseUsageExpr("doubao-seedream-5.5", `u("images_up_to_1_5k") * 0.1 + u("images_above_1_5k") * 0.2 + max(u("input_images") - 1, 0) * 0.02`))
 	require.Error(t, ValidateOrdinaryResponseUsageExpr("doubao-seedream-5.0-pro", `u("unknown") * 0.2`))
 	require.Error(t, ValidateOrdinaryResponseUsageExpr("minimax-h3", `u("generated_images") * 0.2`))
 }

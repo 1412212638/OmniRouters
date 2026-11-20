@@ -33,6 +33,8 @@ func CanonicalOrdinaryResponseUsageModel(model string) string {
 		return "doubao-seedream-5.0-pro"
 	case "doubao-seedream-5.0-flash", "doubao-seedream-5-0-flash-260915":
 		return "doubao-seedream-5.0-flash"
+	case "doubao-seedream-5.5", "doubao-seedream-5-5-261028":
+		return "doubao-seedream-5.5"
 	default:
 		return ""
 	}

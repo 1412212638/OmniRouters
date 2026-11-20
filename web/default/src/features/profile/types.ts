@@ -96,7 +96,7 @@ export interface UserSettings {
   accept_unset_model_ratio_model?: boolean
   /** Record IP log */
   record_ip_log?: boolean
-  /** Receive product updates and promotional emails; defaults to true */
+  /** Receive marketing emails and promotional offers; defaults to true */
   marketing_email_enabled?: boolean
   /** Receive upstream model update notifications (admin only) */
   upstream_model_update_notify_enabled?: boolean

@@ -142,8 +142,6 @@ var TopUpSuccessSubjectTemplate = ""
 var TopUpSuccessContentTemplate = ""
 var MarketingEmailSubjectTemplate = ""
 var MarketingEmailContentTemplate = ""
-var MarketingDigestIntervalDays = 0
-var MarketingDigestReviewEmail = ""
 
 var GitHubClientId = ""
 var GitHubClientSecret = ""

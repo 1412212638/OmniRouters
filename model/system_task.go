@@ -23,8 +23,7 @@ const (
 	SystemTaskTypeMidjourneyPoll                 = "midjourney_poll"
 	SystemTaskTypeAsyncTaskPoll                  = "async_task_poll"
 	SystemTaskTypeOrganizationInvitationReminder = "organization_invitation_reminder"
-	SystemTaskTypeMarketingDigestGeneration     = "marketing_digest_generation"
-	SystemTaskTypeMarketingDigestSend           = "marketing_digest_send"
+	SystemTaskTypeMarketingEmailSend              = "marketing_email_send"
 )
 
 var ErrSystemTaskLockLost = errors.New("system task lock lost")

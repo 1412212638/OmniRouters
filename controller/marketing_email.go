@@ -12,6 +12,8 @@ import (
 )
 
 type marketingEmailSendRequest struct {
+	AudienceType    string `json:"audience_type"`
+	AudienceGroup   string `json:"audience_group"`
 	UserIds         []int  `json:"user_ids"`
 	SubjectTemplate string `json:"subject_template"`
 	ContentTemplate string `json:"content_template"`
@@ -23,7 +25,10 @@ func SendMarketingEmail(c *gin.Context) {
 		common.ApiErrorMsg(c, "参数错误")
 		return
 	}
-	if len(req.UserIds) == 0 {
+	if req.AudienceType == "" {
+		req.AudienceType = "manual"
+	}
+	if req.AudienceType == "manual" && len(req.UserIds) == 0 {
 		common.ApiErrorMsg(c, "请选择至少一个收件人")
 		return
 	}
@@ -36,13 +41,26 @@ func SendMarketingEmail(c *gin.Context) {
 		return
 	}
 
-	result, err := service.SendMarketingEmailToUsers(req.UserIds, req.SubjectTemplate, req.ContentTemplate)
+	task, err := service.StartMarketingEmailSend(req.AudienceType, req.AudienceGroup, req.UserIds, req.SubjectTemplate, req.ContentTemplate)
 	if err != nil {
 		common.ApiError(c, err)
 		return
 	}
 
 	operatorId := c.GetInt("id")
-	model.RecordLog(operatorId, model.LogTypeSystem, fmt.Sprintf("发送营销邮件，目标用户: %d，成功: %d，跳过: %d，失败: %d", result.Total, result.Sent, result.Skipped, result.Failed))
-	common.ApiSuccess(c, result)
+	model.RecordLog(operatorId, model.LogTypeSystem, fmt.Sprintf("开始营销邮件发送任务，任务 ID: %s", task.TaskID))
+	common.ApiSuccess(c, gin.H{"task_id": task.TaskID, "status": task.Status})
+}
+
+func GetMarketingEmailAudience(c *gin.Context) {
+	audienceType := c.Query("audience_type")
+	if audienceType == "" {
+		audienceType = "all"
+	}
+	total, err := service.GetMarketingEmailAudienceCount(audienceType, c.Query("audience_group"))
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	common.ApiSuccess(c, gin.H{"total": total})
 }

@@ -355,7 +355,7 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
           >
             <FieldContent>
               <FieldLabel htmlFor='marketingEmail'>
-                {t('Receive product updates and promotional emails')}
+                {t('Receive marketing emails and promotional offers')}
               </FieldLabel>
               <FieldDescription id='marketingEmailDescription'>
                 {t(

@@ -23,7 +23,7 @@ const (
 )
 
 // PrepareSeedreamOpenAIImageBilling activates the ordinary model expression's
-// response-usage profile for the named Seedream 5.0 models on an OpenAI image
+// response-usage profile for supported Seedream models on an OpenAI image
 // channel. It never reads or mutates a task plugin expression. Other models,
 // channel types, and ordinary token expressions keep the standard image path.
 func PrepareSeedreamOpenAIImageBilling(info *relaycommon.RelayInfo, request *dto.ImageRequest, outboundBody []byte, requestedCount int) error {

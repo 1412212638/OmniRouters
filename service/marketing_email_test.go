@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMarketingDigestEmailHonorsOptOutAndIncludesUnsubscribeLink(t *testing.T) {
+func TestMarketingEmailHonorsOptOutAndIncludesUnsubscribeLink(t *testing.T) {
 	originalSecret := common.CryptoSecret
 	originalServerAddress := system_setting.ServerAddress
 	common.CryptoSecret = "marketing-test-secret"
@@ -29,19 +29,19 @@ func TestMarketingDigestEmailHonorsOptOutAndIncludesUnsubscribeLink(t *testing.T
 		return nil
 	}
 	user := &model.User{
-		Id: 42, Username: "newsletter-user", Email: "user@example.com", Status: common.UserStatusEnabled,
+		Id: 42, Username: "marketing-user", Email: "user@example.com", Status: common.UserStatusEnabled,
 	}
-	require.NoError(t, SendMarketingDigestEmail(user, "{{system_name}} update", "<p>Hello {{username}}</p>", send))
+	require.NoError(t, SendMarketingEmailToUser(user, "{{system_name}} update", "<p>Hello {{username}}</p>", send))
 	assert.Equal(t, "user@example.com", sentTo)
-	assert.Contains(t, sentContent, "newsletter-user")
+	assert.Contains(t, sentContent, "marketing-user")
 	assert.Contains(t, sentContent, "https://platform.example/api/marketing_email/unsubscribe?user_id=42&token=")
-	assert.True(t, VerifyMarketingDigestUnsubscribeToken(42, strings.Split(strings.Split(sentContent, "token=")[1], "\"")[0]))
-	assert.False(t, VerifyMarketingDigestUnsubscribeToken(43, strings.Split(strings.Split(sentContent, "token=")[1], "\"")[0]))
+	assert.True(t, VerifyMarketingEmailUnsubscribeToken(42, strings.Split(strings.Split(sentContent, "token=")[1], "\"")[0]))
+	assert.False(t, VerifyMarketingEmailUnsubscribeToken(43, strings.Split(strings.Split(sentContent, "token=")[1], "\"")[0]))
 
 	enabled := false
 	user.SetSetting(dto.UserSetting{MarketingEmailEnabled: &enabled})
 	sentTo, sentContent = "", ""
-	err := SendMarketingDigestEmail(user, "subject", "body", send)
+	err := SendMarketingEmailToUser(user, "subject", "body", send)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "preference")
 	assert.Empty(t, sentTo)

@@ -5806,3 +5806,19 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: the ordinary `/v1/audio/speech` relay remains the fallback when no task plugin claims the requested model. Existing image, video, Responses, native task routes, and pending local customizations were retained. Streaming speech is intentionally not advertised; the plugin requires synchronous non-streaming requests because the current task host does not expose a binary SSE response path.
 - Validation: bundled Node syntax check and `git diff --check` passed. Go/gofmt validation was blocked because the current workspace environment has no Go toolchain on PATH and no bundled Go executable was available; no live paid upstream request was made. Focused Go tests should be run in CI or a Go-enabled checkout.
 - Commit and push: runtime source commit `35adb4022` (`feat: add MiniMax synchronous speech task plugin`) was pushed to `origin/main`; this documentation correction is being pushed as a follow-up commit.
+
+## 2026-11-20 - Remove product digest email and add marketing audiences
+
+- Local reason: simplify email settings by removing scheduled product-update digest generation and review, while adding recipient groups to the existing manual marketing email workflow.
+- Changed: removed the product digest and promotion screens, API handlers/routes, scheduled generation and delivery handlers, digest-specific options, model registrations and service code. Manual marketing mail now supports all enabled users, users with successful personal top-ups, users active in the last 30 days, and manually selected users. A recipient count is shown before sending. Sends run as a durable system task, report progress, and process recipients in bounded batches. Account status, marketing opt-out preference and email availability are rechecked before each send.
+- Preserved: marketing email templates, unsubscribe links and preference storage remain in place. Existing saved digest/promotion tables are left untouched as historical data and are no longer migrated or exposed by the application. No billing, account balance, subscription, channel, or model-pricing code changed.
+- Validation: `bun run build` passed for `web/default`; `git diff --check` passed. Changed frontend files had no new targeted Oxlint errors. Repository `bun run typecheck` remains blocked by existing unrelated errors in auth, channel, image playground, model settings, pricing and task-plugin files, plus missing test-library declarations. Go tests and gofmt could not run because no Go toolchain is available in this environment. No live email was sent. The backend change therefore still needs Go-enabled CI validation.
+- Commit and push: not committed and not pushed.
+
+## 2026-11-20 - Enable ordinary-channel Seedream 5.5 usage billing
+
+- Local reason: ordinary OpenAI-compatible Seedream 5.5 requests using response usage fields were rejected because the model had not been added to the explicit ordinary response usage profile.
+- Changed: registered `doubao-seedream-5.5` and `doubao-seedream-5-5-261028` as aliases of the Seedream 5.5 ordinary response-usage profile. They reuse the bounded Seedream image usage schema and existing request-side reservation plus response settlement path. Added regression coverage for both names and a Seedream 5.5 image-tier/reference-image expression.
+- Preserved: task-plugin expression resolution, plugin-vs-ordinary channel separation, pre-consume/settlement and all account, group, customer and subscription billing behavior. No pricing expression or stored configuration is changed automatically.
+- Validation: `git diff --check` passed. Go tests and gofmt could not run because the Go toolchain is unavailable in this environment. No live provider request was made.
+- Commit and push: not committed and not pushed.

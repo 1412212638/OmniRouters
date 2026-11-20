@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, Search, Send, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -33,7 +33,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 
-import { searchMarketingEmailUsers, sendMarketingEmail } from '../api'
+import {
+  getMarketingEmailAudienceCount,
+  getMarketingEmailSendTask,
+  searchMarketingEmailUsers,
+  sendMarketingEmail,
+} from '../api'
 import { SettingsSection } from '../components/settings-section'
 import { useResetForm } from '../hooks/use-reset-form'
 import { useUpdateOption } from '../hooks/use-update-option'
@@ -375,10 +380,19 @@ export function EmailSettingsSection({
   const emailSchema = createEmailSchema(t)
   const [activeTemplate, setActiveTemplate] = useState(templateGroups[0].id)
   const [userKeyword, setUserKeyword] = useState('')
+  const [marketingAudience, setMarketingAudience] = useState<
+    'all' | 'topup' | 'active' | 'manual'
+  >('manual')
+  const [audienceCount, setAudienceCount] = useState<number | null>(null)
+  const [loadingAudienceCount, setLoadingAudienceCount] = useState(false)
   const [userOptions, setUserOptions] = useState<MarketingEmailUser[]>([])
   const [selectedUsers, setSelectedUsers] = useState<MarketingEmailUser[]>([])
   const [searchingUsers, setSearchingUsers] = useState(false)
   const [sendingMarketing, setSendingMarketing] = useState(false)
+  const [marketingSendProgress, setMarketingSendProgress] = useState<{
+    processed: number
+    total: number
+  } | null>(null)
   const [saving, setSaving] = useState(false)
 
   const form = useForm<EmailFormValues>({
@@ -389,6 +403,29 @@ export function EmailSettingsSection({
   useResetForm(form, defaultValues)
 
   const watchedValues = form.watch()
+
+  useEffect(() => {
+    if (marketingAudience === 'manual') {
+      setAudienceCount(selectedUsers.length)
+      setLoadingAudienceCount(false)
+      return
+    }
+    let active = true
+    setLoadingAudienceCount(true)
+    void getMarketingEmailAudienceCount({ audience_type: marketingAudience })
+      .then((result) => {
+        if (active) setAudienceCount(result.data?.total ?? null)
+      })
+      .catch(() => {
+        if (active) setAudienceCount(null)
+      })
+      .finally(() => {
+        if (active) setLoadingAudienceCount(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [marketingAudience, selectedUsers.length])
 
   const changedUpdates = useMemo(() => {
     const current = form.getValues()
@@ -611,7 +648,7 @@ export function EmailSettingsSection({
       'MarketingEmailContentTemplate'
     )
 
-    if (selectedUsers.length === 0) {
+    if (marketingAudience === 'manual' && selectedUsers.length === 0) {
       toast.error(t('Select at least one recipient'))
       return
     }
@@ -623,7 +660,11 @@ export function EmailSettingsSection({
     setSendingMarketing(true)
     try {
       const result = await (sendMarketingEmailRequest ?? sendMarketingEmail)({
-        user_ids: selectedUsers.map((user) => user.id),
+        audience_type: marketingAudience,
+        user_ids:
+          marketingAudience === 'manual'
+            ? selectedUsers.map((user) => user.id)
+            : undefined,
         subject_template: subjectTemplate,
         content_template: contentTemplate,
       })
@@ -631,19 +672,42 @@ export function EmailSettingsSection({
         toast.error(result.message || t('Failed to send marketing email'))
         return
       }
-      toast.success(
-        t('Sent: {{sent}}, skipped: {{skipped}}, failed: {{failed}}', {
-          sent: result.data?.sent || 0,
-          skipped: result.data?.skipped || 0,
-          failed: result.data?.failed || 0,
-        })
-      )
+      const taskId = result.data?.task_id
+      if (!taskId) throw new Error(t('Marketing email task was not created'))
+      while (true) {
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        const taskResult = await getMarketingEmailSendTask(taskId)
+        const task = taskResult.data
+        if (!taskResult.success || !task) {
+          throw new Error(taskResult.message || t('Failed to check email task'))
+        }
+        if (task.state) {
+          setMarketingSendProgress({
+            processed: task.state.processed,
+            total: task.state.total,
+          })
+        }
+        if (task.status === 'succeeded') {
+          toast.success(
+            t('Sent: {{sent}}, skipped: {{skipped}}, failed: {{failed}}', {
+              sent: task.result?.sent || 0,
+              skipped: task.result?.skipped || 0,
+              failed: task.result?.failed || 0,
+            })
+          )
+          break
+        }
+        if (task.status === 'failed') {
+          throw new Error(task.error || t('Marketing email task failed'))
+        }
+      }
     } catch (error) {
       toast.error(
         (error as Error)?.message || t('Failed to send marketing email')
       )
     } finally {
       setSendingMarketing(false)
+      setMarketingSendProgress(null)
     }
   }
 
@@ -657,6 +721,20 @@ export function EmailSettingsSection({
       getEffectiveTemplate(watchedValues, group.contentKey),
       previewValues
     )
+    let audienceCountText = ''
+    if (loadingAudienceCount) {
+      audienceCountText = t('Counting eligible recipients...')
+    } else if (audienceCount === null) {
+      audienceCountText = t('Unable to count recipients')
+    } else if (marketingAudience === 'manual') {
+      audienceCountText = t('{{count}} selected recipients', {
+        count: audienceCount,
+      })
+    } else {
+      audienceCountText = t('{{count}} eligible recipients', {
+        count: audienceCount,
+      })
+    }
 
     return (
       <div className='space-y-5'>
@@ -760,10 +838,44 @@ export function EmailSettingsSection({
             <div>
               <h4 className='text-sm font-semibold'>{t('Recipients')}</h4>
               <p className='text-muted-foreground mt-1 text-sm'>
-                {t('Search users, then select one or more recipients.')}
+                {t('Choose a recipient group or select users manually.')}
               </p>
             </div>
 
+            <div className='space-y-2'>
+              <label className='text-sm font-medium'>{t('Recipient group')}</label>
+              <Select
+                value={marketingAudience}
+                onValueChange={(value) =>
+                  setMarketingAudience(
+                    value as 'all' | 'topup' | 'active' | 'manual'
+                  )
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='all'>{t('All users')}</SelectItem>
+                  <SelectItem value='topup'>{t('Users who have topped up')}</SelectItem>
+                  <SelectItem value='active'>{t('Active users (last 30 days)')}</SelectItem>
+                  <SelectItem value='manual'>{t('Select users manually')}</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className='text-muted-foreground text-sm' aria-live='polite'>
+                {audienceCountText}
+              </p>
+              {sendingMarketing && marketingSendProgress && (
+                <p className='text-muted-foreground text-sm' aria-live='polite'>
+                  {t('Sending marketing email: {{processed}} of {{total}}', {
+                    processed: marketingSendProgress.processed,
+                    total: marketingSendProgress.total,
+                  })}
+                </p>
+              )}
+            </div>
+
+            {marketingAudience === 'manual' && <>
             <div className='flex flex-col gap-2 sm:flex-row'>
               <Input
                 value={userKeyword}
@@ -841,11 +953,17 @@ export function EmailSettingsSection({
                 })
               )}
             </div>
+            </>}
 
             <Button
               type='button'
               onClick={handleSendMarketingEmail}
-              disabled={sendingMarketing || selectedUsers.length === 0}
+              disabled={
+                sendingMarketing ||
+                loadingAudienceCount ||
+                audienceCount === 0 ||
+                (marketingAudience !== 'manual' && audienceCount === null)
+              }
             >
               {sendingMarketing ? (
                 <Loader2 className='size-4 animate-spin' />

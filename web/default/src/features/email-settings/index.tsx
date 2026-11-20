@@ -14,7 +14,6 @@ import {
   defaultEmailSettingsFormValues,
   type EmailFormValues,
 } from '@/features/system-settings/integrations/email-settings-section'
-import { MarketingDigestSection } from '@/features/system-settings/integrations/marketing-digest-section'
 import type { UpdateOptionRequest } from '@/features/system-settings/types'
 
 type EmailSettingsOptionValues = Omit<
@@ -104,7 +103,6 @@ export function EmailSettings() {
           sendMarketingEmailRequest={sendEmailSettingsMarketingEmail}
           onSaved={handleSaved}
         />
-        <MarketingDigestSection options={data?.data || []} />
       </SectionPageLayout.Content>
     </SectionPageLayout>
   )

@@ -606,7 +606,7 @@ export function UsersMutateDrawer({
                   <FieldGroup>
                     <Field>
                       <FieldLabel htmlFor='userMarketingEmail'>
-                        {t('Receive product updates and promotional emails')}
+                        {t('Receive marketing emails and promotional offers')}
                       </FieldLabel>
                       <Input
                         id='userMarketingEmail'

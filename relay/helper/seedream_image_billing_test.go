@@ -15,6 +15,8 @@ import (
 func TestSeedreamModelNameLimitsCompatibilityModels(t *testing.T) {
 	require.Equal(t, "doubao-seedream-5.0-pro", seedreamModelName("doubao-seedream-5-0-pro-260628"))
 	require.Equal(t, "doubao-seedream-5.0-flash", seedreamModelName("DOUBAO-SEEDREAM-5.0-FLASH"))
+	require.Equal(t, "doubao-seedream-5.5", seedreamModelName("doubao-seedream-5-5-261028"))
+	require.Equal(t, "doubao-seedream-5.5", seedreamModelName("DOUBAO-SEEDREAM-5.5"))
 	require.Empty(t, seedreamModelName("doubao-seedream-4-0-250828"))
 	require.Empty(t, seedreamModelName("minimax-h3"))
 }
