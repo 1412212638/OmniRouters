@@ -1,5 +1,11 @@
 # Upstream Sync Log
 
+## 2026-11-21 - Publish top-up thresholds and interface copy
+
+- Source commit: `f6b5fd948` (Add tiered top-up discounts and refine interface copy). This publication entry supersedes the local-only status in the four entries below.
+- Validation: the focused Go payment tests, default theme production build, classic discount calculation checks, locale JSON parsing, and Git whitespace checks passed before publication. The existing local classic build dependency conflict remains documented below.
+- Push status: the source commit and this publication record are included in the same push to `origin/main`. GitHub Actions handles the image build.
+
 ## 2026-11-21 - Shorten the English model catalog navigation label
 
 - Local reason: use “Models” in the top navigation.
