@@ -105,6 +105,7 @@ const paymentSchema = z.object({
       })
     }
   }),
+  AmountDiscountByThreshold: z.boolean(),
   RechargeCarousel: z.string().superRefine((value, ctx) => {
     const error = getJsonError(value, (parsed) => Array.isArray(parsed))
     if (error) {
@@ -327,6 +328,7 @@ export function PaymentSettingsSection({
       PayMethods: values.PayMethods.trim(),
       AmountOptions: values.AmountOptions.trim(),
       AmountDiscount: values.AmountDiscount.trim(),
+      AmountDiscountByThreshold: values.AmountDiscountByThreshold,
       RechargeCarousel: values.RechargeCarousel.trim(),
       InvoiceProfileEnabled: values.InvoiceProfileEnabled,
       StripeApiSecret: values.StripeApiSecret.trim(),
@@ -387,6 +389,7 @@ export function PaymentSettingsSection({
       PayMethods: initialRef.current.PayMethods.trim(),
       AmountOptions: initialRef.current.AmountOptions.trim(),
       AmountDiscount: initialRef.current.AmountDiscount.trim(),
+      AmountDiscountByThreshold: initialRef.current.AmountDiscountByThreshold,
       RechargeCarousel: initialRef.current.RechargeCarousel.trim(),
       InvoiceProfileEnabled: initialRef.current.InvoiceProfileEnabled,
       StripeApiSecret: initialRef.current.StripeApiSecret.trim(),
@@ -530,7 +533,15 @@ export function PaymentSettingsSection({
     ) {
       updates.push({
         key: 'payment_setting.amount_discount',
-        value: sanitized.AmountDiscount,
+        value: sanitized.AmountDiscount || '{}',
+      })
+    }
+    if (
+      sanitized.AmountDiscountByThreshold !== initial.AmountDiscountByThreshold
+    ) {
+      updates.push({
+        key: 'payment_setting.amount_discount_by_threshold',
+        value: sanitized.AmountDiscountByThreshold,
       })
     }
 
@@ -1136,6 +1147,7 @@ export function PaymentSettingsSection({
                     <FormControl>
                       {amountDiscountVisualMode ? (
                         <AmountDiscountVisualEditor
+                          byThreshold={currentFormValues.AmountDiscountByThreshold}
                           value={field.value}
                           onChange={field.onChange}
                         />
@@ -1146,7 +1158,7 @@ export function PaymentSettingsSection({
                           name={field.name}
                           onBlur={field.onBlur}
                           textareaRef={field.ref}
-                          placeholder='{"100":0.95,"200":0.9}'
+                          placeholder='{"100":0.98,"1000":0.95}'
                           heightClassName='h-40 min-h-40 max-h-40'
                           aria-invalid={Boolean(
                             form.formState.errors.AmountDiscount
@@ -1162,6 +1174,29 @@ export function PaymentSettingsSection({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name='AmountDiscountByThreshold'
+              render={({ field }) => (
+                <SettingsSwitchItem>
+                  <SettingsSwitchContent>
+                    <FormLabel>{t('Recharge discount thresholds')}</FormLabel>
+                    <FormDescription>
+                      {t(
+                        'Apply the highest reached threshold to the entire recharge amount'
+                      )}
+                    </FormDescription>
+                  </SettingsSwitchContent>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </SettingsSwitchItem>
+              )}
+            />
 
             <FormField
               control={form.control}

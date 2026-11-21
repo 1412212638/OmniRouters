@@ -16,8 +16,8 @@ export interface ApiResponse<T = unknown> {
  */
 export type TopupInfoResponse = ApiResponse<TopupInfo>
 export type RedemptionResponse = ApiResponse<number>
-export type AmountResponse = ApiResponse<string>
-export type WaffoPancakeAmountResponse = ApiResponse<string> & {
+export type AmountResponse = ApiResponse<string> & { discount_rate?: number }
+export type WaffoPancakeAmountResponse = AmountResponse & {
   base_amount?: string
   fee_amount?: string
 }

@@ -97,6 +97,9 @@ const PaymentSetting = () => {
           case 'payment_setting.fee_rate':
             newInputs['FeeRate'] = parseFloat(item.value || 0) * 100;
             break;
+          case 'payment_setting.amount_discount_by_threshold':
+            newInputs['AmountDiscountByThreshold'] = toBoolean(item.value);
+            break;
           case 'Price':
           case 'MinTopUp':
           case 'StripeUnitPrice':

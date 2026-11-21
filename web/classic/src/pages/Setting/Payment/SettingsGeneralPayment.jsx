@@ -39,6 +39,7 @@ export default function SettingsGeneralPayment(props) {
     PayMethods: '',
     AmountOptions: '',
     AmountDiscount: '',
+    AmountDiscountByThreshold: false,
     FeeRate: 0,
   });
   const [originInputs, setOriginInputs] = useState({});
@@ -53,6 +54,7 @@ export default function SettingsGeneralPayment(props) {
         PayMethods: props.options.PayMethods || '',
         AmountOptions: props.options.AmountOptions || '',
         AmountDiscount: props.options.AmountDiscount || '',
+        AmountDiscountByThreshold: props.options.AmountDiscountByThreshold === true,
         FeeRate: Number(props.options.FeeRate || 0),
       };
       setInputs(currentInputs);
@@ -135,7 +137,7 @@ export default function SettingsGeneralPayment(props) {
       if (originInputs.AmountDiscount !== inputs.AmountDiscount) {
         options.push({
           key: 'payment_setting.amount_discount',
-          value: inputs.AmountDiscount,
+          value: inputs.AmountDiscount.trim() || '{}',
         });
       }
       if (originInputs.FeeRate !== inputs.FeeRate) {
@@ -155,6 +157,16 @@ export default function SettingsGeneralPayment(props) {
       );
 
       const errorResults = results.filter((res) => !res.data.success);
+      if (
+        errorResults.length === 0 &&
+        originInputs.AmountDiscountByThreshold !== inputs.AmountDiscountByThreshold
+      ) {
+        const response = await API.put('/api/option/', {
+          key: 'payment_setting.amount_discount_by_threshold',
+          value: Boolean(inputs.AmountDiscountByThreshold),
+        });
+        if (!response.data.success) errorResults.push(response);
+      }
       if (errorResults.length === 0) {
         showSuccess(t('更新成功'));
         setOriginInputs({ ...inputs });
@@ -248,6 +260,11 @@ export default function SettingsGeneralPayment(props) {
                 extraText={t(
                   '设置不同充值金额对应的折扣，键为充值金额，值为折扣率，例如：{"100": 0.95, "200": 0.9, "500": 0.85}',
                 )}
+              />
+              <Form.Switch
+                field='AmountDiscountByThreshold'
+                label={t('按充值门槛优惠')}
+                extraText={t('达到多个门槛时，按最高门槛对整笔充值打折')}
               />
             </Col>
           </Row>

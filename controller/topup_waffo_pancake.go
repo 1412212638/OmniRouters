@@ -45,7 +45,8 @@ func RequestWaffoPancakeAmount(c *gin.Context) {
 		return
 	}
 
-	baseAmount, payMoney := getWaffoPancakePriceQuote(req.Amount, group)
+	discount := operation_setting.GetRechargeDiscountRate(req.Amount)
+	baseAmount, payMoney := getDiscountedWaffoPancakePriceQuote(req.Amount, group, discount)
 	if payMoney.LessThanOrEqual(decimal.NewFromFloat(0.01)) {
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "充值金额过低"})
 		return
@@ -54,10 +55,11 @@ func RequestWaffoPancakeAmount(c *gin.Context) {
 	baseAmount = baseAmount.Round(2)
 	payMoney = payMoney.Round(2)
 	c.JSON(http.StatusOK, gin.H{
-		"message":     "success",
-		"data":        payMoney.StringFixed(2),
-		"base_amount": baseAmount.StringFixed(2),
-		"fee_amount":  payMoney.Sub(baseAmount).StringFixed(2),
+		"message":       "success",
+		"data":          payMoney.StringFixed(2),
+		"base_amount":   baseAmount.StringFixed(2),
+		"fee_amount":    payMoney.Sub(baseAmount).StringFixed(2),
+		"discount_rate": discount,
 	})
 }
 
@@ -67,6 +69,10 @@ func getWaffoPancakePayMoney(amount int64, group string) float64 {
 }
 
 func getWaffoPancakePriceQuote(amount int64, group string) (decimal.Decimal, decimal.Decimal) {
+	return getDiscountedWaffoPancakePriceQuote(amount, group, operation_setting.GetRechargeDiscountRate(amount))
+}
+
+func getDiscountedWaffoPancakePriceQuote(amount int64, group string, discount float64) (decimal.Decimal, decimal.Decimal) {
 	dAmount := decimal.NewFromInt(amount)
 	if operation_setting.GetQuotaDisplayType() == operation_setting.QuotaDisplayTypeTokens {
 		dAmount = dAmount.Div(decimal.NewFromFloat(common.QuotaPerUnit))
@@ -75,11 +81,6 @@ func getWaffoPancakePriceQuote(amount int64, group string) (decimal.Decimal, dec
 	topupGroupRatio := common.GetTopupGroupRatio(group)
 	if topupGroupRatio == 0 {
 		topupGroupRatio = 1
-	}
-
-	discount := 1.0
-	if ds, ok := operation_setting.GetPaymentSetting().AmountDiscount[int(amount)]; ok && ds > 0 {
-		discount = ds
 	}
 
 	unitPrice := setting.WaffoPancakeUnitPrice

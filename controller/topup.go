@@ -95,6 +95,7 @@ func GetTopUpInfo(c *gin.Context) {
 	}
 
 	paymentSetting := operation_setting.GetPaymentSetting()
+	discounts, discountByThreshold := operation_setting.GetRechargeDiscountConfig()
 	var rechargeCarousel []map[string]interface{}
 	if strings.TrimSpace(paymentSetting.RechargeCarousel) != "" {
 		if err := common.UnmarshalJsonStr(paymentSetting.RechargeCarousel, &rechargeCarousel); err != nil {
@@ -120,7 +121,8 @@ func GetTopUpInfo(c *gin.Context) {
 		"waffo_min_topup":         setting.WaffoMinTopUp,
 		"waffo_pancake_min_topup": setting.WaffoPancakeMinTopUp,
 		"amount_options":          paymentSetting.AmountOptions,
-		"discount":                paymentSetting.AmountDiscount,
+		"discount":                discounts,
+		"discount_by_threshold":   discountByThreshold,
 		"recharge_carousel":       rechargeCarousel,
 		"fee_rate":                paymentSetting.FeeRate,
 		"corporate_transfer": gin.H{
@@ -170,6 +172,10 @@ func GetEpayClient() *epay.Client {
 }
 
 func getPayMoney(amount int64, group string) float64 {
+	return getDiscountedPayMoney(amount, group, operation_setting.GetRechargeDiscountRate(amount))
+}
+
+func getDiscountedPayMoney(amount int64, group string, discount float64) float64 {
 	dAmount := decimal.NewFromInt(amount)
 	// 充值金额以“展示类型”为准：
 	// - USD/CNY: 前端传 amount 为金额单位；TOKENS: 前端传 tokens，需要换成 USD 金额
@@ -185,13 +191,6 @@ func getPayMoney(amount int64, group string) float64 {
 
 	dTopupGroupRatio := decimal.NewFromFloat(topupGroupRatio)
 	dPrice := decimal.NewFromFloat(operation_setting.Price)
-	// apply optional preset discount by the original request amount (if configured), default 1.0
-	discount := 1.0
-	if ds, ok := operation_setting.GetPaymentSetting().AmountDiscount[int(amount)]; ok {
-		if ds > 0 {
-			discount = ds
-		}
-	}
 	dDiscount := decimal.NewFromFloat(discount)
 
 	payMoney := dAmount.Mul(dPrice).Mul(dTopupGroupRatio).Mul(dDiscount)
@@ -200,15 +199,12 @@ func getPayMoney(amount int64, group string) float64 {
 }
 
 func getPayMoneyWithFee(amount int64, group string, feeRate float64) float64 {
-	baseAmount := decimal.NewFromFloat(getPayMoney(amount, group))
+	discount := operation_setting.GetRechargeDiscountRate(amount)
+	baseAmount := decimal.NewFromFloat(getDiscountedPayMoney(amount, group, discount))
 	if feeRate <= 0 || feeRate > 1 || math.IsNaN(feeRate) || math.IsInf(feeRate, 0) {
 		return baseAmount.InexactFloat64()
 	}
 
-	discount := 1.0
-	if ds, ok := operation_setting.GetPaymentSetting().AmountDiscount[int(amount)]; ok && ds > 0 {
-		discount = ds
-	}
 	originalAmount := baseAmount.Div(decimal.NewFromFloat(discount))
 	feeAmount := originalAmount.Mul(decimal.NewFromFloat(feeRate))
 	return baseAmount.Add(feeAmount).InexactFloat64()
@@ -573,12 +569,13 @@ func RequestAmount(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "获取用户分组失败"})
 		return
 	}
-	payMoney := getPayMoney(req.Amount, group)
+	discount := operation_setting.GetRechargeDiscountRate(req.Amount)
+	payMoney := getDiscountedPayMoney(req.Amount, group, discount)
 	if payMoney <= 0.01 {
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "充值金额过低"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "success", "data": strconv.FormatFloat(payMoney, 'f', 2, 64)})
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": strconv.FormatFloat(payMoney, 'f', 2, 64), "discount_rate": discount})
 }
 
 func GetUserTopUps(c *gin.Context) {

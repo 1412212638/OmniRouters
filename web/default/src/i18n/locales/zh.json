@@ -1,5 +1,8 @@
 {
   "translation": {
+    "Top-up threshold": "充值门槛",
+    "Recharge discount thresholds": "按充值门槛优惠",
+    "Apply the highest reached threshold to the entire recharge amount": "达到多个门槛时，按最高门槛对整笔充值打折",
     "Online recharge": "在线充值",
     "Confirm recharge": "确认充值",
     "Recharge records": "充值记录",
@@ -2153,7 +2156,7 @@
     "Reference video": "参考视频",
     "Free pricing": "免费",
     "Model discount badge": "{{fold}}折",
-    "{{percent}}% discount": "{{percent}}% 折扣",
+    "{{percent}}% discount": "优惠 {{percent}}%",
     "Free: {{free}} / Total: {{total}}": "可用空间: {{free}} / 总空间: {{total}}",
     "Friendly name to identify this channel": "用于识别此渠道的友好名称",
     "From Address": "发件地址",
@@ -2822,6 +2825,7 @@
     "Model scope": "模型范围",
     "Model selected": "已选择模型",
     "Model Square": "模型广场",
+    "Model catalog navigation": "模型广场",
     "Model Tags": "模型标签",
     "Model to use for testing": "用于测试的模型",
     "Model to use when testing channel connectivity": "测试渠道连接时使用的模型",

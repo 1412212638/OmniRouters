@@ -144,6 +144,9 @@ const BILLING_SECTIONS = [
           PayMethods: settings.PayMethods,
           AmountOptions: settings['payment_setting.amount_options'],
           AmountDiscount: settings['payment_setting.amount_discount'],
+          AmountDiscountByThreshold:
+            String(settings['payment_setting.amount_discount_by_threshold']) ===
+            'true',
           RechargeCarousel: settings['payment_setting.recharge_carousel'],
           InvoiceProfileEnabled:
             settings['payment_setting.invoice_profile_enabled'],

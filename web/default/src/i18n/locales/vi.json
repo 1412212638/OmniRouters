@@ -1,5 +1,8 @@
 {
   "translation": {
+    "Top-up threshold": "Ngưỡng nạp tiền",
+    "Recharge discount thresholds": "Ngưỡng giảm giá khi nạp tiền",
+    "Apply the highest reached threshold to the entire recharge amount": "Áp dụng mức giảm giá của ngưỡng cao nhất đạt được cho toàn bộ số tiền nạp",
     "Online recharge": "Nạp tiền trực tuyến",
     "Confirm recharge": "Xác nhận nạp tiền",
     "Recharge records": "Lịch sử nạp tiền",
@@ -2813,6 +2816,7 @@
     "Model scope": "Phạm vi mô hình",
     "Model selected": "Đã chọn mô hình",
     "Model Square": "Quảng trường mô hình",
+    "Model catalog navigation": "Quảng trường mô hình",
     "Model Tags": "Thẻ mô hình",
     "Model to use for testing": "Mô hình dùng để kiểm thử",
     "Model to use when testing channel connectivity": "Mô hình để sử dụng khi kiểm tra kết nối kênh",

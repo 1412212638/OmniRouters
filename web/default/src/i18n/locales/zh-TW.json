@@ -1,5 +1,8 @@
 {
   "translation": {
+    "Top-up threshold": "儲值門檻",
+    "Recharge discount thresholds": "按儲值門檻優惠",
+    "Apply the highest reached threshold to the entire recharge amount": "達到多個門檻時，按最高門檻對整筆儲值打折",
     "Online recharge": "線上儲值",
     "Confirm recharge": "確認儲值",
     "Recharge records": "儲值紀錄",
@@ -2144,7 +2147,7 @@
     "Free": "可用",
     "Free pricing": "免費",
     "Model discount badge": "{{fold}}折",
-    "{{percent}}% discount": "{{percent}}% 折扣",
+    "{{percent}}% discount": "優惠 {{percent}}%",
     "Free: {{free}} / Total: {{total}}": "可用空間: {{free}} / 總空間: {{total}}",
     "Friendly name to identify this channel": "用於識別此渠道的友好名稱",
     "From Address": "發件地址",
@@ -2813,6 +2816,7 @@
     "Model scope": "模型範圍",
     "Model selected": "已選擇模型",
     "Model Square": "模型廣場",
+    "Model catalog navigation": "模型廣場",
     "Model Tags": "模型標籤",
     "Model to use for testing": "用於測試的模型",
     "Model to use when testing channel connectivity": "測試渠道連接時使用的模型",

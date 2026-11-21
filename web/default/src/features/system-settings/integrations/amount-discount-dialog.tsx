@@ -45,6 +45,7 @@ type AmountDiscountDialogProps = {
   onOpenChange: (open: boolean) => void
   onSave: (data: AmountDiscountData) => void
   editData?: AmountDiscountData | null
+  byThreshold: boolean
 }
 
 export function AmountDiscountDialog({
@@ -52,6 +53,7 @@ export function AmountDiscountDialog({
   onOpenChange,
   onSave,
   editData,
+  byThreshold,
 }: AmountDiscountDialogProps) {
   const { t } = useTranslation()
   const isEditMode = !!editData
@@ -97,9 +99,6 @@ export function AmountDiscountDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={isEditMode ? t('Edit discount tier') : t('Add discount tier')}
-      description={t(
-        'Set a discount rate for an exact recharge amount.'
-      )}
       contentClassName='sm:max-w-[500px]'
       contentHeight='auto'
       bodyClassName='space-y-4'
@@ -129,7 +128,9 @@ export function AmountDiscountDialog({
             name='amount'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('Recharge Amount (USD)')}</FormLabel>
+                <FormLabel>
+                  {byThreshold ? t('Top-up threshold') : t('Recharge Amount')}
+                </FormLabel>
                 <FormControl>
                   <Input
                     type='number'
@@ -144,8 +145,10 @@ export function AmountDiscountDialog({
                   />
                 </FormControl>
                 <FormDescription>
-                  {isEditMode
-                    ? t('Amount cannot be changed when editing.')
+                  {byThreshold
+                    ? t(
+                        'Apply the highest reached threshold to the entire recharge amount'
+                      )
                     : t(
                         'Recharge amount must match this value to receive the discount.'
                       )}

@@ -143,6 +143,7 @@ function WalletContent(
   const {
     amount: paymentAmount,
     quoteCurrency,
+    quoteDiscountRate,
     amountBreakdown: paymentAmountBreakdown,
     calculating,
     processing,
@@ -525,7 +526,7 @@ function WalletContent(
         paymentMethod={selectedPaymentMethod}
         calculating={calculating}
         processing={processing || waffoProcessing || pancakeProcessing}
-        discountRate={getDiscountRate()}
+        discountRate={quoteDiscountRate ?? getDiscountRate()}
         feeRate={
           selectedWaffoIndex === null && selectedPaymentMethod
             ? (selectedPaymentMethod.fee_rate ?? topupInfo?.fee_rate)

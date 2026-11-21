@@ -126,6 +126,10 @@ func TestGetWaffoPancakePriceQuoteSeparatesMarkupFromBase(t *testing.T) {
 	originalDiscounts := operation_setting.GetPaymentSetting().AmountDiscount
 	originalTopupGroupRatio := common.TopupGroupRatio2JSONString()
 	common.OptionMapRWMutex.Lock()
+	optionMapWasNil := common.OptionMap == nil
+	if optionMapWasNil {
+		common.OptionMap = make(map[string]string)
+	}
 	originalOptionPrice, hadOptionPrice := common.OptionMap["WaffoPancakeUnitPrice"]
 	common.OptionMap["WaffoPancakeUnitPrice"] = "1.05"
 	common.OptionMapRWMutex.Unlock()
@@ -135,7 +139,9 @@ func TestGetWaffoPancakePriceQuoteSeparatesMarkupFromBase(t *testing.T) {
 		operation_setting.GetPaymentSetting().AmountDiscount = originalDiscounts
 		require.NoError(t, common.UpdateTopupGroupRatioByJSONString(originalTopupGroupRatio))
 		common.OptionMapRWMutex.Lock()
-		if hadOptionPrice {
+		if optionMapWasNil {
+			common.OptionMap = nil
+		} else if hadOptionPrice {
 			common.OptionMap["WaffoPancakeUnitPrice"] = originalOptionPrice
 		} else {
 			delete(common.OptionMap, "WaffoPancakeUnitPrice")

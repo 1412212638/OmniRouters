@@ -50,6 +50,7 @@ import { useMinimumLoadingTime } from '../../hooks/common/useMinimumLoadingTime'
 import { useActualTheme } from '../../context/Theme';
 import { getCurrencyConfig } from '../../helpers/render';
 import SubscriptionPlansCard from './SubscriptionPlansCard';
+import { getRechargeDiscountRate } from './recharge-discount';
 
 const { Text } = Typography;
 
@@ -451,10 +452,10 @@ const RechargeCard = ({
                 >
                   <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2'>
                     {presetAmounts.map((preset, index) => {
-                      const discount =
-                        preset.discount ||
-                        topupInfo?.discount?.[preset.value] ||
-                        1.0;
+                      const discount = getRechargeDiscountRate(
+                        topupInfo,
+                        preset.value,
+                      );
                       const originalPrice = preset.value * priceRatio;
                       const discountedPrice = originalPrice * discount;
                       const hasDiscount = discount < 1.0;

@@ -1,5 +1,8 @@
 {
   "translation": {
+    "Top-up threshold": "Seuil de recharge",
+    "Recharge discount thresholds": "Seuils de remise sur les recharges",
+    "Apply the highest reached threshold to the entire recharge amount": "Appliquer la remise du seuil le plus élevé atteint à la totalité de la recharge",
     "Online recharge": "Recharge en ligne",
     "Confirm recharge": "Confirmer la recharge",
     "Recharge records": "Historique des recharges",
@@ -2813,6 +2816,7 @@
     "Model scope": "Portée des modèles",
     "Model selected": "Modèle sélectionné",
     "Model Square": "Place des modèles",
+    "Model catalog navigation": "Place des modèles",
     "Model Tags": "Tags de modèle",
     "Model to use for testing": "Modèle à utiliser pour les tests",
     "Model to use when testing channel connectivity": "Modèle à utiliser lors du test de la connectivité du canal",

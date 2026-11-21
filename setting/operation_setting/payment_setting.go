@@ -9,13 +9,14 @@ import (
 )
 
 type PaymentSetting struct {
-	EpaySignType           string          `json:"epay_sign_type"`
-	EpayMerchantPrivateKey string          `json:"epay_merchant_private_key"`
-	EpayPlatformPublicKey  string          `json:"epay_platform_public_key"`
-	AmountOptions          []int           `json:"amount_options"`
-	AmountDiscount         map[int]float64 `json:"amount_discount"`
-	RechargeCarousel       string          `json:"recharge_carousel"`
-	FeeRate                float64         `json:"fee_rate"`
+	EpaySignType              string          `json:"epay_sign_type"`
+	EpayMerchantPrivateKey    string          `json:"epay_merchant_private_key"`
+	EpayPlatformPublicKey     string          `json:"epay_platform_public_key"`
+	AmountOptions             []int           `json:"amount_options"`
+	AmountDiscount            map[int]float64 `json:"amount_discount"`
+	AmountDiscountByThreshold bool            `json:"amount_discount_by_threshold"`
+	RechargeCarousel          string          `json:"recharge_carousel"`
+	FeeRate                   float64         `json:"fee_rate"`
 
 	CorporateTransferEnabled       bool   `json:"corporate_transfer_enabled"`
 	CorporateTransferTitle         string `json:"corporate_transfer_title"`
@@ -53,6 +54,39 @@ func init() {
 
 func GetPaymentSetting() *PaymentSetting {
 	return &paymentSetting
+}
+
+// GetRechargeDiscountConfig returns an immutable configuration snapshot.
+// Option updates replace the discount map instead of changing it in place.
+func GetRechargeDiscountConfig() (map[int]float64, bool) {
+	common.OptionMapRWMutex.RLock()
+	defer common.OptionMapRWMutex.RUnlock()
+	return paymentSetting.AmountDiscount, paymentSetting.AmountDiscountByThreshold
+}
+
+func GetRechargeDiscountRate(amount int64) float64 {
+	discounts, byThreshold := GetRechargeDiscountConfig()
+	return resolveRechargeDiscountRate(amount, discounts, byThreshold)
+}
+
+func resolveRechargeDiscountRate(amount int64, discounts map[int]float64, byThreshold bool) float64 {
+	if !byThreshold {
+		if key := int(amount); int64(key) == amount && discounts[key] > 0 {
+			return discounts[key]
+		}
+		return 1
+	}
+
+	rate := 1.0
+	var highest int64
+	for threshold, candidate := range discounts {
+		key := int64(threshold)
+		if key > highest && key <= amount && candidate > 0 && candidate <= 1 {
+			highest = key
+			rate = candidate
+		}
+	}
+	return rate
 }
 
 // ValidateEpaySignOption checks a change to the Epay signing settings against

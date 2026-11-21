@@ -66,12 +66,13 @@ func (*StripeAdaptor) RequestAmount(c *gin.Context, req *StripePayRequest) {
 	if rejectInvalidCreditedQuota(c, id, getStripeCreditedQuota(req.Amount, group)) {
 		return
 	}
-	payMoney := getStripePayMoney(float64(req.Amount), group)
+	discount := operation_setting.GetRechargeDiscountRate(req.Amount)
+	payMoney := getDiscountedStripePayMoney(req.Amount, group, discount)
 	if payMoney <= 0.01 {
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "充值金额过低"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "success", "data": strconv.FormatFloat(payMoney, 'f', 2, 64)})
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": strconv.FormatFloat(payMoney, 'f', 2, 64), "discount_rate": discount})
 }
 
 func (*StripeAdaptor) RequestPay(c *gin.Context, req *StripePayRequest) {
@@ -141,7 +142,7 @@ func (*StripeAdaptor) RequestPay(c *gin.Context, req *StripePayRequest) {
 		}
 	}
 	payAmount := getStripePayMoneyWithFee(
-		float64(req.Amount),
+		req.Amount,
 		user.Group,
 		getPaymentMethodFeeRate(model.PaymentMethodStripe),
 	)
@@ -568,8 +569,12 @@ func getStripeCreditedQuota(amount int64, group string) decimal.Decimal {
 		Mul(decimal.NewFromFloat(common.QuotaPerUnit))
 }
 
-func getStripePayMoney(amount float64, group string) float64 {
-	originalAmount := amount
+func getStripePayMoney(amount int64, group string) float64 {
+	return getDiscountedStripePayMoney(amount, group, operation_setting.GetRechargeDiscountRate(amount))
+}
+
+func getDiscountedStripePayMoney(requestAmount int64, group string, discount float64) float64 {
+	amount := float64(requestAmount)
 	if operation_setting.GetQuotaDisplayType() == operation_setting.QuotaDisplayTypeTokens {
 		amount = amount / common.QuotaPerUnit
 	}
@@ -578,27 +583,17 @@ func getStripePayMoney(amount float64, group string) float64 {
 	if topupGroupRatio == 0 {
 		topupGroupRatio = 1
 	}
-	// apply optional preset discount by the original request amount (if configured), default 1.0
-	discount := 1.0
-	if ds, ok := operation_setting.GetPaymentSetting().AmountDiscount[int(originalAmount)]; ok {
-		if ds > 0 {
-			discount = ds
-		}
-	}
 	payMoney := amount * setting.StripeUnitPrice * topupGroupRatio * discount
 	return payMoney
 }
 
-func getStripePayMoneyWithFee(amount float64, group string, feeRate float64) float64 {
-	baseAmount := decimal.NewFromFloat(getStripePayMoney(amount, group))
+func getStripePayMoneyWithFee(amount int64, group string, feeRate float64) float64 {
+	discount := operation_setting.GetRechargeDiscountRate(amount)
+	baseAmount := decimal.NewFromFloat(getDiscountedStripePayMoney(amount, group, discount))
 	if feeRate <= 0 || feeRate > 1 || math.IsNaN(feeRate) || math.IsInf(feeRate, 0) {
 		return baseAmount.InexactFloat64()
 	}
 
-	discount := 1.0
-	if ds, ok := operation_setting.GetPaymentSetting().AmountDiscount[int(amount)]; ok && ds > 0 {
-		discount = ds
-	}
 	originalAmount := baseAmount.Div(decimal.NewFromFloat(discount))
 	feeAmount := originalAmount.Mul(decimal.NewFromFloat(feeRate))
 	return baseAmount.Add(feeAmount).InexactFloat64()

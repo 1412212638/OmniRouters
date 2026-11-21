@@ -1,5 +1,8 @@
 {
   "translation": {
+    "Top-up threshold": "Порог пополнения",
+    "Recharge discount thresholds": "Пороги скидки на пополнение",
+    "Apply the highest reached threshold to the entire recharge amount": "Применять скидку по наибольшему достигнутому порогу ко всей сумме пополнения",
     "Online recharge": "Онлайн-пополнение",
     "Confirm recharge": "Подтвердить пополнение",
     "Recharge records": "История пополнений",
@@ -2813,6 +2816,7 @@
     "Model scope": "Область моделей",
     "Model selected": "Модель выбрана",
     "Model Square": "Витрина моделей",
+    "Model catalog navigation": "Витрина моделей",
     "Model Tags": "Теги моделей",
     "Model to use for testing": "Модель для использования при тестировании",
     "Model to use when testing channel connectivity": "Модель для использования при тестировании подключения канала",

@@ -1,5 +1,37 @@
 # Upstream Sync Log
 
+## 2026-11-21 - Shorten the English model catalog navigation label
+
+- Local reason: use “Models” in the top navigation.
+- Changed: both themes display “Models” for the English catalog link and its navigation setting.
+- Preserved: the default catalog page title and existing localized discount badges shared by the active card and table.
+- Validation: verified all seven default navigation translations, the classic English label, and the English and Chinese badge text for a 0.6 ratio. Targeted Oxlint and Git whitespace checks passed. Browser rendering was not retested.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-21 - Improve English interface copy
+
+- Local reason: wallet, catalog, and console labels used literal translations and inconsistent terms.
+- Changed: revised 99 English locale entries across the default and classic themes. Standardized wallet top-up terminology and the public model catalog label. Clarified subscription, identity verification, usage, and referral copy. Default payment settings now show mode-specific discount labels and help, and use a translated discount phrase in both desktop and mobile views.
+- Preserved: existing translation keys, routes, pricing, discount matching, and payment behavior. The new threshold label is translated into all seven default-theme languages.
+- Validation: default frontend production build, targeted Oxlint with four existing warnings, English locale and interpolation checks, localized discount badge checks, and Git whitespace check passed. Browser rendering and classic production build were not retested for this copy change.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-21 - Refine English wallet top-up labels
+
+- Local reason: use standard wallet terminology in the English recharge interface.
+- Changed: the default wallet's English tab reads “Top Up”. The amount label in the form and confirmation dialog reads “Top-up Amount”.
+- Preserved: locale keys, other translations, and all payment behavior.
+- Validation: verified both labels in the English locale JSON and traced their wallet component references. Git whitespace check passed.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-21 - Support recharge discount thresholds
+
+- Local reason: custom amounts between preset recharge amounts should qualify for the applicable promotion.
+- Changed: added the opt-in `payment_setting.amount_discount_by_threshold` switch to both payment settings themes. When enabled, the highest configured positive threshold at or below the requested amount supplies the discount for the full recharge. Epay, Stripe, Waffo, and Waffo Pancake use the same resolver in quotes and order creation. Quote responses include the applied rate for the default confirmation dialog. The classic wallet applies the same threshold rules to its display.
+- Preserved: existing exact-match behavior by default, the saved discount map and preset amounts, fee calculations, credited quota, group ratios, payment currency, Creem fixed-price products, and the default wallet's promotion carousel.
+- Validation: isolated Go recharge and provider pricing tests passed, including threshold boundaries, between-threshold amounts, legacy exact matching, and fees. The default frontend production build, targeted Oxlint, classic discount calculation checks, locale JSON parsing, and Git whitespace checks passed. The local classic build reported a `date-fns-tz` dependency resolution conflict. No live payment was submitted.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
 ## 2026-11-21 - Publish the wallet and request logging batch
 
 - Source commit: `b80c666c9` (Update wallet recharge and request diagnostics). This publication record supersedes the local-only status in the November 21 wallet, subscription visibility, input/output logging, and disconnect diagnostics entries.

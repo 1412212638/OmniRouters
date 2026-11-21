@@ -1,5 +1,8 @@
 {
   "translation": {
+    "Top-up threshold": "チャージの対象金額",
+    "Recharge discount thresholds": "チャージ金額に応じた割引",
+    "Apply the highest reached threshold to the entire recharge amount": "到達した最も高い基準の割引をチャージ全額に適用します",
     "Online recharge": "オンラインチャージ",
     "Confirm recharge": "チャージを確認",
     "Recharge records": "チャージ履歴",
@@ -2813,6 +2816,7 @@
     "Model scope": "モデル範囲",
     "Model selected": "選択済みモデル",
     "Model Square": "モデル広場",
+    "Model catalog navigation": "モデル広場",
     "Model Tags": "モデルタグ",
     "Model to use for testing": "テストに使用するモデル",
     "Model to use when testing channel connectivity": "チャネル接続性をテストする際に使用するモデル",

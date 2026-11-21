@@ -36,6 +36,7 @@ import { StatusContext } from '../../context/Status';
 import { getCurrencyConfig } from '../../helpers/render';
 
 import RechargeCard from './RechargeCard';
+import { getRechargeDiscountRate } from './recharge-discount';
 import InvitationCard from './InvitationCard';
 import TransferModal from './modals/TransferModal';
 import PaymentConfirmModal from './modals/PaymentConfirmModal';
@@ -603,6 +604,7 @@ const TopUp = () => {
         setTopupInfo({
           amount_options: data.amount_options || [],
           discount: data.discount || {},
+          discount_by_threshold: data.discount_by_threshold === true,
           fee_rate: Number(data.fee_rate || 0),
         });
 
@@ -707,7 +709,6 @@ const TopUp = () => {
         if (data.amount_options && data.amount_options.length > 0) {
           const customPresets = data.amount_options.map((amount) => ({
             value: amount,
-            discount: data.discount[amount] || 1.0,
           }));
           setPresetAmounts(customPresets);
         }
@@ -916,7 +917,7 @@ const TopUp = () => {
     setSelectedPreset(preset.value);
 
     // 计算实际支付金额，考虑折扣
-    const discount = preset.discount || topupInfo.discount[preset.value] || 1.0;
+    const discount = getRechargeDiscountRate(topupInfo, preset.value);
     const discountedAmount = preset.value * priceRatio * discount;
     setAmount(discountedAmount);
   };
@@ -963,7 +964,7 @@ const TopUp = () => {
         payWay={payWay}
         payMethods={confirmPayMethods}
         amountNumber={amount}
-        discountRate={topupInfo?.discount?.[topUpCount] || 1.0}
+        discountRate={getRechargeDiscountRate(topupInfo, topUpCount)}
         feeRate={getPaymentFeeRate()}
         translatePaymentLabel={translatePaymentLabel}
       />

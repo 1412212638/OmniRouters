@@ -17,7 +17,7 @@ import {
   isWaffoPancakePayment,
   submitPaymentForm,
 } from '../lib'
-import type { ApiResponse, PaymentAmountBreakdown } from '../types'
+import type { AmountResponse, PaymentAmountBreakdown } from '../types'
 
 // ============================================================================
 // Payment Hook
@@ -26,6 +26,7 @@ import type { ApiResponse, PaymentAmountBreakdown } from '../types'
 export function usePayment() {
   const [amount, setAmount] = useState<number>(0)
   const [quoteCurrency, setQuoteCurrency] = useState<string>()
+  const [quoteDiscountRate, setQuoteDiscountRate] = useState<number>()
   const [amountBreakdown, setAmountBreakdown] =
     useState<PaymentAmountBreakdown | null>(null)
   const [calculating, setCalculating] = useState(false)
@@ -40,11 +41,12 @@ export function usePayment() {
         setCalculating(true)
         setAmountBreakdown(null)
         setQuoteCurrency(undefined)
+        setQuoteDiscountRate(undefined)
 
         const isStripe = isStripePayment(paymentType)
         const isPancake = isWaffoPancakePayment(paymentType)
         const isWaffo = paymentType === PAYMENT_TYPES.WAFFO
-        let quoteResponse: ApiResponse<string> & {
+        let quoteResponse: AmountResponse & {
           base_amount?: string
           fee_amount?: string
           currency?: string
@@ -66,6 +68,7 @@ export function usePayment() {
         if (isApiSuccess(quoteResponse) && quoteResponse.data) {
           const calculatedAmount = Number.parseFloat(quoteResponse.data)
           setAmount(calculatedAmount)
+          setQuoteDiscountRate(quoteResponse.discount_rate)
           if (isWaffo) setQuoteCurrency(quoteResponse.currency || 'USD')
           if (
             isPancake &&
@@ -154,6 +157,7 @@ export function usePayment() {
   return {
     amount,
     quoteCurrency,
+    quoteDiscountRate,
     amountBreakdown,
     calculating,
     processing,

@@ -87,20 +87,14 @@ func formatWaffoAmount(amount float64, currency string) string {
 // getWaffoPayMoney converts the user-facing amount to USD for Waffo payment.
 // Waffo only accepts USD, so this function handles the conversion from different
 // display types (USD/CNY/TOKENS) to the actual USD amount to charge.
-func getWaffoPayMoney(amount float64, group string) float64 {
-	originalAmount := amount
+func getWaffoPayMoney(requestAmount int64, group string, discount float64) float64 {
+	amount := float64(requestAmount)
 	if operation_setting.GetQuotaDisplayType() == operation_setting.QuotaDisplayTypeTokens {
 		amount = amount / common.QuotaPerUnit
 	}
 	topupGroupRatio := common.GetTopupGroupRatio(group)
 	if topupGroupRatio == 0 {
 		topupGroupRatio = 1
-	}
-	discount := 1.0
-	if ds, ok := operation_setting.GetPaymentSetting().AmountDiscount[int(originalAmount)]; ok {
-		if ds > 0 {
-			discount = ds
-		}
 	}
 	return amount * setting.WaffoUnitPrice * topupGroupRatio * discount
 }
@@ -135,7 +129,8 @@ func RequestWaffoAmount(c *gin.Context) {
 		return
 	}
 
-	payMoney := getWaffoPayMoney(float64(req.Amount), group)
+	discount := operation_setting.GetRechargeDiscountRate(req.Amount)
+	payMoney := getWaffoPayMoney(req.Amount, group, discount)
 	if payMoney <= 0.01 {
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "充值金额过低"})
 		return
@@ -143,9 +138,10 @@ func RequestWaffoAmount(c *gin.Context) {
 
 	currency := getWaffoCurrency()
 	c.JSON(http.StatusOK, gin.H{
-		"message":  "success",
-		"data":     formatWaffoAmount(payMoney, currency),
-		"currency": currency,
+		"message":       "success",
+		"data":          formatWaffoAmount(payMoney, currency),
+		"currency":      currency,
+		"discount_rate": discount,
 	})
 }
 
@@ -214,7 +210,7 @@ func RequestWaffoPay(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "获取用户分组失败"})
 		return
 	}
-	payMoney := getWaffoPayMoney(float64(req.Amount), group)
+	payMoney := getWaffoPayMoney(req.Amount, group, operation_setting.GetRechargeDiscountRate(req.Amount))
 	if payMoney < 0.01 {
 		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "充值金额过低"})
 		return

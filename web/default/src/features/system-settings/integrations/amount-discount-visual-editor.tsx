@@ -17,11 +17,13 @@ import {
 type AmountDiscountVisualEditorProps = {
   value: string
   onChange: (value: string) => void
+  byThreshold: boolean
 }
 
 export function AmountDiscountVisualEditor({
   value,
   onChange,
+  byThreshold,
 }: AmountDiscountVisualEditorProps) {
   const { t } = useTranslation()
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -89,11 +91,10 @@ export function AmountDiscountVisualEditor({
     setDialogOpen(true)
   }
 
-  const formatPercentage = (rate: number) => {
-    if (rate >= 1) return '0%'
-    const discount = Math.round((1 - rate) * 100)
-    return `${discount}%`
-  }
+  const formatDiscount = (rate: number) =>
+    t('{{percent}}% discount', {
+      percent: Math.max(0, Math.round((1 - rate) * 100)),
+    })
 
   return (
     <div className='space-y-4'>
@@ -132,7 +133,9 @@ export function AmountDiscountVisualEditor({
             columns={[
               {
                 id: 'amount',
-                header: t('Recharge Amount'),
+                header: byThreshold
+                  ? t('Top-up threshold')
+                  : t('Recharge Amount'),
                 cell: (discount) => (
                   <span className='font-mono text-sm'>${discount.amount}</span>
                 ),
@@ -155,7 +158,7 @@ export function AmountDiscountVisualEditor({
                     className='font-mono'
                     copyable={false}
                   >
-                    {formatPercentage(discount.discountRate)} {t('off')}
+                    {formatDiscount(discount.discountRate)}
                   </StatusBadge>
                 ),
               },
@@ -191,7 +194,7 @@ export function AmountDiscountVisualEditor({
                       className='font-mono'
                       copyable={false}
                     >
-                      {formatPercentage(discount.discountRate)} {t('off')}
+                      {formatDiscount(discount.discountRate)}
                     </StatusBadge>
                   </div>
                   <div className='flex gap-1'>
@@ -236,6 +239,7 @@ export function AmountDiscountVisualEditor({
       )}
 
       <AmountDiscountDialog
+        byThreshold={byThreshold}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onSave={handleSave}

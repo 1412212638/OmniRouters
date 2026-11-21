@@ -59,6 +59,7 @@ const defaultBillingSettings: BillingSettings = {
   PayMethods: '',
   'payment_setting.amount_options': '',
   'payment_setting.amount_discount': '',
+  'payment_setting.amount_discount_by_threshold': 'false',
   'payment_setting.recharge_carousel': '[]',
   'payment_setting.invoice_profile_enabled': true,
   StripeApiSecret: '',
