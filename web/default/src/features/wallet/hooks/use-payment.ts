@@ -1,15 +1,17 @@
 import i18next from 'i18next'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
 
 import {
   calculateAmount,
   calculateStripeAmount,
+  calculateWaffoAmount,
   calculateWaffoPancakeAmount,
   requestPayment,
   requestStripePayment,
   isApiSuccess,
 } from '../api'
+import { PAYMENT_TYPES } from '../constants'
 import {
   isStripePayment,
   isWaffoPancakePayment,
@@ -23,23 +25,29 @@ import type { ApiResponse, PaymentAmountBreakdown } from '../types'
 
 export function usePayment() {
   const [amount, setAmount] = useState<number>(0)
+  const [quoteCurrency, setQuoteCurrency] = useState<string>()
   const [amountBreakdown, setAmountBreakdown] =
     useState<PaymentAmountBreakdown | null>(null)
   const [calculating, setCalculating] = useState(false)
   const [processing, setProcessing] = useState(false)
+  const quoteRequest = useRef(0)
 
   // Calculate payment amount
   const calculatePaymentAmount = useCallback(
     async (topupAmount: number, paymentType: string) => {
+      const requestID = ++quoteRequest.current
       try {
         setCalculating(true)
         setAmountBreakdown(null)
+        setQuoteCurrency(undefined)
 
         const isStripe = isStripePayment(paymentType)
         const isPancake = isWaffoPancakePayment(paymentType)
+        const isWaffo = paymentType === PAYMENT_TYPES.WAFFO
         let quoteResponse: ApiResponse<string> & {
           base_amount?: string
           fee_amount?: string
+          currency?: string
         }
         if (isStripe) {
           quoteResponse = await calculateStripeAmount({ amount: topupAmount })
@@ -47,13 +55,18 @@ export function usePayment() {
           quoteResponse = await calculateWaffoPancakeAmount({
             amount: topupAmount,
           })
+        } else if (isWaffo) {
+          quoteResponse = await calculateWaffoAmount({ amount: topupAmount })
         } else {
           quoteResponse = await calculateAmount({ amount: topupAmount })
         }
 
+        if (requestID !== quoteRequest.current) return 0
+
         if (isApiSuccess(quoteResponse) && quoteResponse.data) {
           const calculatedAmount = Number.parseFloat(quoteResponse.data)
           setAmount(calculatedAmount)
+          if (isWaffo) setQuoteCurrency(quoteResponse.currency || 'USD')
           if (
             isPancake &&
             'base_amount' in quoteResponse &&
@@ -74,11 +87,13 @@ export function usePayment() {
         setAmountBreakdown(null)
         return 0
       } catch {
-        setAmount(0)
-        setAmountBreakdown(null)
+        if (requestID === quoteRequest.current) {
+          setAmount(0)
+          setAmountBreakdown(null)
+        }
         return 0
       } finally {
-        setCalculating(false)
+        if (requestID === quoteRequest.current) setCalculating(false)
       }
     },
     []
@@ -138,6 +153,7 @@ export function usePayment() {
 
   return {
     amount,
+    quoteCurrency,
     amountBreakdown,
     calculating,
     processing,

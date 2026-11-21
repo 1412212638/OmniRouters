@@ -1,5 +1,18 @@
 {
   "translation": {
+    "Online recharge": "Recharge en ligne",
+    "Confirm recharge": "Confirmer la recharge",
+    "Recharge records": "Historique des recharges",
+    "Order number": "Numéro de commande",
+    "Save up to {{percent}}% on selected recharge amounts": "Jusqu’à {{percent}}% de remise sur certains montants de recharge",
+    "Input and Output Logging": "Journalisation des entrées et des sorties",
+    "Record input and output JSON in usage logs to help debug, evaluate response quality, and optimize requests. Prompts and generated content are excluded.": "Enregistre les entrées et les sorties au format JSON dans les journaux d’utilisation pour faciliter le débogage, l’évaluation de la qualité des réponses et l’optimisation des requêtes. Les prompts et le contenu généré sont exclus.",
+    "Input JSON": "JSON d’entrée",
+    "Output JSON": "JSON de sortie",
+    "No input or output was recorded for this request.": "Aucune entrée ni sortie n’a été enregistrée pour cette requête.",
+    "Input and output logging was disabled for this request.": "La journalisation des entrées et des sorties était désactivée pour cette requête.",
+    "No input summary is available for this request.": "Aucun résumé d’entrée n’est disponible pour cette requête.",
+    "No output summary is available for this request.": "Aucun résumé de sortie n’est disponible pour cette requête.",
     "Speech prices are per 10K characters. Enter 3.5 for 3.5 per 10K characters. Free quantity is counted in individual characters.": "Les prix vocaux sont indiqués pour 10 000 caractères. Saisissez 3.5 pour un prix de 3,5 pour 10 000 caractères. La quantité gratuite reste exprimée en caractères individuels.",
     "360": "360",
     "1000": "1000",

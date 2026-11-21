@@ -23,6 +23,7 @@ import {
 import { Dialog } from '@/components/dialog'
 import { StatusBadge, type StatusBadgeProps } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
+import { Empty, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DynamicPricingBreakdown } from '@/features/pricing/components/dynamic-pricing-breakdown'
@@ -518,6 +519,48 @@ interface DetailsDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
+function CallJSONPanel(props: {
+  direction: 'input' | 'output'
+  log: LogOtherData['call_io_log']
+}) {
+  const { t } = useTranslation()
+  const title = props.direction === 'input' ? t('Input JSON') : t('Output JSON')
+  const payload = props.log?.[props.direction]
+
+  if (props.log?.enabled && payload) {
+    return (
+      <CodeBlock
+        code={JSON.stringify(payload, null, 2)}
+        language='json'
+        title={title}
+        enableCollapse={false}
+        maxExpandedLines={32}
+        showLineNumbers
+      >
+        <CodeBlockCopyButton />
+      </CodeBlock>
+    )
+  }
+
+  let message = t('No input or output was recorded for this request.')
+  if (props.log?.enabled === false) {
+    message = t('Input and output logging was disabled for this request.')
+  } else if (props.log?.enabled) {
+    message =
+      props.direction === 'input'
+        ? t('No input summary is available for this request.')
+        : t('No output summary is available for this request.')
+  }
+
+  return (
+    <Empty className='bg-muted/30 min-h-36 border'>
+      <EmptyHeader>
+        <EmptyTitle>{message}</EmptyTitle>
+      </EmptyHeader>
+    </Empty>
+  )
+}
+
 export function DetailsDialog(props: DetailsDialogProps) {
   const { t } = useTranslation()
   const { copiedText, copyToClipboard } = useCopyToClipboard({ notify: false })
@@ -528,6 +571,7 @@ export function DetailsDialog(props: DetailsDialogProps) {
   const isViolation = isViolationFeeLog(other)
   const isRefund = props.log.type === 6
   const isConsume = props.log.type === 2
+  const showCallJSON = (isConsume && !isViolation) || props.log.type === 5
   const isTopup = props.log.type === 1
   const isManage = props.log.type === 3
   const isSubscription = other?.billing_source === 'subscription'
@@ -704,8 +748,9 @@ export function DetailsDialog(props: DetailsDialogProps) {
   const compactAuditData = auditData
     ? JSON.parse(
         JSON.stringify(auditData, (_key, value) => {
-          if (value === undefined || value === '' || value === null)
+          if (value === undefined || value === '' || value === null) {
             return undefined
+          }
           if (Array.isArray(value) && value.length === 0) return undefined
           return value
         })
@@ -757,6 +802,12 @@ export function DetailsDialog(props: DetailsDialogProps) {
       <Tabs defaultValue='details' className='w-full min-w-0'>
         <TabsList className='mb-3 w-full justify-start overflow-x-auto'>
           <TabsTrigger value='details'>{t('Basic Information')}</TabsTrigger>
+          {showCallJSON && (
+            <>
+              <TabsTrigger value='input'>{t('Input JSON')}</TabsTrigger>
+              <TabsTrigger value='output'>{t('Output JSON')}</TabsTrigger>
+            </>
+          )}
           {props.isAdmin && (
             <TabsTrigger value='audit'>{t('Request Audit')}</TabsTrigger>
           )}
@@ -1415,6 +1466,16 @@ export function DetailsDialog(props: DetailsDialogProps) {
             )}
           </div>
         </TabsContent>
+        {showCallJSON && (
+          <>
+            <TabsContent value='input' className='mt-0 min-w-0'>
+              <CallJSONPanel direction='input' log={other?.call_io_log} />
+            </TabsContent>
+            <TabsContent value='output' className='mt-0 min-w-0'>
+              <CallJSONPanel direction='output' log={other?.call_io_log} />
+            </TabsContent>
+          </>
+        )}
         {props.isAdmin && (
           <TabsContent value='audit' className='mt-0 min-w-0'>
             <CodeBlock

@@ -29,6 +29,7 @@ interface PaymentConfirmDialogProps {
   onConfirm: () => void
   topupAmount: number
   paymentAmount: number
+  quoteCurrency?: string
   paymentMethod: PaymentMethod | undefined
   calculating: boolean
   processing: boolean
@@ -44,6 +45,7 @@ export function PaymentConfirmDialog({
   onConfirm,
   topupAmount,
   paymentAmount,
+  quoteCurrency,
   paymentMethod,
   calculating,
   processing,
@@ -53,7 +55,15 @@ export function PaymentConfirmDialog({
   usdExchangeRate = 1,
 }: PaymentConfirmDialogProps) {
   const { t } = useTranslation()
+  const quoteFormatter =
+    quoteCurrency && /^[a-z]{3}$/i.test(quoteCurrency)
+      ? new Intl.NumberFormat(undefined, {
+          style: 'currency',
+          currency: quoteCurrency,
+        })
+      : null
   const formatTopupPaymentAmount = (amount: number) =>
+    quoteFormatter?.format(amount) ??
     formatPaymentQuote(amount, paymentMethod?.type)
   const isPancake = isWaffoPancakePayment(paymentMethod?.type || '')
   const normalizedFeeRate = normalizeTopupFeeRate(feeRate)

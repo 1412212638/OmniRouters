@@ -542,6 +542,14 @@ func UpdateOption(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
 			return
 		}
+	case "payment_setting.recharge_carousel":
+		var carousel []map[string]interface{}
+		if strings.TrimSpace(option.Value.(string)) != "" {
+			if err = common.UnmarshalJsonStr(option.Value.(string), &carousel); err != nil {
+				c.JSON(http.StatusOK, gin.H{"success": false, "message": "充值推广轮播配置必须是有效的 JSON 数组"})
+				return
+			}
+		}
 	case "console_setting.faq":
 		err = console_setting.ValidateConsoleSettings(option.Value.(string), "FAQ")
 		if err != nil {

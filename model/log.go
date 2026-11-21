@@ -287,6 +287,7 @@ func RecordErrorLog(c *gin.Context, userId int, channelId int, modelName string,
 	username := c.GetString("username")
 	requestId := c.GetString(common.RequestIdKey)
 	upstreamRequestId := c.GetString(common.UpstreamRequestIdKey)
+	other = appendCallIOLog(c, userId, other, modelName, isStream, nil)
 	otherStr := other.JSONString()
 	// 判断是否需要记录 IP
 	needRecordIp := false
@@ -329,19 +330,21 @@ func RecordErrorLog(c *gin.Context, userId int, channelId int, modelName string,
 }
 
 type RecordConsumeLogParams struct {
-	OrganizationId   int       `json:"organization_id"`
-	ChannelId        int       `json:"channel_id"`
-	PromptTokens     int       `json:"prompt_tokens"`
-	CompletionTokens int       `json:"completion_tokens"`
-	ModelName        string    `json:"model_name"`
-	TokenName        string    `json:"token_name"`
-	Quota            int       `json:"quota"`
-	Content          string    `json:"content"`
-	TokenId          int       `json:"token_id"`
-	UseTimeSeconds   int       `json:"use_time_seconds"`
-	IsStream         bool      `json:"is_stream"`
-	Group            string    `json:"group"`
-	Other            *LogOther `json:"other"`
+	OrganizationId   int        `json:"organization_id"`
+	ChannelId        int        `json:"channel_id"`
+	PromptTokens     int        `json:"prompt_tokens"`
+	CompletionTokens int        `json:"completion_tokens"`
+	ModelName        string     `json:"model_name"`
+	TokenName        string     `json:"token_name"`
+	Quota            int        `json:"quota"`
+	Content          string     `json:"content"`
+	TokenId          int        `json:"token_id"`
+	UseTimeSeconds   int        `json:"use_time_seconds"`
+	IsStream         bool       `json:"is_stream"`
+	Group            string     `json:"group"`
+	Other            *LogOther  `json:"other"`
+	OutputImageCount int        `json:"-"`
+	TaskStatus       TaskStatus `json:"-"`
 }
 
 func resolveLogOrganizationId(c *gin.Context, tokenId, explicit int) int {
@@ -400,6 +403,7 @@ func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams)
 		return
 	}
 	logger.LogInfo(c, fmt.Sprintf("record consume log: userId=%d, params=%s", userId, common.GetJsonString(params)))
+	params.Other = appendCallIOLog(c, userId, params.Other, params.ModelName, params.IsStream, &params)
 	username := c.GetString("username")
 	requestId := c.GetString(common.RequestIdKey)
 	upstreamRequestId := c.GetString(common.UpstreamRequestIdKey)

@@ -52,9 +52,11 @@ type StreamStatus struct {
 	BillingSettled bool
 	endOnce        sync.Once
 
-	mu         sync.Mutex
-	Errors     []StreamErrorEntry
-	ErrorCount int
+	mu                             sync.Mutex
+	Errors                         []StreamErrorEntry
+	ErrorCount                     int
+	downstream                     StreamDownstreamDiagnostics
+	downstreamContextErrorRecorded bool
 
 	response         ResponseOutcome
 	errorCode        string
@@ -77,6 +79,21 @@ type StreamOutcome struct {
 	IncompleteReason string
 }
 
+type StreamDownstreamDiagnostics struct {
+	ContextDoneAt         time.Time
+	FirstWriteErrorAt     time.Time
+	FirstWriteError       error
+	LastSuccessfulFlushAt time.Time
+	RepeatedContextErrors int
+}
+
+func (d StreamDownstreamDiagnostics) InterruptedAt() time.Time {
+	if d.ContextDoneAt.IsZero() || (!d.FirstWriteErrorAt.IsZero() && d.FirstWriteErrorAt.Before(d.ContextDoneAt)) {
+		return d.FirstWriteErrorAt
+	}
+	return d.ContextDoneAt
+}
+
 func NewStreamStatus() *StreamStatus {
 	return &StreamStatus{}
 }
@@ -84,6 +101,11 @@ func NewStreamStatus() *StreamStatus {
 func (s *StreamStatus) SetEndReason(reason StreamEndReason, err error) {
 	if s == nil {
 		return
+	}
+	if reason == StreamEndReasonClientGone {
+		s.mu.Lock()
+		s.observeContextDone(time.Now())
+		s.mu.Unlock()
 	}
 	s.endOnce.Do(func() {
 		s.mu.Lock()
@@ -99,13 +121,62 @@ func (s *StreamStatus) RecordError(msg string) {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	s.recordError(msg, time.Now())
+}
+
+func (s *StreamStatus) recordError(msg string, now time.Time) {
 	s.ErrorCount++
 	if len(s.Errors) < maxStreamErrorEntries {
 		s.Errors = append(s.Errors, StreamErrorEntry{
 			Message:   msg,
-			Timestamp: time.Now(),
+			Timestamp: now,
 		})
 	}
+}
+
+func (s *StreamStatus) observeContextDone(now time.Time) {
+	if s.downstream.ContextDoneAt.IsZero() {
+		s.downstream.ContextDoneAt = now
+	}
+}
+
+// RecordDownstreamContextError keeps the first cancellation as a soft error so
+// it still affects stream classification. Later attempts only add to its count.
+func (s *StreamStatus) RecordDownstreamContextError(msg string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	now := time.Now()
+	s.observeContextDone(now)
+	if s.downstreamContextErrorRecorded {
+		s.downstream.RepeatedContextErrors++
+		return false
+	}
+	s.downstreamContextErrorRecorded = true
+	s.recordError(msg, now)
+	return true
+}
+
+func (s *StreamStatus) RecordDownstreamWriteError(err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.downstream.FirstWriteError == nil {
+		s.downstream.FirstWriteError = err
+		s.downstream.FirstWriteErrorAt = time.Now()
+	}
+}
+
+func (s *StreamStatus) RecordDownstreamFlush() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.downstream.InterruptedAt().IsZero() {
+		s.downstream.LastSuccessfulFlushAt = time.Now()
+	}
+}
+
+func (s *StreamStatus) DownstreamSnapshot() StreamDownstreamDiagnostics {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.downstream
 }
 
 // RequireTerminal declares that the protocol always ends with an explicit
@@ -262,6 +333,9 @@ func (s *StreamStatus) Summary() string {
 	s.mu.Lock()
 	if s.ErrorCount > 0 {
 		fmt.Fprintf(b, " soft_errors=%d", s.ErrorCount)
+	}
+	if s.downstream.RepeatedContextErrors > 0 {
+		fmt.Fprintf(b, " repeated_context_errors=%d", s.downstream.RepeatedContextErrors)
 	}
 	s.mu.Unlock()
 	return b.String()

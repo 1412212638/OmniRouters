@@ -14,6 +14,7 @@ type PaymentSetting struct {
 	EpayPlatformPublicKey  string          `json:"epay_platform_public_key"`
 	AmountOptions          []int           `json:"amount_options"`
 	AmountDiscount         map[int]float64 `json:"amount_discount"`
+	RechargeCarousel       string          `json:"recharge_carousel"`
 	FeeRate                float64         `json:"fee_rate"`
 
 	CorporateTransferEnabled       bool   `json:"corporate_transfer_enabled"`
@@ -35,10 +36,11 @@ const (
 )
 
 var paymentSetting = PaymentSetting{
-	EpaySignType:   EpaySignTypeMD5,
-	AmountOptions:  []int{10, 20, 50, 100, 200, 500},
-	AmountDiscount: map[int]float64{},
-	FeeRate:        0,
+	EpaySignType:     EpaySignTypeMD5,
+	AmountOptions:    []int{10, 20, 50, 100, 200, 500},
+	AmountDiscount:   map[int]float64{},
+	RechargeCarousel: "",
+	FeeRate:          0,
 
 	CorporateTransferEnabled: false,
 	CorporateTransferTitle:   "Corporate Bank Transfer",

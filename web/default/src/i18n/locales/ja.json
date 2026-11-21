@@ -1,5 +1,18 @@
 {
   "translation": {
+    "Online recharge": "オンラインチャージ",
+    "Confirm recharge": "チャージを確認",
+    "Recharge records": "チャージ履歴",
+    "Order number": "注文番号",
+    "Save up to {{percent}}% on selected recharge amounts": "対象のチャージ金額で最大 {{percent}}% 割引",
+    "Input and Output Logging": "入出力ログ",
+    "Record input and output JSON in usage logs to help debug, evaluate response quality, and optimize requests. Prompts and generated content are excluded.": "デバッグ、応答品質の評価、リクエストの最適化に役立つ入出力 JSON を利用ログに記録します。プロンプトと生成内容は記録しません。",
+    "Input JSON": "入力 JSON",
+    "Output JSON": "出力 JSON",
+    "No input or output was recorded for this request.": "このリクエストの入出力は記録されていません。",
+    "Input and output logging was disabled for this request.": "このリクエストでは入出力ログが無効でした。",
+    "No input summary is available for this request.": "このリクエストの入力概要はありません。",
+    "No output summary is available for this request.": "このリクエストの出力概要はありません。",
     "Speech prices are per 10K characters. Enter 3.5 for 3.5 per 10K characters. Free quantity is counted in individual characters.": "音声の価格は1万文字単位で入力します。1万文字あたり3.5の場合は3.5と入力してください。無料数量は引き続き1文字単位です。",
     "360": "360",
     "1000": "1000",

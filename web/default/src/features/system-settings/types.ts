@@ -356,6 +356,7 @@ export type BillingSettings = {
   PayMethods: string
   'payment_setting.amount_options': string
   'payment_setting.amount_discount': string
+  'payment_setting.recharge_carousel': string
   'payment_setting.invoice_profile_enabled': boolean
   StripeApiSecret: string
   StripeWebhookSecret: string

@@ -615,6 +615,7 @@ func PostTextConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, us
 		IsStream:         relayInfo.IsStream,
 		Group:            relayInfo.UsingGroup,
 		Other:            other,
+		OutputImageCount: relayInfo.OutputImageCount,
 	})
 	gopool.Go(func() {
 		// PromptTokens is the total prompt count for ordinary usage responses.

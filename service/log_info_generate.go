@@ -165,10 +165,10 @@ func appendStreamStatus(relayInfo *relaycommon.RelayInfo, other *model.LogOther)
 		status = "error"
 	}
 	streamInfo := map[string]interface{}{
-		"status":     status,
-		"end_reason": string(ss.EndReason),
-		"usage_present": ss.UsagePresent,
-		"usage_source": ss.UsageSource,
+		"status":          status,
+		"end_reason":      string(ss.EndReason),
+		"usage_present":   ss.UsagePresent,
+		"usage_source":    ss.UsageSource,
 		"billing_settled": ss.BillingSettled,
 	}
 	if ss.EndError != nil {
@@ -183,6 +183,29 @@ func appendStreamStatus(relayInfo *relaycommon.RelayInfo, other *model.LogOther)
 		streamInfo["errors"] = messages
 	}
 	other.SetPublic("stream_status", streamInfo)
+
+	downstream := ss.DownstreamSnapshot()
+	if interruptedAt := downstream.InterruptedAt(); !interruptedAt.IsZero() {
+		diagnostics := map[string]any{
+			"interrupted_at":          interruptedAt.UTC(),
+			"repeated_context_errors": downstream.RepeatedContextErrors,
+		}
+		if ss.UsageSource != "" {
+			diagnostics["upstream_usage_received"] = ss.UsageSource == "upstream_actual"
+		}
+		if !downstream.ContextDoneAt.IsZero() {
+			diagnostics["context_done_at"] = downstream.ContextDoneAt.UTC()
+		}
+		if downstream.FirstWriteError != nil {
+			diagnostics["first_write_error"] = downstream.FirstWriteError.Error()
+			diagnostics["first_write_error_at"] = downstream.FirstWriteErrorAt.UTC()
+		}
+		if !downstream.LastSuccessfulFlushAt.IsZero() {
+			diagnostics["last_successful_flush_at"] = downstream.LastSuccessfulFlushAt.UTC()
+			diagnostics["ms_since_last_successful_flush"] = interruptedAt.Sub(downstream.LastSuccessfulFlushAt).Milliseconds()
+		}
+		other.SetAdmin("stream_downstream", diagnostics)
+	}
 }
 
 // markStreamUsageSource classifies the usage already produced by a relay.

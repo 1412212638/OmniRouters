@@ -72,7 +72,9 @@ func geminiRelayHandler(c *gin.Context, info *relaycommon.RelayInfo) *types.NewA
 }
 
 func Relay(c *gin.Context, relayFormat types.RelayFormat) {
-
+	if relayFormat != types.RelayFormatOpenAIRealtime {
+		model.BeginCallIOLog(c)
+	}
 	requestId := c.GetString(common.RequestIdKey)
 	//group := common.GetContextKeyString(c, constant.ContextKeyUsingGroup)
 	//originalModel := common.GetContextKeyString(c, constant.ContextKeyOriginalModel)
@@ -584,8 +586,10 @@ func RelayTaskPluginEndpoint(c *gin.Context, fallback gin.HandlerFunc) {
 	}
 	switch pinned.Protocol {
 	case "openai_responses":
+		model.BeginCallIOLog(c)
 		serveTaskPluginProtocol(c, pinned, defaultPluginProtocolBridgeDeps())
 	case pluginruntime.ProtocolOpenAIImage:
+		model.BeginCallIOLog(c)
 		serveTaskPluginImageProtocol(c, pinned, defaultPluginProtocolBridgeDeps())
 	case pluginruntime.ProtocolOpenAIAudio, pluginruntime.ProtocolMiniMaxT2A:
 		serveTaskPluginAudioProtocol(c, pinned, defaultPluginProtocolBridgeDeps())
@@ -616,6 +620,7 @@ type taskSubmissionOutcome struct {
 }
 
 func RelayTask(c *gin.Context) {
+	model.BeginCallIOLog(c)
 	relayInfo, err := relaycommon.GenRelayInfo(c, types.RelayFormatTask, nil, nil)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, &taskdto.TaskError{

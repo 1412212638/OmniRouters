@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { queryOptions, useQuery } from '@tanstack/react-query'
 
 import type { SystemStatus } from '@/features/auth/types'
 import { getStatus } from '@/lib/api'
@@ -19,8 +19,8 @@ function getInitialStatus(): SystemStatus | undefined {
   return undefined
 }
 
-export function useStatus() {
-  const { data, isLoading, error } = useQuery({
+export const systemStatusQueryOptions = () =>
+  queryOptions({
     queryKey: ['status'],
     queryFn: async () => {
       const status = await getStatus()
@@ -55,6 +55,9 @@ export function useStatus() {
     // Cache expires after 30 minutes
     gcTime: 30 * 60 * 1000,
   })
+
+export function useStatus() {
+  const { data, isLoading, error } = useQuery(systemStatusQueryOptions())
 
   return {
     status: data ?? null,

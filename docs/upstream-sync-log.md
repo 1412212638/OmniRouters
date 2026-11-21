@@ -1,5 +1,45 @@
 # Upstream Sync Log
 
+## 2026-11-21 - Validate the wallet and request logging batch
+
+- Local reason: publish the wallet layout, subscription visibility, input/output logging preference, and stream disconnect diagnostics together at the user's request.
+- Changed during final review: regular Waffo confirmation now uses the server quote and checkout currency. The quote and order both use the same rounding function. See the wallet entries below for the rest of the changes.
+- Preserved: configured pricing and payment submission, organization wallet scope, and the distinction between personal and administrator log views. Local preview data is outside the source changes.
+- Validation: Go production builds passed for controller, model, relay, router, service, and payment settings. Focused relay disconnect tests and isolated model and service logging tests passed. The default frontend production build, changed-file Oxlint, Go formatting check, and Git whitespace check passed. The broader service test package is blocked by existing task billing test references and mock adaptor signatures. No live checkout or deployment was tested.
+- Source commit and push status: recorded in the publication entry.
+
+## 2026-11-21 - Reorganize wallet recharge and transaction history
+
+- Local reason: the wallet recharge area needed a compact form, a tab for corporate bank transfers, and records on the page.
+- Changed: the default wallet places online and configured corporate transfer flows in one tabbed card. Online recharge presents configured amounts, payment method selection and an explicit confirmation action. A banner reflects configured preset discounts. The recharge history table uses the existing wallet-scoped API and supports order search, pagination, order number copying and available invoices. Payment return links scroll to the table.
+- Preserved: provider-specific checkout and confirmation, recharge discounts and fees, redemption codes, corporate transfer acknowledgement, independent administrator order completion, organization scoping and the subscription visibility setting. The screenshot's example first-recharge promotion and invoicing policy were excluded from the implementation.
+- Validation: local browser verification covered configured amounts and discounts, payment selection, the discounted confirmation quote, corporate transfer and preserved selections across tabs, plus the history table's empty state. Default frontend build, changed-file lint and Git whitespace checks passed. Global typecheck still reports pre-existing errors outside the changed files. No real payment was submitted. Local test configuration was restored.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-21 - Respect subscription visibility in the wallet
+
+- Local reason: the wallet displayed a redundant funding-history explanation and exposed a subscription entry when the administrator disabled the personal subscription module.
+- Changed: the default wallet removes the explanatory line and uses the sidebar's visibility check for its subscription card. Direct navigation to the subscription plans route checks current system status and redirects to the dashboard when the module is hidden.
+- Preserved: paid and gift funding totals, independent administrator subscription management, existing subscription purchases and billing, and organization wallet behavior.
+- Validation: local browser checks covered the missing explanation, visible funding totals, wallet and sidebar visibility, direct navigation with the module disabled, and successful navigation after restoring the setting. Changed-file lint, the default frontend build, and the Git whitespace check passed. Global typecheck still reports existing errors outside the changed files.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-21 - Input and output JSON in usage logs
+
+- Local reason: users need request parameters and response metadata in their call logs while keeping prompts and generated content out of the new records.
+- Changed: added the default-on `record_call_io` preference, snapshotted from the authenticated caller. Existing consume and relay error logs can store bounded allowlisted JSON or parsed multipart parameters, media counts, status, usage, image counts and task submission state under `other.call_io_log`. The default UI uses the existing details tabs and JSON copy controls, with seven locales and separate disabled, legacy and missing-summary states.
+- Preserved: existing usage-log permissions and the admin audit and raw-log views. Both views receive the same filtered snapshot and respect caller opt-out. Routing, request and response payloads, quota and billing are unchanged. No task polling logs, historical backfill or new schema were added. JSON above 256 KiB uses basic metadata without a second body read.
+- Validation: Go production packages compiled and targeted metadata and log visibility tests passed. Local mock-upstream calls verified streaming, non-streaming, persistence, default-on, opt-out, omitted-setting preservation and matching admin/self API results. The default frontend build and changed-file lint passed. The browser preview showed the preference, admin tabs, JSON copy controls and disabled state. Whole-package Go tests are blocked by existing undefined `UpdateUserAccessToken` test references. Global frontend typecheck reported missing test dependencies and errors outside the changed files.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-21 - Stream disconnect diagnostics
+
+- Local reason: repeated downstream cancellation errors inflated stream error counts and obscured the first connection failure during incident investigation.
+- Changed: the shared SSE scanner records when request cancellation was observed, the first downstream write or flush error, and the last successful flush before interruption. OpenAI-compatible chat logs the first request-context error and counts later occurrences separately. Consume logs include the timing, duplicate count and upstream usage flag under `other.admin_info.stream_downstream`, correlated by the existing request ID.
+- Preserved: successful-response classification and the first cancellation's effect on error classification, the disconnect drain window, quota settlement and refunds, pricing, routing, and public log fields. The observation timestamps describe the connection seen by the application. Nginx configuration and proxy-side correlation were deferred.
+- Validation: focused relay scanner, stream status, stream outcome and usage-log tests passed. The disconnect and protocol-error regression tests passed ten consecutive runs. Go build passed for the changed production packages. Broader tests are limited by the existing `assert` compile error in `relay/common/override_test.go` and Seedream pricing and Responses lifecycle assertions reproduced using the HEAD source overlay. No live post-change provider test or production deployment was performed.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
 ## 2026-11-18 - Seedance 2.5 4K, Draft billing continuity and gateway callbacks
 
 - Local reason: the supplied official Ark create-task documentation now lists 4k for Seedance 2.5 standard; final Draft requests omit original reference media, so input-video pricing must follow the original task. The user requested callback integration as well as billing fixes, while leaving business-parameter restrictions to the provider, retaining service_tier/priority passthrough and not charging separately for web search.
@@ -5847,6 +5887,43 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved: unsubscribe token verification, user preferences, the SES transport and callback, and the SMTP connection test.
 - Validation: isolated marketing service tests, gofmt and `git diff --check` passed. The production email and QQ Mail rendering were not retested.
 - Commit and push: source commit `26638b058` is included in the push to `origin/main` alongside this log update.
+
+## 2026-11-21 - Integrate funding totals into the wallet balance card
+
+- Local reason: the personal wallet showed funding totals in a separate card below the balance statistics, which made the balance and its sources harder to scan together.
+- Changed: the current-balance cell now includes cumulative paid and gift credits beneath the available balance. The standalone funding overview is removed from the wallet page. Funding loading and failure states remain visible inside that balance cell, while organization wallets continue to omit personal funding totals.
+- Preserved: the funding summary query, funding ledger dialog, balance, usage, request count, billing, top-up, and organization wallet behavior.
+- Validation: the default frontend production build, targeted Oxlint checks for the wallet page and balance card, and `git diff --check` passed. No Docker image was built, commit was not created, and nothing was pushed.
+
+## 2026-11-21 - Open recharge confirmation from the selected payment method
+
+- Local reason: simplify the wallet recharge flow by removing the separate bottom “Confirm recharge” action.
+- Changed: selecting a payment method now recalculates its quote and opens the existing payment confirmation dialog. The default wallet uses the existing Waffo amount endpoint to show the quoted total in the checkout currency, and the endpoint shares currency and rounding with order creation. Waffo keeps its dedicated payment request after confirmation. The dialog shows the amount, discount, fee, total, and selected method where those values are available.
+- Preserved: minimum amount checks, quote calculation, standard payment dispatch, Waffo and Pancake payment endpoints, corporate transfer, redemption, payment history, organization wallet behavior, and all existing local billing customizations.
+- Validation: see the batch validation record above. No live payment was submitted.
+
+## 2026-11-21 - Move redemption codes below recharge records
+
+- Local reason: keep the online recharge form focused on payment selection and place redemption outside the payment card.
+- Changed: moved the redemption code input, redeem action, and optional purchase link into a dedicated card rendered below recharge records in the default personal wallet. Organization wallets continue to hide redemption.
+- Preserved: redemption validation and balance refresh, the configured purchase link, payment methods, payment confirmation, recharge history, corporate transfer, and all existing local wallet behavior.
+- Validation: the default frontend production build, targeted Oxlint checks for the wallet page and redemption card, and `git diff --check` passed. No Docker image was built, commit was not created, and nothing was pushed.
+
+## 2026-11-21 - Simplify wallet recharge amount buttons
+
+- Local reason: repeated discount percentages crowded the preset recharge amounts.
+- Changed: the default wallet's preset buttons now show the formatted recharge amount alone.
+- Preserved: the configured promotion carousel, preset selection and currency conversion, and the payment confirmation's discount, fee, and payable total. Billing and order submission still use the existing paths.
+- Validation: the default frontend production build, targeted Oxlint, and `git diff --check` passed. No live payment was submitted.
+- Commit and push: local changes are uncommitted and unpushed.
+
+## 2026-11-21 - Add configurable recharge promotion carousel
+
+- Local reason: replace the fixed recharge discount notice with administrator-managed promotional images while removing the inline payable-total summary from the recharge form.
+- Changed: added `payment_setting.recharge_carousel`, exposed validated JSON entries through the top-up info API, added an editor to the active default payment settings page, and added a responsive single/multi-image carousel with optional title, description, link, enabled, and sort fields to the default wallet page. Empty or invalid configuration safely hides the carousel. The recharge form no longer renders the “Amount to pay” summary, while payment confirmation retains its existing calculated amount.
+- Preserved: preset amounts, discounts, payment methods, fee calculation, payment confirmation, redemption, corporate transfer, payment history, organization wallet behavior, and all existing local billing and logging customizations. No payment calculation or order-processing path was changed.
+- Validation: default frontend production build passed. Frontend typecheck remains blocked by existing unrelated errors and missing test-library declarations. Repository-wide format check reports pre-existing files and the new carousel file, so no broad formatter rewrite was applied. Go tests and gofmt were unavailable because Go is not installed in the workspace. The local temporary wallet mock was updated with two sample carousel entries for preview only.
+- Commit and push: not committed or pushed in this turn.
 
 ## 2026-11-20 - Allow signed unsubscribe form submissions with an opaque origin
 

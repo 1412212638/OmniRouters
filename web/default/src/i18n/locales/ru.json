@@ -1,5 +1,18 @@
 {
   "translation": {
+    "Online recharge": "Онлайн-пополнение",
+    "Confirm recharge": "Подтвердить пополнение",
+    "Recharge records": "История пополнений",
+    "Order number": "Номер заказа",
+    "Save up to {{percent}}% on selected recharge amounts": "Скидка до {{percent}}% на выбранные суммы пополнения",
+    "Input and Output Logging": "Журнал входных и выходных данных",
+    "Record input and output JSON in usage logs to help debug, evaluate response quality, and optimize requests. Prompts and generated content are excluded.": "Сохраняет JSON входных и выходных данных в журнале вызовов для отладки, оценки качества ответов и оптимизации запросов. Текст запросов и сгенерированный контент исключаются.",
+    "Input JSON": "Входные данные JSON",
+    "Output JSON": "Выходные данные JSON",
+    "No input or output was recorded for this request.": "Входные и выходные данные этого запроса не записаны.",
+    "Input and output logging was disabled for this request.": "Запись входных и выходных данных для этого запроса была отключена.",
+    "No input summary is available for this request.": "Сводка входных данных этого запроса недоступна.",
+    "No output summary is available for this request.": "Сводка выходных данных этого запроса недоступна.",
     "Speech prices are per 10K characters. Enter 3.5 for 3.5 per 10K characters. Free quantity is counted in individual characters.": "Цена речи указывается за 10 000 символов. Введите 3.5 для цены 3,5 за 10 000 символов. Бесплатное количество указывается в отдельных символах.",
     "360": "360",
     "1000": "1000",

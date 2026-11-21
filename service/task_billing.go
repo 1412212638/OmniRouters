@@ -71,6 +71,10 @@ func LogTaskConsumption(c *gin.Context, info *relaycommon.RelayInfo, task *model
 	}
 	appendTaskLogInfo(task, other)
 	attachQuotaSaturation(c, info, other)
+	var taskStatus model.TaskStatus
+	if task != nil {
+		taskStatus = task.Status
+	}
 	useTimeSeconds := 0
 	if !info.StartTime.IsZero() {
 		useTimeSeconds = int(time.Since(info.StartTime).Seconds())
@@ -88,6 +92,7 @@ func LogTaskConsumption(c *gin.Context, info *relaycommon.RelayInfo, task *model
 		TokenId:        info.TokenId,
 		Group:          info.UsingGroup,
 		Other:          other,
+		TaskStatus:     taskStatus,
 		UseTimeSeconds: useTimeSeconds,
 	})
 	RecordRelayUsage(info, info.PriceData.Quota)

@@ -1,5 +1,18 @@
 {
   "translation": {
+    "Online recharge": "在线充值",
+    "Confirm recharge": "确认充值",
+    "Recharge records": "充值记录",
+    "Order number": "订单号",
+    "Save up to {{percent}}% on selected recharge amounts": "指定充值档位最高优惠 {{percent}}%",
+    "Input and Output Logging": "输入输出日志",
+    "Record input and output JSON in usage logs to help debug, evaluate response quality, and optimize requests. Prompts and generated content are excluded.": "在调用日志中记录输入与输出 JSON，便于调试、评估响应质量与优化。不记录请求 prompt 和模型生成内容。",
+    "Input JSON": "输入 JSON",
+    "Output JSON": "输出 JSON",
+    "No input or output was recorded for this request.": "此请求没有输入输出记录。",
+    "Input and output logging was disabled for this request.": "本次请求未开启输入输出日志。",
+    "No input summary is available for this request.": "此请求没有可用的输入摘要。",
+    "No output summary is available for this request.": "此请求没有可用的输出摘要。",
     "Speech prices are per 10K characters. Enter 3.5 for 3.5 per 10K characters. Free quantity is counted in individual characters.": "语音价格按每万字符填写。例如每万字符 3.5，则填写 3.5。免费数量仍按单个字符填写。",
     "360": "360",
     "1000": "1000",
@@ -6376,6 +6389,11 @@
     "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "已提交 {{sent}} · 已跳过 {{skipped}} · 失败 {{failed}} · 未确认 {{unconfirmed}}",
     "Custom email addresses": "自定义邮箱",
     "Enter up to {{count}} email addresses": "最多填写 {{count}} 个邮箱地址",
-    "Check the format of the email addresses": "请检查邮箱地址格式"
+    "Check the format of the email addresses": "请检查邮箱地址格式",
+    "Recharge promotion": "充值推广",
+    "Recharge promotion slides": "充值推广轮播",
+    "Go to slide {{number}}": "切换到第 {{number}} 张",
+    "Recharge promotion carousel": "充值推广轮播图",
+    "Configure recharge promotion images as a JSON array. Use image, optional title, description, link, enabled and sort fields.": "配置充值推广图片 JSON 数组，可使用 image、title、description、link、enabled 和 sort 字段。"
   }
 }

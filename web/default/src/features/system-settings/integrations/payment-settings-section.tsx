@@ -105,6 +105,15 @@ const paymentSchema = z.object({
       })
     }
   }),
+  RechargeCarousel: z.string().superRefine((value, ctx) => {
+    const error = getJsonError(value, (parsed) => Array.isArray(parsed))
+    if (error) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: error,
+      })
+    }
+  }),
   InvoiceProfileEnabled: z.boolean(),
   StripeApiSecret: z.string(),
   StripeWebhookSecret: z.string(),
@@ -242,6 +251,7 @@ export function PaymentSettingsSection({
       PayMethods: formatJsonForEditor(initialFormValues.PayMethods),
       AmountOptions: formatJsonForEditor(initialFormValues.AmountOptions),
       AmountDiscount: formatJsonForEditor(initialFormValues.AmountDiscount),
+      RechargeCarousel: formatJsonForEditor(initialFormValues.RechargeCarousel),
       CreemProducts: formatJsonForEditor(initialFormValues.CreemProducts),
     },
   })
@@ -317,6 +327,7 @@ export function PaymentSettingsSection({
       PayMethods: values.PayMethods.trim(),
       AmountOptions: values.AmountOptions.trim(),
       AmountDiscount: values.AmountDiscount.trim(),
+      RechargeCarousel: values.RechargeCarousel.trim(),
       InvoiceProfileEnabled: values.InvoiceProfileEnabled,
       StripeApiSecret: values.StripeApiSecret.trim(),
       StripeWebhookSecret: values.StripeWebhookSecret.trim(),
@@ -376,6 +387,7 @@ export function PaymentSettingsSection({
       PayMethods: initialRef.current.PayMethods.trim(),
       AmountOptions: initialRef.current.AmountOptions.trim(),
       AmountDiscount: initialRef.current.AmountDiscount.trim(),
+      RechargeCarousel: initialRef.current.RechargeCarousel.trim(),
       InvoiceProfileEnabled: initialRef.current.InvoiceProfileEnabled,
       StripeApiSecret: initialRef.current.StripeApiSecret.trim(),
       StripeWebhookSecret: initialRef.current.StripeWebhookSecret.trim(),
@@ -519,6 +531,16 @@ export function PaymentSettingsSection({
       updates.push({
         key: 'payment_setting.amount_discount',
         value: sanitized.AmountDiscount,
+      })
+    }
+
+    if (
+      normalizeJsonForComparison(sanitized.RechargeCarousel) !==
+      normalizeJsonForComparison(initial.RechargeCarousel)
+    ) {
+      updates.push({
+        key: 'payment_setting.recharge_carousel',
+        value: sanitized.RechargeCarousel,
       })
     }
 
@@ -1140,6 +1162,36 @@ export function PaymentSettingsSection({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name='RechargeCarousel'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('Recharge promotion carousel')}</FormLabel>
+                  <FormControl>
+                    <JsonCodeEditor
+                      value={field.value}
+                      onChange={field.onChange}
+                      name={field.name}
+                      onBlur={field.onBlur}
+                      textareaRef={field.ref}
+                      placeholder='[{"title":"充值优惠","description":"限时优惠","image":"https://example.com/banner.png","link":"/console/topup","enabled":true,"sort":1}]'
+                      heightClassName='h-40 min-h-40 max-h-40'
+                      aria-invalid={Boolean(
+                        form.formState.errors.RechargeCarousel
+                      )}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {t(
+                      'Configure recharge promotion images as a JSON array. Use image, optional title, description, link, enabled and sort fields.'
+                    )}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
           <Separator />

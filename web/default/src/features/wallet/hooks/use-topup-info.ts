@@ -12,6 +12,7 @@ import type {
   CreemProduct,
   PaymentMethod,
   WaffoPayMethod,
+  RechargeCarouselItem,
 } from '../types'
 
 // ============================================================================
@@ -111,6 +112,26 @@ function parseAmountOptions(data: unknown): number[] {
     .filter((item) => Number.isFinite(item) && item > 0)
 }
 
+function parseRechargeCarousel(data: unknown): RechargeCarouselItem[] {
+  return parseJsonArray(data)
+    .filter(
+      (item): item is Record<string, unknown> =>
+        !!item && typeof item === 'object'
+    )
+    .map((item) => ({
+      id: typeof item.id === 'string' ? item.id : undefined,
+      title: typeof item.title === 'string' ? item.title : undefined,
+      description:
+        typeof item.description === 'string' ? item.description : undefined,
+      image: typeof item.image === 'string' ? item.image.trim() : '',
+      link: typeof item.link === 'string' ? item.link.trim() : undefined,
+      enabled: item.enabled !== false,
+      sort: Number.isFinite(Number(item.sort)) ? Number(item.sort) : undefined,
+    }))
+    .filter((item) => item.image)
+    .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
+}
+
 function parseDiscountMap(data: unknown): Record<number, number> {
   if (!data) {
     return {}
@@ -174,6 +195,9 @@ export function useTopupInfo() {
         ),
         amount_options: parseAmountOptions(response.data.amount_options),
         discount: parseDiscountMap(response.data.discount),
+        recharge_carousel: parseRechargeCarousel(
+          response.data.recharge_carousel
+        ),
         fee_rate: Number(response.data.fee_rate || 0),
         creem_products: parseCreemProducts(response.data.creem_products),
         waffo_pay_methods: parseWaffoPayMethods(

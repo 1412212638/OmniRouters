@@ -1,5 +1,18 @@
 {
   "translation": {
+    "Online recharge": "線上儲值",
+    "Confirm recharge": "確認儲值",
+    "Recharge records": "儲值紀錄",
+    "Order number": "訂單編號",
+    "Save up to {{percent}}% on selected recharge amounts": "指定儲值級距最高優惠 {{percent}}%",
+    "Input and Output Logging": "輸入輸出日誌",
+    "Record input and output JSON in usage logs to help debug, evaluate response quality, and optimize requests. Prompts and generated content are excluded.": "在呼叫日誌中記錄輸入與輸出 JSON，便於偵錯、評估回應品質與最佳化。不記錄請求提示詞與模型生成內容。",
+    "Input JSON": "輸入 JSON",
+    "Output JSON": "輸出 JSON",
+    "No input or output was recorded for this request.": "此請求沒有輸入輸出記錄。",
+    "Input and output logging was disabled for this request.": "本次請求未啟用輸入輸出日誌。",
+    "No input summary is available for this request.": "此請求沒有可用的輸入摘要。",
+    "No output summary is available for this request.": "此請求沒有可用的輸出摘要。",
     "Speech prices are per 10K characters. Enter 3.5 for 3.5 per 10K characters. Free quantity is counted in individual characters.": "語音價格按每萬字元填寫。例如每萬字元 3.5，則填寫 3.5。免費數量仍按單個字元填寫。",
     "Playground uses your personal balance. Use an organization API key for organization billing.": "Playground 使用個人餘額。如需從組織餘額扣費，請使用組織 API Key 呼叫介面。",
     "360": "360",

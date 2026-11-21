@@ -3,6 +3,7 @@ package helper
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -338,6 +339,9 @@ func TestStreamScannerHandler_ClientCancelDrainsTerminalUsage(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(recorder)
 	c.Request = httptest.NewRequest(http.MethodPost, "/v1/chat/completions", nil).WithContext(ctx)
+	writeReset := errors.New("connection reset by peer")
+	writer := &streamFlushErrorWriter{ResponseWriter: c.Writer}
+	c.Writer = writer
 
 	resp := &http.Response{Body: pr}
 	info := &relaycommon.RelayInfo{
@@ -347,13 +351,20 @@ func TestStreamScannerHandler_ClientCancelDrainsTerminalUsage(t *testing.T) {
 
 	var count atomic.Int64
 	firstHandled := make(chan struct{})
+	failedWriteHandled := make(chan struct{})
 	done := make(chan struct{})
 	go func() {
 		StreamScannerHandler(c, resp, info, func(data string, sr *StreamResult) {
 			count.Add(1)
-			_ = StringData(c, data)
+			if data == "failed write" {
+				writer.err = writeReset
+			}
+			sr.Error(StringData(c, data))
 			if data == "first" {
 				close(firstHandled)
+			}
+			if data == "failed write" {
+				close(failedWriteHandled)
 			}
 		})
 		close(done)
@@ -368,11 +379,21 @@ func TestStreamScannerHandler_ClientCancelDrainsTerminalUsage(t *testing.T) {
 		t.Fatal("timed out waiting for first chunk")
 	}
 
+	_, err = fmt.Fprint(pw, "data: failed write\n")
+	require.NoError(t, err)
+	select {
+	case <-failedWriteHandled:
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for failed write")
+	}
 	cancel()
+	require.Eventually(t, func() bool {
+		return !info.StreamStatus.DownstreamSnapshot().ContextDoneAt.IsZero()
+	}, time.Second, time.Millisecond)
 
 	// The scanner is allowed to consume a terminal chunk after disconnect.
 	go func() {
-		_, _ = fmt.Fprint(pw, "data: second\n")
+		_, _ = fmt.Fprint(pw, "data: after cancel 1\ndata: after cancel 2\ndata: terminal usage\n")
 		_ = pw.Close()
 	}()
 
@@ -382,16 +403,35 @@ func TestStreamScannerHandler_ClientCancelDrainsTerminalUsage(t *testing.T) {
 		t.Fatal("handler did not return after upstream drain")
 	}
 
-	assert.Equal(t, int64(2), count.Load(), "terminal upstream chunk should be drained")
+	assert.Equal(t, int64(5), count.Load(), "terminal upstream chunk should be drained")
 	require.NotNil(t, info.StreamStatus)
 	assert.Equal(t, relaycommon.StreamEndReasonClientGone, info.StreamStatus.EndReason)
+	assert.False(t, info.StreamStatus.RequestSucceeded())
+	assert.Equal(t, 2, info.StreamStatus.TotalErrorCount())
+	require.Len(t, info.StreamStatus.Errors, 2)
+	assert.Equal(t, "connection reset by peer", info.StreamStatus.Errors[0].Message)
+	assert.Equal(t, "request context done: context canceled", info.StreamStatus.Errors[1].Message)
+	diagnostics := info.StreamStatus.DownstreamSnapshot()
+	assert.ErrorIs(t, diagnostics.FirstWriteError, writeReset)
+	assert.Equal(t, 2, diagnostics.RepeatedContextErrors)
+	assert.False(t, diagnostics.LastSuccessfulFlushAt.IsZero())
+	assert.LessOrEqual(t, diagnostics.LastSuccessfulFlushAt.Compare(diagnostics.FirstWriteErrorAt), 0)
+	assert.LessOrEqual(t, diagnostics.FirstWriteErrorAt.Compare(diagnostics.ContextDoneAt), 0)
 
 	body := recorder.Body.String()
 	assert.Contains(t, body, "first")
-	assert.NotContains(t, body, "second")
+	assert.NotContains(t, body, "after cancel")
+	assert.NotContains(t, body, "terminal usage")
 	_, err = fmt.Fprint(pw, "data: after-close\n")
 	assert.Error(t, err, "cleanup should close the upstream body after draining")
 }
+
+type streamFlushErrorWriter struct {
+	gin.ResponseWriter
+	err error
+}
+
+func (w *streamFlushErrorWriter) FlushError() error { return w.err }
 
 // ---------- Ping tests ----------
 

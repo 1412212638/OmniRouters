@@ -1,12 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatQuota } from '@/lib/format'
 
@@ -31,11 +25,6 @@ export function WalletFundingSummary({
     <Card>
       <CardHeader>
         <CardTitle>{t('Funding overview')}</CardTitle>
-        <CardDescription>
-          {t(
-            'Cumulative credits recorded since funding tracking was enabled. These are not remaining paid or gift balances; historical credits are not inferred.'
-          )}
-        </CardDescription>
       </CardHeader>
       <CardContent>
         {failed ? (

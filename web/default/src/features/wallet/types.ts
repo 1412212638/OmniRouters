@@ -129,6 +129,17 @@ export interface CorporateTransferInfo {
   support_email?: string
 }
 
+/** A promotional image shown above the recharge options. */
+export interface RechargeCarouselItem {
+  id?: string
+  title?: string
+  description?: string
+  image: string
+  link?: string
+  enabled?: boolean
+  sort?: number
+}
+
 /**
  * Topup configuration information
  */
@@ -147,6 +158,8 @@ export interface TopupInfo {
   amount_options: number[]
   /** Discount rates by amount */
   discount: Record<number, number>
+  /** Administrator-configured recharge promotion images */
+  recharge_carousel?: RechargeCarouselItem[]
   /** Extra payment fee rate, e.g. 0.02 for 2% */
   fee_rate?: number
   /** Display-only corporate bank transfer information */

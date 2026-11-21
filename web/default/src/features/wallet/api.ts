@@ -139,6 +139,18 @@ export async function requestCreemPayment(
 }
 
 /**
+ * Calculate the amount charged by Waffo.
+ */
+export async function calculateWaffoAmount(
+  request: AmountRequest
+): Promise<AmountResponse & { currency?: string }> {
+  const res = await api.post('/api/user/waffo/amount', request, {
+    skipBusinessError: true,
+  } as Record<string, unknown>)
+  return res.data
+}
+
+/**
  * Request Waffo payment
  */
 export async function requestWaffoPayment(

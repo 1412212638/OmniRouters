@@ -178,6 +178,7 @@ type RelayInfo struct {
 	// ImageRequestCount is the effective quantity sent on the current attempt;
 	// ImageQuotaBeforeGroup is the frozen legacy estimate before request ratios.
 	ImageRequestCount     int
+	OutputImageCount      int
 	ImageQuotaBeforeGroup float64
 
 	Request dto.Request
@@ -293,6 +294,7 @@ func (info *RelayInfo) UpdateImageCount(count int64) {
 	if info == nil || count <= 0 || count > int64(dto.MaxImageN) {
 		return
 	}
+	info.OutputImageCount = int(count)
 	if info.PriceData.UsePrice {
 		info.PriceData.AddOtherRatio("n", float64(count))
 	}
@@ -318,6 +320,7 @@ func (info *RelayInfo) RequestedImageCount() int {
 // ResetResponseAttempt prevents a failed channel attempt from poisoning the
 // success-limit decision for a later successful retry, including non-streams.
 func (info *RelayInfo) ResetResponseAttempt(c *gin.Context) {
+	info.OutputImageCount = 0
 	info.StreamStatus = nil
 	common.SetContextKey(c, constant.ContextKeyResponseStreamStatus, info.StreamStatus)
 }

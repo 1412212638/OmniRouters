@@ -1,5 +1,18 @@
 {
   "translation": {
+    "Online recharge": "Nạp tiền trực tuyến",
+    "Confirm recharge": "Xác nhận nạp tiền",
+    "Recharge records": "Lịch sử nạp tiền",
+    "Order number": "Mã đơn hàng",
+    "Save up to {{percent}}% on selected recharge amounts": "Tiết kiệm đến {{percent}}% khi chọn các mức nạp áp dụng",
+    "Input and Output Logging": "Nhật ký đầu vào và đầu ra",
+    "Record input and output JSON in usage logs to help debug, evaluate response quality, and optimize requests. Prompts and generated content are excluded.": "Ghi JSON đầu vào và đầu ra vào nhật ký sử dụng để gỡ lỗi, đánh giá chất lượng phản hồi và tối ưu yêu cầu. Không ghi lời nhắc hoặc nội dung do mô hình tạo.",
+    "Input JSON": "JSON đầu vào",
+    "Output JSON": "JSON đầu ra",
+    "No input or output was recorded for this request.": "Yêu cầu này không có bản ghi đầu vào hoặc đầu ra.",
+    "Input and output logging was disabled for this request.": "Nhật ký đầu vào và đầu ra đã tắt khi thực hiện yêu cầu này.",
+    "No input summary is available for this request.": "Không có bản tóm tắt đầu vào cho yêu cầu này.",
+    "No output summary is available for this request.": "Không có bản tóm tắt đầu ra cho yêu cầu này.",
     "Speech prices are per 10K characters. Enter 3.5 for 3.5 per 10K characters. Free quantity is counted in individual characters.": "Giá giọng nói tính theo mỗi 10.000 ký tự. Nhập 3.5 cho giá 3,5 trên 10.000 ký tự. Số lượng miễn phí vẫn tính theo từng ký tự.",
     "360": "360",
     "1000": "1000",

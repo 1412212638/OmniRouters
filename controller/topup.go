@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -94,6 +95,12 @@ func GetTopUpInfo(c *gin.Context) {
 	}
 
 	paymentSetting := operation_setting.GetPaymentSetting()
+	var rechargeCarousel []map[string]interface{}
+	if strings.TrimSpace(paymentSetting.RechargeCarousel) != "" {
+		if err := common.UnmarshalJsonStr(paymentSetting.RechargeCarousel, &rechargeCarousel); err != nil {
+			rechargeCarousel = []map[string]interface{}{}
+		}
+	}
 	data := gin.H{
 		"enable_online_topup":        isEpayTopUpEnabled(),
 		"enable_stripe_topup":        isStripeTopUpEnabled(),
@@ -114,6 +121,7 @@ func GetTopUpInfo(c *gin.Context) {
 		"waffo_pancake_min_topup": setting.WaffoPancakeMinTopUp,
 		"amount_options":          paymentSetting.AmountOptions,
 		"discount":                paymentSetting.AmountDiscount,
+		"recharge_carousel":       rechargeCarousel,
 		"fee_rate":                paymentSetting.FeeRate,
 		"corporate_transfer": gin.H{
 			"enabled":        paymentSetting.CorporateTransferEnabled,

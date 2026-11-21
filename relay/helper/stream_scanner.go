@@ -124,21 +124,43 @@ func (b *StreamWriteBudget) Deadline(now time.Time, n int) time.Time {
 type streamResponseWriter struct {
 	gin.ResponseWriter
 	budget StreamWriteBudget
+	status *relaycommon.StreamStatus
 }
 
 func (w *streamResponseWriter) Write(p []byte) (int, error) {
 	_ = http.NewResponseController(w.ResponseWriter).SetWriteDeadline(w.budget.Deadline(time.Now(), len(p)))
-	return w.ResponseWriter.Write(p)
+	n, err := w.ResponseWriter.Write(p)
+	if err != nil && w.status != nil {
+		w.status.RecordDownstreamWriteError(err)
+	}
+	return n, err
 }
 
 func (w *streamResponseWriter) WriteString(s string) (int, error) {
 	_ = http.NewResponseController(w.ResponseWriter).SetWriteDeadline(w.budget.Deadline(time.Now(), len(s)))
-	return w.ResponseWriter.WriteString(s)
+	n, err := w.ResponseWriter.WriteString(s)
+	if err != nil && w.status != nil {
+		w.status.RecordDownstreamWriteError(err)
+	}
+	return n, err
 }
 
 // Unwrap lets http.ResponseController reach the connection.
 func (w *streamResponseWriter) Unwrap() http.ResponseWriter {
 	return w.ResponseWriter
+}
+
+func findStreamResponseWriter(writer http.ResponseWriter) *streamResponseWriter {
+	for {
+		if writer, ok := writer.(*streamResponseWriter); ok {
+			return writer
+		}
+		unwrapper, ok := writer.(interface{ Unwrap() http.ResponseWriter })
+		if !ok {
+			return nil
+		}
+		writer = unwrapper.Unwrap()
+	}
 }
 
 func StreamScannerHandler(c *gin.Context, resp *http.Response, info *relaycommon.RelayInfo, dataHandler func(data string, sr *StreamResult)) {
@@ -217,6 +239,9 @@ func StreamScannerHandler(c *gin.Context, resp *http.Response, info *relaycommon
 	scanner.Split(bufio.ScanLines)
 	copyCodexSSEHeaders(c, resp)
 	SetEventStreamHeaders(c)
+	if writer := findStreamResponseWriter(c.Writer); writer != nil {
+		writer.status = info.StreamStatus
+	}
 
 	ctx = context.WithValue(ctx, "stop_chan", stopChan)
 

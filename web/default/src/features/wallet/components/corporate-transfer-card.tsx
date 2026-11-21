@@ -7,14 +7,12 @@ import {
   Phone,
   UserRound,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
-import { TitledCard } from '@/components/ui/titled-card'
 import { cn } from '@/lib/utils'
 
 import type { CorporateTransferInfo } from '../types'
@@ -32,12 +30,13 @@ type CopyableRowProps = {
 function CopyableRow({ label, value, icon }: CopyableRowProps) {
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
-  const displayValue = value?.trim() || t('Not configured')
-  const canCopy = Boolean(value?.trim())
+  const copyValue = value?.trim()
+  const displayValue = copyValue || t('Not configured')
+  const canCopy = Boolean(copyValue)
 
   const handleCopy = async () => {
-    if (!canCopy) return
-    await navigator.clipboard.writeText(value!.trim())
+    if (!copyValue) return
+    await navigator.clipboard.writeText(copyValue)
     setCopied(true)
     window.setTimeout(() => setCopied(false), 1200)
   }
@@ -110,17 +109,18 @@ export function CorporateTransferCard({ config }: CorporateTransferCardProps) {
   if (!enabled) return null
 
   return (
-    <TitledCard
-      title={title}
-      description={t('Corporate remittance instructions')}
-      icon={<Building2 className='h-4 w-4' />}
-      contentClassName='space-y-4'
+    <section
+      aria-labelledby='corporate-transfer-title'
+      className='flex flex-col gap-4'
     >
+      <h2 id='corporate-transfer-title' className='text-sm font-semibold'>
+        {title}
+      </h2>
       <div className='rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100'>
         <div className='mb-2 font-medium'>{t('Notice')}</div>
         <ul className='list-disc space-y-1 pl-5'>
-          {noticeItems.map((item, index) => (
-            <li key={`${item}-${index}`}>{item}</li>
+          {[...new Set(noticeItems)].map((item) => (
+            <li key={item}>{item}</li>
           ))}
         </ul>
       </div>
@@ -188,6 +188,6 @@ export function CorporateTransferCard({ config }: CorporateTransferCardProps) {
           )}
         </div>
       </div>
-    </TitledCard>
+    </section>
   )
 }

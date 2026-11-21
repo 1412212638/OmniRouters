@@ -1,5 +1,18 @@
 {
   "translation": {
+    "Online recharge": "Online recharge",
+    "Confirm recharge": "Confirm recharge",
+    "Recharge records": "Recharge records",
+    "Order number": "Order number",
+    "Save up to {{percent}}% on selected recharge amounts": "Save up to {{percent}}% on selected recharge amounts",
+    "Input and Output Logging": "Input and Output Logging",
+    "Record input and output JSON in usage logs to help debug, evaluate response quality, and optimize requests. Prompts and generated content are excluded.": "Record input and output JSON in usage logs to help debug, evaluate response quality, and optimize requests. Prompts and generated content are excluded.",
+    "Input JSON": "Input JSON",
+    "Output JSON": "Output JSON",
+    "No input or output was recorded for this request.": "No input or output was recorded for this request.",
+    "Input and output logging was disabled for this request.": "Input and output logging was disabled for this request.",
+    "No input summary is available for this request.": "No input summary is available for this request.",
+    "No output summary is available for this request.": "No output summary is available for this request.",
     "Speech prices are per 10K characters. Enter 3.5 for 3.5 per 10K characters. Free quantity is counted in individual characters.": "Speech prices are per 10K characters. Enter 3.5 for 3.5 per 10K characters. Free quantity is counted in individual characters.",
     "360": "360",
     "1000": "1000",
@@ -6416,6 +6429,11 @@
     "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}": "Submitted {{sent}} · Skipped {{skipped}} · Failed {{failed}} · Unconfirmed {{unconfirmed}}",
     "Custom email addresses": "Custom email addresses",
     "Enter up to {{count}} email addresses": "Enter up to {{count}} email addresses",
-    "Check the format of the email addresses": "Check the format of the email addresses"
+    "Check the format of the email addresses": "Check the format of the email addresses",
+    "Recharge promotion": "Recharge promotion",
+    "Recharge promotion slides": "Recharge promotion slides",
+    "Go to slide {{number}}": "Go to slide {{number}}",
+    "Recharge promotion carousel": "Recharge promotion carousel",
+    "Configure recharge promotion images as a JSON array. Use image, optional title, description, link, enabled and sort fields.": "Configure recharge promotion images as a JSON array. Use image, optional title, description, link, enabled and sort fields."
   }
 }

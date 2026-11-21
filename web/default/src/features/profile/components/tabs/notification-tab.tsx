@@ -69,6 +69,7 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
     gotify_priority: 5,
     accept_unset_model_ratio_model: false,
     record_ip_log: false,
+    record_call_io: true,
     marketing_email_enabled: true,
     upstream_model_update_notify_enabled: false,
   })
@@ -98,6 +99,7 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
         accept_unset_model_ratio_model:
           parsed.accept_unset_model_ratio_model || false,
         record_ip_log: parsed.record_ip_log || false,
+        record_call_io: parsed.record_call_io ?? true,
         marketing_email_enabled: parsed.marketing_email_enabled ?? true,
         upstream_model_update_notify_enabled:
           parsed.upstream_model_update_notify_enabled || false,
@@ -410,6 +412,29 @@ export function NotificationTab({ profile, onUpdate }: NotificationTabProps) {
             onCheckedChange={(checked) => updateField('record_ip_log', checked)}
           />
         </div>
+        <Field
+          orientation='horizontal'
+          className='rounded-lg border p-3 sm:p-4'
+        >
+          <FieldContent>
+            <FieldLabel htmlFor='recordCallIO'>
+              {t('Input and Output Logging')}
+            </FieldLabel>
+            <FieldDescription id='recordCallIO-description'>
+              {t(
+                'Record input and output JSON in usage logs to help debug, evaluate response quality, and optimize requests. Prompts and generated content are excluded.'
+              )}
+            </FieldDescription>
+          </FieldContent>
+          <Switch
+            id='recordCallIO'
+            aria-describedby='recordCallIO-description'
+            checked={settings.record_call_io}
+            onCheckedChange={(checked) =>
+              updateField('record_call_io', checked)
+            }
+          />
+        </Field>
       </div>
 
       {/* Save Button */}

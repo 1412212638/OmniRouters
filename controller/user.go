@@ -1500,6 +1500,7 @@ type UpdateUserSettingRequest struct {
 	UpstreamModelUpdateNotifyEnabled *bool   `json:"upstream_model_update_notify_enabled,omitempty"`
 	AcceptUnsetModelRatioModel       bool    `json:"accept_unset_model_ratio_model"`
 	RecordIpLog                      bool    `json:"record_ip_log"`
+	RecordCallIO                     *bool   `json:"record_call_io,omitempty"`
 	MarketingEmailEnabled            *bool   `json:"marketing_email_enabled,omitempty"`
 }
 
@@ -1591,6 +1592,10 @@ func UpdateUserSetting(c *gin.Context) {
 		return
 	}
 	existingSettings := user.GetSetting()
+	recordCallIO := existingSettings.RecordCallIO
+	if req.RecordCallIO != nil {
+		recordCallIO = req.RecordCallIO
+	}
 	marketingEmailEnabled := existingSettings.MarketingEmailEnabled
 	if req.MarketingEmailEnabled != nil {
 		marketingEmailEnabled = req.MarketingEmailEnabled
@@ -1607,6 +1612,7 @@ func UpdateUserSetting(c *gin.Context) {
 		UpstreamModelUpdateNotifyEnabled: upstreamModelUpdateNotifyEnabled,
 		AcceptUnsetRatioModel:            req.AcceptUnsetModelRatioModel,
 		RecordIpLog:                      req.RecordIpLog,
+		RecordCallIO:                     recordCallIO,
 		MarketingEmailEnabled:            marketingEmailEnabled,
 	}
 

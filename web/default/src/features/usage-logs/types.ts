@@ -102,6 +102,11 @@ export interface ResponseModelInfo {
 }
 
 export interface LogOtherData {
+  call_io_log?: {
+    enabled: boolean
+    input?: Record<string, unknown>
+    output?: Record<string, unknown>
+  }
   admin_info?: {
     response_model?: ResponseModelInfo
     is_multi_key?: boolean

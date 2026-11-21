@@ -1,8 +1,9 @@
 import { useMemo } from 'react'
 
 import type { NavGroup, NavItem } from '@/components/layout/types'
+import type { SystemStatus } from '@/features/auth/types'
 import { useStatus } from '@/hooks/use-status'
-import { useAuthStore } from '@/stores/auth-store'
+import { type AuthUser, useAuthStore } from '@/stores/auth-store'
 
 type SidebarSectionConfig = {
   enabled: boolean
@@ -312,15 +313,23 @@ export function useSidebarConfig(navGroups: NavGroup[]): NavGroup[] {
  */
 export function useIsSidebarModuleVisible(url: string): boolean {
   const { status } = useStatus()
-  const { auth } = useAuthStore()
+  const user = useAuthStore((state) => state.auth.user)
 
+  return isSidebarRouteVisible(url, status, user)
+}
+
+export function isSidebarRouteVisible(
+  url: string,
+  status: SystemStatus | null,
+  user: AuthUser | null
+): boolean {
   const adminConfig = parseSidebarConfig(
     status?.SidebarModulesAdmin as string | null | undefined
   )
   const userConfig =
-    auth?.user?.permissions?.sidebar_settings === false
+    user?.permissions?.sidebar_settings === false
       ? null
-      : parseUserSidebarConfig(auth?.user?.sidebar_modules)
+      : parseUserSidebarConfig(user?.sidebar_modules)
 
   return isModuleEnabled(url, adminConfig, userConfig)
 }

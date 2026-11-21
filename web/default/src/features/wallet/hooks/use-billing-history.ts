@@ -22,11 +22,18 @@ interface UseBillingHistoryOptions {
   initialPage?: number
   /** Initial page size */
   initialPageSize?: number
+  personalOnly?: boolean
+  revision?: number
 }
 
 export function useBillingHistory(options: UseBillingHistoryOptions = {}) {
-  const { initialPage = 1, initialPageSize = 10 } = options
-  const isAdmin = useIsAdmin()
+  const {
+    initialPage = 1,
+    initialPageSize = 10,
+    personalOnly = false,
+    revision = 0,
+  } = options
+  const isAdmin = useIsAdmin() && !personalOnly
 
   const [records, setRecords] = useState<TopupRecord[]>([])
   const [total, setTotal] = useState(0)
@@ -155,7 +162,7 @@ export function useBillingHistory(options: UseBillingHistoryOptions = {}) {
   // Fetch data when dependencies change
   useEffect(() => {
     fetchBillingHistory()
-  }, [fetchBillingHistory])
+  }, [fetchBillingHistory, revision])
 
   return {
     records,

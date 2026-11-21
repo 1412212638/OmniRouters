@@ -135,9 +135,18 @@ func (writer *streamKeepAliveWriter) keepAlive(ctx context.Context, interval tim
 }
 
 func FlushWriter(c *gin.Context) (err error) {
+	var streamWriter *streamResponseWriter
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("flush panic recovered: %v", r)
+		}
+		if streamWriter == nil || streamWriter.status == nil {
+			return
+		}
+		if err != nil {
+			streamWriter.status.RecordDownstreamWriteError(err)
+		} else {
+			streamWriter.status.RecordDownstreamFlush()
 		}
 	}()
 
@@ -146,7 +155,7 @@ func FlushWriter(c *gin.Context) (err error) {
 	}
 
 	if requestContextDone(c) {
-		return fmt.Errorf("request context done: %w", c.Request.Context().Err())
+		return streamContextError(c)
 	}
 
 	flusher, ok := c.Writer.(http.Flusher)
@@ -154,6 +163,7 @@ func FlushWriter(c *gin.Context) (err error) {
 		return errors.New("streaming error: flusher not found")
 	}
 
+	streamWriter = findStreamResponseWriter(c.Writer)
 	flusher.Flush()
 	// Gin's http.Flusher wrapper discards the underlying FlushError result.
 	// Flush wrappers first so their buffers are preserved, then surface any
@@ -174,6 +184,12 @@ func FlushWriter(c *gin.Context) (err error) {
 
 func requestContextDone(c *gin.Context) bool {
 	return c != nil && c.Request != nil && c.Request.Context().Err() != nil
+}
+
+var errStreamRequestContextDone = errors.New("request context done")
+
+func streamContextError(c *gin.Context) error {
+	return fmt.Errorf("%w: %w", errStreamRequestContextDone, c.Request.Context().Err())
 }
 
 func SetEventStreamHeaders(c *gin.Context) {
@@ -221,7 +237,7 @@ func ClaudeChunkData(c *gin.Context, resp dto.ClaudeResponse, data string) {
 
 func ResponseChunkData(c *gin.Context, resp dto.ResponsesStreamResponse, data string) error {
 	if requestContextDone(c) {
-		return fmt.Errorf("request context done: %w", c.Request.Context().Err())
+		return streamContextError(c)
 	}
 
 	event := common.CustomEvent{Data: fmt.Sprintf("event: %s\n", resp.Type)}
@@ -241,7 +257,7 @@ func StringData(c *gin.Context, str string) error {
 	}
 
 	if requestContextDone(c) {
-		return fmt.Errorf("request context done: %w", c.Request.Context().Err())
+		return streamContextError(c)
 	}
 
 	c.Render(-1, common.CustomEvent{Data: "data: " + str})
@@ -254,7 +270,7 @@ func PingData(c *gin.Context) error {
 	}
 
 	if requestContextDone(c) {
-		return fmt.Errorf("request context done: %w", c.Request.Context().Err())
+		return streamContextError(c)
 	}
 
 	if _, err := c.Writer.Write([]byte(": PING\n\n")); err != nil {
