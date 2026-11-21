@@ -1,5 +1,11 @@
 # Upstream Sync Log
 
+## 2026-11-21 - Publish the wallet and request logging batch
+
+- Source commit: `b80c666c9` (Update wallet recharge and request diagnostics). This publication record supersedes the local-only status in the November 21 wallet, subscription visibility, input/output logging, and disconnect diagnostics entries.
+- Scope and validation: the preceding source commit and its batch validation record cover the published changes. This follow-up adds only the commit reference.
+- Push status: the source and this publication record are included together in the push to `origin/main`. GitHub Actions handles the image build and publication.
+
 ## 2026-11-21 - Validate the wallet and request logging batch
 
 - Local reason: publish the wallet layout, subscription visibility, input/output logging preference, and stream disconnect diagnostics together at the user's request.
