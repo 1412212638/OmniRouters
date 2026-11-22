@@ -21,7 +21,7 @@ import { formatBillingCurrencyFromUSD } from '@/lib/currency'
 import { formatLogQuota, formatTimestampToDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-import { LOG_TYPE_ALL_VALUE } from '../../constants'
+import { LOG_TYPE_ALL_VALUE, LOG_TYPE_ENUM } from '../../constants'
 import type { UsageLog } from '../../data/schema'
 import {
   formatModelName,
@@ -98,9 +98,11 @@ function buildTypeDetailSegments(
   other: LogOtherData | null,
   t: (key: string, opts?: Record<string, unknown>) => string
 ): DetailSegment[] {
-  // Audit (type=3) and login (type=7) logs: render localized content from the
-  // structured op descriptor instead of the raw (English-fallback) content.
-  if (log.type === 3 || log.type === 7) {
+  if (
+    log.type === LOG_TYPE_ENUM.MANAGE ||
+    log.type === LOG_TYPE_ENUM.SYSTEM ||
+    log.type === LOG_TYPE_ENUM.LOGIN
+  ) {
     const text = renderAuditContent(other, t)
     return text ? [{ text }] : []
   }
@@ -757,8 +759,9 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
           : 'text-muted-foreground/40'
         let primaryColor = 'text-foreground'
         if (primary?.muted) primaryColor = 'text-muted-foreground/60'
-        else if (primary?.danger)
+        else if (primary?.danger) {
           primaryColor = 'text-red-600 dark:text-red-400'
+        }
 
         return (
           <>

@@ -59,6 +59,8 @@
     "No change details recorded": "未記錄變更詳情",
     "Login successful": "登入成功",
     "Login attempt": "登入嘗試",
+    "Register account": "註冊帳號",
+    "Daily check-in": "每日簽到",
     "Change password": "修改密碼",
     "Bind email": "綁定信箱",
     "Unbind OAuth": "解除 OAuth 綁定",

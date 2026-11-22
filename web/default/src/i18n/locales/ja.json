@@ -59,6 +59,8 @@
     "No change details recorded": "変更の詳細は記録されていません",
     "Login successful": "ログイン成功",
     "Login attempt": "ログイン試行",
+    "Register account": "アカウント登録",
+    "Daily check-in": "毎日チェックイン",
     "Change password": "パスワード変更",
     "Bind email": "メール連携",
     "Unbind OAuth": "OAuth 連携解除",

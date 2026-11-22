@@ -59,6 +59,8 @@
     "No change details recorded": "未记录变更详情",
     "Login successful": "登录成功",
     "Login attempt": "登录尝试",
+    "Register account": "注册账号",
+    "Daily check-in": "每日签到",
     "Change password": "修改密码",
     "Bind email": "绑定邮箱",
     "Unbind OAuth": "解绑 OAuth",

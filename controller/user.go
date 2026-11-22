@@ -289,6 +289,11 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	_ = recordSecurityEvent(c, &model.AuditLog{
+		UserId: cleanUser.Id, Username: cleanUser.Username,
+		Category: model.AuditCategorySecurity, Action: "user.register",
+	})
+
 	// 获取插入后的用户ID
 	var insertedUser model.User
 	if err := model.DB.Where("username = ?", cleanUser.Username).First(&insertedUser).Error; err != nil {
@@ -1309,10 +1314,13 @@ func ManageUser(c *gin.Context) {
 		if req.Mode == "add" && req.FundingKind != "" {
 			fundingKind = req.FundingKind
 		}
-		recordManageAuditFor(c, user.Id, "user.quota_"+req.Mode, map[string]interface{}{
+		action := "user.quota_" + req.Mode
+		params := map[string]interface{}{
 			"quota": logger.LogQuota(req.Value), "from": logger.LogQuota(before), "to": logger.LogQuota(after),
 			"funding_kind": fundingKind,
-		})
+		}
+		model.RecordWalletAdjustmentLog(user.Id, user.Username, auditContentEN(action, params), action, params)
+		recordManageAuditFor(c, user.Id, action, params)
 		c.JSON(http.StatusOK, gin.H{
 			"success": true,
 			"message": "",

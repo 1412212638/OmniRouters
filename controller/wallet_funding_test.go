@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"bytes"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -13,6 +15,80 @@ import (
 	"gorm.io/gorm"
 )
 
+func TestManageWalletAdjustmentAppearsInAffectedUsersLogs(t *testing.T) {
+	previousDB, previousLogDB := model.DB, model.LOG_DB
+	previousRedisEnabled := common.RedisEnabled
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	require.NoError(t, err)
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	sqlDB.SetMaxOpenConns(1)
+	model.DB, model.LOG_DB = db, db
+	common.RedisEnabled = false
+	t.Cleanup(func() {
+		model.DB, model.LOG_DB = previousDB, previousLogDB
+		common.RedisEnabled = previousRedisEnabled
+		_ = sqlDB.Close()
+	})
+	require.NoError(t, db.AutoMigrate(&model.User{}, &model.WalletFundingEntry{}, &model.Log{}))
+	user := model.User{Username: "adjusted-user", Role: common.RoleCommonUser, Quota: 100, AffCode: "adj-user"}
+	admin := model.User{Username: "adjusting-admin", Role: common.RoleAdminUser, AffCode: "adj-admin"}
+	require.NoError(t, db.Create(&user).Error)
+	require.NoError(t, db.Create(&admin).Error)
+
+	for _, tc := range []struct {
+		mode    string
+		value   int
+		success bool
+	}{
+		{"add", 200, true},
+		{"subtract", 50, true},
+		{"override", 0, true},
+		{"add", 0, false},
+	} {
+		body, err := common.Marshal(ManageRequest{
+			Id: user.Id, Action: "add_quota", Mode: tc.mode, Value: tc.value,
+			FundingKind: model.FundingGift, Note: "private adjustment note",
+		})
+		require.NoError(t, err)
+		response := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(response)
+		c.Request = httptest.NewRequest(http.MethodPost, "/api/user/manage", bytes.NewReader(body))
+		c.Set("id", admin.Id)
+		c.Set("username", admin.Username)
+		c.Set("role", admin.Role)
+		ManageUser(c)
+		var result struct {
+			Success bool `json:"success"`
+		}
+		require.NoError(t, common.Unmarshal(response.Body.Bytes(), &result))
+		require.Equal(t, tc.success, result.Success, response.Body.String())
+	}
+
+	logs, total, err := model.GetUserLogs(user.Id, model.LogTypeSystem, 0, 0, "", "", 0, 10, "", "", "")
+	require.NoError(t, err)
+	require.EqualValues(t, 3, total)
+	require.Len(t, logs, 3)
+	for i, mode := range []string{"override", "subtract", "add"} {
+		require.Equal(t, user.Username, logs[i].Username)
+		require.Zero(t, logs[i].Quota)
+		require.Contains(t, logs[i].Other, "user.quota_"+mode)
+		require.NotContains(t, logs[i].Other, "private adjustment note")
+		require.NotContains(t, logs[i].Other, admin.Username)
+		require.Empty(t, logs[i].Ip)
+	}
+
+	_, total, err = model.GetUserLogs(user.Id, model.LogTypeSystem, 0, 0, "", "", 0, 10, "", "", "", 123)
+	require.NoError(t, err)
+	require.Zero(t, total)
+	_, total, err = model.GetAllLogs(model.LogTypeSystem, 0, 0, "", user.Username, "", 0, 10, 0, "", "", "")
+	require.NoError(t, err)
+	require.EqualValues(t, 3, total)
+	_, total, err = model.GetAllLogs(model.LogTypeManage, 0, 0, "", admin.Username, "", 0, 10, 0, "", "", "")
+	require.NoError(t, err)
+	require.EqualValues(t, 3, total)
+}
+
 func TestWalletFundingSelfPrivacyAndAdminRoleBoundary(t *testing.T) {
 	previousDB := model.DB
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
@@ -24,8 +100,8 @@ func TestWalletFundingSelfPrivacyAndAdminRoleBoundary(t *testing.T) {
 		connection, _ := db.DB()
 		_ = connection.Close()
 	})
-	user := model.User{Username: "funding-private-user", Role: common.RoleCommonUser}
-	admin := model.User{Username: "funding-private-admin", Role: common.RoleAdminUser}
+	user := model.User{Username: "funding-private-user", Role: common.RoleCommonUser, AffCode: "fund-user"}
+	admin := model.User{Username: "funding-private-admin", Role: common.RoleAdminUser, AffCode: "fund-adm"}
 	require.NoError(t, db.Create(&user).Error)
 	require.NoError(t, db.Create(&admin).Error)
 	require.NoError(t, model.RecordWalletFundingTx(db, model.WalletFundingEntry{

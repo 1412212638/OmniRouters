@@ -1,5 +1,55 @@
 # Upstream Sync Log
 
+Entries are ordered by their recorded dates, newest first. Dates and same-day ordering reflect the original records.
+
+## 2026-11-22 - Publish project memory and audit changes
+
+- Local reason: publish the approved project-memory rules and pending registration audit and wallet adjustment logging work together.
+- Changed: project memory and AI rules, chronological change log, account-linked password registration auditing, named audit actions, and affected-user wallet adjustment logs with localized display and tests.
+- Preserved: existing project conventions, registration and wallet behavior, operator audit records, and existing log history.
+- Validation: default frontend production build, targeted Oxlint, Markdown link checks, and Git whitespace checks passed. The earlier focused SQLite tests are recorded in the entries below; Go was unavailable on PATH for this publication check. Production behavior was not retested.
+- Source commit and push status: this entry accompanies the source commit intended for push to `origin/main`; GitHub Actions handles image publication.
+
+## 2026-11-22 - Make project memory an AI work rule
+
+- Local reason: the user relies on AI for ongoing repository work and requested a project-memory rule.
+- Changed: require task-relevant memory reading, source verification, and updates for durable project context in AGENTS.md and CLAUDE.md; clarify the workflow in the memory index and record the rule in its changelog.
+- Preserved: existing project conventions, application behavior, and unrelated worktree changes.
+- Validation: checked the rule text and local Markdown link targets and ran Git whitespace checks. Behavior depends on the AI tool loading its applicable project instructions.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-22 - Organize change log chronology
+
+- Local reason: dated entries were scattered across the log in mixed chronological order and heading levels.
+- Changed: ordered dated entries newest first and standardized their heading level, retaining each recorded date, entry content, and same-day relative order.
+- Preserved: existing historical details, undated subsections, and uncommitted worktree entries.
+- Validation: checked entry preservation, chronological order, Markdown heading structure, and Git whitespace. Historical dates were retained as recorded and were not independently verified against every commit.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-22 - Establish project memory
+
+- Local reason: adopt the project-memory portion of the supplied reference for this repository.
+- Changed: added a sourced project memory index, state, maintenance decisions, source adoption record, and memory changelog, with a brief entry in AGENTS.md.
+- Preserved: existing project rules, application behavior, and unrelated worktree changes.
+- Validation: checked local Markdown link targets and Git whitespace. Repository facts were checked against the cited files. Production configuration and historical decision rationale remain unverified.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-21 - Make password signup activity traceable in audit logs
+
+- Local reason: repeated signup, check-in, key creation, and settings activity was difficult to correlate because password signup did not have an account-linked audit event and check-in and settings updates used generic labels.
+- Changed: after a password signup creates a user, the existing request audit records the account ID, username, client IP, and password registration route. Check-in and settings updates have named actions in the default audit UI, with registration and check-in labels in all seven locales.
+- Preserved: registration and Turnstile behavior, verification and reward rules, API key permissions, OAuth flows, audit access controls, and payload redaction. Registration requests that fail before account creation are outside this audit addition.
+- Validation: focused SQLite controller and audit middleware tests passed, as did the default frontend build, targeted Oxlint, locale key checks, and Git whitespace checks. Full frontend typecheck remains blocked by existing unrelated errors. Production registration and browser rendering were not exercised.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-21 - Show manual balance adjustments in usage logs
+
+- Local reason: manual quota changes produced an operator-owned audit entry, which was absent from usage logs filtered to the affected user.
+- Changed: successful add, subtract, and override actions also write a system entry to the affected user's personal usage logs. The default list and details dialog render the localized operation summary.
+- Preserved: operator-owned audit entries, the wallet funding ledger, quota arithmetic, and organization filtering. The user-facing entry omits the operator's identity, IP address, and private note. No historical backfill was performed.
+- Validation: focused SQLite controller tests covered all three adjustment modes, rejected adjustments, admin username filtering, personal and organization visibility, and private field exclusion. Default frontend build, targeted Oxlint, and Git whitespace checks passed. Repository-wide frontend typecheck reported existing errors outside the changed files. No live instance was exercised.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
 ## 2026-11-21 - Publish top-up thresholds and interface copy
 
 - Source commit: `f6b5fd948` (Add tiered top-up discounts and refine interface copy). This publication entry supersedes the local-only status in the four entries below.
@@ -84,6 +134,100 @@
 - Validation: focused relay scanner, stream status, stream outcome and usage-log tests passed. The disconnect and protocol-error regression tests passed ten consecutive runs. Go build passed for the changed production packages. Broader tests are limited by the existing `assert` compile error in `relay/common/override_test.go` and Seedream pricing and Responses lifecycle assertions reproduced using the HEAD source overlay. No live post-change provider test or production deployment was performed.
 - Source commit and push status: local changes are uncommitted and unpushed.
 
+## 2026-11-21 - Integrate funding totals into the wallet balance card
+
+- Local reason: the personal wallet showed funding totals in a separate card below the balance statistics, which made the balance and its sources harder to scan together.
+- Changed: the current-balance cell now includes cumulative paid and gift credits beneath the available balance. The standalone funding overview is removed from the wallet page. Funding loading and failure states remain visible inside that balance cell, while organization wallets continue to omit personal funding totals.
+- Preserved: the funding summary query, funding ledger dialog, balance, usage, request count, billing, top-up, and organization wallet behavior.
+- Validation: the default frontend production build, targeted Oxlint checks for the wallet page and balance card, and `git diff --check` passed. No Docker image was built, commit was not created, and nothing was pushed.
+
+## 2026-11-21 - Open recharge confirmation from the selected payment method
+
+- Local reason: simplify the wallet recharge flow by removing the separate bottom “Confirm recharge” action.
+- Changed: selecting a payment method now recalculates its quote and opens the existing payment confirmation dialog. The default wallet uses the existing Waffo amount endpoint to show the quoted total in the checkout currency, and the endpoint shares currency and rounding with order creation. Waffo keeps its dedicated payment request after confirmation. The dialog shows the amount, discount, fee, total, and selected method where those values are available.
+- Preserved: minimum amount checks, quote calculation, standard payment dispatch, Waffo and Pancake payment endpoints, corporate transfer, redemption, payment history, organization wallet behavior, and all existing local billing customizations.
+- Validation: see the batch validation record above. No live payment was submitted.
+
+## 2026-11-21 - Move redemption codes below recharge records
+
+- Local reason: keep the online recharge form focused on payment selection and place redemption outside the payment card.
+- Changed: moved the redemption code input, redeem action, and optional purchase link into a dedicated card rendered below recharge records in the default personal wallet. Organization wallets continue to hide redemption.
+- Preserved: redemption validation and balance refresh, the configured purchase link, payment methods, payment confirmation, recharge history, corporate transfer, and all existing local wallet behavior.
+- Validation: the default frontend production build, targeted Oxlint checks for the wallet page and redemption card, and `git diff --check` passed. No Docker image was built, commit was not created, and nothing was pushed.
+
+## 2026-11-21 - Simplify wallet recharge amount buttons
+
+- Local reason: repeated discount percentages crowded the preset recharge amounts.
+- Changed: the default wallet's preset buttons now show the formatted recharge amount alone.
+- Preserved: the configured promotion carousel, preset selection and currency conversion, and the payment confirmation's discount, fee, and payable total. Billing and order submission still use the existing paths.
+- Validation: the default frontend production build, targeted Oxlint, and `git diff --check` passed. No live payment was submitted.
+- Commit and push: local changes are uncommitted and unpushed.
+
+## 2026-11-21 - Add configurable recharge promotion carousel
+
+- Local reason: replace the fixed recharge discount notice with administrator-managed promotional images while removing the inline payable-total summary from the recharge form.
+- Changed: added `payment_setting.recharge_carousel`, exposed validated JSON entries through the top-up info API, added an editor to the active default payment settings page, and added a responsive single/multi-image carousel with optional title, description, link, enabled, and sort fields to the default wallet page. Empty or invalid configuration safely hides the carousel. The recharge form no longer renders the “Amount to pay” summary, while payment confirmation retains its existing calculated amount.
+- Preserved: preset amounts, discounts, payment methods, fee calculation, payment confirmation, redemption, corporate transfer, payment history, organization wallet behavior, and all existing local billing and logging customizations. No payment calculation or order-processing path was changed.
+- Validation: default frontend production build passed. Frontend typecheck remains blocked by existing unrelated errors and missing test-library declarations. Repository-wide format check reports pre-existing files and the new carousel file, so no broad formatter rewrite was applied. Go tests and gofmt were unavailable because Go is not installed in the workspace. The local temporary wallet mock was updated with two sample carousel entries for preview only.
+- Commit and push: not committed or pushed in this turn.
+
+## 2026-11-20 - Remove product digest email and add marketing audiences
+
+- Local reason: simplify email settings by removing scheduled product-update digest generation and review, while adding recipient groups to the existing manual marketing email workflow.
+- Changed: removed the product digest and promotion screens, API handlers/routes, scheduled generation and delivery handlers, digest-specific options, model registrations and service code. Manual marketing mail now supports all enabled users, users with successful personal top-ups, users active in the last 30 days, and manually selected users. A recipient count is shown before sending. Sends run as a durable system task, report progress, and process recipients in bounded batches. Account status, marketing opt-out preference and email availability are rechecked before each send.
+- Preserved: marketing email templates, unsubscribe links and preference storage remain in place. Existing saved digest/promotion tables are left untouched as historical data and are no longer migrated or exposed by the application. No billing, account balance, subscription, channel, or model-pricing code changed.
+- Validation: `bun run build` passed for `web/default`; `git diff --check` passed. Changed frontend files had no new targeted Oxlint errors. Repository `bun run typecheck` remains blocked by existing unrelated errors in auth, channel, image playground, model settings, pricing and task-plugin files, plus missing test-library declarations. Go tests and gofmt could not run because no Go toolchain is available in this environment. No live email was sent. The backend change therefore still needs Go-enabled CI validation.
+- Commit and push: source commit `a129d2979` is included in the push to `origin/main` alongside this log update.
+
+## 2026-11-20 - Restore profile email binding after dashboard login
+
+- Local reason: the dashboard now signs users in with a Bearer token. The email binding handler still read the legacy session cookie and could return HTTP 500 after verifying the code.
+- Changed: `POST /api/oauth/email/bind` now runs the standard user authentication middleware and binds the email to the authenticated account. Personal access tokens cannot change the login email.
+- Preserved: the shared endpoint and request format used by both themes, support for authenticated legacy browser sessions, verification code validation, email uniqueness, rate limiting, and audit logging.
+- Validation: the SQLite route regression passed for dashboard login without a legacy cookie, missing login credentials, personal access tokens, invalid verification codes, normalized email persistence, and success auditing. The router, middleware, and controller packages built successfully. Broader tests reported failures in unrelated router and CORS cases and compilation errors in existing controller tests. The live service was not exercised.
+- Commit and push: source commit `5c0a48c9a` is included in the push to `origin/main` alongside this log update.
+
+## 2026-11-20 - Add independent marketing SMTP and Tencent Cloud SES feedback
+
+- Local reason: send marketing campaigns through a dedicated, editable sender and SMTP credential while keeping transactional mail on its existing delivery configuration.
+- Changed: added an independent TLS SMTP option in the default email settings marketing tab, a test send, masked password state, and a marketing-only task status endpoint. Campaigns use the chosen configuration for their run, reject a changed configuration between queueing and start, check current opt-out and address suppression before each attempt, pace attempts at the configured rate, and track unconfirmed SMTP submissions separately. Clients can unsubscribe via HTTPS one-click POST on independent SMTP mail. Signed SES feedback suppresses addresses on hard bounce or complaint.
+- Preserved: system mail configuration and send callers, marketing templates, audience selection, body unsubscribe confirmation, and account marketing preferences. Upgrades default to inheriting the existing system delivery method. The new configuration controls are in the default theme and apply to campaigns from either theme.
+- Operations: set a public HTTPS server address and a stable `CRYPTO_SECRET` (or `SESSION_SECRET`) shared by all instances. In Default theme > Email Settings > Marketing, choose Independent SMTP, fill the SES host and port (Guangzhou: `gz-smtp.qcloudmail.com:465`), the SES SMTP account and password, the sender, and the reply address. Use the provided private callback URL in Tencent Cloud SES under the marketing sender's address-level callback settings. Configure the same callback for each sender address used in SES. Treat the URL as a credential. Verify the sender domain in SES, send a test, and confirm DKIM covers both unsubscribe headers before a live campaign.
+- Validation: production Go build of the touched packages, targeted common SMTP and Resend tests, isolated marketing controller/model/service tests, and default frontend build passed. Full package Go tests and frontend typecheck encounter existing unrelated compilation errors. No live SES send or webhook was exercised.
+- Commit and push: source commit `bdbd45642` is included in the push to `origin/main` alongside this log update.
+
+## 2026-11-20 - Enable ordinary-channel Seedream 5.5 usage billing
+
+- Local reason: ordinary OpenAI-compatible Seedream 5.5 requests using response usage fields were rejected because the model had not been added to the explicit ordinary response usage profile.
+- Changed: registered `doubao-seedream-5.5` and `doubao-seedream-5-5-261028` as aliases of the Seedream 5.5 ordinary response-usage profile. They reuse the bounded Seedream image usage schema and existing request-side reservation plus response settlement path. Added regression coverage for both names and a Seedream 5.5 image-tier/reference-image expression.
+- Preserved: task-plugin expression resolution, plugin-vs-ordinary channel separation, pre-consume/settlement and all account, group, customer and subscription billing behavior. No pricing expression or stored configuration is changed automatically.
+- Validation: `git diff --check` passed. Go tests and gofmt could not run because the Go toolchain is unavailable in this environment. No live provider request was made.
+- Commit and push: source commit `a129d2979` is included in the push to `origin/main` alongside this log update.
+
+## 2026-11-20 - Keep the marketing unsubscribe link inside the email body
+
+- Local reason: a marketing email shown in QQ Mail had no visible unsubscribe link in the captured area. Complete HTML templates could place the fallback footer outside the body, and a bare occurrence of the unsubscribe URL could prevent the footer from being added.
+- Changed: add a localized unsubscribe link inside the body of a complete HTML message, or at the end of a fragment. Preserve templates that already include an anchor to the recipient's unsubscribe URL.
+- Preserved: unsubscribe token verification, user preferences, the SES transport and callback, and the SMTP connection test.
+- Validation: isolated marketing service tests, gofmt and `git diff --check` passed. The production email and QQ Mail rendering were not retested.
+- Commit and push: source commit `26638b058` is included in the push to `origin/main` alongside this log update.
+
+## 2026-11-20 - Allow signed unsubscribe form submissions with an opaque origin
+
+- Local reason: opening the marketing email unsubscribe page worked, but its form POST was rejected by dashboard CORS. The page's referrer policy and email client context can cause the browser to submit with `Origin: null`.
+- Changed: register only the unsubscribe POST before the dashboard CORS middleware. Its existing signature verification authorizes the preference update without a session.
+- Preserved: the unsubscribe URL, confirmation page, one-click POST, referrer policy, rate limiting, SES callback, and CORS enforcement for the dashboard and relay.
+- Validation: focused router tests and `git diff --check` passed. A signed form POST with `Origin: null` updates the preference, an invalid signature leaves it intact, and another API still rejects that origin. Full router tests failed in TypeSafe and public SEO cases, and the middleware CORS test run failed in `TestCORSRejectsUntrustedOrigin`. Live deployment was not tested.
+- Commit and push: source commit `26638b058` is included in the push to `origin/main` alongside this log update.
+
+## 2026-11-20 - Accept custom marketing email recipients
+
+- Local reason: let administrators send a marketing template to specified addresses, including recipients without an account.
+- Changed: the default email settings now offer a custom email audience. Limit each request to 100 addresses, validate and deduplicate addresses, check account opt-outs and address suppression before delivery, and generate signed address-level unsubscribe links without including the plaintext address. Both confirmation form and mail client one-click requests can suppress future marketing sends to an address.
+- Preserved: registered-user audiences, account-level unsubscribe links, SMTP test sends, and the existing campaign delivery and retry policies. Custom campaigns use the existing public HTTPS server address for unsubscribe links.
+- Validation: focused marketing router and service tests, backend package builds, and the default frontend production build passed. Repository typecheck and the changed email settings file's lint still report pre-existing errors. No live mail was sent.
+- Commit and push: source commit `26638b058` is included in the push to `origin/main` alongside this log update.
+
 ## 2026-11-18 - Seedance 2.5 4K, Draft billing continuity and gateway callbacks
 
 - Local reason: the supplied official Ark create-task documentation now lists 4k for Seedance 2.5 standard; final Draft requests omit original reference media, so input-video pricing must follow the original task. The user requested callback integration as well as billing fixes, while leaving business-parameter restrictions to the provider, retaining service_tier/priority passthrough and not charging separately for web search.
@@ -152,6 +296,340 @@
 - Validation: added coverage for model/profile registration, alias-to-dated-ID request rewriting, rejection of unsupported `1080p`, and `video_input` facts for requests with and without reference video. `node --check`, the Flash-specific Go tests, `go build ./plugins`, and `git diff --check` passed. The broader legacy Doubao test selection still has pre-existing failures from stale integer-type assertions and two-argument calls to the now three-argument image completion hook.
 - Source commit and push status: local changes are uncommitted and not pushed.
 
+## 2026-11-15 - Add MiniMax synchronous speech task plugin
+
+- Local reason: add a MiniMax synchronous speech plugin with both the OpenAI-compatible `/v1/audio/speech` entry point and the native `/v1/t2a_v2` entry point.
+- Changed: registered dedicated `openai_audio` and `minimax_t2a` host protocols, routed claimed models through the existing task-plugin billing and persistence pipeline, added binary audio rendering for OpenAI requests, and added the `minimax-speech` plugin for the supported MiniMax speech model family. The plugin forwards native MiniMax request fields, stores the upstream JSON response, validates `base_resp`, returns native JSON unchanged, and decodes bounded hex audio for OpenAI callers.
+- Billing: added a bounded `characters` usage fact with submit-time text estimation and completion-time `extra_info.usage_characters` reconciliation. Prices remain administrator-configured; no account balance, wallet, subscription, quota, multiplier, or ordinary MiniMax channel logic was changed.
+- Preserved: the ordinary `/v1/audio/speech` relay remains the fallback when no task plugin claims the requested model. Existing image, video, Responses, native task routes, and pending local customizations were retained. Streaming speech is intentionally not advertised; the plugin requires synchronous non-streaming requests because the current task host does not expose a binary SSE response path.
+- Validation: bundled Node syntax check and `git diff --check` passed. Go/gofmt validation was blocked because the current workspace environment has no Go toolchain on PATH and no bundled Go executable was available; no live paid upstream request was made. Focused Go tests should be run in CI or a Go-enabled checkout.
+- Commit and push: runtime source commit `35adb4022` (`feat: add MiniMax synchronous speech task plugin`) was pushed to `origin/main`; this documentation correction is being pushed as a follow-up commit.
+
+## 2026-11-13 - Review task settlement and restore multi-key channels
+
+- Upstream review: `433830b4e` adapted for multi-key recovery; `ea343c4a8` audited and intentionally not ported because local task-plugin SSE is aggregated server-side and task persistence precedes delivery to the client. The upstream delivered-result/refund scenario does not apply to the current path.
+- Changed: enabling one or all keys restores a channel only when it was automatically disabled because all keys were disabled. Reload the channel after acquiring the existing per-channel lock, and refresh channel and pricing caches through the existing update path.
+- Preserved: manually disabled channels and channels disabled for other reasons remain disabled; organization, subscription, wallet, model pricing and task settlement semantics remain unchanged. Official Vertex Gemini Omni plugin remains skipped at user request.
+- Follow-up: `883eeb87d` plugin pricing warnings were initially deferred because the declaration-only upstream scan would misreport local aliases and pricing fallbacks. The independent implementation is recorded in the next entry.
+- Validation: Go build of common, model, controller, service and relay packages passed; multi-key recovery and SQLite-backed management API integration tests passed with a temporary test overlay excluding unrelated broken controller tests, including database status, abilities, cache refresh and channel selection; `git diff --check` passed. Full controller tests do not compile due to pre-existing missing symbols; MySQL/PostgreSQL and real upstream requests were not tested.
+- Commit and push: not committed and not pushed.
+
+## 2026-11-13 - Complete task-plugin pricing diagnostics
+
+- Upstream reference: adapted the reviewed intent of `883eeb87d` independently for local channel bindings and model aliases; no upstream relay or billing implementation was replaced.
+- Integrated: added read-only `model/task_pricing_warnings.go`, a controller endpoint under the existing RootAuth-protected `/api/option/model_pricing/task_warnings` route, and a shared panel on the active default task-plugin page and model-pricing settings page. The panel shows public model aliases, plugin names, channel IDs and specific missing/invalid/incompatible expression reasons, links to pricing configuration, offers retry/refresh, and rechecks after persisted pricing/plugin/channel queries update and when reopening/focusing the page. Non-root users neither request nor render diagnostics, even if an earlier root result is cached.
+- Pricing compatibility: inspect enabled abilities on enabled channels and effective registry plugins only; follow chained mappings and existing plugin/model expression fallback and legacy price/ratio rules. Explicit zero expressions, zero prices and zero ratios are configured prices. OpenAI channels without an executing task-plugin binding are excluded. Model-specific plugin overrides remain separate from ordinary-response usage expressions. The scanner does not execute request-dependent prices or replace request-time validation.
+- Explicit limitations: malformed mapping/settings, mapping cycles and multiple bound candidate plugins without endpoint-specific ownership are reported as skipped channel IDs instead of silently claiming complete coverage. Request-specific expression branches may still fail validation when called. MySQL/PostgreSQL and real upstream requests were not exercised.
+- Preserved: actual pricing expressions and configuration, quota/precharge/settlement/refund logic, organization wallets, subscription keys, customer/group discounts, model-plaza display and public plugin privacy. Disabled plugin systems pause diagnostics. Existing malformed channel settings are never repaired or saved by this read-only API. Also placed the preceding Epay RSA translation labels in the actual translation namespace so their Chinese UI text resolves; no payment behavior changed.
+- Validation: four targeted Go regressions cover SQLite enabled/disabled channels and abilities, chained aliases, ordinary-channel exclusion, deduplication across groups, malformed settings remaining unchanged, ambiguous bindings and cycles, zero prices/ratios, mapped expressions, override precedence, incompatible shared schemas and ordinary-usage/plugin separation. Tests use a temporary overlay excluding only the pre-existing `model/user_update_test.go` compilation failure (`UpdateUserAccessToken` is undefined). Changed backend packages build successfully. Two React DOM interaction tests cover warning display, price/plugin update refresh, API business failures and retry, and non-root privacy. Default frontend production build and targeted Oxlint/Oxfmt passed. Full TypeScript checking remains blocked by pre-existing missing testing libraries and unrelated diagnostics, including existing typing errors in the pricing settings file; no new diagnostic points to the added code.
+- Commit and push: not committed and not pushed. Official Vertex Gemini Omni remains intentionally skipped as requested; the prior task-refund upstream change remains intentionally unported for the documented local architecture reason.
+
+## 2026-11-13 - Forward GPT Image 2.6 generation and editing parameters
+
+- Upstream reference: adapted `3374f251e3a84eebfd7f37d4746d7bb017e4f4b1` without replacing the local image relay or billing implementation.
+- Integrated: declared `complexity`, `svg`, `frame_count`, `frame_duration_ms` and `markup` in `relaykit/dto/openai_image.go` as opaque provider JSON, preserving object values and explicit zero/false values. Added multipart parameter parsing in `relay/helper/valid_request.go`, forwarded optional `markup` files alongside masks in `relay/channel/openai/adaptor.go`, and added `gpt-image-2.6` / `gpt-image-2.6-flare` to the OpenAI model catalog. Existing response passthrough already preserves SVG/GIF URLs, base64 payloads and MIME metadata; regression coverage now verifies this behavior and usage accounting.
+- Preserved: existing administrator prices, image count/size/quality validation, precharge and settlement, model mappings, group/customer multipliers, organization wallets, subscription keys, task plugins and all prior pending changes. Frame count is forwarded to the provider and does not become a new local image-count billing multiplier. Unknown JSON extras remain excluded under the existing serialization policy; Studio-only group metadata remains excluded from upstream multipart requests. No default price or speculative model variant was introduced.
+- Validation: targeted generation/edit JSON, multipart markup, response/usage, DTO preservation and existing image-validation regressions passed. Go build of all relay packages and `git diff --check` passed. Full affected-package tests exposed existing failures in `TestOaiResponsesStreamHandlerCompletionLifecycle`, `TestModelPriceHelperTieredSeedsSeedreamUsageBeforePreConsume` and `TestImageCacheDetailsSurviveUsageSnapshots`; an isolated overlay reverting only this round's files reproduced the lifecycle write-failure case and both other failures. These unrelated failures were not changed by this parameter-forwarding work. No frontend code changed; no live paid upstream generation was performed, so actual SVG/GIF generation remains dependent on provider support.
+- Broader regression follow-up: OpenAI and relaykit DTO package suites passed when excluding the identified failing test groups. The helper suite additionally showed an intermittent cancellation-reason failure in `TestStreamScannerHandler_ClientCancelDrainsTerminalUsage` (`eof` instead of `client_gone`), which had passed in the first full run. Full regression is therefore not reported as passing; no streaming lifecycle implementation was changed in this round.
+- Commit and push: not committed and not pushed.
+
+## 2026-11-13 - Clarify token pricing configuration by scenario
+
+- Local reason: the token-pricing editor mixed general, Claude cache, OpenAI image and Gemini modality fields without explaining which usage data or units they require.
+- Changed: traced the active default settings path through `model-pricing-sheet.tsx` to `tiered-pricing-editor.tsx`. Added the shared `token-price-fields.tsx` with manual General text / Claude cache / Gemini multimodal / OpenAI images / Custom scenarios, base input/output prices, category-specific explanations and explicit USD / 1M Tokens units. Recommended fields appear first; additional fields are expandable. Every already-configured category, including zero prices, remains visible in every scenario. Scenario selection never writes a price or guesses provider capability from a model name. Fixed-request and task-plugin configuration keep their separate existing paths.
+- Zero-price contract: optional category switches distinguish inheritance from an explicitly free category. `tier-expr.ts` now preserves absent optional fields and emits explicit zero terms instead of materializing all missing fields as zeros and then dropping them. Existing saved expressions without a category remain unchanged; no stored-price migration or new default price is performed. A Go regression confirms every zero-priced category remains visible to the existing backend usage-normalization contract; backend billing implementation is unchanged.
+- Linked behavior: extracted the existing draft number input for reuse without changing its input behavior, and added missing image-cache usage support to the linked token cost estimator. Existing tier conditions, cache TTL prices, fixed pricing, custom/raw expressions, request rules, model mappings, group/customer discounts, organization/subscription/wallet accounting and task plugins are preserved. Minor existing editor lint diagnostics were resolved without changing request-rule behavior; positional keys for existing ordered editable rows retain documented local lint exceptions rather than using mutable labels as keys.
+- Languages: added all new scenario names, category descriptions, units, switch labels and zero/fallback states in English, Simplified Chinese, Traditional Chinese, French, Russian, Japanese and Vietnamese. Also supplied missing shared image-cache, 12-hour-write and per-token labels. Registered dynamic keys in `static-keys.ts` so synchronization retains them; existing locale entries and protected attribution strings were preserved.
+- Validation: 35 focused frontend tests passed, covering scene switching without changes, configured/zero-price visibility, category enable/disable, advanced fields, opening existing expressions, round trips for every free category and multi-tier/TTL/fixed expressions, image-cache estimation, all seven locales, existing plaza/customer pricing and task-plugin usage. The full `pkg/billingexpr` Go suite passed. Default production build and targeted Oxlint/Oxfmt passed. Full TypeScript checking was run; it remains blocked by existing missing testing dependencies and unrelated project diagnostics, with no diagnostic in this round's changed files. Browser visual verification was unavailable because Chrome CDP was disconnected; React DOM interaction tests ran using Happy DOM. No production settings or paid upstream requests were used.
+- Commit and push: not committed and not pushed; previous pending upstream-sync changes remain intact.
+
+## 2026-11-13 - Preserve decimal input in task pricing
+
+- Local reason: the active default model-pricing sheet's task matrix converted every keystroke to a number and immediately rendered it back, removing intermediate decimal points (`0.` / `2.`) and turning subsequent input into incorrect integer prices.
+- Changed: `task-usage-pricing-editor.tsx` now uses the shared draft number input for fixed prices and every usage unit price. Added an opt-in text input mode to `pricing-number-input.tsx` to retain intermediate decimal text without native number sanitization; existing token-editor consumers keep the default number input behavior. Task row keys use their immutable enum combinations. Both existing task-editor placements in `model-pricing-sheet.tsx` receive the fix.
+- Preserved: numeric expression generation and storage, finite/non-negative guards, explicit zero prices, free integer quantities, per-million Tokens conversion, enum tiers, resets, existing model/plugin prices, customer/group discounts, organization wallets, subscriptions and all earlier pending changes. No backend billing or persisted configuration migration was changed.
+- Validation: 15 focused frontend regressions passed, including React DOM character-by-character `0.1`, `2.3` and `0.042` entry with parent expression rerenders, pasted image prices, blur, expression parse/reopen round trips, multi-resolution row isolation, free counts, cost calculation, zero/negative/non-finite handling and reset. Targeted Oxlint/Oxfmt and default production build passed. Full TypeScript checking was run and remains blocked by existing unrelated diagnostics and missing testing dependencies; no diagnostic remains in this round's changed files. Interaction verification used Happy DOM; no live browser or production settings were used.
+- Commit and push: not committed and not pushed; previous pending changes remain intact.
+
+## 2026-11-13 - Publish reviewed upstream and pricing changes
+
+- Publication status supersedes the earlier local-only status of this batch's preceding 2026-11-13 entries: committed as `b82d21529` (`feat: integrate reviewed upstream fixes and improve pricing editors`) and successfully pushed to `origin/main` on 2026-11-13.
+- Scope: reviewed upstream/authentication/relay fixes, Epay RSA support, multi-key channel recovery, task-plugin pricing diagnostics, GPT Image 2.6 parameter support, guided multilingual token pricing and task-price decimal input repair. Their existing preservation notes, intentionally skipped upstream changes and test limitations remain applicable.
+- Validation at publication: staged diff whitespace checks passed; the previously recorded targeted regression and build results remain applicable. No source changes were made after those checks. GitHub Actions handles container image publishing; no local Docker image was built and workflow success is not asserted here.
+- This documentation-only follow-up records the confirmed source push; it introduces no runtime changes.
+
+## 2026-11-13 - Add Seedream 5.5 to the Doubao task plugin
+
+- Local reason: add the requested `doubao-seedream-5.5` and `doubao-seedream-5-5-261028` models with the same billing scheme as Seedream 5.0 Pro.
+- Changed: Doubao plugin version is now `1.4.0`; the friendly name maps to the dated upstream model, and both names appear in the generated model catalog, image route declarations and usage profiles. Both publish the existing low/high pixel output tiers, input-image count, layer flag and suggested first reference image free. The existing shared schema drives the pricing editor and model-plaza display, so no separate frontend or hardcoded price was introduced.
+- Preserved: existing model profiles, alias mappings, explicit channel mappings, pricing expressions, administrator unit prices, precharge/settlement, group/customer ratios, organization wallets, subscriptions and ordinary OpenAI-channel billing. New models retain the existing generic newer-model protocol defaults rather than imposing unverified 5.0 Pro size/option restrictions; actual provider capabilities were not independently verified. The first-reference allowance remains an expression/editor configuration rule and is not subtracted twice from usage.
+- Validation: focused Go plugin regressions passed for old/new catalog profiles, both new model names, alias-to-upstream request rewriting, OpenAI image decoding, submit-time high-tier estimates, final pixel-tier extraction, generated-image totals and reference-image counts. A sample expression using explicit floating-point max operands verified the resulting cost. `go build ./plugins`, gofmt and `git diff --check` passed. No live paid upstream request or browser session was used.
+- Existing test limitations: the broad Doubao run exposed two pre-existing calls using `CallPath` without a member path; corrected those test invocations to `Call` so the package compiles. Several other existing tests still expect float64 while the JS engine exports int64 and pass completion bodies in the task-result argument instead of the third body argument; the native video test also panics on its float64 assertion. Those unrelated test/runtime areas were not rewritten. The expression runtime also rejected integer literals as max operands in the sample; no expression implementation was changed by this model-registration task.
+- Commit and push: not committed and not pushed.
+
+## 2026-11-13 - Expose native MiniMax H3 task endpoints
+
+- Local reason: allow the six configured lowercase minimax-h3 models to use their native content-array protocol through the gateway, alongside the existing OpenAI video endpoint.
+- Changed: Hailuo plugin version 1.3.0 declares POST /v2/video_generation and GET /v2/query/video_generation/:task_id, with native decoding and response rendering. Explicit Gin routes use platform API-key authentication, existing request limits, plugin/channel selection and the existing durable task submission pipeline. Query reads the local task using user, organization and plugin ownership; it does not distribute channels or charge again. Existing background polling supplies the native result and usage. Public responses use platform task IDs and public model names while retaining upstream video URLs and usage; explicit upstream model/channel metadata is excluded.
+- Validation and billing: native requests reuse the existing H3 duration (4-15 integer seconds), content/media limits, resolution and ratio checks. The native-body marker is revalidated in both submission and usage extraction so other protocols cannot forge it to bypass multiplier bounds. Native optional fields, including explicit false and zero, remain present upstream. Request usage and completion usage reuse the existing output-seconds, input-reference-image and input-video-seconds meters. Channel model mapping applies before upstream submission and also works for polling.
+- Linked surfaces: added endpoint templates to the active default model editor, API-key endpoint drawer, endpoint labels/filters and model-detail cURL/Python/JavaScript/TypeScript native samples. Backend default endpoint paths support explicitly configured model metadata. Seven locale files and static translation keys include the new labels. Existing configured model endpoint selections are not rewritten. API CORS applies only to the two exact new endpoint shapes under the existing public API policy; unrelated /v2 and dashboard endpoints remain excluded.
+- Preserved: existing /v1/videos and legacy Hailuo models, administrator pricing/free-reference allowances, ordinary OpenAI billing, precharge/settlement/refunds, group/customer ratios, organization wallets, subscriptions, task isolation and all prior pending Seedream 5.5 edits. No default price, database migration or replacement billing path was added. Installed plugin copies must be updated/enabled with the new plugin source to register its declared routes.
+- Validation: targeted plugin, middleware, router and common Go regressions passed for all six H3 variants, native request forwarding, explicit zero/false, mapped polling URLs, bounded estimates and final usage, forged-marker rejection, public IDs/model privacy, cross-user/cross-organization/plugin isolation, unauthenticated 401 responses, endpoint defaults and CORS scope. Existing Hailuo usage-profile and Doubao/video endpoint regressions passed in the same run. Changed backend packages build successfully; default frontend production build and targeted formatting checks passed. Targeted Oxlint reports pre-existing type-import, replaceAll, curly and unused-import diagnostics in the existing model-editor/sample files; those unrelated areas were not rewritten. No full repository test/typecheck pass is claimed. No live paid upstream request or browser interaction was performed; MySQL/PostgreSQL were not exercised, and no database behavior changed.
+- Commit and push: not committed and not pushed.
+
+## 2026-11-13 - Publish native H3 endpoints and Seedream 5.5
+
+- Publication status supersedes the earlier local-only status of the preceding Seedream 5.5 and native H3 endpoint entries: source commit d31c47c31 (feat: add native H3 task endpoints and Seedream 5.5 models) was successfully pushed to origin/main on 2026-11-13 at the user's request.
+- Scope and preservation: the two entries' behavior, retained local billing/customizations and validation limitations remain applicable. No additional runtime change is included in this publication record.
+- Validation: staged diff whitespace checks passed; previously completed targeted regressions, backend package builds and default frontend production build remain applicable. GitHub Actions owns container image publishing; no local Docker image was built and workflow success is not asserted.
+- Commit and push: source commit d31c47c31 confirmed pushed; this documentation-only follow-up records that receipt.
+
+## 2026-11-12 - Show the current page in browser tab titles
+
+- Local reason: every default-theme page kept the site name as its browser title, making open tabs difficult to distinguish.
+- Changed: mounted a single reactive document-title component in the default root route. Public pages, authentication pages, console pages, organization pages, logs and individual settings sections now use `Page name | System name`, as requested. Navigation, back navigation, language changes and site-name updates refresh the title. Removed competing asynchronous startup title writes; route metadata stays lightweight without importing settings forms into the public entry point.
+- Preserved: homepage site-name title, branded public SEO titles/descriptions, favicon initialization, cached status refresh, protected project identifiers, classic theme, routing, authentication, and all API/billing behavior. Dynamic detail titles do not include query parameters or task/user identifiers.
+- Validation: targeted Oxlint and Oxfmt, default production build, and git diff --check passed. Browser verification against the local mock confirmed Chinese/English titles, client-side navigation, back navigation, the homepage title and the OpenAI-compatible public SEO title. Route coverage audit found title mappings or dynamic rules for all 59 rendered page routes, plus 13 redirect-only routes; all configured page-title keys already have Chinese translations. Full TypeScript checking reports 34 existing errors in unrelated files, including missing test dependencies; no edited file reports a type error. No production service was changed.
+- Commit and push: implementation committed as `7766be69b` (`fix: update browser tab titles on navigation`) and pushed to `origin/main` on 2026-11-12. This push-status update is included in the following documentation-only commit.
+
+## 2026-11-12 - Classify wallet funding sources
+
+- Local reason: the unified wallet balance needed an auditable distinction between paid credits and system gifts without changing spendable-balance or relay billing semantics.
+- Changed: added an idempotent wallet funding ledger, paid/gift/adjustment/unclassified classifications for administrator credits and redemption codes, automatic records for top-ups, registration/check-in/invitation/referral rewards, and private administrator ledger APIs. The wallet shows cumulative paid and gift credits; administrators can inspect paginated records with notes, references and operators.
+- Preserved: `User.Quota` remains the single spendable balance; relay consumption, reservations, refunds, organization-wallet accounting, payment amounts and existing quota APIs remain unchanged. Refunds and settlement reversals never create funding records. Sensitive ledger notes and operator metadata are not exposed through the self endpoint.
+- History limitation: no historical balance reconstruction or backfill is performed. Existing balances and old transactions remain unclassified; statistics begin when the ledger feature records a new event.
+- Validation: default frontend production build, targeted Oxlint/Oxfmt, and `git diff --check` passed. Added backend regression coverage for idempotency, rollback, classification, privacy, redemption immutability, check-in/registration recording, adjustment bounds and exact lifetime totals. Go tests and gofmt could not run because no Go toolchain is installed in the workspace; full frontend typecheck remains blocked by existing unrelated diagnostics and missing test dependencies.
+- Commit and push: committed as `910891a91` (`feat: track wallet funding sources and show chat refusals`) and pushed to `origin/main` on 2026-11-12. This confirmed status is recorded in the following documentation-only commit.
+
+## 2026-11-12 - Show Claude refusal responses in Playground
+
+- Local reason: Claude refusal responses were converted to `finish_reason=content_filter`; the Playground completed the stream with no visible assistant content, so users saw no response even though the request had ended.
+- Changed: the Playground now recognizes refusal finish frames in streaming and non-streaming chat responses. Empty refusals display a localized notice asking the user to rephrase the prompt; any text already returned by the model is preserved. Added the notice to all frontend locale files and a regression test for both response modes.
+- Preserved: upstream refusal handling, admin reject-reason logging, billing, usage accounting, retry behavior, non-refusal finish reasons, and existing wallet funding changes in the working tree.
+- Validation: the focused Playground compatibility test passed (4 tests), targeted Oxlint and Oxfmt passed, the default frontend production build passed, and `git diff --check` passed. Full TypeScript checking remains blocked by pre-existing missing test dependencies and unrelated existing diagnostics. Go tests/build were not run because no Go toolchain is installed in the workspace.
+- Commit and push: committed as `910891a91` (`feat: track wallet funding sources and show chat refusals`) and pushed to `origin/main` on 2026-11-12. This confirmed status is recorded in the following documentation-only commit.
+
+## 2026-11-12 - Fix GHCR Go build import error
+
+- Local reason: the GHCR Docker build failed because `model/checkin.go` retained an unused `common` import after the wallet funding refactor.
+- Changed: removed the unused import; no runtime behavior changes.
+- Preserved: check-in rewards, wallet funding ledger behavior, relay billing, and all frontend changes.
+- Validation: inspected the failing compiler diagnostic, verified the import is no longer referenced, and ran `git diff --check`. The local Go toolchain is unavailable, so a local Go build was not possible; GHCR is the authoritative build check.
+- Commit and push: committed as `de89700cc` (`fix: remove unused checkin import`) and pushed to `origin/main` on 2026-11-12. This confirmed status is recorded in the following documentation-only commit.
+
+## 2026-11-12 - Sync upstream reliability fixes and add Epay RSA signing
+
+- Local reason: catch up on selected upstream reliability fixes and support Epay gateways that require RSA signatures, while preserving the site's existing account, organization, subscription, wallet, billing and provider customizations.
+- Integrated upstream commits: `706144769` (HMAC integrity for Redis authentication caches), `2de51a19e` (Redis Cluster cross-slot-safe cache keys), `9b473a3fe` (recompute two-factor failure counts after lockout expiry), `ada15c050` (preserve manually disabled channel state), `48a6c87f9` (persist OAuth inviter), `9c2c370a6` (retain SQLite WAL and busy timeout for bare paths), `651d5a213` (retain xAI streaming cache-token details), `ba5f73677` (use Gemini Embedding usage metadata), `0409deccf` (map DeepSeek developer role to system), `55515dbae` (recognize the exact bare streaming `[DONE]` marker), and `fcc241cdf` (retry channel selection from highest priority after affinity failure). `54788117d` (record accepted non-streaming requests after context cancellation) was audited and is already present; no duplicate code was added.
+- Changed: added Epay MD5/RSA selection, merchant private-key and platform public-key settings, RSA request signing and callback verification. RSA activation validates both keys; the settings API does not return private key material. The payment settings UI saves keys before enabling RSA and stops on a failed option update. Upgraded `go-epay` to `v0.0.6` for its RSA support and added callback/signature regression coverage. Added authentication-cache integrity helpers and regression coverage for tampering, cross-identity cache reuse, database fallback, quota freshness and session revocation.
+- Preserved: existing MD5 Epay configuration remains the default; RSA credentials are not used while MD5 is selected. Existing account balances and funding records, organization and subscription wallets/keys, billing and settlement behavior, custom token fields, model pricing, task plugins, channel settings and OAuth behavior outside inviter persistence remain intact. No wallet conversion or payment accounting semantics changed.
+- Deferred / deliberately skipped: official Vertex Gemini Omni 1.2 Flash video plugin work remains deferred as requested. No other upstream items outside the selected fixes above were pulled in.
+- Validation: `git diff --check`, Go formatting, changed-package Go build (`common`, `model`, `controller`, `service`, `relay/...`), default frontend production build, targeted Oxfmt/Oxlint, and overlay-based regression tests for authentication caches, two-factor lockout, channel status, Epay callbacks and option validation passed. Full controller/model test suites remain blocked by pre-existing missing symbols and legacy test compilation errors; full frontend typecheck remains blocked by existing missing test dependencies and unrelated diagnostics. MySQL/PostgreSQL matrix tests require configured external database URLs and were not run. No live payment gateway or production account was used.
+- Commit and push: not committed and not pushed; the user requested this round remain local.
+
+## 2026-11-11 - Configure Official WeChat QR scan reply
+
+- Local reason: administrators need to customize the message sent after a user scans the Official WeChat login or binding QR code.
+- Changed: added a persisted `WeChatOfficialScanReply` setting to the authentication settings page and use it in the callback. An empty value preserves the existing purpose-aware default message.
+- Preserved: QR login/binding state transitions, callback signature verification, subscription auto-reply, custom menu replies, and the existing default scan message.
+- Validation: default frontend production build, translation JSON validation, formatting, and `git diff --check` passed. The controller callback regression test was updated to assert the configured reply; Go tests could not run because the Go toolchain is unavailable in the environment.
+- Commit and push: included in the local commit for these changes; pushing to origin/main.
+
+## 2026-11-11 - Require dedicated keys for subscription usage
+
+- Local reason: wallet-versus-subscription billing preference allowed ordinary API keys to consume quota plans automatically, making usage ambiguous now that subscriptions issue dedicated keys.
+- Changed: ordinary API keys now bill only the wallet; subscription keys remain bound to their specific quota or token plan. Removed the billing preference selector and update API from both frontend themes, removed the backend preference endpoint and log field, and clarified the key behavior in the subscription page. The persisted user-setting field remains for backward compatibility but is ignored.
+- Preserved: subscription-key group/model restrictions, plan purchase and settlement behavior, token-based billing, standalone Web Tools wallet charges, wallet accounting, and legacy serialized user settings.
+- Validation: default-theme production build passed; classic-theme ESLint and Prettier checks passed; Oxfmt, mock syntax validation, and `git diff --check` passed. Added a service regression test proving a general key ignores a legacy `subscription_only` setting and uses wallet funds, while a dedicated subscription key still consumes its bound plan. Go tests could not run because Go is not installed. Classic-theme production build is blocked by the installed `date-fns-tz` package importing subpaths not exported by the installed `date-fns` version. Commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
+
+## 2026-11-11 - Show subscription model restrictions and preview examples
+
+- Local reason: the preview's multi-model token plan already contained an allowlist, but the active default subscription cards did not display it; two other token fixtures omitted the model restrictions required by real plans.
+- Changed: traced `/subscription-plans` to `SubscriptionPlansPage` and `SubscriptionPlansCard`; show token-plan model allowlists in plan cards, owned subscriptions, and purchase confirmation, with wrapping for long names. Local preview now includes a GPT-4.1-only plan, a GPT-4.1/Claude plan, and a plan with unlimited token allowance restricted to three named models.
+- Preserved: real plan storage, model authorization, dedicated-key billing, Credits plans, pricing, and all pending source changes. No production plans were created or edited.
+- Validation: targeted Oxlint and Oxfmt, mock syntax check, and default production build passed. Full typecheck remains blocked by existing unrelated errors and missing test dependencies; no diagnostics in the two changed subscription components. Commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
+
+## 2026-11-11 - Display subscription purchase wallet amounts as money
+
+- Local reason: the active default purchase dialog appended Credits to the wallet cost and available balance even though they represent money used to buy the plan.
+- Changed: the purchase dialog now converts the required and available wallet quota through the existing billing currency formatter and displays monetary values without the Credits suffix, including in token-display mode.
+- Preserved: plan Credits/token entitlements, stored wallet quota, exchange rates, payment cost calculation, balance validation, and subscription payment APIs.
+- Validation: targeted Oxfmt/Oxlint, default production build, and `git diff --check` passed. Full typecheck remains blocked by existing unrelated errors and missing test dependencies, with no diagnostics in the changed purchase dialog. Commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
+
+## 2026-11-11 - Add a test organization to the local preview
+
+- Local reason: the user requested a local test organization, but the mock API had no organization endpoints to populate the existing organization selector and workspace.
+- Changed: added a local-only “测试组织” fixture owned by the demo account, with one owner and zero balance. Added authenticated mock organization list/create/detail and the member, invitation, key, usage, transaction, and log reads required by the existing organization page. Initial fixture is recreated on mock restart; additional organizations are in memory only.
+- Preserved: production organization APIs, memberships, wallets, billing, organization UI, and all pending subscription changes. No production organization or funding was created.
+- Validation: mock syntax check and targeted formatting passed; targeted lint has only the existing server console warning. Restarted the local mock and verified organization name/owner, all six workspace subresource responses, anonymous rejection, and HTTP 200 from the frontend organization route. Browser rendering was not verified. `git diff --check` passed. Commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
+
+## 2026-11-11 - Keep organization management accessible from the workspace sidebar
+
+- Local reason: the organization workspace sidebar exposed only Wallet, leaving no direct way back to organization management after navigating away.
+- Changed: traced the active default sidebar through `useSidebarView` to `useSidebarData`; added “Manage organizations” below Wallet in organization space. Added `/organizations/manage` to reuse the current organization's management view without resetting the selected workspace. The route retains the organization feature guard and redirects users without an active organization to the existing selector; generated route metadata was updated.
+- Preserved: personal-space `/organizations` selection behavior, organization creation and invitations, top workspace switching, existing management permissions, billing, classic frontend, and all pending changes.
+- Validation: default production build and targeted Oxfmt/Oxlint passed. Full typecheck remains blocked by existing unrelated diagnostics and missing test libraries, with none in the changed files. `git diff --check` passed. Browser interaction was not verified. Commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
+
+## 2026-11-11 - Add AstraFlow Omni video generation and modality pricing
+
+- Local reason: add the actual `gemini-omni-1.2-flash` model to AstraFlow using the provider's native interaction API and separate input/text-output/video-output token prices. The older documentation model `gemini-omni-1.1-flash-preview` is deliberately not substituted.
+- Changed: AstraFlow factory version 1.1.0 declares model-specific usage profiles, native POST `/v1beta/models/interactions` and GET `/v1beta/models/interactions/:id`, all four task types, native multimodal/multiturn pass-through, synchronous immediate completion and asynchronous polling. Completion usage validates and splits modalities instead of treating all output tokens as video. Three bounded token estimates reserve quota; existing checked expression conversion, settlement/refund and terminal-task guards perform the accounting. Missing/invalid modality usage retains the reservation and records an anomaly.
+- Changed: avoid a Gin wildcard collision by dispatching native submits through the existing Gemini POST namespace before distribution; ordinary Gemini requests keep their existing relay. Added the public model name to the narrow task view. Omni alone allows bounded 64 MiB JSON video responses and bounded inline artifact decoding. Range/HEAD content and authenticated task-log previews reuse existing ownership and artifact access checks; dashboard lists omit binary media without modifying native results. Successful accepted Omni responses are not retried after parsing/read errors.
+- Changed: traced the production default plaza to `features/pricing/index.tsx` / `CatalogModelCard`; show three modality token prices and preserve customer multipliers/discount colors. Existing schema-based model detail tables display the same columns. Added translated text-output labels and `docs/astraflow-omni.md` with API, price, precharge and payload-limit configuration.
+- Preserved: enhancement model native paths, all existing resolution/FPS combinations, ten-second precharge and duration settlement; ordinary OpenAI billing, other task plugins and their response limits; pricing overrides, group/customer ratios, quota saturation auditing, organization ownership and subscription key isolation. No upstream price history, new wallet currency, database migration or protected project identity changes were introduced.
+- Validation: six Node plugin contract/regression tests, all 26 default pricing-library tests and five task-media tests passed; default production build, targeted frontend Oxlint/Oxfmt, plugin/mock syntax checks and `git diff --check` passed. Added Go regressions for route coexistence, plugin/profile registration, token usage, scoped limits, inline-content validation, media omission and Range/HEAD; Go tests and gofmt could not run because no local Go toolchain is installed. Full frontend lint/typecheck remain blocked by pre-existing unrelated errors/missing testing libraries; this round's changed files have no typecheck diagnostics. No live paid upstream request or browser playback was performed. Classic's pre-existing date-fns dependency build failure remains outside this round.
+- Commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11; user authorized bundling this with the preceding subscription, price-color, local-preview and organization-navigation changes. GitHub Actions remains responsible for building/publishing the deployment image after push.
+
+## 2026-11-11 - Keep AstraFlow pricing terminology in Tokens
+
+- Local reason: the user clarified that internal plugin pricing should retain Tokens terminology instead of the external-facing Chinese subscription wording.
+- Changed: AstraFlow's three Omni usage labels now read 输入 Tokens, 文本输出 Tokens, and 视频输出 Tokens. Bumped the factory plugin to 1.1.1 so installed plugins can receive the metadata correction; aligned the integration guide's labels and USD / 1M Tokens unit.
+- Preserved: usage field keys, internal `token` unit, expressions, million-token conversion, precharge, settlement, enhancement model behavior, and subscription/plaza terminology outside these plugin labels. No frontend rendering or accounting code changed.
+- Validation: plugin syntax, the six existing Node contract tests, and `git diff --check` passed. This metadata/documentation-only correction does not require a frontend build or live upstream call.
+- Commit and push: included in `693fec817` (`fix: retain Tokens terminology in AstraFlow pricing`); pushed to `origin/main` on 2026-11-11.
+
+## 2026-11-11 - Add card and table views to the default model plaza
+
+- Local reason: the default model plaza offered only a card grid, which is less efficient when comparing many models and their prices side by side.
+- Changed: added an accessible card/table toggle to the active default catalog, persist the selection in local storage, and keep the existing search, filters, sorting, customer-specific prices, discount indicators, usage metrics, and incremental loading shared between views. Card and table views render discount and free badges through the same component, preserving label text, icon, dimensions, and colors. On the model plaza only, replaced the collapsing floating navigation with a full-width sticky bar and persistent bottom divider; it reserves its height so catalog content starts below it. Other public pages retain the existing floating navigation. After the supplied table reference, the table groups input/output/cache/modality/usage/tool price columns and shows the provider. Cache prices have separate columns for generic read/write, image cache, and configured 1h/12h write tiers. Subtle vertical dividers align across grouped headers, subheaders, and data cells. The model column remains fixed while scrolling horizontally, with an opaque header background so scrolled headings do not show through. The model name opens details; there is no separate trailing details action column or release date. Configured cache tiers, image/audio prices, task usage prices and tools appear as separate columns only when present in the filtered catalog. Card view remains the default.
+- Follow-up: aligned the model plaza sticky header with the console app bar's shared 48px height and 8/12px horizontal padding; desktop navigation now follows the console's `lg` breakpoint, while the filter sidebar uses the shared header height for its sticky offset.
+- Preserved: model detail routing, API data, price calculations, responsive card layout and classic-theme pricing page.
+- Validation: targeted Oxfmt, default production build, cache-expression regression test, and `git diff --check` passed. Targeted Oxlint passes for the pricing page and public layout; the public header still reports six existing `no-nested-ternary` / `no-array-index-key` diagnostics in its existing navigation rendering. Browser verification confirmed the table renders in the mock catalog, retains its selected view after reload, scrolls horizontally at a narrow viewport, and keeps the fixed model heading opaque with aligned vertical dividers, no trailing action column, and no release date. Compared the card and table views: their 7-fold discount badge uses the same gold style; the mock catalog has no free-priced model, while both views use the shared free badge and detection logic. The latest full TypeScript check is blocked by missing test dependencies and existing diagnostics in unchanged files; the edited files reported no TypeScript errors. Browser scrolling confirmed the sticky public bar and divider stay above catalog content without overlap. No live backend API or production catalog was involved.
+- Follow-up validation: default production build and Oxfmt passed. Browser preview confirmed the 48px full-width header and divider remain above the catalog while scrolling at desktop width; the responsive menu breakpoint is aligned to `lg`. The preview server remains available at `http://localhost:3002/pricing`.
+- Commit and push: included in `2c45e91af` (`feat: add model plaza table view and align navigation`); pushed to `origin/main` on 2026-11-11.
+
+## 2026-11-11 - Add Official WeChat account operations
+
+- Local reason: administrators need to manage follow-up replies and custom menus for the already-supported Official WeChat callback without affecting QR login and account binding.
+- Changed: added persisted subscription-reply and menu-draft options, a guarded admin menu-sync endpoint, local menu validation and WeChat menu create/delete calls, text replies for ordinary subscriptions and configured `CLICK` buttons, and a visual editor for up to three root buttons with one level of submenus and click/view actions.
+- Preserved: existing Official WeChat QR login, QR binding, callback signature verification, plaintext callback mode, legacy WeChat login fields, server-side AppSecret/Token handling, and all unrelated OAuth providers. Menu drafts are local until an administrator explicitly syncs them; empty drafts delete the remote menu.
+- Validation: default frontend production build, targeted Oxlint, Oxfmt, and `git diff --check` passed. Full TypeScript checking remains blocked by pre-existing missing test dependencies and unrelated diagnostics. Go tests/gofmt could not run because the local Go toolchain is unavailable; controller regression tests were added for subscription replies, menu click replies, validation limits, URL validation, and QR behavior remains covered by existing tests.
+- Commit and push: feature implementation committed as `17606ad5e` (`feat: add official WeChat account operations`) and pushed to `origin/main` on 2026-11-11. This push-status update is included in the following documentation-only commit.
+
+## 2026-11-11 - Align AstraFlow Omni model detail pricing
+
+- Local reason: `google/gemini-omni-1.2-flash` showed AstraFlow token prices on the catalog card but ordinary Gemini input and Google Search prices in model details.
+- Changed: the active default model detail view now selects the same configured tiered task-plugin pricing variant as the catalog card for its billing label and group pricing table. It omits built-in tool surcharges tied to regular-channel pricing while a task-plugin variant is displayed.
+- Preserved: model capability metadata, descriptions, context limits, API details, performance metrics, ordinary model pricing when no configured task-plugin variant exists, and all backend billing behavior.
+- Validation: targeted Oxfmt, default-theme production build, and `git diff --check` passed. Targeted Oxlint reported existing diagnostics elsewhere in `model-details.tsx`; none point to the changed lines. This local fix has not been committed or pushed.
+
+## 2026-11-11 - Preserve precision for task token prices
+
+- Local reason: task token prices such as `jev-1.14` at `0.042` were rounded to `0.04` in the catalog card and model detail view.
+- Changed: shared task token-price formatting now preserves up to six fractional digits while removing insignificant trailing zeros; added a regression test for both `0.042` and `0.04`.
+- Preserved: stored price values, billing expressions, quota calculations, non-token task-price formatting, and actual billing behavior.
+- Validation: 17 targeted pricing tests, Oxfmt, default-theme production build, and `git diff --check` passed. Targeted Oxlint still reports one pre-existing `curly` diagnostic at `dynamic-price.ts:215`, outside this change. This local fix has not been committed or pushed.
+
+## 2026-11-11 - Refresh model and API-key endpoint catalogs
+
+- Local reason: recently registered model APIs were missing from the model editor endpoint templates and the API-key endpoint drawer.
+- Changed: added model endpoint templates for image edit/query, OpenAI Responses retrieval, OpenAI video generation/query/content, AstraFlow submit/status and Gemini interaction retrieval, plus generic task-plugin submission, query, and artifact routes. Added the same user-callable routes to the API-key endpoint drawer.
+- Preserved: endpoint routing, authentication, plugin selection, model mappings, and billing behavior; upstream-only provider URLs are not presented as gateway endpoints.
+- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed. Targeted Oxlint reports the existing `no-import-type-side-effects` diagnostic at `models/constants.ts:1`; no new diagnostics were introduced by these endpoint entries. Go tests/build were not run because the local Go toolchain is unavailable.
+
+## 2026-11-11 - Hide internal task-plugin routes from public endpoint viewer
+
+- Local reason: the API-key endpoint viewer exposed AstraFlow's internal task protocol and generic task-plugin routes to external users.
+- Changed: removed the AstraFlow and generic task-plugin protocol groups from the user-facing endpoint drawer. Admin-only model editor endpoint templates remain available for configuring supported model calls.
+- Preserved: backend task routes, plugin execution, model editor configuration, all public OpenAI/Anthropic/Gemini/media endpoints, authentication, and billing behavior.
+- Validation: targeted Oxfmt, default frontend production build, and `git diff --check` passed. Go tests/build were not run because the local Go toolchain is unavailable.
+
+## 2026-11-11 - Display all multimodal token prices in model details
+
+- Local reason: Gemini Omni model details incorrectly classified `input_tokens`, `text_output_tokens`, and `video_output_tokens` as the simple input/output token view, hiding its text and video output prices.
+- Changed: simple task token pricing now applies only when all token usage fields are the conventional input/output pair; multimodal token schemas remain in the task pricing table so each configured field is shown.
+- Preserved: ordinary input/output token pricing, catalog card display, group discounts, plugin variant selection, and all billing calculations.
+- Validation: the focused pricing regression suite passed (18 tests), Oxfmt and the default-theme production build passed, and `git diff --check` passed after formatting the log. No live backend/catalog data was required.
+- Commit and push: included in the local commit for these changes; pushing to origin/main.
+
+## 2026-11-10 - Resolve dashboard identity for personalized public pricing
+
+- Local reason: customer-specific model multipliers were effective for billing, but the public model plaza still displayed the general multiplier because optional authentication only read legacy cookies and ignored the default frontend's dashboard Bearer token. The earlier frontend resolution/cache fix did not cover this authentication gap.
+- Changed: optional dashboard authentication now delegates requests carrying Authorization to the existing full user-authentication path, including signature, active-session/version, user-status, and user-ID checks. Public pricing responses return `Cache-Control: private, no-store` and vary by authentication headers/cookies so shared caches cannot reuse customer prices.
+- Preserved: anonymous access without credentials, legacy-cookie behavior, the active default catalog card/detail rendering and account/workspace query keys, all configured multipliers, billing expressions, quota deductions, and task/plugin customization are unchanged.
+- Validation: existing frontend pricing-data tests passed (3 cases). Added a regression test through the actual public pricing middleware/controller with dashboard tokens: customer 0.6 versus general 0.8, interleaved users/anonymous requests, a spoofed user-ID header, mismatched/missing user-ID headers, and revoked sessions. Backend tests and Go formatting could not run because the local Go toolchain is unavailable; `git diff --check` passed.
+- Commit and push: included in `06950bc2f` (`fix: restore dashboard login and personalized responsive catalog`); pushed to `origin/main` on 2026-11-10.
+
+## 2026-11-10 - Keep default catalog cards within mobile screens
+
+- Local reason: the active default model plaza's implicit grid columns could grow to the cards' intrinsic content width on phones, leaving their right edges, arrows, and discount badges clipped by the public layout.
+- Changed: traced the production route to `CatalogPricing` / `CatalogModelCard` in `web/default/src/features/pricing/index.tsx`; defined explicit single-column mobile tracks and shrinkable cards, carousel, price/info rows, and skeletons. The mobile skeleton now hides the desktop filter sidebar, matching the loaded page. Cleaned existing lint errors in the touched page with equivalent display-unit/filter/style logic and stable decorative keys.
+- Preserved: desktop sidebar/three-column breakpoints, carousel artwork cropping, modality-tab horizontal scrolling, pricing and customer-discount data, task-plugin pricing, and backend billing behavior. The separate classic card path was deliberately unchanged.
+- Validation: reproduced a roughly 418px-wide card column inside 320/375/390px viewports before the fix. Browser checks using the actual page with local API fixtures, both with and without a carousel, found zero overflowing cards at 320, 375, 390, 430, 768, and 1440px afterward; inspected the mobile screenshot. Production build, all 24 pricing-library tests, targeted Oxlint/Oxfmt, and `git diff --check` passed. Full typecheck remains blocked by existing unrelated diagnostics and missing test dependencies; neither changed frontend file reported a type error.
+- Commit and push: included in `06950bc2f` (`fix: restore dashboard login and personalized responsive catalog`); pushed to `origin/main` on 2026-11-10.
+
+## 2026-11-10 - Stop CORS from rejecting this deployment's login requests
+
+- Local reason: the public API CORS feature reused a fixed dashboard origin list for every `/api/*` request. Browser login/refresh POSTs include Origin even on the same site, so deployments using another hostname could receive 403 before their authentication controllers ran. The secure refresh origin guard also failed same-host HTTPS deployments behind an HTTP reverse proxy unless explicitly listed.
+- Changed: dashboard CORS now accepts the deployment's exact host/port origin, the configured ServerAddress origin, and explicitly trusted session origins in addition to existing first-party origins. Same-host HTTPS requests forwarded over HTTP are recognized without trusting forwarded-host/proto headers. The refresh/logout origin guard shares the same exact-host reverse-proxy handling. Rejected CORS requests now return `CORS_ORIGIN_FORBIDDEN` with a descriptive message instead of an empty body.
+- Preserved: public `/v1/*` disabled/allowlist/wildcard policies, explicit-origin dashboard credentials, foreign-origin blocking, refresh/logout origin protection, login/session validation, billing, and all earlier pending catalog fixes. No wildcard was added to dashboard origins.
+- Validation: added middleware regression coverage for login and refresh with direct HTTPS, proxy TLS termination, trusted origins with internal hosts, configured ServerAddress, spoofed forwarded hosts, wrong ports, HTTP downgrade, malformed/null origins, and public wildcard isolation from dashboard routes. `git diff --check` passed. Go tests/gofmt cannot run because the local Go toolchain is absent; production deployment and actual browser recovery remain unverified.
+- Commit and push: included in `06950bc2f` (`fix: restore dashboard login and personalized responsive catalog`); pushed to `origin/main` on 2026-11-10. Production recovery still requires deployment and browser verification.
+
+## 2026-11-10 - Color discounted task prices in model details
+
+- Local reason: task pricing rows applied the group multiplier numerically but rendered the discounted values with the default text color, unlike token and image pricing rows.
+- Changed: task pricing fixed prices, usage-unit prices, and free-quantity labels now use the success color whenever the active group multiplier is below 1.
+- Preserved: original-price groups, billing calculations, displayed amounts, task conditions, and all non-task pricing presentation remain unchanged.
+- Validation: targeted frontend lint, production build, and `git diff --check` passed. No backend changes; commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
+
+## 2026-11-10 - Move user subscriptions to a dedicated Credits/Tokens page
+
+- Local reason: subscription plans were embedded in the wallet, mixing balance top-ups with recurring model-access plans.
+- Changed: added an authenticated `/subscription-plans` page, moved the full plan browser and purchase flow there, added a `Credits | Tokens` segmented switch, and documented `1 quota = 1 Credit`. The wallet now keeps a compact link to the subscription page. Added personal sidebar visibility/configuration for the new entry and retained the existing admin subscription-management route.
+- Preserved: quota and token billing modes, payment methods, purchase limits, subscription preference, subscription keys, backend `quota` storage, deduction logic, organization wallet behavior, and the existing purchase dialog/API contracts.
+- Validation: frontend production build, targeted Oxfmt, and `git diff --check` passed. Targeted Oxlint still reports the repository's existing React Compiler diagnostics in the touched wallet, purchase-dialog, and sidebar-settings files; no new build or type errors were reported. Full typecheck remains blocked by existing unrelated diagnostics and missing test dependencies; commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
+
+## 2026-11-10 - Add local preview authentication fixtures
+
+- Local reason: the standalone subscription page requires an authenticated session, while the frontend mock server had no login, self-user, or subscription-plan endpoints for local preview.
+- Changed: added a clearly local-only demo account (`demo@example.com` / `demo123456`), bearer-token session responses, and representative Credits/Tokens plans to `web/default/mock/server.mjs`.
+- Preserved: production authentication, subscription APIs, payment behavior, and all non-mock server code are unchanged.
+- Validation: `node --check mock/server.mjs` and local login/plan endpoint requests passed. This fixture is for local preview only; commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
+
+## 2026-11-10 - Localize subscription token terminology and expand preview plans
+
+- Local reason: Chinese subscription billing should distinguish model tokens from API access tokens, and the local preview needed enough plan variety to review the Credits/Tokens switch.
+- Changed: subscription-specific token labels now use “词元” in Chinese while API key and general usage terminology remains unchanged; local mock data now includes three Credits plans and three token plans with varied periods, resets, limits, and group/model scopes.
+- Preserved: production subscription billing contracts, internal `billing_mode` values, quota/token accounting, and non-subscription translations remain unchanged.
+- Validation: targeted formatting, `node --check web/default/mock/server.mjs`, frontend production build, and `git diff --check` passed. Commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
+
+## 2026-11-09 - Hide billing expressions from user log details
+
+- Local reason: regular users should see the amount they paid without needing to interpret the stored dynamic billing expression, while administrators retain the detailed pricing breakdown.
+- Changed: tiered billing logs now record the rounded pre-group quota as `original_quota` for the billing detail view, falling back to the pre-consume estimate when settlement usage is unavailable. The default usage-log details dialog renders the dynamic expression section only for administrators and adds a localized Original Cost row when the field is present.
+- Preserved: actual deductions, group multipliers, expression evaluation, admin raw-data access, and historical logs without `original_quota` are unchanged.
+- Validation: added focused backend coverage for settled and estimated original quotas; frontend production build and `git diff --check` passed. The Go toolchain is unavailable locally, and full Oxlint remains blocked by pre-existing repository diagnostics (including an unchanged details-dialog warning). Commit and push: pending.
+
+## 2026-11-09 - Avoid false no-match billing labels in usage logs
+
+- Local reason: image/video and other usage-based expressions can settle correctly without the token-oriented tier parser producing a matched tier label, which made normal charges appear as “No matching results”.
+- Changed: usage-log summaries now suppress the no-match label when no runtime match is available, preserve explicit request-rule/base-tier matches, and safely use the sole parsed tier when an expression has only one tier. The billing dialog likewise omits an empty matched-tier row.
+- Preserved: billing expressions, runtime tier selection, quota calculation, and DeepSeek peak/off-peak display behavior are unchanged.
+- Validation: targeted dynamic-pricing tests (13 cases), frontend production build, and `git diff --check` passed; Go tests remain unavailable because the local Go toolchain is missing. Commit and push: pending.
+
+## 2026-11-09 - Show user-specific model multipliers in the catalog
+
+- Local reason: model cards and details showed the generic multiplier instead of a user's configured per-model override because the frontend recomputed an effective multiplier from separate values, despite the pricing API already returning the resolved per-model multiplier.
+- Changed: default-theme pricing data now prefers the backend-resolved `model_group_ratio` for each model and isolates React Query pricing entries by user and active organization.
+- Preserved: older API responses without per-model resolved ratios keep the previous fallback calculation; billing and quota deduction logic are unchanged.
+- Validation: focused pricing-data tests (3 cases), frontend production build, formatting, and `git diff --check` passed. Full typecheck remains blocked by existing repository errors and missing test dependencies; no new diagnostics were reported in the changed pricing files. Commit and push: pending.
+
+## 2026-11-09 - Restore task result previews in usage logs
+
+- Local reason: successful asynchronous image, video, and audio tasks only exposed a video link in the task log, and the link opened outside the dashboard instead of previewing the result in place.
+- Changed: task logs now detect image/video/audio outputs and show a media preview dialog with native image, video, and audio controls. A session-authenticated dashboard endpoint returns signed task artifact URLs so browser media elements can play proxied content without an API key; stored task result URLs remain a video fallback when a plugin does not enumerate artifacts. Results already pointing to the gateway video proxy reuse its channel-aware proxy flow to avoid a self-request loop. Added localized video playback failure text.
+- Preserved: existing task details and failure dialogs, audio result URLs, the public task artifact API response shape, and upstream credential isolation remain unchanged.
+- Validation: task media extraction tests (4 cases), frontend production build, and `git diff --check` passed. Full frontend typecheck remains blocked by pre-existing repository errors and missing test dependencies; Go formatting/tests could not run because the Go toolchain is unavailable. Commit and push: pending.
+
+## 2026-11-09 - Configure browser CORS for public APIs
+
+- Local reason: customers need browser applications on external domains to call public relay APIs without adding each origin to a compiled-in allowlist.
+- Changed: added a Security settings policy for `/v1/*` with disabled, allowlist, and allow-all modes; allowlist entries are validated HTTP(S) origins, wildcard access returns `Access-Control-Allow-Origin: *` without cookies, and preflight methods/headers remain explicitly bounded. `/api/*` and dashboard routes keep the existing first-party origin list and credential behavior.
+- Preserved: existing first-party CORS behavior by default, API-key authentication, backend and admin route authorization, and non-browser API requests.
+- Validation: frontend production build, targeted media/pricing tests (7 cases), Oxlint/Oxfmt on the changed CORS UI, and `git diff --check` passed. Full frontend typecheck remains blocked by pre-existing repository diagnostics and missing test dependencies; Go tests could not run because the local Go toolchain is unavailable.
+- Commit and push: pending.
+
 ## 2026-11-08 - Collapse duplicate model-detail task pricing
 
 - Local reason: the model detail page rendered two task-pricing tables when the model-level and plugin-level configurations produced the same visible usage prices.
@@ -200,14 +678,6 @@
 - Validation: `git diff --check` and source inspection; Go tests and `gofmt` are unavailable because the Go toolchain is not installed in the environment.
 - Commit and push: not committed or pushed.
 
-# 2026-11-11 - Configure Official WeChat QR scan reply
-
-- Local reason: administrators need to customize the message sent after a user scans the Official WeChat login or binding QR code.
-- Changed: added a persisted `WeChatOfficialScanReply` setting to the authentication settings page and use it in the callback. An empty value preserves the existing purpose-aware default message.
-- Preserved: QR login/binding state transitions, callback signature verification, subscription auto-reply, custom menu replies, and the existing default scan message.
-- Validation: default frontend production build, translation JSON validation, formatting, and `git diff --check` passed. The controller callback regression test was updated to assert the configured reply; Go tests could not run because the Go toolchain is unavailable in the environment.
-- Commit and push: included in the local commit for these changes; pushing to origin/main.
-
 ## 2026-11-08 - Isolate ordinary response-usage billing from task plugins
 
 - Local reason: OpenAI-compatible Seedream 5.0 channels return image usage facts (`input_images`, `generated_images`, and output pixel sizes), while native VolcEngine channels and the Doubao task plugin already have their own billing contracts.
@@ -232,6 +702,170 @@
 - Validation: targeted dynamic pricing and task-plugin tests passed (20 tests); the Rsbuild production build passed; Oxfmt, `node --check plugins/tasks/hailuo/plugin.js`, and `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable in this environment.
 - Source commit and push status: `40a6c927b` (`fix: show task input pricing on catalog cards`); pushed successfully to `origin/main`.
 
+## 2026-11-07 - Extend H3 task profiles and free-count pricing
+
+- Local reason: MiniMax H3 variants need stable lowercase model names, independently configurable resolution capabilities, and usage pricing that can make an initial number of reference images free.
+- Changed: added lowercase H3 model aliases with per-model resolution profiles and case-insensitive legacy matching; extended the task pricing editor and expression parser with count-based free quantities encoded as `max(u("field") - N, 0) * price`; propagated those quantities through previews, task pricing details, catalog cards, and localized input summaries for reference images and videos.
+- Preserved: existing Hailuo submission, upstream usage extraction, pre-consumption and settlement continue using the upstream actual usage values; token/second pricing and existing task expressions remain compatible, and the plugin map can narrow a model's supported resolutions independently.
+- Validation: H3 plugin passed `node --check`; targeted frontend task-plugin and dynamic-price tests passed (7 and 11 tests); `git diff --check` passed. Full frontend typecheck remains blocked by existing unrelated repository errors and missing test dependencies; Go tests could not run because Go is not installed.
+- Commit and push: included in `0bcfc0f77` (`feat: extend image task usage billing`); pushed to `origin/main` on 2026-11-07.
+
+## 2026-11-07 - Add Seedream 5.0 Pro free reference-image metadata
+
+- Local reason: Seedream 5.0 Pro returns `usage.input_images` and includes the first reference image at no charge.
+- Changed: the Doubao task plugin marks one input image as a count-pricing editor default for `doubao-seedream-5.0-pro`; the generic task pricing UI carries that suggestion into the generated `max(u("input_images") - 1, 0) * price` expression and the model-card/detail display. Completion settlement now honors `usage.generated_images` even when `data` contains only a subset of output payloads, conservatively assigning unknown-size outputs to the higher pixel tier.
+- Preserved: the expression remains the only billing source after saving, other Seedream models keep their existing input-image behavior, and output pricing still uses the actual `generated_images`/`data[].size` facts returned by upstream.
+- Validation: plugin syntax and targeted frontend pricing tests pass; Go tests cannot run locally because Go is not installed. Commit and push: included in `0bcfc0f77` (`feat: extend image task usage billing`); pushed to `origin/main` on 2026-11-07.
+
+## 2026-11-07 - Allow plugin free-quantity metadata in embedded validation
+
+- Local reason: the GHCR plugin validation failed because `freeQuantity` was intentionally added to the Doubao usage schema but the embedded metadata decoder still rejected it as an unknown property.
+- Changed: added an integer, count-field-only `freeQuantity` metadata property with a 0–128 bound to the plugin usage schema decoder and validation.
+- Preserved: free quantity remains editor metadata only; saved billing expressions remain the source of truth, and all existing plugin usage fields keep their validation rules.
+- Validation: Doubao plugin syntax and frontend pricing tests pass; the local Go toolchain is unavailable, so the container plugin check could not run locally. Commit and push: included in `d6a88a1b6` (`fix: accept task free quantity metadata`); pushed to `origin/main` on 2026-11-07.
+
+## 2026-11-07 - Remove duplicate case-insensitive H3 profile model declaration
+
+- Local reason: the GHCR plugin validation rejected the Hailuo usage profile because `minimax-h3` and `MiniMax-H3` were declared together even though model profile matching is already case-insensitive.
+- Changed: kept only the canonical lowercase H3 model in the profile; legacy `MiniMax-H3` requests continue to resolve to it through case-insensitive lookup.
+- Preserved: H3 model aliases, resolution profiles, billing facts, and all non-H3 Hailuo profiles.
+- Validation: plugin syntax and targeted frontend pricing tests pass; Go/container plugin checks are unavailable locally. Commit and push: included in `4fbccbb3b` (`fix: remove duplicate H3 profile alias`); pushed to `origin/main` on 2026-11-07.
+
+## 2026-11-07 - Hide unpriced task tiers from public details
+
+- Local reason: task pricing details rendered every condition row, including resolutions with no configured price, as rows containing only dashes.
+- Changed: public task pricing tables now include only tiers with a fixed price, unit price, or free quantity; unconfigured condition rows are omitted.
+- Preserved: configured tiers, billing expressions, and the task pricing editor remain unchanged.
+- Validation: targeted frontend pricing tests and Oxfmt passed; `git diff --check` passed. Commit and push: included in `c65e9c278` (`fix: show task input media pricing on cards`); pushed to `origin/main` on 2026-11-07.
+
+## 2026-11-05 - Make quota subscription amounts editable as money and inherit subscription key groups
+
+- Local reason: quota plans were edited with internal quota units, and subscription keys only supported token plans without preserving the plan's group scope.
+- Changed: default subscription-plan editing converts quota units to the configured display currency for quota plans and converts the amount back on save; token plans remain raw token counts. Subscription keys can be created for either billing mode. A single allowed group is bound directly; multiple allowed groups are inherited as an automatic routing set; unrestricted plans keep the user's normal group access. Authentication and billing now carry the subscription group snapshot and pre-consume the exact subscription referenced by the key.
+- Preserved: wallet and Web Tools billing behavior, existing token-plan model restrictions, unrestricted plans, and the user's uncommitted Sora resolution validation changes.
+- Validation: targeted Oxfmt, locale JSON parsing, and diff checks passed. Targeted Oxlint reports only existing diagnostics in the touched UI files. Frontend typecheck is blocked by existing unrelated repository errors and missing test dependencies; Go tests were unavailable because the Go toolchain is not installed.
+- Commit and push: pending.
+
+## 2026-11-05 - Enter organization workspace from the top switcher
+
+- Local reason: selecting a concrete organization in the top workspace switcher incorrectly opened the organization management page instead of the selected workspace.
+- Changed: organization entries now preserve the selected organization and navigate directly to the dashboard workspace; the personal-space item also returns to the dashboard, while Manage organizations continues to open the organization selector/management page.
+- Preserved: organization selector card behavior and organization management page flow.
+- Validation: targeted Oxfmt and `git diff --check` passed; full frontend typecheck remains blocked by existing repository errors and missing test dependencies.
+- Commit and push: pending.
+
+## 2026-11-05 - Add reviewed product update newsletters
+
+- Local reason: administrators need periodic, reviewable product update emails covering new models and manually maintained discounts, with recipient targeting and marketing opt-out support.
+- Changed: added promotion, digest, and per-recipient delivery records; scheduled and manual draft generation; reviewer notification; admin APIs and settings UI for editing drafts, choosing audiences, approving sends, inspecting delivery outcomes, and retrying/resuming failed work. Delivery runs in system tasks and rechecks account status and marketing preference before each email. Marketing emails include signed unsubscribe links. The existing manual marketing email sender also respects opt-outs.
+- Preserved: newsletter generation never sends automatically; only an administrator's explicit approval starts delivery. Promotions are informational and do not change pricing or billing, and no model price history is recorded. Existing unset marketing preferences continue to default to enabled.
+- Validation: frontend production build, targeted Oxlint, Oxfmt, locale JSON parsing, and `git diff --check` passed. Full frontend typecheck remains blocked by existing unrelated type errors and missing test dependencies. Go tests and `gofmt` were unavailable because the Go toolchain is not installed.
+- Commit and push: committed as `74ae51005` (`feat: expand subscriptions and marketing email workflows`) and pushed to `origin/main` on 2026-11-05.
+
+## 2026-11-05 - Fix duplicate subscription group field blocking container build
+
+- Local reason: the GHCR build failed in `go run ./cmd/check-task-plugins` because `RelayInfo` declared `SubscriptionAllowedGroups` twice.
+- Changed: retained the subscription group snapshot field at its primary billing metadata location and removed the duplicate declaration.
+- Preserved: subscription group filtering, billing, logging, and all unrelated local changes.
+- Validation: source inspection and `git diff --check` passed; the local Go toolchain is unavailable, so the Go compiler and plugin check could not run locally.
+- Commit and push: committed as `f0b1965e2` (`fix: remove duplicate subscription group field`) and pushed to `origin/main` on 2026-11-05.
+
+## 2026-11-05 - Fix subscription query variable redeclaration blocking container build
+
+- Local reason: the next GHCR build reached the main binary compile and failed because the idempotency lookup and subscription selection declared `query` twice in the same transaction closure.
+- Changed: renamed the idempotency lookup variable to `existingQuery`; query conditions and subscription selection behavior are unchanged.
+- Preserved: subscription pre-consume selection, request idempotency, group restrictions, and all unrelated changes.
+- Validation: source inspection and `git diff --check` passed; the local Go toolchain is unavailable, so the Go compiler and tests could not run locally.
+- Commit and push: committed as `9be6bd63e` (`fix: avoid subscription query redeclaration`) and pushed to `origin/main` on 2026-11-05.
+
+## 2026-11-04 - Route Doubao Seedream through the unified Images API
+
+- Local reason: Seedream requests sent to `/v1/images/generations` bypassed the Doubao task plugin because it did not claim the `openai_image` protocol, so the image-specific usage facts were absent and the configured tiered expression charged zero.
+- Changed: registered Doubao Seedream models for the shared `openai_image` host protocol and added OpenAI Images request decoding/rendering that reuses the existing Ark request conversion, pixel-tier pre-consume, and actual output-size settlement.
+- Preserved: the existing native Doubao image route, Responses API behavior, OpenAI-compatible channels not claimed by plugins, and existing Seedream model aliases and pricing expressions.
+- Validation: added regression coverage for unified endpoint decode, submit-time 2K billing facts, and completion settlement across actual 1K/2K outputs. `bun --check` and `git diff --check` passed; Go test execution is pending local toolchain availability.
+- Commit and push: included in `3b986df67` (`fix: bill Doubao images through unified endpoint`); pushed to `origin/main` on 2026-11-04.
+
+## 2026-11-04 - Record Alibaba image task performance and elapsed time
+
+- Local reason: successful synchronous Alibaba Qwen image generations bypass the background task poller's performance sampler, and task consumption logs left `use_time` at its zero default.
+- Changed: synchronous terminal task results in the OpenAI Images task bridge now use the relay request timer for performance samples; task consumption logs store elapsed whole seconds from relay start, clamped at zero for invalid timestamps.
+- Preserved: asynchronous tasks continue to be sampled by the existing terminal polling path, billing and task response payloads are unchanged, and ordinary request log timing behavior is unchanged.
+- Validation: added a task billing regression test for elapsed log time; `git diff --check` passed. Go tests and gofmt could not run because the Go toolchain is unavailable locally.
+- Commit and push: included in `8cdad1ae1` (`fix: improve task image and video pricing display`); pushed to `origin/main` on 2026-11-04.
+
+## 2026-11-04 - Show localized units in model pricing details
+
+- Local reason: model detail pricing rendered every count-based task usage price with the generic “Count” label, even when the plugin schema supplied a localized unit such as “张”.
+- Changed: model detail pricing now uses each task usage field's localized `unitLabel` for count-based units, matching the admin pricing configuration and plugin metadata.
+- Preserved: token and duration units, fallback labels for schemas without `unitLabel`, price calculations, and billing expressions are unchanged.
+- Validation: added focused frontend coverage for localized image count units; targeted Bun tests passed, Oxlint passed after refactoring unit selection, and `git diff --check` passed.
+- Commit and push: included in `8cdad1ae1` (`fix: improve task image and video pricing display`); pushed to `origin/main` on 2026-11-04.
+
+## 2026-11-04 - Correct image pricing summary on model cards
+
+- Local reason: external model cards summarized image task prices as generic input/output prices, used a single output rate instead of the configured tier range, and rendered the raw `count` unit.
+- Changed: image task cards identify Seedream (`input_images` / `images_*`) and Qwen Image 3 (`input_image_count` / `image_count`) usage fields, show input image pricing separately from the output range, and render the plugin-provided localized image unit.
+- Preserved: token pricing summaries, non-image task summaries, model detail pricing tables, and billing behavior remain unchanged.
+- Validation: added pricing entry coverage for Seedream and Qwen Image 3 input/output image fields and preserved unit metadata; targeted Bun tests and Oxlint passed, and `git diff --check` passed.
+- Commit and push: included in `8cdad1ae1` (`fix: improve task image and video pricing display`); pushed to `origin/main` on 2026-11-04.
+
+## 2026-11-04 - Display resolution-tiered video prices as output rates
+
+- Local reason: resolution-tiered task video models showed the same per-second amount as both input and output and exposed the raw unit name `second` on marketplace cards.
+- Changed: task models with per-second usage and output resolution/FPS tiers now show no input price, combine the configured rates into the output price range, and localize the unit label. Detection uses schema units and localized dimension metadata rather than fixed usage field names.
+- Preserved: image task summaries, token summaries, non-video task summaries, and billing calculations are unchanged.
+- Validation: added coverage for resolution-based video rates and a plugin schema whose duration field is named `input_video_duration`; targeted Bun tests, Oxlint and formatting checks passed, and `git diff --check` passed.
+- Commit and push: included in `8cdad1ae1` (`fix: improve task image and video pricing display`); pushed to `origin/main` on 2026-11-04.
+
+## 2026-11-04 - Hide task plugin names from model pricing details
+
+- Local reason: model detail pricing headings exposed the internal task plugin name (for example, “Doubao 任务定价”) to end users.
+- Changed: plugin-backed pricing sections now use the neutral localized “Task pricing” title while retaining the pricing rows and plugin-specific billing metadata internally.
+- Preserved: pricing calculations, provider selection, model cards, and admin configuration labels remain unchanged.
+- Validation: `git diff --check` passed. Targeted frontend tests were not added because this is a static title change; frontend test execution remains covered by the existing pricing tests.
+- Commit and push: included in `8cdad1ae1` (`fix: improve task image and video pricing display`); pushed to `origin/main` on 2026-11-04.
+
+## 2026-11-04 - Apply task price summaries to the active model catalog
+
+- Local reason: the active Model Square renders `CatalogModelCard` from `pricing/index.tsx`; the earlier image/video summary logic was only added to the separate legacy `ModelCard`, so catalog cards kept showing generic duplicated input/output prices and raw units.
+- Changed: the active catalog `usePriceRows` now uses a tested task-price summary helper to display localized image input labels and per-image output ranges, and video output ranges with no input price and localized seconds.
+- Preserved: token pricing, request pricing, filters, model details and billing behavior remain unchanged.
+- Validation: all 9 tests in `bun test src/features/pricing/lib/dynamic-price.test.ts` passed. The Rsbuild production build passed, formatting and `git diff --check` passed, and Oxlint passed for the new helper and its test. Whole-repository typecheck remains blocked by existing diagnostics in unrelated modules; the filtered output showed no diagnostics in the changed pricing files.
+- Commit and push: included in `5f49c0999` (`fix: wire task pricing into catalog cards`); pushed to `origin/main` on 2026-11-04.
+
+## 2026-11-04 - Display output-only image tier prices on catalog cards
+
+- Local reason: image task models that configure output image prices without a separately billed input-image field fell back to generic pricing and repeated the output unit price as both input and output.
+- Changed: catalog image pricing now recognizes output image tiers independently, shows `-` for the unpriced input side, and displays the output rate using the configured image unit label.
+- Preserved: models that separately bill input images retain their input price and output tier range; video, token, and billing calculations are unchanged.
+- Validation: all 10 tests in `bun test src/features/pricing/lib/dynamic-price.test.ts` passed; targeted Oxlint and `git diff --check` passed. Oxfmt was run on the changed test file and its check passed afterward.
+- Commit and push: included in `a69639dea` (`fix: show Wan3 reference video pricing`); pushed to `origin/main` on 2026-11-04.
+
+## 2026-11-04 - Show Wan 3.0 reference video pricing on catalog cards and details
+
+- Local reason: Wan 3.0 charges the combined reference-video input and generated-video durations, but its shared per-second rate was shown as output-only in the catalog and as one generic column in model details.
+- Changed: added a validated, display-only `pricingDisplay` usage-schema marker for Wan 3.0 and Wan 3.0 Prime. Catalog cards now show the configured per-second range under both reference input and generated output with an explicit combined-duration note; model details show the same rate in separate reference-input and generated-output columns for each configured resolution.
+- Preserved: the billing expression, pre-consumption, usage facts, and settlement still use the existing combined `seconds` field and do not change charges. Other Alibaba video models retain their existing display. Also includes the prior output-only image tier card fix.
+- Validation: 17 targeted frontend tests passed, Rsbuild production build passed, all locale JSON files parsed, targeted Oxlint/Oxfmt and `git diff --check` passed. Go tests could not run because the Go toolchain is not installed in this environment; full Oxlint on the catalog page reports pre-existing diagnostics outside the changed lines.
+- Commit and push: included in `a69639dea` (`fix: show Wan3 reference video pricing`); pushed to `origin/main` on 2026-11-04.
+
+## 2026-11-04 - Refine catalog task price labels
+
+- Local reason: the catalog repeated Wan 3.0's combined-duration billing note even though the model details already explain it, and equal image prices appeared as a redundant range such as `¥0.12–¥0.12`.
+- Changed: removed the combined-duration note from catalog cards while keeping it in model details; identical price-range endpoints now collapse to one unit price.
+- Preserved: Wan 3.0 input/output labels and rates remain on the card, and all billing calculations and detail-page pricing explanations are unchanged.
+- Validation: all 11 tests in `bun test src/features/pricing/lib/dynamic-price.test.ts` passed; Rsbuild production build, targeted Oxlint/Oxfmt, and `git diff --check` passed.
+- Commit and push: pending.
+
+## 2026-11-04 - Validate configured Sora video resolutions
+
+- Local reason: configured Sora per-second prices must not silently accept a resolution the administrator did not price, including custom provider-supported dimensions such as `1080x720`.
+- Changed: Sora parameter pricing now rejects explicit unconfigured resolutions with HTTP 400. Custom dimensions are accepted when configured as an exact tier; a single-tier default remains available only when the request omits a resolution.
+- Preserved: validation only runs for Sora-channel models with enabled Sora parameter pricing; existing standard size aliases, upstream request bodies, and other video models remain unchanged.
+- Validation: added regression coverage for configured custom dimensions and rejection of unconfigured dimensions. `gofmt` and Go test execution were unavailable because Go is not installed; `git diff --check` passed.
+- Commit/push: not committed or pushed.
+
 ## 2026-11-03 - Return provider video URL alongside gateway proxy
 
 - Local reason: clients using `/v1/videos/{id}` need the upstream result URL in the response metadata as well as the gateway's content proxy URL.
@@ -247,6 +881,62 @@
 - Preserved: administrators retain original provider diagnostics; `/v1/videos/{id}` continues to return the gateway content URL, which fetches the video through the gateway and avoids exposing expiring signed provider URLs.
 - Validation: `git diff --check` passed. Targeted Go regression tests and `gofmt` could not run because neither Go nor `gofmt` is installed or available on PATH in this environment.
 - Source commit: `7da8dedf1` (`fix: hide mapped models from user task logs`); pushed successfully to `origin/main`.
+
+## 2026-11-03 - Exclude asynchronous failures without HTTP status codes from performance metrics
+
+- Local reason: video and other asynchronous providers can return terminal failures without an HTTP status code; operators need an opt-in way to keep these provider validation failures out of model success-rate metrics.
+- Changed: added `perf_metrics_setting.exclude_task_failures_without_status_code`, defaulting to false. When enabled, only status-less asynchronous task failures are excluded; failures with an explicit HTTP status still follow the existing excluded-status-code rules. Added the administrator switch and translations in the Monitoring & Alerts settings.
+- Preserved: task logs, refunds, billing, synchronous relay metrics, and failures with explicit HTTP statuses are unchanged.
+- Validation: added focused Go regression coverage for default behavior, opt-in exclusion, explicit included statuses, and existing excluded statuses. Targeted Oxlint and Oxfmt, locale JSON parsing, and `git diff --check` passed. Go tooling was unavailable locally, so the Go test and gofmt could not run.
+- Commit and push: included in `e94c2ce62` (`feat: refine organization workspace navigation and AstraFlow tasks`); pushed successfully to `origin/main` on 2026-11-03.
+
+## 2026-11-03 - Rename MediaKit task plugin to AstraFlow and expose upstream task routes
+
+- Local reason: AstraFlow uses shared native asynchronous task paths for all models and clients must call the platform-compatible paths directly.
+- Changed: renamed the embedded plugin directory/key to `astraflow`, changed its display name, and exposed `POST /v1/tasks/submit` plus `GET /v1/tasks/status?task_id=...` before the generic `/v1/tasks/:key` routes are registered. Added the generic `taskIdQuery` route declaration so task plugins can read query-string task IDs; existing path-parameter query routes remain unchanged.
+- Preserved: the upstream request and status URLs, ten-second pre-consume, actual-duration settlement, model-specific usage schema, and OpenAI protocol routes.
+- Validation: Bun plugin checks and `git diff --check` remain the available local checks; Go tests remain unavailable because the Go toolchain is not installed.
+- Commit and push: included in `e94c2ce62` (`feat: refine organization workspace navigation and AstraFlow tasks`); pushed successfully to `origin/main` on 2026-11-03.
+
+## 2026-11-03 - Add AstraFlow video enhancement task plugin
+
+- Local reason: add an AstraFlow task plugin for the video enhancement API (`POST /v1/tasks/submit` and `GET /v1/tasks/status?task_id=...`).
+- Changed: renamed the embedded plugin to `astraflow` and exposed the same unprefixed native paths as the upstream platform, allowing future AstraFlow models to share these routes. The plugin keeps bearer authentication, remote video artifact proxying, and usage facts for `seconds`, `resolution`, and `fps`. Resolution tiers are `720p`, `1080p`, `2k`, `4k`, `6k`, and `8k`; FPS tiers are `30`, `60`, and `120`. The admin pricing matrix has 18 resolution/FPS combinations with `seconds` as its only billable quantity and a per-second price. The plugin pre-consumes ten seconds, then reconciles the charge to the actual upstream duration after completion; the client request remains in the upstream-native shape. Completion usage can also update returned resolution/FPS when present.
+- Preserved: upstream request shape (`model`, `input.video_url`, `parameters.resolution`, `parameters.fps`), provider URLs, and existing task plugin billing/settlement behavior. Prices remain administrator-configured through task billing expressions; no hard-coded currency rates were added.
+- Validation: added focused plugin registration, request forwarding, status parsing, completion usage, and artifact URL regression coverage. Bun checks confirmed 10-second pre-consume, preservation of the native request body, actual-duration completion facts, and FPS rejection outside 30/60/120; `git diff --check` passed. Go tests could not run because the Go toolchain is unavailable.
+- Commit and push: local changes are intentionally uncommitted and unpushed at the user's request.
+
+## 2026-11-03 - Separate personal and organization workspace navigation
+
+- Local reason: organization members should choose a workspace before entering its dashboard, and organization navigation should not expose personal-only pages.
+- Changed: the organization entry now acts as a personal workspace selector without auto-opening the first organization; creation and invitation acceptance remain on the personal selector, while the create form is hidden after entering an organization. When an organization is active, the personal sidebar group becomes an Organization group and hides Friends Hub, Member Tiers, Support Tickets, and Profile. Added the localized Organization label across all frontend locales.
+- Preserved: multi-organization membership, invitation acceptance, header workspace switching, organization APIs, and existing organization detail tabs remain unchanged.
+- Validation: targeted Oxlint and Oxfmt passed for the changed frontend files, all seven locale files parse successfully, and `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable.
+- Commit and push: included in `e94c2ce62` (`feat: refine organization workspace navigation and AstraFlow tasks`); pushed successfully to `origin/main` on 2026-11-03.
+
+## 2026-11-03 - Accept numeric enum selectors in native task requests
+
+- Local reason: AstraFlow's native request requires `parameters.fps` as a JSON number, while its billing usage schema stores FPS enum values as strings; request validation incorrectly rejected valid `fps: 30` payloads with `plugin usage enum must be a string`.
+- Changed: request-side plugin usage validation now compares finite numeric enum selectors using their canonical string form. Completion usage validation remains string-only, and enum membership is still enforced.
+- Preserved: upstream-native request bodies, plugin pricing facts, settlement behavior, and strict completion usage validation for all task plugins.
+- Validation: added focused Go regression coverage for numeric request enum selectors, rejected enum values, and strict completion facts. `git diff --check` passed; Go tests and gofmt could not run because the Go toolchain is unavailable locally.
+- Commit and push: included in `a7192f777` (`feat: improve organization selector and task validation`); pushed successfully to `origin/main` on 2026-11-03. The status correction is recorded in `a81b20c59`.
+
+## 2026-11-03 - Add friendly Seedream 5.0 model aliases
+
+- Local reason: expose stable customer-facing Seedream 5.0 Pro and Flash model names without dated snapshot suffixes while retaining the official Ark snapshot IDs upstream.
+- Changed: added `doubao-seedream-5.0-pro` and `doubao-seedream-5.0-flash` to the Doubao plugin with their matching capability and usage profiles. Image request construction resolves them to `doubao-seedream-5-0-pro-260628` and `doubao-seedream-5-0-flash-260915` respectively; existing dated names remain supported.
+- Preserved: provider request format, channel model mapping behavior, image capability validation, and existing billing expressions for the dated models.
+- Validation: `bun --check plugins/tasks/doubao/plugin.js` and `git diff --check` passed. Added plugin regression coverage for alias profile registration and upstream model rewriting; Go tests could not run because the Go toolchain is unavailable locally.
+- Commit and push: included in `ebf88d5b8` (`feat: add friendly Seedream 5.0 aliases`); pushed successfully to `origin/main` on 2026-11-03.
+
+## 2026-11-03 - Add searchable organization card selector
+
+- Local reason: the personal organization selector needed a clearer overview for users who belong to multiple organizations.
+- Changed: added breadcrumb context, a top-right organization creation dialog, client-side organization-name search, responsive organization cards showing the icon, name, active member count, and creation time, plus an explicit no-match state. The organization list response now includes the active member count without adding a database column.
+- Preserved: pending invitations remain in the personal selector, card selection still enters the existing organization workspace, and all organization workspace tabs and controls remain unchanged.
+- Validation: pending targeted Oxlint/Oxfmt, locale JSON parsing, and frontend checks; Go tests remain unavailable locally because the Go toolchain is not installed.
+- Commit and push: included in `a7192f777` (`feat: improve organization selector and task validation`); pushed successfully to `origin/main` on 2026-11-03. The status correction is recorded in `a81b20c59`.
 
 ## 2026-11-02 - Keep Seedance automatic duration out of billing validation
 
@@ -284,6 +974,198 @@
 - Preserved: personal keys, personal balances, subscriptions, existing model/channel pricing, personal usage and logs, protected project identity, and existing non-organization routes. Ordinary organization members only see their own keys, usage, and masked organization financial data; owner/admin operations remain role-gated.
 - Validation: `bun run build` passed in `web/default`; targeted frontend lint, locale JSON parsing, Go formatting, and `git diff --check` passed. Added behavior/regression cases for permissions, workspace separation, member budget periods, task settlement/refunds, transfer rollback, provider callbacks/idempotency, payment identity, and notification/reminder delivery. Backend tests could not run because the repository requires Go 1.26.10 and this machine has Go 1.25.0; no toolchain was downloaded. Frontend full typechecking also has existing unrelated errors. No real checkout, email delivery, multi-database runtime validation, or local Docker build was performed; static review is not a substitute for those checks. Final settlement can create organization debt when actual usage exceeds reservation; subsequent paid requests require sufficient balance.
 - Source commit and push: backend `16dcd44e5` (`feat: add organization workspaces and shared billing`) and frontend `70ff4f412` (`feat: add organization workspace management UI`) pushed successfully to `origin/main`; this documentation follow-up records the confirmed push. GitHub Actions handles the image build and publishing; no production deployment is asserted here.
+
+## 2026-11-02 - Accept Seedance native automatic duration
+
+- Local reason: Seedance's native `/api/v3/contents/generations/tasks` contract uses `duration: -1` to request an automatically selected duration, but the Doubao plugin rejected every non-positive value.
+- Changed: the native duration validator accepts exactly `-1` for `duration`; the original provider body preserves that sentinel, while the internal billing request omits it so it cannot become a negative billing multiplier. Values below `-1`, zero, and values above 3600 remain rejected.
+- Preserved: native provider fields are forwarded unchanged, normal positive duration validation remains in place, and billing falls back to a safe positive estimate until completion usage is available.
+- Validation: added native plugin coverage for acceptance and upstream preservation of `-1`, positive billing estimation, and rejection of `-2`, `0`, and `3601`; `node --check` and `git diff --check` are run for this change. Go tests remain unavailable because the repository requires Go 1.26.10 while this machine has Go 1.25.0.
+- Commit and push: pending.
+
+## 2026-11-02 - Hide disabled real-name verification in profile
+
+- Local reason: the profile always displayed a real-name verification tab even when the feature was disabled by the administrator.
+- Changed: the profile settings card reads the existing identity-verification query and renders the tab and content only when its enabled flag is true; the remaining tabs use two equal columns and a hidden active identity tab falls back to account bindings. Pending or unsuccessful responses keep the entry hidden.
+- Preserved: existing verification APIs, submission rules, administrator views, and the independent mandatory verification policy remain unchanged; earlier uncommitted encryption-secret changes are preserved.
+- Validation: `git diff --check` passed. Targeted Oxlint reported only the pre-existing skeleton index-key violation; the same file passed with that single rule disabled. No full build or additional tests for this small visibility change.
+- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
+
+## 2026-11-02 - Hide personal sidebar configuration for ordinary users
+
+- Local reason: ordinary users should not see the personal sidebar configuration card in their profile.
+- Changed: profile now shows the sidebar configuration card only for administrator roles with the existing sidebar settings permission; unknown roles keep the card hidden while the profile loads.
+- Preserved: administrator permission restrictions, current sidebar visibility settings, and other profile cards; earlier uncommitted work remains intact.
+- Validation: targeted Oxlint for `profile/index.tsx` and `git diff --check` passed; no full build for this small visibility change.
+- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
+
+## 2026-11-02 - Hide profile Passkey card when disabled by administrator
+
+- Local reason: the user requested hiding optional security cards when administrators have not enabled them.
+- Changed: profile mounts the Passkey card only when the existing public `passkey_login` flag is true, hiding the card and avoiding its management requests when disabled or unknown.
+- Preserved: Passkey authentication and existing credentials are unchanged. Two-factor enrollment is controlled separately by the switch described in the next entry.
+- Validation: targeted Oxlint and `git diff --check` passed; no full build for this small visibility change.
+- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
+
+## 2026-11-02 - Add administrator switch for two-factor enrollment
+
+- Local reason: profile security cards should be hidden when the administrator has disabled that feature, and ordinary users previously had no way to toggle global 2FA enrollment availability.
+- Changed: added `two_fa.enrollment_enabled` under Basic Authentication, defaulting to true for compatibility; the public status and per-user 2FA status expose the setting. Setup and enable endpoints reject new enrollment while disabled. The profile hides the 2FA card when enrollment is disabled and the user has no enabled 2FA, while users who already enabled it retain management and disable controls. Frontend labels are translated across supported locales.
+- Preserved: existing 2FA credentials and authentication remain intact when enrollment is disabled; Passkey visibility continues to follow its existing admin switch.
+- Validation: targeted Oxlint passed; `git diff --check` passed. Full frontend typecheck reports repository errors outside these changes and missing test dependencies. Added a regression test proving both setup and enable requests are rejected before any database access when enrollment is disabled; execution and Go formatting remain unavailable because the Go toolchain is not installed.
+- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
+
+## 2026-11-02 - Fix authentication version writes blocked by GORM permissions
+
+- Local reason: starting two-factor setup failed with `user authentication version update conflicted` because the explicit auth-version updater used the User schema whose `AuthVersion` field is create-only.
+- Changed: transactional auth-version increments and upgrade initialization now write through the users table directly, avoiding the create-only schema guard while retaining the row lock, compare-and-swap predicate, transaction rollback, and Redis fence. This fixes the shared updater used by two-factor creation/deletion, Passkey changes, and other security operations.
+- Preserved: legacy User Save/Updates cannot overwrite auth versions; existing security/session policies and pending feature changes remain intact.
+- Validation: `git diff --check` passed. Added database contract coverage for 2FA creation/deletion, stale saves, rollback, and idempotent initialization to the existing SQLite/MySQL/PostgreSQL test harness. Tests could not run because Go is unavailable locally.
+- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
+
+## 2026-11-02 - Add saved marketing email preference and administrator visibility
+
+- Local reason: users need a default-on product-news and promotional-email preference, with its saved state visible to administrators for future campaigns.
+- Changed: added `marketing_email_enabled` to the existing user-settings JSON and settings update API. An omitted value defaults to enabled, explicit false survives serialization, and clients omitting the field preserve the saved choice. Added the profile preference switch and a read-only enabled/disabled field in the administrator Edit User drawer, using freshly fetched user details. Added labels and descriptions in all seven frontend locales; no database migration is required.
+- Preserved: no email sending, campaign integration, or administrator editing of this preference was added; account/security notifications and existing uncommitted work remain intact. Minor existing lint violations in the touched components were corrected without changing behavior.
+- Validation: targeted Oxlint passed with one pre-existing parseInt style warning; frontend formatting, locale JSON parsing, and `git diff --check` passed. Full frontend typecheck still fails on existing unrelated errors and missing test dependencies; no errors were reported in the files changed for this preference. Go compilation/tests remain unavailable because the Go toolchain is not installed.
+- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
+
+## 2026-11-01 - Add wallet invoice information visibility switch
+
+- Local reason: the wallet invoice information card needs an administrator-controlled visibility setting.
+- Changed: added `payment_setting.invoice_profile_enabled`, defaulting to `true`, to the billing settings; exposed it through public status; and made the wallet page skip both the invoice profile request and card rendering when disabled.
+- Preserved: saved invoice profiles, payment invoice snapshots, and invoice APIs remain available; existing installations keep the card visible by default.
+- Validation: `git diff --check` and `bun run build` in `web/default` passed. Go tests were not run because Go is unavailable in this environment.
+- Commit and push: included in `b4b9f07df` (`fix: simplify catalog task price display`); pushed to `origin/main` on 2026-11-04.
+
+## 2026-11-01 - Fix public sidebar visibility and relocate documentation link
+
+- Local reason: ordinary users did not receive the administrator sidebar module configuration, and the top-navigation documentation URL was exposed under billing quota settings.
+- Changed: included `SidebarModulesAdmin` in the public status payload, guarded the member tiers route with the existing sidebar module setting, and moved the documentation URL editor to Site Settings → System Information while preserving the existing `general_setting.docs_link` option. After the initial Header navigation placement caused the settings page to fail for the operator, the field was removed from that form and placed in the simpler System Information form.
+- Preserved: the existing navigation configuration format, documentation URL option, administrator sidebar editor, and all other routes remain unchanged.
+- Validation: `git diff --check` and `bun run build` in `web/default` passed. Go tests were not run because Go is unavailable in this environment.
+- Commit and push: pending.
+
+## 2026-11-01 - Prevent SEO fallback content flash on the interactive site
+
+- Local reason: the server-rendered SEO fallback was inserted as visible body content and appeared before the deferred frontend bundle initialized.
+- Changed: wrapped public and not-found fallback pages in standard `<noscript>` blocks so JavaScript-enabled users do not see raw SEO text during startup, while users without JavaScript retain readable fallback content.
+- Preserved: page metadata, crawlable fallback copy, route-specific public content, and the frontend fallback cleanup behavior.
+- Validation: `git diff --check` passed. Go tests were not run because Go is unavailable in this environment.
+- Commit and push: pending.
+
+## 2026-11-01 - Forward JSON requests through the upload endpoint
+
+- Local reason: Seedance asset-upload providers can accept JSON references such as a remote asset URL, while `/v1/upload` previously accepted multipart requests only.
+- Changed: accept `application/json` on `POST /v1/upload`; extract the top-level `model` only for channel selection, then replay the original stored request bytes to the upstream unchanged. Existing multipart streaming remains supported.
+- Preserved: upstream path, authentication, fixed per-request billing, response passthrough, request-size limits, and the no-persistence behavior.
+- Validation: added middleware coverage for model extraction and byte-for-byte request replay, plus controller coverage for upstream JSON forwarding. `git diff --check` passed; Go tests could not run because Go/gofmt are unavailable in this environment.
+- Commit and push: pending.
+
+## 2026-11-01 - Document the tentative real-name verification plan
+
+- Local reason: the project needs a reviewed design before implementing optional two-factor identity verification and the separate policy that can require verification before API key creation.
+- Changed: added `docs/real-name-verification-plan.md` covering the Alibaba Cloud AppCode integration, result/error handling, encrypted storage, administrator access, user/admin APIs, independent enforcement switch, key-creation paths, privacy controls, compatibility, and validation plan.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred pending confirmation.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Switch the tentative real-name provider to POST verification
+
+- Local reason: the proposed Alibaba Cloud Market provider uses a POST form request and returns `error_code` plus `result.isok`, avoiding identity data in an upstream GET query string.
+- Changed: updated `docs/real-name-verification-plan.md` to use `zidv2.market.alicloudapi.com/idcheck/Post`, `cardNo`/`realName`, AppCode authentication, the `error_code=0` and `result.isok=true` success rule, and HTTP 400/403 and quota handling.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred pending confirmation.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Record real-name provider integration verification
+
+- Local reason: a live test was requested after switching the tentative provider.
+- Changed: recorded the verified POST form request, AppCode authentication, HTTP `200`, `error_code=0`, and `result.isok=true` success path in `docs/real-name-verification-plan.md` without storing credentials or identity data.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: live provider request succeeded; `git diff --check` passed. No automated tests were needed for this documentation-only update.
+- Commit and push: pending.
+
+## 2026-11-01 - Add enterprise verification to the tentative plan
+
+- Local reason: a second Alibaba Cloud Market provider was supplied for enterprise four-factor verification.
+- Changed: expanded `docs/real-name-verification-plan.md` with the enterprise endpoint, POST-plus-query request shape, AppCode configuration, the documented-but-unconfirmed `key` parameter, per-field result semantics, strict success rule, error-code handling, `seqNo` correlation, separate encrypted enterprise data, user/admin API shapes, and validation coverage.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Verify the enterprise identity provider
+
+- Local reason: a live enterprise verification request was requested after adding the provider to the plan.
+- Changed: recorded the successful enterprise response in `docs/real-name-verification-plan.md`: HTTP `200`, `code=10000`, all four `*_result` fields equal to `1`, and a returned `seqNo`; the test also confirmed that omitting the documented `key` parameter currently succeeds.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: live provider request succeeded; `git diff --check` passed. No automated tests were needed for this documentation-only update.
+- Commit and push: pending.
+
+## 2026-11-01 - Lock the user to one verification method after success
+
+- Local reason: the confirmed product behavior is to let an unverified user choose personal or enterprise verification, then lock the selected type and verified data after success.
+- Changed: updated `docs/real-name-verification-plan.md` so each user has one current verification record, can switch methods only before success, and enterprise details are retained as part of the user's encrypted verification data.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Confirm exceptional administrator verification reset
+
+- Local reason: the user confirmed administrators may reset a locked personal or enterprise verification record in exceptional cases.
+- Changed: updated `docs/real-name-verification-plan.md` to require an administrator-provided reason and audit entry, return the user to the unverified state so they may choose either method again, preserve existing keys, and reapply the new-key gate when enabled.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Enforce real-name verification for all model services
+
+- Local reason: the user changed the enforcement policy from gating only new API key creation to disabling all model/API services for accounts without a completed verification.
+- Changed: updated `docs/real-name-verification-plan.md` so the independent enforcement switch blocks all model/API requests made with existing or new keys until either personal or enterprise verification succeeds; key creation is also blocked, while profile and verification recovery flows remain accessible. Administrator reset re-applies the service block until reverification.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Extend the real-name gate to all business services
+
+- Local reason: the confirmed policy is to make all platform business services unavailable to unverified users when enforcement is enabled, rather than limiting the gate to model/API traffic.
+- Changed: updated `docs/real-name-verification-plan.md` to block model/API, subscription, top-up, invoice, and other business services for unverified users while keeping login, profile, verification, help, and necessary account recovery accessible.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Make personal and enterprise verification independently available
+
+- Local reason: personal and enterprise verification providers are configured separately, and the available user choices must follow which providers are enabled and configured.
+- Changed: updated `docs/real-name-verification-plan.md` with independent method switches and credentials: one available method means only that method is shown, both available methods allow a choice, and disabling a method does not revoke an existing successful verification. Enforcement cannot be enabled when no method is available.
+- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
+- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
+- Commit and push: pending.
+
+## 2026-11-01 - Implement real-name verification and service enforcement
+
+- Local reason: the user confirmed the reviewed personal/enterprise verification design and requested implementation.
+- Changed: added independently configurable personal and enterprise verification under the default frontend Authentication settings; added server-side Alibaba verification clients, encrypted verification records, user verification APIs, profile UI, administrator summary/full-view/reset APIs and UI, audit logging for resets, and a mandatory verification gate for model/API requests, API key creation, subscriptions, top-up, invoice actions, and initial registration keys. `REAL_NAME_ENCRYPTION_KEY` is required before a method can be enabled; AppCodes remain server-only.
+- Preserved: existing authentication methods, existing successful verification records when a method is later disabled, existing keys during administrator reset, profile/verification/recovery access, and unrelated untracked worktree files.
+- Validation: `bun run build` in `web/default` passed; `git diff --check` passed. Go tests could not run because Go and `gofmt` are unavailable in this environment. Backend compile/test validation remains pending in an environment with Go 1.22+.
+- Commit and push: pending.
+
+## 2026-11-01 - Reuse existing stable secret for real-name encryption
+
+- Local reason: deployments already configured `CRYPTO_SECRET` were blocked from enabling real-name verification because a second dedicated environment variable was mandatory.
+- Changed: real-name encryption now prefers `REAL_NAME_ENCRYPTION_KEY`, then reuses an explicitly configured `CRYPTO_SECRET` or `SESSION_SECRET`; generated process-local defaults are excluded. Admin full-detail viewing continues to decrypt records server-side and returns readable identity fields only through the protected administrator endpoint.
+- Preserved: identity data remains encrypted at rest, masked summaries remain the default, existing records using the dedicated key continue to use it, and no plaintext fallback was added.
+- Validation: `git diff --check` passed; Go tests and `gofmt` are unavailable in this environment.
+- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
+
+## 2026-10-31 - Unify public video task failure details
+
+- Local reason: `/v1/video/generations/{id}` collapsed media billing failures into a generic message, while `/v1/videos/{id}` could expose upstream gateway codes, request IDs, and raw provider diagnostics.
+- Changed: recognize missing video unit-price failures and return a useful public-safe `invalid_media_billing` explanation; sanitize OpenAI video retrieval errors through the same projection used by the legacy task endpoint. Successful video metadata and usage behavior remain unchanged.
+- Preserved: full task response data for administrator diagnostics, provider-specific routing, task settlement, and the existing public task/status fields.
+- Validation: added regression coverage for media billing error mapping and OpenAI video error sanitization; `git diff --check` passed. `gofmt` and Go tests could not run because Go is unavailable in this environment.
+- Commit and push: pending.
 
 ## 2026-10-30 - Expose task usage details in public video queries
 
@@ -332,6 +1214,14 @@
 - Preserved: task status persistence, failure details, usage logs, refund/settlement behavior, successful task metrics, and synchronous request exclusions. Previously aggregated metrics are not rewritten.
 - Validation: `git diff --check` passed. Added targeted regression cases for embedded Seedance 400 failures, persisted and polling errors, status ranges, excluded server statuses, unexcluded/unknown failures, and successful tasks. Tests could not run: the installed Go version is 1.25.0 while this repository requires 1.26.10; no toolchain was downloaded.
 - Source commit and push: `cbfe725b4` (`fix: honor status exclusions for async task metrics`) pushed successfully to `origin/main`; this documentation follow-up records the confirmed push.
+
+## 2026-10-30 - Bill upload requests by configured model price
+
+- Local reason: `/v1/upload` used the model field for channel selection but did not apply that model's configured price, so successful uploads appeared free in usage logs.
+- Changed: upload requests now use the selected model's fixed per-request price through the shared billing session, pre-consume before forwarding, settle on upstream 2xx, and refund on failure. Successful logs record the actual quota and request billing unit; user/channel usage totals include the charge. Token-ratio-only pricing is rejected because upload responses do not report billable token usage. Token-subscription keys remain subject to the existing allowed-endpoint/model validation.
+- Preserved: synchronous multipart streaming and upstream response passthrough; no file persistence, no fabricated token usage, and no `/v1/files` behavior change. Model performance samples still record success and latency with zero generated tokens.
+- Validation: added upload status and fixed-price requirement regression coverage; `git diff --check` passed. Go tests were not run because Go/gofmt are unavailable in this environment.
+- Commit and push: pending.
 
 ## 2026-10-29 - Use plugin task prices on external model cards
 
@@ -397,6 +1287,38 @@
 - Validation: `node --check plugins/tasks/doubao/plugin.js`, `bun run build`, `bunx oxfmt --check` on touched frontend files, locale JSON parsing, and `git diff --check` passed. Frontend typecheck remains blocked by existing missing test dependencies and unrelated repository errors; Go tests/build and `gofmt` were unavailable because Go is not installed.
 - Source commit and push: `a74e1d612` (`feat: expose native Doubao video API endpoints`), pushed to `origin/main`; this log status update is included in the following documentation commit.
 
+## 2026-10-29 - Localize and clean up task pricing display
+
+- Local reason: task pricing details showed English plugin usage labels, empty fixed-price columns, and an unpriced default row in the model marketplace.
+- Changed: hide unused fixed/unit-price columns and empty unconditioned default rows; localize task pricing units and Doubao Seedance usage labels/conditions for all supported frontend languages, including the `zhCN`/`zhTW` language codes.
+- Preserved: billing expressions, price calculations, plugin override precedence, and explicitly conditioned zero-price tiers.
+- Validation: locale JSON parsing, Doubao plugin syntax check, targeted Oxfmt, and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test dependencies and unrelated type errors; no diagnostics referenced changed files. Local preview was started at `http://localhost:8080/pricing`.
+- Commit and push: code committed as `f07dea0ae`; the changelog was committed as `dfe2a8080`. Both commits were pushed to `origin/main` on 2026-10-29.
+
+## 2026-10-29 - Preserve token unit format in Chinese pricing
+
+- Local reason: Chinese model pricing displayed the token unit as `100 万 Token`, while the requested marketplace format is `1M tokens`.
+- Changed: simplified and traditional Chinese locales now preserve the `1M tokens` label used by the pricing table.
+- Preserved: all billing calculations, other locale translations, and task pricing behavior.
+- Validation: targeted Oxfmt and `git diff --check` passed.
+- Commit and push: code committed as `70b2e114a`; changelog committed as `b80474c5b`. Both were pushed to `origin/main` on 2026-10-29.
+
+## 2026-10-29 - Persist task pricing snapshots for completion settlement
+
+- Local reason: asynchronous Seedance task logs could undercharge when the upstream completion token count differed from the submission estimate because the tiered pricing snapshot was not stored with the task.
+- Changed: persist `relayInfo.TieredBillingSnapshot` in both task submission billing contexts, including the protocol bridge path, so polling can evaluate the completed task with the upstream usage facts and configured tier price.
+- Preserved: existing pre-consumption, non-tiered task billing, plugin routing, and legacy task records without a snapshot.
+- Validation: targeted source inspection and `git diff --check`; Go tests were not run because the Go toolchain is unavailable in this environment.
+- Commit and push: code committed as `d4db9aa2d` and pushed to `origin/main` on 2026-10-29; this changelog status follow-up is committed separately.
+
+## 2026-10-29 - Add synchronous multipart upload relay
+
+- Local reason: the Seedance asset-upload workflow needs an upload endpoint that immediately forwards multipart data to its selected upstream and returns the upstream response, without creating a gateway file record.
+- Changed: register `POST /v1/upload`, route by the leading multipart `model` field, forward the multipart body as a stream to the selected channel's same `/v1/upload` path using channel credentials/proxy/header overrides, and stream the upstream status, headers, and body back to the caller. No file metadata or durable upload is created.
+- Preserved: the unrelated placeholder `/v1/files` routes and all existing video/task endpoint behavior.
+- Validation: added middleware and controller regression tests; `git diff --check` passed. The first GitHub Actions image build exposed an invalid `RelayInfo.ApiKey` field initializer; removed it and kept the key on `ChannelMeta.ApiKey`. Go tests could not run locally because Go/gofmt are unavailable in this environment.
+- Commit and push: initial upload relay source fix committed and pushed after the failed build. A follow-up corrected upstream path passthrough after review.
+
 ## 2026-10-28 - Declare Seedance aliases in the Doubao plugin
 
 - Local reason: third-party Seedance channels use the public model aliases `doubao-seedance-2.0`, `doubao-seedance-2.0-fast`, `doubao-seedance-2.0-mini`, and `doubao-seedance-2.5`, which were absent from the built-in plugin metadata and therefore did not expose their model-specific usage schema for plugin pricing.
@@ -445,6 +1367,38 @@
 - Validation: `git diff --cached --check` passed. Added targeted Go regression tests for unsplit Claude cache writes, Redis script flush recovery, Claude tool-call merging, Responses completion lifecycle, stream write budgets, and nested schema order. Go tests/build were not run because the Go toolchain is unavailable in the environment.
 - Commit: `cf5a3c6e0` (`fix: sync billing and stream reliability updates`). Local only; not pushed.
 
+## 2026-10-28 - Fix task-plugin checker compilation after upstream sync
+
+- Local reason: the Docker image build failed in `go run ./cmd/check-task-plugins` because the synced parameter-override code referenced the undefined `common.RawMessage` type.
+- Changed: use the existing `common.JSONRawMessage` alias when preserving raw JSON array elements, and add a regression test that verifies object key order is retained during array append operations.
+- Preserved: parameter override behavior, raw JSON preservation, task-plugin registration, and all upstream-synced functionality.
+- Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment. The GitHub Actions failure is the reproduced build evidence.
+- Commit and push: source fix committed as `ab60acced` and pushed to `origin/main` on 2026-10-28; this log update follows.
+
+## 2026-10-28 - Fix channel selection build compatibility
+
+- Local reason: the next GitHub Actions image build failed because `service/channel_select.go` called the undefined `common.LogText` helper.
+- Changed: pass the warning format string and arguments directly to the existing variadic `logger.LogWarn` function.
+- Preserved: channel pin override diagnostics, channel selection behavior, routing priorities, and all upstream-synced functionality.
+- Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment.
+- Commit and push: source fix committed as `8395c693f` and pushed to `origin/main` on 2026-10-28; this log update follows.
+
+## 2026-10-28 - Fix distributor syntax after shared routing sync
+
+- Local reason: the GitHub Actions image build reported a cascade of syntax errors in `middleware/distributor.go` after the shared channel/task-plugin routing change.
+- Changed: close the outer channel-selection `else` block after the new affinity/random-selection wrapper, restoring the intended function nesting.
+- Preserved: pin handling, affinity selection, auto-group price ordering, task-plugin filters, retry behavior, and all existing routing logic.
+- Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment.
+- Commit and push: source fix committed as `d45459536` and pushed to `origin/main` on 2026-10-28; this log update follows.
+
+## 2026-10-28 - Fix task-plugin route type compatibility
+
+- Local reason: the GitHub Actions image build reached Go type checking and rejected `pinned.Route.Type` (`jsplugin.RouteType`) where the existing body validation helper accepts a string.
+- Changed: convert the declared route type at the helper boundary, preserving the existing route constants and body validation behavior.
+- Preserved: JSON/multipart route rules, model-scoped restrictions, query handling, and task-plugin routing behavior.
+- Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment.
+- Commit and push: source fix committed as `f75f142c2` and pushed to `origin/main` on 2026-10-28; this log update follows.
+
 ## 2026-10-27 - Replace default frontend logo assets
 
 - Local reason: the operator supplied the OmniRouters transparent logo and requested replacing the remaining default New API logo asset.
@@ -460,30 +1414,6 @@
 - Preserved: custom HTML isolation from the surrounding React DOM, existing theme/language postMessage handling, public API access controls, and all external iframe behavior.
 - Validation: `git diff --check` and `bun run build` in `web/default` passed. Go tests were not run because the Go toolchain is unavailable in this environment.
 - Commit and push: included in `9255d78e3` (`fix: allow Seedance automatic duration`); pushed successfully to `origin/main` on 2026-11-02.
-
-## 2026-11-01 - Add wallet invoice information visibility switch
-
-- Local reason: the wallet invoice information card needs an administrator-controlled visibility setting.
-- Changed: added `payment_setting.invoice_profile_enabled`, defaulting to `true`, to the billing settings; exposed it through public status; and made the wallet page skip both the invoice profile request and card rendering when disabled.
-- Preserved: saved invoice profiles, payment invoice snapshots, and invoice APIs remain available; existing installations keep the card visible by default.
-- Validation: `git diff --check` and `bun run build` in `web/default` passed. Go tests were not run because Go is unavailable in this environment.
-- Commit and push: included in `b4b9f07df` (`fix: simplify catalog task price display`); pushed to `origin/main` on 2026-11-04.
-
-## 2026-11-01 - Fix public sidebar visibility and relocate documentation link
-
-- Local reason: ordinary users did not receive the administrator sidebar module configuration, and the top-navigation documentation URL was exposed under billing quota settings.
-- Changed: included `SidebarModulesAdmin` in the public status payload, guarded the member tiers route with the existing sidebar module setting, and moved the documentation URL editor to Site Settings → System Information while preserving the existing `general_setting.docs_link` option. After the initial Header navigation placement caused the settings page to fail for the operator, the field was removed from that form and placed in the simpler System Information form.
-- Preserved: the existing navigation configuration format, documentation URL option, administrator sidebar editor, and all other routes remain unchanged.
-- Validation: `git diff --check` and `bun run build` in `web/default` passed. Go tests were not run because Go is unavailable in this environment.
-- Commit and push: pending.
-
-## 2026-11-01 - Prevent SEO fallback content flash on the interactive site
-
-- Local reason: the server-rendered SEO fallback was inserted as visible body content and appeared before the deferred frontend bundle initialized.
-- Changed: wrapped public and not-found fallback pages in standard `<noscript>` blocks so JavaScript-enabled users do not see raw SEO text during startup, while users without JavaScript retain readable fallback content.
-- Preserved: page metadata, crawlable fallback copy, route-specific public content, and the frontend fallback cleanup behavior.
-- Validation: `git diff --check` passed. Go tests were not run because Go is unavailable in this environment.
-- Commit and push: pending.
 
 ## 2026-10-27 - Add 404, llms.txt, dynamic sitemap, and JSON-LD metadata
 
@@ -518,6 +1448,38 @@
 - Validation: JSON parsing for all seven frontend locale files, `git diff --check`, and `bun run build` passed. Go tests/build were unavailable because the Go toolchain is not installed in this environment; Go code was reviewed manually for type/import and cross-database usage.
 - Commit: `04d43aca6` (`feat(subscription): add token-based subscription keys`). Documentation follow-up: `3f5e4f66f`. Push: confirmed at `origin/main` on 2026-10-27.
 
+## 2026-10-27 - Render complete custom HTML documents in a sandbox
+
+- Local reason: complete HTML pasted into the homepage or About setting was rendered as a sanitized fragment, so its head, scripts, global CSS, language switch, and theme switch could not work.
+- Changed: detect complete `<!doctype html>`/`<html><head>` documents and render them through the existing sandboxed content frame with `srcDoc`; keep HTML fragments on the existing DOMPurify and Shadow DOM path. Parent theme and language context continue to be delivered through the existing postMessage bridge.
+- Preserved: fragment sanitization, iframe URL support, parent application isolation, and the no-`allow-same-origin` sandbox boundary for pasted documents.
+- Validation: source inspection and `git diff --check`; frontend production build not run yet.
+- Commit and push: pending.
+
+## 2026-10-27 - Add server-rendered public SEO content
+
+- Local reason: public route HTML contained only the React root while homepage, About, pricing, and rankings page content loaded after JavaScript, leaving crawlers without page content.
+- Changed: the Go web fallback now writes crawlable route-specific HTML into the main document for `/`, `/about`, `/pricing`, and `/rankings`, including configured static content summaries, current public model names, and the cached weekly ranking snapshot; both default and classic frontends remove the fallback before mounting their interactive page.
+- Preserved: existing SPA routes, custom HTML sandbox rendering, external content isolation, and dynamic branding/SEO metadata. Remote COS HTML is summarized as escaped text and is never executed during server rendering.
+- Validation: `git diff --check`; frontend production build not run after this follow-up. Go tests were not run because the Go toolchain is unavailable in this environment.
+- Commit and push: pending.
+
+## 2026-10-27 - Restrict anonymous system status fields
+
+- Local reason: anonymous `/api/status` exposed deployment metadata, administrative module settings, passkey trust policy, and internal pricing controls alongside the public frontend bootstrap configuration.
+- Changed: added role-aware status filtering; anonymous and common-user requests receive only the public branding, login/OAuth, public billing, navigation, legal, and public content fields, while enabled administrator/root dashboard sessions retain the complete status response. Kept the existing endpoint and compatibility behavior for frontend and external API clients.
+- Preserved: public login/register initialization, OAuth client configuration, Turnstile site key, public announcements/FAQ, administrator dashboard status consumers, and the admin-only `/api/status/test` route.
+- Validation: added anonymous-field regression coverage and ran `git diff --check`; Go tests were not run because the Go toolchain is unavailable in this environment.
+- Commit and push: pending.
+
+## 2026-10-26 - Show total tokens in usage log details
+
+- Local reason: usage log details showed input/output and cache token breakdowns but did not show their aggregate token count.
+- Changed: added a localized `Total Tokens` row calculated as input tokens plus output tokens in the usage log detail dialog.
+- Preserved: cache read/write rows, billing calculations, log data contracts, and all other usage log views.
+- Validation: `git diff --check` and targeted source inspection passed; no full frontend build run for this small UI change, per user preference.
+- Commit and push: pending.
+
 ## 2026-10-25 - Reassess SEO/GEO report after public deployment
 
 - Local reason: the operator confirmed the production site was updated and requested a fresh evaluation using the deployed result.
@@ -542,14 +1504,6 @@
 - Validation: `git diff --check` passed; targeted Oxlint passed for all new/changed SEO page files except the pre-existing non-null assertion in `src/main.tsx`; `bun run build` passed; full `bun run typecheck` and repository lint remain blocked by pre-existing unrelated errors; local browser preview verified both page content, code examples, FAQ, links, and responsive public layout. Go tests remain unavailable because Go is not installed in this environment.
 - Commit and push: pending.
 
-## 2026-10-26 - Show total tokens in usage log details
-
-- Local reason: usage log details showed input/output and cache token breakdowns but did not show their aggregate token count.
-- Changed: added a localized `Total Tokens` row calculated as input tokens plus output tokens in the usage log detail dialog.
-- Preserved: cache read/write rows, billing calculations, log data contracts, and all other usage log views.
-- Validation: `git diff --check` and targeted source inspection passed; no full frontend build run for this small UI change, per user preference.
-- Commit and push: pending.
-
 ## 2026-10-25 - Serve crawlable SEO endpoints and page metadata
 
 - Local reason: the public reverse-proxied site returned the SPA HTML shell for `/robots.txt` and `/sitemap.xml`, and public routes did not have route-specific canonical metadata in the initial HTML.
@@ -572,6 +1526,14 @@
 - Changed: added the real recharge baseline and approximate daily average to `docs/seo-geo-feasibility-report-2026-10-25.md`; clarified that recharge, consumed quota, balance, upstream cost, payment fees, refunds, and SEO attribution are separate accounting facts; updated the conclusion and Docker Compose first-step reconciliation.
 - Preserved: the $10 minimum top-up and no registration credit policy; the recommendation to defer large SEO/GEO spending until paid cohorts and margin are attributable.
 - Validation: `git diff --check` and targeted text review passed. No production data or containers were changed.
+- Commit and push: pending.
+
+## 2026-10-25 - Make SEO landing pages site-aware
+
+- Local reason: SEO landing pages hardcoded the overseas domain, USD minimum top-up, and registration-credit policy, which made them inaccurate on other deployments.
+- Changed: API examples and canonical URLs now follow the current site origin; `/api/status` publishes a limited read-only billing summary for the configured display currency, active primary top-up minimum, and registration credit; React pages and no-script SEO fallback render those values without exposing payment credentials.
+- Preserved: provider routing, payment validation, existing billing configuration, SEO page paths and content structure, and protected project/author identity metadata.
+- Validation: `bun run build`, targeted Oxfmt, targeted Oxlint for the SEO pages/status types, and `git diff --check` passed. `go test ./router` could not run because Go is unavailable in this environment. Oxlint including `main.tsx` reported existing non-null assertion and array-index rule violations there.
 - Commit and push: pending.
 
 ## 2026-10-24 - Respect explicit model endpoint selections
@@ -662,6 +1624,14 @@
 - Validation: `git diff --check` passed. Added controller tests for Stripe fee calculation and zero-, two-, and three-decimal currencies, but Go is unavailable in this environment, so backend tests could not run. Frontend typecheck reported existing errors in unrelated modules and missing test-library packages; the wallet files changed here reported no type errors.
 - Commit and push: pending.
 
+## 2026-10-22 - Upgrade Go toolchain for CVE-2026-111943
+
+- Upstream commit: `7d8b91268` (`fix: upgrade Go to 1.26.10 for CVE-2026-111943 (#7942)`).
+- Changed: upgraded `go.mod`, `Dockerfile`, and `Dockerfile.dev` to Go 1.26.10; changed Electron and release workflows to read the Go version from `go.mod`.
+- Preserved: the existing frontend build stages, classic frontend packaging, workflow action versions, dependency set, and all application behavior.
+- Validation: checked all five affected files and ran `git diff --check`; Go tests/build were unavailable because the Go executable is not installed in this environment.
+- Result: CVE changes committed as `e715a5a94` and pushed to `origin/main`; this log entry is included in the follow-up documentation commit.
+
 ## 2026-10-20 - Integrate five upstream updates
 
 - Upstream commits: `ca2cae676`, `55bb6b903`, `25372e30b`, `6cf0d90b5`, `ff3684658`.
@@ -695,6 +1665,361 @@
 - Validation: `git diff --check` passed. Local Go tests and `gofmt` could not run because Go is not installed or available on PATH; GitHub Actions is the backend compile check.
 - Commit/push: source commit `b96e6bf28` (`fix(claude): use existing token estimate service`) pushed to `origin/main`.
 
+## 2026-10-20 - Separate web tool endpoints in the API access drawer
+
+- Local reason: `/v1/tools/search` and `/v1/tools/fetch` are DeepSeek-style web tool endpoints rather than standard OpenAI-compatible endpoints, so grouping them under OpenAI Compatible was misleading.
+- Integrated: moved both endpoints into a dedicated localized `Web Tools` protocol card. Their POST paths, server-node selection, URL generation, and endpoint selection behavior are unchanged.
+- Preserved: OpenAI-compatible endpoint contents, backend routing and billing behavior, and all other protocol cards.
+- Validation: `bunx oxfmt --check` for the changed frontend files, locale JSON parsing, `bun run build` in `web/default`, and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test-package declarations and unrelated type errors; no backend changes were made.
+- Commit and push: pending.
+
+## 2026-10-20 - Expose built-in web tool prices in the model plaza
+
+- Local reason: Search/Fetch and other built-in tool calls can add a per-call surcharge, but the public model plaza only showed token or task prices.
+- Integrated: added `tool_prices` to the public pricing payload, rendered tool fees on model cards and a per-group `$/1K calls` table on model details, and added local fixtures for OpenAI, Anthropic, Gemini, and DeepSeek examples. Independent `deepseek-search` and `deepseek-fetch` models are excluded from the extra-tool table to avoid double display.
+- Preserved: existing billing and settlement calculations, group multipliers, model pricing, endpoint routing, and custom tool configuration behavior. This change only publishes and formats existing tool prices.
+- Validation: `bun run build` passed; targeted `bunx oxfmt --check` and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test dependencies and unrelated type errors. Local mock API and frontend preview are running at `http://localhost:3000` and `http://localhost:8080`.
+- Commit and push: pending.
+
+## 2026-10-20 - Add web tool endpoints to the API access drawer
+
+- Local reason: the API key endpoint drawer did not expose the platform's `/v1/tools/search` and `/v1/tools/fetch` entry points, even though they are available through the gateway.
+- Integrated: added both POST endpoints to the OpenAI-compatible endpoint list before the existing model-list endpoint, with localized labels for all supported frontend languages. Existing endpoint selection, URL generation, default selection, and server-node handling are unchanged.
+- Preserved: backend routing and billing behavior, all existing protocol endpoints, and the model-list endpoint's final position.
+- Validation: `bunx oxfmt --check` for the changed frontend files, locale JSON parsing, `bun run build` in `web/default`, and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test-package declarations and unrelated type errors; no backend changes were made.
+- Commit and push: pending.
+
+## 2026-10-20 - Integrate tool prices into group pricing tables
+
+- Local reason: tool fees were shown in a separate detail section, while the model plaza already presents input, output, and cache prices as one pricing surface.
+- Integrated: removed the duplicate tool-pricing section and appended only configured tool columns after cache-related columns in each group pricing table. Tool columns follow a stable order (`Web Search Preview`, `Web Search`, `File Search`, provider search tools, and `Image Generation`), apply the active group multiplier and recharge-price display, show `/1K calls`, and use the same green discount styling as input/output prices.
+- Preserved: public `tool_prices` metadata, model-card tool summaries, task/plugin billing, image/video pricing, server-side billing, and independent DeepSeek Search/Fetch model handling. Dynamic tier rows retain their existing tier prices; configured tool columns are appended to those tables using the group multiplier only because tool fees are group-level values rather than tier values.
+- Validation: local GPT-4.1 and Gemini detail pages showed the merged columns and group-adjusted values; `bun run build`, targeted `bunx oxfmt --check`, and `git diff --check` passed. `bun run typecheck` remains blocked by existing missing test dependencies and unrelated repository type errors.
+- Commit and push: pending; GitHub push was not requested.
+
+## 2026-10-20 - Localize discount expiry and web tool labels
+
+- Local reason: the group pricing table should identify the displayed timestamp as the discount expiry, and newly exposed tool columns still fell back to English in several supported locales.
+- Changed: renamed the group-table column to localized `Discount expiration time` and completed translations for tool fees, call units, DeepSeek Search/Fetch, Google Search variants, Web Search Preview, and the related explanatory labels across English, Simplified Chinese, Traditional Chinese, French, Japanese, Russian, and Vietnamese.
+- Preserved: pricing calculations, tool ordering, group multipliers, discount styling, model-card layout, and backend billing behavior.
+- Validation: locale files were checked for the new keys, targeted Oxfmt, `bun run build`, and `git diff --check` passed. The repository's existing case-colliding locale keys still prevent PowerShell's default `ConvertFrom-Json` parser from validating the whole files; no new JSON syntax errors were introduced.
+- Commit and push: pending; GitHub push was not requested.
+
+## 2026-10-20 - Localize system announcement timeline dates
+
+- Local reason: the notification popover's timeline rendered every left-side date with a fixed `en-US` locale, so the date did not follow the selected interface language.
+- Changed: pass the active i18next language through `toIntlLocale` and use it when formatting timeline dates; invalid publication dates now omit the date label instead of rendering `Invalid Date`.
+- Preserved: the existing Notice/Timeline tabs, translated labels and empty states, announcement ordering, expand/collapse behavior, and legacy plain-text notice support.
+- Validation: targeted Oxfmt, `bun run build` in `web/default`, and `git diff --check` passed. Local preview verification is pending for a populated announcement timeline; no mock announcement data was added.
+- Commit and push: pending; GitHub push was not requested.
+
+## 2026-10-20 - Keep announcement timeline dates on one line
+
+- Local reason: localized dates such as `9月12日` could wrap inside the narrow, pill-shaped date label in the notification timeline.
+- Changed: widened the date column slightly, forced the date label to stay on one line, and replaced the bordered rounded pill with a lightweight text label.
+- Preserved: timeline connectors, announcement ordering, translated date formatting, expand/collapse behavior, and all Notice/Timeline content.
+- Validation: targeted Oxfmt, `bun run build` in `web/default`, and `git diff --check` passed; the local mock still has no populated announcement data for a visual date sample.
+- Commit and push: pending; GitHub push was not requested.
+
+## 2026-10-20 - Apply discount color to dynamic pricing cells
+
+- Local reason: tool prices in a dynamic-pricing group used the green discount color, while input/output/cache cells with the same discounted displayed price remained uncolored.
+- Changed: dynamic pricing table cells now use the success color when the effective displayed multiplier (group ratio times the selected pricing-condition multiplier) is below 1.
+- Preserved: price calculation and formatting, tool-price color logic, non-discounted styling, dynamic condition selection, and all billing behavior.
+- Validation: targeted Oxfmt, `bun run build` in `web/default`, and `git diff --check` passed.
+- Commit and push: pending; GitHub push was not requested.
+
+## 2026-10-20 - Preserve fixed request prices in model details
+
+- Local reason: dynamic detail pricing divided `fixed(amount)` by one million, incorrectly treating its USD-per-request amount as a USD-per-million-token coefficient.
+- Changed: fixed request prices are formatted directly after the group multiplier and optional recharge conversion in model detail rows. Added a regression test for `tier("request", fixed(0.005))`.
+- Preserved: token coefficient scaling, group discounts, recharge display conversion, expression billing, and settlement behavior.
+- Validation: targeted Oxfmt, the fixed-request-price regression test, `bun run build` in `web/default`, and `git diff --check` passed.
+- Commit and push: implemented in `0a3fe4dc9`, pushed to `origin/main` on 2026-10-20.
+
+## 2026-10-20 - Preserve fixed request prices on catalog cards
+
+- Local reason: catalog cards use a separate request-price range formatter which still divided fixed per-request prices by one million after the detail view fix.
+- Changed: removed token scaling from card request-price ranges and extended the fixed-price regression test to cover the model-card summary data.
+- Preserved: token price scaling, group multipliers, recharge conversion, and task pricing.
+- Validation: targeted Oxfmt, the fixed-price detail and catalog-summary regression test, `bun run build` in `web/default`, and `git diff --check` passed.
+- Commit and push: pending.
+
+## 2026-10-20 - Correct DeepSeek Search and Fetch API examples
+
+- Local reason: model detail examples treated `/v1/tools/search` and `/v1/tools/fetch` as OpenAI Chat Completions endpoints, generating invalid request bodies.
+- Changed: added endpoint-specific examples for DeepSeek Search (`query`, optional `count`) and Fetch (`url`) in cURL, Python, TypeScript, and JavaScript.
+- Preserved: existing examples and request handling for OpenAI, Anthropic, Gemini, embeddings, and image-generation endpoints.
+- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed. Targeted Oxlint reports pre-existing issues in this file; repository-wide `bun run lint` also fails on numerous pre-existing errors outside this change.
+- Commit and push: implemented in `0a3fe4dc9`, pushed to `origin/main` on 2026-10-20.
+
+## 2026-10-20 - Add independent model developer metadata
+
+- Local reason: a model may be developed by one company while being served through a different channel supplier, so using the supplier for the public model prefix and icon was inaccurate.
+- Changed: added a persisted developer vendor reference to model metadata, exposed developer name/icon in pricing responses, added an unrestricted developer selector above channel suppliers in the model editor, and made public model names/icons prefer the developer while retaining channel suppliers separately.
+- Preserved: legacy supplier bindings, supplier filtering, channel availability, custom model icons, and models without a developer selection.
+- Validation: `bun test src/features/pricing/lib/dynamic-price.test.ts`, targeted Oxfmt, `bun run build` in `web/default`, and `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable in the current environment.
+- Commit and push: pending.
+
+## 2026-10-20 - Refresh model API call examples
+
+- Local reason: align model detail API examples with the reference layout and make streaming versus non-streaming requests explicit.
+- Changed: moved authentication guidance above the code samples; reorganized the sample toolbar with readable endpoint names, language tabs, a streaming mode switch, and a copy-code action; updated OpenAI and Anthropic samples to generate streaming and non-streaming request bodies and SDK examples; changed cURL API-key placeholders to `<YOUR_API_KEY>`. Corrected the shared CodeMirror gutter spacing so line 1 aligns with the first code line.
+- Preserved: existing endpoint availability, API paths, model names, and non-chat samples for embeddings, image generation, Gemini, and web tools.
+- Validation: frontend production build, Oxfmt, and `git diff --check` passed. Verified the first code line and gutter number align in local browser preview. Full TypeScript checking remains blocked by existing missing test dependencies and unrelated errors in other files.
+- Commit and push: `bef2b2b84` pushed to `origin/main` on 2026-10-20.
+
+## 2026-10-20 - Link API authentication guidance to token creation
+
+- Local reason: users reading the model API authentication instructions had to leave the model page and locate the token creation action themselves.
+- Changed: added a localized Create API Key button in the Authentication section. It opens the existing token page with a one-time `create=true` search parameter, automatically opens the existing creation dialog, and removes the parameter from the URL.
+- Preserved: the existing token page and dialog flow, token creation behavior, and all API example content.
+- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed. Local preview confirms the Authentication button routes to `/keys?create=true`; the token dialog could not be observed end-to-end because the preview is signed out.
+- Commit and push: `bef2b2b84` pushed to `origin/main` on 2026-10-20.
+
+## 2026-10-20 - Keep model plaza filters off the mobile first screen
+
+- Local reason: the desktop model filters collapsed into a tall stack above the catalog on phones, pushing the model list far below the first screen.
+- Changed: the left filter rail is now desktop-only. Mobile visitors start at the Models heading and existing search, price, sort, and modality controls; advanced input type, context length, vendor, and group filters remain available from a compact filter button that opens a side sheet.
+- Preserved: all existing filter state and matching behavior, the desktop sticky rail, catalog cards, and model navigation.
+- Validation: tested at a 375px mobile viewport; the model list starts immediately below the compact header, modality chips stay on one horizontal row with overflow scrolling, and the filter sheet still exposes input type, context length, vendor, and group controls. `bun run build`, targeted Oxfmt, and `git diff --check` passed.
+- Commit and push: `bef2b2b84` pushed to `origin/main` on 2026-10-20.
+
+## 2026-10-20 - Remove tool fees from model cards
+
+- Local reason: tool fee summaries added extra content to model plaza cards that the user does not want displayed.
+- Changed: removed the tool fee summary from model cards.
+- Preserved: tool pricing on model detail pages, public pricing metadata, and backend tool billing.
+- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed.
+- Commit and push: `bef2b2b84` pushed to `origin/main` on 2026-10-20.
+
+## 2026-10-20 - Anchor model context metrics at card bottom
+
+- Local reason: context length and maximum output shifted upward on cards with fewer pricing rows, leaving inconsistent vertical alignment across the catalog.
+- Changed: anchored the context and maximum-output row to the bottom of the card content, directly above provider availability, and tightened the gap to the provider information.
+- Preserved: card pricing, descriptions, provider information, and responsive grid behavior.
+- Validation: visual behavior follows the card's existing flex-column layout; no build run for this small spacing adjustment, per user preference.
+- Commit and push: `bef2b2b84` pushed to `origin/main` on 2026-10-20.
+
+## 2026-10-20 - Unify group pricing metadata on model details
+
+- Local reason: model details used separate layouts for token-based and expression-based pricing, and the standalone model page did not pass configured model-ratio expiration data to the pricing section.
+- Changed: passed group/model discount expiration data into standalone model details and displayed group ratio plus discount expiration together with each group across token, expression, image-resolution, and video-resolution pricing views.
+- Preserved: price calculations, discount expiry behavior, task and tool pricing, and the administration settings schema.
+- Validation: targeted source inspection confirms each pricing branch uses the shared metadata display and the standalone page passes expiry data. No production build run per user preference.
+- Commit and push: `bef2b2b84` pushed to `origin/main` on 2026-10-20.
+
+- Follow-up: moved ratio and discount-expiry labels into table headers for tabular pricing, with values in each group's row; expression pricing tables show them as columns before input/output prices, with values in each tier row.
+
+## 2026-10-19 - Expand local pricing mock catalog
+
+- Local reason: the local preview needed representative model-square data so the standalone model pages could be reviewed without a production backend.
+- Integrated: expanded `web/default/mock/server.mjs` with additional vendors, model metadata, available vendor bindings, group multipliers, RPM/TPM/RPD limits, and complete catalog response fields. The mock catalog now covers chat, reasoning, embedding, image, and video models with 35 entries including deterministic variants.
+- Preserved: mock-only behavior, production API responses, real pricing calculations, and unrelated worktree changes remain unchanged.
+- Validation: `node --check mock/server.mjs`, mock API verification (35 models and 9 vendors), browser verification of populated model cards, a rich `gpt-4.1` detail page, API code samples, and RPM/TPM/RPD limits, `git diff --check`, and `bun run build` passed.
+- Commit/push: local preview changes are pending commit and push.
+
+## 2026-10-19 - Move model metadata into the detail header
+
+- Local reason: the standalone model page kept context, max output, knowledge cutoff, release metadata, and modality/capability blocks separated below the header, while the intended catalog layout presents the key model facts directly below the description.
+- Integrated: replaced the old standalone quick-stat and capability sections with two compact metadata cards under the model description: icon-based input/output modalities, and context/max-output limits. Removed release-date and price summary fields because those values are not part of the maintained model metadata and the full pricing table remains below.
+- Preserved: the pricing tables, API/performance tabs, backend model metadata, modality accessibility labels, and unrelated worktree changes remain unchanged.
+- Validation: `bun run build` in `web/default`, local mock browser verification of `/pricing/gpt-4.1`, and `git diff --check` passed. The live backend preview still depends on a running backend; mock data was used for the visual check.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Simplify model metadata card labels
+
+- Local reason: the combined context/max-output card repeated its two field labels in a redundant card-level heading.
+- Integrated: removed the redundant card-level heading while retaining the individual context and maximum-output labels.
+- Preserved: the two-card layout, modality icons, values, accessibility labels, and all pricing/detail behavior remain unchanged.
+- Validation: `bunx oxfmt --check` and `git diff --check` passed; local browser verification remains on `/pricing/gpt-4.1`.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Align model metadata cards
+
+- Local reason: removing the combined heading left the context/max-output content vertically tighter than the modality card.
+- Integrated: added a matching metric-row height and vertical alignment so the two cards share the same visual rhythm without restoring the removed heading.
+- Preserved: labels, modality icons, values, accessibility text, and all other model detail behavior remain unchanged.
+- Validation: `bun run build`, `bunx oxfmt --check`, local browser screenshot verification, and `git diff --check` passed.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Add spacing between metadata labels and values
+
+- Local reason: the context and maximum-output values sat too close to their labels, making their vertical position look unlike the modality icons beside them.
+- Integrated: added a small value offset beneath both right-card labels so the numeric row aligns with the visual center of the modality icon row.
+- Preserved: the two-card layout, labels, values, modality icons, and all other model detail behavior remain unchanged.
+- Validation: targeted formatting and `git diff --check` passed; the existing local preview remains available for visual verification.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Fine-tune metadata value alignment
+
+- Local reason: the context and maximum-output values still sat slightly high compared with the modality icon row.
+- Integrated: increased the value offset beneath both right-card labels by one spacing step.
+- Preserved: card dimensions, labels, modality icons, and all other model detail behavior remain unchanged.
+- Validation: targeted formatting and `git diff --check` passed; local browser verification follows the adjustment.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Remove overview performance summary
+
+- Local reason: the overview page's TPS, average latency, and success-rate row was not needed in the compact model detail layout and duplicated the dedicated performance tab.
+- Integrated: removed the overview performance summary and its query/formatting helpers while retaining the performance tab and detailed performance view.
+- Preserved: model metadata cards, pricing, API details, performance tab behavior, and backend data remain unchanged.
+- Validation: `bunx oxfmt --check src/features/pricing/components/model-details.tsx`, `bun run build`, local browser verification of `/pricing/gpt-4.1`, and `git diff --check` passed.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Remove redundant model metadata section
+
+- Local reason: the standalone detail page repeated provider, type, group, endpoint, tag, and parameter metadata in a separate bottom section after the header already presents the key model facts.
+- Integrated: removed the redundant bottom model metadata section and its unused display helpers.
+- Preserved: model description, modality icons, context/max-output values, pricing, performance, API tabs, and backend data remain unchanged.
+- Validation: `bun run build`, targeted `bunx oxfmt --check`, local browser verification, and `git diff --check` passed.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Consolidate model pricing into group pricing
+
+- Local reason: the standalone model page repeated base pricing above the group pricing section, while video resolution prices, task plugin prices, and conditional peak/off-peak multipliers needed to stay visible after the duplicate section was removed.
+- Integrated: removed the overview base-price block; standard prices remain in the group table, video resolution and audio surcharge prices render inside each group, task/plugin pricing renders inside each group, and dynamic request-condition multipliers render beneath the matching group tier table.
+- Preserved: existing billing calculations, group ratios, expiry display, pricing units, API/performance tabs, and the raw-expression fallback remain unchanged.
+- Mock data: added `deepseek-v4-flash` with weekday/time peak rules and `type-safe-demo` with TypeSafe and Quality Check task plugin variants for local preview validation.
+- Validation: `node --check mock/server.mjs`, `bunx oxfmt --check`, `bun run build`, `git diff --check`, and browser checks for normal, video, peak/off-peak, and task-plugin model detail pages passed.
+- Commit/push: local source changes are pending commit and push.
+
+## 2026-10-19 - Add selectable dynamic pricing periods
+
+- Local reason: dynamic model details showed request-condition multipliers as a separate list, while the displayed tier prices stayed at the off-peak base even when a peak condition was selected for review.
+- Integrated: dynamic group pricing now exposes a per-group billing-period selector with an off-peak base option and one option for each parsed request rule. Selecting a rule applies its multiplier to the displayed input, output, cache-read, cache-write, and other tier prices. The duplicate conditional-multiplier list was removed from the model detail page; usage-log detail rendering keeps its existing matched-rule breakdown.
+- Preserved: this is display-only and does not change server-side expression evaluation or billing, and standard, video, task-plugin, and special-expression pricing paths remain unchanged. Added localized labels for the new selector.
+- Validation: targeted Oxfmt checks, `bun run build` in `web/default`, mock browser verification of the default and peak prices for `deepseek-v4-flash-mock-09`, and `git diff --check` are complete. Backend tests were not applicable because no backend code changed.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-19 - Make dynamic pricing period selection global
+
+- Local reason: the first selectable dynamic-pricing implementation repeated the period selector inside every group card, and the overview card retained a redundant top-level pricing heading.
+- Integrated: moved the single billing-period selector beside `Pricing by Group`, shared its selected multiplier across every dynamic group, removed the per-group selectors, and removed the redundant `Pricing` heading above the section.
+- Preserved: idle/peak display-only behavior, actual server-side billing, non-dynamic pricing, video pricing, task-plugin pricing, and usage-log condition details remain unchanged.
+- Validation: targeted formatting, `bun run build` in `web/default`, mock browser verification of the global selector and synchronized peak prices, and `git diff --check` are complete. Backend tests were not applicable because no backend code changed.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-19 - Reuse the global selector for video resolutions
+
+- Local reason: video models use resolution tiers such as 720p and 1080p rather than peak/off-peak request conditions, but their detail page still expanded every resolution below each group.
+- Integrated: the shared selector now accepts model-specific condition options. Dynamic token models keep the billing-period selector, while per-request video models expose a global resolution selector and show only the selected resolution price inside every group. The audio-generation surcharge remains visible as a separate fixed request charge.
+- Preserved: video group ratios, recharge-price formatting, task-plugin pricing, dynamic expression billing, and all server-side billing behavior remain unchanged.
+- Validation: targeted formatting, `bun run build` in `web/default`, mock browser verification of the video selector and selected-resolution display, and `git diff --check` completed successfully. Backend tests are not applicable because no backend code changed.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-19 - Present video pricing as a group table
+
+- Local reason: video model pricing needed to keep the global resolution selector while matching the compact group-pricing table layout used by the reference design.
+- Integrated: replaced the per-group video pricing cards with one table containing group, ratio, expiration time, the selected resolution price, and the audio-generation surcharge when configured. The resolution selector remains global and updates the resolution column header and values.
+- Preserved: server-side billing, resolution-tier calculations, audio surcharge calculations, recharge-price formatting, group expiry display, and all non-video pricing paths remain unchanged.
+- Validation: `bunx oxfmt --check src/features/pricing/components/model-details.tsx`, `bun run build` in `web/default`, and `git diff --check` passed. Backend tests were not applicable because no backend code changed.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-19 - Rename the video pricing column
+
+- Local reason: the video pricing table column should describe the priced content as video output rather than repeat the selected resolution in its heading.
+- Integrated: renamed the video price column to the localized `Video output` label while keeping the resolution selector and selected-resolution price behavior unchanged.
+- Preserved: table structure, resolution switching, audio surcharge, group pricing, and all non-video pricing paths remain unchanged.
+- Validation: targeted formatting, `bun run build` in `web/default`, and `git diff --check` completed successfully. Backend tests were not applicable because no backend code changed.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-19 - Reuse resolution pricing for image expressions
+
+- Local reason: image-generation models using `param("resolution")` tier expressions should present the same compact selectable pricing layout as video models.
+- Integrated: detected image-generation expressions with fixed resolution tiers, added a global resolution selector, and rendered a group table with ratio, expiration time, and a localized `Image output` price shown per image. Added a local `seedream-4.0` mock using 1K/2K/4K tiers for preview verification.
+- Preserved: expression evaluation and billing remain server-side, fallback tiers remain supported, video pricing keeps its `Video output` label, and ordinary dynamic/text models keep their existing tier tables and billing-period selector.
+- Validation: `bunx oxfmt --check`, `node --check mock/server.mjs`, `bun run build` in `web/default`, `git diff --check`, and local browser verification of `seedream-4.0` passed. Backend tests were not applicable because no backend code changed.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-19 - Add a JEV 1.14 mock model
+
+- Local reason: the local model catalog needed a representative JEV model to review the TypeSafe plugin pricing flow.
+- Integrated: added `jev-1.14` to the mock catalog with Alibaba Cloud, Tencent Cloud, and OpenRouter vendor bindings, OpenAI-compatible endpoint metadata, model limits, and a TypeSafe usage-based plugin variant with a validation example.
+- Preserved: production model data, server-side plugin billing, existing `type-safe-demo`, and all unrelated mock catalog entries remain unchanged.
+- Validation: `node --check mock/server.mjs`, `git diff --check`, and local browser verification of `/pricing/jev-1.14` passed. The detail page showed group prices and TypeSafe task pricing for both available groups.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-19 - Display simple TypeSafe pricing as input/output columns
+
+- Local reason: JEV models with one simple TypeSafe token-pricing variant duplicated the same information in a separate task card instead of matching the ordinary text-model price table.
+- Integrated: simple single-variant plugins containing only `input_tokens` and `output_tokens` now render those prices directly as `Input` and `Output` columns, with group multipliers applied and the shared `1M tokens` unit note. The redundant task card is hidden for this narrow shape; complex or multi-variant plugins retain their detailed task sections.
+- Preserved: TypeSafe billing expressions, server-side settlement, group pricing, cache columns for token models, and all other model pricing layouts remain unchanged.
+- Validation: `bunx oxfmt --check`, `bun run build` in `web/default`, `git diff --check`, and local browser verification of `/pricing/jev-1.14` passed. Backend tests were not applicable because no backend code changed.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-19 - Match live plugin pricing schemas in the model square
+
+- Local reason: live TypeSafe pricing metadata declares only `input_tokens`, while the local preview fixture had both input and output fields. The model square therefore left JEV models in a task-pricing card, rendered duplicate plugin sections, and could show an empty or zero-valued ordinary price table.
+- Changed: simple token task pricing now accepts the fields actually declared by the billing schema and only renders input/output columns that have parsed prices; top-level and plugin task sections with the same billing definition are de-duplicated. No output price is synthesized when the upstream schema does not declare one.
+- Preserved: task schemas with non-token fields, unsupported expressions, provider-specific billing differences, group multipliers, and raw task-pricing fallback behavior.
+- Validation: targeted Oxfmt, `bun run build`, and `git diff --check` passed. Repository-wide lint remains blocked by pre-existing errors in unrelated files; live provider data still requires deployment for end-to-end verification.
+- Commit/push: pending.
+
+- Follow-up: production TypeSafe responses may expose a plugin variant with an omitted or `ratio` billing mode while still carrying a usable token expression. The simple token-table adapter now selects any variant with a non-empty expression and falls back to the model expression, so JEV uses the ordinary input/output layout instead of the task card.
+
+- Follow-up: the detail view still entered the generic dynamic-expression branch before the simple token table, and task token coefficients were divided by one million twice during formatting. Simple token expressions now use the ordinary group table, model-level pricing is preferred over plugin metadata when both exist, and parsed token coefficients display as their configured USD/1M value.
+
+- Follow-up: task token prices are stored as USD/1M; the simple detail table now also applies the selected 1K/1M display unit divisor, so both marketplace cards and detail pages remain consistent when the unit filter changes.
+
+- Follow-up: the conditional task-display fallback had a second token-unit convention and produced values such as `$0.000001 / token`. Its parsed token coefficients now use the same USD/1M convention as canonical expressions, and the generic task table labels that unit explicitly.
+
+- Follow-up: local pricing fixtures now use the documented scaled token-expression form and include a model-level JEV expression (`0.042 / 1M input tokens`) so the detail-page path is exercised against the same shape as the production configuration.
+
+- Follow-up: detail-page task pricing now pairs a model-level expression with a plugin-provided usage schema when the backend exposes those metadata fields separately. This prevents fallback to legacy model ratios while the marketplace card already shows the expression price.
+
+- Follow-up: task usage fields can be split across multiple plugin variants, so detail pricing now merges model and plugin schemas before parsing the model-level expression; individual plugin expressions retain their own fields with model metadata as fallback.
+
+- Follow-up: model details now prioritize a recognized task-token expression over legacy token-ratio columns. This keeps detail-page prices consistent with marketplace cards for models such as JEV whose expression declares only input-token pricing.
+
+## 2026-10-19 - Fix task token price in model details
+
+- Local reason: the model card rendered JEV's task usage expression, but the details table prioritized the legacy token-ratio branch whenever `quota_type` marked the model token-based. The expression's input price was therefore replaced by legacy input/output prices.
+- Changed: detail pricing now uses recognized task-token expression fields before legacy ratio columns, preserving the configured group multiplier and omitting output when the expression has no output-token price. When usage schema fields are split across plugin variants, the model-level expression is parsed against the merged schema.
+- Preserved: model-card pricing, backend billing and settlement, plugin-specific task tables, legacy ratio pricing for models without a recognized simple task-token expression, and unrelated project data.
+- Validation: `bun run build`, `bunx oxfmt --check web/default/src/features/pricing/components/model-details.tsx`, and `git diff --check` passed. No live production API/config was accessed; visual confirmation is limited to the supplied screenshots and equivalent local pricing fixture.
+- Commit and push: implemented in `f55ecd17d`, pushed to `origin/main` on 2026-10-20.
+
+## 2026-10-18 - Open model details as standalone pricing pages
+
+- Local reason: the Model Square opened model details in a side drawer even though the application already had a full-page model detail route.
+- Integrated: catalog and classic card/table clicks now navigate to `/pricing/$modelId`; the duplicate drawer rendering was removed from both list views, and the existing full-page detail page is reused.
+- Preserved: the existing model detail sections, pricing data, filters, navigation behavior, and unrelated worktree changes.
+- Validation: targeted Oxfmt checks, `bun run build` in `web/default`, mock-data browser verification of card navigation, detail rendering, detail-page return, browser-history return, and `git diff --check` passed. The live backend preview returned 504 for `/api/pricing` because no backend was running locally; a mock API preview was used for the interaction check.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-18 - Remove supported-parameters table from model API details
+
+- Local reason: the API tab exposed a long generated supported-parameters table that was not needed in the model detail view.
+- Integrated: removed the supported-parameters section and its unused rendering helpers; code samples, authentication guidance, and rate-limit information remain available.
+- Preserved: endpoint selection, copyable request examples, model/API data, translations, and unrelated worktree changes.
+- Validation: targeted Oxfmt check, `bun run build` in `web/default`, mock-data browser verification of the API tab, and `git diff --check` passed. The live backend preview still depends on a running backend; the mock API preview was used for the interaction check.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-18 - Consolidate model capability and modality details
+
+- Local reason: the standalone model page showed the same input/output modality information in both the quick-stat `Modalities` block and the `Capabilities / Supported modalities` section.
+- Integrated: removed the duplicate modality summary. The capability section shows only the input/output modality cards and capability pills, while the quick-stat grid keeps context, maximum output, knowledge cutoff, and release metadata.
+- Preserved: model capability data, modality translations, pricing, API/performance tabs, the existing standalone route, and unrelated worktree changes.
+- Validation: targeted Oxfmt check, `bun run build` in `web/default`, mock-data browser verification, and `git diff --check` passed. The live backend preview still depends on a running backend; the mock API preview was used for the interaction check.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-18 - Link model detail rate limits to real RPM/TPM/RPD settings
+
+- Local reason: the standalone model API detail page displayed deterministic mock rate limits, while the administrator setting only exposed a shared request window and successful-request count.
+- Integrated: added independent RPM, TPM, and RPD settings with zero meaning unlimited; group settings now accept `{ "rpm": ..., "tpm": ..., "rpd": ... }` and continue reading the legacy two-item array format during migration. `/api/pricing` now includes visible group limits, and the model detail page renders those values or `Unlimited` instead of generated mock data. The new middleware applies one-minute RPM, one-day RPD, and token-window TPM limits per user/token subject and group; TPM records gateway usage after the response and checks the existing window before dispatch. Saving the new settings clears legacy window options.
+- Preserved: disabled rate limiting remains unlimited in public pricing, existing legacy options remain readable until the new settings are saved, group visibility filtering and model-level pricing behavior remain unchanged, and all unrelated worktree changes remain untouched.
+- Validation: frontend `bun run build`, targeted Oxfmt checks, JSON locale validation, and `git diff --check` passed. Go tests and gofmt could not run because Go is unavailable in the local shell; CI backend compilation and tests remain required.
+- Commit/push: local source changes are pending commit; GitHub push was not requested.
+
+## 2026-10-18 - Fix CI build for model rate-limit middleware
+
+- Local reason: the first GitHub Actions image build failed because the rate-limit middleware passed a nonexistent `check.amount` field to the fixed-window helpers.
+- Integrated: use the loop-local request amount for RPM/RPD checks and the zero-amount TPM pre-check, matching the intended runtime behavior.
+- Preserved: rate-limit windows, Redis and in-memory storage, TPM post-response accounting, and all unrelated worktree changes remain unchanged.
+- Validation: `git diff --check` passed; local Go validation remains unavailable because the Go toolchain is not installed. GitHub Actions is required to verify the Docker build and backend compilation.
+- Commit/push: fix is pending commit and push.
+
 ## 2026-10-17 - Complete model-card cache pricing display
 
 - Local reason: model plaza cards showed dynamic cache-read prices without discount styling and omitted cache-write prices, leaving cache-aware models with an incomplete compact price summary.
@@ -711,6 +2036,72 @@
 - Validation: targeted frontend formatting, production build, and `git diff --check` are required; no backend code or billing behavior changed.
 - Commit/push: source commit `520b278dd` (`fix(pricing): complete cache pricing display`); pushed to `origin/main`.
 
+## 2026-10-17 - Restrict public pricing data to display-safe fields
+
+- Local reason: the public `/api/pricing` response exposed executable billing expressions, task-plugin schemas and examples, hidden group configuration, group-model expiry data, and unrelated supplier records even though the pricing page is intentionally public.
+- Integrated: anonymous requests now receive only the default public group; authenticated requests receive only their usable groups. Model group ratios, enabled groups, auto groups, and suppliers are filtered to the visible catalogue. Executable billing expressions and administrator-only billing metadata are removed from the public response and replaced with a derived `billing_summary` containing only display rates and coarse request/usage markers. The default frontend renders this summary without attempting to parse or show the private expression. Administrator requests keep the original editor metadata so the system-settings model pricing screen continues to work.
+- Already present: public model names, base price fields, visible supplier metadata, supported endpoints, dynamic pricing cards, and the actual server-side billing expression execution path remain available. Existing internal/admin responses are unchanged.
+- Deferred: task-plugin pricing breakdowns cannot show plugin-specific conditions on the public page without exposing their schema; the public summary marks usage-based pricing instead. A Go test run was not possible because the local shell has no Go toolchain.
+- Preserved: all unrelated Friends Hub, Image Playground, Wallet, endpoint drawer, locale, script, generated, and upstream-sync changes; protected project identifiers remain unchanged.
+- Validation: `bun run build` in `web/default` passed; targeted Oxfmt completed; targeted Oxlint reports only pre-existing pricing-file warnings; `git diff --check` passed. Added model and controller regression tests for summary probing and internal-field removal; they require CI Go tooling to execute.
+- Commit/push: source commits `57c48384b` (`feat(pricing): sanitize public pricing response`) and `c4856065b` (`fix(pricing): preserve admin pricing metadata`), plus log commit `dba82ec36`, are pushed to `origin/main`.
+
+## 2026-10-17 - Fix Waffo Pancake top-up audit logs and success notifications
+
+- Local reason: Waffo Pancake top-ups were written with the generic log helper, so their detail view lacked the normal top-up audit fields; the success-email webhook path also did not include Waffo Pancake.
+- Integrated: Waffo Pancake webhook processing now records server IP, callback IP, payment method, callback payment provider, node name, and version through `RecordTopupLog`. The payment handler reports whether the order was already completed, so Waffo Pancake success emails are sent only for the first successful credit and duplicate webhooks remain idempotent. The email settings copy now lists Waffo Pancake alongside Epay and Stripe, with updated English and Chinese locale keys.
+- Preserved: existing quota crediting, referral cashback, invoice handling, member-tier checks, webhook signature and environment validation, and all other payment methods remain unchanged. The legacy single-argument `RechargeWaffoPancake` wrapper remains available for non-webhook callers.
+- Validation: `git diff --check`, frontend locale JSON parsing, and `bun run build` in `web/default` passed. The targeted Go regression test was added but Go tooling is unavailable in the current shell; CI Go tests remain required.
+- Commit/push: source commit `9e6beb4ac` (`fix(payment): audit and notify Waffo Pancake topups`) and log commit `8b495e543` are pushed to `origin/main`.
+
+## 2026-10-17 - Restore safe public display of dynamic time pricing
+
+- Local reason: the public pricing hardening removed executable `billing_expr` data, but the frontend then lost the display-safe DeepSeek time rules and showed only a generic dynamic-pricing marker.
+- Integrated: public pricing summaries now include sanitized time-function conditions, time zones, multipliers, and an opaque marker for non-time conditions. Matched probe multipliers are removed before publishing base rates so the frontend can derive correct ranges such as input `1-2` and output `4-8`. The default frontend consumes these summaries for model cards and detail breakdowns without receiving expressions, parameter paths, headers, or plugin fields.
+- Preserved: administrator pricing responses retain the original editor metadata; server-side billing evaluation is unchanged; request and usage conditions remain opaque to public users.
+- Validation: `bun run build` in `web/default` passed; the new pricing files no longer add errors to `bun run typecheck` (the command remains blocked by existing missing test dependencies and unrelated type errors); targeted Oxlint reports only pre-existing pricing-file warnings; `git diff --check` passed. Go tests and gofmt were unavailable because Go is not installed in the local shell.
+- Commit/push: local commit `eba4cd7d4` (`fix(pricing): restore safe dynamic rule display`); GitHub push not requested in this round.
+
+## 2026-10-17 - Restore original public pricing parsing and limit filtering to visible groups
+
+- Local reason: the public pricing hardening exposed a derived `billing_summary`, which caused image, video, task-plugin, and other non-standard expressions to lose their original frontend parsing and appear as the same generic dynamic-pricing state.
+- Integrated: restored the original pricing payload and frontend expression parsing. `/api/pricing` now filters only user-inaccessible groups, group ratios, model-group ratios, model-group expiry data, and enabled-group lists; it no longer replaces billing expressions with a public summary. Removed the temporary public-summary model, tests, types, and rendering branches.
+- Preserved: server-side billing evaluation, model-specific image/video/task pricing, supplier metadata, auto groups, administrator pricing metadata, and all unrelated local worktree changes remain unchanged.
+- Validation: `bun run build` in `web/default`, targeted `oxfmt --check`, and `git diff --check` passed. Go tests/gofmt require CI because Go is unavailable in the local shell.
+- Commit/push: pending local commit; GitHub push not requested in this round.
+
+## 2026-10-17 - Complete cache pricing rows on model plaza cards
+
+- Local reason: the model plaza uses `CatalogModelCard` in `web/default/src/features/pricing/index.tsx`; the earlier cache-row change targeted a different card component, so cache write was omitted and discounted cache read was not highlighted in the visible catalogue.
+- Integrated: catalog price rows now carry cache read and cache write values for both tiered-expression and legacy token pricing. Cache write falls back to the one-hour cache-create tier when that is the available expression field. For dynamic expressions, the green state is derived from the cache-to-input unit-price ratio (the expression equivalent of `cache_ratio`); legacy fields continue to use their explicit ratio values. The visible card renders the cache write row alongside input, output, and cache read.
+- Preserved: billing calculations, detail drawer pricing, backend pricing payloads, and all unrelated worktree changes remain unchanged.
+- Validation: `bun run build` in `web/default`, `bunx oxfmt --check src/features/pricing/index.tsx`, and `git diff --check` passed; targeted Oxlint still reports only the file's pre-existing warnings.
+- Commit/push: source commit `fb5a04009` and log commit `b843b2904` were pushed to GitHub `origin/main`.
+
+## 2026-10-17 - Match cache price color to model discount state
+
+- Local reason: cache read/write prices were colored green from their own cache ratio or from comparison with input price, while input/output prices use the selected model/group discount state. This made normal-price models appear to have discounted cache pricing.
+- Integrated: cache read and cache write rows in the visible `CatalogModelCard` now use the same `hasDiscount` state as input/output. Removed separate cache-ratio and cache-to-input color decisions; cache price values and billing are unchanged.
+- Preserved: price formatting, expression parsing, cache write fallback, detail views, backend billing, and unrelated worktree changes.
+- Validation: `bun run build` in `web/default`, `bunx oxfmt --check src/features/pricing/index.tsx`, and `git diff --check` passed. No billing or backend code changed.
+- Commit/push: source commit `d24cfab10` was pushed to GitHub `origin/main`; this log update is pending commit and push.
+
+## 2026-10-17 - Hide deleted and disabled vendors from model displays
+
+- Local reason: deleted or disabled vendors remained visible in model plaza cards and in the administrator model editor because pricing and model metadata did not apply vendor status filtering consistently.
+- Integrated: pricing data now exposes only enabled vendors and clears the legacy primary vendor fallback when none are available. Administrator model metadata and the vendor selector filter disabled vendors. Vendor deletion removes model-vendor bindings in the same transaction as the vendor soft delete; vendor create/update/delete paths refresh pricing data, and the frontend invalidates the pricing query after deletion.
+- Preserved: disabled vendors remain stored with their historical bindings so re-enabling restores configuration; channel and billing behavior is unchanged; all unrelated local worktree changes remain untouched.
+- Validation: added SQLite-backed regression coverage for enabled-vendor filtering and model-vendor binding cleanup, plus a pure filtering test. Go tests and gofmt could not run because Go is unavailable in the local shell; frontend validation was not rerun because this change has no frontend build logic beyond query invalidation. `git diff --check` remains required before commit.
+- Commit/push: local changes are pending commit and push.
+
+## 2026-10-17 - Add price-priority routing for Auto API keys
+
+- Local reason: Auto group order always followed the configured list, even when the same model had different effective group or model-specific multipliers in those groups.
+- Integrated: API keys now persist an optional `price` Auto route strategy, including in Redis token snapshots. When enabled, Auto candidates are stably sorted by the effective user-group multiplier multiplied by the selected group's model multiplier; ties retain the configured Auto order. Channel affinity selection uses the same ordering. The key editor exposes this as the mutually exclusive-ready `Routing Strategy` switch with the `Price priority` option; non-Auto keys clear the strategy.
+- Preserved: the default strategy remains the existing configured order, cross-group retry behavior is unchanged, billing still uses the group actually selected, and dynamic expression/task pricing is not guessed during routing.
+- Validation: added a service regression test for stable price ordering and fallback behavior. `git diff --check` and frontend build/type checks are pending; Go tests and gofmt require a Go toolchain that is unavailable in this shell.
+- Commit/push: local changes are pending commit and push.
+
 ## 2026-10-16 - Sync dynamic pricing and model plaza fixes
 
 - Upstream commits: `fc08b76f0`, `3827fd830`, `c9f7b6208`, and `9948b1ef1`.
@@ -718,6 +2109,101 @@
 - Preserved: existing peak/off-peak range display, detailed pricing drawers, raw-expression fallback, task usage tables, provider-specific billing semantics, legacy price sort query compatibility, protected project identifiers, and unrelated worktree files.
 - Validation: `bun run build` passed; targeted Oxfmt and `git diff --check` passed; all default locale JSON files parsed successfully. `bun run typecheck` remains blocked by pre-existing missing test dependencies and unrelated type errors. Go tests could not run because the Go toolchain is unavailable in this environment.
 - Result: source commit `e58595a1b` (`feat(upstream): sync pricing and model square updates`); not pushed to GitHub.
+
+## 2026-10-16 - Default each protocol card to its first endpoint
+
+- Local reason: endpoint selection was global, so only one protocol card could appear selected and the model-list routes appeared before the primary request routes.
+- Integrated: each protocol card now maintains its own selected endpoint and defaults to its first listed route; the selected route controls that card's API address and copy action. OpenAI and Gemini model-list endpoints are listed last, while the active endpoint used by latency and open actions still follows the most recently clicked route.
+- Preserved: service-node selection, endpoint highlighting, dynamic addresses, all protocol routes, and unrelated worktree changes.
+- Validation: targeted Oxlint passed; `bun run build` in `web/default` passed; all seven locale JSON files parsed successfully; `git diff --check` passed.
+- Commit/push: pending source commit and push.
+
+## 2026-10-16 - Sync upstream rate limits, Claude billing, Sub2API balance, and regex conditions
+
+- Upstream commits: `45fbb149f` (separate model rate-limit counters by user group), `1b63c28dc` (preserve explicit Claude zero usage and cache-only billing), `63cecab82` (Sub2API balance queries), and `04c597bf6` (regex conditions for advanced parameter overrides).
+- Integrated: model request rate-limit handlers now accept a stable subject key; users in groups with an independent limit are counted by `user_id:group`, while groups without an independent limit continue to share the user-level counter. Claude stream finalization now treats cache-only input and refusal-with-zero-output as valid upstream usage, and Claude cache tokens keep zero-token requests billable. Sub2API channels now query `/v1/usage`, prefer `remaining` over `balance`, reject invalid keys and unrestricted sentinel balances, and persist the reported balance. Advanced parameter override conditions now support a cached `regex` comparison mode in the backend and a string-preserving Regex option in the default frontend editor.
+- Already present: local Redis/memory reservation behavior, Claude message-delta patching, built-in tool surcharge accounting, dynamic billing and quota saturation handling, existing regex replacement operations, prune-object editors, and all existing channel balance adapters were preserved.
+- Deferred: upstream-only relaykit tool-use estimation fields were not copied because the local Claude response type does not expose them; local tool surcharge accounting remains the source of truth. The upstream frontend test suite for the newer `web/src` tree was not copied verbatim because this repository uses the customized `web/default` editor.
+- Preserved: protected project identifiers, existing payment/auth/wallet/Friends Hub changes, and unrelated untracked worktree files.
+- Validation: `bun run build` in `web/default` passed; targeted Oxfmt and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test dependencies and unrelated model/settings, redemption-code, and wallet type errors; it reported no error in the changed parameter override editor. Targeted Oxlint still reports pre-existing style violations in that customized editor. Go tests could not run because the Go toolchain is unavailable in the current shell.
+- Commit/push: local commit `9bae123e4` (`feat(upstream): sync rate limit billing and override updates`); not pushed yet.
+
+## 2026-10-16 - Sync token quota queries, request errors, Claude passthrough, and console fixes
+
+- Upstream commits: `7de10f2c6` (API key owner quota queries and New API balance), `ef60ef27f`/`d10eafb57` (retain request-body causes and return 413 for oversized bodies), `767a82b87` (Claude thinking block binding and repeated beta headers), `a0bf6a8a4` (Vertex API Key project ID), `718a4e7f9` (Vertex multi-region hosts), `19d435e7f` (targeted upstream-address masking), `908f94d65` (permission-filtered command menu), and `c9179d38b` (Playground reasoning field).
+- Integrated: API keys can opt into exposing owner quota through `/api/usage/token/`; new keys and registration tokens enable it by default while existing keys remain disabled, with Redis cache compatibility, IP allowlist enforcement, and New API channel balance conversion. Request-body read failures now remain available to later readers and oversized bodies use 413 on relay and task-plugin paths. Claude thinking retains `block_binding` and unknown controls, and all `anthropic-beta` values are forwarded, including Bedrock conversion. Vertex API Key channels accept `project_id` and use the correct US/EU multi-region hosts. Error masking now preserves unrelated public addresses while masking configured custom origins, Advanced Custom targets, and proxy origins. Console search uses the same role/sidebar filtering as navigation, and Playground accepts `reasoning` in stream and non-stream responses.
+- Already present: Claude cache-only and explicit-zero usage billing, local rate-limit reservation behavior, dynamic billing, plugin billing, existing wallet/Friends Hub/Image Playground/Command Menu changes, and protected project identifiers were preserved.
+- Deferred/skipped: upstream-only relaykit tool-use estimation fields, dependency-only updates, dashboard label styling, and unrelated generated or untracked worktree artifacts were not imported.
+- Validation: `bun run build` passed in `web/default`; focused Bun tests for Playground reasoning and API key form mapping passed (11 tests); all seven locale JSON files parsed; `git diff --check` passed. Go tests and `gofmt` could not run because the local shell has no Go toolchain. CI remains required for backend compilation and cross-database tests.
+- Commit/push: local source commit `9238cfe58` (`feat(upstream): sync token quota, relay and console fixes`); GitHub push intentionally not performed in this round.
+
+## 2026-10-16 - Fix regression CI compile and formatting failures
+
+- Local reason: the regression workflow reported an undefined `MsgAuthTokenIPNotAllowed`, an OpenAI test initializer using the removed `RelayInfo.ChannelType` field, and an unformatted `relay/common/relay_info.go` field block.
+- Integrated: added the IP allowlist error key and English, Simplified Chinese, and Traditional Chinese translations; removed the invalid test field/import; aligned the `RelayInfo` fields to gofmt output.
+- Preserved: no runtime behavior beyond making the existing IP allowlist error translatable; no unrelated worktree artifacts were staged.
+- Validation: `git diff --check` passed and source references were checked with `rg`. Go tests and `gofmt` could not run locally because the Go toolchain is unavailable; GitHub Actions must verify backend compilation and formatting.
+- Commit/push: source fix committed as `74858e383` (`fix: resolve upstream regression CI failures`); this log entry was recorded in `b27bd6d62`; GitHub push not yet performed.
+
+## 2026-10-16 - Fix image build compiler failure in token IP rejection
+
+- Local reason: the image build failed because `middleware/auth.go` called a nonexistent `common.ApiErrorStatus` helper.
+- Integrated: use the existing Gin JSON response path with HTTP 403 and abort the request after a token IP allowlist mismatch.
+- Preserved: the translated error message and token read-only authorization behavior remain unchanged.
+- Validation: `git diff --check` passed and repository search confirms no remaining `ApiErrorStatus` call. Go build and gofmt require CI because the local shell has no Go toolchain.
+- Commit/push: local commit `8d7d77202` (`fix: use existing token IP error response`); GitHub push not yet performed.
+
+## 2026-10-16 - Fix image build compiler failure in token quota logging
+
+- Local reason: the image build reported `controller/token.go` calling the nonexistent `common.LogText` helper.
+- Integrated: replaced it with the existing `fmt.Sprintf` formatting already supported by the file.
+- Preserved: quota lookup, error handling, and log message content remain unchanged.
+- Validation: repository search confirms no remaining `common.LogText` reference and `git diff --check` passes. Go build and gofmt require CI because the local shell has no Go toolchain.
+- Commit/push: local commit `4f0660cd9` (`fix: use fmt for token quota error logging`); GitHub push not yet performed.
+
+## 2026-10-16 - Complete API key Auto group translations
+
+- Local reason: the API key create/edit drawer rendered newly added Auto group labels in Chinese on the English locale, while the same keys were missing from French, Japanese, Russian, Vietnamese, and Traditional Chinese locales.
+- Integrated: corrected the English values and added translations for the Auto group order, description, selection count, reorder actions, restore/add controls, empty states, and validation text in all seven frontend locales.
+- Preserved: API key form behavior, payload mapping, and Auto group ordering logic are unchanged.
+- Validation: 14 API key/Auto group tests passed; frontend production build passed; all seven locale JSON files parsed; all required translation keys are present; Oxfmt and `git diff --check` passed.
+- Commit/push: local commit `3f8460000` (`fix(i18n): localize API key auto group editor`); GitHub push not performed in this round.
+
+## 2026-10-16 - Add API key endpoint selector
+
+- Local reason: API key users needed a direct way to choose a configured service node, protocol, and endpoint when integrating with the gateway.
+- Integrated: added a View Endpoints action beside Create API Key; the right-side drawer reuses configured API Info nodes, supports OpenAI-compatible, Anthropic, Gemini, and Decision Model (`POST /v1/systemone`) protocols, generates the selected full URL, and provides copy, latency check, documentation, and open actions. Added translations for all seven frontend locales.
+- Already present: existing API Info node configuration, dashboard latency checks, API key creation/editing, and TypeSafe plugin routing remain unchanged.
+- Deferred: protocol availability is presented from the gateway's static route contract; the drawer does not make authenticated test requests or dynamically inspect plugin declarations.
+- Preserved: protected project identifiers, unrelated local worktree changes, and all existing API key behavior.
+- Validation: frontend production build passed; targeted Oxlint passed; all seven locale JSON files parsed; `git diff --check` passed. Full frontend typecheck remains blocked by pre-existing missing test dependencies and unrelated type errors.
+- Commit/push: source commit `934ec93fe` (`feat(keys): add endpoint selector drawer`) and log update commit `eadb87ae9` are pushed to GitHub `main`.
+
+## 2026-10-16 - Redesign API key endpoint drawer as protocol cards
+
+- Local reason: the endpoint drawer needed to present the available integrations in a scannable layout matching the API reference style, instead of hiding protocol and endpoint choices behind selectors.
+- Integrated: replaced the protocol/endpoint selector layout with protocol cards that show each protocol description, Base URL, copy action, and a responsive two-column endpoint list; clicking an endpoint updates the selected full URL, highlights the endpoint, and keeps copy, latency, open, and documentation actions available. The service-node selector remains available when multiple configured nodes exist, and the Decision Model `POST /v1/systemone` endpoint remains included.
+- Already present: API Info node fallback, OpenAI-compatible, Anthropic, Gemini, and TypeSafe endpoint definitions, API key authorization guidance, and all existing endpoint actions remain functional.
+- Deferred: protocol cards continue to use the gateway's static route contract; authenticated endpoint probing and dynamic plugin discovery remain outside this drawer.
+- Preserved: protected project identifiers and unrelated worktree changes, including Friends Hub, Image Playground, pricing, Wallet, logs, scripts, and generated locale artifacts.
+- Validation: `bun run build` in `web/default` passed; the seven locale JSON files parsed successfully; targeted Oxlint and `git diff --check` passed.
+- Commit/push: local commit `f761f8672` (`feat(keys): redesign endpoint drawer cards`); GitHub push not performed in this round.
+
+## 2026-10-16 - Show the selected endpoint inside its protocol card
+
+- Local reason: the drawer repeated the selected endpoint in a top summary block, forcing users to scroll back up after choosing an endpoint.
+- Integrated: removed the duplicate top summary and made each protocol card's API Address dynamic; the active protocol card now shows and copies the selected full endpoint URL, while other cards continue to show their base URL. Endpoint actions continue to use the same selected URL.
+- Preserved: endpoint selection, highlighting, multi-node selection, latency checks, open/documentation actions, all four protocol groups, and unrelated worktree changes.
+- Validation: `bun run build` in `web/default` passed; targeted Oxlint passed; all seven locale JSON files parsed successfully; `git diff --check` passed.
+- Commit/push: local commit `a004799d0` (`feat(keys): show dynamic endpoint address`); GitHub push not performed in this round.
+
+## 2026-10-16 - Fix service node selector text truncation
+
+- Local reason: the service node selector used the node URL as its visible value, so long URLs were clipped in the trigger and made the node choice hard to identify.
+- Integrated: the selector now shows the configured node name, keeps the full URL available in the hover title and dropdown option, and preserves URL-based selection and endpoint generation.
+- Preserved: multi-node selection, node colors, dynamic API addresses, endpoint actions, and unrelated worktree changes.
+- Validation: targeted Oxlint passed; `bun run build` in `web/default` passed; locale JSON files remain valid; `git diff --check` passed.
+- Commit/push: pending source commit and push.
 
 ## 2026-10-15 - Complete official WeChat login and binding flow
 
@@ -727,12 +2213,24 @@
 - Validation: targeted Oxlint and Oxfmt checks passed; production frontend build passed; `git diff --check` passed. Go formatting/tests were unavailable because the Go toolchain is not installed in this shell. Live verification still requires a configured official account, Redis/database, and deployed callback URL.
 - Commit/push: pending source commit and push.
 
-## 2026-10-16 - Default each protocol card to its first endpoint
+## 2026-10-15 - Fix official WeChat binding build error
 
-- Local reason: endpoint selection was global, so only one protocol card could appear selected and the model-list routes appeared before the primary request routes.
-- Integrated: each protocol card now maintains its own selected endpoint and defaults to its first listed route; the selected route controls that card's API address and copy action. OpenAI and Gemini model-list endpoints are listed last, while the active endpoint used by latency and open actions still follows the most recently clicked route.
-- Preserved: service-node selection, endpoint highlighting, dynamic addresses, all protocol routes, and unrelated worktree changes.
-- Validation: targeted Oxlint passed; `bun run build` in `web/default` passed; all seven locale JSON files parsed successfully; `git diff --check` passed.
+- Local reason: the GitHub Actions container build failed because `consumeWeChatOfficialState` returns two values while the binding handler assigned only one.
+- Integrated: the binding cleanup call now receives both return values, restoring backend compilation without changing the login or binding behavior.
+- Already present: the official WeChat login, QR polling, rate-limit isolation, and account-binding changes from `d73aaaf50` were preserved.
+- Deferred: Go tests could not run because the local shell does not have the Go toolchain; GitHub Actions remains the authoritative container build check.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: `git diff --check` passed; the failing call site now matches the function signature.
+- Commit/push: pending source commit and push.
+
+## 2026-10-15 - Add TypeSafe jev-1.14 model
+
+- Local reason: TypeSafe upstream added the `jev-1.14` model, but the built-in plugin rejected it as unsupported before a channel request could be sent.
+- Integrated: added `jev-1.14` to the TypeSafe model declaration, bumped the built-in plugin version to `1.1.2`, and added decode/upstream mapping fixtures for the new model.
+- Already present: `jev-1.13.0`, `jev-latest`, `jev-preview`, `laya`, synchronous SystemOne handling, and channel-provided upstream model mappings remain unchanged.
+- Deferred: no separate `jev-1.14.0` alias was added because the requested model identifier is exactly `jev-1.14`.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: Node syntax check, fixture JSON parsing, focused `jev-1.14` decode/upstream mapping assertions, and `git diff --check` passed. Full Go-runtime fixture replay is unavailable because the Go toolchain is not installed locally.
 - Commit/push: pending source commit and push.
 
 ## 2026-10-14 - Show parameter-based numeric tier prices in the model square
@@ -769,6 +2267,26 @@
 - Validation: targeted Oxlint/Oxfmt, all six locale JSON files, the production frontend build, and `git diff --check` passed. Frontend typecheck is blocked by existing missing test dependencies and unrelated type errors; Go tests could not run because the Go toolchain is unavailable in this shell.
 - Commit/push: source commit `3528f1b5d` (`fix(wallet): persist invoice profile server-side`) and log commit `a4c1beb90` are confirmed on `origin/main`.
 
+## 2026-10-14 - Add Stripe and Waffo Pancake invoice access
+
+- Local reason: successful Stripe and Waffo Pancake top-ups needed a customer-facing invoice entry in billing history.
+- Integrated: Stripe Checkout now requests invoice creation and stores the resulting Invoice ID from the paid Checkout webhook; authenticated users can resolve the Stripe PDF (with hosted invoice fallback) for their own successful order. Waffo Pancake successful orders expose a server-side customer Portal link minted on demand with `purpose: "portal"`, where Pancake provides invoice viewing. Historical orders with an empty `payment_provider` use the existing payment-method fallback. Added owner/admin authorization, per-user rate limiting, no-store/referrer protections, popup-safe invoice navigation, an invoice action in billing history, and translations for all default frontend locales.
+- Already present: existing payment checkout flows, webhook crediting, stable Pancake buyer identity, and the ordinary Waffo gateway were preserved.
+- Deferred: no upstream commit was involved; Stripe/Pancake live credentials and a paid test order are required to verify provider responses; Go backend tests are unavailable because the local Go toolchain is not installed.
+- Preserved: protected project identifiers and unrelated untracked worktree files.
+- Validation: frontend production build, targeted Oxfmt, JSON locale parsing, and `git diff --check` passed. Targeted Oxlint reports only pre-existing issues in the edited billing-history file. Added a regression test for current and legacy provider detection; Go tests could not run because the Go toolchain is unavailable.
+- Commit/push: source commit `49d66e753` (`feat(wallet): expose payment invoices`); the push response reported `origin/main` already at this commit. Follow-up fetch/push verification was blocked by GitHub Schannel TLS handshake failures.
+
+## 2026-10-14 - Save account invoice information for Stripe and Waffo Pancake
+
+- Local reason: users needed reusable personal or company billing details saved in their account and accessible from the wallet before requesting invoices.
+- Integrated: added authenticated GET/PUT/DELETE endpoints and a portable text-backed user profile; added the wallet editor and localized it in all six supported frontend languages; Stripe checkout now syncs the saved identity, email, and address to a reusable Stripe Customer and includes a company tax ID as an invoice custom field; Waffo Pancake checkout pre-fills the supported billing fields and buyer email. Payment orders retain a private snapshot of the profile used at checkout.
+- Already present: provider-hosted invoice links and the wallet billing history action for Stripe and Waffo Pancake were preserved.
+- Deferred: Waffo Pancake does not accept every profile field for prefill, so name and street address remain editable on its hosted cashier; live Stripe/Waffo sandbox verification requires configured provider credentials.
+- Preserved: all other payment flows, protected project identifiers, and unrelated untracked worktree files.
+- Validation: targeted Oxlint and Oxfmt checks passed; all six locale JSON files parsed successfully; `git diff --check` passed. `go test ./model ./controller` was attempted earlier but package test compilation is blocked by unrelated existing undefined symbols; the Stripe unused import found in that run has been fixed. Go is not available in the current shell for a fresh backend build.
+- Commit/push: implementation commit `fd761e8a4` (`feat(wallet): save reusable invoice details`) and log commit `a4fe6c91a` are present on GitHub `main`; confirmed via the GitHub commits API.
+
 ## 2026-10-13 - Show official WeChat QR login as a dedicated sign-in view
 
 - Local reason: make official WeChat login consistent with email login by opening a focused view only after the user selects it.
@@ -786,16 +2304,6 @@
 - Deferred: live WeChat platform verification requires a registered and verified official account, callback URL/token configuration, and public HTTPS deployment; automated tests do not call WeChat services.
 - Validation: `git diff --check`, locale JSON parsing, Oxfmt checks, and the production frontend build passed. Frontend typecheck remains blocked by pre-existing repository errors outside this change; Go tests are added but could not be run in this workspace because the Go toolchain is unavailable.
 - Commit/push: pending source commit and push.
-
-## 2026-10-14 - Add Stripe and Waffo Pancake invoice access
-
-- Local reason: successful Stripe and Waffo Pancake top-ups needed a customer-facing invoice entry in billing history.
-- Integrated: Stripe Checkout now requests invoice creation and stores the resulting Invoice ID from the paid Checkout webhook; authenticated users can resolve the Stripe PDF (with hosted invoice fallback) for their own successful order. Waffo Pancake successful orders expose a server-side customer Portal link minted on demand with `purpose: "portal"`, where Pancake provides invoice viewing. Historical orders with an empty `payment_provider` use the existing payment-method fallback. Added owner/admin authorization, per-user rate limiting, no-store/referrer protections, popup-safe invoice navigation, an invoice action in billing history, and translations for all default frontend locales.
-- Already present: existing payment checkout flows, webhook crediting, stable Pancake buyer identity, and the ordinary Waffo gateway were preserved.
-- Deferred: no upstream commit was involved; Stripe/Pancake live credentials and a paid test order are required to verify provider responses; Go backend tests are unavailable because the local Go toolchain is not installed.
-- Preserved: protected project identifiers and unrelated untracked worktree files.
-- Validation: frontend production build, targeted Oxfmt, JSON locale parsing, and `git diff --check` passed. Targeted Oxlint reports only pre-existing issues in the edited billing-history file. Added a regression test for current and legacy provider detection; Go tests could not run because the Go toolchain is unavailable.
-- Commit/push: source commit `49d66e753` (`feat(wallet): expose payment invoices`); the push response reported `origin/main` already at this commit. Follow-up fetch/push verification was blocked by GitHub Schannel TLS handshake failures.
 
 ## 2026-10-12 - Add temporary test-user creation script
 
@@ -845,6 +2353,86 @@
 - Validation: an executable Bun assertion for the reported `jev-1.13.0` expression passed and produced `$0.042` per 1M input tokens; targeted Oxfmt, targeted Oxlint (dynamic-price, model-card, and pricing-columns), `bun run build`, and `git diff --check` passed. Full `bun run typecheck` remains blocked by pre-existing errors in unrelated files and missing Vitest/testing-library dependencies; the check also initially identified and helped fix a type error in the new entry mapper.
 - Commit/push: not committed or pushed; no GitHub push was requested in this turn.
 
+## 2026-10-05 - Highlight matched request multipliers in billing details
+
+- Local reason: usage-log details showed configured time multipliers but gave no visual indication which rule actually matched, even when the calculated charge included that multiplier.
+- Integrated: dynamic pricing details now consume the backend request-rule trace and highlight each matched multiplier row with a `Matched` badge; the existing tier and charge calculations are unchanged.
+- Already present: request-rule trace generation, unmatched fallback labeling, and compact/expanded pricing layouts were preserved.
+- Deferred: no upstream commit was involved; live deployment verification still requires rebuilding and deploying the updated frontend image.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: targeted Oxfmt/Oxlint checks and the production frontend build are required; Go tests are unaffected by this frontend-only change.
+- Commit/push: source commit `62ba60e81` (`fix(logs): highlight matched billing rules`); pushed to `origin/main`.
+
+## 2026-10-05 - Show hidden model providers from the overflow badge
+
+- Local reason: model plaza cards showed `+N` for additional providers but hovering the badge did not reveal which providers were hidden.
+- Integrated: the provider overflow badge now opens a tooltip listing each hidden provider with its icon and name, while retaining the compact four-icon card layout.
+- Already present: provider aggregation, ordering, icons, counts, card navigation, and model details were preserved.
+- Deferred: no upstream commit was involved; no backend or data changes were needed.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: targeted Oxfmt/Oxlint checks, production frontend build, and `git diff --check` are required.
+- Commit/push: pending source commit and push.
+
+## 2026-10-05 - Isolate channel supplier details when switching editors
+
+- Local reason: channel supplier fields could still show intermittently or inherit another channel's supplier when the editor drawer was reused while a previous detail request was in flight.
+- Integrated: keyed the channel editor by mode and channel ID, cleared the active row when the editor closes, disabled detail queries while the drawer is closed, accepted detail responses only when their channel ID matches the active row, and kept the form, supplier selector, and multi-key state behind the same matching detail record. Detail refetches now remain in the loading state until the current channel response is available.
+- Already present: explicit nullable `vendor_id` persistence, partial-update preservation, model marketplace supplier aggregation, selected-vendor lookup, and channel list refresh behavior were preserved.
+- Deferred: no upstream commit was involved; database deployment verification still requires a running Go backend and the user's deployed instance.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: `git diff --check`, targeted Oxfmt check, and targeted Oxlint check passed; full frontend typecheck/build and Go tests remain subject to the repository's existing toolchain limitations.
+- Commit/push: source commit `9495ee760` (`fix(channels): isolate vendor detail state`); pushed to `origin/main`.
+
+## 2026-10-05 - Stabilize first channel editor open and expose supplier column
+
+- Local reason: the first editor open after saving could initialize from a cached detail response before the fresh request completed, leaving the supplier empty until the drawer was opened again; administrators also needed to inspect suppliers directly from the channel table.
+- Integrated: form hydration now waits for the current drawer mount's detail request to complete before applying data, and stale detail results are ignored while fetching. Added a hidden-by-default `Vendor` column to the channel table, backed by the vendor metadata endpoint and available through the column visibility menu.
+- Already present: nullable supplier persistence, channel/model supplier synchronization, selected-vendor fallback loading, and the existing table/card layouts were preserved.
+- Deferred: no upstream commit was involved; database deployment verification still requires a running Go backend and the user's deployed instance.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
+- Commit/push: source commit `48446d475` (`fix(channels): stabilize vendor editor and add column`); pushed to `origin/main`.
+
+## 2026-10-05 - Fall back to list supplier in channel editor
+
+- Local reason: the channel list could show a persisted supplier while the detail response returned a nullable or omitted `vendor_id`, causing the edit drawer to show an empty supplier selector.
+- Integrated: channel editor supplier selection and form hydration now use the detail binding when present and fall back to the selected list row when the detail value is empty. The selected fallback supplier is still loaded into the selector when it is outside the initial vendor page.
+- Already present: explicit nullable supplier persistence, detail request isolation, channel table supplier column, model marketplace supplier synchronization, and stale-response protection were preserved.
+- Deferred: no upstream commit was involved; live deployment verification still requires the user's running instance.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
+- Commit/push: source commit `b882d8568` (`fix(channels): preserve supplier in editor fallback`); pushed to `origin/main`.
+
+## 2026-10-05 - Share the vendor query cache with the channel table
+
+- Local reason: the channel table and edit drawer used different React Query keys for the same vendor list, allowing the drawer to render with an empty option set even when the table already displayed the supplier.
+- Integrated: the channel editor now uses the shared `vendorsQueryKeys.list({ page_size: 1000 })` key, so it reuses the table's loaded vendor metadata and keeps the selected supplier option stable.
+- Already present: selected-row supplier fallback, controlled selector display, nullable persistence, and detail request isolation were preserved.
+- Deferred: no upstream commit was involved; live deployment verification still requires the user's running instance.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
+- Commit/push: source commit `245c55d6f` (`fix(channels): share vendor query cache`); pushed to `origin/main`.
+
+## 2026-10-05 - Prefer the selected channel row for supplier hydration
+
+- Local reason: the edit drawer could still show an empty supplier when the detail response contained a stale or empty binding, even though the selected channel row visibly had a supplier.
+- Integrated: supplier hydration now prefers the selected list row, uses the detail response only as a fallback, restores the row binding after later form hydration passes, and keeps the selected ID/name as a controlled display fallback for the supplier selector.
+- Already present: nullable supplier persistence, detail request isolation, channel table supplier column, and selected-vendor lookup were preserved.
+- Deferred: no upstream commit was involved; live deployment verification still requires the user's running instance.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
+- Commit/push: source commit `8a84833ef` (`fix(channels): keep supplier visible in editor`); pushed to `origin/main`.
+
+## 2026-10-05 - Show matched time multipliers in usage logs
+
+- Local reason: a tiered billing log could charge the active time multiplier correctly but still label the matched tier as the off-peak fallback whenever the base tier name was `base`.
+- Integrated: usage-log details and the compact log column now use the off-peak fallback label only when every request rule is unmatched (or no request rules exist); a matched request multiplier keeps the actual base tier label.
+- Already present: backend billing evaluation, request-rule traces, and the existing pricing calculation were preserved.
+- Deferred: no upstream commit was involved; live deployment verification still requires rebuilding and deploying the updated frontend image.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: targeted Oxfmt/Oxlint checks and the production frontend build are required; Go tests are unaffected by this frontend-only change.
+- Commit/push: pending source commit and push.
+
 ## 2026-10-04 - Preserve channel supplier binding and clarify tier fallback
 
 - Local reason: channel supplier selections were saved but omitted when channel data was converted back into edit-form defaults, and usage-log billing details called an unmatched peak rule set "No matching results" even when the base off-peak tier was the correct fallback.
@@ -852,6 +2440,66 @@
 - Preserved: channel supplier persistence API, marketplace supplier aggregation, detailed dynamic pricing rules, billing calculations, existing log data formats, protected project identifiers, and unrelated untracked worktree files.
 - Validation: targeted Oxfmt, locale JSON parsing, `bun run build`, and `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable in this environment.
 - Commit/push: source commit `be6a8976c` (`fix(channels): persist supplier binding and clarify fallback billing`); pushed to `origin/main`.
+
+## 2026-10-04 - Filter model editor suppliers by enabled channels
+
+- Local reason: the model editor showed every supplier, and suppliers newly bound to channels were not automatically included in the model's selected supplier list.
+- Integrated: model metadata now merges supplier IDs from enabled channels for the exact model, while the model editor filters its supplier picker to that merged set. Existing model suppliers remain selected and new models retain the full supplier list.
+- Already present: model-vendor ordering, channel vendor persistence, model plaza supplier aggregation, and supplier de-duplication were preserved.
+- Deferred: none.
+- Preserved: protected project identifiers and unrelated untracked worktree files.
+- Validation: added a focused SQLite query regression test and ran `git diff --check`; Go test execution remains unavailable because the local Go toolchain is not installed.
+- Commit/push: source commit `13685f8c9` created locally; not pushed.
+
+## 2026-10-04 - Keep channel supplier visible after reload
+
+- Local reason: a channel edit drawer could show an empty supplier after a page reload when the detail request temporarily returned a nullable field without the value already present in the channel list.
+- Integrated: channel detail queries now refetch whenever the edit drawer mounts, and form hydration falls back to the current channel row's persisted supplier ID when the detail payload is temporarily missing it.
+- Already present: database supplier persistence, model plaza synchronization, and channel supplier selection behavior were preserved.
+- Deferred: none.
+- Preserved: protected project identifiers and unrelated untracked worktree files.
+- Validation: targeted frontend formatting/lint checks and `git diff --check`; full typecheck remains blocked by existing repository errors.
+- Commit/push: source commit `76855e22f` created locally; not pushed.
+
+## 2026-10-04 - Preserve model supplier selection order
+
+- Local reason: reopening a model reordered selected suppliers by database ID instead of retaining the order chosen in the editor.
+- Integrated: added an explicit `sort_order` to model-vendor relations, persisted the submitted supplier order when saving, and returned supplier IDs in that order for model editing and marketplace metadata. Existing rows remain readable with a deterministic vendor-ID tie-breaker and will receive explicit ordering on their next save.
+- Already present: multi-supplier selection, legacy `vendor_id` compatibility, channel-bound supplier merging, pricing display, and supplier filtering were preserved.
+- Deferred: none.
+- Preserved: protected project identifiers and unrelated untracked worktree files.
+- Validation: targeted model vendor regression test and `git diff --check`; full repository test suite was not run.
+- Commit/push: pending source commit and push.
+
+## 2026-10-04 - Link channel suppliers to model plaza
+
+- Local reason: a supplier bound to an enabled channel was not reliably visible in the model plaza after the channel was saved, because the pricing cache could remain stale; supplier merging also reordered configured suppliers by vendor ID.
+- Integrated: model plaza supplier aggregation now preserves the explicit model supplier order, appends suppliers from enabled channel abilities, and de-duplicates IDs. Channel cache rebuilds now invalidate the pricing cache so channel supplier changes are reflected immediately.
+- Already present: channel `vendor_id` persistence, enabled-ability joins, model metadata supplier fallback, and the model editor supplier selection flow were preserved.
+- Deferred: no upstream commit was involved; no unrelated frontend or deployment work was changed.
+- Preserved: protected project identifiers and unrelated untracked worktree files.
+- Validation: added focused supplier aggregation regression tests and ran `git diff --check`; Go test execution remains unavailable because the local Go toolchain is not installed.
+- Commit/push: pending source commit and push.
+
+## 2026-10-04 - Persist channel supplier binding on reload
+
+- Local reason: a channel could display its newly selected supplier until the page was refreshed, then the supplier field was empty because the nullable `vendor_id` update passed a pointer directly to the database driver.
+- Integrated: channel updates now write the concrete supplier ID (or NULL) explicitly, and a regression test verifies that a saved binding remains after loading the channel again.
+- Already present: channel form submission, nullable supplier clearing, model plaza supplier aggregation, and pricing cache invalidation were preserved.
+- Deferred: no upstream commit was involved; no unrelated frontend or deployment work was changed.
+- Preserved: protected project identifiers and unrelated untracked worktree files.
+- Validation: added a focused SQLite persistence test and ran `git diff --check`; Go test execution remains unavailable because the local Go toolchain is not installed.
+- Commit/push: pending source commit and push.
+
+## 2026-10-04 - Keep channel supplier binding across partial updates and refresh
+
+- Local reason: the supplier could still appear empty after a page refresh, especially when a partial channel update or the paginated vendor list omitted the selected supplier.
+- Integrated: partial channel updates now preserve the stored `vendor_id` unless the request explicitly sends `vendor_id` (including `null` to clear it); channel responses always include the nullable field; the channel editor loads a selected supplier by ID when it is outside the first vendor page; and malformed settings are cleared with targeted column updates so stale full-row saves cannot erase supplier bindings.
+- Already present: explicit supplier persistence in full channel edits, model marketplace supplier aggregation, channel detail refetching, and model editor supplier synchronization were preserved.
+- Deferred: no upstream commit was involved; database-specific deployment verification still requires a running Go backend and the user's deployed instance.
+- Preserved: protected project identifiers and all unrelated untracked worktree files.
+- Validation: targeted `oxlint`, `oxfmt --check`, and `git diff --check` passed. Full frontend format check remains blocked by unrelated existing formatting issues and a repository file access error; Go tests remain unavailable because the local Go toolchain is not installed.
+- Commit/push: source commit `3b1bc29b6` (`fix(channels): preserve vendor binding across refresh`); push pending.
 
 ## 2026-10-03 - Show safe peak/off-peak ranges on model plaza cards
 
@@ -869,6 +2517,16 @@
 - Validation: `git diff --check`, locale JSON parsing, and `bun run build` in `web/default` passed. Targeted Oxlint still reports pre-existing findings in the edited editor file (array-index keys, nested ternary, and other existing style rules); no new finding was isolated to the preset block.
 - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
+## 2026-10-03 - Add multi-supplier model marketplace metadata
+
+- Local reason: the model marketplace needed to show every supplier that can serve a model, while supplier identity remains independent from channel protocol type.
+- Integrated: added the model_vendors many-to-many relation with legacy vendor_id compatibility; added nullable supplier binding to channels; synchronized model and channel admin forms; merged model-selected suppliers with enabled channel-bound suppliers in pricing cache; exposed available_vendors; updated marketplace cards and filters for multiple suppliers; added localized labels and relation regression coverage.
+- Already present: legacy supplier metadata, default model supplier inference, channel ability routing, pricing ratios, task-plugin pricing, and existing model marketplace layout were preserved.
+- Deferred: automatic supplier inference from channel protocol type remains intentionally unsupported; existing untracked Friends Hub, Image Playground, Command Menu, Wallet, generated reports, and local helper files were excluded.
+- Preserved: protected project identifiers and all unrelated authentication, wallet, and upstream-sync changes.
+- Validation: JSON parsing for all six frontend locales, targeted frontend type-check filtering, Oxfmt on changed frontend files, frontend production build, and git diff --check passed. Go tests/build were attempted with the repository test suite but remain blocked by pre-existing unrelated compilation errors.
+- Commit/push: source commit `62209288f` (`feat(pricing): support multiple model suppliers`); pushed successfully to `origin/main` on 2026-10-03.
+
 ## 2026-10-02 - Support the upstream openai_image task-plugin protocol
 
 - Upstream commit: `03563a4a7` (`feat(plugins): serve OpenAI Images API through task plugins`).
@@ -879,6 +2537,178 @@
 - Validation: `gofmt` completed; `go build ./controller ./router ./pkg/jsplugin` passed; `go test ./pkg/jsplugin` passed with the new host-protocol mapping regression test; full controller/router test runs remain blocked by pre-existing repository test failures unrelated to this change. `git diff --check` passed.
 - Commit/push: source commit `a11154870` (`fix(plugins): support openai image protocol`); not pushed because the user reported the error but did not request a GitHub push in this turn.
 
+## 2026-10-02 - Friends Hub reward rule clarification
+
+- Local reason: make one-time invitation rewards and first-top-up cashback conditions explicit so the configured cashback percentage cannot be mistaken for recurring cashback on every top-up.
+- Integrated: the Friends Hub summary now exposes the configured inviter and invitee registration reward amounts. The page adds a three-part reward rules panel covering one-time inviter registration rewards, one-time invitee registration rewards, and first-top-up-only cashback based on final wallet credit; a zero cashback rate is shown as disabled. Existing transfer actions, reward history, and API behavior remain unchanged.
+- Already present: administrator quota settings, first-top-up cashback configuration, legacy registration reward counters, and the existing seven-locale translation structure were reused.
+- Preserved: reward settlement semantics, registration/cashback separation, wallet transfers, privacy masking, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `bun run build`, targeted Oxfmt/Oxlint, locale JSON parsing, and `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable.
+- Commit/push: source commit `f2e4967ff` pushed to `origin/main`.
+
+## 2026-10-02 - Sign-in page visual refresh
+
+- Local reason: apply the approved two-column sign-in design with a user-provided hero image and simplify login consent presentation.
+- Integrated: the sign-in route now uses a dedicated layout variant with `https://cos.frostai.cn/omnirouters/login_en.webp` on the left and a clean, card-free form area on the right. The sign-in page hides the public navigation and duplicate header brand while retaining language and theme controls.
+- Integrated: the sign-in flow now presents existing terms and privacy links through the `TermsFooter` “By clicking sign in...” notice instead of a checkbox. Password login, OAuth, Passkey, Turnstile, WeChat login, redirect handling, and registration consent behavior remain intact.
+- Already present: existing `AuthLayout` behavior for registration, forgot-password, reset, OTP, and OAuth callback pages was preserved through the new sign-in-only variant; the public header keeps its default navigation and branding behavior everywhere else.
+- Deferred: the hero image remains an externally hosted URL supplied by the user; no backend banner configuration or local asset pipeline was added.
+- Preserved: authentication APIs, OAuth provider discovery, legal policy links, protected project identifiers, and unrelated untracked worktree files.
+- Validation: remote image returned HTTP 200; production `bun run build`, targeted Oxfmt/Oxlint, browser preview rendering, and `git diff --check` passed. Full `bun run typecheck` remains blocked by pre-existing repository-wide type errors and missing test dependencies; Go tests and gofmt were not run because the local Go toolchain is unavailable.
+- Commit/push: source commit `31e1ac030` pushed to `origin/main`.
+
+## 2026-10-02 - Friends Hub summary simplification
+
+- Local reason: remove redundant summary content after reviewing the Friends Hub layout.
+- Integrated: removed the separate wallet balance card from the invitation area and removed the duplicate first-top-up cashback statistic. The compact summary now contains only invited friends, completed first top-ups, and total rewards; the reward rules panel and the two detailed transfer sections remain the source of cashback and pending-reward details.
+- Already present: reward-rule explanations, one-time registration rewards, first-top-up-only cashback wording, registration/cashback transfer actions, and the existing seven-locale translation structure were preserved.
+- Deferred: no new reward logic, API, or translation keys were needed for this presentation-only adjustment.
+- Preserved: wallet/account behavior, reward settlement semantics, navigation routes, privacy masking, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Go tests and gofmt were not run because the local Go toolchain is unavailable.
+- Commit/push: source commit `dfa68e8d6` pushed to `origin/main`.
+
+## 2026-10-02 - Sign-in responsive and dark-theme correction
+
+- Local reason: correct the approved sign-in redesign after reviewing mobile layout, navigation visibility, desktop column proportions, vertical alignment, and dark-theme behavior.
+- Integrated: sign-in now keeps the public brand and navigation header, uses equal 50/50 desktop columns with a vertically centered form, hides the hero image on narrow mobile screens for a single-column flow, and keeps language, theme, and the mobile navigation menu available in the header.
+- Integrated: sign-in-only colors now inherit the active theme variables for page background, text, links, borders, inputs, focus states, and primary button states, so dark mode remains readable.
+- Already present: the externally hosted login hero image, sign-in consent notice, authentication providers, redirect handling, and registration/other auth-page layouts were preserved.
+- Deferred: none.
+- Preserved: authentication APIs, public navigation behavior outside sign-in, provider discovery, legal policy links, protected project identifiers, and unrelated untracked worktree files.
+- Validation: production frontend `bun run build` and `git diff --check` passed. Browser preview was refreshed, but the CDP screenshot probe timed out during hot reload; no application build or runtime error was reported.
+- Commit/push: source commit `31e1ac030` pushed to `origin/main`; this log publication follows separately.
+
+## 2026-10-02 - Unify public authentication page layouts
+
+- Local reason: apply the redesigned sign-in presentation consistently to registration and password recovery, and make the sign-in greeting use the configured system name.
+- Integrated: the sign-in title now reads “Welcome to {{name}}” using the live system name, with translations for en, zh, zh-TW, fr, ru, ja, and vi. Registration and forgot-password now use the same two-column hero image, navigation/header, mobile, and theme-aware layout as sign-in.
+- Already present: existing registration legal-consent enforcement, registration terms footer, password recovery flow, authentication providers, and route behavior were retained.
+- Deferred: reset-password, OTP, and OAuth callback screens remain on the existing compact auth layout because they are follow-up/security states rather than public sign-in, sign-up, or recovery entry screens.
+- Preserved: auth APIs, form validation, verification flows, redirect behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed.
+- Commit/push: source commit `e9a21409b` created locally; not pushed.
+
+## 2026-10-02 - Pin sign-in terms notice to the bottom
+
+- Local reason: center the sign-in legal notice and place it at the bottom of the right-hand authentication area.
+- Integrated: the sign-in `TermsFooter` now uses a dedicated responsive footer position, centered horizontally on desktop and mobile, with safe-area spacing on mobile and reserved form padding to prevent overlap.
+- Already present: agreement/privacy visibility, localized copy, links, and sign-up consent behavior were preserved.
+- Deferred: none.
+- Preserved: authentication behavior, page navigation, theme handling, protected project identifiers, and unrelated untracked worktree files.
+- Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed.
+- Commit/push: source commit `9d80caa9c` (`fix(logs): distinguish matched time multipliers`); pushed to `origin/main`.
+
+## 2026-10-02 - Add invitation-aware authentication entry flow
+
+- Local reason: make OAuth-first sign-in and invitation-code behavior explicit and preserve referral attribution across all supported registration paths.
+- Integrated: the sign-in page now presents configured OAuth providers first, keeps email/password login behind a clear email button, and shows an optional invitation-code field with a new-account-only explanation. The sign-up form also shows and submits the invitation code, prefilled from `?aff=` or existing browser storage.
+- Integrated: standard OAuth already retained invitation state; Telegram now carries the code in its server-owned auth flow, and WeChat now resolves the code only when creating a new user. Existing users logging in through OAuth or WeChat are not rebound to an inviter.
+- Already present: standard OAuth state validation, email registration payload support, referral reward settlement, and invite-link capture were reused.
+- Deferred: none.
+- Preserved: existing login providers, password login behavior, legal consent, redirect handling, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `bun run build`, targeted Oxfmt, targeted Oxlint for the changed auth components (no new errors), locale-key presence checks, and `git diff --check` passed. The remaining `api.ts` Oxlint warnings/errors are pre-existing in that file (import ordering, `any`, and missing braces). Backend Go compilation and gofmt were not run because the local Go toolchain is unavailable; the Telegram flow call sites and WeChat/OAuth attribution paths were statically checked.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Separate OAuth and email sign-in views
+
+- Local reason: keep the sign-in landing view focused on OAuth providers and reveal the account registration prompt only after the user chooses email/password login.
+- Integrated: the sign-in page now switches to a dedicated email-login view with a back action, email/password fields, forgot-password link, invitation code, and registration link. OAuth providers and Passkey controls are hidden while the email view is active and return when the user goes back.
+- Already present: email login validation, Turnstile handling, invitation-code persistence, legal notice, redirect behavior, and localized strings were preserved.
+- Deferred: none.
+- Preserved: registration and password-recovery routes, OAuth callback behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Keep invitation code on the sign-in landing view
+
+- Local reason: show invitation-code capture before choosing email/password login, while keeping the dedicated email-login view focused on already-registered account access.
+- Integrated: the sign-in landing view shows the optional invitation-code field; entering the email-login view hides it. The saved code remains available to OAuth and WeChat new-user registration flows.
+- Already present: registration-page invitation-code input and new-account attribution behavior were preserved.
+- Deferred: none.
+- Preserved: password login, OAuth providers, Passkey login, legal notices, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `bun run build`, targeted Oxfmt/Oxlint, locale-key presence checks, and `git diff --check` passed. Backend tooling was not needed for this frontend copy change.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Center the sign-in welcome title
+
+- Local reason: center the configured “Welcome to {{name}}” heading in the sign-in panel.
+- Integrated: the sign-in welcome title now remains centered across desktop and mobile layouts while the surrounding form alignment is unchanged.
+- Already present: registration and password-recovery title alignment, navigation, legal notices, and authentication behavior were preserved.
+- Deferred: none.
+- Preserved: invitation-code behavior, OAuth providers, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Use the modern layout during OAuth callbacks
+
+- Local reason: OAuth callback loading states were still rendered with the legacy authentication shell before redirecting to the dashboard.
+- Integrated: the OAuth callback screen now uses the same modern two-column hero image and theme-aware authentication layout as sign-in, so GitHub, custom OAuth, and other callback flows no longer flash the old page while processing.
+- Already present: provider-specific loading copy, callback processing, binding mode behavior, error handling, and redirect logic were preserved.
+- Deferred: none.
+- Preserved: OAuth state handling, invitation-code capture, protected project identifiers, and unrelated untracked worktree files.
+- Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Remove duplicate registration consent checkbox
+
+- Local reason: the registration form showed both a required checkbox and a footer stating that creating an account constitutes agreement.
+- Integrated: removed the duplicate checkbox and all client-side checkbox gating from email registration and WeChat/OAuth registration controls. The bottom-centered terms notice remains the single visible consent statement.
+- Already present: agreement and privacy links, registration API behavior, validation, invitation-code handling, and account creation flow were preserved.
+- Deferred: none.
+- Preserved: sign-in consent presentation, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Center the mobile sign-in content
+
+- Local reason: the mobile sign-in content was aligned toward the top of the viewport after the responsive layout change.
+- Integrated: mobile sign-in now vertically centers the welcome heading, OAuth controls, email entry, and invitation-code area while keeping the navigation header and bottom legal notice visible. Registration and recovery pages retain their scroll-friendly responsive positioning.
+- Already present: desktop two-column proportions, mobile hero hiding, theme handling, and authentication behavior were preserved.
+- Deferred: none.
+- Preserved: OAuth callback layout, registration consent behavior, invitation-code handling, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed. Local preview confirms the Authentication button routes to `/keys?create=true`; the token dialog could not be observed end-to-end because the preview is signed out.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Compact invitation-code copy
+
+- Local reason: reduce visual noise in the invitation-code area while keeping the new-account-only rule explicit.
+- Integrated: the label now states that the invitation code applies only when creating a new account, the input placeholder includes the optional hint, and the separate explanatory line is removed on sign-in and sign-up pages. All supported frontend locales were updated.
+- Already present: invitation-code persistence, registration attribution, OAuth/WeChat new-user handling, and existing legacy translation keys were preserved.
+- Deferred: none.
+- Preserved: authentication flows, legal consent behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Align registration terms footer
+
+- Local reason: match the registration page's legal notice placement with the redesigned sign-in page.
+- Integrated: the registration terms notice now uses the shared bottom-centered footer positioning within the right authentication column, including responsive mobile spacing.
+- Already present: the registration agreement checkbox and submit-time consent validation remain unchanged.
+- Deferred: none.
+- Preserved: registration fields, OAuth registration, invitation-code handling, legal links, protected project identifiers, and unrelated untracked worktree files.
+- Validation: pending.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Prioritize custom OAuth providers
+
+- Local reason: place administrator-configured OAuth providers, such as Google, before built-in OAuth integrations on the sign-in page.
+- Integrated: custom OAuth buttons now render first, preserving their configured order; GitHub and other built-in providers follow afterward.
+- Already present: custom provider authorization flow, provider icons, labels, and email-login placement were preserved.
+- Deferred: none.
+- Preserved: OAuth state handling, invitation-code capture, authentication routes, protected project identifiers, and unrelated untracked worktree files.
+- Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
+- Commit/push: pending source commit and push.
+
+## 2026-10-02 - Add task usage pricing matrix and plugin pricing display
+
+- Upstream commits: `74629e29f` (`feat(plugins): enhance task streaming and model pricing`) and `b932e6d87` (`fix(web): robustly display conditional task billing prices`).
+- Integrated: synchronized the task usage schema and task-tier parser utilities into `web/default`; added task matrix editing for duration/count/token/resolution-style usage fields; generated billing expressions from the matrix and retained raw expression editing for unsupported shapes; added plugin-specific matrix editing using each plugin's declared usage schema; extended public model pricing data types for usage schemas and plugin variants; and added task pricing tables to model details, including separate plugin variant pricing sections.
+- Already present: backend plugin usage schema discovery, billing expression validation/storage, quota pre-consume and settlement, plugin billing overrides, group pricing, Sora pricing, and existing token/request pricing UI.
+- Deferred: full upstream provider-tab group pricing redesign, request simulation panel, bulk-copy workflow, localized usage-example cards, and upstream visual editor internals that depend on the newer `web/src` design system.
+- Preserved: existing default-theme layout, billing expression backend contract, model/group pricing behavior, protected project identifiers, authentication/Friends Hub changes, and unrelated untracked worktree files.
+- Validation: `bun run build`, `bun run format:check`, targeted frontend type-check filtering, and `git diff --check` passed. Full `bun run typecheck` remains blocked by pre-existing repository errors (missing test dependencies, duplicate redemption imports, and unrelated model/settings type errors).
+- Commit: `3d7b32125` (`feat(pricing): add task usage pricing matrix and plugin details`). Push: confirmed on `origin/main` at `3d7b32125279f8627682b4ffe7ddad23c17cb3e8`.
+
 ## 2026-10-01 - Friends Hub first batch: first-top-up cashback ledger
 
 - Local reason: the confirmed Friends Hub plan needs a separate, auditable cashback path when an invited friend completes their first successful wallet top-up, while preserving the existing fixed registration rewards.
@@ -886,6 +2716,144 @@
 - Preserved: existing `QuotaForInviter`/`QuotaForInvitee` registration rewards, `AffQuota` transfer semantics, subscription and redemption behavior, payment-provider idempotency, wallet quota limits, protected project identifiers, and unrelated untracked worktree files. Subscription-created `TopUp` rows do not invoke the cashback hook.
 - Validation: `git diff --check`, targeted `oxlint`, and `bun run build` for `web/default` passed. Go tests and gofmt could not run because the Go toolchain is not installed locally; focused model/controller regression tests were added for idempotency, zero-rate qualification locking, prior top-up exclusion, and PII masking.
 - Commit/push: local commit `1b99f1942`; push pending until the final remote check.
+
+## 2026-10-01 - First functional upstream stability batch
+
+- Upstream references: `d61d6be759`, `c0cff23a3a`, `feefe09f27`, `2506e1b980`, `f5e54ccdb2`; local comparison baseline `9a0be8750` and upstream tip `56758edf9`.
+- Integrated: task submissions now accept every upstream `2xx`; task-plugin source and icon columns use cross-database `LongText` (`longtext` on MySQL, `text` on PostgreSQL/SQLite) and the upload/browser limit is 8 MiB; each HTTP transport receives a cloned insecure TLS config; Waffo Pancake checkout, webhook store matching, and availability checks require the configured store ID; user creation rejects non-standard roles; marketplace index and source fetches revalidate with `cache: no-cache`.
+- Already present: hash-based task-plugin synchronization and lazy source loading from `2c175190c4` were verified in the local controller/model implementation and were not duplicated.
+- Deferred: `474ed66fb1` only applies to the upstream Alibaba `openai_image` protocol export, which this fork deliberately does not advertise yet; no unsupported protocol claim was introduced.
+- Preserved: existing plugin activation/version rollback, task billing and polling, provider routing, Waffo payment flows, all three supported primary databases, default/classic frontend boundaries, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed; locale JSON/key consistency and source-level searches passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally; frontend production build and browser tests remain pending.
+- Commit/push: source commit `d73c7423e` is present on `origin/main`; the initial push raced with an existing remote update, and fetch confirmed the commit is already published.
+
+## 2026-10-01 - Second functional upstream batch: Seedream model pricing profiles
+
+- Upstream references: `ae73ef8e25`; related protocol commit `87bb71e7fc` was reviewed separately.
+- Integrated: Doubao now advertises Seedream 5.0 Flash `doubao-seedream-5-0-flash-260915`, validates its 1K/1.5K/2K capability profile, exposes per-model image pricing dimensions, and settles single-tier image results as the upper output tier. Submission facts remain a complete compatibility vector for existing billing expressions, and Seedance facts retain the shared `video_input` selector.
+- Already present: the existing native Doubao image route, request bounds, output validation, and task billing hooks were reused.
+- Deferred: `87bb71e7fc` OpenAI Images task-protocol binding remains deferred because this checkout lacks the upstream `03563a4a7` host protocol/routing/synchronous image-task bridge; adding only the plugin claim would fail protocol validation or route to the legacy adaptor.
+- Preserved: current native image and Responses routes, task billing safety, provider capability checks, protected project identifiers, and unrelated untracked worktree files.
+- Validation: Node syntax check and `git diff --check` passed; focused Go regression coverage was added but Go tests/gofmt remain unavailable because the local Go toolchain is not installed.
+- Commit/push: source commit `1e606e46b` is present on `origin/main`.
+
+## 2026-10-01 - Third functional upstream batch: preserve Claude native request fields
+
+- Upstream references: `c2b7a9a9e0` and `789c970199`; current upstream tip remains `56758edf9` with no newer commits.
+- Integrated: Claude message DTOs now retain per-message `output_config`, and native Claude requests retain the `safeguards` object while being decoded and re-encoded for upstream calls. Added a JSON round-trip regression test covering both fields.
+- Already present: request-level Claude `output_config`, shared Claude conversion, and existing reasoning extraction were reused without changing their behavior.
+- Deferred: the larger `335ebcff7` Responses custom-tool conversion, scoped access tokens, administrator step-up verification, and the frontend-specific Responses WebSocket setting require separate migrations or frontend adaptation and were not mixed into this batch.
+- Preserved: existing Claude routing, reasoning controls, pass-through filtering, billing, all supported databases, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable.
+- Commit/push: source commit `d213d07c9` is present on `origin/main`.
+
+## 2026-10-01 - Fourth functional upstream batch: refresh the channels table
+
+- Upstream reference: `2035a82ae`; current upstream tip remains `56758edf9` with no newer commits.
+- Integrated: the default frontend channel table now exposes a refresh icon beside sensitive-value visibility. It refetches the active query with the current search, filters, sorting, pagination, tag mode, and loading state, and exposes `aria-busy` while refreshing.
+- Already present: the channels query key, translation for `Refresh`, Base UI button/tooltip primitives, and existing mobile/card table behavior were reused.
+- Deferred: `d0cb7347c` GPT-6 token and sampling capability changes need a separate backend capability audit because the local model detection differs from upstream; Responses custom tools, scoped access tokens, administrator step-up verification, and Responses WebSocket settings remain separate migrations.
+- Preserved: channel mutations, channel routing, existing sensitive-value toggle, classic frontend, backend APIs, billing, protected project identifiers, and unrelated untracked worktree files.
+- Validation: targeted Oxfmt and Oxlint passed; `bun run build` for `web/default` passed; `git diff --check` passed.
+- Commit/push: source commit `6544f2605` pushed to `origin/main`.
+
+## 2026-10-01 - Fifth functional upstream batch: keep unchanged task prices editable
+
+- Upstream reference: `3509ae7c1`; current upstream tip remains `56758edf9` with no newer commits.
+- Integrated: model pricing validation now allows an unchanged billing expression or plugin override to remain saveable when a sole task-plugin provider narrows its usage profile. Edited expressions and unchanged expressions for shared models continue to validate against the current provider schemas.
+- Already present: plugin usage profiles, shared-model detection, task expression smoke tests, pricing option validation, and local empty/null pricing compatibility were reused.
+- Deferred: upstream frontend task-matrix display/parser changes target the unavailable `web/src` frontend and were not copied into `web/default`; GPT-6 capability changes, Responses custom tools, scoped access tokens, administrator step-up verification, and Responses WebSocket settings remain separate batches.
+- Preserved: existing pricing option validation, database locking and transactions, billing expression semantics, task settlement, all supported databases, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable; the upstream test fixture infrastructure is not present in this checkout, so focused source-level coverage was added instead.
+- Commit/push: source commit `705e82dd6` pushed to `origin/main`.
+
+## 2026-10-01 - Sixth functional upstream batch: model-specific GPT-6 chat capabilities
+
+- Upstream reference: `d0cb7347c`; current upstream tip remains `56758edf9` with no newer commits.
+- Integrated: OpenAI chat compatibility now uses an explicit capability matrix. GPT-6 Sol/Luna use `max_completion_tokens` and retain sampling parameters only with no reasoning or `none`; GPT-6 Astra uses `max_completion_tokens` but rejects sampling fields; strict GPT-5 matching remains intact; unknown future generations such as GPT-7 retain their request parameters. Model suffix handling is limited to recognized OpenAI families.
+- Already present: existing reasoning suffix parsing, developer-role conversion, pointer-valued token fields, and shared request DTOs were reused.
+- Deferred: the upstream controller channel-test suite depends on a capability refactor and test helpers absent from this checkout; Responses custom tools, scoped access tokens, administrator step-up verification, and Responses WebSocket settings remain separate migrations.
+- Preserved: non-OpenAI/custom model requests, OpenRouter reasoning conversion, GPT-4 behavior, billing, all supported databases, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable; focused DTO and adaptor regression tests were added.
+- Commit/push: source commit `da4142b0c` pushed to `origin/main`.
+
+## 2026-10-01 - Seventh functional upstream batch: record async task performance metrics
+
+- Upstream reference: `3abbb8198`; current upstream tip remains `56758edf9` with no newer commits.
+- Integrated: asynchronous task success, failure, and polling-failure terminal transitions now record one performance sample after the winning status CAS. Samples use the billing-context model when available, capture end-to-end latency, and record output tokens/generation time only for successful tasks with valid provider usage. Batch and single-task billing/refund paths share the same terminal finalizer.
+- Already present: the performance metric buckets, Redis persistence, task timestamps, token fields, and conditional task status updates were reused.
+- Deferred: timeout sweep transitions still use their existing independent refund path and are not sampled by this upstream-scoped change; covering timeout metrics will require a separate decision about legacy task model data and sweep semantics.
+- Preserved: task settlement/refund ordering, CAS race behavior, polling failure thresholds, all supported databases, frontend behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable; focused performance metric regression tests were added.
+- Commit/push: source commit `0e9a36cd7` pushed to `origin/main`; the follow-up log publication commit is recorded below.
+
+## 2026-10-01 - Eighth functional upstream batch: fix release version injection
+
+- Upstream reference: `5401874c6`; current upstream tip remains `56758edf9` with no newer commits.
+- Integrated: release and Electron Windows/Linux/macOS build workflows now inject `common.Version` using the repository's full Go module import path, so tagged binaries receive the intended version instead of silently missing the linker target.
+- Already present: the existing `common.Version` variable and tag-derived `VERSION` workflow inputs were reused.
+- Deferred: access-token editing, scoped access tokens, administrator step-up verification, billing trust/pre-consume changes, and frontend-only `web/src` fixes require separate migrations or are not part of the production frontend trees in this checkout.
+- Preserved: Docker/GHCR source-only build policy, release artifact names, cross-platform build flags, runtime behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed; workflow YAML was checked by targeted path/reference searches. Go tests and gofmt were not applicable to workflow-only changes.
+- Commit/push: source commit `283493b7b` pushed to `origin/main`.
+
+## 2026-10-01 - Ninth functional upstream batch: preserve relay conversion media and response segments
+
+- Upstream reference: `4eb3b9160`; current upstream tip remains `56758edf9` with no newer commits.
+- Integrated/adapted: Claude `tool_result` image blocks now become Chat Completions `image_url` media on the surrounding user message, while text stays on the tool message and unknown blocks retain the historical JSON fallback. Responses streaming conversion now preserves closed reasoning/message outputs and opens new numbered segments after mid-stream finish reasons, including reasoning summary part lifecycle events.
+- Already present: local relaykit DTOs, hosted-tool handling, annotation support, sequence-number mode, and the existing conversion registry were preserved; only the affected local state machine and request converter were adapted.
+- Deferred: the upstream Responses custom-tool conversion, scoped access tokens, administrator step-up verification, billing trust/pre-consume migration, and frontend-only `web/src` changes remain separate work.
+- Preserved: existing Claude reasoning/model suffix behavior, tool-call ordering and validation, hosted tool events, annotations, usage accounting, all supported databases, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed; focused Claude and Responses regression tests were added. Go tests and gofmt could not run because the local Go toolchain is unavailable.
+- Commit/push: source commit `9ee61f301` pushed to `origin/main`; the follow-up log publication commit is recorded below.
+
+## 2026-10-01 - Tenth functional upstream batch: preserve Responses tool-output media
+
+- Upstream reference: `6e9de44a7`; current upstream tip remains `56758edf9`.
+- Integrated/adapted: Responses `function_call_output` content-part arrays now retain text on their Chat tool messages and convert image, file, audio, and video parts into Chat media content. Hoisted media is emitted after the contiguous tool-output batch, and media-only tool results receive a non-empty placeholder. Added regression coverage for mixed text/media, placeholder labels, legacy payload compatibility, parallel tool outputs, and end-of-input flushing.
+- Already present: the shared Responses content-part converter already mapped each supported media type for ordinary user messages and is reused for tool outputs.
+- Deferred: later upstream commits `5fe8917be`, `dfd3cd893`, `811212067`, `d04c118c8`, and `6c14c0762` target upstream frontend paths or behaviors that need separate adaptation to this fork's `web/default` implementation.
+- Preserved: legacy string/object output encoding, unknown content-part fallback, assistant tool-call ordering, native Responses behavior, existing request validation, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed. Focused Go tests and gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: source commit `73ae5d60d` pushed to `origin/main`; the final log publication commit follows.
+
+## 2026-10-01 - Eleventh functional upstream batch: preserve cached Traditional Chinese locale
+
+- Upstream reference: `5fe8917be`; current upstream tip remains `56758edf9`.
+- Integrated: language detection now recognizes the normalized `zhtw` form produced when a cached `zhTW` interface code is lowercased, preserving Traditional Chinese after page reloads. Added regression coverage for normalized codes, browser locale mapping, and non-Chinese pass-through.
+- Already present: the default frontend's `zhCN`/`zhTW` resource mapping and locale normalization were reused.
+- Deferred: the remaining upstream frontend-only fixes require separate adaptation or are already represented differently in this fork.
+- Preserved: language selector options, persisted user settings, all translations, classic frontend behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: targeted Bun tests, Oxfmt, Oxlint, and `git diff --check` passed.
+- Commit/push: source commit `669a3cf2f` pushed to `origin/main`; the final log publication commit follows.
+
+## 2026-10-01 - Twelfth functional upstream batch: hide system settings from non-root admins
+
+- Upstream reference: `dfd3cd893`; current upstream tip remains `56758edf9`.
+- Integrated: the default frontend marks the System Settings sidebar entry as `ROLE.SUPER_ADMIN`, so non-root administrators no longer see the root-only navigation item while existing route and permission guards remain unchanged.
+- Already present: the sidebar role filter and the System Info root-only entry were reused.
+- Deferred: upstream `335ebcff7` Responses custom-tool conversion remains a separate protocol migration requiring request, response, stream, and registry state changes.
+- Preserved: system settings routes, backend authorization, root-user navigation, classic frontend behavior, protected project identifiers, and unrelated untracked worktree files.
+- Validation: targeted Oxfmt/Oxlint and `git diff --check` passed; full frontend build was not rerun for this one-line navigation metadata change.
+- Commit/push: source commit `42fd94a7e` pushed to `origin/main`; the final log publication commit follows.
+
+## 2026-10-01 - Thirteenth functional upstream batch: preserve Responses custom tools on Chat upstreams
+
+- Upstream reference: `335ebcff7`; upstream tip remains `56758edf9`.
+- Integrated/adapted: Responses custom tools now cross the Chat Completions compatibility boundary as function tools with one string `input` argument, preserving descriptions and grammar hints. Custom tool choices and custom tool call history are encoded as Chat function choices/calls, while synchronous and streaming Chat responses restore `custom_tool_call` items and emit `response.custom_tool_call_input.delta` / `done` events. Conversion state records the encoded custom tool names and clears on every new or retry conversion, preventing stale restoration across channels.
+- Already present: local Responses tool-output media hoisting, reasoning output lifecycle, hosted-tool normalization, annotation handling, conversion loss policy, and request/response registries were retained and merged with the upstream custom-tool path. Added the upstream conversion diagnostic collector needed by the registry integration.
+- Deferred: scoped access tokens, administrator step-up verification, and unrelated frontend changes remain separate batches.
+- Preserved: ordinary function tools, native Responses behavior, Claude/Gemini conversions, billing/accounting, all supported databases, protected project identifiers, and unrelated untracked worktree files.
+- Validation: `git diff --check` passed; focused request, response, stream, registry, collision, and retry regression tests are present. Go tests and gofmt could not run because the local Go toolchain is unavailable.
+- Commit/push: source commit `7914d340c` is prepared for push; remote verification follows.
+
+## 2026-10-01 - Friends Hub visual redesign and locale completion
+
+- Local reason: redesign the existing Friends Hub page against the approved reference layouts and complete its multi-language coverage.
+- Integrated: reorganized the default frontend into an account header, invitation feature panel, wallet balance, compact referral metrics, separate registration/cashback transfer actions, and tabbed friends/reward history views. Added responsive mobile list rows, real authenticated user avatar/name and join date, and precise translations for all 43 Friends Hub keys in en, zh, zh-TW, fr, ru, ja, and vi.
+- Preserved: existing Friends Hub summary, friends, rewards, cashback transfer, legacy registration-reward transfer, affiliate-code APIs, reward separation, wallet navigation, protected project identifiers, and unrelated untracked worktree files.
+- Validation: production frontend `bun run build` passed; targeted Oxfmt/Oxlint passed; JSON parsing and Friends Hub translation-key audit passed for all seven locales; `git diff --check` passed. Browser preview could not be rendered because the local dev/preview proxy returned HTTP 502 despite successful builds.
+- Commit/push: pending source commit and push after review.
 
 ## 2026-09-29 - Highlight Image Studio prompt input state
 
@@ -919,6 +2887,46 @@
 - Validation: streaming-header regression tests passed (10/10), targeted Oxfmt passed, frontend production build passed, and `git diff --check` passed. Targeted Oxlint still reports the existing `no-non-null-assertion` finding at `web/default/src/lib/api.ts:119`; Go tests/gofmt were not run because the Go toolchain is unavailable locally.
 - Commit/push: source commit `d213d07c9` pushed to `origin/main`.
 
+## 2026-09-28 - Filter Studio routing fields from GPT image edits
+
+- Local reason: the upstream GPT Image 2.5 provider rejected the Studio-only `group` multipart field with `invalid field`.
+- Changed: omit `group` when rebuilding OpenAI-compatible image edit multipart requests, add the documented GPT `moderation` (`low`/`auto`) capability, and add regression coverage for both behaviors.
+- Preserved: group selection for channel routing, all other provider-specific image parameters, public image APIs, Chat Playground, and protected project identifiers.
+- Validation: `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
+
+## 2026-09-28 - Align GPT Image 2.5 Studio parameters with provider reference
+
+- Local reason: the supplied GPT Image 2.5 reference documents `moderation`, restricts output formats to PNG/JPEG, and only permits compression with JPEG output.
+- Changed: added a GPT Image 2.5-only `moderation` (`low`/`auto`) capability, applied the documented PNG/JPEG and quality options to GPT Image 2.5, and omit its `output_compression` unless `output_format` is `jpeg` while preserving legacy GPT Image profiles.
+- Preserved: other provider parameter profiles, group routing, image edit context, public APIs, billing, and protected project identifiers.
+- Validation: targeted frontend Oxfmt and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
+
+## 2026-09-28 - Send scalar image edit fields without JSON quotes
+
+- Local reason: Studio multipart edits serialized scalar string fields such as `background` and `output_format` with JSON quotes, while the provider expects plain multipart values.
+- Changed: serialize scalar multipart fields as plain strings and retain JSON encoding only for nested/object parameters.
+- Preserved: Gemini JSON edits, OpenAI image file uploads, request preview output, model/group routing, and protected project identifiers.
+- Validation: targeted frontend Oxfmt/Oxlint, production build, and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
+
+## 2026-09-28 - Sanitize Studio edits when pass-through is enabled
+
+- Local reason: pass-through mode could forward the Studio-only `group` field without the OpenAI adaptor's filtering step.
+- Changed: force Studio image requests through the adaptor so internal routing fields are removed even when global or channel pass-through is enabled.
+- Preserved: pass-through behavior for public image routes, provider adapters, group-based channel selection, and protected project identifiers.
+- Validation: targeted frontend checks, production build, and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
+
+## 2026-09-28 - Resolve GPT JPEG compression dependency before serialization
+
+- Local reason: capability ordering could process `output_compression` before `output_format`, incorrectly omitting compression for valid JPEG requests.
+- Changed: resolve the enabled output format before building the request and use it to gate GPT Image 2.5 compression.
+- Preserved: parameter switches, provider-specific request keys, request previews, and protected project identifiers.
+- Validation: targeted frontend Oxfmt/Oxlint, production build, and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
+
 ## 2026-09-27 - Proxy cross-origin Image Studio edit sources
 
 - Local reason: editing a generated image failed in browsers when the provider returned a signed image URL without CORS permission; the `<img>` element could display it, but `fetch()` could not read it for the edit upload.
@@ -934,6 +2942,46 @@
 - Preserved: existing image request builder, model-specific parameters and request preview, contextual editing, attachment handling, bottom composer controls, image downloads, and legacy persisted image history through automatic migration.
 - Validation: targeted Oxlint, production `bun run build`, and `git diff --check` passed. Go validation was not needed for this frontend-only change.
 - Commit/push: commit `65e27c2e0` pushed to `origin/main`.
+
+## 2026-09-27 - Complete GPT image parameter bounds and editable size presets
+
+- Local reason: GPT image models need a stricter provider contract than the shared image defaults: `n` 1-10, quality values through `xhigh`/`max`, and constrained custom dimensions.
+- Changed: GPT image capability profiles now expose the provider-specific count, quality, common 1K/2K/4K size presets, and OpenAI output options; non-GPT profiles no longer expose `n` in Studio, including the generic fallback; request validation enforces `auto` or 16-aligned `WIDTHxHEIGHT`, 3840px maximum side, 1:3–3:1 aspect ratio, and 655,360–8,294,400 pixels; multipart GPT defaults use `auto`; the Studio size field now supports both preset suggestions and custom input; added regression coverage for capability exposure and validation boundaries.
+- Preserved: non-GPT image provider parameter rules, generic image billing bounds, existing Studio history/edit behavior, protected project identifiers, and unrelated untracked files.
+- Validation: frontend production build, targeted Oxlint/Oxfmt, and `git diff --check` passed. Full frontend typecheck remains blocked by existing missing test dependencies and unrelated type errors. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: source commit `f6a79b73d1e62b1cc6d2e556b0019fabad66b794` pushed to `origin/main`; the first push attempt hit a remote ref-lock race, and the retry confirmed the remote was already up to date.
+
+## 2026-09-27 - Show public image API paths in request preview
+
+- Local reason: the Studio request preview showed internal `/pg/images/*` routes, which are not the customer-facing API contract.
+- Changed: preview endpoint labels and generated cURL now use `/v1/images/generations` or `/v1/images/edits` for OpenAI-compatible image requests, and `/v1beta/models/{model}:generateContent` for Gemini image models; updated the preview description and translations.
+- Preserved: actual Studio request routing, request payload construction, reference-image redaction, model selection, and protected project identifiers.
+- Validation: targeted image-playground Oxfmt/Oxlint, frontend production build, and `git diff --check` passed. Full frontend typecheck remains blocked by existing missing test dependencies and unrelated type errors. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: included in source commit `f6a79b73d1e62b1cc6d2e556b0019fabad66b794`, pushed to `origin/main`.
+
+## 2026-09-27 - Fix Studio image edit model routing
+
+- Local reason: Image Studio edit requests sent multipart form data to `/pg/images/edits`, but channel distribution only extracted multipart model names for the public `/v1/images/edits` path, causing edits to fail with an empty-model error.
+- Changed: apply the image generation/edit model extraction to both public and Studio paths, preserve the selected Studio group for image edits, validate multipart parsing errors, and cover the Studio GPT image edit request with a middleware regression test.
+- Preserved: existing `/models` routing, Chat Playground behavior, public image API behavior, image request validation, billing, and protected project identifiers.
+- Validation: frontend Oxfmt check and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: source commit `fe1640fa3` pushed to `origin/main`.
+
+## 2026-09-27 - Handle browser multipart boundaries for Studio edits
+
+- Local reason: the first routing fix still relied on an exact multipart Content-Type comparison, while browser requests include a boundary parameter and could bypass model extraction.
+- Changed: detect multipart requests by the Content-Type prefix and read `model`/`group` directly from the reusable multipart form before channel selection.
+- Preserved: public image routes, Chat Playground, request validation, billing, and protected project identifiers.
+- Validation: `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
+- Commit/push: source commit `d9f5edf7c` pushed to `origin/main`.
+
+## 2026-09-27 - Fix multipart form compilation in Studio routing
+
+- Local reason: the GHCR build exposed that `multipart.Form.Value` is a `map[string][]string`; the routing fix incorrectly called a nonexistent `.Get` method.
+- Changed: read the first value from multipart `model` and `group` fields with an empty-value guard.
+- Preserved: Studio/public image routing, Chat Playground behavior, billing, request validation, and protected project identifiers.
+- Validation: `git diff --check` passed; CI compilation is the required Go validation because Go is unavailable locally.
+- Commit/push: source commit `6858f1048` pushed to `origin/main`.
 
 ## 2026-09-26 - Persist Image Studio history across navigation
 
@@ -975,12 +3023,36 @@
 - Validation: changed-file Oxfmt and Oxlint passed; frontend production build passed. Full typecheck remains limited by existing unrelated repository errors and missing test dependencies.
 - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
+## 2026-09-26 - Add model-aware image playground parameters and request preview
+
+- Local reason: image models expose different generation/edit parameters; the Image Studio needed per-model controls, independent parameter switches, persistent values, and a request preview suitable for reuse in other clients.
+- Changed: added an authenticated image-model capability endpoint with conservative channel intersections; added provider-aware parameter profiles for OpenAI, Gemini/Vertex, xAI, MiniMax, Ali, SiliconFlow, Replicate, and Jimeng; added capability-driven parameter controls and per-group/model/operation persistence; added a shared request builder used by generation, edit, JSON preview, and cURL preview; expanded multipart parsing for provider parameters while preserving image count validation and `dto.MaxImageN` billing bounds; converted browser attachment URLs to data URLs for Gemini edits; added backend capability regression tests and localized UI strings.
+- Preserved: the existing `/models` route and Models page, Chat Playground behavior, image history persistence, group/model selectors, access-token handling, and upstream provider adapters. Preview output uses `<your-token>` and omits reference image contents.
+- Validation: targeted image-playground Oxlint passed; frontend production build passed; `git diff --check` passed. Full frontend typecheck remains blocked by existing missing test dependencies and unrelated type errors. Go tests/gofmt could not run because Go is not installed locally. Untracked logs, reports, lockfiles, and helper files were deliberately excluded.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+
 ## 2026-09-24 - Add Studio dropdown to top navigation
 
 - Local reason: group the existing chat and image playground entries under the `Studio` top navigation menu to match the updated product layout.
 - Changed: replaced only the top-level `Chat` header link with a `Studio` dropdown containing `Chat` (`/playground`) and `Image` (`/image-playground`) entries; preserved all other top navigation links and routes.
 - Preserved: existing backend HeaderNavModules visibility and authentication behavior, sidebar navigation, and all unrelated header actions.
 - Validation: changed-file Oxlint, Oxfmt, typecheck, and `git diff --check` passed. Production build was started but the local process ended before emitting a completion status.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+
+## 2026-09-24 - Reorganize Studio sidebar navigation
+
+- Local reason: make the workspace hierarchy clearer by grouping chat, image generation, and configured chat application shortcuts under a Studio sidebar section.
+- Changed: renamed the sidebar group to `Studio`; renamed the existing Playground item to `Chat`, the image playground item to `Image`, and the dynamic client shortcut item to `Chat Apps`; updated the sidebar module settings labels and descriptions in English and Chinese.
+- Preserved: existing `/playground` and `/image-playground` routes, dynamic preset behavior, route guards, and the `chat.playground` / `chat.chat` sidebar permission keys for backward compatibility.
+- Validation: changed-file Oxlint, Oxfmt, frontend production build, locale JSON parsing, and `git diff --check` passed. Full repository lint and Go tests remain limited by the existing unrelated frontend lint errors and unavailable Go toolchain.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+
+## 2026-09-24 - Add image generation playground relay support
+
+- Local reason: add a dedicated image-generation Playground route for OpenAI-compatible image models and Gemini generateContent image models.
+- Changed: registered `/pg/images/generations`; reused Playground authentication, group selection, image request validation, billing, and OpenAI image responses; converted Gemini and Vertex Gemini image requests to `generateContent` and their inline image responses to `data[].b64_json` while preserving `mime_type`; forced that native conversion for both Playground and standard image routes when pass-through is enabled; added strict Gemini image-model suffix recognition plus `nano-banana` support and regression coverage for the requested GPT Image names; added the authenticated `/image-playground` page with group-scoped model loading, prompt/size/quality/count controls, full-image preview, MIME-aware download, and image generation results.
+- Preserved: existing chat Playground behavior, standard `/v1/images/generations`, Imagen `predict` conversion, OpenAI-compatible image adapters, and sidebar visibility settings for the existing Playground module. Gemini generateContent image requests reject streaming and counts above one after model mapping, including aliases.
+- Validation: added route-mode, model endpoint, request bounds, mapped-model compatibility, native Gemini/Vertex pass-through selection, Gemini request conversion, Gemini response MIME conversion, and image response conversion regression tests. Changed-file Oxlint and Oxfmt, frontend production build, locale JSON parsing, and `git diff --check` passed; repository-wide Oxlint still reports existing failures in unrelated files. Repository-wide `copyright:check` reports existing unrelated files needing header updates; none of the new image-playground files are listed. Go tests and gofmt could not run because the Go toolchain is unavailable locally; full frontend typecheck remains blocked by existing unrelated type errors and missing test dependencies.
 - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-22 - TypeSafe task pricing display and native performance samples
@@ -991,6 +3063,70 @@
 - Validation: targeted frontend lint passed; Bun execution verified the configured expression yields inputPrice 0.042 and scaled preview cost 16.884 for 402 tokens. Full typecheck is blocked by existing missing testing-library/vitest dependencies and unrelated type errors. Go is unavailable locally; backend runtime validation remains pending.
 - Frontend production build: `bun run build` passed. Historical success rates will change as new samples arrive; prior failures remain in the selected time window.
 - Commit/push: source commit `dfcb049db` (`fix(typesafe): show usage pricing and record native metrics`) pushed successfully to `origin/main`. GitHub Actions image publication and deployment verification remain pending. This status is recorded in a documentation-only follow-up commit.
+
+## 2026-09-22 - Complete SystemOne runtime contract and gate image publication
+
+- Local reason: earlier fixes only checked JavaScript syntax and missed required query/native exports and host response contracts, causing startup panics and incorrect synchronous completion.
+- Integrated: TypeSafe 1.1.1 exposes all required hooks and native route members, decodes the host JSON envelope, forwards mapped upstream names from the canonical request, uses `/v1/systemone` for both upstream kinds, returns `taskData` and `immediate`, and supplies bounded estimate/actual usage hooks. Polling fails explicitly without resubmitting requests.
+- Preserved: Jev and Laya support, synchronous answers, gateway-facing routing, existing database overrides, Sora customizations, and existing pricing expressions. Database overrides still take precedence; existing installations must select the built-in version to use this source.
+- Validation: 20 deterministic fixtures passed under Node; `git diff --check` passed. No local Go toolchain or Docker build. Docker builder now runs `go run ./cmd/check-task-plugins`, exercising all embedded registration plus the same fixtures in the real Go runtime before image publication. CI result remains pending.
+- Commit/push: source commit `828d174a6` successfully pushed to `origin/main`. Go-runtime validation and image publication are pending GitHub Actions; this documentation-only follow-up records the confirmed source push.
+
+## 2026-09-22 - TypeSafe/Laya model mapping compatibility
+
+- Local reason: the structured-decision plugin rejected channel model aliases because it validated `upstreamModel` instead of the gateway model, and did not declare Laya.
+- Integrated: added the built-in TypeSafe plugin template with `laya`, gateway-model validation, upstream model forwarding for mappings such as `jev-1.13.0` to `jev-1.13`, synchronous rendering, and bounded `usage.input_tokens` extraction.
+- Preserved: `/v1/systemone` routing, vendor/new-api URL handling, native synchronous answers, and token-based billing usage.
+- Validation: JavaScript syntax check and `git diff --check`; full Go test suite unavailable because Go is not installed locally.
+- Commit/push: source commit `c5f9f34a5` created; push pending until this log entry is amended with the final publication status.
+
+## 2026-09-22 - Fix TypeSafe embedded plugin startup metadata
+
+- Local reason: startup validation rejected the embedded TypeSafe plugin because token usage schemas require usage examples.
+- Integrated: added bounded `input_tokens` usage examples so the plugin registry accepts the built-in plugin.
+- Preserved: model mapping, Laya support, synchronous responses, and billing usage extraction.
+- Validation: JavaScript syntax check and `git diff --check`; Go toolchain unavailable locally.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+
+## 2026-09-22 - Fix TypeSafe task result hook registration
+
+- Local reason: plugin registration still required the standard `parseTaskResult` export for task plugins, including synchronous native routes.
+- Integrated: added `parseTaskResult` as a compatibility delegate to the synchronous response parser.
+- Preserved: native synchronous rendering and usage extraction.
+- Validation: JavaScript syntax check and `git diff --check`; Go toolchain unavailable locally.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+
+## 2026-09-22 - Complete TypeSafe query hook contract
+
+- Local reason: the plugin registry requires `buildQueryRequest` for every non-batch task plugin, including synchronous native routes.
+- Integrated: added a compatible query request hook delegating to the SystemOne request builder.
+- Preserved: synchronous native response behavior and model mapping.
+- Validation: JavaScript syntax check and `git diff --check`.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+
+## 2026-09-22 - Decisions output modality
+
+- Local reason: add the requested Decisions output category and supplied SVG icon.
+- Changed: default model plaza tabs, counts, filtering, card icons, detail labels, admin metadata output selection and table labels; translated Decisions in all seven supported locales.
+- Preserved: existing modalities, input choices, pricing, billing, database storage and classic frontend.
+- Validation: default frontend production build, seven locale JSON/key checks and git diff --check passed; browser interaction not tested. No backend changes.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+
+## 2026-09-22 - Recognize zero base prices as free on model cards
+
+- Local reason: zero input/output prices did not show the free badge unless the group multiplier was also zero.
+- Changed: share free classification between card badges, green prices and the free/discount filters; recognize explicit zero token/request pricing while excluding dynamic-expression and Sora placeholders.
+- Preserved: quota calculations, settlement, group selection and existing discount styling; no backend changes.
+- Validation: eight targeted free-pricing regression cases and frontend production build passed; browser interaction not tested.
+- Commit/push: bundled with Decisions output modality in e6c9bd49e; verified GitHub origin/main matches this commit via git ls-remote. Push reported a concurrent ref update after the remote had reached the target commit.
+
+## 2026-09-22 - Add explicit per-plugin marketplace updates
+
+- Local reason: built-in marketplace cards only showed a non-interactive "Updates with the system" badge, while this fork intentionally keeps gateway and customized plugin updates independent.
+- Integrated: every marketplace card now exposes its own install, review-and-upgrade, or reinstall action. The existing source/diff review flow updates only the selected plugin, retains previous database versions for rollback, and states that channels and credentials remain unchanged while active plugin source is replaced.
+- Preserved: integrity verification, conflict preflight, version history, factory fallback, channel configuration, and all other plugins remain untouched by a single-plugin action.
+- Validation: targeted oxlint, production build, locale JSON parsing, and `git diff --check` passed. Full typecheck remains blocked by pre-existing missing test dependencies and unrelated pricing, wallet, system-settings, and task-plugin type errors; none point to the files changed here.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-21 - Return native synchronous plugin responses
 
@@ -1006,14 +3142,6 @@
 - Integrated: registered the gateway-facing TypeSafe POST route as `/v1/systemone` with plugin pinning, authentication, rate limiting, task preparation, distribution, and billing; missing-plugin responses now return explicit JSON 404 errors.
 - Preserved: vendor channels append `/v1/systemone` to their configured base URL, so ZenMux and ModelVerse use `https://zenmux.ai` and `https://api.modelverse.cn` respectively.
 - Validation: added route registration and missing-plugin regression tests; `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable locally.
-- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-
-## 2026-09-24 - Reorganize Studio sidebar navigation
-
-- Local reason: make the workspace hierarchy clearer by grouping chat, image generation, and configured chat application shortcuts under a Studio sidebar section.
-- Changed: renamed the sidebar group to `Studio`; renamed the existing Playground item to `Chat`, the image playground item to `Image`, and the dynamic client shortcut item to `Chat Apps`; updated the sidebar module settings labels and descriptions in English and Chinese.
-- Preserved: existing `/playground` and `/image-playground` routes, dynamic preset behavior, route guards, and the `chat.playground` / `chat.chat` sidebar permission keys for backward compatibility.
-- Validation: changed-file Oxlint, Oxfmt, frontend production build, locale JSON parsing, and `git diff --check` passed. Full repository lint and Go tests remain limited by the existing unrelated frontend lint errors and unavailable Go toolchain.
 - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-21 - Accept marketplace route retainResult metadata
@@ -1052,6 +3180,92 @@
 - Validation: `git diff --check` passed. Go tests, compilation and `gofmt` could not run because no Go toolchain is installed locally. The repository's local `oxfmt`/`oxlint` binaries were unavailable, so targeted frontend format/lint could not run; frontend source was checked by static inspection. CI compilation and frontend checks remain required.
 - Source commit: `1b15466ba` (`feat(channel): bind multiple task plugins to new api`). Pushed to `origin/main` and verified by the successful push command.
 - GitHub Actions compilation and frontend checks remain pending; local Go tests and targeted formatter/linter binaries were unavailable.
+
+## 2026-09-21 - First frontend fixes from upstream 9a0be8750
+
+- Upstream reference: 33320407f (OIDC save isolation), 2d7aef741 (CC Switch model dropdown), c49972441 and a5bf94022 (mobile dialog viewport fallbacks and editor follow-up), a89037d0b (linked-account OAuth verification).
+- Integrated: OIDC discovery now runs only when its URL changes or OIDC is newly enabled; invalid URLs are attached to the form and switch to the OIDC tab. CC Switch uses the default Combobox/Input controls with accessible labels and no mobile spacer. Dialog and alert-dialog primitives use dynamic viewport height/center fallbacks with safe-area CSS variables.
+- Already present or not applicable: linked-account OAuth verification is not present in the local default frontend verification contract, which currently exposes only 2FA and passkey methods; no speculative OAuth flow was added.
+- Deliberately preserved: local auth method model, protected project identifiers, custom dialog content behavior, and all untracked user files.
+- Validation: targeted frontend format/lint checks and git diff --check; full frontend typecheck/build limitations are recorded below if encountered.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+
+## 2026-09-20 - Selected upstream safety, image billing, and protocol fixes
+
+- Review reference: previous explicit review point 385d2dfd1; fetched upstream main 972aed1972820389ea0b603ca58f03f846fbf790 (59 subsequent commits). This is a selective batch, not a claim that the entire range is integrated.
+- Integrated/adapted: 07578faf2 counts OpenAI image payloads (including object-shaped data and split URL/base64 responses), preserves bounded image quantities, and forwards JSON fallback images through SSE. e2bb05f70 maps output image-token details into canonical billing usage; added the missing optional OutputTokensDetails DTO dependency.
+- Integrated/adapted: a8ed7f7c5 supplies per-family Hailuo usage profiles and resolution choices. Existing submission, polling, usage facts, settlement and older expression inputs are deliberately preserved; runtime functions are byte-equivalent after newline normalization.
+- Integrated: 610334dbd requests usage for supported cross-protocol Chat streams; 8e5e09166 forwards Ollama terminal-frame content/tool calls; 3e8c358da preserves Zhipu reasoning_effort; 62f8db775 prefers USD DeepSeek balances with validated CNY conversion fallback; 76f7dafd2 accepts mixed-case audio extensions.
+- Adapted: 81336fc69 rejects unimplemented Gemini :countTokens before authentication/channel selection. fa90b2312 fixes case-insensitive thinking-level validation and canonical effort recording on the local Gemini request path; upstream-only reasoning-host refactors are not copied.
+- Security adaptation of 2906e4f77: permanent numeric GitHub IDs still authenticate normally. A legacy username match no longer rewrites a binding or authenticates; it records a security audit and asks the user to sign in independently and explicitly relink. Numeric login names cannot select another account by legacy matching. Explicit binding no longer treats reusable usernames as proof of an existing permanent binding.
+- Deferred security compatibility: upstream verified-email and transactional second-factor automatic migration depend on the newer account-security flow. They are not integrated; legacy-only users need another login/recovery method to relink. This intentionally favors refusing unverifiable legacy authentication over importing an incompatible session architecture.
+- Already present and preserved: image-count ceiling and disconnect count protection, quota saturation guards/audit, legacy plugin fact validation, Sora per-request/audio pricing, group/customer ratios, wallet/payment behavior, existing frontend themes and protected identifiers.
+- Deferred: 6237d9d77 model limiter reservations depend on the new protocol-outcome classification; evaluate with that batch. Responses WebSocket, request policies, metrics/outcome refactors, remaining frontend changes and Passkey multi-domain remain separate work. Intentionally not applied: 55a6cd2a4 interrupted-stream estimated charging, which conflicts with the local client_gone billing safeguards.
+- Validation: git diff --check passed; Node execution checked all 10 Hailuo model profiles, sample fields, legacy usage facts, H3 duration rejection and unchanged runtime functions. Added/adapted Go regression tests for image counts/usage, cross-protocol stream options, Ollama final frames, GitHub account isolation/audit, Hailuo profiles, Gemini route/effort, Zhipu effort, DeepSeek balances and audio extensions. Go tests, gofmt and compilation could not run because no local Go toolchain is installed; no toolchain or Docker image was installed/built. CI compilation remains required; Node checks do not validate the Go plugin host.
+- Commit/push: pending source commit and remote verification; publication record follows separately.
+
+## 2026-09-20 - Publication record for selected safety/protocol batch
+
+- Source commit: b24c61705fb50435a6fb5c38578af70c8039bee8.
+- Push verification: git ls-remote confirmed origin/main equals the source commit. The push reported a concurrent ref-lock update, but the remote already contains the exact intended commit.
+- GitHub Actions: Publish Docker image (GHCR), run 35466628041, was in progress when checked; build success and image publication are not yet verified. Go regression tests remain unexecuted locally.
+- This documentation-only follow-up records the verified source publication; its own push is pending remote verification.
+
+## 2026-09-20 - Selected upstream plugin privacy and response diagnostics
+
+- Review reference: upstream main 972aed1972820389ea0b603ca58f03f846fbf790; this is another selective batch, not a full upstream merge.
+- Integrated: 7209b6db9 removes task-plugin keys and administrator instructions from public no-channel errors; candidate keys remain in request-correlated server warnings. Updated all three backend locales.
+- Integrated: 129f21b69 normalizes invalid UTF-8 before JSON-state encoding, including appendText, while preserving encoded-byte limits, failed-state behavior and rejection of invalid keys/paths.
+- Integrated/adapted: e04c05c2b permits 0.0001 increments in default-theme group/recharge ratios and tool prices. The local log group filter already uses sensitiveInputClass and is not the upstream portaled combobox; that privacy fix is already present/not applicable.
+- Integrated/adapted: ed7c4e35d plus 972aed197 records requested, mapped and upstream-reported models before conversion on local OpenAI/Responses, Claude and Gemini paths. Retains the first mismatch, accepts case/version/provider-path aliases, and clears observations on channel retry. Diagnostics are deliberately nested under admin_info.response_model and displayed only for administrators in default-theme model badges/details; unlike the upstream public metadata, local channel privacy is preserved. No routing, billing model, or downstream response is changed. Upstream-only handlers absent from this architecture are not imported.
+- Integrated: 946c730ed replaces repeated Claude tool-name scans with one-pass indexing and deferred result resolution, retaining forward references, first duplicate matches and explicit tool-result names.
+- Local maintenance: fixed existing lint errors in the touched log components (type-only import, nullable price narrowing, nested conditionals and stable field keys); immutable repeated audit lines retain occurrence-based keys with a documented lint exception. Added all new UI translations for seven supported locales.
+- Preserved: quota saturation/audit, client-disconnect safeguards, Sora/audio/image billing, group/customer ratios, wallet/payment behavior, both frontend themes, existing provider icons, and protected project identifiers. Unrelated untracked files were not included.
+- Deferred/intentionally skipped: model limiter/outcome refactors, Responses WebSocket, request policies, new channels and broader UI migrations remain separate batches; interrupted-stream estimated charging remains intentionally excluded.
+- Validation: frontend response-model regression test and targeted lint passed; seven locale JSON files and new keys verified; git diff --check passed. Final production rebuild passed after lint cleanup. Typecheck remains blocked by existing repository errors (including missing RequestRuleTrace export and test dependencies), not errors in the new diagnostics implementation. Format check flags three existing files; checking their HEAD versions independently flags the same three. Large unrelated whole-file reformatting is deliberately avoided.
+- Backend regression coverage added for UTF-8 codec independence/size boundaries, public plugin-error privacy, model mismatch retention/admin-only nesting/retry reset, OpenAI stream capture, and Claude tool-result resolution. Go tests, compilation and gofmt were not run because no Go toolchain is installed locally; no toolchain or Docker image was installed/built. GitHub CI compilation is still required.
+- Previous batch CI: Publish Docker image (GHCR) run 35466684065 completed successfully.
+- Commit/push: source commit pending; a publication record will identify its SHA and remote verification.
+
+## 2026-09-20 - Publication record for plugin privacy/diagnostics batch
+
+- Source commit: 62720004d41f9fc6ccc2d1760fff687ce4d69d91.
+- Push verification: git ls-remote confirmed origin/main equals the source commit. Although the push command reported a remote temporary-pack error, the exact intended commit is present on origin/main.
+- GitHub Actions: Publish Docker image (GHCR), run 35468936013, is in progress; successful compilation and image publication are not yet verified. Local Go tests remain unexecuted.
+- This documentation-only follow-up records source publication; its own push will be verified against origin/main.
+
+## 2026-09-20 - Model success limits and protocol outcomes
+
+- Upstream reference: selective adaptation of d3874db61 (on-demand memory limiter allocation/LRU cleanup), 8b2c7105f (protocol outcome facts), 6237d9d77 (in-memory admission reservations and outcome-aware accounting), and only the necessary adapter observation portions of a5b40663d. Review reference remains 972aed197; no claim of full-range integration.
+- Integrated: memory limiter initializes under its mutex, expires all stale timestamps, allocates on demand and cleans idle keys from the LRU tail. Active reservations survive idle-key eviction, complete once, consume the success window only on success, and release on failure/panic. Nonpositive capacities reject without allocation; disabled model success limits bypass reservations.
+- Adapted: both memory and Redis success accounting observe response outcomes rather than HTTP status alone. Failed/cancelled outcomes, soft errors, client cancellation, transport errors and missing required terminal events are excluded. Normal output-token-limit truncation remains successful. Generic DONE is accepted as a terminal marker for compatible streams; adapters without explicit terminal requirements retain HTTP-success fallback.
+- Adapted: OpenAI Chat/Completions, Responses (native, buffered, cross-converted and non-stream status), Claude message_stop and Gemini finish/error events populate diagnostic outcome state. The controller resets response state/context on each retry and publishes final errors even after HTTP 200. Upstream messages are not copied into structured outcome facts.
+- Deliberately preserved: existing scanner disconnect draining, client_gone settlement safeguards, quota pre-consume/refund/saturation, image/Sora/audio/tool charging, group/customer ratios, wallet/payment behavior, metrics sampling, UI and protected project identifiers. No billing-path or frontend changes. Existing untracked user files remain excluded.
+- Deferred: a5b40663d performance sampling/dashboard overhaul; Responses WebSocket, request policies and new channels. Redis distributed in-flight reservations are NOT supplied by upstream 6237d9d77 and are not introduced here: Redis retains its existing post-completion admission behavior, while sharing outcome-based success classification. Interrupted-stream estimated charging remains intentionally skipped.
+- Validation: git diff --check passed. Added regression coverage for memory allocation/window expiry/concurrent initialization, reservation concurrency/idempotence/eviction, memory and Redis failure-vs-success/total limits, panic cleanup, disabled limits, cancellation, protocol outcomes, late errors, terminal truncation, retry reset and native adapter observation. Added a targeted GitHub Actions workflow using Redis and Go race detection; execution pending source push. Go, gofmt and local backend tests are unavailable on this machine; no toolchain or Docker build was installed/run locally. No frontend changes require a frontend build.
+- Previous batch publication confirmed: GHCR run 35468979878 completed successfully for the publication-record commit; source-only run 35468936013 was superseded/cancelled.
+- Commit/push: pending source commit and CI; publication record follows after remote verification.
+
+## 2026-09-20 - Race-check follow-up for model limits
+
+- Source 72a93500242eee6265f3dfd99c163a6e12f3f8f9 was pushed and verified on origin/main. CI run 35517712064 passed common, middleware (including live Redis), relay/common and all three adapter packages, but failed on historical scanner test configuration races, an actual logger rotation-counter race, and unrelated stale service task-test interfaces.
+- Local prerequisite fixes: made logger rotation count/dispatch flags atomic and serialized the one scanner test that modifies global ping/timeout settings. Scanner goroutine panics now explicitly mark a failed outcome even if transport EOF was recorded earlier; transport end-reason and billing decisions are preserved.
+- Validation scope: keep race detection for limiter/scanner/adapter regressions; run the new standalone Responses observer source/test pair separately from the stale service task test suite. Those task-suite compilation failures remain deferred and are not represented as passing. No task production code changed.
+- Validation: git diff --check passed; revised CI pending. Commit/push: pending follow-up commit and verification.
+
+## 2026-09-20 - Apply CI formatting and verify race fixes
+
+- Follow-up e6b15f17cd1a4134d930a4042b5f4efa9c593122 was pushed and remote-verified. CI run 35518224196 passed all seven limiter/scanner/adapter package checks with race detection, including Redis and panic regressions. It then stopped on gofmt differences, so the standalone service observer check was not run.
+- Applied the exact gofmt diff generated by the Go 1.26.1 CI job to the eight reported files; no runtime behavior changed. Local git diff --check passed. Full revised CI and independent observer check pending this formatting commit.
+- Preserved all behavior from the selective limit/outcome batch and the existing protected identifiers. Commit/push: pending formatting commit and verification.
+
+## 2026-09-20 - Verified publication of model limit/outcome batch
+
+- Source commits: 72a93500242eee6265f3dfd99c163a6e12f3f8f9 (selective integration), e6b15f17cd1a4134d930a4042b5f4efa9c593122 (race fixes), and 16472336d9019510b6102b6c5038a9a4733ab18f (CI-generated formatting). git ls-remote verified the final source commit on origin/main despite the push reporting a concurrent ref update.
+- Final regression CI: https://github.com/1412212638/OmniRouters/actions/runs/35518519868 completed successfully. All seven selected package suites passed with -race, live Redis integration passed, gofmt passed, and the independent Responses observer regression passed. The earlier runtime logger data race is fixed; tests retain their internal concurrency coverage.
+- Remaining validation limitation: the unrelated full service task suite still has pre-existing obsolete TaskPollingAdaptor mocks and is not claimed as passing. Local Go tests were not run; the checks above ran in GitHub Actions using Go 1.26.1. Billing, UI and existing unrelated files are preserved.
+- Image publication: run 35518224174 successfully published the behaviorally equivalent race-fixed source. Run 35518519870 for the final formatting commit remains in progress at this check; its result is not yet claimed.
+- This documentation-only publication record uses [skip ci] to avoid cancelling/repeating the in-progress source image build. Its push is verified separately; it changes no executable source or workflow.
 
 ## 2026-09-18 - Free-form context and output capacity labels
 
@@ -1146,20 +3360,6 @@
   no frontend build or browser verification performed.
 - Commit/push: not committed or pushed.
 
-## 2026-09-12 - Fix pricing preview build dependencies
-
-- Local reason: GitHub Actions exposed missing symbols referenced by the first
-  pricing-expression batch: default pricing snapshots, completion-ratio
-  resolution, cache/image defaults, and legacy DALL-E conversion rules.
-- Changed: restored these source-level helpers and kept legacy DALL-E rules in
-  the model package; no pricing settlement, Sora/audio, group discount,
-  payment, wallet, or plugin permission behavior was changed.
-- Deliberately skipped: Passkey multi-domain support and standalone audit logs.
-- Validation: source review and `git diff --check`; local Go compilation and
-  Docker build were intentionally not run. GitHub Actions is authoritative.
-- Commit and push status: pending; the follow-up route compatibility fix is
-  being recorded separately below.
-
 ## 2026-09-13 - Restore route compatibility after pricing sync
 
 - Local reason: the pricing preview sync had also replaced the existing API
@@ -1176,14 +3376,6 @@
   compilation or Docker build was run. GitHub Actions remains authoritative.
 - Commit and push status: pending.
 
-## 2026-09-12 - Normalize text performance cache input
-
-- Local reason: the text settlement performance path passed total prompt tokens plus cached tokens, double-counting cached input in the cache-rate denominator.
-- Changed: pass uncached prompt tokens separately, matching the ordinary settlement path; cache rate now uses cached / (cached + uncached).
-- Preserved: billing, quota settlement, usage logs, routing, and provider usage parsing.
-- Validation: `git diff --check`; Go compilation and browser verification unavailable locally.
-- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-
 ## 2026-09-13 - Add per-group performance tabs
 
 - Local feature: model performance details now provide an `All groups` view and
@@ -1192,6 +3384,374 @@
 - Preserved existing performance collection, billing, permissions, and table
   views.
 - Validation: `git diff --check`; frontend build and Go tests were not run.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+
+## 2026-09-13 - Restrict TTFT statistics to successful streaming samples
+
+- Local fix: TTFT averages and percentile samples now require a successful
+  streaming request with a recorded first response. Failure samples continue
+  contributing to latency and success-rate metrics only.
+- Preserved billing, TPOT, and existing percentile minimum-sample behavior.
+- Validation: `git diff --check`; Go tests were not run because Go is not
+  installed in the local environment.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+
+## 2026-09-13 - Restore pricing catalog metadata and creation ordering
+
+- Local fix: pricing responses now include model creation time, input/output
+  modalities, and vendor display metadata; catalog output is sorted by creation
+  time descending with a stable name tie-breaker.
+- Preserved model filtering, group pricing, dynamic pricing, and performance
+  display behavior.
+- Validation: `git diff --check`; Go tests were not run because Go is not
+  installed locally.
+- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-13 - Fix model pricing page 500 on legacy empty options
+  - Local fix: treat empty/null pricing Option values as unconfigured empty maps and emit a diagnostic error log with the affected key.
+  - Preserved: all existing pricing expressions, Sora/audio billing, group discounts, plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Resulting source commit: `b249e2597`; push status: pushed to `origin/main`.
+
+- 2026-09-13 - Harden model pricing snapshot against legacy non-object options
+  - Local fix: invalid/non-object legacy pricing option values are treated as unconfigured for reads, with key-specific diagnostic logging; stored values are not overwritten.
+  - Preserved: valid pricing data, billing expressions, Sora/audio billing, group discounts, plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: implementation committed as `02d0e5069` and pushed to `origin/main`; GitHub Actions is the remaining build verification.
+- 2026-09-15 - Align announcement management ordering with timeline
+  - Local change: system announcement management list now sorts publish dates from oldest to newest, matching the timeline view.
+  - Preserved: timeline ordering, announcement content, types, and expand/collapse behavior.
+  - Validation: `git diff --check`; frontend build not run.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-13 - Prevent model pricing snapshot panic on malformed completion ratio
+  - Local fix: guard the display-only audio comparison against missing/non-finite completion ratios instead of using an unsafe type assertion.
+  - Preserved: actual billing, valid pricing, Sora/audio charging, group discounts, plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-13 - Fix MySQL reserved-key query causing options/model-pricing failures
+  - Local fix: use the dialect-safe quoted Option key column when reading the Waffo Pancake unit price from the options endpoint; this prevents MySQL 1064 errors from breaking pricing settings.
+  - Preserved: existing payment amounts, billing calculations, pricing expressions, Sora/audio billing, and other payment providers.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-13 - Fix billing model pricing page initialization crash
+  - Local fix: include the plugin billing expression option in the billing settings defaults so the model pricing editor receives the complete pricing contract.
+  - Preserved: existing model pricing, task plugins, Sora/audio billing, group discounts, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-13 - Begin frontend model pricing snapshot integration
+  - Local change: added typed snapshot/conversion API clients and initiated snapshot querying in the model pricing card; legacy option data remains the fallback during migration.
+  - Preserved: existing editor, save behavior, Sora/audio pricing, group discounts, plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-13 - Add model pricing snapshot adapter boundary
+  - Local change: added a typed adapter that maps snapshot options to the legacy editor fields with field-level fallback; no save or billing behavior changes yet.
+  - Preserved: existing model pricing editor, Sora/audio billing, plugins, group discounts, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-13 - Connect model pricing snapshot adapter to editor reads
+  - Local change: model pricing editor now prefers the snapshot option maps and falls back per field to legacy system options; existing save behavior is unchanged.
+  - Preserved: JSON editor, Sora/audio billing, task plugins, group discounts, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-13 - Add model pricing conversion preview UI
+  - Local change: model pricing editor now exposes a conversion preview action for legacy pricing and applies the returned expression to the draft without saving automatically.
+  - Preserved: existing save flow, Sora/audio pricing, task plugins, group discounts, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-13 - Preserve request rules in conversion preview
+  - Local change: conversion preview now splits combined expressions using the shared parser before populating billing and request-rule editor state.
+  - Preserved: existing save flow and all billing/payment customizations.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-13 - Re-fetch pricing snapshot after model pricing saves
+  - Local change: successful model pricing updates now invalidate and refetch the snapshot query so subsequent rendering uses server-persisted values.
+  - Preserved: existing option writes, Sora/audio billing, plugins, group discounts, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Make pricing conversion preview confirmation-based
+  - Local change: conversion results now appear in a review dialog and are applied to the draft only after confirmation; no automatic save occurs.
+  - Preserved: existing pricing, Sora/audio billing, task plugins, group discounts, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Add conversion preview translations
+  - Local change: added English and Chinese translations for the conversion preview action, review dialog, status messages, and expression labels.
+  - Preserved: all existing pricing, Sora/audio billing, plugins, group discounts, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Add stream disconnect billing diagnostics
+  - Local fix: stream logs now record whether usage was present and whether billing settlement succeeded when a streamed request ends, including `client_gone` cases.
+  - Preserved: all quota calculations, pre-consume/settlement decisions, retry behavior, Sora/audio billing, task plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Classify stream usage source before disconnect settlement changes
+  - Local fix: stream logs now distinguish missing usage, provider-reported usage, and locally estimated usage using the existing BillingUsage metadata and local token-count marker.
+  - Billing impact: diagnostic only; no settlement, pre-consume, retry, or charge amount behavior changed.
+  - Preserved: Sora/audio billing, task plugins, payment flows, and non-stream requests.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Add regression coverage for stream usage source classification
+  - Local change: added tests covering missing, upstream-reported, estimated, and locally counted usage classifications before disconnect settlement work.
+  - Billing impact: tests only; no runtime settlement or stream lifecycle behavior changed.
+  - Preserved: all existing billing, retry, Sora/audio, task plugin, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Bounded upstream drain after streamed client disconnect
+  - Local fix: the shared stream scanner now keeps consuming the upstream body for up to 10 seconds after `client_gone`, allowing provider terminal usage events to reach existing relay handlers while standard downstream writes remain suppressed by the canceled request context; the body is still force-closed after the bounded window.
+  - Billing impact: no pricing, pre-consume, settlement, refund, retry, Sora/audio, or task-plugin formula changes. This only gives existing provider-usage parsers a bounded opportunity to produce actual usage; local-estimate behavior is unchanged and remains separately diagnosed.
+  - Preserved: all non-stream requests, normal stream completion, handler-stop behavior, and resource cleanup after timeout.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow. Added/updated stream scanner regression coverage for terminal data after client disconnect.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Protect client-gone settlement from local estimates
+  - Local fix: when a streamed request ends with `client_gone`, only provider-reported usage is allowed to drive variable settlement; missing/local-estimated usage settles to zero so pre-consume can be returned instead of charging a partial local estimate. Fixed-price expression settlements remain unchanged.
+  - Preserved: normal streams, provider usage settlement, Sora/audio fixed-price behavior, task plugins, retry behavior, group discounts, wallet/payment flows, and non-stream requests.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow. Added usage-source precedence coverage.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Mark manual streaming usage fallbacks as estimated
+  - Local fix: OpenAI Responses and streaming TTS paths now mark locally filled token counts explicitly, so client-gone protection cannot mistake fallback counts for provider-reported usage.
+  - Preserved: provider usage parsing, normal stream billing, fixed-price billing, Sora/audio behavior, task plugins, retries, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Add client-gone settlement guard coverage
+  - Local change: added focused regression cases for normal streams, missing usage, local estimates, and provider-reported usage at the client-gone settlement boundary.
+  - Billing impact: tests only; no additional runtime pricing behavior beyond the guarded settlement path.
+  - Preserved: all existing billing and provider flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Preserve Claude fallback usage classification
+  - Local fix: Claude stream finalization now marks the native BillingUsage snapshot as estimated when missing completion/input fields were filled by local text counting, preventing a partial fallback from being treated as fully provider-reported usage after `client_gone`.
+  - Preserved: complete Claude usage, normal settlement, cache fields, tool billing, Sora/audio, plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Mark disconnects in direct stream handlers
+  - Local fix: Cohere, Tencent, Zhipu, and Ollama direct scanner paths now record `client_gone` when the downstream request context is canceled; Ollama's empty disconnected usage is explicitly marked as local/missing rather than provider-reported.
+  - Billing impact: no normal usage, pricing, pre-consume, settlement, refund, retry, Sora/audio, plugin, or payment formula changes. The existing client-gone guard can now recognize these direct handlers and avoid charging their local fallback usage.
+  - Preserved: normal stream responses and each provider's existing parser/output behavior.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Add direct-handler disconnect regression coverage
+  - Local change: added a focused test proving a canceled downstream request initializes stream status and records `client_gone` for direct scanner implementations.
+  - Billing impact: tests only; no additional runtime pricing or settlement changes.
+  - Preserved: all existing provider, billing, task-plugin, and payment behavior.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Add bounded Cohere stream drain
+  - Local fix: the Cohere direct stream handler now keeps parsing provider lines for up to the shared 10-second disconnect window, suppresses drained output, and closes/joins the scanner on timeout so terminal provider usage can still be captured without a goroutine leak.
+  - Billing impact: no pricing or settlement formula changes; only terminal provider usage already parsed by the handler can affect billing.
+  - Preserved: normal Cohere output format, final usage parsing, fallback estimation, retry behavior, Sora/audio, task plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Make Cohere drain cancellation leak-safe
+  - Local fix: Cohere scanner delivery can now be canceled while blocked on its data channel; normal completion, client disconnect, and drain timeout all join the scanner before returning.
+  - Billing impact: no pricing or settlement formula changes; terminal provider usage remains the only usage recovered during drain.
+  - Preserved: normal Cohere streaming, fallback estimation, retries, Sora/audio, task plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Finalize streaming disconnect billing hardening batch
+  - Local batch: finalized the shared stream drain, usage-source classification, client-gone settlement guard, manual fallback markers, direct-handler disconnect status, Cohere drain, and Zhipu metadata drain work recorded above.
+  - Preserved: Sora/audio billing, task plugins, retries, group discounts, wallet/payment flows, and all unrelated untracked workspace files.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Resulting commit: `9b1872a61d91fe38cc5f9d2dfd14bd3fedeba8e5`; pushed to `origin/main` successfully. The initial push command reported a TLS close-notify warning, but remote ref verification matched this commit.
+- 2026-09-14 - Add bounded Zhipu metadata drain
+  - Local fix: the Zhipu direct stream handler now keeps consuming its separate `meta:` usage channel for the shared 10-second disconnect window, suppresses drained output, and joins the scanner on normal completion or timeout.
+  - Billing impact: no pricing or settlement formula changes; only provider metadata already parsed by the handler can affect billing.
+  - Preserved: normal Zhipu data/meta output, fallback behavior, retries, Sora/audio, task plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Preserve buffered Zhipu terminal metadata
+  - Local fix: after the Zhipu scanner completion signal, the disconnect drain now non-blockingly consumes residual buffered `meta` frames before settlement.
+  - Billing impact: no pricing or settlement formula changes; this only prevents an already-read provider usage frame from being dropped at channel shutdown.
+  - Preserved: normal Zhipu output, fallback behavior, retries, Sora/audio, task plugins, and payment flows.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-14 - Expose pricing conversion preview and task-plugin pricing in the model editor
+  - Local fix: added a page-level legacy pricing conversion dialog with model selection, backend preview, draft-only application, and the existing explicit save step. The model editor now shows compatible task plugins, their declared usage fields, and per-plugin expression overrides; plugin-only model names are included in the pricing table and marked with a plugin badge.
+  - Backend hardening: plugin billing option updates now participate in pricing refresh and are validated against the installed plugin model/schema before persistence.
+  - Billing impact: no change to expression evaluation, legacy ratio math, Sora/audio pricing, group discounts, pre-consume, settlement, refunds, or payment flows. Conversion remains opt-in and unsupported task/video routes remain rejected by the existing preview guard.
+  - Preserved: existing JSON editor, classic frontend, channel task-plugin selection, stale plugin override visibility, and all unrelated untracked workspace files.
+  - Validation: `git diff --check`; translation files inspected; local compilation/tests not run per source-only workflow.
+  - Resulting source commit: `8c61bf470`; push status: pending.
+- 2026-09-14 - Make client-gone upstream drain timeout configurable
+  - Local change: added the persisted `ClientGoneDrainTimeout` system option with a 10-second default and a strict 1-300 second range. The shared stream scanner and direct Cohere/Zhipu stream handlers now read the same atomic runtime setting instead of a fixed 10-second constant. Added the administrator input under Operations > System Behavior with English and Chinese translations.
+  - Billing impact: no change to pricing, pre-consume, settlement, refund, retry, Sora/audio, task-plugin, or payment logic. The bounded drain only controls how long existing provider parsers may wait for terminal provider-reported usage after `client_gone`; local-estimate billing protection remains unchanged.
+  - Preserved: upstream response-header wait, streaming timeout, normal stream behavior, downstream cancellation, body cleanup, and all unrelated untracked workspace files.
+  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow. Checked that all former `ClientGoneDrainTimeout` references use the shared runtime getter.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Clarify model pricing rule multipliers in model details
+  - Local fix: the pricing catalog now includes the resolved model-specific multiplier per group; the model details panel separately shows group ratio, model ratio, effective ratio, and active expiration time.
+  - Billing impact: no pricing calculation, pre-consume, settlement, refund, or expression evaluation changes; this is display metadata only.
+  - Preserved: existing model pricing, discount rules, expression pricing, group filtering, classic frontend, and protected project identifiers.
+  - Validation: `git diff --check`; Go/frontend build not run because Go is unavailable and this source-only change does not require local image builds.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Restore Sora tier preview data in model details
+  - Local fix: include enabled Sora per-request resolution pricing in the model catalog response so the existing model-details preview can render each resolution tier again.
+  - Billing impact: no change to Sora request calculation, group multipliers, pre-consume, settlement, refund, or other pricing logic; this only restores display metadata.
+  - Preserved: existing model details layout, group pricing display, expression pricing, classic frontend, and protected project identifiers.
+  - Validation: `git diff --check`; Go/frontend build not run because Go is unavailable and this is a source-only metadata fix.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Apply model pricing rule multiplier in normal billing paths
+  - Local fix: the shared group-ratio resolver now applies the active model-specific multiplier, including user-specific overrides, before pre-consume and settlement; logs retain base, model, and effective group ratios separately.
+  - Billing impact: intentional correction for configured model pricing rules that were previously displayed and resolved as the base group ratio in ordinary text billing. Rules without a model multiplier remain unchanged.
+  - Preserved: expression evaluation, expiration checks, group fallback behavior, Sora/task billing, refunds, and protected project identifiers.
+  - Validation: `git diff --check`; Go build/tests not run because Go is unavailable.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Simplify model catalog ratio display
+  - Local fix: model details now show only the final effective multiplier in the group pricing table, removing the redundant base/model/effective chain; diagnostic ratio fields remain available in usage-log details.
+  - Billing impact: no change to billing or settlement; display-only simplification.
+  - Preserved: model rule multiplier application, expiration handling, expression pricing, Sora/task billing, and protected project identifiers.
+  - Validation: `git diff --check`; Go/frontend build not run because Go is unavailable.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Fix model pricing expression conversion preview feedback
+  - Local fix: imported the frontend toast dependency used by the model pricing editor's conversion preview, report an empty model name instead of silently returning, and preserve explicitly entered zero-valued legacy prices when building the preview request.
+  - Billing impact: no change to model pricing conversion, expression evaluation, pre-consume, settlement, refund, or saved pricing data; this only fixes preview invocation and input transport.
+  - Preserved: the global conversion dialog, conversion API contract, draft-only apply flow, Sora/audio pricing, task-plugin pricing, and protected project identifiers.
+  - Validation: `git diff --check`; local frontend build/typecheck not run per source-only workflow.
+  - Resulting source commit: `c9b27f95d`; push status: pushed to `origin/main`.
+- 2026-09-15 - Convert system notice editor to announcement management
+  - Local change: the System Notice settings section now uses the announcement list editor, supporting independent notice records with add, edit, delete, publish date, type, and expandable content; legacy plain-text Notice values are loaded as one record.
+  - Preserved: the Notice option key and public Notice endpoint, existing console announcements, and protected project identifiers.
+  - Validation: `git diff --check`; frontend build not run.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Move system notice under content management
+  - Local change: moved the System Notice editor from Site Settings into the existing Content Management menu beside Announcements, while preserving the Notice option key and legacy migration behavior.
+  - Preserved: public Notice endpoint, existing platform announcements, system information/site settings, and protected project identifiers.
+  - Validation: `git diff --check`; frontend build not run.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Render structured system notices correctly
+  - Local fix: the notification popover now detects the structured Notice announcement array and renders separate timeline entries instead of exposing the serialized JSON; legacy plain-text Notice values remain supported.
+  - Preserved: Notice endpoint, announcement types, publish dates, expand/collapse behavior, and protected project identifiers.
+  - Validation: `git diff --check`; frontend build not run.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Use English dates in announcement timelines
+  - Local change: system notices and platform announcements now format timeline dates consistently as English abbreviated month plus day, such as `Sep 12`.
+  - Preserved: announcement content, types, publish ordering, expand/collapse behavior, legacy Notice compatibility, and protected project identifiers.
+  - Validation: `git diff --check`; frontend build not run.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Restore newest-first announcement management ordering
+  - Local change: system announcement management list sorts publish dates newest to oldest, so recently published notices appear first.
+  - Preserved: timeline ordering, announcement content, types, and expand/collapse behavior.
+  - Validation: `git diff --check`; frontend build not run.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Rename content announcement menu labels
+  - Local change: renamed the content submenus from System Notice to Notice and Announcements to Timeline.
+  - Preserved: announcement storage, editing behavior, frontend rendering, and protected project identifiers.
+  - Validation: `git diff --check`; frontend build not run.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Sort notification announcements newest first
+  - Local change: parsed announcements in the notification tab now display newest published items first, while the timeline view remains unchanged.
+  - Preserved: announcement content, date formatting, and timeline ordering.
+  - Validation: `git diff --check`; frontend build not run.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Restore legacy video task submission JSON response
+  - Local regression: `/v1/video/generations` can select its task plugin during submission, after the controller's pinned-plugin branch check. The legacy success branch persisted the task and consumption log but never presented the response, yielding an empty HTTP 200.
+  - Changed: invoke the shared task presenter after logging in that branch; preserve responses already written by legacy adaptors. Added presenter regression tests for public task identity and avoiding duplicate responses.
+  - Preserved: plugin selection, upstream submission, billing calculations, Sora/audio pricing, settlement, refunds, task polling, and protected identifiers.
+  - Validation: source-level control-flow inspection and `git diff --check`; tests added but not executed, no local compilation or image build. Production verification remains required.
+  - Commit/push: fix committed as `746e791f1` and pushed to `origin/main`; GitHub Actions build result not yet verified.
+- 2026-09-15 - Expose task log details in the default frontend
+  - Local change: added a task detail dialog for task data, status, model, plugin/provider metadata, upstream task ID, and failure details; successful tasks now have a View details action.
+  - Preserved: role-based hiding of upstream/plugin fields, task submission, polling, billing, settlement, and existing error/video/audio actions.
+  - Validation: `git diff --check`; frontend build not run per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Accept Sora size in custom per-request pricing validation
+  - Local fix: derive configured resolution tiers from the OpenAI-compatible `size` field (`720x1280`/`1280x720` and `1792x1024`/`1024x1792`); a single configured tier is used as the default when neither field is supplied.
+  - Preserved: explicit `resolution` takes precedence, request payload forwarding, existing Sora/audio fixed-charge logic, and all non-Sora channels.
+  - Validation: source inspection and targeted regression test added; no local compilation or image build per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Preserve shared Sora-channel video request fields in the task plugin
+  - Local fix: the Sora plugin now forwards `resolution`, `images`, `aspect_ratio`, `input_region`, and `audio_generation` for models sharing a Sora channel type.
+  - Preserved: model-specific routing, upstream request behavior for existing Sora models, and custom Sora per-request/audio billing.
+  - Validation: source inspection and diff check; no local compilation or image build per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Preserve arbitrary JSON fields for shared Sora-type channels
+  - Local fix: Sora plugin Responses decoding now starts from a copy of the complete client JSON instead of rebuilding a fixed allowlist. Provider-specific fields survive while the routed model and prompt/image compatibility behavior remain intact.
+  - Preserved: Sora per-request/audio billing, task actions, polling, and existing multipart handling.
+  - Validation: source-level inspection and `git diff --check`; no local compilation or image build per source-only workflow.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-15 - Preserve JSON fields on Sora plugin fallback submission
+  - Local fix: when a Sora-type channel uses the task plugin for a model that is not declared by the shared Sora endpoint, the fallback path now invokes the plugin's JSON protocol decoder instead of `ValidateBasicTaskRequest`. The complete request body, including provider-specific fields such as `resolution`, `images`, `aspect_ratio`, `input_region`, `audio_generation`, and unknown fields, reaches `buildSubmitRequest` unchanged apart from the routed model compatibility rewrite.
+  - Preserved: shared endpoint routing, non-Sora and multipart validation paths, task actions, polling, existing request body forwarding, and the existing Sora custom billing code; this change does not alter quota calculation or settlement.
+  - Validation: added `plugins/sora_fallback_test.go`; `git diff --check` completed. Go tests and compilation were not run because the local Go toolchain is unavailable; Docker/image build remains delegated to GitHub Actions.
+  - Commit/push: implementation committed as `02d0e5069` and pushed to `origin/main`; GitHub Actions is the remaining build verification.
+- 2026-09-16 - Add P10 and P50 performance percentiles
+  - Local change: performance metrics now calculate and expose P10 and P50 for TTFT and TPOT, and display them alongside P95 and P99.
+  - Preserved: existing percentile definitions, units, group filtering, and performance cards.
+  - Validation: `git diff --check`; Go/frontend builds not run.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-16 - Refresh model plaza free and discount badges
+  - Local change: updated external model cards to use the orange-gold limited-free badge and light-gold limited-discount badge styling.
+  - Preserved: discount/free detection, price filtering, localization fallback, and model card layout.
+  - Validation: `git diff --check`; frontend typecheck not clean because of pre-existing repository errors.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-18 - Add model plaza promotional carousel configuration
+  - Local change: added a notification-style model plaza carousel editor with title, description, image, enabled state, and ordering; enabled items render in a fixed first grid slot with responsive object-cover imagery, automatic rotation, controls, and indicators.
+  - Preserved: existing notice/timeline settings, model filtering/sorting/lazy loading, pricing and billing behavior, and the separate classic model plaza theme.
+  - Validation: source inspection and `git diff --check`; Go/frontend builds not run in this environment.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-18 - Fix model plaza carousel status wiring and localization
+  - Local fix: read the carousel from the already-unwrapped `/api/status` result, refresh the status query after saving carousel settings, and apply stable sort ordering to enabled carousel items.
+  - Local change: added carousel administration and accessibility strings to all supported default-frontend locales (`en`, `zh`, `zh-TW`, `fr`, `ru`, `ja`, `vi`).
+  - Preserved: carousel validation, enabled/disabled behavior, fixed first-grid-slot layout, rotation controls, model filtering, pricing, billing, and existing unrelated locale entries.
+  - Validation: Node JSON parsing, key-presence inspection, and `git diff --check`; full frontend typecheck/build not run because the repository has pre-existing typecheck failures.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-18 - Add model plaza card metrics visibility setting and Chinese token unit
+  - Local change: added the `console_setting.model_square_show_usage_metrics` setting, enabled by default and exposed through the public status payload, to control whether external model plaza cards show usage and cache hit rate; disabling it hides the complete metrics row without affecting other pages.
+  - Local change: added a dedicated localized token unit key so the Chinese model plaza card displays `词元` while other pages retain their existing translations.
+  - Preserved: leaderboard metrics, model detail performance data, classic model plaza theme, pricing, billing, and existing carousel settings.
+  - Validation: locale JSON parsing and `git diff --check`; frontend build pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-18 - Add model plaza context length filter
+  - Local change: added a context length minimum slider below input type filters, with 0 meaning no restriction and a reset control; model cards are filtered by their numeric context length.
+  - Preserved: existing modality, vendor, group, price, search, sorting, lazy loading, pricing, and billing behavior.
+  - Validation: locale JSON parsing and `git diff --check`; frontend build pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-18 - Fix model plaza context slider and metrics setting compatibility
+  - Local fix: accept both scalar and array values emitted by the Base UI context-length slider so dragging updates the filter reliably.
+  - Local fix: read the model plaza usage/cache visibility flag from the existing option map instead of extending the console-setting struct, avoiding legacy configuration decoding issues that could make the model plaza carousel return HTTP 500; the default remains enabled.
+  - Preserved: the setting only controls usage and cache metrics on external model plaza cards, while carousel validation, model filtering, pricing, billing, and other pages remain unchanged.
+  - Validation: `git diff --check`; all supported locale JSON files parsed successfully; `bun run build` in `web/default` passed.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-19 - Discrete context filters and independent discount badges
+  - Local change: use sorted, unique positive model context lengths as slider steps; show sparse labels, disable an empty slider, and reset unavailable selections after loading.
+  - Local fix: keep free/discount badges visible when external-card usage and cache metrics are disabled.
+  - Preserved: minimum-context filtering, reset controls, other filters, pricing calculations, billing, and unrelated local files.
+  - Validation: `git diff --check` and `bun run build` in `web/default` passed. No backend code changed; browser interaction was not re-tested during this push.
+  - Commit/push: implementation committed as `bec91aa0f`; verified `origin/main` points to this commit with `git ls-remote`. The push reported a concurrent ref update, but the remote SHA exactly matches the local implementation commit.
+- 2026-09-19 - Include formatted context metadata in model plaza filtering
+  - Local fix: derive context filter values from the administrator's formatted display value when the numeric metadata field is absent, supporting values such as `400K`, `1.05M`, and `1M tokens`.
+  - Preserved: the formatted display text on cards, discrete slider behavior, minimum-context semantics, and billing behavior.
+  - Validation: source inspection and `git diff --check`; frontend build pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-19 - Reserve model plaza discount badge row height
+  - Local fix: always reserve the discount/free badge row height on external model cards so cards with and without a badge align consistently.
+  - Preserved: badge content, discount/free detection, pricing, filtering, and card interactions.
+  - Validation: `git diff --check`; frontend build pending.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+- 2026-09-18 - Move model plaza metrics toggle and repair carousel crash
+  - Local fix: moved the usage/cache visibility switch into Site and Brand -> Header navigation, with a safe default of disabled.
+  - Local fix: removed the carousel page's invalid form-context usage and made status exposure opt-in, preventing the added setting from crashing the model plaza carousel flow.
+  - Preserved: carousel item editing, ordering, rotation, model plaza pricing, billing, and all other navigation settings.
+  - Validation: frontend production build passed; typecheck remains blocked by pre-existing repository errors; Go formatting was unavailable because Go is not installed locally.
+  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+
+## 2026-09-12 - Fix pricing preview build dependencies
+
+- Local reason: GitHub Actions exposed missing symbols referenced by the first
+  pricing-expression batch: default pricing snapshots, completion-ratio
+  resolution, cache/image defaults, and legacy DALL-E conversion rules.
+- Changed: restored these source-level helpers and kept legacy DALL-E rules in
+  the model package; no pricing settlement, Sora/audio, group discount,
+  payment, wallet, or plugin permission behavior was changed.
+- Deliberately skipped: Passkey multi-domain support and standalone audit logs.
+- Validation: source review and `git diff --check`; local Go compilation and
+  Docker build were intentionally not run. GitHub Actions is authoritative.
+- Commit and push status: pending; the follow-up route compatibility fix is
+  being recorded separately below.
+
+## 2026-09-12 - Normalize text performance cache input
+
+- Local reason: the text settlement performance path passed total prompt tokens plus cached tokens, double-counting cached input in the cache-rate denominator.
+- Changed: pass uncached prompt tokens separately, matching the ordinary settlement path; cache rate now uses cached / (cached + uncached).
+- Preserved: billing, quota settlement, usage logs, routing, and provider usage parsing.
+- Validation: `git diff --check`; Go compilation and browser verification unavailable locally.
 - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
 ## 2026-09-12 - Preserve cache counters in performance group results
@@ -1232,6 +3792,264 @@
 - Preserved: billing, quota settlement, routing, and usage-log accounting.
 - Validation: `git diff --check`; Go compilation and browser verification unavailable locally.
 - Local commit and push status: pending.
+
+## 2026-09-12 - Upstream follow-up after bdef117505: batch 1 selected fixes
+
+- Upstream baseline: `bdef117505247769268b209665fb3ad7554c3da7`; inspected subsequent upstream commits through `385d2dfd1`.
+- Integrated: `3cea2bf79` preserves cached input-token breakdowns through relay billing snapshots; `f064bffa2` validates image quantities before quota reservation and hardens Ali image usage handling; `f362c7c51` adds image cache/quantity variables to billing expressions; `f256e40bc` adds built-in GPT image expression defaults.
+- Preserved: local quota saturation checks, Sora/audio and group pricing behavior, payment/Waffo flows, audit logging and the existing `web/default` frontend. Existing image model detection entries were retained while adding upstream model coverage.
+- Deferred: expression pricing editor commits `25ec832fa`, `39294418a`, `b3e279464`, plugin UI commits and Passkey UI changes require adaptation to our `web/default` layout; they were not force-merged. The large upstream web tree migration remains out of scope.
+- Validation: cherry-pick conflicts were resolved by retaining local architecture and reviewing affected diffs; no local Go compilation, database matrix, frontend build or Docker build was run under the source-only workflow.
+- Commit/push: selected batch 1 changes are committed locally; push is pending completion of the remaining safe batches.
+
+## 2026-09-12 - Upstream follow-up after bdef117505: batch 2 and batch 3
+
+- Batch 2 integrated the backend portions of `74629e29f`: task plugin streaming response handling, model-aware usage profiles, bounded plugin state/response persistence, shared-model routing, plugin usage validation, and task pricing metadata. The upstream frontend editor files were not copied because they target the migrated `web/` tree; the current `web/default` remains the local frontend baseline.
+- Batch 3 was reviewed from `385d2dfd1` for multi-RP ID Passkey support. The independent configuration/documentation context already matches the local authentication structure; the deep authentication/session changes require the upstream account-security tree and were not force-applied over local session/rate-limit fixes. No Passkey behavior was changed in this batch without a compatible implementation path.
+- Preserved: audit logging and retention, existing login/session protections, Sora/audio pricing, Waffo/payment flows, group discounts, and local plugin admin/upload permissions.
+- Validation: upstream cherry-pick attempts were aborted where they would introduce the full upstream frontend tree; selected backend changes were applied and conflict markers were checked. `git diff --check` passed. No local Go compilation, database matrix, frontend build or Docker build was run under the source-only workflow.
+- Commit/push: batches 1 and 2 are committed locally; batch 3 review is recorded. Final push remains pending the combined source review.
+
+## 2026-09-12 - Local billing compatibility correction
+
+- Review finding: the plugin pricing merge removed the local `SoraPerRequestPricing` field from `BillingSetting`, which would have broken our Sora/audio per-request pricing configuration.
+- Corrected: restored the field, initialization and pricing sync export while retaining upstream plugin billing-expression support.
+- Preserved: Sora resolution pricing and fixed `audio_generation` surcharge behavior; no payment or quota calculation path was changed.
+- Validation: source diff review and `git diff --check`; Go/frontend builds remain delegated to CI under the source-only workflow.
+
+## 2026-09-12 - Upstream follow-up: administrator update reminder
+
+- Adapted upstream `251b76d86` to the existing `web/default` maintenance page: administrators now receive a one-time-per-release informational toast when a newer release is detected. The existing manual release inspection dialog remains unchanged.
+- Preserved: no automatic upgrade, no deployment mutation, no authentication or payment behavior, and no repeated reminder for the same release in the same browser.
+- Validation: source diff review and `git diff --check`; no local frontend build or Docker build under the source-only workflow.
+
+## 2026-09-12 - CI build fix: missing plugin model-fold helper
+
+- CI failure: Go compilation reported `undefined: asciiFold` in `pkg/jsplugin/registry.go` and `pkg/jsplugin/routing.go` after the plugin core sync.
+- Fixed: added `pkg/jsplugin/model_fold.go`, matching the upstream ASCII-only folding contract used for case-insensitive model/plugin lookup. Unicode characters remain unchanged.
+- Preserved: plugin routing, billing, Sora/audio, payment and authentication behavior; this is a missing-helper correction only.
+- Validation: source inspection and `git diff --check`; local Go compilation was not run under the source-only workflow.
+
+## 2026-09-12 - CI build fix: omitted plugin/pricing dependencies
+
+- Fixed missing selective-sync dependencies reported by CI: reused the existing registry `SetEnabled` API, restored explicit model-ratio detection, resolved advanced-custom channel settings through the existing channel cache, and added metadata rule matching/resolution used by pricing.
+- Preserved: local plugin override controls, Sora/audio pricing, payment flows, group discounts and audit behavior.
+- Validation: source review and `git diff --check`; local Go compilation remains intentionally unrun.
+
+## 2026-09-12 - CI build fix: missing pricing-expression helpers
+
+- CI failure: `setting/billing_setting/tiered_billing.go` referenced `ratio_setting.HasConfiguredModelRatio` and `billingexpr.UsedUsageKeys`, but those helper files/functions were omitted from the earlier selective sync.
+- Fixed: restored both helpers using the existing model-ratio normalization and compiled-expression cache. No billing formula, quota arithmetic, Sora/audio surcharge or payment path was changed.
+- Validation: source inspection and `git diff --check`; CI remains the build authority and local Go compilation was not run.
+
+## 2026-09-12 - CI build fix: plugin-aware channel selection and base URL helper
+
+- Cause: the selective plugin/channel sync had updated callers to the upstream four-argument channel-selection APIs, while the local `GetChannel` and `GetRandomSatisfiedChannel` implementations were still on the three-argument signatures. New task polling and relay code also referenced a missing safe channel base URL helper.
+- Fixed: added bounds-checked `constant.GetChannelBaseURL`; added filter-aware database selection with the same request-path and task-plugin identity predicates as the memory-cache path; applied those filters to exact and normalized model candidates; and updated the channel-selection APIs to carry `dto.ChannelFilter` constraints through both cache modes.
+- Preserved: channel priority/weight selection, plugin identity fail-closed behavior when a required plugin key cannot be resolved, Sora/audio pricing, group pricing, payment flows, audit logging, and existing provider routing.
+- Validation: source-format review, `git diff --check`, conflict-marker scan, and call-site signature review. The local Go toolchain was unavailable, so `gofmt`, Go compilation, and Docker/frontend builds were intentionally not run; GitHub Actions remains authoritative.
+- Commit/push: implementation committed as `f4024478f`; the corrected log is included in `00530e07c`, which is present on `origin/main`. GitHub Actions is the remaining build verification step.
+
+## 2026-09-12 - CI build fix: model modifier matching dependencies
+
+- Cause: the image exposed missing symbols in the model pricing and token-limit matching path: model modifier parsing and canonical billing helpers were omitted, and middleware referenced `ratio_setting.RoutingMatchModelName`.
+- Fixed: completed the host reasoning wrapper for explicit `@` modifiers and legacy thinking/effort suffixes, added canonical billing candidates, and added routing-name normalization before wildcard matching.
+- Preserved: existing Sora/audio and group pricing, plugin routing, payment/accounting, audit logging, and model request behavior. This change only completes model-name normalization dependencies used by selection and billing lookup.
+- Validation: source inspection, `git diff --check`, conflict-marker scan, and symbol/call-site review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
+- Commit/push: pending in the current source-level fix commit.
+
+## 2026-09-12 - CI build fix: initialize plugin task proxy adaptors
+
+- Fixed Gemini and Vertex video proxy lookups to initialize the plugin adaptor
+  with the task channel API key, base URL, and proxy settings before polling.
+- Removed the final legacy polling call shape; both callers now pass the task
+  and HTTP response required by the plugin contract.
+- Preserved generated media URL fallback extraction and all billing/payment
+  behavior.
+
+## 2026-09-12 - CI build fix: correct RelayInfo API key placement
+
+- Fixed the Gemini/Vertex plugin adaptor initialization to place the channel
+  API key in `ChannelMeta.ApiKey`, matching the local `RelayInfo` structure.
+- Validation: source inspection and `git diff --check`; CI remains authoritative.
+
+## 2026-09-12 - Upstream sync batch 1: pricing configuration backend
+
+- Integrated the upstream model pricing snapshot, legacy-to-expression
+  conversion, effective-price preview, and optimistic versioned update APIs.
+- Added the corresponding protected option routes. The existing expression
+  evaluator, Sora/audio pricing fields, group discounts, payment/wallet paths,
+  and legacy pricing remain intact.
+- Deliberately skipped upstream legacy frontend tree and unrelated Passkey and
+  standalone audit-log changes; those are outside the agreed three batches.
+- Validation: source reference review and `git diff --check`; no local Go,
+  frontend, or Docker build under the source-only workflow.
+- Commit/push: pending in the current source-level batch commit.
+
+## 2026-09-12 - CI follow-up correction
+
+- Removed an unused Passkey-domain audit helper from the selective sync because
+  the corresponding upstream Passkey domain model is intentionally deferred.
+- Preserved the local audit implementation and added persistence of uploaded
+  plugin icons when updating an existing plugin version.
+- Validation: source review and `git diff --check`; CI remains authoritative.
+
+## 2026-09-12 - CI build fix: Gemini and Vertex task proxy callers
+
+- Fixed the remaining callers in `controller/video_proxy_gemini.go` that still
+  passed legacy map request data and the old one-argument task parser.
+- The proxy now passes the persisted task and HTTP response through the unified
+  task-plugin polling contract, matching the regular polling path.
+- Preserved: generated video URL extraction, API-key handling, task billing,
+  plugin routing, and all payment/accounting behavior.
+- Validation: source call-site review and `git diff --check`; local Go and
+  Docker builds were not run, so GitHub Actions remains authoritative.
+
+## 2026-09-12 - CI build fix: restore plugin metadata and audit dependencies
+
+- Cause: the Docker Go build exposed a partial upstream sync: audit controller
+  code referenced the newer typed audit signature, while this branch still
+  uses the existing structured-log audit storage; task-plugin controllers
+  referenced missing icon decoding, embedded icon lookup, `TaskPlugin.Icon`,
+  `HasIcon`, Passkey domain confirmation, and the unknown-meta i18n key.
+- Fixed: adapted the Passkey audit call to the local audit map contract,
+  restored the Passkey confirmation sentinel, added bounded PNG/SVG data-URI
+  validation and embedded icon helpers, restored the plugin icon model field
+  and helper, and added English/Chinese unknown metadata messages.
+- Preserved: existing audit-log storage and redaction, plugin upload controls,
+  plugin routing, Sora/audio pricing, payment/accounting, group discounts, and
+  authentication/session behavior.
+- Validation: source reference review, conflict-marker scan, and `git diff
+  --check`. Local Go compilation, frontend builds, and Docker builds were not
+  run under the source-only workflow; GitHub Actions remains authoritative.
+- Commit/push: pending in the current source-level fix commit.
+
+## 2026-09-12 - CI build fix: task plugin request interface compatibility
+
+- Cause: the task plugin adaptor had already adopted the upstream `ParseResponse`, task-aware polling, and batch interfaces, while the local legacy `channel.TaskAdaptor` assertion and `DoTaskApiRequest` parameter still required the old `DoResponse` contract.
+- Fixed: narrowed `DoTaskApiRequest` to the two request-building methods it actually uses and removed the invalid legacy interface assertion from the plugin adaptor. Existing task adaptors continue to satisfy the broader legacy interface, while the plugin keeps the upstream response and polling contracts.
+- Preserved: task plugin request validation, streaming/SSE handling, plugin state, usage extraction, task billing, Sora/audio pricing, payment/accounting, audit logging, and existing provider adaptors.
+- Validation: source inspection, `git diff --check`, conflict-marker scan, and interface/call-site review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
+- Commit/push: pending in the current source-level fix commit.
+
+## 2026-09-12 - CI build fix: thinking modifier parser dependency
+
+- Cause: the image reported `setting/reasoning/model_name.go` calling `relaykit/relayconvert/reasoning.ParseThinkingModifier`, which was another omitted helper from the selective sync.
+- Fixed: restored parsing for `@thinking:on`, `adaptive`, `off`, and bounded integer budgets, including the existing portable `Intent` source and budget metadata.
+- Preserved: model routing and billing lookup, Sora/audio and group pricing, plugin routing, payment/accounting, audit logging, and relay conversion behavior.
+- Validation: source inspection, `git diff --check`, conflict-marker scan, and symbol review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
+- Commit/push: pending in the current source-level fix commit.
+
+## 2026-09-12 - CI build fix: RelayKit modifier parser dependency
+
+- Cause: the CI image still reported `reasoning.ParseModelModifiers` as undefined because the pricing helper imports RelayKit's reasoning package, whose modifier parser had not been included in the selective sync.
+- Fixed: restored RelayKit's explicit trailing `@key:value` model modifier parser and its public model modifier types, while keeping opaque provider names and existing suffix parsers intact.
+- Preserved: model pricing lookup, Sora/audio and group pricing, plugin routing, payment/accounting, audit logging, and all existing relay conversion behavior.
+- Validation: source inspection, `git diff --check`, conflict-marker scan, and import/symbol review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
+- Commit/push: pending in the current source-level fix commit.
+
+## 2026-09-12 - CI build fix: unify task plugin adaptor contract
+
+- Cause: task relay call sites and the JavaScript task adaptor were using the
+  upstream protocol (`ParseResponse`, task-aware polling, and batch polling),
+  while the old legacy task adaptor contract still expected `DoResponse` and
+  map-based polling. That mixed contract caused CI errors for plugin adaptor
+  assignment and task polling method signatures.
+- Fixed: kept `channel.TaskAdaptor` on the current plugin protocol, retained
+  the pinned-plugin request routing and platform-unavailable errors, and added
+  a compile-time assertion covering the JavaScript adaptor's complete task
+  contract. Built-in task plugins remain the source for the migrated task
+  platforms; the independent OpenAI image task path remains unchanged.
+- Preserved: Sora/audio pricing, task plugin state and usage extraction,
+  payment/accounting, group discounts, audit logging, advanced custom channel
+  routing, and the standalone OpenAI image task implementation.
+- Validation: source inspection, interface/call-site review, `git diff --check`,
+  and conflict-marker scan. Local Go compilation, frontend builds, and Docker
+  builds were not run under the source-only workflow; GitHub Actions remains
+  the build authority.
+- Commit/push: pending in the current source-level fix commit.
+
+## 2026-09-12 - Upstream sync review: fixed per-request pricing
+
+- Upstream scope reviewed: `064ed943e` fixed per-request expression pricing.
+- Status: already integrated in `main` before this review. The local
+  `billingexpr` implementation includes `fixed()` validation, request-unit
+  evaluation, image-count multiplication, quota saturation, task/realtime
+  guards, settlement, and usage-log metadata.
+- Preserved: Sora/audio pricing, group discounts, payment and wallet logic,
+  and the existing default frontend pricing editor.
+- Validation: source comparison, symbol/call-site review, and working-tree
+  inspection. Local compilation and Docker builds were intentionally not run;
+  GitHub Actions remains authoritative.
+- Commit/push: `6d7f93587` pushed to `origin/main`.
+
+## 2026-09-12 - Upstream sync review: channel plugin extensions
+
+- Upstream scope reviewed: `ab489ab88` and `505805a4c` channel provider/model
+  selection extensions.
+- Progress: added the typed default-frontend API contract for available task
+  plugin options (`GET /api/task_plugin_options`). Full UI wiring remains in
+  the current third-batch work and must preserve existing model mapping,
+  advanced custom routes, and channel submission fields.
+- Preserved: Sora/audio pricing, group discounts, payment/wallet behavior,
+  plugin permissions, and existing channel editor behavior.
+- Validation: source inspection and `git diff --check`; no local builds were
+  run per the source-only workflow.
+- Commit/push: `98c4bd424` pushed to `origin/main`.
+
+## 2026-09-12 - Channel editor plugin model selection completed
+
+- Added typed task-plugin option loading and compatible-plugin model actions to
+  the default channel editor.
+- Existing model mapping, custom models, advanced custom routes, channel
+  payloads, Sora/audio pricing, group discounts, and payment behavior remain
+  unchanged.
+- Validation: `git diff --cached --check` and source-level call-site review;
+  local compilation and Docker/frontend builds were not run.
+- Commit/push: `11f05e552` pushed to `origin/main`.
+
+## 2026-09-12 - Channel editor task-plugin binding completed
+
+- Completed the third-batch binding path: channel type `61` is available in the
+  default editor; `task_plugin_key` is validated, loaded from existing channel
+  settings, and serialized back to `setting`; selecting a plugin fills its
+  declared models and default Base URL.
+- Plugin model actions are restricted to users who can edit sensitive channel
+  configuration. Existing channels, model mappings, advanced custom routes,
+  Sora/audio pricing, group discounts, and payment behavior are unchanged.
+- Validation: `git diff --check` and source-level form/payload review. Local
+  compilation, frontend build, and Docker build were not run.
+- Commit/push: `db73d6cf4` pushed to `origin/main`.
+
+## 2026-09-12 - Upstream sync review: task plugin image capability
+
+- Upstream scope reviewed: `74629e29f` task streaming and plugin pricing, plus
+  the related image-plugin runtime changes.
+- Status: backend capability is already integrated. The current task plugin
+  runtime and Alibaba plugin cover image model discovery, text-to-image and
+  image-to-image requests, bounded `image_count` usage, synchronous/interleave
+  streaming, result/artifact parsing, and task settlement.
+- Preserved: Sora/audio billing, group discounts, wallet/payment behavior,
+  plugin permissions and upload controls, and the independent OpenAI image
+  task path.
+- Validation: source and call-site review only; local compilation, frontend
+  build, and Docker build were intentionally not run. GitHub Actions remains
+  authoritative.
+- Commit/push: `e61750eef` pushed to `origin/main`.
+
+## 2026-09-12 - Task plugin image pricing configuration completed
+
+- Added the default-frontend `billing_setting.plugin_billing_expr` option for
+  plugin/model-specific expressions. Administrators can edit the JSON mapping
+  using `plugin_key::model_name` keys; the backend already validates the
+  plugin declaration and usage schema before saving.
+- Preserved the existing model expression, legacy ratios, Sora/audio pricing,
+  group discounts, payment/wallet behavior, plugin permissions, and image task
+  runtime. No Passkey multi-domain or standalone audit-log work was added.
+- Validation: `git diff --check` and source-level type/data-flow review. Local
+  compilation, frontend build, and Docker build were intentionally not run;
+  GitHub Actions remains authoritative.
+- Commit/push: `c10f8c4d4` pushed to `origin/main`.
 
 ## 2026-09-11 (dynamic card request price)
 
@@ -1323,7 +4141,84 @@
 - Validation: `git diff --check` passed; browser rendering and frontend build not verified locally.
 - Local commit and push status: pending.
 
-### 2026-09-09 Sync upstream options, Volcengine, and Alibaba Wan fixes
+## 2026-09-11 - Audit improvements, batch 1: meaningful records
+
+- Local request: complete the first two audit improvement batches; retention and cleanup are a separate, unimplemented third batch.
+- `middleware/audit_requests.go`, `router/api-router.go`, `middleware/auth.go`: one independent audit event per authenticated API request, with separate operation/security/access categories. Ordinary audit-page reads are excluded. Login attempts rejected before authentication are anonymous security events, never assigned to the submitted username. OAuth callbacks remain callbacks unless successful login is explicitly recorded. The collector sits inside gzip so business JSON can be interpreted without modifying the response. Existing management/usage-log records remain intact.
+- `controller/audit.go` and existing security event callers: reuse explicit operation labels and a bounded allowlist of scalar display parameters; preserve operator versus affected-account identity. Explicit security events are deferred until the response is known rather than duplicated as a generic access event. Transactional personal-access-token revocation keeps its atomic audit row and suppresses the generic duplicate; its missing timestamp/event ID are fixed.
+- `model/audit_log.go`, `model/audit_details.go`: additive nullable varchar `outcome` column through existing GORM migrations (SQLite/MySQL/PostgreSQL); existing bool status and historical rows are retained. Structured versioned details are stored in existing TEXT `other`, including method, route template, target, auth method, HTTP status and outcome. HTTP 200/success:false is failure; required 2FA is pending; malformed/truncated/unrecognized bodies are unknown. Raw response messages are not retained because they can echo credentials; failures use HTTP status or a safe business-rejection reason, correlated by request ID. No full request/response body, query, password, cookie, code or bearer token is persisted.
+- `controller/option.go`, `channel.go`: record before/after values for an explicit safe option allowlist and channel model/group/type changes; potentially sensitive values are redacted. System option before-values are observed from persisted DB state without changing save/transaction semantics. These are observed snapshots, not a new serialized configuration transaction. Oversized metadata is redacted. Quota override reuses the existing safe before/after parameters. Other actions without snapshots explicitly have no change details; history is not fabricated or backfilled.
+- `controller/audit_log.go`: server-side category, exact operator name/ID, action, IP, request ID, time and outcome filtering; bounded pagination and invalid-range rejection. Self scope is always ANDed with filters, so user_id cannot override authorization.
+- Preserved: login validation, JWT/cookie/refresh behavior, proxy trust, billing and payment arithmetic/transactions, Sora/audio, model request logs, original management logs and audit retention. No cleanup, export, archival or read-audit toggle in this batch.
+- Validation: source review and diff checks; added backend regressions for business outcomes (including string/array data), gzip capture, credential exclusion, audit-read exclusion, anonymous throttled login, self-scope filtering and additive historical-row migration. Go compiler/tests and live database matrix were not run locally under the source-only workflow; they remain to be executed in CI.
+- Commit/push: implemented in local main worktree; uncommitted and not pushed.
+
+## 2026-09-11 - Audit improvements, batch 2: usable admin page
+
+- `web/default/src/features/audit-logs`: default Important operations tab, Security and login / Access records / All tabs, operator/action/IP/request/time/result filters, reset/refresh, pagination and page size. Filters reset pagination; query/business failures display an error rather than an empty table. The page scrolls vertically, table scrolls horizontally, long values truncate in cells and wrap in details.
+- Details dialog includes localized action, target, operator, auth method, status, route/method, request/event IDs, safe failure reason and redacted before/after changes. Existing operation translations are reused for additional management action codes. Historical results are explicitly labelled and invalid/old metadata is safely parsed. No runtime claim that old HTTP-only outcomes were accurate business results.
+- Seven locale resources updated (en, zh, zh-TW, fr, ru, ja, vi); existing design-system table, fields, tabs, badge, tooltip and Base UI dialog reused.
+- Validation: Bun DOM/transport regression tests cover old/malformed metadata, business API failure state, default tab, tab/page reset, status-filter submission, pagination, details, redacted values and Chinese/English switching. Scoped frontend lint and formatting checks run. Full source-only TypeScript check exposes existing unrelated errors (missing test libraries, pricing/plugin types and duplicate redemption imports); audit-specific test DOM typing errors found during review were fixed. No local production/Docker build or browser pixel rendering was performed.
+- Commit/push: implemented in local main worktree; uncommitted and not pushed. Third-batch retention/cleanup settings intentionally remain out of scope.
+
+## 2026-09-11 - Audit improvements, batch 3: retention and cleanup
+
+- Local request: add safe audit-log storage management after the first two audit batches.
+- `model/option.go`: add `AuditLogRetentionDays`, defaulting to 90 days. `0` disables scheduled cleanup; values are bounded to 3650 days.
+- `model/audit_log.go`: add context-aware counting and batched deletion. IDs are selected first and then deleted through GORM so the operation remains compatible with SQLite, MySQL and PostgreSQL and does not depend on `DELETE ... LIMIT` syntax.
+- `model/system_task.go`, `service/system_task.go`: add an independent `audit_cleanup` system task with the existing lease/heartbeat machinery. It runs once per day when retention is enabled, deletes only audit rows older than the configured cutoff, and records progress/result separately from ordinary usage-log cleanup.
+- `controller/system_task.go`, `router/api-router.go`: add the root-admin manual endpoint `POST /api/system-task/audit-cleanup?target_timestamp=...`; an active task is reused instead of creating concurrent cleaners.
+- Preserved: ordinary usage logs, payment/accounting, model billing, Sora/audio pricing, audit records newer than the cutoff, and the existing log cleanup task. No export or archival behavior was added.
+- Validation: `git diff --check` passed. No local Go compilation, database matrix test, frontend build, or Docker build was run under the source-only workflow; CI remains the authoritative build check.
+- Commit/push: batch 3 is implemented in the local main worktree and remains uncommitted/unpushed pending the final review of the combined audit batches.
+
+## 2026-09-10 - API Key 分组描述溢出修复
+
+- 原因：修复创建 API 密钥弹窗中分组描述过长导致布局被顶穿。
+- 改动：为选中项内容和比例徽章增加收缩边界，避免长文本挤压弹窗布局。
+- 保留：未改变分组选择、API Key 创建或计费逻辑。
+- 验证：git diff --check；未执行本地构建。
+- 状态：待提交并推送。
+
+## 2026-09-10 - 修复 billingexpr 构建失败
+
+- 原因：固定计费代码引用了缺失的缓存条目读取函数，GitHub Actions 在 Go 编译阶段失败。
+- 改动：补充 compileEntryFromCacheByHash，复用现有表达式编译缓存并返回完整元数据。
+- 保留：不改变计费表达式、支付流程及既有固定计费逻辑。
+- 验证：git diff --check；未执行本地编译。
+
+## 2026-09-10 - 修复 options 迁移构建失败
+
+- 原因：model/main.go 引用了未提交的 options 主键迁移实现，干净构建环境报 undefined。
+- 改动：加入 model/option_primary_key_migration.go，提供跨 SQLite/MySQL/PostgreSQL 的迁移实现。
+- 验证：检查源码依赖与 git diff --check；未本地编译。
+
+## 2026-09-10 - 修复内置阿里插件导致容器启动失败
+
+- 原因：usageSchema 使用了当前注册器不支持的 enumLabels 字段，内置插件注册失败触发 panic。
+- 改动：移除不参与请求和计费的 enumLabels，保留 resolution 枚举及本地化描述。
+- 保留：阿里 Wan 视频路由、任务插件和现有计费逻辑不变。
+- 验证：静态核对注册器允许字段与插件元数据；未本地编译。
+
+## 2026-09-10 - 修复 API Key 分组描述横向溢出
+
+- 原因：已选分组的描述位于按钮内部，外层 flex 项未设置可收缩边界，长文本撑破更新 API 密钥弹窗。
+- 改动：为分组触发按钮及内容链路增加 min-w-0/overflow-hidden，并对描述使用最大宽度单行截断。
+- 保留：不改变分组选择、API Key 更新和权限逻辑。
+- 验证：git diff --check；未本地构建。
+
+## 2026-09-10 - Isolate dashboard authentication limits and preserve sessions on transient refresh failures
+
+- Local incident: production login returned HTTP 429; the operator confirmed the logged client IP `70.39.183.135` is a server/reverse-proxy address. Requests collapsed onto that address share IP budgets. The provided Baota snippet forwards to `http://70.39.183.135:3000` and only sets Host. The screenshot alone does not identify whether the global API or critical limiter rejected the request. Proxy/header configuration still needs deployment-side verification.
+- Confirmed source defects: login, OAuth, refresh, logout and unrelated critical operations shared the `CT` IP bucket (default 20 requests/1200 seconds). The default frontend swallowed all refresh errors, reset authentication, and rethrew the original access-token 401 even when refresh returned 429, 5xx, a race response or a network error. Access JWT TTL is 15 minutes; refresh failure was incorrectly treated as session expiry.
+- `middleware/rate-limit.go`, `router/api-router.go`: isolate password/2FA/Passkey/OAuth login and logout into separate scopes. Refresh has a dedicated IP budget, default 120/60 seconds, configurable through `SESSION_REFRESH_RATE_LIMIT` and `SESSION_REFRESH_RATE_LIMIT_DURATION` (positive duration up to the shared 1200-second cache retention). Invalid values fall back to defaults. Global API IP limiting and login attempt limits remain enabled. IP limiter rejections now carry scope and Retry-After, with request-correlated client IP/peer diagnostics; no cookies, passwords or authorization headers are logged.
+- `web/default/src/lib/api.ts`, `main.tsx`: refresh 401 still invalidates the session; transient refresh failures preserve credentials and propagate their own error/status to route guards and QueryCache. Share refresh calls and apply a retry cooldown (Retry-After when provided; otherwise 60 seconds for 429 and 5 seconds for transient errors). Do not automatically retry throttled queries. Rate-limit feedback reuses existing translations.
+- Preserved: proxy trust boundaries, cookie origin checks, server-side session validation/revocation/rotation, password and 2FA verification, payment/accounting, Sora/audio and model pricing. No arbitrary forwarded-header trust or global limiter bypass was added. Redis limiter atomicity is unchanged.
+- Validation: nine targeted frontend regression cases passed using the actual Axios interceptors and mocked transport, covering 429/500/503/409/network errors, malformed responses, true 401, direct 429 and concurrent successful refresh. Added a Go regression for scope isolation, another-client isolation and response diagnostics. No Go toolchain/local compilation or Docker build; backend test execution and production proxy validation remain outstanding. Source diff checks performed. Targeted lint has pre-existing non-null-assertion findings in api.ts/main.tsx; new lint errors corrected.
+- Deployment: for a directly exposed Baota proxy, set X-Real-IP and X-Forwarded-For from `$remote_addr` and X-Forwarded-Proto from `$scheme` in the active proxy location, after checking included directives. Configure TRUSTED_PROXIES for the actual peer address seen by the container (often the Docker gateway); do not blindly trust all networks. With a CDN, first restore real client IPs at Nginx from only the documented trusted CDN ranges. Verify requests from separate networks show distinct client IPs before considering the incident resolved. Never log passwords, cookies or bearer tokens.
+- Commit/push: this entry is included in the source repair commit targeting main; push is pending at write time and the remote result is reported in the task. Deployment must also restore distinct real client IPs; restarting alone is not a permanent fix.
+
+## 2026-09-09 Sync upstream options, Volcengine, and Alibaba Wan fixes
 
 - Integrated `4fc9d1f1f`: added a cross-database `options` table primary-key repair migration that deduplicates legacy rows, preserves the old table as a backup, and runs before normal option auto-migration. This protects persisted settings such as Waffo Pancake unit price from duplicate-key/readback corruption.
 - Integrated `876903a8e`: corrected Volcengine upstream model discovery from `/v1/models` to `/api/v3/models`, while retaining configured special-base handling.
@@ -1333,12 +4228,183 @@
 - Deferred for separate evaluation: `c79b74b68` (upstream frontend status-query changes), `12be9975c` (large frontend error-notification rewrite), and `7cf9b473f` (upstream `web/src` pricing scroll layout). `d52bdc0b4` and `064ed943e` are recorded below as audited/integrated for this round.
 - Validation: source review and `git diff --check`; no local Go/frontend compilation, Docker build, or image publication per the source-only workflow. Local commit and push are pending.
 
-## 2026-09-07 (first-round polling audit)
+## 2026-09-09 Add standalone audit log page
 
-- Reviewed upstream `9df450fe5` against the plugin task subsystem.
-- Already present locally: persisted task query contexts, response status classification, bounded consecutive poll failures, CAS-safe failure updates, plugin state persistence limits, and task refund/settlement integration. No upstream polling code was copied.
-- Preserved: local Sora/audio billing, plugin registry, task artifacts, and provider-specific polling adapters.
-- Validation: source comparison and `git diff --check`; full Go tests unavailable because Go is not installed locally.
+- Added the administrator-only `/audit-logs` page, typed `/api/audit/` query, and sidebar entry.
+- Existing backend audit records and usage-log audit details remain unchanged.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
+## 2026-09-09 Save Waffo Pancake unit price independently
+
+- Fixed unit-price changes to use the normal option update path instead of requiring a Store/Product binding save. Changing only `1` to `1.05` no longer fails because the catalog binding is incomplete.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
+## 2026-09-09 Fix audit log response unwrapping
+
+- Fixed the standalone audit page API client to unwrap the common `{ success, data }` response envelope before reading paginated items.
+- Added an empty-page fallback and null-safe rendering to prevent a successful API response from causing a frontend runtime 500.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
+## 2026-09-09 Fix Waffo Pancake unit-price change detection
+
+- Fixed the payment settings sanitizer to include `WaffoPancakeUnitPrice`; changing `1` to `1.05` now enters the save path instead of incorrectly reporting no changes.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
+## 2026-09-09 Fix Waffo Pancake unit price label translation
+
+- Added the exact translation key used by the Waffo Pancake unit-price field. The displayed `1.05` indicates the saved value matches the current form, so the no-changes message is expected.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
+## 2026-09-09 Fix Passkey status with dashboard sessions
+
+- Updated Passkey user resolution to accept the validated user ID from the dashboard authentication middleware, while retaining legacy cookie-session compatibility.
+- This prevents the profile page from reporting Passkey status failure or session expiry after normal password login; Passkey remains optional.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
+## 2026-09-09 Fix Waffo Pancake unit price persistence
+
+- Fixed the configuration save payload and backend persistence path to include `WaffoPancakeUnitPrice`; values such as `1.05` are now saved instead of reverting to the default `1`.
+- Preserved the existing checkout pricing behavior and added the change to the source-level synchronization log.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
+## 2026-09-09 Fix audit log page endpoint and translations
+
+- Corrected the audit page request from `/api/audit/` to the registered `/api/audit` route.
+- Added missing English and Chinese translation entries for the standalone audit page.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
+## 2026-09-09 Fix dashboard login identity header
+
+- Fixed login and refresh success handling so the returned user ID is persisted as `uid`, allowing subsequent requests to send the required `New-Api-User` header.
+- This addresses the observed `login 200` followed by `self 401` error without changing authentication or billing logic.
+- Validation: source review and `git diff --check` only; not pushed yet.
+
+## 2026-09-09 Sync upstream `9bf328d97`: preserve Sora provider fields
+
+- Integrated the safe portion of the upstream Sora rendering fix: persisted provider response fields are returned when available, and the host preserves extensions while overriding public identity and lifecycle fields.
+- Deliberately did not import the unrelated task-adaptor API refactor because it overlaps local Sora/audio billing, polling, plugin state, and channel compatibility behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+- Local functionality deliberately preserved: Sora per-request billing, audio surcharge, task polling, plugin center, and provider compatibility.
+- Local commit/push: pending on `main`.
+
+## 2026-09-09 Waffo Pancake 单价读取修复
+
+- 修复 Waffo Pancake 金额计算在配置刚保存后仍读取旧 typed setting，导致充值金额被误判过低的问题；优先读取已持久化的 OptionMap 单价，并保留有效值兜底。
+- 保留本地 Waffo Pancake、钱包展示及现有充值入账逻辑；未改变计费或订单结算规则。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+
+## 2026-09-09 OAuth 登录会话修复
+
+- 修复 OAuth 登录成功后未保存返回的 dashboard access token，导致后续 `/api/user/self` 请求被判定为未登录的问题。
+- 保留现有 Cookie、Bearer 刷新、uid 缓存和本地身份验证逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+
+## 2026-09-09 Passkey 限流不阻塞其他登录方式
+
+- Passkey 登录初始化请求改为自行处理 HTTP 错误，避免该接口 429 被全局 Axios 错误处理器显示为账号密码或 OAuth 登录失败。
+- 保留 Passkey、密码登录和 OAuth 登录各自独立的认证流程。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+
+## 2026-09-09 GitHub Actions Release 工作流修复
+
+- 修复 `release.yml` 中 setup-bun 步骤缩进错误，避免 Tag 发布工作流在解析/执行阶段失败；保持日常 `main` 推送仅由 GHCR 镜像工作流处理。
+- 保留多平台 Release 工作流，仅用于 Tag 或手动发布；未修改应用代码和本地支付、登录逻辑。
+- 验证：源码检查、`git diff --check`；未本地构建容器。
+- Local commit/push: pending。
+
+## 2026-09-09 Waffo Pancake 单价保存后回显修复
+
+- 修复仅修改 `WaffoPancakeUnitPrice` 时保存流程提前返回，未刷新系统设置查询，导致页面重新进入仍显示旧单价的问题。
+- 保存普通选项后强制重新获取 `/api/option/`，保持钱包实际支付和设置页回显使用同一持久化值；不改变充值计费与入账逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+
+## 2026-09-09 系统选项持久化错误处理
+
+- 修复 `UpdateOption` 忽略数据库 `FirstOrCreate` 和 `Save` 错误，导致内存中的 Waffo Pancake 单价更新但数据库仍为旧值、刷新后恢复 `1` 的问题。
+- 数据库写入失败时现在会直接返回错误，不再更新内存配置并误报保存成功；保留批量保存和现有支付/计费逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+
+## 2026-09-09 Waffo Pancake 设置页单价回显根因修复
+
+- 补齐 `BillingSettings` 与 `defaultBillingSettings` 中遗漏的 `WaffoPancakeUnitPrice` 字段，使 `getOptionValue()` 能保留并解析后端返回的单价，而不是被 `?? 1` 默认值覆盖。
+- 钱包计算、支付入账和单价保存接口保持不变；修复设置页刷新后的真实回显链路。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+
+## 2026-09-09 Waffo Pancake 单价数据库优先回读
+
+- 设置接口对 `WaffoPancakeUnitPrice` 增加数据库优先回读，避免内存配置初始化为默认值 `1` 时覆盖已保存单价。
+- 修改严格限定于设置接口的该字段，不改变其他支付方式、订单、计费或入账逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+
+## 2026-09-09 修复 GHCR 构建错误
+
+- 补充 `controller/option.go` 使用的 `strconv` 导入，修复 Waffo Pancake 单价回读改动导致的 Go 编译失败。
+- 未改变任何支付、计费、订单或入账逻辑。
+- 验证：源码检查、`git diff --check`；由 GitHub Actions 负责构建验证。
+- Local commit/push: pending。
+
+## 2026-09-09 Waffo Pancake 单价非法值保护
+
+- 修复单价被保存为 `0` 的问题：后端拒绝零值、负数、NaN 和无穷值，前端也不再把空输入转换为 `0`。
+- 仅影响 Waffo Pancake 单价配置校验，不改变其他支付渠道、订单、计费和入账逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+
+## 2026-09-09 Waffo Pancake 单价重复保存链路修复
+
+- 修复单价同时进入通用选项更新和 Waffo 配置保存两条链路的问题；现在单价变化与 Waffo 商户/店铺/产品配置一起通过专用保存接口提交。
+- 避免旧表单状态以 `0` 重复提交并触发校验错误；不改变其他支付方式、订单、计费或入账逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+
+## 2026-09-09 Waffo Pancake 单价请求字段修复
+
+- 修复支付设置表单的 `sanitized` 对象遗漏 `WaffoPancakeUnitPrice`，导致专用保存接口收到 `0` 并返回“单价必须大于零”的问题。
+- 保留单价与 Waffo 配置的单一保存链路，不改变其他支付渠道、订单、计费或入账逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+
+## 2026-09-09 Waffo Pancake 单价保存闭环加固
+
+- 完整核对并加固单价保存链路：提交前校验有限正数，专用保存成功后等待 `/api/option/` 重新拉取，避免旧查询缓存覆盖页面回显。
+- 仅影响 Waffo Pancake 设置，不改变其他支付方式、订单、计费或入账逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+
+## 2026-09-09 Waffo Pancake 保存错误诊断
+
+- 专用保存接口现在返回实际失败原因，避免数据库/配置错误被统一隐藏为“保存配置失败”；同时补充单价 NaN/Infinity 校验。
+- 仅影响管理员配置错误反馈，不改变其他支付渠道、订单、计费或入账逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+
+## 2026-09-09 Waffo Pancake 单价与配置保存解耦
+
+- 将 `WaffoPancakeUnitPrice` 与商户、密钥、回调地址、店铺和产品绑定拆分判断；只修改单价时直接保存系统选项，不再依赖 Waffo 配置接口或店铺绑定事务。
+- 同时修改完整 Waffo 配置时仍使用原子专用保存接口；未改变充值、计费、订单回调或入账逻辑。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+
+## 2026-09-09 修复 Pancake 单价与普通支付设置同时保存
+
+- 调整保存顺序：先提交普通支付设置，再独立提交 Pancake 单价；避免同时修改其他支付配置时被单价分支提前返回而丢失普通设置。
+- Pancake 单价仍不依赖 Waffo 店铺/产品专用接口；其他支付和充值入账逻辑保持不变。
+- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
+- Local commit/push: pending。
+
+## 2026-09-09
+
+- Upstream `064ed943e` integrated selectively: added validated `fixed(amount)` request pricing to the shared billing expression engine, including billing-unit metadata, request-price settlement for zero or missing token usage, group/request multipliers, admin log details, Realtime/task-usage rejection, and saturation-safe quota conversion. The `web/default` visual tier editor now supports per-token/per-call tiers and fixed USD per-request values. Existing Sora/audio pricing, task plugins, tool surcharges, and group/customer discount paths were preserved.
+- Upstream `d52bdc0b4` audited: the time-based pricing rule editor and request simulation capabilities are already present in `web/default`; no wholesale `web/src` replacement was made. Fixed tiers were adapted to the existing default editor and remain compatible with its time/request rules.
+- Validation: `git diff --check`, merge-marker scan, and source-level inspection only. `gofmt/go` is unavailable in this environment, so Go formatting and compilation were not run. Per source-only workflow, no local frontend build or Docker image build was performed. Database matrix and upstream frontend test suites remain for GitHub Actions.
+- Status: integrated locally; not pushed yet. Existing prior local Alibaba/plugin and migration changes remain in the same worktree and are intentionally kept for the next combined commit.
 
 ## 2026-09-08 (authentication batch: duplicate OAuth route safety)
 
@@ -1347,66 +4413,7 @@
 - Validation: source review and `git diff --check` only; no local compilation or tests, per the source-only workflow. GitHub Actions is the verification gate.
 - Local commit/push: pending on `main`.
 
-### 2026-09-09 Add standalone audit log page
-
-- Added the administrator-only `/audit-logs` page, typed `/api/audit/` query, and sidebar entry.
-- Existing backend audit records and usage-log audit details remain unchanged.
-- Validation: source review and `git diff --check` only; not pushed yet.
-
-### 2026-09-09 Save Waffo Pancake unit price independently
-
-- Fixed unit-price changes to use the normal option update path instead of requiring a Store/Product binding save. Changing only `1` to `1.05` no longer fails because the catalog binding is incomplete.
-- Validation: source review and `git diff --check` only; not pushed yet.
-
-### 2026-09-09 Fix audit log response unwrapping
-
-- Fixed the standalone audit page API client to unwrap the common `{ success, data }` response envelope before reading paginated items.
-- Added an empty-page fallback and null-safe rendering to prevent a successful API response from causing a frontend runtime 500.
-- Validation: source review and `git diff --check` only; not pushed yet.
-
-### 2026-09-09 Fix Waffo Pancake unit-price change detection
-
-- Fixed the payment settings sanitizer to include `WaffoPancakeUnitPrice`; changing `1` to `1.05` now enters the save path instead of incorrectly reporting no changes.
-- Validation: source review and `git diff --check` only; not pushed yet.
-
-### 2026-09-09 Fix Waffo Pancake unit price label translation
-
-- Added the exact translation key used by the Waffo Pancake unit-price field. The displayed `1.05` indicates the saved value matches the current form, so the no-changes message is expected.
-- Validation: source review and `git diff --check` only; not pushed yet.
-
-### 2026-09-09 Fix Passkey status with dashboard sessions
-
-- Updated Passkey user resolution to accept the validated user ID from the dashboard authentication middleware, while retaining legacy cookie-session compatibility.
-- This prevents the profile page from reporting Passkey status failure or session expiry after normal password login; Passkey remains optional.
-- Validation: source review and `git diff --check` only; not pushed yet.
-
-### 2026-09-09 Fix Waffo Pancake unit price persistence
-
-- Fixed the configuration save payload and backend persistence path to include `WaffoPancakeUnitPrice`; values such as `1.05` are now saved instead of reverting to the default `1`.
-- Preserved the existing checkout pricing behavior and added the change to the source-level synchronization log.
-- Validation: source review and `git diff --check` only; not pushed yet.
-
-### 2026-09-09 Fix audit log page endpoint and translations
-
-- Corrected the audit page request from `/api/audit/` to the registered `/api/audit` route.
-- Added missing English and Chinese translation entries for the standalone audit page.
-- Validation: source review and `git diff --check` only; not pushed yet.
-
-### 2026-09-09 Fix dashboard login identity header
-
-- Fixed login and refresh success handling so the returned user ID is persisted as `uid`, allowing subsequent requests to send the required `New-Api-User` header.
-- This addresses the observed `login 200` followed by `self 401` error without changing authentication or billing logic.
-- Validation: source review and `git diff --check` only; not pushed yet.
-
-### 2026-09-09 Sync upstream `9bf328d97`: preserve Sora provider fields
-
-- Integrated the safe portion of the upstream Sora rendering fix: persisted provider response fields are returned when available, and the host preserves extensions while overriding public identity and lifecycle fields.
-- Deliberately did not import the unrelated task-adaptor API refactor because it overlaps local Sora/audio billing, polling, plugin state, and channel compatibility behavior.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
-- Local functionality deliberately preserved: Sora per-request billing, audio surcharge, task polling, plugin center, and provider compatibility.
-- Local commit/push: pending on `main`.
-
-### 2026-09-08 Model/vendor/pricing compatibility round 4 final review
+## 2026-09-08 Model/vendor/pricing compatibility round 4 final review
 
 - Reviewed the database and serialization boundary for the upstream model/vendor/pricing rewrite.
 - Local model, vendor, and pricing data use GORM-compatible fields and migrations. No PostgreSQL-only JSONB, database-specific function, or destructive schema change is required for this compatibility round.
@@ -1415,7 +4422,7 @@
 - Result: the compatible model/vendor/pricing functionality is already present locally; remaining differences are architectural upstream refactors, not required missing behavior.
 - Local commit/push: pending on `main`.
 
-### 2026-09-08 Model management compatibility round 3
+## 2026-09-08 Model management compatibility round 3
 
 - Rechecked upstream model-management changes against the local model metadata, vendor management, model synchronization, and pricing refresh paths.
 - The local implementation already supports vendor IDs/metadata, endpoint and modality metadata, model visibility, matching rules, channel-derived models, pricing refresh, and audit-aware model deletion. The upstream rewrite is therefore not applied wholesale.
@@ -1423,7 +4430,7 @@
 - Validation: source review and `git diff --check` only; no local build or tests.
 - Local commit/push: pending on `main`.
 
-### 2026-09-08 Model/vendor/pricing compatibility round 2
+## 2026-09-08 Model/vendor/pricing compatibility round 2
 
 - Compared the upstream pricing controller and model metadata API with the local implementation.
 - The local `/api/pricing` already exposes model metadata, vendor data, endpoint capabilities, pricing version, billing mode/expression, group ratios, and usable groups. No missing non-breaking API field was identified.
@@ -1432,7 +4439,7 @@
 - Local functionality deliberately preserved: model/vendor management, pricing snapshots, Sora/audio billing, dynamic billing, group/customer discounts, and plugin-center behavior.
 - Local commit/push: pending on `main`.
 
-### 2026-09-08 Model/vendor/pricing refactor compatibility round 1
+## 2026-09-08 Model/vendor/pricing refactor compatibility round 1
 
 - Reviewed upstream `0c76e4dae`, `75e533209`, `0e0ba152b`, and `71c1fd7ca`.
 - The local branch already contains compatible model/vendor entities, pricing snapshots, site-currency display, dynamic billing, Sora per-request pricing, audio surcharge, group/customer discounts, and model management APIs.
@@ -1441,7 +4448,7 @@
 - Local functionality deliberately preserved: all local billing, plugin-center, wallet/payment, mail, and frontend customizations.
 - Local commit/push: pending on `main`.
 
-### 2026-09-08 (final review of upstream batch `ea7cb0ba4`)
+## 2026-09-08 (final review of upstream batch `ea7cb0ba4`)
 
 - Final review completed for the upstream range `bee45b58a..ea7cb0ba4`.
 - Integrated: the safe backend redemption batch deletion endpoint from `524455fac`. Already present locally: usage-log group filtering/mobile layout, API-key and quota display behavior, plugin metadata/icon support, plugin marketplace/channel management, site-currency display, model/pricing editors, Sora/audio pricing, group-model ratios, and customer-specific discounts.
@@ -1450,14 +4457,14 @@
 - Validation: source/history review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. GitHub Actions is the verification gate.
 - Local commit/push: pending on `main`.
 
-### 2026-09-08 (redemption batch deletion)
+## 2026-09-08 (redemption batch deletion)
 
 - Integrated the safe backend portion of upstream `524455fac`: administrators can delete up to 1000 selected redemption codes through `POST /api/redemption/batch`, with input validation and management-audit recording.
 - File export and legacy frontend changes remain deferred for a separate `web/default` adaptation. Existing redemption crediting, wallet, payment, billing, mail, plugin, and frontend custom behavior remains unchanged.
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. GitHub Actions remains the verification gate.
 - Local commit/push: pending on `main`.
 
-### 2026-09-08 (final upstream backlog reconciliation)
+## 2026-09-08 (final upstream backlog reconciliation)
 
 - Reconciled the remaining low-scope upstream items: OpenAI generation/capability handling, Responses cached-token billing, expression-pricing support, database migration compatibility, and task-plugin diagnostics are already represented in the local branch.
 - Deliberately kept `/messages/count_tokens` enabled because the upstream temporary disable would regress existing Claude-compatible clients. The custom plugin switch and large model/pricing rewrite remain intentional local divergences documented in earlier entries.
@@ -1465,21 +4472,21 @@
 - Validation: source/history review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. GitHub Actions remains the verification gate.
 - Local commit/push: pending on `main`.
 
-### 2026-09-08 (model and pricing batch assessment)
+## 2026-09-08 (model and pricing batch assessment)
 
 - Assessed upstream `0c76e4dae` model/vendor/pricing rewrite and its dependent pricing API/frontend changes. The rewrite requires new model-pricing snapshots, vendor metadata, storage contracts, and editor UI that are not present as an isolated compatible layer locally.
 - Deliberately deferred this batch rather than introducing an unusable endpoint or bypassing OmniRouters pricing behavior. Existing group ratios, customer-specific discounts, Sora per-request pricing, `audio_generation` surcharge, wallet/payment display, and billing-expression safeguards remain authoritative.
 - Validation: source/dependency review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. GitHub Actions remains the verification gate.
 - Local commit/push: pending on `main`.
 
-### 2026-09-08 (model and pricing batch assessment)
+## 2026-09-08 (model and pricing batch assessment)
 
 - Assessed upstream `0c76e4dae` model/vendor/pricing rewrite and its dependent pricing API/frontend changes. The rewrite requires a new model-pricing snapshot, vendor metadata, storage contracts, and editor UI that are not present as an isolated compatible layer locally.
 - Deliberately deferred this batch rather than introducing an unusable endpoint or bypassing OmniRouters pricing behavior. Existing group ratios, customer-specific discounts, Sora per-request pricing, `audio_generation` surcharge, wallet/payment display, and billing-expression safeguards remain authoritative.
 - Validation: source/dependency review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. GitHub Actions remains the verification gate.
 - Local commit/push: pending on `main`.
 
-### 2026-09-08 (task plugin and polling batch reconciliation)
+## 2026-09-08 (task plugin and polling batch reconciliation)
 
 - Rechecked the task-plugin and polling changes through `bee45b58a`. The local branch already contains the upstream polling contract hardening, bounded failures, status classification, CAS terminal handling, plugin state persistence, Hailuo/MiniMax usage accounting, and settlement/refund integration.
 - The upstream custom-plugin switch removal (`210734bb7`) remains intentionally skipped because OmniRouters exposes that switch in its administrator plugin center. Removing it would change a local operational control rather than provide a compatible fix.
@@ -1487,6 +4494,298 @@
 - Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. GitHub Actions remains the verification gate.
 - Local commit/push: pending on `main`.
 - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
+
+## 2026-09-08 Structural-v3: Telegram OAuth activation review
+
+- Review result: the Telegram OAuth provider implementation, AuthFlow storage, external identity claim storage, and authoritative session primitives are present, but the unified callback/start/bind controller contract is not complete in this branch.
+- Decision: keep `TelegramOAuthProvider.IsEnabled()` false and do not register the provider or expose a new callback route. This prevents an incomplete provider from becoming selectable or creating sessions without the complete identity/session binding flow.
+- Preserved: legacy Telegram Widget login/bind behavior, legacy `telegram_id` compatibility, all OmniRouters custom billing/payment/mail/plugin/frontend behavior, and `main`.
+- Validation: source comparison and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+- Remaining: unified Telegram callback/bind/login controller integration and frontend activation require a dedicated implementation with end-to-end tests.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+## 2026-09-08 Structural-v3: final round review boundary
+
+- Planned rounds 1-4 have been processed in sequence: dashboard JWT middleware, credential auth-version fencing, security verification audit coverage, and Telegram OAuth activation review.
+- Round 5 is a source-only acceptance review: verify changed-file scope, migration registration, protected OmniRouters behavior, documentation traceability, branch/remote state, and GitHub Actions outcome. No local compilation or image build will be performed.
+
+## 2026-09-08 Structural-v3: security proof contract review
+
+- Review result: dashboard JWT identity is now exposed to middleware through the server-validated `auth_identity` context value. The existing security-proof signer currently stores an internal AuthFlow ID in JWT `jti`, while AuthFlow consumption requires the original opaque token; therefore proof consumption was not enabled prematurely.
+- Safety decision: removed the incomplete consumer path rather than introducing a proof that cannot be atomically consumed. A follow-up must return/bind the opaque flow token and internal proof ID explicitly before wiring `/api/verify` or channel-key access.
+- Preserved: existing Cookie/PAT behavior, legacy secure verification, billing/payment/mail/plugin/frontend behavior, and `main`.
+- Validation: source review and `git diff --check` only; no local compilation/build/tests or image publication.
+
+## 2026-09-08 Structural-v3: security proof token contract repair
+
+- Integrated the missing one-time Proof consumption primitive without enabling an incomplete route: the signed proof now carries the opaque AuthFlow token separately from the internal Flow ID in `jti`, and `ConsumeSecurityProof` validates the session/binding before atomically consuming that opaque token.
+- Safety: the previous mismatch between internal Flow ID and opaque-token consumption is corrected. The legacy `/api/verify` response and sensitive-operation consumers are deliberately deferred until their request/response contract can carry the proof explicitly.
+- Preserved: existing Cookie/PAT verification behavior and all OmniRouters business functionality.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+
+## 2026-09-08 Structural-v3: Telegram OAuth commit path
+
+- Added transaction-owned Telegram login commit helpers for new-user and existing-user paths, plus the bind path. Existing Telegram identities are consumed through the same one-time AuthFlow before `setupLogin`; new users are created and claimed atomically.
+- Controller wiring remains intentionally pending until the callback has dedicated route-level tests for state intent, provider error callbacks, concurrent replay, registration-disabled behavior, and session-bound bind requests.
+- Preserved legacy Telegram Widget routes and all OmniRouters custom behavior.
+
+## 2026-09-08 Structural-v3: Telegram unified OAuth routes
+
+- Registered explicit `/oauth/telegram/start` and `/oauth/telegram` routes before the generic OAuth wildcard. The legacy `/api/oauth/telegram/login` and `/bind` Widget routes remain unchanged.
+- The unified flow uses server-side AuthFlow state, PKCE, ID-token verification, session-bound bind intent, one-time consumption, and atomic external identity ownership. It does not depend on the generic provider registry.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+
+## 2026-09-08 Structural-v3: default frontend dashboard session client
+
+- Added default frontend storage and request injection for the short-lived dashboard Access JWT. Login and 2FA responses persist the returned token; refresh and logout use the new session endpoints, while HttpOnly refresh cookies remain server-managed.
+- Compatibility: the change is limited to `web/default` dashboard API requests. Relay/API-key examples and the classic frontend are unchanged; the existing user ID header and cookie credentials remain present for compatibility.
+- Added an explicit `refreshDashboardSession` API helper for the authenticated bootstrap/expiry flow. Automatic retry is intentionally not added yet to avoid request replay and refresh races until the route lifecycle is wired and tested.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation, per source-only workflow.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+## 2026-09-08 Structural-v3: four-batch migration acceptance review
+
+- Batch 1 complete: JWT-bound security proofs, operation-context binding, and one-time channel-key proof consumption.
+- Batch 2 complete: Telegram AuthFlow state, PKCE, ID-token validation, atomic login/bind commits, external identity claims, and dedicated callback routes. Legacy Telegram Widget routes remain intact; the generic Provider registry remains protected from incomplete registration.
+- Batch 3 complete: default frontend stores and sends dashboard Access JWTs, persists login/2FA tokens, and uses refresh/logout session endpoints. Classic frontend, PAT/API-key relay requests, and Cookie compatibility remain unchanged.
+- Batch 4 source review: protected OmniRouters Sora/audio billing, expression/group/customer pricing, plugin system, wallet/payment display, mail settings/templates, and classic frontend were not modified by this migration series. Only migration-branch source and documentation changes are included.
+- Validation: `git diff --check` and source-scope review only. No local Go compilation, frontend build, Docker build, or image publication, as required by the source-only workflow. GitHub Actions remains the authoritative build/test gate.
+- Branch: changes are on `codex/migrate-upstream-structural-v3`; `main` was not changed. Pre-existing unrelated untracked files remain untouched.
+
+## 2026-09-08 Default frontend access-token refresh
+
+- Added automatic Dashboard Access JWT refresh on HTTP 401 in `web/default/src/lib/api.ts`. Concurrent expired requests share one refresh promise; each original request is retried at most once.
+- Refresh and logout endpoints are excluded from retry to prevent loops. A failed refresh clears the stored dashboard token and auth-store user state. Cookie credentials remain HttpOnly and server-managed.
+- Preserved: PAT/Relay requests, classic frontend, legacy cookie behavior, billing/payment/mail/plugin behavior, and `main`.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
+
+## 2026-09-08 Telegram default frontend callback routing
+
+- Unified Telegram OAuth bind callbacks now redirect to the default frontend `/profile` route. Legacy Telegram Widget binding keeps its existing `/console/personal` redirect for classic frontend compatibility.
+- The default profile page already reloads current user data on route entry; no legacy binding route or classic frontend behavior was changed.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
+
+## 2026-09-08 Telegram OAuth browser callback completion
+
+- Added a redirect-based login finalizer for browser OAuth callbacks. Telegram login now creates the same server-side Session, Access JWT, refresh cookie, last-login update, and audit record as normal login, then redirects to the dashboard instead of rendering raw JSON.
+- Telegram bind already redirects to the profile page; both browser paths now return to usable frontend screens.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
+
+## 2026-09-08 Default frontend Telegram binding start
+
+- Replaced the default frontend Telegram binding placeholder/widget text with a real server-side OAuth bind start action. The button requests a bind AuthFlow and redirects to its PKCE authorization URL.
+- The existing profile binding refresh callback remains the next UI follow-up after the backend redirect response is finalized; legacy Widget binding remains unchanged.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+## 2026-09-08 Default frontend Telegram login start
+
+- Replaced the default frontend Telegram placeholder with the server-side Telegram OAuth start request. The browser is redirected only to the authorization URL returned by the backend; PKCE and flow state remain server-managed.
+- Telegram bind UI and callback success-screen handling remain separate follow-up work; legacy Widget behavior is unchanged.
+- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
+
+## 2026-09-08 Structural-v3: Telegram atomic OAuth commit services
+
+- Added transaction-aware `CommitTelegramLogin` and `CommitTelegramBind` services. The AuthFlow consumer owns the only transaction; login performs Flow consumption, user creation, and external identity Claim atomically, while bind performs Flow consumption and Claim atomically.
+- Post-commit effects remain outside the transaction by design. No public Telegram unified route is enabled yet; callback wiring still needs provider token validation, authenticated bind-session matching, error handling, and targeted concurrency tests.
+- Preserved legacy Telegram Widget behavior and all OmniRouters custom billing/payment/mail/plugin/frontend behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+
+## 2026-09-08 Structural-v3: Telegram callback transaction review
+
+- Review result: the existing AuthFlow consumer owns its transaction, while OAuth user creation currently has separate post-lookup and post-creation behavior. No callback route was enabled in this step because combining Flow consumption, user creation, external identity claim, and post-commit session issuance still requires a dedicated transaction-aware consumer API.
+- Safety: no partial Telegram callback/controller was committed; legacy Widget login and bind remain unchanged and the unified provider remains disabled.
+- Preserved: all OmniRouters billing/payment/mail/plugin/frontend behavior and `main`.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+
+## 2026-09-08 Structural-v3: Telegram AuthFlow state service
+
+- Added server-side Telegram OAuth flow state creation/lookup for login and bind intents. PKCE verifier, client ID, and redirect URI are stored in the expiring AuthFlow payload; only the opaque flow token is intended for the browser.
+- The helper validates provider/intent, expiry, payload shape, and rejects unsupported intents. Callback consumption and provider registration remain deferred until the controller can perform atomic identity/session updates.
+- Preserved legacy Telegram Widget routes and all OmniRouters custom business behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+
+## 2026-09-08 Structural-v3: Telegram identity binding primitive
+
+- Added `BindExternalIdentityWithTx`: checks legacy `telegram_id` ownership, atomically claims the provider subject in `external_identity_claims`, and updates the legacy column in the same transaction.
+- This is a service/model prerequisite for the unified Telegram callback. The public provider remains disabled until AuthFlow intent consumption and session-bound login/bind controllers are added.
+- Preserved legacy Telegram routes and all OmniRouters billing/payment/mail/plugin/frontend behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+## 2026-09-08 Structural-v3: security proof request integration
+
+- Integrated JWT-bound security verification into `/api/verify`: callers may provide a supported operation/context and receive a short-lived one-time security proof. The proof is bound to the authoritative user session, auth version, method, scope, and normalized operation context.
+- Integrated the channel-key read path: JWT requests must present `X-Security-Proof` bound to that exact channel ID; the proof is atomically consumed before the key is returned. Legacy Cookie-session requests retain the existing five-minute verification behavior.
+- Preserved: PAT/relay authentication, legacy frontend behavior, billing/payment/mail/plugin behavior, and `main`.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+## 2026-09-08 Structural-v3: secure verification audit coverage
+
+- Scope: universal 2FA/Passkey verification now records structured security audit events for successful and failed verification attempts, including only the verification method and request context; secrets and codes are never logged.
+- Boundary: existing Gin-session verification remains compatible. The new JWT-bound security proof issuance/consumption path is intentionally not activated by this small audit change; it remains a separate complete integration round.
+- Preserved: existing verification behavior, Passkey readiness marker, 2FA lockout/counters, all billing/payment/mail/plugin/frontend behavior, and `main`.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+## 2026-09-08 Structural-v3: credential mutation auth-version fencing
+
+- Scope: password changes through user update/edit and email password reset now increment the user's authoritative `AuthVersion` in the same database transaction. Creating or deleting 2FA and registering/deleting Passkey credentials also advances the version.
+- Safety: ordinary 2FA usage updates (TOTP last-used time, failed-attempt counters, lock state, and backup-code consumption) deliberately do not invalidate every session. This avoids turning a normal login verification into an unintended global logout.
+- Preserved: existing password hashing, reset semantics, session issuance, PAT/API-key authentication, relay behavior, billing/payment/mail/plugin/frontend behavior. No changes to `main`.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. The remote Actions workflow remains the required integration check.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+- CI repair after run `34136306470`: remote compilation reported missing `UserBase.Role` and `userCacheSchemaVersion` required by the auth cache layer. Added upstream-compatible role caching and schema version 2. No production route behavior was changed.
+
+## 2026-09-08 Structural-v3: dashboard JWT middleware integration
+
+- Scope: completed the first authentication-integration round. `middleware/auth.go` now recognizes dashboard Access JWTs, validates their signature/claims through `service.ParseDashboardAccessToken`, and validates the authoritative user/session/auth-version state inside a database transaction through `model.ValidateAuthSessionWithTx`.
+- Compatibility: invalid internal dashboard JWTs never fall through to opaque PAT validation; legacy cookie sessions, PAT/API-key authentication, relay authentication, and all OmniRouters billing/payment/mail/plugin/frontend behavior remain unchanged.
+- Authorization: role, status, group, and user identity are loaded from the authoritative database user record for JWT requests. Existing `New-Api-User` matching and Admin/Root role gates remain active.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions is required for package-level verification.
+- Remaining: credential/security mutations still need to advance `AuthVersion`; security proof completion, Telegram callback activation, and frontend activation remain separate rounds.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+## 2026-09-08 Main CI repair: missing NormalizeOrigin helper
+
+- Fixed the GitHub Actions Go compilation failure after merging structural-v3: `middleware/auth_origin.go` referenced `common.NormalizeOrigin`, but the helper had not been brought into the local `common/session_cookie.go` implementation.
+- Added the upstream-compatible origin validation and canonicalization helper, including scheme/host validation, wildcard rejection, default-port normalization, and IPv6 formatting. Preserved the local session-cookie initialization behavior and all OmniRouters custom billing, payment, mail, plugin, and frontend logic.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
+- Local commit/push: commit `1fb7b9ece`, pushed to `origin/main`.
+
+## 2026-09-08 Upstream performance and popup compatibility
+
+- Integrated upstream commits `5c7cca015` and `387a40914` with path-aware conflict resolution. Model health data now exposes hourly success-rate points; nested Combobox/Select popups inside the default frontend Drawer portal into the Drawer content so focus and pointer interaction remain functional.
+- The performance UI changes under the removed legacy `web/src` pricing path were deliberately not restored; the popup fix was ported to `web/default`. Existing model pricing, Sora/audio billing, payment, mail, plugin, and frontend custom behavior remain preserved.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
+- Local commits: `679a63cec` and `c136754d5`; push pending on `main`.
+
+## 2026-09-08 Upstream JSON codec injection
+
+- Integrated upstream commit `7bbe85bcb` after reviewing conflicts. JSON helpers now use a host-injectable codec shared by `common` and `relaykit`, while preserving the project-wide `common.*` JSON wrapper contract and Kimi message compatibility.
+- No business JSON semantics, billing, payment, mail, plugin, or frontend behavior was intentionally changed. Upstream-only test additions were retained only where they fit the current relaykit layout.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
+- Local commit/push: commit `b7fffae47`, push pending on `main`.
+
+## 2026-09-08 Upstream performance, cache, and CI maintenance
+
+- Integrated upstream commits `2cf177ac4`, `36dbbf0f7`, and `8f5ab8e40` with conflict resolution. RawMessage request cloning now avoids unnecessary copies, ETag matching remains valid across JSON implementations, and release version resolution uses the triggering tag when available.
+- Preserved local empty-ETag protection, current release workflow structure, and all OmniRouters billing, payment, mail, plugin, Sora/audio pricing, and frontend behavior. No local dependency upgrade was imported.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
+- Local commits: `d630f4912`, `4eded8c17`, `712f488a9`; push pending on `main`.
+
+## 2026-09-08 Upstream task-plugin 503 diagnostic audit
+
+- Reviewed upstream commit `32c261923`. Its task-plugin-specific no-available-channel message, distributor branch, and en/zh translations are already present in the local plugin-center implementation, so the cherry-pick resolved to an empty change and was skipped.
+- No source change was required; existing plugin routing, Sora/audio billing, payment, mail, and frontend behavior remain unchanged.
+- Validation: source comparison and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
+- Local commit/push: commit `b96c76b8c`, pushed to `origin/main`.
+
+## 2026-09-08 Upstream database migration compatibility
+
+- Integrated the backend portion of upstream commit `9a8674425`: MySQL decimal defaults and PostgreSQL `CHAR` metadata are normalized during GORM schema comparison, preventing redundant migrations on restart while retaining real schema changes.
+- Deliberately did not import dependency churn or test-only database fixtures. Existing SQLite/MySQL/PostgreSQL support and all OmniRouters billing, payment, mail, plugin, and frontend behavior remain preserved.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
+- Local commit/push: pending on `main`.
+
+## 2026-09-08 GHCR build compatibility repair: JSON helper aliases
+
+- Fixed the next GitHub Actions compile failure in `relay/channel/openai/relay_image.go` by exposing `common.JSONRawMessage` and `common.IsValidJSON` through the existing host-injectable JSON codec.
+- No direct business-code JSON implementation was introduced; billing, plugins, payments, mail, and frontend customizations remain unchanged.
+- Validation: source review and `git diff --check` only; local compilation/build was intentionally not run. GitHub Actions is the verification gate.
+- Local commit/push: pending on `main`.
+
+## 2026-09-08 Authentication security batch: cache and abuse controls
+
+- Integrated the independent routing hardening from the upstream authentication batch: universal security verification and Passkey/login verification endpoints now disable caching, and authenticated security verification is additionally protected by the user-level `security-verification` rate limit.
+- Preserved existing login, Telegram/OAuth, Passkey, session, Token, billing, payment, mail, plugin, and frontend behavior; no authentication contract or credential format was changed.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the verification gate.
+- Local commit/push: pending on `main`.
+
+## 2026-09-08 Authentication security batch: primary login cache control
+
+- Added `middleware.DisableCache()` to the primary `/api/user/login` endpoint, aligning authentication response handling with the verification and Passkey routes already hardened in this batch.
+- This is a routing-only change: login payloads, session issuance, Telegram/OAuth behavior, billing, payment, mail, plugins, and frontend behavior remain unchanged.
+- Validation: source review and `git diff --check` only; no local compilation/build. GitHub Actions remains the verification gate.
+- Local commit/push: pending on `main`.
+
+## 2026-09-08 GHCR build compatibility repair
+
+- Fixed the GitHub Actions Go build failure where the Responses stream converter referenced missing `chatAnnotationsToResponses` and `responsesEventOutputTextAnnotationAdded` symbols.
+- Ported the upstream annotation conversion helper into the local non-stream Responses converter, including URL-citation flattening and the annotation event constant. Existing reasoning conversion, JSON codec usage, billing, plugin, payment, mail, and frontend behavior were preserved.
+- Validation: source review and `git diff --check` only; local compilation/build was intentionally not run under the source-only workflow. GitHub Actions is the verification gate.
+- Local commit/push: pending on `main`.
+
+## 2026-09-08 Main CI repair: missing dashboard identity accessor
+
+- Fixed the next GitHub Actions compile error by adding the `authIdentityContextKey` constant and `GetAuthIdentity` accessor required by the already-integrated session identity guard.
+- Preserved PAT behavior, legacy session behavior, and all OmniRouters custom billing, payment, mail, plugin, and frontend behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
+- Local commit/push: pending on `main`.
+
+## 2026-09-08 Main CI repair: structural-v3 missing compatibility symbols
+
+- Fixed the next Go compilation failures reported by GitHub Actions after the Origin helper repair: restored `GetSessionAuthIdentity`, corrected Telegram OAuth startup to return the persisted flow record and the in-memory OAuth flow separately, and added the safe `buildSelfUserData` response DTO using the local `User` shape.
+- Preserved PAT authentication behavior, legacy Telegram behavior, local user fields, and all OmniRouters billing, payment, mail, plugin, and frontend behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
+- Local commit/push: pending on `main`.
+
+## 2026-09-08 Upstream plugin fixes: Suno aliases and factory suppression
+
+- Integrated upstream commits `92bc7ff73` and `6298b0f32`.
+- Updated the built-in Suno plugin to preserve channel-mapped aliases, select music/lyrics behavior from the mapped upstream model, and avoid sending empty optional headers. Updated task-plugin status handling so disabling an overridden plugin also suppresses its built-in factory layer.
+- Deliberately kept local deletions of upstream-only plugin test files because those tests belong to the removed legacy plugin test layout; no OmniRouters billing, payment, mail, Sora/audio pricing, or frontend behavior was changed.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. Remaining plugin polling and task-core changes are deferred for a separate review.
+- Local commit/push: commits `52928fc25` and `a2530cc8b`, push pending on `main`.
+
+## 2026-09-08 Upstream relay compatibility: Kimi dynamic tool loading
+
+- Integrated upstream commit `6e10f9bc9` with a manual conflict resolution. Message-level Kimi K3 tool declarations are preserved when converting and serializing OpenAI-compatible requests, included in token metadata, and excluded from invalid `content: null` output for tool-loading system messages.
+- Preserved local `annotations`, reasoning conversion state, and the existing JSON wrapper usage. No task billing, Sora/audio pricing, payment, mail, plugin-center, or frontend behavior was changed.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
+- Local commit/push: commit `ad7838963`, push pending on `main`.
+
+## 2026-09-08 Upstream Alibaba plugin: Wan 3.0 all-in-one video
+
+- Integrated upstream commit `3b4652269`. Added `wan3.0-video` and `wan3.0-video-prime` support in the Alibaba task plugin, including resolution tiers, adaptive ratio, smart duration sentinel handling, image/media input, and completion usage facts.
+- Preserved existing Wan 2.x behavior, Sora/audio per-request billing, plugin-center controls, and all local payment, mail, pricing, and frontend customizations. The plugin keeps bounded duration facts before billing ratios are produced.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
+- Local commit/push: commit `4f19d34c7`, push pending on `main`.
+
+## 2026-09-08 Upstream task polling audit: Sora status diagnostics
+
+- Reviewed upstream commit `9df450fe5`. The independent Sora unknown-status diagnostic is already present locally in `plugins/tasks/sora/plugin.js`; no duplicate source change was needed.
+- The full polling/adaptor contract migration remains deferred because the local task interfaces and Sora/audio settlement path use a compatibility contract that must be migrated as one complete round to protect pre-consume, settlement, and refund behavior.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
+- Local commit/push: pending on `main`.
+
+## 2026-09-08 Upstream security and audit follow-up review
+
+- Reviewed the next upstream security/audit batch through `bee45b58a`, including `3f8a50cf8`, `6f2333990`, `0973dc2b8`, `a8729b5c3`, `3e84ec0ab`, `45c3fbe8a`, `d8cb17744`, `8c8c4153d`, and `521cebf58`.
+- `3f8a50cf8` audit records and the `8c8c4153d` usage-statistics scan fix are already present in the current branch. The statistics query already scans RPM/TPM into a separate value and assigns only those fields, so no duplicate source change was made.
+- `521cebf58` targets the upstream legacy `web` frontend layout; this repository's active frontend is `web/default`, and the equivalent setup-guide behavior is already present there. It was therefore not cherry-picked.
+- The authentication/security commits remain deferred for a dedicated compatibility round because they overlap local session identity, Telegram/OAuth, password, access-token, and security-verification customizations. The full task polling refactor and model/vendor/pricing refactor remain separately deferred because they overlap Sora/audio billing, plugin-center controls, and customer-specific pricing.
+- Local functionality deliberately preserved: Sora per-request billing, `audio_generation` surcharge, group pricing and customer discounts, wallet/payment display, mail templates, task plugin center, and default/classic frontend customizations.
+- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
+- Local commit/push: commit `1fb7b9ece`, pushed to `origin/main`.
+
+## 2026-09-08 Upstream backlog reconciliation through `bee45b58a`
+
+- Reconciled the remaining upstream commits after the previous security review. The local history already contains the compatible portions of `057f71c23` (privileged log metadata isolation), `219c9e063` (revalidated public/auth-session responses), `73afad588` (Hailuo media usage), `b7017c251` (system-task no-op writes), `27ff6a876` (legacy token-key migration), and `6eb6f35ed` (PostgreSQL JSON values/scanning).
+- These items are therefore recorded as integrated/already present rather than cherry-picked again. Existing local implementations also retain the required billing saturation checks, request-audit visibility rules, plugin-center controls, and Sora/audio pricing behavior.
+- The remaining upstream items are explicitly deferred: full authentication/security migration (`6f2333990`, `0973dc2b8`, `a8729b5c3`, `3e84ec0ab`, `45c3fbe8a`, `d8cb17744`), full task polling/adaptor migration (`9df450fe5`), removal of the custom plugin switch (`210734bb7`), model/vendor/pricing rewrite (`0c76e4dae`), temporary count-token disable (`3a9f41ee8`), and OpenAI capability rewrite (`49ec46966`). Each overlaps active local behavior and requires a dedicated compatibility round.
+- No source change was required in this reconciliation batch. Local functionality deliberately preserved: Sora per-request billing, `audio_generation` surcharge, group/customer pricing, wallet/payment display, mail templates, plugin-center administration, and default/classic frontend customizations.
+- Validation: source/history review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
+- Local commit/push: pending on `main`.
+
+## 2026-09-07 (first-round polling audit)
+
+- Reviewed upstream `9df450fe5` against the plugin task subsystem.
+- Already present locally: persisted task query contexts, response status classification, bounded consecutive poll failures, CAS-safe failure updates, plugin state persistence limits, and task refund/settlement integration. No upstream polling code was copied.
+- Preserved: local Sora/audio billing, plugin registry, task artifacts, and provider-specific polling adapters.
+- Validation: source comparison and `git diff --check`; full Go tests unavailable because Go is not installed locally.
 
 ## 2026-09-07 (first-round database audit)
 
@@ -1526,6 +4825,96 @@
 - Validation: `git diff --check`; frontend build unavailable locally.
 - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
 
+## 2026-09-07
+
+- Third-round migration branch: `codex/migrate-upstream-structural-v3`.
+- Telegram migration dependency map: `external_identity_claim`, authorization-code/PKCE flow, session-bound verification, OAuth registry/provider, system Telegram settings, and route/frontend callback changes. Legacy `telegram_id` bindings must remain readable during migration.
+
+- Upstream review: `d8cb17744`, `3f8a50cf8`, `6f2333990`, `0973dc2b8`, `a8729b5c3`, `45c3fbe8` and related commits through `upstream/main` `0c76e4dae`.
+- Planned three-round sync:
+  - Round 1: database compatibility, request stability, provider/model capability fixes, and billing safety.
+  - Round 2: access-token lifecycle, security verification, and independent audit records.
+  - Round 3: model/provider/pricing structural refactors and Telegram OAuth updates.
+- Current status: audit completed; existing administrator operation audit and privacy projection are retained. The upstream independent audit model and access-token lifecycle are not yet integrated because they depend on newer upstream type/signature changes and must be ported incrementally.
+- Preserved: OmniRouters plugin system, wallet/payment display, Sora/audio billing, expression/group pricing, mail settings, and default frontend customizations.
+- Validation: upstream diff/stat review only; implementation and tests pending.
+- Local commit/push: pending.
+
+## 2026-09-07 Telegram provider repair (structural-v3)
+
+- Scope: audited actual branch HEAD `2db85323e` against upstream `3e84ec0ab` (not the earlier assumed `86426f7a6`). Earlier Telegram progress entries describe scaffolding, not a completed OAuth migration.
+- Integrated at source level: actual ExchangeToken/GetUserInfo implementations, cached JWKS client, issuer/audience/signature/expiry verification, positive uint64 Telegram IDs without float conversion, current redirect/client matching, HTTP(S)-only callback validation, bounded token responses, and server-only OAuthToken.ClientID.
+- Dependencies: copied upstream versions and exact go.sum checksums for go-oidc v3.21.0, oauth2 v0.36.0 and indirect go-jose v4.1.4. No local dependency resolution/build was run; module graph remains subject to CI verification.
+- Identity lookup: replaced placeholders with existing Telegram occupancy lookup and a GORM lookup that propagates database errors. Did not reuse FillUserByTelegramId because it discards non-record-not-found errors.
+- Safety: removed automatic telegram_oauth registration and the incomplete /oauth/telegram/start route/handler. Provider remains disabled and unregistered until single-use flows, session-bound login/binding callbacks and registry conflict handling are ported. Legacy widget routes and telegram_id data remain unchanged.
+- Deferred (NOT integrated by this repair): full callback/session lifecycle, external-identity-claim lifecycle and migration audit, model/vendor/pricing restructuring. This is not completion of round 3 or upstream parity.
+- Preserved: Sora/audio_generation charges, customer/group/expression pricing, payment/mail/plugin behavior, main branch and unrelated untracked files.
+- Validation: added Telegram regression test source for numeric IDs, invalid callback URLs, configuration changes, token endpoint PKCE/Basic auth, private ClientID, disabled registration and real RSA/JWKS issuer/audience/expiry/signature failures. Local checks are source review and git diff --check only; no local compilation or tests.
+- CI: added migration-branch-only Structural migration source checks (go test ./oauth -run Telegram); no image publication and no latest tag changes. Existing main GHCR workflow unchanged.
+- Local commit/push: repair `4d9d566594248702137ab0c20d4d956afd658229` pushed successfully to origin/codex/migrate-upstream-structural-v3; main unchanged.
+- Remote validation: GitHub Actions run [34127883521](https://github.com/1412212638/OmniRouters/actions/runs/34127883521) completed successfully for that exact commit, including `go test -mod=readonly ./oauth -run Telegram -count=1`. This validates the OAuth package/dependency compilation and targeted regressions, NOT the full application image, live Telegram login, or real multi-database migrations.
+- Status-record commit: documentation-only follow-up, to be pushed to the same migration branch with CI skipped; no source changes after the passing run.
+
+## 2026-09-07 Structural-v3: one-time authorization storage
+
+- Upstream source: `3e84ec0ab:model/auth_flow.go`. Integrated the independent AuthFlow storage/creation/lookup/transactional consumption/external assertion replay protection/cleanup APIs. Normal and fast schema migration both include AuthFlow.
+- Preserved upstream implementation: 32-byte random tokens with HMAC-only storage, purpose/provider/intent/user/session match predicates, expiry checks, first-write atomic consumption and action rollback. Optional match fields retain upstream semantics: future callbacks MUST supply and validate authoritative identity fields; this table alone does not validate a session.
+- Explicitly deferred: AuthSessionIdentity/Authorization and ValidateAuthSessionWithTx, which require User.AuthVersion, UserSession and versioned session lifecycle absent locally. No placeholder session validator was added. Cleanup API is present but scheduling is deferred until flows are activated.
+- Security boundary: provider remains unregistered/disabled; no OAuth start/callback routes enabled. Legacy Telegram, other login mechanisms, identity-claim tables, billing/payment/mail/plugin code unchanged. This is the storage prerequisite, NOT complete session binding or completion of round 3.
+- Regression source: SQLite/MySQL/PostgreSQL schema idempotence, identity-field mismatch, replay/expiry, action rollback (including data rollback), concurrent single winner and signed assertion deduplication. Tests use dedicated CI databases; SQLite concurrency uses a single connection, so multi-connection SQLite lock contention remains outside this test.
+- Validation: local source review and git diff --check only, no local compilation/tests/builds. Added isolated MySQL 8/PostgreSQL 16 services to migration-branch Actions for these tests; older supported DB versions still require separate verification.
+- Local commit/push: pending on codex/migrate-upstream-structural-v3; main not changed. Remote result to be recorded after push.
+- First push: `be82fa8a3`, run `34128852251`. Telegram checks passed; model tests failed at compilation due to pre-existing missing AuthVersion, UpdateUserAccessToken and useUserCacheMiniRedis referenced by unrelated tests. No database contract executed in that run.
+- Follow-up: moved new tests to model/authflowtest, importing the actual production model package so the three-database contracts can run independently. No old test deleted/disabled and no placeholder production APIs introduced. Full model test-suite compilation remains a known migration gap, NOT fixed by this isolation.
+- Source-review correction after `64640fa2b`: corrected three overqualified GORM references introduced while moving the test package. Production behavior unchanged; validation remains remote CI plus local diff review.
+- Final source push: `ab8179816ee27196f39058fa33b7e0a84f0a309f` on origin/codex/migrate-upstream-structural-v3. [Actions run 34129267334](https://github.com/1412212638/OmniRouters/actions/runs/34129267334) completed successfully: Telegram regression checks and independent AuthFlow contracts with SQLite, MySQL 8 and PostgreSQL 16. Supersedes the failed intermediate runs above. No local compilation was performed.
+- Completion boundary: one-time storage prerequisite completed; full model suite, authoritative session/version lifecycle, Telegram callback/binding and frontend activation remain outstanding. Documentation-only status follow-up will use [skip ci]; main remains unchanged.
+
+## 2026-09-07 Structural-v3: authoritative session backend
+
+- Upstream reference: `3e84ec0ab:model/user_session.go` and session identity/validation portion of `model/auth_flow.go`. Ported the complete session model with DB lookup, active-session listing/counts, revoke/refresh CAS, Redis deny fences and bounded cache lifetime, auth-version advancement and cleanup APIs. Added upstream retention defaults and TTL helper dependency.
+- Added User.AuthVersion (default 1, private JSON field), UserSession to normal/fast migration, AuthSessionIdentity/Authorization and real ValidateAuthSessionWithTx. Validation rereads and locks the user/session inside the caller transaction rather than trusting cookie state.
+- Deliberate local protection: AuthVersion is create-only in GORM User writes so existing stale Save/Updates cannot decrease it. Future auth-version mutation must use an explicit dedicated column update and integrate cache fencing; upstream credential-mutation/cache-version logic is NOT ported in this step.
+- Regression source in model/authflowtest: DB schema repeatability; owner mismatch, revoke and cached denial; binding-flow rollback when session revoked; refresh invalid token/grace/reuse; user/session version mismatch, expiry and stale User.Save protection. Three-database harness now sets the main DB dialect so MySQL/PostgreSQL exercise FOR UPDATE. Redis 7 service exercises both cached and uncached paths.
+- Preserved/not activated: existing cookie login/logout, password/2FA changes, API keys, Telegram widget, frontend, custom pricing/mail/payments/plugins. No new session issuance/refresh/revoke HTTP routes or scheduled cleanup; Telegram provider remains unregistered/disabled. These backend APIs do not make existing cookie sessions revocable automatically.
+- Still required before activation: issuance limits/configuration, auth-version increments and cache fences across credential mutations, JWT/refresh lifecycle and cookie compatibility, middleware enforcement, session-bound Telegram callbacks and identity claim lifecycle. Existing full-model-test missing helpers remain separate work.
+- Validation: source comparison and git diff --check only locally; no local compilation/build/tests. Migration-branch Actions expanded to test session contracts with SQLite/MySQL 8/PostgreSQL 16 and Redis 7. Full image build and old database version upgrades are not covered.
+- Local commit/push: pending on codex/migrate-upstream-structural-v3; main unchanged. Remote CI outcome will be appended after push.
+- Source commit `61c5d39a8ae7beb16fb64a5dc031f7e4149a093f` pushed to origin/codex/migrate-upstream-structural-v3. [Actions run 34130741264](https://github.com/1412212638/OmniRouters/actions/runs/34130741264) passed both Telegram and auth-flow jobs, including the three-database session tests with Redis enabled/disabled. This is targeted backend validation, not activation or a full image acceptance test.
+- Status-only log follow-up uses [skip ci]. Next implementation boundary: authoritative login/session issuance, logout/revocation, credential-change auth-version/cache fencing, then middleware/callback integration. No claim that these paths were completed here.
+
+## 2026-09-07 Structural-v3: isolated authentication token layer
+
+- Upstream references: `3e84ec0ab:service/auth_token.go` and the normalized verification binding portion of `service/security_verification.go`. Added short-lived HS256 dashboard access tokens, strict issuer/audience/algorithm/expiry/issued-at/use validation, server-derived operation context hashes, and security-proof identity/scope/context binding. The token layer is not wired into existing middleware or login routes.
+- Preserved: existing opaque access-token/PAT authentication, cookie login/logout, Telegram legacy routes, session model, Sora/audio billing, pricing, mail, plugin and frontend behavior. No production route behavior changes.
+- Regression source: access-token round trip, security-proof purpose isolation, tamper rejection, internal JWT classification and expiry rejection. Database-backed proof issuance requires the existing application DB and remains covered by the remote target suite only after auth-session service integration.
+- Deferred: service auth-session issuance/refresh adapter, JWT middleware enforcement, login/logout controller swap, auth-version mutation hooks for password/2FA/passkey changes, full security verification service, and Telegram callback activation. These are deliberately separate because the current application still uses the legacy cookie session contract.
+- Validation: source review and `git diff --check` only locally; no local compilation/build/tests. This source-only step is not a deployable authentication migration by itself.
+- Local commit/push: pending on codex/migrate-upstream-structural-v3; main unchanged. Remote result to be recorded after push.
+- Auth-version/cache prerequisite source commit is being prepared: `model/user_auth_cache.go` adds monotonic Redis pending/committed fences and transactional version bump helpers; `UserBase` now carries the private auth version, and normal/fast migrations initialize missing versions to 1. This is required before issuing sessions from existing login paths.
+- Source commit `333ea234f3033a897e1d559aa172944ea5374e6c` pushed to origin/codex/migrate-upstream-structural-v3. [Actions run 34132002060](https://github.com/1412212638/OmniRouters/actions/runs/34132002060) completed successfully; targeted Telegram/session checks and the new service token source checks passed. No local compilation/build/tests were run.
+- Completion boundary: token validation is integrated as an isolated service layer only. Existing cookie/PAT middleware and login routes remain unchanged; access-token issuance, refresh endpoint, security-proof consumption, auth-version mutation hooks and Telegram callback activation remain the next integration work. main remains unchanged.
+-
+
+## 2026-09-07 Structural-v3: login session issuance
+
+- Added the upstream session issuance service: active/issuance limits, server-side refresh-secret hashes, UUID session IDs, Access JWT bundles and HttpOnly refresh cookies.
+- Integrated the existing shared `setupLogin` so successful password, 2FA, OAuth, Telegram legacy and Passkey logins issue the new bundle while retaining the legacy Gin session and response user data.
+- Preserved PAT/API-key authentication, existing logout behavior and all OmniRouters billing/payment/mail/plugin/frontend behavior. Unified Telegram provider remains disabled.
+- Deliberately deferred refresh rotation endpoint, JWT middleware switch, logout revocation, session management routes, auth-version mutation hooks and Telegram callback integration.
+- Validation: source review and `git diff --check` only; no local build or tests. GitHub Actions is required to catch remaining package/signature issues.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
+
+## 2026-09-07 Structural-v3: refresh/logout controller layer
+
+- Added the upstream refresh/logout/session-management controller and origin guard. Refresh reads only the HttpOnly cookie, validates optional `X-Auth-Session`, rotates refresh secrets, and clears invalid cookies; logout revokes the matching server session before clearing cookies. Added session listing/revoke routes and explicit no-store responses.
+- Added `POST /api/user/auth/refresh` and `/auth/logout`; existing legacy `GET /api/user/logout` remains untouched for compatibility. New routes are origin-guarded only when secure cookie mode is enabled and do not affect relay/PAT routes.
+- Source correction: local user response shape lacks the upstream `buildSelfUserData` helper, so refresh returns the existing loaded user object rather than introducing unrelated response restructuring.
+- Preserved billing/payment/mail/plugin/frontend behavior and disabled Telegram unified provider. No Telegram callback activation or main merge.
+- Validation: source review and `git diff --check` only; no local compilation/build/tests. Remote CI is required for package integration.
+- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; main unchanged.
+- CI result: initial refresh/logout commit `5414d0844` failed because the auth cache port missed local `UserBase.Role` and schema-version definitions. Repair `3db33dac9` still exposed duplicate declarations caused by the corrective patch; cleanup `9e654d44b` removed only those duplicates. [Actions run 34138830581](https://github.com/1412212638/OmniRouters/actions/runs/34138830581) passed after the cleanup. Remote branch is at `9e654d44b46b052a973f84254914880148f60712`; main unchanged. No local compile/build/test was run.
+
 ## 2026-09-06 (Pancake USD quote display)
 
 - Local bug: Pancake returns USD quotes but the shared wallet formatter divided them by the configured exchange rate again, displaying a USD 10 quote as approximately USD 1.39.
@@ -1542,6 +4931,80 @@
 - Preserved: all backend payment handlers, callbacks, discounts, order amounts, credited quota, and corporate transfer behavior. No database migration.
 - Validation: diff whitespace check, JSON parsing and targeted Node checks of rate normalization; full frontend typecheck and browser checks unavailable because local frontend dependencies are absent.
 - Commit/push: integrated in `d6dc48aaa`, pushed to `origin/main` on 2026-09-06. This status update follows in a documentation-only commit.
+
+## 2026-09-06
+
+- Local change: enable the default quota warning threshold consistently.
+- Changed `common.QuotaRemindThreshold` from `1000` to `500000`, matching the default frontend user setting; the existing notification type and per-user overrides remain unchanged.
+- Preserved: pre-consume, settlement, refund, and insufficient-quota response behavior were not modified.
+- Validation: source diff review and `git diff --check`; full Go/frontend test suites were not run because the local Go/Bun toolchains are unavailable.
+- Local commit/push: implemented in commits `9da5fc10d`, `b030d2065`, `49a7960d6`, `989cf467a`, `c7252725d`, `442c80721`, `bb508aed0`, `3b67f3e83`; current `origin/main` is `156fc65b2`.
+- Final current-upstream review: `upstream/main` remains `0c76e4dae`. No new independent third-round patch is available beyond the already reviewed structural migrations. The model/vendor/pricing rewrite and Telegram unified OAuth remain deferred pending a dedicated compatibility branch or staged port.
+- Second-round status: token lifecycle and existing account-security success events are integrated; upstream's full session-bound verification and audit schema/UI suite is not claimed as fully equivalent.
+- Validation: `git diff --check`; Go/Bun toolchains unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: added a separate Telegram OAuth start endpoint that stores PKCE flow data in the session and returns an authorization URL; legacy Telegram routes and generic OAuth state remain unchanged.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: completed the OAuth registry interface scaffold for Telegram while keeping the provider disabled until callback/session integration is complete.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: registered a disabled-by-default `telegram_oauth` provider adapter behind the existing registry; it cannot authenticate or replace the legacy Telegram route until session/callback integration is complete.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: added Telegram ID Token verification through OIDC JWKS with issuer/client/signature/expiry validation delegated to the verifier; only validated identity claims are returned.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: added bounded Telegram authorization-code exchange with PKCE verifier/config matching and ID-token presence checks; signature verification and route integration remain pending.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: added isolated Telegram OAuth PKCE flow generation and authorization URL construction; provider registration, token exchange, ID-token verification, and route switching remain intentionally deferred.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: added isolated Telegram OAuth client configuration with explicit readiness checks; legacy bot configuration and login flow remain unchanged.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: added idempotent legacy Telegram binding backfill into external identity claims after schema migration; duplicate ownership fails rather than being silently reassigned.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 3 progress: added the isolated external-identity ownership table and atomic claim helper as the first Telegram OAuth migration layer; legacy `telegram_id` login remains unchanged and no OAuth flow was replaced.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 2 progress: successful email binding now emits a sanitized security audit event; email address and verification code are excluded.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 2 progress: successful 2FA enable and backup-code regeneration now emit sanitized security audit events; secrets remain excluded.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 2 progress: added success audit events for WeChat binding and administrator-triggered OAuth unbinding.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 2 progress: successful custom OAuth unbind and Telegram bind operations now emit security audit events without storing provider credentials or Telegram secrets.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 2 progress: successful self-service password changes now emit a security audit event; password values are never included.
+- Validation: `git diff --check`; Go toolchain unavailable locally.
+- Local commit/push: pending.
+- Round 2 progress: successful account deletion and 2FA disable operations now emit sanitized security audit events.
+- Validation: `git diff --check`; full Go tests unavailable locally.
+- Local commit/push: pending.
+- Round 3 assessment: `0c76e4dae` is a broad model/vendor/pricing and frontend structure rewrite; it is not safe to cherry-pick over OmniRouters' custom pricing, plugin, wallet, and default-frontend code. Telegram OAuth and account-security changes remain separately scoped for later compatibility review.
+- Round 2 progress: successful personal access-token generation/rotation now records a sanitized security event alongside revoke and request events.
+- Validation: `git diff --check`; full Go tests unavailable locally.
+- Local commit/push: pending.
+- Round 2 progress: authenticated bearer-token requests now create sanitized audit entries containing only token fingerprint, route, status, IP, and request ID.
+- Validation: `git diff --check`; full Go tests unavailable locally.
+- Local commit/push: pending.
+- Round 2 progress: added admin/self audit query endpoints over the isolated audit table. No usage-log endpoint was changed.
+- Validation: `git diff --check`; full Go tests unavailable locally.
+- Local commit/push: pending.
+
+- Round 2 progress: added access-token creation timestamp tracking and a user-scoped token revoke endpoint.
+- Validation: `git diff --check`; full Go tests unavailable in the local environment.
+- Local commits/push: `c25d3b484` and `d3637953c`, both pushed to `origin/main`.
+- Round 2 progress: added isolated `AuditLog` storage with token fingerprints only, automatic migration registration, and revoke-event recording. Existing usage-log audit fields remain unchanged.
+- Validation: `git diff --check`; Go tests unavailable locally.
+- Local commit/push: pending.
 
 ## 2026-09-05 (notification timeline alignment)
 
@@ -1638,14 +5101,15 @@
 - Validation: `gofmt` and `git diff --check` are required for this batch. Targeted model tests remain blocked by pre-existing test compilation errors (`useUserCacheMiniRedis`, `AuthVersion`, and `UpdateUserAccessToken` symbols); production build result is recorded with the commit.
 - Local commit and push status: pending.
 
-## 2026-09-01 (Sora pricing detail display)
+## 2026-09-03 (upstream log privacy and billing follow-up)
 
-- Local reason: simplify Sora per-second pricing in the model detail view.
-- Changed `web/default/src/features/pricing/components/model-details.tsx`: removed the base per-second price and resolution multiplier labels, leaving only final resolution prices; renamed the group price column to `Price`.
-- Preserved: all billing calculation and stored pricing configuration behavior.
-- Validation: `git diff --check`; Go/Bun tests not run because the local toolchains are unavailable.
-- Validation: `git diff --check`; Go/Bun tests not run because the local toolchains were unavailable.
-- Local commit and push status: this local change predates the current upstream-sync tracking entries.
+- Upstream sources reviewed: `057f71c23` and `bbd97446c`, plus dependencies from the already integrated `0ed497f06`.
+- Integrated scoped log metadata with user/admin/root visibility, conversion diagnostics, hosted-tool task metadata, and related usage-log UI/test updates. Preserved local fixed-quota/Sora/audio_generation billing fields while adapting writers to `LogOther`.
+- Integrated follow-up task billing settlement behavior, including tiered task usage facts and per-call billing semantics; added the required compatible snapshot/relay metadata fields.
+- Deliberately did not restore the upstream deletion of the legacy log cleanup handler and did not modify local billing formulas or refund ownership. The Hailuo/MiniMax-H3 plugin batch and database/stability batch remain separate planned stages.
+- Preserved: local Sora per-call pricing, fixed `audio_generation` surcharge, dynamic pricing, task plugins, refunds, quota saturation auditing, and usage-log quota statistics. Reapplied the local `type=0` all-types sentinel and separate RPM/TPM scan after upstream merge.
+- Validation: production Go build, `go test ./service ./relay -run '^$' -count=1`, focused task-settlement tests, `go test ./pkg/billingexpr ./relay/helper -count=1`, and `git diff --check` passed. The full `service` suite also exercises unrelated existing failures: missing `tickets` table in the test database and pre-existing task test fixture expectations; these are not part of this sync.
+- Local commit and push status: pending commit and push.
 
 ## 2026-09-02 (billing settlement, phase C review)
 
@@ -1690,16 +5154,6 @@
 - Local commit: `9283bd5fa` (`sync upstream Responses to Gemini request conversion`); remote verification confirms it is present on `origin/main` despite transient TLS/ref-lock messages.
 
 This file records the upstream `QuantumNous/new-api` commit that has been reviewed or integrated into this repository.
-
-## 2026-09-03 (upstream log privacy and billing follow-up)
-
-- Upstream sources reviewed: `057f71c23` and `bbd97446c`, plus dependencies from the already integrated `0ed497f06`.
-- Integrated scoped log metadata with user/admin/root visibility, conversion diagnostics, hosted-tool task metadata, and related usage-log UI/test updates. Preserved local fixed-quota/Sora/audio_generation billing fields while adapting writers to `LogOther`.
-- Integrated follow-up task billing settlement behavior, including tiered task usage facts and per-call billing semantics; added the required compatible snapshot/relay metadata fields.
-- Deliberately did not restore the upstream deletion of the legacy log cleanup handler and did not modify local billing formulas or refund ownership. The Hailuo/MiniMax-H3 plugin batch and database/stability batch remain separate planned stages.
-- Preserved: local Sora per-call pricing, fixed `audio_generation` surcharge, dynamic pricing, task plugins, refunds, quota saturation auditing, and usage-log quota statistics. Reapplied the local `type=0` all-types sentinel and separate RPM/TPM scan after upstream merge.
-- Validation: production Go build, `go test ./service ./relay -run '^$' -count=1`, focused task-settlement tests, `go test ./pkg/billingexpr ./relay/helper -count=1`, and `git diff --check` passed. The full `service` suite also exercises unrelated existing failures: missing `tickets` table in the test database and pre-existing task test fixture expectations; these are not part of this sync.
-- Local commit and push status: pending commit and push.
 
 ## 2026-09-02 (usage log quota statistic preservation)
 
@@ -1762,6 +5216,15 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Preserved all local relay, billing, plugin, mail, branding, and usage-log audit behavior; no frontend or request path was changed.
 - Validation: `gofmt`, `git diff --check`, and production Go build passed. The broader model test suite remains blocked by pre-existing missing test helpers/fields.
 - Local commit: `26106919d` (`fix system task no-op state updates`).
+
+## 2026-09-01 (Sora pricing detail display)
+
+- Local reason: simplify Sora per-second pricing in the model detail view.
+- Changed `web/default/src/features/pricing/components/model-details.tsx`: removed the base per-second price and resolution multiplier labels, leaving only final resolution prices; renamed the group price column to `Price`.
+- Preserved: all billing calculation and stored pricing configuration behavior.
+- Validation: `git diff --check`; Go/Bun tests not run because the local toolchains are unavailable.
+- Validation: `git diff --check`; Go/Bun tests not run because the local toolchains were unavailable.
+- Local commit and push status: this local change predates the current upstream-sync tracking entries.
 
 ## 2026-09-01 (usage-log request audit tabs)
 
@@ -2604,3383 +6067,3 @@ This file records the upstream `QuantumNous/new-api` commit that has been review
 - Notes:
   - Integrated the relevant upstream changes after `02aacb38` through `e36d191c2e31d31d0a7b8da51da1dcb93f63f681`.
   - The upstream commits were adapted into this repository as a local integration commit, not merged as upstream commit objects.
-## 2026-09-06
-
-- Local change: enable the default quota warning threshold consistently.
-- Changed `common.QuotaRemindThreshold` from `1000` to `500000`, matching the default frontend user setting; the existing notification type and per-user overrides remain unchanged.
-- Preserved: pre-consume, settlement, refund, and insufficient-quota response behavior were not modified.
-- Validation: source diff review and `git diff --check`; full Go/frontend test suites were not run because the local Go/Bun toolchains are unavailable.
-- Local commit/push: implemented in commits `9da5fc10d`, `b030d2065`, `49a7960d6`, `989cf467a`, `c7252725d`, `442c80721`, `bb508aed0`, `3b67f3e83`; current `origin/main` is `156fc65b2`.
-- Final current-upstream review: `upstream/main` remains `0c76e4dae`. No new independent third-round patch is available beyond the already reviewed structural migrations. The model/vendor/pricing rewrite and Telegram unified OAuth remain deferred pending a dedicated compatibility branch or staged port.
-- Second-round status: token lifecycle and existing account-security success events are integrated; upstream's full session-bound verification and audit schema/UI suite is not claimed as fully equivalent.
-- Validation: `git diff --check`; Go/Bun toolchains unavailable locally.
-- Local commit/push: pending.
-- Round 3 progress: added a separate Telegram OAuth start endpoint that stores PKCE flow data in the session and returns an authorization URL; legacy Telegram routes and generic OAuth state remain unchanged.
-- Validation: `git diff --check`; Go toolchain unavailable locally.
-- Local commit/push: pending.
-- Round 3 progress: completed the OAuth registry interface scaffold for Telegram while keeping the provider disabled until callback/session integration is complete.
-- Validation: `git diff --check`; Go toolchain unavailable locally.
-- Local commit/push: pending.
-- Round 3 progress: registered a disabled-by-default `telegram_oauth` provider adapter behind the existing registry; it cannot authenticate or replace the legacy Telegram route until session/callback integration is complete.
-- Validation: `git diff --check`; Go toolchain unavailable locally.
-- Local commit/push: pending.
-- Round 3 progress: added Telegram ID Token verification through OIDC JWKS with issuer/client/signature/expiry validation delegated to the verifier; only validated identity claims are returned.
-- Validation: `git diff --check`; Go toolchain unavailable locally.
-- Local commit/push: pending.
-- Round 3 progress: added bounded Telegram authorization-code exchange with PKCE verifier/config matching and ID-token presence checks; signature verification and route integration remain pending.
-- Validation: `git diff --check`; Go toolchain unavailable locally.
-- Local commit/push: pending.
-- Round 3 progress: added isolated Telegram OAuth PKCE flow generation and authorization URL construction; provider registration, token exchange, ID-token verification, and route switching remain intentionally deferred.
-- Validation: `git diff --check`; Go toolchain unavailable locally.
-- Local commit/push: pending.
-- Round 3 progress: added isolated Telegram OAuth client configuration with explicit readiness checks; legacy bot configuration and login flow remain unchanged.
-- Validation: `git diff --check`; Go toolchain unavailable locally.
-- Local commit/push: pending.
-- Round 3 progress: added idempotent legacy Telegram binding backfill into external identity claims after schema migration; duplicate ownership fails rather than being silently reassigned.
-- Validation: `git diff --check`; Go toolchain unavailable locally.
-- Local commit/push: pending.
-- Round 3 progress: added the isolated external-identity ownership table and atomic claim helper as the first Telegram OAuth migration layer; legacy `telegram_id` login remains unchanged and no OAuth flow was replaced.
-- Validation: `git diff --check`; Go toolchain unavailable locally.
-- Local commit/push: pending.
-- Round 2 progress: successful email binding now emits a sanitized security audit event; email address and verification code are excluded.
-- Validation: `git diff --check`; Go toolchain unavailable locally.
-- Local commit/push: pending.
-- Round 2 progress: successful 2FA enable and backup-code regeneration now emit sanitized security audit events; secrets remain excluded.
-- Validation: `git diff --check`; Go toolchain unavailable locally.
-- Local commit/push: pending.
-- Round 2 progress: added success audit events for WeChat binding and administrator-triggered OAuth unbinding.
-- Validation: `git diff --check`; Go toolchain unavailable locally.
-- Local commit/push: pending.
-- Round 2 progress: successful custom OAuth unbind and Telegram bind operations now emit security audit events without storing provider credentials or Telegram secrets.
-- Validation: `git diff --check`; Go toolchain unavailable locally.
-- Local commit/push: pending.
-- Round 2 progress: successful self-service password changes now emit a security audit event; password values are never included.
-- Validation: `git diff --check`; Go toolchain unavailable locally.
-- Local commit/push: pending.
-- Round 2 progress: successful account deletion and 2FA disable operations now emit sanitized security audit events.
-- Validation: `git diff --check`; full Go tests unavailable locally.
-- Local commit/push: pending.
-- Round 3 assessment: `0c76e4dae` is a broad model/vendor/pricing and frontend structure rewrite; it is not safe to cherry-pick over OmniRouters' custom pricing, plugin, wallet, and default-frontend code. Telegram OAuth and account-security changes remain separately scoped for later compatibility review.
-- Round 2 progress: successful personal access-token generation/rotation now records a sanitized security event alongside revoke and request events.
-- Validation: `git diff --check`; full Go tests unavailable locally.
-- Local commit/push: pending.
-- Round 2 progress: authenticated bearer-token requests now create sanitized audit entries containing only token fingerprint, route, status, IP, and request ID.
-- Validation: `git diff --check`; full Go tests unavailable locally.
-- Local commit/push: pending.
-- Round 2 progress: added admin/self audit query endpoints over the isolated audit table. No usage-log endpoint was changed.
-- Validation: `git diff --check`; full Go tests unavailable locally.
-- Local commit/push: pending.
-
-- Round 2 progress: added access-token creation timestamp tracking and a user-scoped token revoke endpoint.
-- Validation: `git diff --check`; full Go tests unavailable in the local environment.
-- Local commits/push: `c25d3b484` and `d3637953c`, both pushed to `origin/main`.
-- Round 2 progress: added isolated `AuditLog` storage with token fingerprints only, automatic migration registration, and revoke-event recording. Existing usage-log audit fields remain unchanged.
-- Validation: `git diff --check`; Go tests unavailable locally.
-- Local commit/push: pending.
-
-## 2026-09-07
-
-- Third-round migration branch: `codex/migrate-upstream-structural-v3`.
-- Telegram migration dependency map: `external_identity_claim`, authorization-code/PKCE flow, session-bound verification, OAuth registry/provider, system Telegram settings, and route/frontend callback changes. Legacy `telegram_id` bindings must remain readable during migration.
-
-- Upstream review: `d8cb17744`, `3f8a50cf8`, `6f2333990`, `0973dc2b8`, `a8729b5c3`, `45c3fbe8` and related commits through `upstream/main` `0c76e4dae`.
-- Planned three-round sync:
-  - Round 1: database compatibility, request stability, provider/model capability fixes, and billing safety.
-  - Round 2: access-token lifecycle, security verification, and independent audit records.
-  - Round 3: model/provider/pricing structural refactors and Telegram OAuth updates.
-- Current status: audit completed; existing administrator operation audit and privacy projection are retained. The upstream independent audit model and access-token lifecycle are not yet integrated because they depend on newer upstream type/signature changes and must be ported incrementally.
-- Preserved: OmniRouters plugin system, wallet/payment display, Sora/audio billing, expression/group pricing, mail settings, and default frontend customizations.
-- Validation: upstream diff/stat review only; implementation and tests pending.
-- Local commit/push: pending.
-
-### 2026-09-07 Telegram provider repair (structural-v3)
-
-- Scope: audited actual branch HEAD `2db85323e` against upstream `3e84ec0ab` (not the earlier assumed `86426f7a6`). Earlier Telegram progress entries describe scaffolding, not a completed OAuth migration.
-- Integrated at source level: actual ExchangeToken/GetUserInfo implementations, cached JWKS client, issuer/audience/signature/expiry verification, positive uint64 Telegram IDs without float conversion, current redirect/client matching, HTTP(S)-only callback validation, bounded token responses, and server-only OAuthToken.ClientID.
-- Dependencies: copied upstream versions and exact go.sum checksums for go-oidc v3.21.0, oauth2 v0.36.0 and indirect go-jose v4.1.4. No local dependency resolution/build was run; module graph remains subject to CI verification.
-- Identity lookup: replaced placeholders with existing Telegram occupancy lookup and a GORM lookup that propagates database errors. Did not reuse FillUserByTelegramId because it discards non-record-not-found errors.
-- Safety: removed automatic telegram_oauth registration and the incomplete /oauth/telegram/start route/handler. Provider remains disabled and unregistered until single-use flows, session-bound login/binding callbacks and registry conflict handling are ported. Legacy widget routes and telegram_id data remain unchanged.
-- Deferred (NOT integrated by this repair): full callback/session lifecycle, external-identity-claim lifecycle and migration audit, model/vendor/pricing restructuring. This is not completion of round 3 or upstream parity.
-- Preserved: Sora/audio_generation charges, customer/group/expression pricing, payment/mail/plugin behavior, main branch and unrelated untracked files.
-- Validation: added Telegram regression test source for numeric IDs, invalid callback URLs, configuration changes, token endpoint PKCE/Basic auth, private ClientID, disabled registration and real RSA/JWKS issuer/audience/expiry/signature failures. Local checks are source review and git diff --check only; no local compilation or tests.
-- CI: added migration-branch-only Structural migration source checks (go test ./oauth -run Telegram); no image publication and no latest tag changes. Existing main GHCR workflow unchanged.
-- Local commit/push: repair `4d9d566594248702137ab0c20d4d956afd658229` pushed successfully to origin/codex/migrate-upstream-structural-v3; main unchanged.
-- Remote validation: GitHub Actions run [34127883521](https://github.com/1412212638/OmniRouters/actions/runs/34127883521) completed successfully for that exact commit, including `go test -mod=readonly ./oauth -run Telegram -count=1`. This validates the OAuth package/dependency compilation and targeted regressions, NOT the full application image, live Telegram login, or real multi-database migrations.
-- Status-record commit: documentation-only follow-up, to be pushed to the same migration branch with CI skipped; no source changes after the passing run.
-
-### 2026-09-07 Structural-v3: one-time authorization storage
-
-- Upstream source: `3e84ec0ab:model/auth_flow.go`. Integrated the independent AuthFlow storage/creation/lookup/transactional consumption/external assertion replay protection/cleanup APIs. Normal and fast schema migration both include AuthFlow.
-- Preserved upstream implementation: 32-byte random tokens with HMAC-only storage, purpose/provider/intent/user/session match predicates, expiry checks, first-write atomic consumption and action rollback. Optional match fields retain upstream semantics: future callbacks MUST supply and validate authoritative identity fields; this table alone does not validate a session.
-- Explicitly deferred: AuthSessionIdentity/Authorization and ValidateAuthSessionWithTx, which require User.AuthVersion, UserSession and versioned session lifecycle absent locally. No placeholder session validator was added. Cleanup API is present but scheduling is deferred until flows are activated.
-- Security boundary: provider remains unregistered/disabled; no OAuth start/callback routes enabled. Legacy Telegram, other login mechanisms, identity-claim tables, billing/payment/mail/plugin code unchanged. This is the storage prerequisite, NOT complete session binding or completion of round 3.
-- Regression source: SQLite/MySQL/PostgreSQL schema idempotence, identity-field mismatch, replay/expiry, action rollback (including data rollback), concurrent single winner and signed assertion deduplication. Tests use dedicated CI databases; SQLite concurrency uses a single connection, so multi-connection SQLite lock contention remains outside this test.
-- Validation: local source review and git diff --check only, no local compilation/tests/builds. Added isolated MySQL 8/PostgreSQL 16 services to migration-branch Actions for these tests; older supported DB versions still require separate verification.
-- Local commit/push: pending on codex/migrate-upstream-structural-v3; main not changed. Remote result to be recorded after push.
-- First push: `be82fa8a3`, run `34128852251`. Telegram checks passed; model tests failed at compilation due to pre-existing missing AuthVersion, UpdateUserAccessToken and useUserCacheMiniRedis referenced by unrelated tests. No database contract executed in that run.
-- Follow-up: moved new tests to model/authflowtest, importing the actual production model package so the three-database contracts can run independently. No old test deleted/disabled and no placeholder production APIs introduced. Full model test-suite compilation remains a known migration gap, NOT fixed by this isolation.
-- Source-review correction after `64640fa2b`: corrected three overqualified GORM references introduced while moving the test package. Production behavior unchanged; validation remains remote CI plus local diff review.
-- Final source push: `ab8179816ee27196f39058fa33b7e0a84f0a309f` on origin/codex/migrate-upstream-structural-v3. [Actions run 34129267334](https://github.com/1412212638/OmniRouters/actions/runs/34129267334) completed successfully: Telegram regression checks and independent AuthFlow contracts with SQLite, MySQL 8 and PostgreSQL 16. Supersedes the failed intermediate runs above. No local compilation was performed.
-- Completion boundary: one-time storage prerequisite completed; full model suite, authoritative session/version lifecycle, Telegram callback/binding and frontend activation remain outstanding. Documentation-only status follow-up will use [skip ci]; main remains unchanged.
-
-### 2026-09-07 Structural-v3: authoritative session backend
-
-- Upstream reference: `3e84ec0ab:model/user_session.go` and session identity/validation portion of `model/auth_flow.go`. Ported the complete session model with DB lookup, active-session listing/counts, revoke/refresh CAS, Redis deny fences and bounded cache lifetime, auth-version advancement and cleanup APIs. Added upstream retention defaults and TTL helper dependency.
-- Added User.AuthVersion (default 1, private JSON field), UserSession to normal/fast migration, AuthSessionIdentity/Authorization and real ValidateAuthSessionWithTx. Validation rereads and locks the user/session inside the caller transaction rather than trusting cookie state.
-- Deliberate local protection: AuthVersion is create-only in GORM User writes so existing stale Save/Updates cannot decrease it. Future auth-version mutation must use an explicit dedicated column update and integrate cache fencing; upstream credential-mutation/cache-version logic is NOT ported in this step.
-- Regression source in model/authflowtest: DB schema repeatability; owner mismatch, revoke and cached denial; binding-flow rollback when session revoked; refresh invalid token/grace/reuse; user/session version mismatch, expiry and stale User.Save protection. Three-database harness now sets the main DB dialect so MySQL/PostgreSQL exercise FOR UPDATE. Redis 7 service exercises both cached and uncached paths.
-- Preserved/not activated: existing cookie login/logout, password/2FA changes, API keys, Telegram widget, frontend, custom pricing/mail/payments/plugins. No new session issuance/refresh/revoke HTTP routes or scheduled cleanup; Telegram provider remains unregistered/disabled. These backend APIs do not make existing cookie sessions revocable automatically.
-- Still required before activation: issuance limits/configuration, auth-version increments and cache fences across credential mutations, JWT/refresh lifecycle and cookie compatibility, middleware enforcement, session-bound Telegram callbacks and identity claim lifecycle. Existing full-model-test missing helpers remain separate work.
-- Validation: source comparison and git diff --check only locally; no local compilation/build/tests. Migration-branch Actions expanded to test session contracts with SQLite/MySQL 8/PostgreSQL 16 and Redis 7. Full image build and old database version upgrades are not covered.
-- Local commit/push: pending on codex/migrate-upstream-structural-v3; main unchanged. Remote CI outcome will be appended after push.
-- Source commit `61c5d39a8ae7beb16fb64a5dc031f7e4149a093f` pushed to origin/codex/migrate-upstream-structural-v3. [Actions run 34130741264](https://github.com/1412212638/OmniRouters/actions/runs/34130741264) passed both Telegram and auth-flow jobs, including the three-database session tests with Redis enabled/disabled. This is targeted backend validation, not activation or a full image acceptance test.
-- Status-only log follow-up uses [skip ci]. Next implementation boundary: authoritative login/session issuance, logout/revocation, credential-change auth-version/cache fencing, then middleware/callback integration. No claim that these paths were completed here.
-
-### 2026-09-07 Structural-v3: isolated authentication token layer
-
-- Upstream references: `3e84ec0ab:service/auth_token.go` and the normalized verification binding portion of `service/security_verification.go`. Added short-lived HS256 dashboard access tokens, strict issuer/audience/algorithm/expiry/issued-at/use validation, server-derived operation context hashes, and security-proof identity/scope/context binding. The token layer is not wired into existing middleware or login routes.
-- Preserved: existing opaque access-token/PAT authentication, cookie login/logout, Telegram legacy routes, session model, Sora/audio billing, pricing, mail, plugin and frontend behavior. No production route behavior changes.
-- Regression source: access-token round trip, security-proof purpose isolation, tamper rejection, internal JWT classification and expiry rejection. Database-backed proof issuance requires the existing application DB and remains covered by the remote target suite only after auth-session service integration.
-- Deferred: service auth-session issuance/refresh adapter, JWT middleware enforcement, login/logout controller swap, auth-version mutation hooks for password/2FA/passkey changes, full security verification service, and Telegram callback activation. These are deliberately separate because the current application still uses the legacy cookie session contract.
-- Validation: source review and `git diff --check` only locally; no local compilation/build/tests. This source-only step is not a deployable authentication migration by itself.
-- Local commit/push: pending on codex/migrate-upstream-structural-v3; main unchanged. Remote result to be recorded after push.
-- Auth-version/cache prerequisite source commit is being prepared: `model/user_auth_cache.go` adds monotonic Redis pending/committed fences and transactional version bump helpers; `UserBase` now carries the private auth version, and normal/fast migrations initialize missing versions to 1. This is required before issuing sessions from existing login paths.
-- Source commit `333ea234f3033a897e1d559aa172944ea5374e6c` pushed to origin/codex/migrate-upstream-structural-v3. [Actions run 34132002060](https://github.com/1412212638/OmniRouters/actions/runs/34132002060) completed successfully; targeted Telegram/session checks and the new service token source checks passed. No local compilation/build/tests were run.
-- Completion boundary: token validation is integrated as an isolated service layer only. Existing cookie/PAT middleware and login routes remain unchanged; access-token issuance, refresh endpoint, security-proof consumption, auth-version mutation hooks and Telegram callback activation remain the next integration work. main remains unchanged.
--
-### 2026-09-07 Structural-v3: login session issuance
-
-- Added the upstream session issuance service: active/issuance limits, server-side refresh-secret hashes, UUID session IDs, Access JWT bundles and HttpOnly refresh cookies.
-- Integrated the existing shared `setupLogin` so successful password, 2FA, OAuth, Telegram legacy and Passkey logins issue the new bundle while retaining the legacy Gin session and response user data.
-- Preserved PAT/API-key authentication, existing logout behavior and all OmniRouters billing/payment/mail/plugin/frontend behavior. Unified Telegram provider remains disabled.
-- Deliberately deferred refresh rotation endpoint, JWT middleware switch, logout revocation, session management routes, auth-version mutation hooks and Telegram callback integration.
-- Validation: source review and `git diff --check` only; no local build or tests. GitHub Actions is required to catch remaining package/signature issues.
-- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
-
-### 2026-09-08 Structural-v3: Telegram OAuth activation review
-
-- Review result: the Telegram OAuth provider implementation, AuthFlow storage, external identity claim storage, and authoritative session primitives are present, but the unified callback/start/bind controller contract is not complete in this branch.
-- Decision: keep `TelegramOAuthProvider.IsEnabled()` false and do not register the provider or expose a new callback route. This prevents an incomplete provider from becoming selectable or creating sessions without the complete identity/session binding flow.
-- Preserved: legacy Telegram Widget login/bind behavior, legacy `telegram_id` compatibility, all OmniRouters custom billing/payment/mail/plugin/frontend behavior, and `main`.
-- Validation: source comparison and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
-- Remaining: unified Telegram callback/bind/login controller integration and frontend activation require a dedicated implementation with end-to-end tests.
-- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
-
-### 2026-09-08 Structural-v3: final round review boundary
-
-- Planned rounds 1-4 have been processed in sequence: dashboard JWT middleware, credential auth-version fencing, security verification audit coverage, and Telegram OAuth activation review.
-- Round 5 is a source-only acceptance review: verify changed-file scope, migration registration, protected OmniRouters behavior, documentation traceability, branch/remote state, and GitHub Actions outcome. No local compilation or image build will be performed.
-
-### 2026-09-08 Structural-v3: security proof contract review
-
-- Review result: dashboard JWT identity is now exposed to middleware through the server-validated `auth_identity` context value. The existing security-proof signer currently stores an internal AuthFlow ID in JWT `jti`, while AuthFlow consumption requires the original opaque token; therefore proof consumption was not enabled prematurely.
-- Safety decision: removed the incomplete consumer path rather than introducing a proof that cannot be atomically consumed. A follow-up must return/bind the opaque flow token and internal proof ID explicitly before wiring `/api/verify` or channel-key access.
-- Preserved: existing Cookie/PAT behavior, legacy secure verification, billing/payment/mail/plugin/frontend behavior, and `main`.
-- Validation: source review and `git diff --check` only; no local compilation/build/tests or image publication.
-
-### 2026-09-08 Structural-v3: security proof token contract repair
-
-- Integrated the missing one-time Proof consumption primitive without enabling an incomplete route: the signed proof now carries the opaque AuthFlow token separately from the internal Flow ID in `jti`, and `ConsumeSecurityProof` validates the session/binding before atomically consuming that opaque token.
-- Safety: the previous mismatch between internal Flow ID and opaque-token consumption is corrected. The legacy `/api/verify` response and sensitive-operation consumers are deliberately deferred until their request/response contract can carry the proof explicitly.
-- Preserved: existing Cookie/PAT verification behavior and all OmniRouters business functionality.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
-
-### 2026-09-08 Structural-v3: Telegram OAuth commit path
-
-- Added transaction-owned Telegram login commit helpers for new-user and existing-user paths, plus the bind path. Existing Telegram identities are consumed through the same one-time AuthFlow before `setupLogin`; new users are created and claimed atomically.
-- Controller wiring remains intentionally pending until the callback has dedicated route-level tests for state intent, provider error callbacks, concurrent replay, registration-disabled behavior, and session-bound bind requests.
-- Preserved legacy Telegram Widget routes and all OmniRouters custom behavior.
-
-### 2026-09-08 Structural-v3: Telegram unified OAuth routes
-
-- Registered explicit `/oauth/telegram/start` and `/oauth/telegram` routes before the generic OAuth wildcard. The legacy `/api/oauth/telegram/login` and `/bind` Widget routes remain unchanged.
-- The unified flow uses server-side AuthFlow state, PKCE, ID-token verification, session-bound bind intent, one-time consumption, and atomic external identity ownership. It does not depend on the generic provider registry.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
-
-### 2026-09-08 Structural-v3: default frontend dashboard session client
-
-- Added default frontend storage and request injection for the short-lived dashboard Access JWT. Login and 2FA responses persist the returned token; refresh and logout use the new session endpoints, while HttpOnly refresh cookies remain server-managed.
-- Compatibility: the change is limited to `web/default` dashboard API requests. Relay/API-key examples and the classic frontend are unchanged; the existing user ID header and cookie credentials remain present for compatibility.
-- Added an explicit `refreshDashboardSession` API helper for the authenticated bootstrap/expiry flow. Automatic retry is intentionally not added yet to avoid request replay and refresh races until the route lifecycle is wired and tested.
-- Validation: source review and `git diff --check` only; no local frontend build or dependency installation, per source-only workflow.
-- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
-
-### 2026-09-08 Structural-v3: four-batch migration acceptance review
-
-- Batch 1 complete: JWT-bound security proofs, operation-context binding, and one-time channel-key proof consumption.
-- Batch 2 complete: Telegram AuthFlow state, PKCE, ID-token validation, atomic login/bind commits, external identity claims, and dedicated callback routes. Legacy Telegram Widget routes remain intact; the generic Provider registry remains protected from incomplete registration.
-- Batch 3 complete: default frontend stores and sends dashboard Access JWTs, persists login/2FA tokens, and uses refresh/logout session endpoints. Classic frontend, PAT/API-key relay requests, and Cookie compatibility remain unchanged.
-- Batch 4 source review: protected OmniRouters Sora/audio billing, expression/group/customer pricing, plugin system, wallet/payment display, mail settings/templates, and classic frontend were not modified by this migration series. Only migration-branch source and documentation changes are included.
-- Validation: `git diff --check` and source-scope review only. No local Go compilation, frontend build, Docker build, or image publication, as required by the source-only workflow. GitHub Actions remains the authoritative build/test gate.
-- Branch: changes are on `codex/migrate-upstream-structural-v3`; `main` was not changed. Pre-existing unrelated untracked files remain untouched.
-
-### 2026-09-08 Default frontend access-token refresh
-
-- Added automatic Dashboard Access JWT refresh on HTTP 401 in `web/default/src/lib/api.ts`. Concurrent expired requests share one refresh promise; each original request is retried at most once.
-- Refresh and logout endpoints are excluded from retry to prevent loops. A failed refresh clears the stored dashboard token and auth-store user state. Cookie credentials remain HttpOnly and server-managed.
-- Preserved: PAT/Relay requests, classic frontend, legacy cookie behavior, billing/payment/mail/plugin behavior, and `main`.
-- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
-
-### 2026-09-08 Telegram default frontend callback routing
-
-- Unified Telegram OAuth bind callbacks now redirect to the default frontend `/profile` route. Legacy Telegram Widget binding keeps its existing `/console/personal` redirect for classic frontend compatibility.
-- The default profile page already reloads current user data on route entry; no legacy binding route or classic frontend behavior was changed.
-- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
-
-### 2026-09-08 Telegram OAuth browser callback completion
-
-- Added a redirect-based login finalizer for browser OAuth callbacks. Telegram login now creates the same server-side Session, Access JWT, refresh cookie, last-login update, and audit record as normal login, then redirects to the dashboard instead of rendering raw JSON.
-- Telegram bind already redirects to the profile page; both browser paths now return to usable frontend screens.
-- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
-
-### 2026-09-08 Default frontend Telegram binding start
-
-- Replaced the default frontend Telegram binding placeholder/widget text with a real server-side OAuth bind start action. The button requests a bind AuthFlow and redirects to its PKCE authorization URL.
-- The existing profile binding refresh callback remains the next UI follow-up after the backend redirect response is finalized; legacy Widget binding remains unchanged.
-- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
-- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
-
-### 2026-09-08 Default frontend Telegram login start
-
-- Replaced the default frontend Telegram placeholder with the server-side Telegram OAuth start request. The browser is redirected only to the authorization URL returned by the backend; PKCE and flow state remain server-managed.
-- Telegram bind UI and callback success-screen handling remain separate follow-up work; legacy Widget behavior is unchanged.
-- Validation: source review and `git diff --check` only; no local frontend build or dependency installation.
-
-### 2026-09-08 Structural-v3: Telegram atomic OAuth commit services
-
-- Added transaction-aware `CommitTelegramLogin` and `CommitTelegramBind` services. The AuthFlow consumer owns the only transaction; login performs Flow consumption, user creation, and external identity Claim atomically, while bind performs Flow consumption and Claim atomically.
-- Post-commit effects remain outside the transaction by design. No public Telegram unified route is enabled yet; callback wiring still needs provider token validation, authenticated bind-session matching, error handling, and targeted concurrency tests.
-- Preserved legacy Telegram Widget behavior and all OmniRouters custom billing/payment/mail/plugin/frontend behavior.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
-
-### 2026-09-08 Structural-v3: Telegram callback transaction review
-
-- Review result: the existing AuthFlow consumer owns its transaction, while OAuth user creation currently has separate post-lookup and post-creation behavior. No callback route was enabled in this step because combining Flow consumption, user creation, external identity claim, and post-commit session issuance still requires a dedicated transaction-aware consumer API.
-- Safety: no partial Telegram callback/controller was committed; legacy Widget login and bind remain unchanged and the unified provider remains disabled.
-- Preserved: all OmniRouters billing/payment/mail/plugin/frontend behavior and `main`.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
-
-### 2026-09-08 Structural-v3: Telegram AuthFlow state service
-
-- Added server-side Telegram OAuth flow state creation/lookup for login and bind intents. PKCE verifier, client ID, and redirect URI are stored in the expiring AuthFlow payload; only the opaque flow token is intended for the browser.
-- The helper validates provider/intent, expiry, payload shape, and rejects unsupported intents. Callback consumption and provider registration remain deferred until the controller can perform atomic identity/session updates.
-- Preserved legacy Telegram Widget routes and all OmniRouters custom business behavior.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
-
-### 2026-09-08 Structural-v3: Telegram identity binding primitive
-
-- Added `BindExternalIdentityWithTx`: checks legacy `telegram_id` ownership, atomically claims the provider subject in `external_identity_claims`, and updates the legacy column in the same transaction.
-- This is a service/model prerequisite for the unified Telegram callback. The public provider remains disabled until AuthFlow intent consumption and session-bound login/bind controllers are added.
-- Preserved legacy Telegram routes and all OmniRouters billing/payment/mail/plugin/frontend behavior.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
-- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
-
-### 2026-09-08 Structural-v3: security proof request integration
-
-- Integrated JWT-bound security verification into `/api/verify`: callers may provide a supported operation/context and receive a short-lived one-time security proof. The proof is bound to the authoritative user session, auth version, method, scope, and normalized operation context.
-- Integrated the channel-key read path: JWT requests must present `X-Security-Proof` bound to that exact channel ID; the proof is atomically consumed before the key is returned. Legacy Cookie-session requests retain the existing five-minute verification behavior.
-- Preserved: PAT/relay authentication, legacy frontend behavior, billing/payment/mail/plugin behavior, and `main`.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
-- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
-
-### 2026-09-08 Structural-v3: secure verification audit coverage
-
-- Scope: universal 2FA/Passkey verification now records structured security audit events for successful and failed verification attempts, including only the verification method and request context; secrets and codes are never logged.
-- Boundary: existing Gin-session verification remains compatible. The new JWT-bound security proof issuance/consumption path is intentionally not activated by this small audit change; it remains a separate complete integration round.
-- Preserved: existing verification behavior, Passkey readiness marker, 2FA lockout/counters, all billing/payment/mail/plugin/frontend behavior, and `main`.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication.
-- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
-
-### 2026-09-08 Structural-v3: credential mutation auth-version fencing
-
-- Scope: password changes through user update/edit and email password reset now increment the user's authoritative `AuthVersion` in the same database transaction. Creating or deleting 2FA and registering/deleting Passkey credentials also advances the version.
-- Safety: ordinary 2FA usage updates (TOTP last-used time, failed-attempt counters, lock state, and backup-code consumption) deliberately do not invalidate every session. This avoids turning a normal login verification into an unintended global logout.
-- Preserved: existing password hashing, reset semantics, session issuance, PAT/API-key authentication, relay behavior, billing/payment/mail/plugin/frontend behavior. No changes to `main`.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication. The remote Actions workflow remains the required integration check.
-- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
-
-- CI repair after run `34136306470`: remote compilation reported missing `UserBase.Role` and `userCacheSchemaVersion` required by the auth cache layer. Added upstream-compatible role caching and schema version 2. No production route behavior was changed.
-
-### 2026-09-07 Structural-v3: refresh/logout controller layer
-
-- Added the upstream refresh/logout/session-management controller and origin guard. Refresh reads only the HttpOnly cookie, validates optional `X-Auth-Session`, rotates refresh secrets, and clears invalid cookies; logout revokes the matching server session before clearing cookies. Added session listing/revoke routes and explicit no-store responses.
-- Added `POST /api/user/auth/refresh` and `/auth/logout`; existing legacy `GET /api/user/logout` remains untouched for compatibility. New routes are origin-guarded only when secure cookie mode is enabled and do not affect relay/PAT routes.
-- Source correction: local user response shape lacks the upstream `buildSelfUserData` helper, so refresh returns the existing loaded user object rather than introducing unrelated response restructuring.
-- Preserved billing/payment/mail/plugin/frontend behavior and disabled Telegram unified provider. No Telegram callback activation or main merge.
-- Validation: source review and `git diff --check` only; no local compilation/build/tests. Remote CI is required for package integration.
-- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; main unchanged.
-- CI result: initial refresh/logout commit `5414d0844` failed because the auth cache port missed local `UserBase.Role` and schema-version definitions. Repair `3db33dac9` still exposed duplicate declarations caused by the corrective patch; cleanup `9e654d44b` removed only those duplicates. [Actions run 34138830581](https://github.com/1412212638/OmniRouters/actions/runs/34138830581) passed after the cleanup. Remote branch is at `9e654d44b46b052a973f84254914880148f60712`; main unchanged. No local compile/build/test was run.
-
-### 2026-09-08 Structural-v3: dashboard JWT middleware integration
-
-- Scope: completed the first authentication-integration round. `middleware/auth.go` now recognizes dashboard Access JWTs, validates their signature/claims through `service.ParseDashboardAccessToken`, and validates the authoritative user/session/auth-version state inside a database transaction through `model.ValidateAuthSessionWithTx`.
-- Compatibility: invalid internal dashboard JWTs never fall through to opaque PAT validation; legacy cookie sessions, PAT/API-key authentication, relay authentication, and all OmniRouters billing/payment/mail/plugin/frontend behavior remain unchanged.
-- Authorization: role, status, group, and user identity are loaded from the authoritative database user record for JWT requests. Existing `New-Api-User` matching and Admin/Root role gates remain active.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions is required for package-level verification.
-- Remaining: credential/security mutations still need to advance `AuthVersion`; security proof completion, Telegram callback activation, and frontend activation remain separate rounds.
-- Local commit/push: pending on `codex/migrate-upstream-structural-v3`; `main` unchanged.
-### 2026-09-08 Main CI repair: missing NormalizeOrigin helper
-
-- Fixed the GitHub Actions Go compilation failure after merging structural-v3: `middleware/auth_origin.go` referenced `common.NormalizeOrigin`, but the helper had not been brought into the local `common/session_cookie.go` implementation.
-- Added the upstream-compatible origin validation and canonicalization helper, including scheme/host validation, wildcard rejection, default-port normalization, and IPv6 formatting. Preserved the local session-cookie initialization behavior and all OmniRouters custom billing, payment, mail, plugin, and frontend logic.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
-- Local commit/push: commit `1fb7b9ece`, pushed to `origin/main`.
-
-### 2026-09-08 Upstream performance and popup compatibility
-
-- Integrated upstream commits `5c7cca015` and `387a40914` with path-aware conflict resolution. Model health data now exposes hourly success-rate points; nested Combobox/Select popups inside the default frontend Drawer portal into the Drawer content so focus and pointer interaction remain functional.
-- The performance UI changes under the removed legacy `web/src` pricing path were deliberately not restored; the popup fix was ported to `web/default`. Existing model pricing, Sora/audio billing, payment, mail, plugin, and frontend custom behavior remain preserved.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
-- Local commits: `679a63cec` and `c136754d5`; push pending on `main`.
-
-### 2026-09-08 Upstream JSON codec injection
-
-- Integrated upstream commit `7bbe85bcb` after reviewing conflicts. JSON helpers now use a host-injectable codec shared by `common` and `relaykit`, while preserving the project-wide `common.*` JSON wrapper contract and Kimi message compatibility.
-- No business JSON semantics, billing, payment, mail, plugin, or frontend behavior was intentionally changed. Upstream-only test additions were retained only where they fit the current relaykit layout.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
-- Local commit/push: commit `b7fffae47`, push pending on `main`.
-
-### 2026-09-08 Upstream performance, cache, and CI maintenance
-
-- Integrated upstream commits `2cf177ac4`, `36dbbf0f7`, and `8f5ab8e40` with conflict resolution. RawMessage request cloning now avoids unnecessary copies, ETag matching remains valid across JSON implementations, and release version resolution uses the triggering tag when available.
-- Preserved local empty-ETag protection, current release workflow structure, and all OmniRouters billing, payment, mail, plugin, Sora/audio pricing, and frontend behavior. No local dependency upgrade was imported.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
-- Local commits: `d630f4912`, `4eded8c17`, `712f488a9`; push pending on `main`.
-
-### 2026-09-08 Upstream task-plugin 503 diagnostic audit
-
-- Reviewed upstream commit `32c261923`. Its task-plugin-specific no-available-channel message, distributor branch, and en/zh translations are already present in the local plugin-center implementation, so the cherry-pick resolved to an empty change and was skipped.
-- No source change was required; existing plugin routing, Sora/audio billing, payment, mail, and frontend behavior remain unchanged.
-- Validation: source comparison and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
-- Local commit/push: commit `b96c76b8c`, pushed to `origin/main`.
-
-### 2026-09-08 Upstream database migration compatibility
-
-- Integrated the backend portion of upstream commit `9a8674425`: MySQL decimal defaults and PostgreSQL `CHAR` metadata are normalized during GORM schema comparison, preventing redundant migrations on restart while retaining real schema changes.
-- Deliberately did not import dependency churn or test-only database fixtures. Existing SQLite/MySQL/PostgreSQL support and all OmniRouters billing, payment, mail, plugin, and frontend behavior remain preserved.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
-- Local commit/push: pending on `main`.
-
-### 2026-09-08 GHCR build compatibility repair: JSON helper aliases
-
-- Fixed the next GitHub Actions compile failure in `relay/channel/openai/relay_image.go` by exposing `common.JSONRawMessage` and `common.IsValidJSON` through the existing host-injectable JSON codec.
-- No direct business-code JSON implementation was introduced; billing, plugins, payments, mail, and frontend customizations remain unchanged.
-- Validation: source review and `git diff --check` only; local compilation/build was intentionally not run. GitHub Actions is the verification gate.
-- Local commit/push: pending on `main`.
-
-### 2026-09-08 Authentication security batch: cache and abuse controls
-
-- Integrated the independent routing hardening from the upstream authentication batch: universal security verification and Passkey/login verification endpoints now disable caching, and authenticated security verification is additionally protected by the user-level `security-verification` rate limit.
-- Preserved existing login, Telegram/OAuth, Passkey, session, Token, billing, payment, mail, plugin, and frontend behavior; no authentication contract or credential format was changed.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the verification gate.
-- Local commit/push: pending on `main`.
-
-### 2026-09-08 Authentication security batch: primary login cache control
-
-- Added `middleware.DisableCache()` to the primary `/api/user/login` endpoint, aligning authentication response handling with the verification and Passkey routes already hardened in this batch.
-- This is a routing-only change: login payloads, session issuance, Telegram/OAuth behavior, billing, payment, mail, plugins, and frontend behavior remain unchanged.
-- Validation: source review and `git diff --check` only; no local compilation/build. GitHub Actions remains the verification gate.
-- Local commit/push: pending on `main`.
-
-### 2026-09-08 GHCR build compatibility repair
-
-- Fixed the GitHub Actions Go build failure where the Responses stream converter referenced missing `chatAnnotationsToResponses` and `responsesEventOutputTextAnnotationAdded` symbols.
-- Ported the upstream annotation conversion helper into the local non-stream Responses converter, including URL-citation flattening and the annotation event constant. Existing reasoning conversion, JSON codec usage, billing, plugin, payment, mail, and frontend behavior were preserved.
-- Validation: source review and `git diff --check` only; local compilation/build was intentionally not run under the source-only workflow. GitHub Actions is the verification gate.
-- Local commit/push: pending on `main`.
-
-### 2026-09-08 Main CI repair: missing dashboard identity accessor
-
-- Fixed the next GitHub Actions compile error by adding the `authIdentityContextKey` constant and `GetAuthIdentity` accessor required by the already-integrated session identity guard.
-- Preserved PAT behavior, legacy session behavior, and all OmniRouters custom billing, payment, mail, plugin, and frontend behavior.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
-- Local commit/push: pending on `main`.
-
-### 2026-09-08 Main CI repair: structural-v3 missing compatibility symbols
-
-- Fixed the next Go compilation failures reported by GitHub Actions after the Origin helper repair: restored `GetSessionAuthIdentity`, corrected Telegram OAuth startup to return the persisted flow record and the in-memory OAuth flow separately, and added the safe `buildSelfUserData` response DTO using the local `User` shape.
-- Preserved PAT authentication behavior, legacy Telegram behavior, local user fields, and all OmniRouters billing, payment, mail, plugin, and frontend behavior.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
-- Local commit/push: pending on `main`.
-
-### 2026-09-08 Upstream plugin fixes: Suno aliases and factory suppression
-
-- Integrated upstream commits `92bc7ff73` and `6298b0f32`.
-- Updated the built-in Suno plugin to preserve channel-mapped aliases, select music/lyrics behavior from the mapped upstream model, and avoid sending empty optional headers. Updated task-plugin status handling so disabling an overridden plugin also suppresses its built-in factory layer.
-- Deliberately kept local deletions of upstream-only plugin test files because those tests belong to the removed legacy plugin test layout; no OmniRouters billing, payment, mail, Sora/audio pricing, or frontend behavior was changed.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. Remaining plugin polling and task-core changes are deferred for a separate review.
-- Local commit/push: commits `52928fc25` and `a2530cc8b`, push pending on `main`.
-
-### 2026-09-08 Upstream relay compatibility: Kimi dynamic tool loading
-
-- Integrated upstream commit `6e10f9bc9` with a manual conflict resolution. Message-level Kimi K3 tool declarations are preserved when converting and serializing OpenAI-compatible requests, included in token metadata, and excluded from invalid `content: null` output for tool-loading system messages.
-- Preserved local `annotations`, reasoning conversion state, and the existing JSON wrapper usage. No task billing, Sora/audio pricing, payment, mail, plugin-center, or frontend behavior was changed.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
-- Local commit/push: commit `ad7838963`, push pending on `main`.
-
-### 2026-09-08 Upstream Alibaba plugin: Wan 3.0 all-in-one video
-
-- Integrated upstream commit `3b4652269`. Added `wan3.0-video` and `wan3.0-video-prime` support in the Alibaba task plugin, including resolution tiers, adaptive ratio, smart duration sentinel handling, image/media input, and completion usage facts.
-- Preserved existing Wan 2.x behavior, Sora/audio per-request billing, plugin-center controls, and all local payment, mail, pricing, and frontend customizations. The plugin keeps bounded duration facts before billing ratios are produced.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
-- Local commit/push: commit `4f19d34c7`, push pending on `main`.
-
-### 2026-09-08 Upstream task polling audit: Sora status diagnostics
-
-- Reviewed upstream commit `9df450fe5`. The independent Sora unknown-status diagnostic is already present locally in `plugins/tasks/sora/plugin.js`; no duplicate source change was needed.
-- The full polling/adaptor contract migration remains deferred because the local task interfaces and Sora/audio settlement path use a compatibility contract that must be migrated as one complete round to protect pre-consume, settlement, and refund behavior.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow.
-- Local commit/push: pending on `main`.
-
-### 2026-09-08 Upstream security and audit follow-up review
-
-- Reviewed the next upstream security/audit batch through `bee45b58a`, including `3f8a50cf8`, `6f2333990`, `0973dc2b8`, `a8729b5c3`, `3e84ec0ab`, `45c3fbe8a`, `d8cb17744`, `8c8c4153d`, and `521cebf58`.
-- `3f8a50cf8` audit records and the `8c8c4153d` usage-statistics scan fix are already present in the current branch. The statistics query already scans RPM/TPM into a separate value and assigns only those fields, so no duplicate source change was made.
-- `521cebf58` targets the upstream legacy `web` frontend layout; this repository's active frontend is `web/default`, and the equivalent setup-guide behavior is already present there. It was therefore not cherry-picked.
-- The authentication/security commits remain deferred for a dedicated compatibility round because they overlap local session identity, Telegram/OAuth, password, access-token, and security-verification customizations. The full task polling refactor and model/vendor/pricing refactor remain separately deferred because they overlap Sora/audio billing, plugin-center controls, and customer-specific pricing.
-- Local functionality deliberately preserved: Sora per-request billing, `audio_generation` surcharge, group pricing and customer discounts, wallet/payment display, mail templates, task plugin center, and default/classic frontend customizations.
-- Validation: source review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
-- Local commit/push: commit `1fb7b9ece`, pushed to `origin/main`.
-
-### 2026-09-08 Upstream backlog reconciliation through `bee45b58a`
-
-- Reconciled the remaining upstream commits after the previous security review. The local history already contains the compatible portions of `057f71c23` (privileged log metadata isolation), `219c9e063` (revalidated public/auth-session responses), `73afad588` (Hailuo media usage), `b7017c251` (system-task no-op writes), `27ff6a876` (legacy token-key migration), and `6eb6f35ed` (PostgreSQL JSON values/scanning).
-- These items are therefore recorded as integrated/already present rather than cherry-picked again. Existing local implementations also retain the required billing saturation checks, request-audit visibility rules, plugin-center controls, and Sora/audio pricing behavior.
-- The remaining upstream items are explicitly deferred: full authentication/security migration (`6f2333990`, `0973dc2b8`, `a8729b5c3`, `3e84ec0ab`, `45c3fbe8a`, `d8cb17744`), full task polling/adaptor migration (`9df450fe5`), removal of the custom plugin switch (`210734bb7`), model/vendor/pricing rewrite (`0c76e4dae`), temporary count-token disable (`3a9f41ee8`), and OpenAI capability rewrite (`49ec46966`). Each overlaps active local behavior and requires a dedicated compatibility round.
-- No source change was required in this reconciliation batch. Local functionality deliberately preserved: Sora per-request billing, `audio_generation` surcharge, group/customer pricing, wallet/payment display, mail templates, plugin-center administration, and default/classic frontend customizations.
-- Validation: source/history review and `git diff --check` only; no local compilation, tests, frontend build, Docker build, or image publication, per source-only workflow. GitHub Actions remains the integration check.
-- Local commit/push: pending on `main`.
-
-### 2026-09-09 Waffo Pancake 单价读取修复
-
-- 修复 Waffo Pancake 金额计算在配置刚保存后仍读取旧 typed setting，导致充值金额被误判过低的问题；优先读取已持久化的 OptionMap 单价，并保留有效值兜底。
-- 保留本地 Waffo Pancake、钱包展示及现有充值入账逻辑；未改变计费或订单结算规则。
-- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
-- Local commit/push: pending。
-### 2026-09-09 OAuth 登录会话修复
-
-- 修复 OAuth 登录成功后未保存返回的 dashboard access token，导致后续 `/api/user/self` 请求被判定为未登录的问题。
-- 保留现有 Cookie、Bearer 刷新、uid 缓存和本地身份验证逻辑。
-- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
-- Local commit/push: pending。
-### 2026-09-09 Passkey 限流不阻塞其他登录方式
-
-- Passkey 登录初始化请求改为自行处理 HTTP 错误，避免该接口 429 被全局 Axios 错误处理器显示为账号密码或 OAuth 登录失败。
-- 保留 Passkey、密码登录和 OAuth 登录各自独立的认证流程。
-- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
-- Local commit/push: pending。
-### 2026-09-09 GitHub Actions Release 工作流修复
-
-- 修复 `release.yml` 中 setup-bun 步骤缩进错误，避免 Tag 发布工作流在解析/执行阶段失败；保持日常 `main` 推送仅由 GHCR 镜像工作流处理。
-- 保留多平台 Release 工作流，仅用于 Tag 或手动发布；未修改应用代码和本地支付、登录逻辑。
-- 验证：源码检查、`git diff --check`；未本地构建容器。
-- Local commit/push: pending。
-### 2026-09-09 Waffo Pancake 单价保存后回显修复
-
-- 修复仅修改 `WaffoPancakeUnitPrice` 时保存流程提前返回，未刷新系统设置查询，导致页面重新进入仍显示旧单价的问题。
-- 保存普通选项后强制重新获取 `/api/option/`，保持钱包实际支付和设置页回显使用同一持久化值；不改变充值计费与入账逻辑。
-- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
-- Local commit/push: pending。
-### 2026-09-09 系统选项持久化错误处理
-
-- 修复 `UpdateOption` 忽略数据库 `FirstOrCreate` 和 `Save` 错误，导致内存中的 Waffo Pancake 单价更新但数据库仍为旧值、刷新后恢复 `1` 的问题。
-- 数据库写入失败时现在会直接返回错误，不再更新内存配置并误报保存成功；保留批量保存和现有支付/计费逻辑。
-- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
-- Local commit/push: pending。
-### 2026-09-09 Waffo Pancake 设置页单价回显根因修复
-
-- 补齐 `BillingSettings` 与 `defaultBillingSettings` 中遗漏的 `WaffoPancakeUnitPrice` 字段，使 `getOptionValue()` 能保留并解析后端返回的单价，而不是被 `?? 1` 默认值覆盖。
-- 钱包计算、支付入账和单价保存接口保持不变；修复设置页刷新后的真实回显链路。
-- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
-- Local commit/push: pending。
-### 2026-09-09 Waffo Pancake 单价数据库优先回读
-
-- 设置接口对 `WaffoPancakeUnitPrice` 增加数据库优先回读，避免内存配置初始化为默认值 `1` 时覆盖已保存单价。
-- 修改严格限定于设置接口的该字段，不改变其他支付方式、订单、计费或入账逻辑。
-- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
-- Local commit/push: pending。
-### 2026-09-09 修复 GHCR 构建错误
-
-- 补充 `controller/option.go` 使用的 `strconv` 导入，修复 Waffo Pancake 单价回读改动导致的 Go 编译失败。
-- 未改变任何支付、计费、订单或入账逻辑。
-- 验证：源码检查、`git diff --check`；由 GitHub Actions 负责构建验证。
-- Local commit/push: pending。
-### 2026-09-09 Waffo Pancake 单价非法值保护
-
-- 修复单价被保存为 `0` 的问题：后端拒绝零值、负数、NaN 和无穷值，前端也不再把空输入转换为 `0`。
-- 仅影响 Waffo Pancake 单价配置校验，不改变其他支付渠道、订单、计费和入账逻辑。
-- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
-- Local commit/push: pending。
-### 2026-09-09 Waffo Pancake 单价重复保存链路修复
-
-- 修复单价同时进入通用选项更新和 Waffo 配置保存两条链路的问题；现在单价变化与 Waffo 商户/店铺/产品配置一起通过专用保存接口提交。
-- 避免旧表单状态以 `0` 重复提交并触发校验错误；不改变其他支付方式、订单、计费或入账逻辑。
-- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
-- Local commit/push: pending。
-### 2026-09-09 Waffo Pancake 单价请求字段修复
-
-- 修复支付设置表单的 `sanitized` 对象遗漏 `WaffoPancakeUnitPrice`，导致专用保存接口收到 `0` 并返回“单价必须大于零”的问题。
-- 保留单价与 Waffo 配置的单一保存链路，不改变其他支付渠道、订单、计费或入账逻辑。
-- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
-- Local commit/push: pending。
-### 2026-09-09 Waffo Pancake 单价保存闭环加固
-
-- 完整核对并加固单价保存链路：提交前校验有限正数，专用保存成功后等待 `/api/option/` 重新拉取，避免旧查询缓存覆盖页面回显。
-- 仅影响 Waffo Pancake 设置，不改变其他支付方式、订单、计费或入账逻辑。
-- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
-- Local commit/push: pending。
-### 2026-09-09 Waffo Pancake 保存错误诊断
-
-- 专用保存接口现在返回实际失败原因，避免数据库/配置错误被统一隐藏为“保存配置失败”；同时补充单价 NaN/Infinity 校验。
-- 仅影响管理员配置错误反馈，不改变其他支付渠道、订单、计费或入账逻辑。
-- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
-- Local commit/push: pending。
-### 2026-09-09 Waffo Pancake 单价与配置保存解耦
-
-- 将 `WaffoPancakeUnitPrice` 与商户、密钥、回调地址、店铺和产品绑定拆分判断；只修改单价时直接保存系统选项，不再依赖 Waffo 配置接口或店铺绑定事务。
-- 同时修改完整 Waffo 配置时仍使用原子专用保存接口；未改变充值、计费、订单回调或入账逻辑。
-- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
-- Local commit/push: pending。
-### 2026-09-09 修复 Pancake 单价与普通支付设置同时保存
-
-- 调整保存顺序：先提交普通支付设置，再独立提交 Pancake 单价；避免同时修改其他支付配置时被单价分支提前返回而丢失普通设置。
-- Pancake 单价仍不依赖 Waffo 店铺/产品专用接口；其他支付和充值入账逻辑保持不变。
-- 验证：源码检查、`git diff --check`；未本地编译或构建容器。
-- Local commit/push: pending。
-## 2026-09-09
-
-- Upstream `064ed943e` integrated selectively: added validated `fixed(amount)` request pricing to the shared billing expression engine, including billing-unit metadata, request-price settlement for zero or missing token usage, group/request multipliers, admin log details, Realtime/task-usage rejection, and saturation-safe quota conversion. The `web/default` visual tier editor now supports per-token/per-call tiers and fixed USD per-request values. Existing Sora/audio pricing, task plugins, tool surcharges, and group/customer discount paths were preserved.
-- Upstream `d52bdc0b4` audited: the time-based pricing rule editor and request simulation capabilities are already present in `web/default`; no wholesale `web/src` replacement was made. Fixed tiers were adapted to the existing default editor and remain compatible with its time/request rules.
-- Validation: `git diff --check`, merge-marker scan, and source-level inspection only. `gofmt/go` is unavailable in this environment, so Go formatting and compilation were not run. Per source-only workflow, no local frontend build or Docker image build was performed. Database matrix and upstream frontend test suites remain for GitHub Actions.
-- Status: integrated locally; not pushed yet. Existing prior local Alibaba/plugin and migration changes remain in the same worktree and are intentionally kept for the next combined commit.
-
-## 2026-09-10 - API Key 分组描述溢出修复
-- 原因：修复创建 API 密钥弹窗中分组描述过长导致布局被顶穿。
-- 改动：为选中项内容和比例徽章增加收缩边界，避免长文本挤压弹窗布局。
-- 保留：未改变分组选择、API Key 创建或计费逻辑。
-- 验证：git diff --check；未执行本地构建。
-- 状态：待提交并推送。
-
-## 2026-09-10 - 修复 billingexpr 构建失败
-- 原因：固定计费代码引用了缺失的缓存条目读取函数，GitHub Actions 在 Go 编译阶段失败。
-- 改动：补充 compileEntryFromCacheByHash，复用现有表达式编译缓存并返回完整元数据。
-- 保留：不改变计费表达式、支付流程及既有固定计费逻辑。
-- 验证：git diff --check；未执行本地编译。
-
-
-## 2026-09-10 - 修复 options 迁移构建失败
-- 原因：model/main.go 引用了未提交的 options 主键迁移实现，干净构建环境报 undefined。
-- 改动：加入 model/option_primary_key_migration.go，提供跨 SQLite/MySQL/PostgreSQL 的迁移实现。
-- 验证：检查源码依赖与 git diff --check；未本地编译。
-
-
-## 2026-09-10 - 修复内置阿里插件导致容器启动失败
-- 原因：usageSchema 使用了当前注册器不支持的 enumLabels 字段，内置插件注册失败触发 panic。
-- 改动：移除不参与请求和计费的 enumLabels，保留 resolution 枚举及本地化描述。
-- 保留：阿里 Wan 视频路由、任务插件和现有计费逻辑不变。
-- 验证：静态核对注册器允许字段与插件元数据；未本地编译。
-
-
-## 2026-09-10 - 修复 API Key 分组描述横向溢出
-- 原因：已选分组的描述位于按钮内部，外层 flex 项未设置可收缩边界，长文本撑破更新 API 密钥弹窗。
-- 改动：为分组触发按钮及内容链路增加 min-w-0/overflow-hidden，并对描述使用最大宽度单行截断。
-- 保留：不改变分组选择、API Key 更新和权限逻辑。
-- 验证：git diff --check；未本地构建。
-
-## 2026-09-10 - Isolate dashboard authentication limits and preserve sessions on transient refresh failures
-
-- Local incident: production login returned HTTP 429; the operator confirmed the logged client IP `70.39.183.135` is a server/reverse-proxy address. Requests collapsed onto that address share IP budgets. The provided Baota snippet forwards to `http://70.39.183.135:3000` and only sets Host. The screenshot alone does not identify whether the global API or critical limiter rejected the request. Proxy/header configuration still needs deployment-side verification.
-- Confirmed source defects: login, OAuth, refresh, logout and unrelated critical operations shared the `CT` IP bucket (default 20 requests/1200 seconds). The default frontend swallowed all refresh errors, reset authentication, and rethrew the original access-token 401 even when refresh returned 429, 5xx, a race response or a network error. Access JWT TTL is 15 minutes; refresh failure was incorrectly treated as session expiry.
-- `middleware/rate-limit.go`, `router/api-router.go`: isolate password/2FA/Passkey/OAuth login and logout into separate scopes. Refresh has a dedicated IP budget, default 120/60 seconds, configurable through `SESSION_REFRESH_RATE_LIMIT` and `SESSION_REFRESH_RATE_LIMIT_DURATION` (positive duration up to the shared 1200-second cache retention). Invalid values fall back to defaults. Global API IP limiting and login attempt limits remain enabled. IP limiter rejections now carry scope and Retry-After, with request-correlated client IP/peer diagnostics; no cookies, passwords or authorization headers are logged.
-- `web/default/src/lib/api.ts`, `main.tsx`: refresh 401 still invalidates the session; transient refresh failures preserve credentials and propagate their own error/status to route guards and QueryCache. Share refresh calls and apply a retry cooldown (Retry-After when provided; otherwise 60 seconds for 429 and 5 seconds for transient errors). Do not automatically retry throttled queries. Rate-limit feedback reuses existing translations.
-- Preserved: proxy trust boundaries, cookie origin checks, server-side session validation/revocation/rotation, password and 2FA verification, payment/accounting, Sora/audio and model pricing. No arbitrary forwarded-header trust or global limiter bypass was added. Redis limiter atomicity is unchanged.
-- Validation: nine targeted frontend regression cases passed using the actual Axios interceptors and mocked transport, covering 429/500/503/409/network errors, malformed responses, true 401, direct 429 and concurrent successful refresh. Added a Go regression for scope isolation, another-client isolation and response diagnostics. No Go toolchain/local compilation or Docker build; backend test execution and production proxy validation remain outstanding. Source diff checks performed. Targeted lint has pre-existing non-null-assertion findings in api.ts/main.tsx; new lint errors corrected.
-- Deployment: for a directly exposed Baota proxy, set X-Real-IP and X-Forwarded-For from `$remote_addr` and X-Forwarded-Proto from `$scheme` in the active proxy location, after checking included directives. Configure TRUSTED_PROXIES for the actual peer address seen by the container (often the Docker gateway); do not blindly trust all networks. With a CDN, first restore real client IPs at Nginx from only the documented trusted CDN ranges. Verify requests from separate networks show distinct client IPs before considering the incident resolved. Never log passwords, cookies or bearer tokens.
-- Commit/push: this entry is included in the source repair commit targeting main; push is pending at write time and the remote result is reported in the task. Deployment must also restore distinct real client IPs; restarting alone is not a permanent fix.
-
-## 2026-09-11 - Audit improvements, batch 1: meaningful records
-
-- Local request: complete the first two audit improvement batches; retention and cleanup are a separate, unimplemented third batch.
-- `middleware/audit_requests.go`, `router/api-router.go`, `middleware/auth.go`: one independent audit event per authenticated API request, with separate operation/security/access categories. Ordinary audit-page reads are excluded. Login attempts rejected before authentication are anonymous security events, never assigned to the submitted username. OAuth callbacks remain callbacks unless successful login is explicitly recorded. The collector sits inside gzip so business JSON can be interpreted without modifying the response. Existing management/usage-log records remain intact.
-- `controller/audit.go` and existing security event callers: reuse explicit operation labels and a bounded allowlist of scalar display parameters; preserve operator versus affected-account identity. Explicit security events are deferred until the response is known rather than duplicated as a generic access event. Transactional personal-access-token revocation keeps its atomic audit row and suppresses the generic duplicate; its missing timestamp/event ID are fixed.
-- `model/audit_log.go`, `model/audit_details.go`: additive nullable varchar `outcome` column through existing GORM migrations (SQLite/MySQL/PostgreSQL); existing bool status and historical rows are retained. Structured versioned details are stored in existing TEXT `other`, including method, route template, target, auth method, HTTP status and outcome. HTTP 200/success:false is failure; required 2FA is pending; malformed/truncated/unrecognized bodies are unknown. Raw response messages are not retained because they can echo credentials; failures use HTTP status or a safe business-rejection reason, correlated by request ID. No full request/response body, query, password, cookie, code or bearer token is persisted.
-- `controller/option.go`, `channel.go`: record before/after values for an explicit safe option allowlist and channel model/group/type changes; potentially sensitive values are redacted. System option before-values are observed from persisted DB state without changing save/transaction semantics. These are observed snapshots, not a new serialized configuration transaction. Oversized metadata is redacted. Quota override reuses the existing safe before/after parameters. Other actions without snapshots explicitly have no change details; history is not fabricated or backfilled.
-- `controller/audit_log.go`: server-side category, exact operator name/ID, action, IP, request ID, time and outcome filtering; bounded pagination and invalid-range rejection. Self scope is always ANDed with filters, so user_id cannot override authorization.
-- Preserved: login validation, JWT/cookie/refresh behavior, proxy trust, billing and payment arithmetic/transactions, Sora/audio, model request logs, original management logs and audit retention. No cleanup, export, archival or read-audit toggle in this batch.
-- Validation: source review and diff checks; added backend regressions for business outcomes (including string/array data), gzip capture, credential exclusion, audit-read exclusion, anonymous throttled login, self-scope filtering and additive historical-row migration. Go compiler/tests and live database matrix were not run locally under the source-only workflow; they remain to be executed in CI.
-- Commit/push: implemented in local main worktree; uncommitted and not pushed.
-
-## 2026-09-11 - Audit improvements, batch 2: usable admin page
-
-- `web/default/src/features/audit-logs`: default Important operations tab, Security and login / Access records / All tabs, operator/action/IP/request/time/result filters, reset/refresh, pagination and page size. Filters reset pagination; query/business failures display an error rather than an empty table. The page scrolls vertically, table scrolls horizontally, long values truncate in cells and wrap in details.
-- Details dialog includes localized action, target, operator, auth method, status, route/method, request/event IDs, safe failure reason and redacted before/after changes. Existing operation translations are reused for additional management action codes. Historical results are explicitly labelled and invalid/old metadata is safely parsed. No runtime claim that old HTTP-only outcomes were accurate business results.
-- Seven locale resources updated (en, zh, zh-TW, fr, ru, ja, vi); existing design-system table, fields, tabs, badge, tooltip and Base UI dialog reused.
-- Validation: Bun DOM/transport regression tests cover old/malformed metadata, business API failure state, default tab, tab/page reset, status-filter submission, pagination, details, redacted values and Chinese/English switching. Scoped frontend lint and formatting checks run. Full source-only TypeScript check exposes existing unrelated errors (missing test libraries, pricing/plugin types and duplicate redemption imports); audit-specific test DOM typing errors found during review were fixed. No local production/Docker build or browser pixel rendering was performed.
-- Commit/push: implemented in local main worktree; uncommitted and not pushed. Third-batch retention/cleanup settings intentionally remain out of scope.
-
-## 2026-09-11 - Audit improvements, batch 3: retention and cleanup
-
-- Local request: add safe audit-log storage management after the first two audit batches.
-- `model/option.go`: add `AuditLogRetentionDays`, defaulting to 90 days. `0` disables scheduled cleanup; values are bounded to 3650 days.
-- `model/audit_log.go`: add context-aware counting and batched deletion. IDs are selected first and then deleted through GORM so the operation remains compatible with SQLite, MySQL and PostgreSQL and does not depend on `DELETE ... LIMIT` syntax.
-- `model/system_task.go`, `service/system_task.go`: add an independent `audit_cleanup` system task with the existing lease/heartbeat machinery. It runs once per day when retention is enabled, deletes only audit rows older than the configured cutoff, and records progress/result separately from ordinary usage-log cleanup.
-- `controller/system_task.go`, `router/api-router.go`: add the root-admin manual endpoint `POST /api/system-task/audit-cleanup?target_timestamp=...`; an active task is reused instead of creating concurrent cleaners.
-- Preserved: ordinary usage logs, payment/accounting, model billing, Sora/audio pricing, audit records newer than the cutoff, and the existing log cleanup task. No export or archival behavior was added.
-- Validation: `git diff --check` passed. No local Go compilation, database matrix test, frontend build, or Docker build was run under the source-only workflow; CI remains the authoritative build check.
-- Commit/push: batch 3 is implemented in the local main worktree and remains uncommitted/unpushed pending the final review of the combined audit batches.
-
-## 2026-09-12 - Upstream follow-up after bdef117505: batch 1 selected fixes
-
-- Upstream baseline: `bdef117505247769268b209665fb3ad7554c3da7`; inspected subsequent upstream commits through `385d2dfd1`.
-- Integrated: `3cea2bf79` preserves cached input-token breakdowns through relay billing snapshots; `f064bffa2` validates image quantities before quota reservation and hardens Ali image usage handling; `f362c7c51` adds image cache/quantity variables to billing expressions; `f256e40bc` adds built-in GPT image expression defaults.
-- Preserved: local quota saturation checks, Sora/audio and group pricing behavior, payment/Waffo flows, audit logging and the existing `web/default` frontend. Existing image model detection entries were retained while adding upstream model coverage.
-- Deferred: expression pricing editor commits `25ec832fa`, `39294418a`, `b3e279464`, plugin UI commits and Passkey UI changes require adaptation to our `web/default` layout; they were not force-merged. The large upstream web tree migration remains out of scope.
-- Validation: cherry-pick conflicts were resolved by retaining local architecture and reviewing affected diffs; no local Go compilation, database matrix, frontend build or Docker build was run under the source-only workflow.
-- Commit/push: selected batch 1 changes are committed locally; push is pending completion of the remaining safe batches.
-
-## 2026-09-12 - Upstream follow-up after bdef117505: batch 2 and batch 3
-
-- Batch 2 integrated the backend portions of `74629e29f`: task plugin streaming response handling, model-aware usage profiles, bounded plugin state/response persistence, shared-model routing, plugin usage validation, and task pricing metadata. The upstream frontend editor files were not copied because they target the migrated `web/` tree; the current `web/default` remains the local frontend baseline.
-- Batch 3 was reviewed from `385d2dfd1` for multi-RP ID Passkey support. The independent configuration/documentation context already matches the local authentication structure; the deep authentication/session changes require the upstream account-security tree and were not force-applied over local session/rate-limit fixes. No Passkey behavior was changed in this batch without a compatible implementation path.
-- Preserved: audit logging and retention, existing login/session protections, Sora/audio pricing, Waffo/payment flows, group discounts, and local plugin admin/upload permissions.
-- Validation: upstream cherry-pick attempts were aborted where they would introduce the full upstream frontend tree; selected backend changes were applied and conflict markers were checked. `git diff --check` passed. No local Go compilation, database matrix, frontend build or Docker build was run under the source-only workflow.
-- Commit/push: batches 1 and 2 are committed locally; batch 3 review is recorded. Final push remains pending the combined source review.
-
-## 2026-09-12 - Local billing compatibility correction
-
-- Review finding: the plugin pricing merge removed the local `SoraPerRequestPricing` field from `BillingSetting`, which would have broken our Sora/audio per-request pricing configuration.
-- Corrected: restored the field, initialization and pricing sync export while retaining upstream plugin billing-expression support.
-- Preserved: Sora resolution pricing and fixed `audio_generation` surcharge behavior; no payment or quota calculation path was changed.
-- Validation: source diff review and `git diff --check`; Go/frontend builds remain delegated to CI under the source-only workflow.
-
-## 2026-09-12 - Upstream follow-up: administrator update reminder
-
-- Adapted upstream `251b76d86` to the existing `web/default` maintenance page: administrators now receive a one-time-per-release informational toast when a newer release is detected. The existing manual release inspection dialog remains unchanged.
-- Preserved: no automatic upgrade, no deployment mutation, no authentication or payment behavior, and no repeated reminder for the same release in the same browser.
-- Validation: source diff review and `git diff --check`; no local frontend build or Docker build under the source-only workflow.
-
-## 2026-09-12 - CI build fix: missing plugin model-fold helper
-
-- CI failure: Go compilation reported `undefined: asciiFold` in `pkg/jsplugin/registry.go` and `pkg/jsplugin/routing.go` after the plugin core sync.
-- Fixed: added `pkg/jsplugin/model_fold.go`, matching the upstream ASCII-only folding contract used for case-insensitive model/plugin lookup. Unicode characters remain unchanged.
-- Preserved: plugin routing, billing, Sora/audio, payment and authentication behavior; this is a missing-helper correction only.
-- Validation: source inspection and `git diff --check`; local Go compilation was not run under the source-only workflow.
-
-## 2026-09-12 - CI build fix: omitted plugin/pricing dependencies
-
-- Fixed missing selective-sync dependencies reported by CI: reused the existing registry `SetEnabled` API, restored explicit model-ratio detection, resolved advanced-custom channel settings through the existing channel cache, and added metadata rule matching/resolution used by pricing.
-- Preserved: local plugin override controls, Sora/audio pricing, payment flows, group discounts and audit behavior.
-- Validation: source review and `git diff --check`; local Go compilation remains intentionally unrun.
-
-## 2026-09-12 - CI build fix: missing pricing-expression helpers
-
-- CI failure: `setting/billing_setting/tiered_billing.go` referenced `ratio_setting.HasConfiguredModelRatio` and `billingexpr.UsedUsageKeys`, but those helper files/functions were omitted from the earlier selective sync.
-- Fixed: restored both helpers using the existing model-ratio normalization and compiled-expression cache. No billing formula, quota arithmetic, Sora/audio surcharge or payment path was changed.
-- Validation: source inspection and `git diff --check`; CI remains the build authority and local Go compilation was not run.
-
-## 2026-09-12 - CI build fix: plugin-aware channel selection and base URL helper
-
-- Cause: the selective plugin/channel sync had updated callers to the upstream four-argument channel-selection APIs, while the local `GetChannel` and `GetRandomSatisfiedChannel` implementations were still on the three-argument signatures. New task polling and relay code also referenced a missing safe channel base URL helper.
-- Fixed: added bounds-checked `constant.GetChannelBaseURL`; added filter-aware database selection with the same request-path and task-plugin identity predicates as the memory-cache path; applied those filters to exact and normalized model candidates; and updated the channel-selection APIs to carry `dto.ChannelFilter` constraints through both cache modes.
-- Preserved: channel priority/weight selection, plugin identity fail-closed behavior when a required plugin key cannot be resolved, Sora/audio pricing, group pricing, payment flows, audit logging, and existing provider routing.
-- Validation: source-format review, `git diff --check`, conflict-marker scan, and call-site signature review. The local Go toolchain was unavailable, so `gofmt`, Go compilation, and Docker/frontend builds were intentionally not run; GitHub Actions remains authoritative.
-- Commit/push: implementation committed as `f4024478f`; the corrected log is included in `00530e07c`, which is present on `origin/main`. GitHub Actions is the remaining build verification step.
-
-## 2026-09-12 - CI build fix: model modifier matching dependencies
-
-- Cause: the image exposed missing symbols in the model pricing and token-limit matching path: model modifier parsing and canonical billing helpers were omitted, and middleware referenced `ratio_setting.RoutingMatchModelName`.
-- Fixed: completed the host reasoning wrapper for explicit `@` modifiers and legacy thinking/effort suffixes, added canonical billing candidates, and added routing-name normalization before wildcard matching.
-- Preserved: existing Sora/audio and group pricing, plugin routing, payment/accounting, audit logging, and model request behavior. This change only completes model-name normalization dependencies used by selection and billing lookup.
-- Validation: source inspection, `git diff --check`, conflict-marker scan, and symbol/call-site review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
-- Commit/push: pending in the current source-level fix commit.
-
-## 2026-09-12 - CI build fix: initialize plugin task proxy adaptors
-
-- Fixed Gemini and Vertex video proxy lookups to initialize the plugin adaptor
-  with the task channel API key, base URL, and proxy settings before polling.
-- Removed the final legacy polling call shape; both callers now pass the task
-  and HTTP response required by the plugin contract.
-- Preserved generated media URL fallback extraction and all billing/payment
-  behavior.
-
-## 2026-09-12 - CI build fix: correct RelayInfo API key placement
-
-- Fixed the Gemini/Vertex plugin adaptor initialization to place the channel
-  API key in `ChannelMeta.ApiKey`, matching the local `RelayInfo` structure.
-- Validation: source inspection and `git diff --check`; CI remains authoritative.
-
-## 2026-09-12 - Upstream sync batch 1: pricing configuration backend
-
-- Integrated the upstream model pricing snapshot, legacy-to-expression
-  conversion, effective-price preview, and optimistic versioned update APIs.
-- Added the corresponding protected option routes. The existing expression
-  evaluator, Sora/audio pricing fields, group discounts, payment/wallet paths,
-  and legacy pricing remain intact.
-- Deliberately skipped upstream legacy frontend tree and unrelated Passkey and
-  standalone audit-log changes; those are outside the agreed three batches.
-- Validation: source reference review and `git diff --check`; no local Go,
-  frontend, or Docker build under the source-only workflow.
-- Commit/push: pending in the current source-level batch commit.
-
-## 2026-09-12 - CI follow-up correction
-
-- Removed an unused Passkey-domain audit helper from the selective sync because
-  the corresponding upstream Passkey domain model is intentionally deferred.
-- Preserved the local audit implementation and added persistence of uploaded
-  plugin icons when updating an existing plugin version.
-- Validation: source review and `git diff --check`; CI remains authoritative.
-
-## 2026-09-12 - CI build fix: Gemini and Vertex task proxy callers
-
-- Fixed the remaining callers in `controller/video_proxy_gemini.go` that still
-  passed legacy map request data and the old one-argument task parser.
-- The proxy now passes the persisted task and HTTP response through the unified
-  task-plugin polling contract, matching the regular polling path.
-- Preserved: generated video URL extraction, API-key handling, task billing,
-  plugin routing, and all payment/accounting behavior.
-- Validation: source call-site review and `git diff --check`; local Go and
-  Docker builds were not run, so GitHub Actions remains authoritative.
-
-## 2026-09-12 - CI build fix: restore plugin metadata and audit dependencies
-
-- Cause: the Docker Go build exposed a partial upstream sync: audit controller
-  code referenced the newer typed audit signature, while this branch still
-  uses the existing structured-log audit storage; task-plugin controllers
-  referenced missing icon decoding, embedded icon lookup, `TaskPlugin.Icon`,
-  `HasIcon`, Passkey domain confirmation, and the unknown-meta i18n key.
-- Fixed: adapted the Passkey audit call to the local audit map contract,
-  restored the Passkey confirmation sentinel, added bounded PNG/SVG data-URI
-  validation and embedded icon helpers, restored the plugin icon model field
-  and helper, and added English/Chinese unknown metadata messages.
-- Preserved: existing audit-log storage and redaction, plugin upload controls,
-  plugin routing, Sora/audio pricing, payment/accounting, group discounts, and
-  authentication/session behavior.
-- Validation: source reference review, conflict-marker scan, and `git diff
-  --check`. Local Go compilation, frontend builds, and Docker builds were not
-  run under the source-only workflow; GitHub Actions remains authoritative.
-- Commit/push: pending in the current source-level fix commit.
-
-## 2026-09-12 - CI build fix: task plugin request interface compatibility
-
-- Cause: the task plugin adaptor had already adopted the upstream `ParseResponse`, task-aware polling, and batch interfaces, while the local legacy `channel.TaskAdaptor` assertion and `DoTaskApiRequest` parameter still required the old `DoResponse` contract.
-- Fixed: narrowed `DoTaskApiRequest` to the two request-building methods it actually uses and removed the invalid legacy interface assertion from the plugin adaptor. Existing task adaptors continue to satisfy the broader legacy interface, while the plugin keeps the upstream response and polling contracts.
-- Preserved: task plugin request validation, streaming/SSE handling, plugin state, usage extraction, task billing, Sora/audio pricing, payment/accounting, audit logging, and existing provider adaptors.
-- Validation: source inspection, `git diff --check`, conflict-marker scan, and interface/call-site review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
-- Commit/push: pending in the current source-level fix commit.
-
-## 2026-09-12 - CI build fix: thinking modifier parser dependency
-
-- Cause: the image reported `setting/reasoning/model_name.go` calling `relaykit/relayconvert/reasoning.ParseThinkingModifier`, which was another omitted helper from the selective sync.
-- Fixed: restored parsing for `@thinking:on`, `adaptive`, `off`, and bounded integer budgets, including the existing portable `Intent` source and budget metadata.
-- Preserved: model routing and billing lookup, Sora/audio and group pricing, plugin routing, payment/accounting, audit logging, and relay conversion behavior.
-- Validation: source inspection, `git diff --check`, conflict-marker scan, and symbol review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
-- Commit/push: pending in the current source-level fix commit.
-
-## 2026-09-12 - CI build fix: RelayKit modifier parser dependency
-
-- Cause: the CI image still reported `reasoning.ParseModelModifiers` as undefined because the pricing helper imports RelayKit's reasoning package, whose modifier parser had not been included in the selective sync.
-- Fixed: restored RelayKit's explicit trailing `@key:value` model modifier parser and its public model modifier types, while keeping opaque provider names and existing suffix parsers intact.
-- Preserved: model pricing lookup, Sora/audio and group pricing, plugin routing, payment/accounting, audit logging, and all existing relay conversion behavior.
-- Validation: source inspection, `git diff --check`, conflict-marker scan, and import/symbol review. Local Go compilation and Docker/frontend builds were not run; GitHub Actions remains authoritative.
-- Commit/push: pending in the current source-level fix commit.
-
-## 2026-09-12 - CI build fix: unify task plugin adaptor contract
-
-- Cause: task relay call sites and the JavaScript task adaptor were using the
-  upstream protocol (`ParseResponse`, task-aware polling, and batch polling),
-  while the old legacy task adaptor contract still expected `DoResponse` and
-  map-based polling. That mixed contract caused CI errors for plugin adaptor
-  assignment and task polling method signatures.
-- Fixed: kept `channel.TaskAdaptor` on the current plugin protocol, retained
-  the pinned-plugin request routing and platform-unavailable errors, and added
-  a compile-time assertion covering the JavaScript adaptor's complete task
-  contract. Built-in task plugins remain the source for the migrated task
-  platforms; the independent OpenAI image task path remains unchanged.
-- Preserved: Sora/audio pricing, task plugin state and usage extraction,
-  payment/accounting, group discounts, audit logging, advanced custom channel
-  routing, and the standalone OpenAI image task implementation.
-- Validation: source inspection, interface/call-site review, `git diff --check`,
-  and conflict-marker scan. Local Go compilation, frontend builds, and Docker
-  builds were not run under the source-only workflow; GitHub Actions remains
-  the build authority.
-- Commit/push: pending in the current source-level fix commit.
-
-## 2026-09-12 - Upstream sync review: fixed per-request pricing
-
-- Upstream scope reviewed: `064ed943e` fixed per-request expression pricing.
-- Status: already integrated in `main` before this review. The local
-  `billingexpr` implementation includes `fixed()` validation, request-unit
-  evaluation, image-count multiplication, quota saturation, task/realtime
-  guards, settlement, and usage-log metadata.
-- Preserved: Sora/audio pricing, group discounts, payment and wallet logic,
-  and the existing default frontend pricing editor.
-- Validation: source comparison, symbol/call-site review, and working-tree
-  inspection. Local compilation and Docker builds were intentionally not run;
-  GitHub Actions remains authoritative.
-- Commit/push: `6d7f93587` pushed to `origin/main`.
-
-## 2026-09-12 - Upstream sync review: channel plugin extensions
-
-- Upstream scope reviewed: `ab489ab88` and `505805a4c` channel provider/model
-  selection extensions.
-- Progress: added the typed default-frontend API contract for available task
-  plugin options (`GET /api/task_plugin_options`). Full UI wiring remains in
-  the current third-batch work and must preserve existing model mapping,
-  advanced custom routes, and channel submission fields.
-- Preserved: Sora/audio pricing, group discounts, payment/wallet behavior,
-  plugin permissions, and existing channel editor behavior.
-- Validation: source inspection and `git diff --check`; no local builds were
-  run per the source-only workflow.
-- Commit/push: `98c4bd424` pushed to `origin/main`.
-
-## 2026-09-12 - Channel editor plugin model selection completed
-
-- Added typed task-plugin option loading and compatible-plugin model actions to
-  the default channel editor.
-- Existing model mapping, custom models, advanced custom routes, channel
-  payloads, Sora/audio pricing, group discounts, and payment behavior remain
-  unchanged.
-- Validation: `git diff --cached --check` and source-level call-site review;
-  local compilation and Docker/frontend builds were not run.
-- Commit/push: `11f05e552` pushed to `origin/main`.
-
-## 2026-09-12 - Channel editor task-plugin binding completed
-
-- Completed the third-batch binding path: channel type `61` is available in the
-  default editor; `task_plugin_key` is validated, loaded from existing channel
-  settings, and serialized back to `setting`; selecting a plugin fills its
-  declared models and default Base URL.
-- Plugin model actions are restricted to users who can edit sensitive channel
-  configuration. Existing channels, model mappings, advanced custom routes,
-  Sora/audio pricing, group discounts, and payment behavior are unchanged.
-- Validation: `git diff --check` and source-level form/payload review. Local
-  compilation, frontend build, and Docker build were not run.
-- Commit/push: `db73d6cf4` pushed to `origin/main`.
-
-## 2026-09-12 - Upstream sync review: task plugin image capability
-
-- Upstream scope reviewed: `74629e29f` task streaming and plugin pricing, plus
-  the related image-plugin runtime changes.
-- Status: backend capability is already integrated. The current task plugin
-  runtime and Alibaba plugin cover image model discovery, text-to-image and
-  image-to-image requests, bounded `image_count` usage, synchronous/interleave
-  streaming, result/artifact parsing, and task settlement.
-- Preserved: Sora/audio billing, group discounts, wallet/payment behavior,
-  plugin permissions and upload controls, and the independent OpenAI image
-  task path.
-- Validation: source and call-site review only; local compilation, frontend
-  build, and Docker build were intentionally not run. GitHub Actions remains
-  authoritative.
-- Commit/push: `e61750eef` pushed to `origin/main`.
-
-## 2026-09-12 - Task plugin image pricing configuration completed
-
-- Added the default-frontend `billing_setting.plugin_billing_expr` option for
-  plugin/model-specific expressions. Administrators can edit the JSON mapping
-  using `plugin_key::model_name` keys; the backend already validates the
-  plugin declaration and usage schema before saving.
-- Preserved the existing model expression, legacy ratios, Sora/audio pricing,
-  group discounts, payment/wallet behavior, plugin permissions, and image task
-  runtime. No Passkey multi-domain or standalone audit-log work was added.
-- Validation: `git diff --check` and source-level type/data-flow review. Local
-  compilation, frontend build, and Docker build were intentionally not run;
-  GitHub Actions remains authoritative.
-- Commit/push: `c10f8c4d4` pushed to `origin/main`.
-
-## 2026-09-13 - Restrict TTFT statistics to successful streaming samples
-
-- Local fix: TTFT averages and percentile samples now require a successful
-  streaming request with a recorded first response. Failure samples continue
-  contributing to latency and success-rate metrics only.
-- Preserved billing, TPOT, and existing percentile minimum-sample behavior.
-- Validation: `git diff --check`; Go tests were not run because Go is not
-  installed in the local environment.
-- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-## 2026-09-13 - Restore pricing catalog metadata and creation ordering
-
-- Local fix: pricing responses now include model creation time, input/output
-  modalities, and vendor display metadata; catalog output is sorted by creation
-  time descending with a stable name tie-breaker.
-- Preserved model filtering, group pricing, dynamic pricing, and performance
-  display behavior.
-- Validation: `git diff --check`; Go tests were not run because Go is not
-  installed locally.
-- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-13 - Fix model pricing page 500 on legacy empty options
-  - Local fix: treat empty/null pricing Option values as unconfigured empty maps and emit a diagnostic error log with the affected key.
-  - Preserved: all existing pricing expressions, Sora/audio billing, group discounts, plugins, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Resulting source commit: `b249e2597`; push status: pushed to `origin/main`.
-
-- 2026-09-13 - Harden model pricing snapshot against legacy non-object options
-  - Local fix: invalid/non-object legacy pricing option values are treated as unconfigured for reads, with key-specific diagnostic logging; stored values are not overwritten.
-  - Preserved: valid pricing data, billing expressions, Sora/audio billing, group discounts, plugins, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: implementation committed as `02d0e5069` and pushed to `origin/main`; GitHub Actions is the remaining build verification.
-- 2026-09-15 - Align announcement management ordering with timeline
-  - Local change: system announcement management list now sorts publish dates from oldest to newest, matching the timeline view.
-  - Preserved: timeline ordering, announcement content, types, and expand/collapse behavior.
-  - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-13 - Prevent model pricing snapshot panic on malformed completion ratio
-  - Local fix: guard the display-only audio comparison against missing/non-finite completion ratios instead of using an unsafe type assertion.
-  - Preserved: actual billing, valid pricing, Sora/audio charging, group discounts, plugins, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-13 - Fix MySQL reserved-key query causing options/model-pricing failures
-  - Local fix: use the dialect-safe quoted Option key column when reading the Waffo Pancake unit price from the options endpoint; this prevents MySQL 1064 errors from breaking pricing settings.
-  - Preserved: existing payment amounts, billing calculations, pricing expressions, Sora/audio billing, and other payment providers.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-13 - Fix billing model pricing page initialization crash
-  - Local fix: include the plugin billing expression option in the billing settings defaults so the model pricing editor receives the complete pricing contract.
-  - Preserved: existing model pricing, task plugins, Sora/audio billing, group discounts, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-13 - Begin frontend model pricing snapshot integration
-  - Local change: added typed snapshot/conversion API clients and initiated snapshot querying in the model pricing card; legacy option data remains the fallback during migration.
-  - Preserved: existing editor, save behavior, Sora/audio pricing, group discounts, plugins, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-13 - Add model pricing snapshot adapter boundary
-  - Local change: added a typed adapter that maps snapshot options to the legacy editor fields with field-level fallback; no save or billing behavior changes yet.
-  - Preserved: existing model pricing editor, Sora/audio billing, plugins, group discounts, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-13 - Connect model pricing snapshot adapter to editor reads
-  - Local change: model pricing editor now prefers the snapshot option maps and falls back per field to legacy system options; existing save behavior is unchanged.
-  - Preserved: JSON editor, Sora/audio billing, task plugins, group discounts, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-13 - Add model pricing conversion preview UI
-  - Local change: model pricing editor now exposes a conversion preview action for legacy pricing and applies the returned expression to the draft without saving automatically.
-  - Preserved: existing save flow, Sora/audio pricing, task plugins, group discounts, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-13 - Preserve request rules in conversion preview
-  - Local change: conversion preview now splits combined expressions using the shared parser before populating billing and request-rule editor state.
-  - Preserved: existing save flow and all billing/payment customizations.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-13 - Re-fetch pricing snapshot after model pricing saves
-  - Local change: successful model pricing updates now invalidate and refetch the snapshot query so subsequent rendering uses server-persisted values.
-  - Preserved: existing option writes, Sora/audio billing, plugins, group discounts, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Make pricing conversion preview confirmation-based
-  - Local change: conversion results now appear in a review dialog and are applied to the draft only after confirmation; no automatic save occurs.
-  - Preserved: existing pricing, Sora/audio billing, task plugins, group discounts, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Add conversion preview translations
-  - Local change: added English and Chinese translations for the conversion preview action, review dialog, status messages, and expression labels.
-  - Preserved: all existing pricing, Sora/audio billing, plugins, group discounts, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Add stream disconnect billing diagnostics
-  - Local fix: stream logs now record whether usage was present and whether billing settlement succeeded when a streamed request ends, including `client_gone` cases.
-  - Preserved: all quota calculations, pre-consume/settlement decisions, retry behavior, Sora/audio billing, task plugins, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Classify stream usage source before disconnect settlement changes
-  - Local fix: stream logs now distinguish missing usage, provider-reported usage, and locally estimated usage using the existing BillingUsage metadata and local token-count marker.
-  - Billing impact: diagnostic only; no settlement, pre-consume, retry, or charge amount behavior changed.
-  - Preserved: Sora/audio billing, task plugins, payment flows, and non-stream requests.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Add regression coverage for stream usage source classification
-  - Local change: added tests covering missing, upstream-reported, estimated, and locally counted usage classifications before disconnect settlement work.
-  - Billing impact: tests only; no runtime settlement or stream lifecycle behavior changed.
-  - Preserved: all existing billing, retry, Sora/audio, task plugin, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Bounded upstream drain after streamed client disconnect
-  - Local fix: the shared stream scanner now keeps consuming the upstream body for up to 10 seconds after `client_gone`, allowing provider terminal usage events to reach existing relay handlers while standard downstream writes remain suppressed by the canceled request context; the body is still force-closed after the bounded window.
-  - Billing impact: no pricing, pre-consume, settlement, refund, retry, Sora/audio, or task-plugin formula changes. This only gives existing provider-usage parsers a bounded opportunity to produce actual usage; local-estimate behavior is unchanged and remains separately diagnosed.
-  - Preserved: all non-stream requests, normal stream completion, handler-stop behavior, and resource cleanup after timeout.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow. Added/updated stream scanner regression coverage for terminal data after client disconnect.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Protect client-gone settlement from local estimates
-  - Local fix: when a streamed request ends with `client_gone`, only provider-reported usage is allowed to drive variable settlement; missing/local-estimated usage settles to zero so pre-consume can be returned instead of charging a partial local estimate. Fixed-price expression settlements remain unchanged.
-  - Preserved: normal streams, provider usage settlement, Sora/audio fixed-price behavior, task plugins, retry behavior, group discounts, wallet/payment flows, and non-stream requests.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow. Added usage-source precedence coverage.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Mark manual streaming usage fallbacks as estimated
-  - Local fix: OpenAI Responses and streaming TTS paths now mark locally filled token counts explicitly, so client-gone protection cannot mistake fallback counts for provider-reported usage.
-  - Preserved: provider usage parsing, normal stream billing, fixed-price billing, Sora/audio behavior, task plugins, retries, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Add client-gone settlement guard coverage
-  - Local change: added focused regression cases for normal streams, missing usage, local estimates, and provider-reported usage at the client-gone settlement boundary.
-  - Billing impact: tests only; no additional runtime pricing behavior beyond the guarded settlement path.
-  - Preserved: all existing billing and provider flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Preserve Claude fallback usage classification
-  - Local fix: Claude stream finalization now marks the native BillingUsage snapshot as estimated when missing completion/input fields were filled by local text counting, preventing a partial fallback from being treated as fully provider-reported usage after `client_gone`.
-  - Preserved: complete Claude usage, normal settlement, cache fields, tool billing, Sora/audio, plugins, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Mark disconnects in direct stream handlers
-  - Local fix: Cohere, Tencent, Zhipu, and Ollama direct scanner paths now record `client_gone` when the downstream request context is canceled; Ollama's empty disconnected usage is explicitly marked as local/missing rather than provider-reported.
-  - Billing impact: no normal usage, pricing, pre-consume, settlement, refund, retry, Sora/audio, plugin, or payment formula changes. The existing client-gone guard can now recognize these direct handlers and avoid charging their local fallback usage.
-  - Preserved: normal stream responses and each provider's existing parser/output behavior.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Add direct-handler disconnect regression coverage
-  - Local change: added a focused test proving a canceled downstream request initializes stream status and records `client_gone` for direct scanner implementations.
-  - Billing impact: tests only; no additional runtime pricing or settlement changes.
-  - Preserved: all existing provider, billing, task-plugin, and payment behavior.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Add bounded Cohere stream drain
-  - Local fix: the Cohere direct stream handler now keeps parsing provider lines for up to the shared 10-second disconnect window, suppresses drained output, and closes/joins the scanner on timeout so terminal provider usage can still be captured without a goroutine leak.
-  - Billing impact: no pricing or settlement formula changes; only terminal provider usage already parsed by the handler can affect billing.
-  - Preserved: normal Cohere output format, final usage parsing, fallback estimation, retry behavior, Sora/audio, task plugins, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Make Cohere drain cancellation leak-safe
-  - Local fix: Cohere scanner delivery can now be canceled while blocked on its data channel; normal completion, client disconnect, and drain timeout all join the scanner before returning.
-  - Billing impact: no pricing or settlement formula changes; terminal provider usage remains the only usage recovered during drain.
-  - Preserved: normal Cohere streaming, fallback estimation, retries, Sora/audio, task plugins, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Finalize streaming disconnect billing hardening batch
-  - Local batch: finalized the shared stream drain, usage-source classification, client-gone settlement guard, manual fallback markers, direct-handler disconnect status, Cohere drain, and Zhipu metadata drain work recorded above.
-  - Preserved: Sora/audio billing, task plugins, retries, group discounts, wallet/payment flows, and all unrelated untracked workspace files.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Resulting commit: `9b1872a61d91fe38cc5f9d2dfd14bd3fedeba8e5`; pushed to `origin/main` successfully. The initial push command reported a TLS close-notify warning, but remote ref verification matched this commit.
-- 2026-09-14 - Add bounded Zhipu metadata drain
-  - Local fix: the Zhipu direct stream handler now keeps consuming its separate `meta:` usage channel for the shared 10-second disconnect window, suppresses drained output, and joins the scanner on normal completion or timeout.
-  - Billing impact: no pricing or settlement formula changes; only provider metadata already parsed by the handler can affect billing.
-  - Preserved: normal Zhipu data/meta output, fallback behavior, retries, Sora/audio, task plugins, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Preserve buffered Zhipu terminal metadata
-  - Local fix: after the Zhipu scanner completion signal, the disconnect drain now non-blockingly consumes residual buffered `meta` frames before settlement.
-  - Billing impact: no pricing or settlement formula changes; this only prevents an already-read provider usage frame from being dropped at channel shutdown.
-  - Preserved: normal Zhipu output, fallback behavior, retries, Sora/audio, task plugins, and payment flows.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-14 - Expose pricing conversion preview and task-plugin pricing in the model editor
-  - Local fix: added a page-level legacy pricing conversion dialog with model selection, backend preview, draft-only application, and the existing explicit save step. The model editor now shows compatible task plugins, their declared usage fields, and per-plugin expression overrides; plugin-only model names are included in the pricing table and marked with a plugin badge.
-  - Backend hardening: plugin billing option updates now participate in pricing refresh and are validated against the installed plugin model/schema before persistence.
-  - Billing impact: no change to expression evaluation, legacy ratio math, Sora/audio pricing, group discounts, pre-consume, settlement, refunds, or payment flows. Conversion remains opt-in and unsupported task/video routes remain rejected by the existing preview guard.
-  - Preserved: existing JSON editor, classic frontend, channel task-plugin selection, stale plugin override visibility, and all unrelated untracked workspace files.
-  - Validation: `git diff --check`; translation files inspected; local compilation/tests not run per source-only workflow.
-  - Resulting source commit: `8c61bf470`; push status: pending.
-- 2026-09-14 - Make client-gone upstream drain timeout configurable
-  - Local change: added the persisted `ClientGoneDrainTimeout` system option with a 10-second default and a strict 1-300 second range. The shared stream scanner and direct Cohere/Zhipu stream handlers now read the same atomic runtime setting instead of a fixed 10-second constant. Added the administrator input under Operations > System Behavior with English and Chinese translations.
-  - Billing impact: no change to pricing, pre-consume, settlement, refund, retry, Sora/audio, task-plugin, or payment logic. The bounded drain only controls how long existing provider parsers may wait for terminal provider-reported usage after `client_gone`; local-estimate billing protection remains unchanged.
-  - Preserved: upstream response-header wait, streaming timeout, normal stream behavior, downstream cancellation, body cleanup, and all unrelated untracked workspace files.
-  - Validation: `git diff --check`; local compilation/tests not run per source-only workflow. Checked that all former `ClientGoneDrainTimeout` references use the shared runtime getter.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Clarify model pricing rule multipliers in model details
-  - Local fix: the pricing catalog now includes the resolved model-specific multiplier per group; the model details panel separately shows group ratio, model ratio, effective ratio, and active expiration time.
-  - Billing impact: no pricing calculation, pre-consume, settlement, refund, or expression evaluation changes; this is display metadata only.
-  - Preserved: existing model pricing, discount rules, expression pricing, group filtering, classic frontend, and protected project identifiers.
-  - Validation: `git diff --check`; Go/frontend build not run because Go is unavailable and this source-only change does not require local image builds.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Restore Sora tier preview data in model details
-  - Local fix: include enabled Sora per-request resolution pricing in the model catalog response so the existing model-details preview can render each resolution tier again.
-  - Billing impact: no change to Sora request calculation, group multipliers, pre-consume, settlement, refund, or other pricing logic; this only restores display metadata.
-  - Preserved: existing model details layout, group pricing display, expression pricing, classic frontend, and protected project identifiers.
-  - Validation: `git diff --check`; Go/frontend build not run because Go is unavailable and this is a source-only metadata fix.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Apply model pricing rule multiplier in normal billing paths
-  - Local fix: the shared group-ratio resolver now applies the active model-specific multiplier, including user-specific overrides, before pre-consume and settlement; logs retain base, model, and effective group ratios separately.
-  - Billing impact: intentional correction for configured model pricing rules that were previously displayed and resolved as the base group ratio in ordinary text billing. Rules without a model multiplier remain unchanged.
-  - Preserved: expression evaluation, expiration checks, group fallback behavior, Sora/task billing, refunds, and protected project identifiers.
-  - Validation: `git diff --check`; Go build/tests not run because Go is unavailable.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Simplify model catalog ratio display
-  - Local fix: model details now show only the final effective multiplier in the group pricing table, removing the redundant base/model/effective chain; diagnostic ratio fields remain available in usage-log details.
-  - Billing impact: no change to billing or settlement; display-only simplification.
-  - Preserved: model rule multiplier application, expiration handling, expression pricing, Sora/task billing, and protected project identifiers.
-  - Validation: `git diff --check`; Go/frontend build not run because Go is unavailable.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Fix model pricing expression conversion preview feedback
-  - Local fix: imported the frontend toast dependency used by the model pricing editor's conversion preview, report an empty model name instead of silently returning, and preserve explicitly entered zero-valued legacy prices when building the preview request.
-  - Billing impact: no change to model pricing conversion, expression evaluation, pre-consume, settlement, refund, or saved pricing data; this only fixes preview invocation and input transport.
-  - Preserved: the global conversion dialog, conversion API contract, draft-only apply flow, Sora/audio pricing, task-plugin pricing, and protected project identifiers.
-  - Validation: `git diff --check`; local frontend build/typecheck not run per source-only workflow.
-  - Resulting source commit: `c9b27f95d`; push status: pushed to `origin/main`.
-- 2026-09-15 - Convert system notice editor to announcement management
-  - Local change: the System Notice settings section now uses the announcement list editor, supporting independent notice records with add, edit, delete, publish date, type, and expandable content; legacy plain-text Notice values are loaded as one record.
-  - Preserved: the Notice option key and public Notice endpoint, existing console announcements, and protected project identifiers.
-  - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Move system notice under content management
-  - Local change: moved the System Notice editor from Site Settings into the existing Content Management menu beside Announcements, while preserving the Notice option key and legacy migration behavior.
-  - Preserved: public Notice endpoint, existing platform announcements, system information/site settings, and protected project identifiers.
-  - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Render structured system notices correctly
-  - Local fix: the notification popover now detects the structured Notice announcement array and renders separate timeline entries instead of exposing the serialized JSON; legacy plain-text Notice values remain supported.
-  - Preserved: Notice endpoint, announcement types, publish dates, expand/collapse behavior, and protected project identifiers.
-  - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Use English dates in announcement timelines
-  - Local change: system notices and platform announcements now format timeline dates consistently as English abbreviated month plus day, such as `Sep 12`.
-  - Preserved: announcement content, types, publish ordering, expand/collapse behavior, legacy Notice compatibility, and protected project identifiers.
-  - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Restore newest-first announcement management ordering
-  - Local change: system announcement management list sorts publish dates newest to oldest, so recently published notices appear first.
-  - Preserved: timeline ordering, announcement content, types, and expand/collapse behavior.
-  - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Rename content announcement menu labels
-  - Local change: renamed the content submenus from System Notice to Notice and Announcements to Timeline.
-  - Preserved: announcement storage, editing behavior, frontend rendering, and protected project identifiers.
-  - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Sort notification announcements newest first
-  - Local change: parsed announcements in the notification tab now display newest published items first, while the timeline view remains unchanged.
-  - Preserved: announcement content, date formatting, and timeline ordering.
-  - Validation: `git diff --check`; frontend build not run.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Restore legacy video task submission JSON response
-  - Local regression: `/v1/video/generations` can select its task plugin during submission, after the controller's pinned-plugin branch check. The legacy success branch persisted the task and consumption log but never presented the response, yielding an empty HTTP 200.
-  - Changed: invoke the shared task presenter after logging in that branch; preserve responses already written by legacy adaptors. Added presenter regression tests for public task identity and avoiding duplicate responses.
-  - Preserved: plugin selection, upstream submission, billing calculations, Sora/audio pricing, settlement, refunds, task polling, and protected identifiers.
-  - Validation: source-level control-flow inspection and `git diff --check`; tests added but not executed, no local compilation or image build. Production verification remains required.
-  - Commit/push: fix committed as `746e791f1` and pushed to `origin/main`; GitHub Actions build result not yet verified.
-- 2026-09-15 - Expose task log details in the default frontend
-  - Local change: added a task detail dialog for task data, status, model, plugin/provider metadata, upstream task ID, and failure details; successful tasks now have a View details action.
-  - Preserved: role-based hiding of upstream/plugin fields, task submission, polling, billing, settlement, and existing error/video/audio actions.
-  - Validation: `git diff --check`; frontend build not run per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Accept Sora size in custom per-request pricing validation
-  - Local fix: derive configured resolution tiers from the OpenAI-compatible `size` field (`720x1280`/`1280x720` and `1792x1024`/`1024x1792`); a single configured tier is used as the default when neither field is supplied.
-  - Preserved: explicit `resolution` takes precedence, request payload forwarding, existing Sora/audio fixed-charge logic, and all non-Sora channels.
-  - Validation: source inspection and targeted regression test added; no local compilation or image build per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Preserve shared Sora-channel video request fields in the task plugin
-  - Local fix: the Sora plugin now forwards `resolution`, `images`, `aspect_ratio`, `input_region`, and `audio_generation` for models sharing a Sora channel type.
-  - Preserved: model-specific routing, upstream request behavior for existing Sora models, and custom Sora per-request/audio billing.
-  - Validation: source inspection and diff check; no local compilation or image build per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Preserve arbitrary JSON fields for shared Sora-type channels
-  - Local fix: Sora plugin Responses decoding now starts from a copy of the complete client JSON instead of rebuilding a fixed allowlist. Provider-specific fields survive while the routed model and prompt/image compatibility behavior remain intact.
-  - Preserved: Sora per-request/audio billing, task actions, polling, and existing multipart handling.
-  - Validation: source-level inspection and `git diff --check`; no local compilation or image build per source-only workflow.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-15 - Preserve JSON fields on Sora plugin fallback submission
-  - Local fix: when a Sora-type channel uses the task plugin for a model that is not declared by the shared Sora endpoint, the fallback path now invokes the plugin's JSON protocol decoder instead of `ValidateBasicTaskRequest`. The complete request body, including provider-specific fields such as `resolution`, `images`, `aspect_ratio`, `input_region`, `audio_generation`, and unknown fields, reaches `buildSubmitRequest` unchanged apart from the routed model compatibility rewrite.
-  - Preserved: shared endpoint routing, non-Sora and multipart validation paths, task actions, polling, existing request body forwarding, and the existing Sora custom billing code; this change does not alter quota calculation or settlement.
-  - Validation: added `plugins/sora_fallback_test.go`; `git diff --check` completed. Go tests and compilation were not run because the local Go toolchain is unavailable; Docker/image build remains delegated to GitHub Actions.
-  - Commit/push: implementation committed as `02d0e5069` and pushed to `origin/main`; GitHub Actions is the remaining build verification.
-- 2026-09-16 - Add P10 and P50 performance percentiles
-  - Local change: performance metrics now calculate and expose P10 and P50 for TTFT and TPOT, and display them alongside P95 and P99.
-  - Preserved: existing percentile definitions, units, group filtering, and performance cards.
-  - Validation: `git diff --check`; Go/frontend builds not run.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-16 - Refresh model plaza free and discount badges
-  - Local change: updated external model cards to use the orange-gold limited-free badge and light-gold limited-discount badge styling.
-  - Preserved: discount/free detection, price filtering, localization fallback, and model card layout.
-  - Validation: `git diff --check`; frontend typecheck not clean because of pre-existing repository errors.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-18 - Add model plaza promotional carousel configuration
-  - Local change: added a notification-style model plaza carousel editor with title, description, image, enabled state, and ordering; enabled items render in a fixed first grid slot with responsive object-cover imagery, automatic rotation, controls, and indicators.
-  - Preserved: existing notice/timeline settings, model filtering/sorting/lazy loading, pricing and billing behavior, and the separate classic model plaza theme.
-  - Validation: source inspection and `git diff --check`; Go/frontend builds not run in this environment.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-18 - Fix model plaza carousel status wiring and localization
-  - Local fix: read the carousel from the already-unwrapped `/api/status` result, refresh the status query after saving carousel settings, and apply stable sort ordering to enabled carousel items.
-  - Local change: added carousel administration and accessibility strings to all supported default-frontend locales (`en`, `zh`, `zh-TW`, `fr`, `ru`, `ja`, `vi`).
-  - Preserved: carousel validation, enabled/disabled behavior, fixed first-grid-slot layout, rotation controls, model filtering, pricing, billing, and existing unrelated locale entries.
-  - Validation: Node JSON parsing, key-presence inspection, and `git diff --check`; full frontend typecheck/build not run because the repository has pre-existing typecheck failures.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-18 - Add model plaza card metrics visibility setting and Chinese token unit
-  - Local change: added the `console_setting.model_square_show_usage_metrics` setting, enabled by default and exposed through the public status payload, to control whether external model plaza cards show usage and cache hit rate; disabling it hides the complete metrics row without affecting other pages.
-  - Local change: added a dedicated localized token unit key so the Chinese model plaza card displays `词元` while other pages retain their existing translations.
-  - Preserved: leaderboard metrics, model detail performance data, classic model plaza theme, pricing, billing, and existing carousel settings.
-  - Validation: locale JSON parsing and `git diff --check`; frontend build pending.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-18 - Add model plaza context length filter
-  - Local change: added a context length minimum slider below input type filters, with 0 meaning no restriction and a reset control; model cards are filtered by their numeric context length.
-  - Preserved: existing modality, vendor, group, price, search, sorting, lazy loading, pricing, and billing behavior.
-  - Validation: locale JSON parsing and `git diff --check`; frontend build pending.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-18 - Fix model plaza context slider and metrics setting compatibility
-  - Local fix: accept both scalar and array values emitted by the Base UI context-length slider so dragging updates the filter reliably.
-  - Local fix: read the model plaza usage/cache visibility flag from the existing option map instead of extending the console-setting struct, avoiding legacy configuration decoding issues that could make the model plaza carousel return HTTP 500; the default remains enabled.
-  - Preserved: the setting only controls usage and cache metrics on external model plaza cards, while carousel validation, model filtering, pricing, billing, and other pages remain unchanged.
-  - Validation: `git diff --check`; all supported locale JSON files parsed successfully; `bun run build` in `web/default` passed.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-19 - Discrete context filters and independent discount badges
-  - Local change: use sorted, unique positive model context lengths as slider steps; show sparse labels, disable an empty slider, and reset unavailable selections after loading.
-  - Local fix: keep free/discount badges visible when external-card usage and cache metrics are disabled.
-  - Preserved: minimum-context filtering, reset controls, other filters, pricing calculations, billing, and unrelated local files.
-  - Validation: `git diff --check` and `bun run build` in `web/default` passed. No backend code changed; browser interaction was not re-tested during this push.
-  - Commit/push: implementation committed as `bec91aa0f`; verified `origin/main` points to this commit with `git ls-remote`. The push reported a concurrent ref update, but the remote SHA exactly matches the local implementation commit.
-- 2026-09-19 - Include formatted context metadata in model plaza filtering
-  - Local fix: derive context filter values from the administrator's formatted display value when the numeric metadata field is absent, supporting values such as `400K`, `1.05M`, and `1M tokens`.
-  - Preserved: the formatted display text on cards, discrete slider behavior, minimum-context semantics, and billing behavior.
-  - Validation: source inspection and `git diff --check`; frontend build pending.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-19 - Reserve model plaza discount badge row height
-  - Local fix: always reserve the discount/free badge row height on external model cards so cards with and without a badge align consistently.
-  - Preserved: badge content, discount/free detection, pricing, filtering, and card interactions.
-  - Validation: `git diff --check`; frontend build pending.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-- 2026-09-18 - Move model plaza metrics toggle and repair carousel crash
-  - Local fix: moved the usage/cache visibility switch into Site and Brand -> Header navigation, with a safe default of disabled.
-  - Local fix: removed the carousel page's invalid form-context usage and made status exposure opt-in, preventing the added setting from crashing the model plaza carousel flow.
-  - Preserved: carousel item editing, ordering, rotation, model plaza pricing, billing, and all other navigation settings.
-  - Validation: frontend production build passed; typecheck remains blocked by pre-existing repository errors; Go formatting was unavailable because Go is not installed locally.
-  - Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-
-## 2026-09-20 - Selected upstream safety, image billing, and protocol fixes
-
-- Review reference: previous explicit review point 385d2dfd1; fetched upstream main 972aed1972820389ea0b603ca58f03f846fbf790 (59 subsequent commits). This is a selective batch, not a claim that the entire range is integrated.
-- Integrated/adapted: 07578faf2 counts OpenAI image payloads (including object-shaped data and split URL/base64 responses), preserves bounded image quantities, and forwards JSON fallback images through SSE. e2bb05f70 maps output image-token details into canonical billing usage; added the missing optional OutputTokensDetails DTO dependency.
-- Integrated/adapted: a8ed7f7c5 supplies per-family Hailuo usage profiles and resolution choices. Existing submission, polling, usage facts, settlement and older expression inputs are deliberately preserved; runtime functions are byte-equivalent after newline normalization.
-- Integrated: 610334dbd requests usage for supported cross-protocol Chat streams; 8e5e09166 forwards Ollama terminal-frame content/tool calls; 3e8c358da preserves Zhipu reasoning_effort; 62f8db775 prefers USD DeepSeek balances with validated CNY conversion fallback; 76f7dafd2 accepts mixed-case audio extensions.
-- Adapted: 81336fc69 rejects unimplemented Gemini :countTokens before authentication/channel selection. fa90b2312 fixes case-insensitive thinking-level validation and canonical effort recording on the local Gemini request path; upstream-only reasoning-host refactors are not copied.
-- Security adaptation of 2906e4f77: permanent numeric GitHub IDs still authenticate normally. A legacy username match no longer rewrites a binding or authenticates; it records a security audit and asks the user to sign in independently and explicitly relink. Numeric login names cannot select another account by legacy matching. Explicit binding no longer treats reusable usernames as proof of an existing permanent binding.
-- Deferred security compatibility: upstream verified-email and transactional second-factor automatic migration depend on the newer account-security flow. They are not integrated; legacy-only users need another login/recovery method to relink. This intentionally favors refusing unverifiable legacy authentication over importing an incompatible session architecture.
-- Already present and preserved: image-count ceiling and disconnect count protection, quota saturation guards/audit, legacy plugin fact validation, Sora per-request/audio pricing, group/customer ratios, wallet/payment behavior, existing frontend themes and protected identifiers.
-- Deferred: 6237d9d77 model limiter reservations depend on the new protocol-outcome classification; evaluate with that batch. Responses WebSocket, request policies, metrics/outcome refactors, remaining frontend changes and Passkey multi-domain remain separate work. Intentionally not applied: 55a6cd2a4 interrupted-stream estimated charging, which conflicts with the local client_gone billing safeguards.
-- Validation: git diff --check passed; Node execution checked all 10 Hailuo model profiles, sample fields, legacy usage facts, H3 duration rejection and unchanged runtime functions. Added/adapted Go regression tests for image counts/usage, cross-protocol stream options, Ollama final frames, GitHub account isolation/audit, Hailuo profiles, Gemini route/effort, Zhipu effort, DeepSeek balances and audio extensions. Go tests, gofmt and compilation could not run because no local Go toolchain is installed; no toolchain or Docker image was installed/built. CI compilation remains required; Node checks do not validate the Go plugin host.
-- Commit/push: pending source commit and remote verification; publication record follows separately.
-
-### 2026-09-20 - Publication record for selected safety/protocol batch
-
-- Source commit: b24c61705fb50435a6fb5c38578af70c8039bee8.
-- Push verification: git ls-remote confirmed origin/main equals the source commit. The push reported a concurrent ref-lock update, but the remote already contains the exact intended commit.
-- GitHub Actions: Publish Docker image (GHCR), run 35466628041, was in progress when checked; build success and image publication are not yet verified. Go regression tests remain unexecuted locally.
-- This documentation-only follow-up records the verified source publication; its own push is pending remote verification.
-
-## 2026-09-20 - Selected upstream plugin privacy and response diagnostics
-
-- Review reference: upstream main 972aed1972820389ea0b603ca58f03f846fbf790; this is another selective batch, not a full upstream merge.
-- Integrated: 7209b6db9 removes task-plugin keys and administrator instructions from public no-channel errors; candidate keys remain in request-correlated server warnings. Updated all three backend locales.
-- Integrated: 129f21b69 normalizes invalid UTF-8 before JSON-state encoding, including appendText, while preserving encoded-byte limits, failed-state behavior and rejection of invalid keys/paths.
-- Integrated/adapted: e04c05c2b permits 0.0001 increments in default-theme group/recharge ratios and tool prices. The local log group filter already uses sensitiveInputClass and is not the upstream portaled combobox; that privacy fix is already present/not applicable.
-- Integrated/adapted: ed7c4e35d plus 972aed197 records requested, mapped and upstream-reported models before conversion on local OpenAI/Responses, Claude and Gemini paths. Retains the first mismatch, accepts case/version/provider-path aliases, and clears observations on channel retry. Diagnostics are deliberately nested under admin_info.response_model and displayed only for administrators in default-theme model badges/details; unlike the upstream public metadata, local channel privacy is preserved. No routing, billing model, or downstream response is changed. Upstream-only handlers absent from this architecture are not imported.
-- Integrated: 946c730ed replaces repeated Claude tool-name scans with one-pass indexing and deferred result resolution, retaining forward references, first duplicate matches and explicit tool-result names.
-- Local maintenance: fixed existing lint errors in the touched log components (type-only import, nullable price narrowing, nested conditionals and stable field keys); immutable repeated audit lines retain occurrence-based keys with a documented lint exception. Added all new UI translations for seven supported locales.
-- Preserved: quota saturation/audit, client-disconnect safeguards, Sora/audio/image billing, group/customer ratios, wallet/payment behavior, both frontend themes, existing provider icons, and protected project identifiers. Unrelated untracked files were not included.
-- Deferred/intentionally skipped: model limiter/outcome refactors, Responses WebSocket, request policies, new channels and broader UI migrations remain separate batches; interrupted-stream estimated charging remains intentionally excluded.
-- Validation: frontend response-model regression test and targeted lint passed; seven locale JSON files and new keys verified; git diff --check passed. Final production rebuild passed after lint cleanup. Typecheck remains blocked by existing repository errors (including missing RequestRuleTrace export and test dependencies), not errors in the new diagnostics implementation. Format check flags three existing files; checking their HEAD versions independently flags the same three. Large unrelated whole-file reformatting is deliberately avoided.
-- Backend regression coverage added for UTF-8 codec independence/size boundaries, public plugin-error privacy, model mismatch retention/admin-only nesting/retry reset, OpenAI stream capture, and Claude tool-result resolution. Go tests, compilation and gofmt were not run because no Go toolchain is installed locally; no toolchain or Docker image was installed/built. GitHub CI compilation is still required.
-- Previous batch CI: Publish Docker image (GHCR) run 35466684065 completed successfully.
-- Commit/push: source commit pending; a publication record will identify its SHA and remote verification.
-
-### 2026-09-20 - Publication record for plugin privacy/diagnostics batch
-
-- Source commit: 62720004d41f9fc6ccc2d1760fff687ce4d69d91.
-- Push verification: git ls-remote confirmed origin/main equals the source commit. Although the push command reported a remote temporary-pack error, the exact intended commit is present on origin/main.
-- GitHub Actions: Publish Docker image (GHCR), run 35468936013, is in progress; successful compilation and image publication are not yet verified. Local Go tests remain unexecuted.
-- This documentation-only follow-up records source publication; its own push will be verified against origin/main.
-
-## 2026-09-20 - Model success limits and protocol outcomes
-
-- Upstream reference: selective adaptation of d3874db61 (on-demand memory limiter allocation/LRU cleanup), 8b2c7105f (protocol outcome facts), 6237d9d77 (in-memory admission reservations and outcome-aware accounting), and only the necessary adapter observation portions of a5b40663d. Review reference remains 972aed197; no claim of full-range integration.
-- Integrated: memory limiter initializes under its mutex, expires all stale timestamps, allocates on demand and cleans idle keys from the LRU tail. Active reservations survive idle-key eviction, complete once, consume the success window only on success, and release on failure/panic. Nonpositive capacities reject without allocation; disabled model success limits bypass reservations.
-- Adapted: both memory and Redis success accounting observe response outcomes rather than HTTP status alone. Failed/cancelled outcomes, soft errors, client cancellation, transport errors and missing required terminal events are excluded. Normal output-token-limit truncation remains successful. Generic DONE is accepted as a terminal marker for compatible streams; adapters without explicit terminal requirements retain HTTP-success fallback.
-- Adapted: OpenAI Chat/Completions, Responses (native, buffered, cross-converted and non-stream status), Claude message_stop and Gemini finish/error events populate diagnostic outcome state. The controller resets response state/context on each retry and publishes final errors even after HTTP 200. Upstream messages are not copied into structured outcome facts.
-- Deliberately preserved: existing scanner disconnect draining, client_gone settlement safeguards, quota pre-consume/refund/saturation, image/Sora/audio/tool charging, group/customer ratios, wallet/payment behavior, metrics sampling, UI and protected project identifiers. No billing-path or frontend changes. Existing untracked user files remain excluded.
-- Deferred: a5b40663d performance sampling/dashboard overhaul; Responses WebSocket, request policies and new channels. Redis distributed in-flight reservations are NOT supplied by upstream 6237d9d77 and are not introduced here: Redis retains its existing post-completion admission behavior, while sharing outcome-based success classification. Interrupted-stream estimated charging remains intentionally skipped.
-- Validation: git diff --check passed. Added regression coverage for memory allocation/window expiry/concurrent initialization, reservation concurrency/idempotence/eviction, memory and Redis failure-vs-success/total limits, panic cleanup, disabled limits, cancellation, protocol outcomes, late errors, terminal truncation, retry reset and native adapter observation. Added a targeted GitHub Actions workflow using Redis and Go race detection; execution pending source push. Go, gofmt and local backend tests are unavailable on this machine; no toolchain or Docker build was installed/run locally. No frontend changes require a frontend build.
-- Previous batch publication confirmed: GHCR run 35468979878 completed successfully for the publication-record commit; source-only run 35468936013 was superseded/cancelled.
-- Commit/push: pending source commit and CI; publication record follows after remote verification.
-
-### 2026-09-20 - Race-check follow-up for model limits
-
-- Source 72a93500242eee6265f3dfd99c163a6e12f3f8f9 was pushed and verified on origin/main. CI run 35517712064 passed common, middleware (including live Redis), relay/common and all three adapter packages, but failed on historical scanner test configuration races, an actual logger rotation-counter race, and unrelated stale service task-test interfaces.
-- Local prerequisite fixes: made logger rotation count/dispatch flags atomic and serialized the one scanner test that modifies global ping/timeout settings. Scanner goroutine panics now explicitly mark a failed outcome even if transport EOF was recorded earlier; transport end-reason and billing decisions are preserved.
-- Validation scope: keep race detection for limiter/scanner/adapter regressions; run the new standalone Responses observer source/test pair separately from the stale service task test suite. Those task-suite compilation failures remain deferred and are not represented as passing. No task production code changed.
-- Validation: git diff --check passed; revised CI pending. Commit/push: pending follow-up commit and verification.
-
-### 2026-09-20 - Apply CI formatting and verify race fixes
-
-- Follow-up e6b15f17cd1a4134d930a4042b5f4efa9c593122 was pushed and remote-verified. CI run 35518224196 passed all seven limiter/scanner/adapter package checks with race detection, including Redis and panic regressions. It then stopped on gofmt differences, so the standalone service observer check was not run.
-- Applied the exact gofmt diff generated by the Go 1.26.1 CI job to the eight reported files; no runtime behavior changed. Local git diff --check passed. Full revised CI and independent observer check pending this formatting commit.
-- Preserved all behavior from the selective limit/outcome batch and the existing protected identifiers. Commit/push: pending formatting commit and verification.
-
-### 2026-09-20 - Verified publication of model limit/outcome batch
-
-- Source commits: 72a93500242eee6265f3dfd99c163a6e12f3f8f9 (selective integration), e6b15f17cd1a4134d930a4042b5f4efa9c593122 (race fixes), and 16472336d9019510b6102b6c5038a9a4733ab18f (CI-generated formatting). git ls-remote verified the final source commit on origin/main despite the push reporting a concurrent ref update.
-- Final regression CI: https://github.com/1412212638/OmniRouters/actions/runs/35518519868 completed successfully. All seven selected package suites passed with -race, live Redis integration passed, gofmt passed, and the independent Responses observer regression passed. The earlier runtime logger data race is fixed; tests retain their internal concurrency coverage.
-- Remaining validation limitation: the unrelated full service task suite still has pre-existing obsolete TaskPollingAdaptor mocks and is not claimed as passing. Local Go tests were not run; the checks above ran in GitHub Actions using Go 1.26.1. Billing, UI and existing unrelated files are preserved.
-- Image publication: run 35518224174 successfully published the behaviorally equivalent race-fixed source. Run 35518519870 for the final formatting commit remains in progress at this check; its result is not yet claimed.
-- This documentation-only publication record uses [skip ci] to avoid cancelling/repeating the in-progress source image build. Its push is verified separately; it changes no executable source or workflow.
-## 2026-09-21 - First frontend fixes from upstream 9a0be8750
-
-- Upstream reference: 33320407f (OIDC save isolation), 2d7aef741 (CC Switch model dropdown), c49972441 and a5bf94022 (mobile dialog viewport fallbacks and editor follow-up), a89037d0b (linked-account OAuth verification).
-- Integrated: OIDC discovery now runs only when its URL changes or OIDC is newly enabled; invalid URLs are attached to the form and switch to the OIDC tab. CC Switch uses the default Combobox/Input controls with accessible labels and no mobile spacer. Dialog and alert-dialog primitives use dynamic viewport height/center fallbacks with safe-area CSS variables.
-- Already present or not applicable: linked-account OAuth verification is not present in the local default frontend verification contract, which currently exposes only 2FA and passkey methods; no speculative OAuth flow was added.
-- Deliberately preserved: local auth method model, protected project identifiers, custom dialog content behavior, and all untracked user files.
-- Validation: targeted frontend format/lint checks and git diff --check; full frontend typecheck/build limitations are recorded below if encountered.
-- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-## 2026-09-22 - Complete SystemOne runtime contract and gate image publication
-
-- Local reason: earlier fixes only checked JavaScript syntax and missed required query/native exports and host response contracts, causing startup panics and incorrect synchronous completion.
-- Integrated: TypeSafe 1.1.1 exposes all required hooks and native route members, decodes the host JSON envelope, forwards mapped upstream names from the canonical request, uses `/v1/systemone` for both upstream kinds, returns `taskData` and `immediate`, and supplies bounded estimate/actual usage hooks. Polling fails explicitly without resubmitting requests.
-- Preserved: Jev and Laya support, synchronous answers, gateway-facing routing, existing database overrides, Sora customizations, and existing pricing expressions. Database overrides still take precedence; existing installations must select the built-in version to use this source.
-- Validation: 20 deterministic fixtures passed under Node; `git diff --check` passed. No local Go toolchain or Docker build. Docker builder now runs `go run ./cmd/check-task-plugins`, exercising all embedded registration plus the same fixtures in the real Go runtime before image publication. CI result remains pending.
-- Commit/push: source commit `828d174a6` successfully pushed to `origin/main`. Go-runtime validation and image publication are pending GitHub Actions; this documentation-only follow-up records the confirmed source push.
-
-## 2026-09-22 - TypeSafe/Laya model mapping compatibility
-
-- Local reason: the structured-decision plugin rejected channel model aliases because it validated `upstreamModel` instead of the gateway model, and did not declare Laya.
-- Integrated: added the built-in TypeSafe plugin template with `laya`, gateway-model validation, upstream model forwarding for mappings such as `jev-1.13.0` to `jev-1.13`, synchronous rendering, and bounded `usage.input_tokens` extraction.
-- Preserved: `/v1/systemone` routing, vendor/new-api URL handling, native synchronous answers, and token-based billing usage.
-- Validation: JavaScript syntax check and `git diff --check`; full Go test suite unavailable because Go is not installed locally.
-- Commit/push: source commit `c5f9f34a5` created; push pending until this log entry is amended with the final publication status.
-
-## 2026-09-22 - Fix TypeSafe embedded plugin startup metadata
-
-- Local reason: startup validation rejected the embedded TypeSafe plugin because token usage schemas require usage examples.
-- Integrated: added bounded `input_tokens` usage examples so the plugin registry accepts the built-in plugin.
-- Preserved: model mapping, Laya support, synchronous responses, and billing usage extraction.
-- Validation: JavaScript syntax check and `git diff --check`; Go toolchain unavailable locally.
-- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-
-## 2026-09-22 - Fix TypeSafe task result hook registration
-
-- Local reason: plugin registration still required the standard `parseTaskResult` export for task plugins, including synchronous native routes.
-- Integrated: added `parseTaskResult` as a compatibility delegate to the synchronous response parser.
-- Preserved: native synchronous rendering and usage extraction.
-- Validation: JavaScript syntax check and `git diff --check`; Go toolchain unavailable locally.
-- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-
-## 2026-09-22 - Complete TypeSafe query hook contract
-
-- Local reason: the plugin registry requires `buildQueryRequest` for every non-batch task plugin, including synchronous native routes.
-- Integrated: added a compatible query request hook delegating to the SystemOne request builder.
-- Preserved: synchronous native response behavior and model mapping.
-- Validation: JavaScript syntax check and `git diff --check`.
-- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-# 2026-09-22 - Decisions output modality
-
-- Local reason: add the requested Decisions output category and supplied SVG icon.
-- Changed: default model plaza tabs, counts, filtering, card icons, detail labels, admin metadata output selection and table labels; translated Decisions in all seven supported locales.
-- Preserved: existing modalities, input choices, pricing, billing, database storage and classic frontend.
-- Validation: default frontend production build, seven locale JSON/key checks and git diff --check passed; browser interaction not tested. No backend changes.
-- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-
-## 2026-09-22 - Recognize zero base prices as free on model cards
-
-- Local reason: zero input/output prices did not show the free badge unless the group multiplier was also zero.
-- Changed: share free classification between card badges, green prices and the free/discount filters; recognize explicit zero token/request pricing while excluding dynamic-expression and Sora placeholders.
-- Preserved: quota calculations, settlement, group selection and existing discount styling; no backend changes.
-- Validation: eight targeted free-pricing regression cases and frontend production build passed; browser interaction not tested.
-- Commit/push: bundled with Decisions output modality in e6c9bd49e; verified GitHub origin/main matches this commit via git ls-remote. Push reported a concurrent ref update after the remote had reached the target commit.
-## 2026-09-22 - Add explicit per-plugin marketplace updates
-
-- Local reason: built-in marketplace cards only showed a non-interactive "Updates with the system" badge, while this fork intentionally keeps gateway and customized plugin updates independent.
-- Integrated: every marketplace card now exposes its own install, review-and-upgrade, or reinstall action. The existing source/diff review flow updates only the selected plugin, retains previous database versions for rollback, and states that channels and credentials remain unchanged while active plugin source is replaced.
-- Preserved: integrity verification, conflict preflight, version history, factory fallback, channel configuration, and all other plugins remain untouched by a single-plugin action.
-- Validation: targeted oxlint, production build, locale JSON parsing, and `git diff --check` passed. Full typecheck remains blocked by pre-existing missing test dependencies and unrelated pricing, wallet, system-settings, and task-plugin type errors; none point to the files changed here.
-- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-
-## 2026-09-24 - Add image generation playground relay support
-
-- Local reason: add a dedicated image-generation Playground route for OpenAI-compatible image models and Gemini generateContent image models.
-- Changed: registered `/pg/images/generations`; reused Playground authentication, group selection, image request validation, billing, and OpenAI image responses; converted Gemini and Vertex Gemini image requests to `generateContent` and their inline image responses to `data[].b64_json` while preserving `mime_type`; forced that native conversion for both Playground and standard image routes when pass-through is enabled; added strict Gemini image-model suffix recognition plus `nano-banana` support and regression coverage for the requested GPT Image names; added the authenticated `/image-playground` page with group-scoped model loading, prompt/size/quality/count controls, full-image preview, MIME-aware download, and image generation results.
-- Preserved: existing chat Playground behavior, standard `/v1/images/generations`, Imagen `predict` conversion, OpenAI-compatible image adapters, and sidebar visibility settings for the existing Playground module. Gemini generateContent image requests reject streaming and counts above one after model mapping, including aliases.
-- Validation: added route-mode, model endpoint, request bounds, mapped-model compatibility, native Gemini/Vertex pass-through selection, Gemini request conversion, Gemini response MIME conversion, and image response conversion regression tests. Changed-file Oxlint and Oxfmt, frontend production build, locale JSON parsing, and `git diff --check` passed; repository-wide Oxlint still reports existing failures in unrelated files. Repository-wide `copyright:check` reports existing unrelated files needing header updates; none of the new image-playground files are listed. Go tests and gofmt could not run because the Go toolchain is unavailable locally; full frontend typecheck remains blocked by existing unrelated type errors and missing test dependencies.
-- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-
-## 2026-09-26 - Add model-aware image playground parameters and request preview
-
-- Local reason: image models expose different generation/edit parameters; the Image Studio needed per-model controls, independent parameter switches, persistent values, and a request preview suitable for reuse in other clients.
-- Changed: added an authenticated image-model capability endpoint with conservative channel intersections; added provider-aware parameter profiles for OpenAI, Gemini/Vertex, xAI, MiniMax, Ali, SiliconFlow, Replicate, and Jimeng; added capability-driven parameter controls and per-group/model/operation persistence; added a shared request builder used by generation, edit, JSON preview, and cURL preview; expanded multipart parsing for provider parameters while preserving image count validation and `dto.MaxImageN` billing bounds; converted browser attachment URLs to data URLs for Gemini edits; added backend capability regression tests and localized UI strings.
-- Preserved: the existing `/models` route and Models page, Chat Playground behavior, image history persistence, group/model selectors, access-token handling, and upstream provider adapters. Preview output uses `<your-token>` and omits reference image contents.
-- Validation: targeted image-playground Oxlint passed; frontend production build passed; `git diff --check` passed. Full frontend typecheck remains blocked by existing missing test dependencies and unrelated type errors. Go tests/gofmt could not run because Go is not installed locally. Untracked logs, reports, lockfiles, and helper files were deliberately excluded.
-- Commit/push: source commit `724a998a5` (`feat(pricing): add DeepSeek peak off-peak card ranges`); push pending.
-
-## 2026-09-27 - Complete GPT image parameter bounds and editable size presets
-
-- Local reason: GPT image models need a stricter provider contract than the shared image defaults: `n` 1-10, quality values through `xhigh`/`max`, and constrained custom dimensions.
-- Changed: GPT image capability profiles now expose the provider-specific count, quality, common 1K/2K/4K size presets, and OpenAI output options; non-GPT profiles no longer expose `n` in Studio, including the generic fallback; request validation enforces `auto` or 16-aligned `WIDTHxHEIGHT`, 3840px maximum side, 1:3–3:1 aspect ratio, and 655,360–8,294,400 pixels; multipart GPT defaults use `auto`; the Studio size field now supports both preset suggestions and custom input; added regression coverage for capability exposure and validation boundaries.
-- Preserved: non-GPT image provider parameter rules, generic image billing bounds, existing Studio history/edit behavior, protected project identifiers, and unrelated untracked files.
-- Validation: frontend production build, targeted Oxlint/Oxfmt, and `git diff --check` passed. Full frontend typecheck remains blocked by existing missing test dependencies and unrelated type errors. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: source commit `f6a79b73d1e62b1cc6d2e556b0019fabad66b794` pushed to `origin/main`; the first push attempt hit a remote ref-lock race, and the retry confirmed the remote was already up to date.
-
-## 2026-09-27 - Show public image API paths in request preview
-
-- Local reason: the Studio request preview showed internal `/pg/images/*` routes, which are not the customer-facing API contract.
-- Changed: preview endpoint labels and generated cURL now use `/v1/images/generations` or `/v1/images/edits` for OpenAI-compatible image requests, and `/v1beta/models/{model}:generateContent` for Gemini image models; updated the preview description and translations.
-- Preserved: actual Studio request routing, request payload construction, reference-image redaction, model selection, and protected project identifiers.
-- Validation: targeted image-playground Oxfmt/Oxlint, frontend production build, and `git diff --check` passed. Full frontend typecheck remains blocked by existing missing test dependencies and unrelated type errors. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: included in source commit `f6a79b73d1e62b1cc6d2e556b0019fabad66b794`, pushed to `origin/main`.
-
-## 2026-09-27 - Fix Studio image edit model routing
-
-- Local reason: Image Studio edit requests sent multipart form data to `/pg/images/edits`, but channel distribution only extracted multipart model names for the public `/v1/images/edits` path, causing edits to fail with an empty-model error.
-- Changed: apply the image generation/edit model extraction to both public and Studio paths, preserve the selected Studio group for image edits, validate multipart parsing errors, and cover the Studio GPT image edit request with a middleware regression test.
-- Preserved: existing `/models` routing, Chat Playground behavior, public image API behavior, image request validation, billing, and protected project identifiers.
-- Validation: frontend Oxfmt check and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: source commit `fe1640fa3` pushed to `origin/main`.
-
-## 2026-09-27 - Handle browser multipart boundaries for Studio edits
-
-- Local reason: the first routing fix still relied on an exact multipart Content-Type comparison, while browser requests include a boundary parameter and could bypass model extraction.
-- Changed: detect multipart requests by the Content-Type prefix and read `model`/`group` directly from the reusable multipart form before channel selection.
-- Preserved: public image routes, Chat Playground, request validation, billing, and protected project identifiers.
-- Validation: `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: source commit `d9f5edf7c` pushed to `origin/main`.
-
-## 2026-09-27 - Fix multipart form compilation in Studio routing
-
-- Local reason: the GHCR build exposed that `multipart.Form.Value` is a `map[string][]string`; the routing fix incorrectly called a nonexistent `.Get` method.
-- Changed: read the first value from multipart `model` and `group` fields with an empty-value guard.
-- Preserved: Studio/public image routing, Chat Playground behavior, billing, request validation, and protected project identifiers.
-- Validation: `git diff --check` passed; CI compilation is the required Go validation because Go is unavailable locally.
-- Commit/push: source commit `6858f1048` pushed to `origin/main`.
-
-## 2026-09-28 - Filter Studio routing fields from GPT image edits
-
-- Local reason: the upstream GPT Image 2.5 provider rejected the Studio-only `group` multipart field with `invalid field`.
-- Changed: omit `group` when rebuilding OpenAI-compatible image edit multipart requests, add the documented GPT `moderation` (`low`/`auto`) capability, and add regression coverage for both behaviors.
-- Preserved: group selection for channel routing, all other provider-specific image parameters, public image APIs, Chat Playground, and protected project identifiers.
-- Validation: `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
-
-## 2026-09-28 - Align GPT Image 2.5 Studio parameters with provider reference
-
-- Local reason: the supplied GPT Image 2.5 reference documents `moderation`, restricts output formats to PNG/JPEG, and only permits compression with JPEG output.
-- Changed: added a GPT Image 2.5-only `moderation` (`low`/`auto`) capability, applied the documented PNG/JPEG and quality options to GPT Image 2.5, and omit its `output_compression` unless `output_format` is `jpeg` while preserving legacy GPT Image profiles.
-- Preserved: other provider parameter profiles, group routing, image edit context, public APIs, billing, and protected project identifiers.
-- Validation: targeted frontend Oxfmt and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
-
-## 2026-09-28 - Send scalar image edit fields without JSON quotes
-
-- Local reason: Studio multipart edits serialized scalar string fields such as `background` and `output_format` with JSON quotes, while the provider expects plain multipart values.
-- Changed: serialize scalar multipart fields as plain strings and retain JSON encoding only for nested/object parameters.
-- Preserved: Gemini JSON edits, OpenAI image file uploads, request preview output, model/group routing, and protected project identifiers.
-- Validation: targeted frontend Oxfmt/Oxlint, production build, and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
-
-## 2026-09-28 - Sanitize Studio edits when pass-through is enabled
-
-- Local reason: pass-through mode could forward the Studio-only `group` field without the OpenAI adaptor's filtering step.
-- Changed: force Studio image requests through the adaptor so internal routing fields are removed even when global or channel pass-through is enabled.
-- Preserved: pass-through behavior for public image routes, provider adapters, group-based channel selection, and protected project identifiers.
-- Validation: targeted frontend checks, production build, and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
-
-## 2026-09-28 - Resolve GPT JPEG compression dependency before serialization
-
-- Local reason: capability ordering could process `output_compression` before `output_format`, incorrectly omitting compression for valid JPEG requests.
-- Changed: resolve the enabled output format before building the request and use it to gate GPT Image 2.5 compression.
-- Preserved: parameter switches, provider-specific request keys, request previews, and protected project identifiers.
-- Validation: targeted frontend Oxfmt/Oxlint, production build, and `git diff --check` passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: source commit `ede4c0d30` pushed to `origin/main`.
-
-## 2026-10-01 - First functional upstream stability batch
-
-- Upstream references: `d61d6be759`, `c0cff23a3a`, `feefe09f27`, `2506e1b980`, `f5e54ccdb2`; local comparison baseline `9a0be8750` and upstream tip `56758edf9`.
-- Integrated: task submissions now accept every upstream `2xx`; task-plugin source and icon columns use cross-database `LongText` (`longtext` on MySQL, `text` on PostgreSQL/SQLite) and the upload/browser limit is 8 MiB; each HTTP transport receives a cloned insecure TLS config; Waffo Pancake checkout, webhook store matching, and availability checks require the configured store ID; user creation rejects non-standard roles; marketplace index and source fetches revalidate with `cache: no-cache`.
-- Already present: hash-based task-plugin synchronization and lazy source loading from `2c175190c4` were verified in the local controller/model implementation and were not duplicated.
-- Deferred: `474ed66fb1` only applies to the upstream Alibaba `openai_image` protocol export, which this fork deliberately does not advertise yet; no unsupported protocol claim was introduced.
-- Preserved: existing plugin activation/version rollback, task billing and polling, provider routing, Waffo payment flows, all three supported primary databases, default/classic frontend boundaries, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `git diff --check` passed; locale JSON/key consistency and source-level searches passed. Go tests/gofmt could not run because the Go toolchain is unavailable locally; frontend production build and browser tests remain pending.
-- Commit/push: source commit `d73c7423e` is present on `origin/main`; the initial push raced with an existing remote update, and fetch confirmed the commit is already published.
-
-## 2026-10-01 - Second functional upstream batch: Seedream model pricing profiles
-
-- Upstream references: `ae73ef8e25`; related protocol commit `87bb71e7fc` was reviewed separately.
-- Integrated: Doubao now advertises Seedream 5.0 Flash `doubao-seedream-5-0-flash-260915`, validates its 1K/1.5K/2K capability profile, exposes per-model image pricing dimensions, and settles single-tier image results as the upper output tier. Submission facts remain a complete compatibility vector for existing billing expressions, and Seedance facts retain the shared `video_input` selector.
-- Already present: the existing native Doubao image route, request bounds, output validation, and task billing hooks were reused.
-- Deferred: `87bb71e7fc` OpenAI Images task-protocol binding remains deferred because this checkout lacks the upstream `03563a4a7` host protocol/routing/synchronous image-task bridge; adding only the plugin claim would fail protocol validation or route to the legacy adaptor.
-- Preserved: current native image and Responses routes, task billing safety, provider capability checks, protected project identifiers, and unrelated untracked worktree files.
-- Validation: Node syntax check and `git diff --check` passed; focused Go regression coverage was added but Go tests/gofmt remain unavailable because the local Go toolchain is not installed.
-- Commit/push: source commit `1e606e46b` is present on `origin/main`.
-
-## 2026-10-01 - Third functional upstream batch: preserve Claude native request fields
-
-- Upstream references: `c2b7a9a9e0` and `789c970199`; current upstream tip remains `56758edf9` with no newer commits.
-- Integrated: Claude message DTOs now retain per-message `output_config`, and native Claude requests retain the `safeguards` object while being decoded and re-encoded for upstream calls. Added a JSON round-trip regression test covering both fields.
-- Already present: request-level Claude `output_config`, shared Claude conversion, and existing reasoning extraction were reused without changing their behavior.
-- Deferred: the larger `335ebcff7` Responses custom-tool conversion, scoped access tokens, administrator step-up verification, and the frontend-specific Responses WebSocket setting require separate migrations or frontend adaptation and were not mixed into this batch.
-- Preserved: existing Claude routing, reasoning controls, pass-through filtering, billing, all supported databases, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable.
-- Commit/push: source commit `d213d07c9` is present on `origin/main`.
-
-## 2026-10-01 - Fourth functional upstream batch: refresh the channels table
-
-- Upstream reference: `2035a82ae`; current upstream tip remains `56758edf9` with no newer commits.
-- Integrated: the default frontend channel table now exposes a refresh icon beside sensitive-value visibility. It refetches the active query with the current search, filters, sorting, pagination, tag mode, and loading state, and exposes `aria-busy` while refreshing.
-- Already present: the channels query key, translation for `Refresh`, Base UI button/tooltip primitives, and existing mobile/card table behavior were reused.
-- Deferred: `d0cb7347c` GPT-6 token and sampling capability changes need a separate backend capability audit because the local model detection differs from upstream; Responses custom tools, scoped access tokens, administrator step-up verification, and Responses WebSocket settings remain separate migrations.
-- Preserved: channel mutations, channel routing, existing sensitive-value toggle, classic frontend, backend APIs, billing, protected project identifiers, and unrelated untracked worktree files.
-- Validation: targeted Oxfmt and Oxlint passed; `bun run build` for `web/default` passed; `git diff --check` passed.
-- Commit/push: source commit `6544f2605` pushed to `origin/main`.
-
-## 2026-10-01 - Fifth functional upstream batch: keep unchanged task prices editable
-
-- Upstream reference: `3509ae7c1`; current upstream tip remains `56758edf9` with no newer commits.
-- Integrated: model pricing validation now allows an unchanged billing expression or plugin override to remain saveable when a sole task-plugin provider narrows its usage profile. Edited expressions and unchanged expressions for shared models continue to validate against the current provider schemas.
-- Already present: plugin usage profiles, shared-model detection, task expression smoke tests, pricing option validation, and local empty/null pricing compatibility were reused.
-- Deferred: upstream frontend task-matrix display/parser changes target the unavailable `web/src` frontend and were not copied into `web/default`; GPT-6 capability changes, Responses custom tools, scoped access tokens, administrator step-up verification, and Responses WebSocket settings remain separate batches.
-- Preserved: existing pricing option validation, database locking and transactions, billing expression semantics, task settlement, all supported databases, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable; the upstream test fixture infrastructure is not present in this checkout, so focused source-level coverage was added instead.
-- Commit/push: source commit `705e82dd6` pushed to `origin/main`.
-
-## 2026-10-01 - Sixth functional upstream batch: model-specific GPT-6 chat capabilities
-
-- Upstream reference: `d0cb7347c`; current upstream tip remains `56758edf9` with no newer commits.
-- Integrated: OpenAI chat compatibility now uses an explicit capability matrix. GPT-6 Sol/Luna use `max_completion_tokens` and retain sampling parameters only with no reasoning or `none`; GPT-6 Astra uses `max_completion_tokens` but rejects sampling fields; strict GPT-5 matching remains intact; unknown future generations such as GPT-7 retain their request parameters. Model suffix handling is limited to recognized OpenAI families.
-- Already present: existing reasoning suffix parsing, developer-role conversion, pointer-valued token fields, and shared request DTOs were reused.
-- Deferred: the upstream controller channel-test suite depends on a capability refactor and test helpers absent from this checkout; Responses custom tools, scoped access tokens, administrator step-up verification, and Responses WebSocket settings remain separate migrations.
-- Preserved: non-OpenAI/custom model requests, OpenRouter reasoning conversion, GPT-4 behavior, billing, all supported databases, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable; focused DTO and adaptor regression tests were added.
-- Commit/push: source commit `da4142b0c` pushed to `origin/main`.
-
-## 2026-10-01 - Seventh functional upstream batch: record async task performance metrics
-
-- Upstream reference: `3abbb8198`; current upstream tip remains `56758edf9` with no newer commits.
-- Integrated: asynchronous task success, failure, and polling-failure terminal transitions now record one performance sample after the winning status CAS. Samples use the billing-context model when available, capture end-to-end latency, and record output tokens/generation time only for successful tasks with valid provider usage. Batch and single-task billing/refund paths share the same terminal finalizer.
-- Already present: the performance metric buckets, Redis persistence, task timestamps, token fields, and conditional task status updates were reused.
-- Deferred: timeout sweep transitions still use their existing independent refund path and are not sampled by this upstream-scoped change; covering timeout metrics will require a separate decision about legacy task model data and sweep semantics.
-- Preserved: task settlement/refund ordering, CAS race behavior, polling failure thresholds, all supported databases, frontend behavior, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable; focused performance metric regression tests were added.
-- Commit/push: source commit `0e9a36cd7` pushed to `origin/main`; the follow-up log publication commit is recorded below.
-
-## 2026-10-01 - Eighth functional upstream batch: fix release version injection
-
-- Upstream reference: `5401874c6`; current upstream tip remains `56758edf9` with no newer commits.
-- Integrated: release and Electron Windows/Linux/macOS build workflows now inject `common.Version` using the repository's full Go module import path, so tagged binaries receive the intended version instead of silently missing the linker target.
-- Already present: the existing `common.Version` variable and tag-derived `VERSION` workflow inputs were reused.
-- Deferred: access-token editing, scoped access tokens, administrator step-up verification, billing trust/pre-consume changes, and frontend-only `web/src` fixes require separate migrations or are not part of the production frontend trees in this checkout.
-- Preserved: Docker/GHCR source-only build policy, release artifact names, cross-platform build flags, runtime behavior, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `git diff --check` passed; workflow YAML was checked by targeted path/reference searches. Go tests and gofmt were not applicable to workflow-only changes.
-- Commit/push: source commit `283493b7b` pushed to `origin/main`.
-
-## 2026-10-01 - Ninth functional upstream batch: preserve relay conversion media and response segments
-
-- Upstream reference: `4eb3b9160`; current upstream tip remains `56758edf9` with no newer commits.
-- Integrated/adapted: Claude `tool_result` image blocks now become Chat Completions `image_url` media on the surrounding user message, while text stays on the tool message and unknown blocks retain the historical JSON fallback. Responses streaming conversion now preserves closed reasoning/message outputs and opens new numbered segments after mid-stream finish reasons, including reasoning summary part lifecycle events.
-- Already present: local relaykit DTOs, hosted-tool handling, annotation support, sequence-number mode, and the existing conversion registry were preserved; only the affected local state machine and request converter were adapted.
-- Deferred: the upstream Responses custom-tool conversion, scoped access tokens, administrator step-up verification, billing trust/pre-consume migration, and frontend-only `web/src` changes remain separate work.
-- Preserved: existing Claude reasoning/model suffix behavior, tool-call ordering and validation, hosted tool events, annotations, usage accounting, all supported databases, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `git diff --check` passed; focused Claude and Responses regression tests were added. Go tests and gofmt could not run because the local Go toolchain is unavailable.
-- Commit/push: source commit `9ee61f301` pushed to `origin/main`; the follow-up log publication commit is recorded below.
-
-## 2026-10-01 - Tenth functional upstream batch: preserve Responses tool-output media
-
-- Upstream reference: `6e9de44a7`; current upstream tip remains `56758edf9`.
-- Integrated/adapted: Responses `function_call_output` content-part arrays now retain text on their Chat tool messages and convert image, file, audio, and video parts into Chat media content. Hoisted media is emitted after the contiguous tool-output batch, and media-only tool results receive a non-empty placeholder. Added regression coverage for mixed text/media, placeholder labels, legacy payload compatibility, parallel tool outputs, and end-of-input flushing.
-- Already present: the shared Responses content-part converter already mapped each supported media type for ordinary user messages and is reused for tool outputs.
-- Deferred: later upstream commits `5fe8917be`, `dfd3cd893`, `811212067`, `d04c118c8`, and `6c14c0762` target upstream frontend paths or behaviors that need separate adaptation to this fork's `web/default` implementation.
-- Preserved: legacy string/object output encoding, unknown content-part fallback, assistant tool-call ordering, native Responses behavior, existing request validation, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `git diff --check` passed. Focused Go tests and gofmt could not run because the Go toolchain is unavailable locally.
-- Commit/push: source commit `73ae5d60d` pushed to `origin/main`; the final log publication commit follows.
-
-## 2026-10-01 - Eleventh functional upstream batch: preserve cached Traditional Chinese locale
-
-- Upstream reference: `5fe8917be`; current upstream tip remains `56758edf9`.
-- Integrated: language detection now recognizes the normalized `zhtw` form produced when a cached `zhTW` interface code is lowercased, preserving Traditional Chinese after page reloads. Added regression coverage for normalized codes, browser locale mapping, and non-Chinese pass-through.
-- Already present: the default frontend's `zhCN`/`zhTW` resource mapping and locale normalization were reused.
-- Deferred: the remaining upstream frontend-only fixes require separate adaptation or are already represented differently in this fork.
-- Preserved: language selector options, persisted user settings, all translations, classic frontend behavior, protected project identifiers, and unrelated untracked worktree files.
-- Validation: targeted Bun tests, Oxfmt, Oxlint, and `git diff --check` passed.
-- Commit/push: source commit `669a3cf2f` pushed to `origin/main`; the final log publication commit follows.
-
-## 2026-10-01 - Twelfth functional upstream batch: hide system settings from non-root admins
-
-- Upstream reference: `dfd3cd893`; current upstream tip remains `56758edf9`.
-- Integrated: the default frontend marks the System Settings sidebar entry as `ROLE.SUPER_ADMIN`, so non-root administrators no longer see the root-only navigation item while existing route and permission guards remain unchanged.
-- Already present: the sidebar role filter and the System Info root-only entry were reused.
-- Deferred: upstream `335ebcff7` Responses custom-tool conversion remains a separate protocol migration requiring request, response, stream, and registry state changes.
-- Preserved: system settings routes, backend authorization, root-user navigation, classic frontend behavior, protected project identifiers, and unrelated untracked worktree files.
-- Validation: targeted Oxfmt/Oxlint and `git diff --check` passed; full frontend build was not rerun for this one-line navigation metadata change.
-- Commit/push: source commit `42fd94a7e` pushed to `origin/main`; the final log publication commit follows.
-
-## 2026-10-01 - Thirteenth functional upstream batch: preserve Responses custom tools on Chat upstreams
-
-- Upstream reference: `335ebcff7`; upstream tip remains `56758edf9`.
-- Integrated/adapted: Responses custom tools now cross the Chat Completions compatibility boundary as function tools with one string `input` argument, preserving descriptions and grammar hints. Custom tool choices and custom tool call history are encoded as Chat function choices/calls, while synchronous and streaming Chat responses restore `custom_tool_call` items and emit `response.custom_tool_call_input.delta` / `done` events. Conversion state records the encoded custom tool names and clears on every new or retry conversion, preventing stale restoration across channels.
-- Already present: local Responses tool-output media hoisting, reasoning output lifecycle, hosted-tool normalization, annotation handling, conversion loss policy, and request/response registries were retained and merged with the upstream custom-tool path. Added the upstream conversion diagnostic collector needed by the registry integration.
-- Deferred: scoped access tokens, administrator step-up verification, and unrelated frontend changes remain separate batches.
-- Preserved: ordinary function tools, native Responses behavior, Claude/Gemini conversions, billing/accounting, all supported databases, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `git diff --check` passed; focused request, response, stream, registry, collision, and retry regression tests are present. Go tests and gofmt could not run because the local Go toolchain is unavailable.
-- Commit/push: source commit `7914d340c` is prepared for push; remote verification follows.
-
-## 2026-10-01 - Friends Hub visual redesign and locale completion
-
-- Local reason: redesign the existing Friends Hub page against the approved reference layouts and complete its multi-language coverage.
-- Integrated: reorganized the default frontend into an account header, invitation feature panel, wallet balance, compact referral metrics, separate registration/cashback transfer actions, and tabbed friends/reward history views. Added responsive mobile list rows, real authenticated user avatar/name and join date, and precise translations for all 43 Friends Hub keys in en, zh, zh-TW, fr, ru, ja, and vi.
-- Preserved: existing Friends Hub summary, friends, rewards, cashback transfer, legacy registration-reward transfer, affiliate-code APIs, reward separation, wallet navigation, protected project identifiers, and unrelated untracked worktree files.
-- Validation: production frontend `bun run build` passed; targeted Oxfmt/Oxlint passed; JSON parsing and Friends Hub translation-key audit passed for all seven locales; `git diff --check` passed. Browser preview could not be rendered because the local dev/preview proxy returned HTTP 502 despite successful builds.
-- Commit/push: pending source commit and push after review.
-
-## 2026-10-02 - Friends Hub reward rule clarification
-
-- Local reason: make one-time invitation rewards and first-top-up cashback conditions explicit so the configured cashback percentage cannot be mistaken for recurring cashback on every top-up.
-- Integrated: the Friends Hub summary now exposes the configured inviter and invitee registration reward amounts. The page adds a three-part reward rules panel covering one-time inviter registration rewards, one-time invitee registration rewards, and first-top-up-only cashback based on final wallet credit; a zero cashback rate is shown as disabled. Existing transfer actions, reward history, and API behavior remain unchanged.
-- Already present: administrator quota settings, first-top-up cashback configuration, legacy registration reward counters, and the existing seven-locale translation structure were reused.
-- Preserved: reward settlement semantics, registration/cashback separation, wallet transfers, privacy masking, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `bun run build`, targeted Oxfmt/Oxlint, locale JSON parsing, and `git diff --check` passed. Go tests and gofmt could not run because the local Go toolchain is unavailable.
-- Commit/push: source commit `f2e4967ff` pushed to `origin/main`.
-
-## 2026-10-02 - Sign-in page visual refresh
-
-- Local reason: apply the approved two-column sign-in design with a user-provided hero image and simplify login consent presentation.
-- Integrated: the sign-in route now uses a dedicated layout variant with `https://cos.frostai.cn/omnirouters/login_en.webp` on the left and a clean, card-free form area on the right. The sign-in page hides the public navigation and duplicate header brand while retaining language and theme controls.
-- Integrated: the sign-in flow now presents existing terms and privacy links through the `TermsFooter` “By clicking sign in...” notice instead of a checkbox. Password login, OAuth, Passkey, Turnstile, WeChat login, redirect handling, and registration consent behavior remain intact.
-- Already present: existing `AuthLayout` behavior for registration, forgot-password, reset, OTP, and OAuth callback pages was preserved through the new sign-in-only variant; the public header keeps its default navigation and branding behavior everywhere else.
-- Deferred: the hero image remains an externally hosted URL supplied by the user; no backend banner configuration or local asset pipeline was added.
-- Preserved: authentication APIs, OAuth provider discovery, legal policy links, protected project identifiers, and unrelated untracked worktree files.
-- Validation: remote image returned HTTP 200; production `bun run build`, targeted Oxfmt/Oxlint, browser preview rendering, and `git diff --check` passed. Full `bun run typecheck` remains blocked by pre-existing repository-wide type errors and missing test dependencies; Go tests and gofmt were not run because the local Go toolchain is unavailable.
-- Commit/push: source commit `31e1ac030` pushed to `origin/main`.
-
-## 2026-10-02 - Friends Hub summary simplification
-
-- Local reason: remove redundant summary content after reviewing the Friends Hub layout.
-- Integrated: removed the separate wallet balance card from the invitation area and removed the duplicate first-top-up cashback statistic. The compact summary now contains only invited friends, completed first top-ups, and total rewards; the reward rules panel and the two detailed transfer sections remain the source of cashback and pending-reward details.
-- Already present: reward-rule explanations, one-time registration rewards, first-top-up-only cashback wording, registration/cashback transfer actions, and the existing seven-locale translation structure were preserved.
-- Deferred: no new reward logic, API, or translation keys were needed for this presentation-only adjustment.
-- Preserved: wallet/account behavior, reward settlement semantics, navigation routes, privacy masking, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Go tests and gofmt were not run because the local Go toolchain is unavailable.
-- Commit/push: source commit `dfa68e8d6` pushed to `origin/main`.
-
-## 2026-10-02 - Sign-in responsive and dark-theme correction
-
-- Local reason: correct the approved sign-in redesign after reviewing mobile layout, navigation visibility, desktop column proportions, vertical alignment, and dark-theme behavior.
-- Integrated: sign-in now keeps the public brand and navigation header, uses equal 50/50 desktop columns with a vertically centered form, hides the hero image on narrow mobile screens for a single-column flow, and keeps language, theme, and the mobile navigation menu available in the header.
-- Integrated: sign-in-only colors now inherit the active theme variables for page background, text, links, borders, inputs, focus states, and primary button states, so dark mode remains readable.
-- Already present: the externally hosted login hero image, sign-in consent notice, authentication providers, redirect handling, and registration/other auth-page layouts were preserved.
-- Deferred: none.
-- Preserved: authentication APIs, public navigation behavior outside sign-in, provider discovery, legal policy links, protected project identifiers, and unrelated untracked worktree files.
-- Validation: production frontend `bun run build` and `git diff --check` passed. Browser preview was refreshed, but the CDP screenshot probe timed out during hot reload; no application build or runtime error was reported.
-- Commit/push: source commit `31e1ac030` pushed to `origin/main`; this log publication follows separately.
-
-## 2026-10-02 - Unify public authentication page layouts
-
-- Local reason: apply the redesigned sign-in presentation consistently to registration and password recovery, and make the sign-in greeting use the configured system name.
-- Integrated: the sign-in title now reads “Welcome to {{name}}” using the live system name, with translations for en, zh, zh-TW, fr, ru, ja, and vi. Registration and forgot-password now use the same two-column hero image, navigation/header, mobile, and theme-aware layout as sign-in.
-- Already present: existing registration legal-consent enforcement, registration terms footer, password recovery flow, authentication providers, and route behavior were retained.
-- Deferred: reset-password, OTP, and OAuth callback screens remain on the existing compact auth layout because they are follow-up/security states rather than public sign-in, sign-up, or recovery entry screens.
-- Preserved: auth APIs, form validation, verification flows, redirect behavior, protected project identifiers, and unrelated untracked worktree files.
-- Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed.
-- Commit/push: source commit `e9a21409b` created locally; not pushed.
-
-## 2026-10-04 - Filter model editor suppliers by enabled channels
-
-- Local reason: the model editor showed every supplier, and suppliers newly bound to channels were not automatically included in the model's selected supplier list.
-- Integrated: model metadata now merges supplier IDs from enabled channels for the exact model, while the model editor filters its supplier picker to that merged set. Existing model suppliers remain selected and new models retain the full supplier list.
-- Already present: model-vendor ordering, channel vendor persistence, model plaza supplier aggregation, and supplier de-duplication were preserved.
-- Deferred: none.
-- Preserved: protected project identifiers and unrelated untracked worktree files.
-- Validation: added a focused SQLite query regression test and ran `git diff --check`; Go test execution remains unavailable because the local Go toolchain is not installed.
-- Commit/push: source commit `13685f8c9` created locally; not pushed.
-
-## 2026-10-04 - Keep channel supplier visible after reload
-
-- Local reason: a channel edit drawer could show an empty supplier after a page reload when the detail request temporarily returned a nullable field without the value already present in the channel list.
-- Integrated: channel detail queries now refetch whenever the edit drawer mounts, and form hydration falls back to the current channel row's persisted supplier ID when the detail payload is temporarily missing it.
-- Already present: database supplier persistence, model plaza synchronization, and channel supplier selection behavior were preserved.
-- Deferred: none.
-- Preserved: protected project identifiers and unrelated untracked worktree files.
-- Validation: targeted frontend formatting/lint checks and `git diff --check`; full typecheck remains blocked by existing repository errors.
-- Commit/push: source commit `76855e22f` created locally; not pushed.
-
-## 2026-10-02 - Pin sign-in terms notice to the bottom
-
-- Local reason: center the sign-in legal notice and place it at the bottom of the right-hand authentication area.
-- Integrated: the sign-in `TermsFooter` now uses a dedicated responsive footer position, centered horizontally on desktop and mobile, with safe-area spacing on mobile and reserved form padding to prevent overlap.
-- Already present: agreement/privacy visibility, localized copy, links, and sign-up consent behavior were preserved.
-- Deferred: none.
-- Preserved: authentication behavior, page navigation, theme handling, protected project identifiers, and unrelated untracked worktree files.
-- Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed.
-- Commit/push: source commit `9d80caa9c` (`fix(logs): distinguish matched time multipliers`); pushed to `origin/main`.
-
-## 2026-10-02 - Add invitation-aware authentication entry flow
-
-- Local reason: make OAuth-first sign-in and invitation-code behavior explicit and preserve referral attribution across all supported registration paths.
-- Integrated: the sign-in page now presents configured OAuth providers first, keeps email/password login behind a clear email button, and shows an optional invitation-code field with a new-account-only explanation. The sign-up form also shows and submits the invitation code, prefilled from `?aff=` or existing browser storage.
-- Integrated: standard OAuth already retained invitation state; Telegram now carries the code in its server-owned auth flow, and WeChat now resolves the code only when creating a new user. Existing users logging in through OAuth or WeChat are not rebound to an inviter.
-- Already present: standard OAuth state validation, email registration payload support, referral reward settlement, and invite-link capture were reused.
-- Deferred: none.
-- Preserved: existing login providers, password login behavior, legal consent, redirect handling, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `bun run build`, targeted Oxfmt, targeted Oxlint for the changed auth components (no new errors), locale-key presence checks, and `git diff --check` passed. The remaining `api.ts` Oxlint warnings/errors are pre-existing in that file (import ordering, `any`, and missing braces). Backend Go compilation and gofmt were not run because the local Go toolchain is unavailable; the Telegram flow call sites and WeChat/OAuth attribution paths were statically checked.
-- Commit/push: pending source commit and push.
-
-## 2026-10-05 - Highlight matched request multipliers in billing details
-
-- Local reason: usage-log details showed configured time multipliers but gave no visual indication which rule actually matched, even when the calculated charge included that multiplier.
-- Integrated: dynamic pricing details now consume the backend request-rule trace and highlight each matched multiplier row with a `Matched` badge; the existing tier and charge calculations are unchanged.
-- Already present: request-rule trace generation, unmatched fallback labeling, and compact/expanded pricing layouts were preserved.
-- Deferred: no upstream commit was involved; live deployment verification still requires rebuilding and deploying the updated frontend image.
-- Preserved: protected project identifiers and all unrelated untracked worktree files.
-- Validation: targeted Oxfmt/Oxlint checks and the production frontend build are required; Go tests are unaffected by this frontend-only change.
-- Commit/push: source commit `62ba60e81` (`fix(logs): highlight matched billing rules`); pushed to `origin/main`.
-
-## 2026-10-05 - Show hidden model providers from the overflow badge
-
-- Local reason: model plaza cards showed `+N` for additional providers but hovering the badge did not reveal which providers were hidden.
-- Integrated: the provider overflow badge now opens a tooltip listing each hidden provider with its icon and name, while retaining the compact four-icon card layout.
-- Already present: provider aggregation, ordering, icons, counts, card navigation, and model details were preserved.
-- Deferred: no upstream commit was involved; no backend or data changes were needed.
-- Preserved: protected project identifiers and all unrelated untracked worktree files.
-- Validation: targeted Oxfmt/Oxlint checks, production frontend build, and `git diff --check` are required.
-- Commit/push: pending source commit and push.
-
-## 2026-10-02 - Separate OAuth and email sign-in views
-
-- Local reason: keep the sign-in landing view focused on OAuth providers and reveal the account registration prompt only after the user chooses email/password login.
-- Integrated: the sign-in page now switches to a dedicated email-login view with a back action, email/password fields, forgot-password link, invitation code, and registration link. OAuth providers and Passkey controls are hidden while the email view is active and return when the user goes back.
-- Already present: email login validation, Turnstile handling, invitation-code persistence, legal notice, redirect behavior, and localized strings were preserved.
-- Deferred: none.
-- Preserved: registration and password-recovery routes, OAuth callback behavior, protected project identifiers, and unrelated untracked worktree files.
-- Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
-- Commit/push: pending source commit and push.
-
-## 2026-10-02 - Keep invitation code on the sign-in landing view
-
-- Local reason: show invitation-code capture before choosing email/password login, while keeping the dedicated email-login view focused on already-registered account access.
-- Integrated: the sign-in landing view shows the optional invitation-code field; entering the email-login view hides it. The saved code remains available to OAuth and WeChat new-user registration flows.
-- Already present: registration-page invitation-code input and new-account attribution behavior were preserved.
-- Deferred: none.
-- Preserved: password login, OAuth providers, Passkey login, legal notices, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `bun run build`, targeted Oxfmt/Oxlint, locale-key presence checks, and `git diff --check` passed. Backend tooling was not needed for this frontend copy change.
-- Commit/push: pending source commit and push.
-
-## 2026-10-02 - Center the sign-in welcome title
-
-- Local reason: center the configured “Welcome to {{name}}” heading in the sign-in panel.
-- Integrated: the sign-in welcome title now remains centered across desktop and mobile layouts while the surrounding form alignment is unchanged.
-- Already present: registration and password-recovery title alignment, navigation, legal notices, and authentication behavior were preserved.
-- Deferred: none.
-- Preserved: invitation-code behavior, OAuth providers, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
-- Commit/push: pending source commit and push.
-
-## 2026-10-02 - Use the modern layout during OAuth callbacks
-
-- Local reason: OAuth callback loading states were still rendered with the legacy authentication shell before redirecting to the dashboard.
-- Integrated: the OAuth callback screen now uses the same modern two-column hero image and theme-aware authentication layout as sign-in, so GitHub, custom OAuth, and other callback flows no longer flash the old page while processing.
-- Already present: provider-specific loading copy, callback processing, binding mode behavior, error handling, and redirect logic were preserved.
-- Deferred: none.
-- Preserved: OAuth state handling, invitation-code capture, protected project identifiers, and unrelated untracked worktree files.
-- Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
-- Commit/push: pending source commit and push.
-
-## 2026-10-02 - Remove duplicate registration consent checkbox
-
-- Local reason: the registration form showed both a required checkbox and a footer stating that creating an account constitutes agreement.
-- Integrated: removed the duplicate checkbox and all client-side checkbox gating from email registration and WeChat/OAuth registration controls. The bottom-centered terms notice remains the single visible consent statement.
-- Already present: agreement and privacy links, registration API behavior, validation, invitation-code handling, and account creation flow were preserved.
-- Deferred: none.
-- Preserved: sign-in consent presentation, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
-- Commit/push: pending source commit and push.
-
-## 2026-10-02 - Center the mobile sign-in content
-
-- Local reason: the mobile sign-in content was aligned toward the top of the viewport after the responsive layout change.
-- Integrated: mobile sign-in now vertically centers the welcome heading, OAuth controls, email entry, and invitation-code area while keeping the navigation header and bottom legal notice visible. Registration and recovery pages retain their scroll-friendly responsive positioning.
-- Already present: desktop two-column proportions, mobile hero hiding, theme handling, and authentication behavior were preserved.
-- Deferred: none.
-- Preserved: OAuth callback layout, registration consent behavior, invitation-code handling, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed. Local preview confirms the Authentication button routes to `/keys?create=true`; the token dialog could not be observed end-to-end because the preview is signed out.
-- Commit/push: pending source commit and push.
-
-## 2026-10-02 - Compact invitation-code copy
-
-- Local reason: reduce visual noise in the invitation-code area while keeping the new-account-only rule explicit.
-- Integrated: the label now states that the invitation code applies only when creating a new account, the input placeholder includes the optional hint, and the separate explanatory line is removed on sign-in and sign-up pages. All supported frontend locales were updated.
-- Already present: invitation-code persistence, registration attribution, OAuth/WeChat new-user handling, and existing legacy translation keys were preserved.
-- Deferred: none.
-- Preserved: authentication flows, legal consent behavior, protected project identifiers, and unrelated untracked worktree files.
-- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed.
-- Commit/push: pending source commit and push.
-
-## 2026-10-02 - Align registration terms footer
-
-- Local reason: match the registration page's legal notice placement with the redesigned sign-in page.
-- Integrated: the registration terms notice now uses the shared bottom-centered footer positioning within the right authentication column, including responsive mobile spacing.
-- Already present: the registration agreement checkbox and submit-time consent validation remain unchanged.
-- Deferred: none.
-- Preserved: registration fields, OAuth registration, invitation-code handling, legal links, protected project identifiers, and unrelated untracked worktree files.
-- Validation: pending.
-- Commit/push: pending source commit and push.
-
-## 2026-10-02 - Prioritize custom OAuth providers
-
-- Local reason: place administrator-configured OAuth providers, such as Google, before built-in OAuth integrations on the sign-in page.
-- Integrated: custom OAuth buttons now render first, preserving their configured order; GitHub and other built-in providers follow afterward.
-- Already present: custom provider authorization flow, provider icons, labels, and email-login placement were preserved.
-- Deferred: none.
-- Preserved: OAuth state handling, invitation-code capture, authentication routes, protected project identifiers, and unrelated untracked worktree files.
-- Validation: production frontend `bun run build`, targeted Oxfmt/Oxlint, and `git diff --check` passed. Backend tooling was not needed for this frontend-only change.
-- Commit/push: pending source commit and push.
-
-## 2026-10-02 - Add task usage pricing matrix and plugin pricing display
-
-- Upstream commits: `74629e29f` (`feat(plugins): enhance task streaming and model pricing`) and `b932e6d87` (`fix(web): robustly display conditional task billing prices`).
-- Integrated: synchronized the task usage schema and task-tier parser utilities into `web/default`; added task matrix editing for duration/count/token/resolution-style usage fields; generated billing expressions from the matrix and retained raw expression editing for unsupported shapes; added plugin-specific matrix editing using each plugin's declared usage schema; extended public model pricing data types for usage schemas and plugin variants; and added task pricing tables to model details, including separate plugin variant pricing sections.
-- Already present: backend plugin usage schema discovery, billing expression validation/storage, quota pre-consume and settlement, plugin billing overrides, group pricing, Sora pricing, and existing token/request pricing UI.
-- Deferred: full upstream provider-tab group pricing redesign, request simulation panel, bulk-copy workflow, localized usage-example cards, and upstream visual editor internals that depend on the newer `web/src` design system.
-- Preserved: existing default-theme layout, billing expression backend contract, model/group pricing behavior, protected project identifiers, authentication/Friends Hub changes, and unrelated untracked worktree files.
-- Validation: `bun run build`, `bun run format:check`, targeted frontend type-check filtering, and `git diff --check` passed. Full `bun run typecheck` remains blocked by pre-existing repository errors (missing test dependencies, duplicate redemption imports, and unrelated model/settings type errors).
-- Commit: `3d7b32125` (`feat(pricing): add task usage pricing matrix and plugin details`). Push: confirmed on `origin/main` at `3d7b32125279f8627682b4ffe7ddad23c17cb3e8`.
-
-## 2026-10-03 - Add multi-supplier model marketplace metadata
-
-- Local reason: the model marketplace needed to show every supplier that can serve a model, while supplier identity remains independent from channel protocol type.
-- Integrated: added the model_vendors many-to-many relation with legacy vendor_id compatibility; added nullable supplier binding to channels; synchronized model and channel admin forms; merged model-selected suppliers with enabled channel-bound suppliers in pricing cache; exposed available_vendors; updated marketplace cards and filters for multiple suppliers; added localized labels and relation regression coverage.
-- Already present: legacy supplier metadata, default model supplier inference, channel ability routing, pricing ratios, task-plugin pricing, and existing model marketplace layout were preserved.
-- Deferred: automatic supplier inference from channel protocol type remains intentionally unsupported; existing untracked Friends Hub, Image Playground, Command Menu, Wallet, generated reports, and local helper files were excluded.
-- Preserved: protected project identifiers and all unrelated authentication, wallet, and upstream-sync changes.
-- Validation: JSON parsing for all six frontend locales, targeted frontend type-check filtering, Oxfmt on changed frontend files, frontend production build, and git diff --check passed. Go tests/build were attempted with the repository test suite but remain blocked by pre-existing unrelated compilation errors.
-- Commit/push: source commit `62209288f` (`feat(pricing): support multiple model suppliers`); pushed successfully to `origin/main` on 2026-10-03.
-
-## 2026-10-04 - Preserve model supplier selection order
-
-- Local reason: reopening a model reordered selected suppliers by database ID instead of retaining the order chosen in the editor.
-- Integrated: added an explicit `sort_order` to model-vendor relations, persisted the submitted supplier order when saving, and returned supplier IDs in that order for model editing and marketplace metadata. Existing rows remain readable with a deterministic vendor-ID tie-breaker and will receive explicit ordering on their next save.
-- Already present: multi-supplier selection, legacy `vendor_id` compatibility, channel-bound supplier merging, pricing display, and supplier filtering were preserved.
-- Deferred: none.
-- Preserved: protected project identifiers and unrelated untracked worktree files.
-- Validation: targeted model vendor regression test and `git diff --check`; full repository test suite was not run.
-- Commit/push: pending source commit and push.
-
-## 2026-10-04 - Link channel suppliers to model plaza
-
-- Local reason: a supplier bound to an enabled channel was not reliably visible in the model plaza after the channel was saved, because the pricing cache could remain stale; supplier merging also reordered configured suppliers by vendor ID.
-- Integrated: model plaza supplier aggregation now preserves the explicit model supplier order, appends suppliers from enabled channel abilities, and de-duplicates IDs. Channel cache rebuilds now invalidate the pricing cache so channel supplier changes are reflected immediately.
-- Already present: channel `vendor_id` persistence, enabled-ability joins, model metadata supplier fallback, and the model editor supplier selection flow were preserved.
-- Deferred: no upstream commit was involved; no unrelated frontend or deployment work was changed.
-- Preserved: protected project identifiers and unrelated untracked worktree files.
-- Validation: added focused supplier aggregation regression tests and ran `git diff --check`; Go test execution remains unavailable because the local Go toolchain is not installed.
-- Commit/push: pending source commit and push.
-
-## 2026-10-04 - Persist channel supplier binding on reload
-
-- Local reason: a channel could display its newly selected supplier until the page was refreshed, then the supplier field was empty because the nullable `vendor_id` update passed a pointer directly to the database driver.
-- Integrated: channel updates now write the concrete supplier ID (or NULL) explicitly, and a regression test verifies that a saved binding remains after loading the channel again.
-- Already present: channel form submission, nullable supplier clearing, model plaza supplier aggregation, and pricing cache invalidation were preserved.
-- Deferred: no upstream commit was involved; no unrelated frontend or deployment work was changed.
-- Preserved: protected project identifiers and unrelated untracked worktree files.
-- Validation: added a focused SQLite persistence test and ran `git diff --check`; Go test execution remains unavailable because the local Go toolchain is not installed.
-- Commit/push: pending source commit and push.
-
-## 2026-10-04 - Keep channel supplier binding across partial updates and refresh
-
-- Local reason: the supplier could still appear empty after a page refresh, especially when a partial channel update or the paginated vendor list omitted the selected supplier.
-- Integrated: partial channel updates now preserve the stored `vendor_id` unless the request explicitly sends `vendor_id` (including `null` to clear it); channel responses always include the nullable field; the channel editor loads a selected supplier by ID when it is outside the first vendor page; and malformed settings are cleared with targeted column updates so stale full-row saves cannot erase supplier bindings.
-- Already present: explicit supplier persistence in full channel edits, model marketplace supplier aggregation, channel detail refetching, and model editor supplier synchronization were preserved.
-- Deferred: no upstream commit was involved; database-specific deployment verification still requires a running Go backend and the user's deployed instance.
-- Preserved: protected project identifiers and all unrelated untracked worktree files.
-- Validation: targeted `oxlint`, `oxfmt --check`, and `git diff --check` passed. Full frontend format check remains blocked by unrelated existing formatting issues and a repository file access error; Go tests remain unavailable because the local Go toolchain is not installed.
-- Commit/push: source commit `3b1bc29b6` (`fix(channels): preserve vendor binding across refresh`); push pending.
-
-## 2026-10-05 - Isolate channel supplier details when switching editors
-
-- Local reason: channel supplier fields could still show intermittently or inherit another channel's supplier when the editor drawer was reused while a previous detail request was in flight.
-- Integrated: keyed the channel editor by mode and channel ID, cleared the active row when the editor closes, disabled detail queries while the drawer is closed, accepted detail responses only when their channel ID matches the active row, and kept the form, supplier selector, and multi-key state behind the same matching detail record. Detail refetches now remain in the loading state until the current channel response is available.
-- Already present: explicit nullable `vendor_id` persistence, partial-update preservation, model marketplace supplier aggregation, selected-vendor lookup, and channel list refresh behavior were preserved.
-- Deferred: no upstream commit was involved; database deployment verification still requires a running Go backend and the user's deployed instance.
-- Preserved: protected project identifiers and all unrelated untracked worktree files.
-- Validation: `git diff --check`, targeted Oxfmt check, and targeted Oxlint check passed; full frontend typecheck/build and Go tests remain subject to the repository's existing toolchain limitations.
-- Commit/push: source commit `9495ee760` (`fix(channels): isolate vendor detail state`); pushed to `origin/main`.
-
-## 2026-10-05 - Stabilize first channel editor open and expose supplier column
-
-- Local reason: the first editor open after saving could initialize from a cached detail response before the fresh request completed, leaving the supplier empty until the drawer was opened again; administrators also needed to inspect suppliers directly from the channel table.
-- Integrated: form hydration now waits for the current drawer mount's detail request to complete before applying data, and stale detail results are ignored while fetching. Added a hidden-by-default `Vendor` column to the channel table, backed by the vendor metadata endpoint and available through the column visibility menu.
-- Already present: nullable supplier persistence, channel/model supplier synchronization, selected-vendor fallback loading, and the existing table/card layouts were preserved.
-- Deferred: no upstream commit was involved; database deployment verification still requires a running Go backend and the user's deployed instance.
-- Preserved: protected project identifiers and all unrelated untracked worktree files.
-- Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
-- Commit/push: source commit `48446d475` (`fix(channels): stabilize vendor editor and add column`); pushed to `origin/main`.
-
-## 2026-10-05 - Fall back to list supplier in channel editor
-
-- Local reason: the channel list could show a persisted supplier while the detail response returned a nullable or omitted `vendor_id`, causing the edit drawer to show an empty supplier selector.
-- Integrated: channel editor supplier selection and form hydration now use the detail binding when present and fall back to the selected list row when the detail value is empty. The selected fallback supplier is still loaded into the selector when it is outside the initial vendor page.
-- Already present: explicit nullable supplier persistence, detail request isolation, channel table supplier column, model marketplace supplier synchronization, and stale-response protection were preserved.
-- Deferred: no upstream commit was involved; live deployment verification still requires the user's running instance.
-- Preserved: protected project identifiers and all unrelated untracked worktree files.
-- Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
-- Commit/push: source commit `b882d8568` (`fix(channels): preserve supplier in editor fallback`); pushed to `origin/main`.
-
-## 2026-10-05 - Share the vendor query cache with the channel table
-
-- Local reason: the channel table and edit drawer used different React Query keys for the same vendor list, allowing the drawer to render with an empty option set even when the table already displayed the supplier.
-- Integrated: the channel editor now uses the shared `vendorsQueryKeys.list({ page_size: 1000 })` key, so it reuses the table's loaded vendor metadata and keeps the selected supplier option stable.
-- Already present: selected-row supplier fallback, controlled selector display, nullable persistence, and detail request isolation were preserved.
-- Deferred: no upstream commit was involved; live deployment verification still requires the user's running instance.
-- Preserved: protected project identifiers and all unrelated untracked worktree files.
-- Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
-- Commit/push: source commit `245c55d6f` (`fix(channels): share vendor query cache`); pushed to `origin/main`.
-
-## 2026-10-05 - Prefer the selected channel row for supplier hydration
-
-- Local reason: the edit drawer could still show an empty supplier when the detail response contained a stale or empty binding, even though the selected channel row visibly had a supplier.
-- Integrated: supplier hydration now prefers the selected list row, uses the detail response only as a fallback, restores the row binding after later form hydration passes, and keeps the selected ID/name as a controlled display fallback for the supplier selector.
-- Already present: nullable supplier persistence, detail request isolation, channel table supplier column, and selected-vendor lookup were preserved.
-- Deferred: no upstream commit was involved; live deployment verification still requires the user's running instance.
-- Preserved: protected project identifiers and all unrelated untracked worktree files.
-- Validation: targeted Oxfmt, Oxlint, `git diff --check`, and production frontend build passed. Full frontend typecheck and Go tests remain subject to the repository's existing toolchain limitations.
-- Commit/push: source commit `8a84833ef` (`fix(channels): keep supplier visible in editor`); pushed to `origin/main`.
-
-## 2026-10-05 - Show matched time multipliers in usage logs
-
-- Local reason: a tiered billing log could charge the active time multiplier correctly but still label the matched tier as the off-peak fallback whenever the base tier name was `base`.
-- Integrated: usage-log details and the compact log column now use the off-peak fallback label only when every request rule is unmatched (or no request rules exist); a matched request multiplier keeps the actual base tier label.
-- Already present: backend billing evaluation, request-rule traces, and the existing pricing calculation were preserved.
-- Deferred: no upstream commit was involved; live deployment verification still requires rebuilding and deploying the updated frontend image.
-- Preserved: protected project identifiers and all unrelated untracked worktree files.
-- Validation: targeted Oxfmt/Oxlint checks and the production frontend build are required; Go tests are unaffected by this frontend-only change.
-- Commit/push: pending source commit and push.
-
-## 2026-10-14 - Save account invoice information for Stripe and Waffo Pancake
-
-- Local reason: users needed reusable personal or company billing details saved in their account and accessible from the wallet before requesting invoices.
-- Integrated: added authenticated GET/PUT/DELETE endpoints and a portable text-backed user profile; added the wallet editor and localized it in all six supported frontend languages; Stripe checkout now syncs the saved identity, email, and address to a reusable Stripe Customer and includes a company tax ID as an invoice custom field; Waffo Pancake checkout pre-fills the supported billing fields and buyer email. Payment orders retain a private snapshot of the profile used at checkout.
-- Already present: provider-hosted invoice links and the wallet billing history action for Stripe and Waffo Pancake were preserved.
-- Deferred: Waffo Pancake does not accept every profile field for prefill, so name and street address remain editable on its hosted cashier; live Stripe/Waffo sandbox verification requires configured provider credentials.
-- Preserved: all other payment flows, protected project identifiers, and unrelated untracked worktree files.
-- Validation: targeted Oxlint and Oxfmt checks passed; all six locale JSON files parsed successfully; `git diff --check` passed. `go test ./model ./controller` was attempted earlier but package test compilation is blocked by unrelated existing undefined symbols; the Stripe unused import found in that run has been fixed. Go is not available in the current shell for a fresh backend build.
-- Commit/push: implementation commit `fd761e8a4` (`feat(wallet): save reusable invoice details`) and log commit `a4fe6c91a` are present on GitHub `main`; confirmed via the GitHub commits API.
-
-## 2026-10-15 - Fix official WeChat binding build error
-
-- Local reason: the GitHub Actions container build failed because `consumeWeChatOfficialState` returns two values while the binding handler assigned only one.
-- Integrated: the binding cleanup call now receives both return values, restoring backend compilation without changing the login or binding behavior.
-- Already present: the official WeChat login, QR polling, rate-limit isolation, and account-binding changes from `d73aaaf50` were preserved.
-- Deferred: Go tests could not run because the local shell does not have the Go toolchain; GitHub Actions remains the authoritative container build check.
-- Preserved: protected project identifiers and all unrelated untracked worktree files.
-- Validation: `git diff --check` passed; the failing call site now matches the function signature.
-- Commit/push: pending source commit and push.
-
-## 2026-10-15 - Add TypeSafe jev-1.14 model
-
-- Local reason: TypeSafe upstream added the `jev-1.14` model, but the built-in plugin rejected it as unsupported before a channel request could be sent.
-- Integrated: added `jev-1.14` to the TypeSafe model declaration, bumped the built-in plugin version to `1.1.2`, and added decode/upstream mapping fixtures for the new model.
-- Already present: `jev-1.13.0`, `jev-latest`, `jev-preview`, `laya`, synchronous SystemOne handling, and channel-provided upstream model mappings remain unchanged.
-- Deferred: no separate `jev-1.14.0` alias was added because the requested model identifier is exactly `jev-1.14`.
-- Preserved: protected project identifiers and all unrelated untracked worktree files.
-- Validation: Node syntax check, fixture JSON parsing, focused `jev-1.14` decode/upstream mapping assertions, and `git diff --check` passed. Full Go-runtime fixture replay is unavailable because the Go toolchain is not installed locally.
-- Commit/push: pending source commit and push.
-
-## 2026-10-16 - Sync upstream rate limits, Claude billing, Sub2API balance, and regex conditions
-
-- Upstream commits: `45fbb149f` (separate model rate-limit counters by user group), `1b63c28dc` (preserve explicit Claude zero usage and cache-only billing), `63cecab82` (Sub2API balance queries), and `04c597bf6` (regex conditions for advanced parameter overrides).
-- Integrated: model request rate-limit handlers now accept a stable subject key; users in groups with an independent limit are counted by `user_id:group`, while groups without an independent limit continue to share the user-level counter. Claude stream finalization now treats cache-only input and refusal-with-zero-output as valid upstream usage, and Claude cache tokens keep zero-token requests billable. Sub2API channels now query `/v1/usage`, prefer `remaining` over `balance`, reject invalid keys and unrestricted sentinel balances, and persist the reported balance. Advanced parameter override conditions now support a cached `regex` comparison mode in the backend and a string-preserving Regex option in the default frontend editor.
-- Already present: local Redis/memory reservation behavior, Claude message-delta patching, built-in tool surcharge accounting, dynamic billing and quota saturation handling, existing regex replacement operations, prune-object editors, and all existing channel balance adapters were preserved.
-- Deferred: upstream-only relaykit tool-use estimation fields were not copied because the local Claude response type does not expose them; local tool surcharge accounting remains the source of truth. The upstream frontend test suite for the newer `web/src` tree was not copied verbatim because this repository uses the customized `web/default` editor.
-- Preserved: protected project identifiers, existing payment/auth/wallet/Friends Hub changes, and unrelated untracked worktree files.
-- Validation: `bun run build` in `web/default` passed; targeted Oxfmt and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test dependencies and unrelated model/settings, redemption-code, and wallet type errors; it reported no error in the changed parameter override editor. Targeted Oxlint still reports pre-existing style violations in that customized editor. Go tests could not run because the Go toolchain is unavailable in the current shell.
-- Commit/push: local commit `9bae123e4` (`feat(upstream): sync rate limit billing and override updates`); not pushed yet.
-
-## 2026-10-16 - Sync token quota queries, request errors, Claude passthrough, and console fixes
-
-- Upstream commits: `7de10f2c6` (API key owner quota queries and New API balance), `ef60ef27f`/`d10eafb57` (retain request-body causes and return 413 for oversized bodies), `767a82b87` (Claude thinking block binding and repeated beta headers), `a0bf6a8a4` (Vertex API Key project ID), `718a4e7f9` (Vertex multi-region hosts), `19d435e7f` (targeted upstream-address masking), `908f94d65` (permission-filtered command menu), and `c9179d38b` (Playground reasoning field).
-- Integrated: API keys can opt into exposing owner quota through `/api/usage/token/`; new keys and registration tokens enable it by default while existing keys remain disabled, with Redis cache compatibility, IP allowlist enforcement, and New API channel balance conversion. Request-body read failures now remain available to later readers and oversized bodies use 413 on relay and task-plugin paths. Claude thinking retains `block_binding` and unknown controls, and all `anthropic-beta` values are forwarded, including Bedrock conversion. Vertex API Key channels accept `project_id` and use the correct US/EU multi-region hosts. Error masking now preserves unrelated public addresses while masking configured custom origins, Advanced Custom targets, and proxy origins. Console search uses the same role/sidebar filtering as navigation, and Playground accepts `reasoning` in stream and non-stream responses.
-- Already present: Claude cache-only and explicit-zero usage billing, local rate-limit reservation behavior, dynamic billing, plugin billing, existing wallet/Friends Hub/Image Playground/Command Menu changes, and protected project identifiers were preserved.
-- Deferred/skipped: upstream-only relaykit tool-use estimation fields, dependency-only updates, dashboard label styling, and unrelated generated or untracked worktree artifacts were not imported.
-- Validation: `bun run build` passed in `web/default`; focused Bun tests for Playground reasoning and API key form mapping passed (11 tests); all seven locale JSON files parsed; `git diff --check` passed. Go tests and `gofmt` could not run because the local shell has no Go toolchain. CI remains required for backend compilation and cross-database tests.
-- Commit/push: local source commit `9238cfe58` (`feat(upstream): sync token quota, relay and console fixes`); GitHub push intentionally not performed in this round.
-
-## 2026-10-16 - Fix regression CI compile and formatting failures
-
-- Local reason: the regression workflow reported an undefined `MsgAuthTokenIPNotAllowed`, an OpenAI test initializer using the removed `RelayInfo.ChannelType` field, and an unformatted `relay/common/relay_info.go` field block.
-- Integrated: added the IP allowlist error key and English, Simplified Chinese, and Traditional Chinese translations; removed the invalid test field/import; aligned the `RelayInfo` fields to gofmt output.
-- Preserved: no runtime behavior beyond making the existing IP allowlist error translatable; no unrelated worktree artifacts were staged.
-- Validation: `git diff --check` passed and source references were checked with `rg`. Go tests and `gofmt` could not run locally because the Go toolchain is unavailable; GitHub Actions must verify backend compilation and formatting.
-- Commit/push: source fix committed as `74858e383` (`fix: resolve upstream regression CI failures`); this log entry was recorded in `b27bd6d62`; GitHub push not yet performed.
-
-## 2026-10-16 - Fix image build compiler failure in token IP rejection
-
-- Local reason: the image build failed because `middleware/auth.go` called a nonexistent `common.ApiErrorStatus` helper.
-- Integrated: use the existing Gin JSON response path with HTTP 403 and abort the request after a token IP allowlist mismatch.
-- Preserved: the translated error message and token read-only authorization behavior remain unchanged.
-- Validation: `git diff --check` passed and repository search confirms no remaining `ApiErrorStatus` call. Go build and gofmt require CI because the local shell has no Go toolchain.
-- Commit/push: local commit `8d7d77202` (`fix: use existing token IP error response`); GitHub push not yet performed.
-
-## 2026-10-16 - Fix image build compiler failure in token quota logging
-
-- Local reason: the image build reported `controller/token.go` calling the nonexistent `common.LogText` helper.
-- Integrated: replaced it with the existing `fmt.Sprintf` formatting already supported by the file.
-- Preserved: quota lookup, error handling, and log message content remain unchanged.
-- Validation: repository search confirms no remaining `common.LogText` reference and `git diff --check` passes. Go build and gofmt require CI because the local shell has no Go toolchain.
-- Commit/push: local commit `4f0660cd9` (`fix: use fmt for token quota error logging`); GitHub push not yet performed.
-
-## 2026-10-16 - Complete API key Auto group translations
-
-- Local reason: the API key create/edit drawer rendered newly added Auto group labels in Chinese on the English locale, while the same keys were missing from French, Japanese, Russian, Vietnamese, and Traditional Chinese locales.
-- Integrated: corrected the English values and added translations for the Auto group order, description, selection count, reorder actions, restore/add controls, empty states, and validation text in all seven frontend locales.
-- Preserved: API key form behavior, payload mapping, and Auto group ordering logic are unchanged.
-- Validation: 14 API key/Auto group tests passed; frontend production build passed; all seven locale JSON files parsed; all required translation keys are present; Oxfmt and `git diff --check` passed.
-- Commit/push: local commit `3f8460000` (`fix(i18n): localize API key auto group editor`); GitHub push not performed in this round.
-
-## 2026-10-16 - Add API key endpoint selector
-
-- Local reason: API key users needed a direct way to choose a configured service node, protocol, and endpoint when integrating with the gateway.
-- Integrated: added a View Endpoints action beside Create API Key; the right-side drawer reuses configured API Info nodes, supports OpenAI-compatible, Anthropic, Gemini, and Decision Model (`POST /v1/systemone`) protocols, generates the selected full URL, and provides copy, latency check, documentation, and open actions. Added translations for all seven frontend locales.
-- Already present: existing API Info node configuration, dashboard latency checks, API key creation/editing, and TypeSafe plugin routing remain unchanged.
-- Deferred: protocol availability is presented from the gateway's static route contract; the drawer does not make authenticated test requests or dynamically inspect plugin declarations.
-- Preserved: protected project identifiers, unrelated local worktree changes, and all existing API key behavior.
-- Validation: frontend production build passed; targeted Oxlint passed; all seven locale JSON files parsed; `git diff --check` passed. Full frontend typecheck remains blocked by pre-existing missing test dependencies and unrelated type errors.
-- Commit/push: source commit `934ec93fe` (`feat(keys): add endpoint selector drawer`) and log update commit `eadb87ae9` are pushed to GitHub `main`.
-
-## 2026-10-16 - Redesign API key endpoint drawer as protocol cards
-
-- Local reason: the endpoint drawer needed to present the available integrations in a scannable layout matching the API reference style, instead of hiding protocol and endpoint choices behind selectors.
-- Integrated: replaced the protocol/endpoint selector layout with protocol cards that show each protocol description, Base URL, copy action, and a responsive two-column endpoint list; clicking an endpoint updates the selected full URL, highlights the endpoint, and keeps copy, latency, open, and documentation actions available. The service-node selector remains available when multiple configured nodes exist, and the Decision Model `POST /v1/systemone` endpoint remains included.
-- Already present: API Info node fallback, OpenAI-compatible, Anthropic, Gemini, and TypeSafe endpoint definitions, API key authorization guidance, and all existing endpoint actions remain functional.
-- Deferred: protocol cards continue to use the gateway's static route contract; authenticated endpoint probing and dynamic plugin discovery remain outside this drawer.
-- Preserved: protected project identifiers and unrelated worktree changes, including Friends Hub, Image Playground, pricing, Wallet, logs, scripts, and generated locale artifacts.
-- Validation: `bun run build` in `web/default` passed; the seven locale JSON files parsed successfully; targeted Oxlint and `git diff --check` passed.
-- Commit/push: local commit `f761f8672` (`feat(keys): redesign endpoint drawer cards`); GitHub push not performed in this round.
-
-## 2026-10-16 - Show the selected endpoint inside its protocol card
-
-- Local reason: the drawer repeated the selected endpoint in a top summary block, forcing users to scroll back up after choosing an endpoint.
-- Integrated: removed the duplicate top summary and made each protocol card's API Address dynamic; the active protocol card now shows and copies the selected full endpoint URL, while other cards continue to show their base URL. Endpoint actions continue to use the same selected URL.
-- Preserved: endpoint selection, highlighting, multi-node selection, latency checks, open/documentation actions, all four protocol groups, and unrelated worktree changes.
-- Validation: `bun run build` in `web/default` passed; targeted Oxlint passed; all seven locale JSON files parsed successfully; `git diff --check` passed.
-- Commit/push: local commit `a004799d0` (`feat(keys): show dynamic endpoint address`); GitHub push not performed in this round.
-
-## 2026-10-16 - Fix service node selector text truncation
-
-- Local reason: the service node selector used the node URL as its visible value, so long URLs were clipped in the trigger and made the node choice hard to identify.
-- Integrated: the selector now shows the configured node name, keeps the full URL available in the hover title and dropdown option, and preserves URL-based selection and endpoint generation.
-- Preserved: multi-node selection, node colors, dynamic API addresses, endpoint actions, and unrelated worktree changes.
-- Validation: targeted Oxlint passed; `bun run build` in `web/default` passed; locale JSON files remain valid; `git diff --check` passed.
-- Commit/push: pending source commit and push.
-
-## 2026-10-17 - Restrict public pricing data to display-safe fields
-
-- Local reason: the public `/api/pricing` response exposed executable billing expressions, task-plugin schemas and examples, hidden group configuration, group-model expiry data, and unrelated supplier records even though the pricing page is intentionally public.
-- Integrated: anonymous requests now receive only the default public group; authenticated requests receive only their usable groups. Model group ratios, enabled groups, auto groups, and suppliers are filtered to the visible catalogue. Executable billing expressions and administrator-only billing metadata are removed from the public response and replaced with a derived `billing_summary` containing only display rates and coarse request/usage markers. The default frontend renders this summary without attempting to parse or show the private expression. Administrator requests keep the original editor metadata so the system-settings model pricing screen continues to work.
-- Already present: public model names, base price fields, visible supplier metadata, supported endpoints, dynamic pricing cards, and the actual server-side billing expression execution path remain available. Existing internal/admin responses are unchanged.
-- Deferred: task-plugin pricing breakdowns cannot show plugin-specific conditions on the public page without exposing their schema; the public summary marks usage-based pricing instead. A Go test run was not possible because the local shell has no Go toolchain.
-- Preserved: all unrelated Friends Hub, Image Playground, Wallet, endpoint drawer, locale, script, generated, and upstream-sync changes; protected project identifiers remain unchanged.
-- Validation: `bun run build` in `web/default` passed; targeted Oxfmt completed; targeted Oxlint reports only pre-existing pricing-file warnings; `git diff --check` passed. Added model and controller regression tests for summary probing and internal-field removal; they require CI Go tooling to execute.
-- Commit/push: source commits `57c48384b` (`feat(pricing): sanitize public pricing response`) and `c4856065b` (`fix(pricing): preserve admin pricing metadata`), plus log commit `dba82ec36`, are pushed to `origin/main`.
-
-## 2026-10-17 - Fix Waffo Pancake top-up audit logs and success notifications
-
-- Local reason: Waffo Pancake top-ups were written with the generic log helper, so their detail view lacked the normal top-up audit fields; the success-email webhook path also did not include Waffo Pancake.
-- Integrated: Waffo Pancake webhook processing now records server IP, callback IP, payment method, callback payment provider, node name, and version through `RecordTopupLog`. The payment handler reports whether the order was already completed, so Waffo Pancake success emails are sent only for the first successful credit and duplicate webhooks remain idempotent. The email settings copy now lists Waffo Pancake alongside Epay and Stripe, with updated English and Chinese locale keys.
-- Preserved: existing quota crediting, referral cashback, invoice handling, member-tier checks, webhook signature and environment validation, and all other payment methods remain unchanged. The legacy single-argument `RechargeWaffoPancake` wrapper remains available for non-webhook callers.
-- Validation: `git diff --check`, frontend locale JSON parsing, and `bun run build` in `web/default` passed. The targeted Go regression test was added but Go tooling is unavailable in the current shell; CI Go tests remain required.
-- Commit/push: source commit `9e6beb4ac` (`fix(payment): audit and notify Waffo Pancake topups`) and log commit `8b495e543` are pushed to `origin/main`.
-
-## 2026-10-17 - Restore safe public display of dynamic time pricing
-
-- Local reason: the public pricing hardening removed executable `billing_expr` data, but the frontend then lost the display-safe DeepSeek time rules and showed only a generic dynamic-pricing marker.
-- Integrated: public pricing summaries now include sanitized time-function conditions, time zones, multipliers, and an opaque marker for non-time conditions. Matched probe multipliers are removed before publishing base rates so the frontend can derive correct ranges such as input `1-2` and output `4-8`. The default frontend consumes these summaries for model cards and detail breakdowns without receiving expressions, parameter paths, headers, or plugin fields.
-- Preserved: administrator pricing responses retain the original editor metadata; server-side billing evaluation is unchanged; request and usage conditions remain opaque to public users.
-- Validation: `bun run build` in `web/default` passed; the new pricing files no longer add errors to `bun run typecheck` (the command remains blocked by existing missing test dependencies and unrelated type errors); targeted Oxlint reports only pre-existing pricing-file warnings; `git diff --check` passed. Go tests and gofmt were unavailable because Go is not installed in the local shell.
-- Commit/push: local commit `eba4cd7d4` (`fix(pricing): restore safe dynamic rule display`); GitHub push not requested in this round.
-
-## 2026-10-17 - Restore original public pricing parsing and limit filtering to visible groups
-
-- Local reason: the public pricing hardening exposed a derived `billing_summary`, which caused image, video, task-plugin, and other non-standard expressions to lose their original frontend parsing and appear as the same generic dynamic-pricing state.
-- Integrated: restored the original pricing payload and frontend expression parsing. `/api/pricing` now filters only user-inaccessible groups, group ratios, model-group ratios, model-group expiry data, and enabled-group lists; it no longer replaces billing expressions with a public summary. Removed the temporary public-summary model, tests, types, and rendering branches.
-- Preserved: server-side billing evaluation, model-specific image/video/task pricing, supplier metadata, auto groups, administrator pricing metadata, and all unrelated local worktree changes remain unchanged.
-- Validation: `bun run build` in `web/default`, targeted `oxfmt --check`, and `git diff --check` passed. Go tests/gofmt require CI because Go is unavailable in the local shell.
-- Commit/push: pending local commit; GitHub push not requested in this round.
-
-## 2026-10-17 - Complete cache pricing rows on model plaza cards
-
-- Local reason: the model plaza uses `CatalogModelCard` in `web/default/src/features/pricing/index.tsx`; the earlier cache-row change targeted a different card component, so cache write was omitted and discounted cache read was not highlighted in the visible catalogue.
-- Integrated: catalog price rows now carry cache read and cache write values for both tiered-expression and legacy token pricing. Cache write falls back to the one-hour cache-create tier when that is the available expression field. For dynamic expressions, the green state is derived from the cache-to-input unit-price ratio (the expression equivalent of `cache_ratio`); legacy fields continue to use their explicit ratio values. The visible card renders the cache write row alongside input, output, and cache read.
-- Preserved: billing calculations, detail drawer pricing, backend pricing payloads, and all unrelated worktree changes remain unchanged.
-- Validation: `bun run build` in `web/default`, `bunx oxfmt --check src/features/pricing/index.tsx`, and `git diff --check` passed; targeted Oxlint still reports only the file's pre-existing warnings.
-- Commit/push: source commit `fb5a04009` and log commit `b843b2904` were pushed to GitHub `origin/main`.
-
-## 2026-10-17 - Match cache price color to model discount state
-
-- Local reason: cache read/write prices were colored green from their own cache ratio or from comparison with input price, while input/output prices use the selected model/group discount state. This made normal-price models appear to have discounted cache pricing.
-- Integrated: cache read and cache write rows in the visible `CatalogModelCard` now use the same `hasDiscount` state as input/output. Removed separate cache-ratio and cache-to-input color decisions; cache price values and billing are unchanged.
-- Preserved: price formatting, expression parsing, cache write fallback, detail views, backend billing, and unrelated worktree changes.
-- Validation: `bun run build` in `web/default`, `bunx oxfmt --check src/features/pricing/index.tsx`, and `git diff --check` passed. No billing or backend code changed.
-- Commit/push: source commit `d24cfab10` was pushed to GitHub `origin/main`; this log update is pending commit and push.
-
-## 2026-10-17 - Hide deleted and disabled vendors from model displays
-
-- Local reason: deleted or disabled vendors remained visible in model plaza cards and in the administrator model editor because pricing and model metadata did not apply vendor status filtering consistently.
-- Integrated: pricing data now exposes only enabled vendors and clears the legacy primary vendor fallback when none are available. Administrator model metadata and the vendor selector filter disabled vendors. Vendor deletion removes model-vendor bindings in the same transaction as the vendor soft delete; vendor create/update/delete paths refresh pricing data, and the frontend invalidates the pricing query after deletion.
-- Preserved: disabled vendors remain stored with their historical bindings so re-enabling restores configuration; channel and billing behavior is unchanged; all unrelated local worktree changes remain untouched.
-- Validation: added SQLite-backed regression coverage for enabled-vendor filtering and model-vendor binding cleanup, plus a pure filtering test. Go tests and gofmt could not run because Go is unavailable in the local shell; frontend validation was not rerun because this change has no frontend build logic beyond query invalidation. `git diff --check` remains required before commit.
-- Commit/push: local changes are pending commit and push.
-
-## 2026-10-17 - Add price-priority routing for Auto API keys
-
-- Local reason: Auto group order always followed the configured list, even when the same model had different effective group or model-specific multipliers in those groups.
-- Integrated: API keys now persist an optional `price` Auto route strategy, including in Redis token snapshots. When enabled, Auto candidates are stably sorted by the effective user-group multiplier multiplied by the selected group's model multiplier; ties retain the configured Auto order. Channel affinity selection uses the same ordering. The key editor exposes this as the mutually exclusive-ready `Routing Strategy` switch with the `Price priority` option; non-Auto keys clear the strategy.
-- Preserved: the default strategy remains the existing configured order, cross-group retry behavior is unchanged, billing still uses the group actually selected, and dynamic expression/task pricing is not guessed during routing.
-- Validation: added a service regression test for stable price ordering and fallback behavior. `git diff --check` and frontend build/type checks are pending; Go tests and gofmt require a Go toolchain that is unavailable in this shell.
-- Commit/push: local changes are pending commit and push.
-
-## 2026-10-18 - Open model details as standalone pricing pages
-
-- Local reason: the Model Square opened model details in a side drawer even though the application already had a full-page model detail route.
-- Integrated: catalog and classic card/table clicks now navigate to `/pricing/$modelId`; the duplicate drawer rendering was removed from both list views, and the existing full-page detail page is reused.
-- Preserved: the existing model detail sections, pricing data, filters, navigation behavior, and unrelated worktree changes.
-- Validation: targeted Oxfmt checks, `bun run build` in `web/default`, mock-data browser verification of card navigation, detail rendering, detail-page return, browser-history return, and `git diff --check` passed. The live backend preview returned 504 for `/api/pricing` because no backend was running locally; a mock API preview was used for the interaction check.
-- Commit/push: local source changes are pending commit; GitHub push was not requested.
-
-## 2026-10-18 - Remove supported-parameters table from model API details
-
-- Local reason: the API tab exposed a long generated supported-parameters table that was not needed in the model detail view.
-- Integrated: removed the supported-parameters section and its unused rendering helpers; code samples, authentication guidance, and rate-limit information remain available.
-- Preserved: endpoint selection, copyable request examples, model/API data, translations, and unrelated worktree changes.
-- Validation: targeted Oxfmt check, `bun run build` in `web/default`, mock-data browser verification of the API tab, and `git diff --check` passed. The live backend preview still depends on a running backend; the mock API preview was used for the interaction check.
-- Commit/push: local source changes are pending commit; GitHub push was not requested.
-
-## 2026-10-18 - Consolidate model capability and modality details
-
-- Local reason: the standalone model page showed the same input/output modality information in both the quick-stat `Modalities` block and the `Capabilities / Supported modalities` section.
-- Integrated: removed the duplicate modality summary. The capability section shows only the input/output modality cards and capability pills, while the quick-stat grid keeps context, maximum output, knowledge cutoff, and release metadata.
-- Preserved: model capability data, modality translations, pricing, API/performance tabs, the existing standalone route, and unrelated worktree changes.
-- Validation: targeted Oxfmt check, `bun run build` in `web/default`, mock-data browser verification, and `git diff --check` passed. The live backend preview still depends on a running backend; the mock API preview was used for the interaction check.
-- Commit/push: local source changes are pending commit; GitHub push was not requested.
-
-## 2026-10-18 - Link model detail rate limits to real RPM/TPM/RPD settings
-
-- Local reason: the standalone model API detail page displayed deterministic mock rate limits, while the administrator setting only exposed a shared request window and successful-request count.
-- Integrated: added independent RPM, TPM, and RPD settings with zero meaning unlimited; group settings now accept `{ "rpm": ..., "tpm": ..., "rpd": ... }` and continue reading the legacy two-item array format during migration. `/api/pricing` now includes visible group limits, and the model detail page renders those values or `Unlimited` instead of generated mock data. The new middleware applies one-minute RPM, one-day RPD, and token-window TPM limits per user/token subject and group; TPM records gateway usage after the response and checks the existing window before dispatch. Saving the new settings clears legacy window options.
-- Preserved: disabled rate limiting remains unlimited in public pricing, existing legacy options remain readable until the new settings are saved, group visibility filtering and model-level pricing behavior remain unchanged, and all unrelated worktree changes remain untouched.
-- Validation: frontend `bun run build`, targeted Oxfmt checks, JSON locale validation, and `git diff --check` passed. Go tests and gofmt could not run because Go is unavailable in the local shell; CI backend compilation and tests remain required.
-- Commit/push: local source changes are pending commit; GitHub push was not requested.
-
-## 2026-10-18 - Fix CI build for model rate-limit middleware
-
-- Local reason: the first GitHub Actions image build failed because the rate-limit middleware passed a nonexistent `check.amount` field to the fixed-window helpers.
-- Integrated: use the loop-local request amount for RPM/RPD checks and the zero-amount TPM pre-check, matching the intended runtime behavior.
-- Preserved: rate-limit windows, Redis and in-memory storage, TPM post-response accounting, and all unrelated worktree changes remain unchanged.
-- Validation: `git diff --check` passed; local Go validation remains unavailable because the Go toolchain is not installed. GitHub Actions is required to verify the Docker build and backend compilation.
-- Commit/push: fix is pending commit and push.
-
-## 2026-10-19 - Expand local pricing mock catalog
-
-- Local reason: the local preview needed representative model-square data so the standalone model pages could be reviewed without a production backend.
-- Integrated: expanded `web/default/mock/server.mjs` with additional vendors, model metadata, available vendor bindings, group multipliers, RPM/TPM/RPD limits, and complete catalog response fields. The mock catalog now covers chat, reasoning, embedding, image, and video models with 35 entries including deterministic variants.
-- Preserved: mock-only behavior, production API responses, real pricing calculations, and unrelated worktree changes remain unchanged.
-- Validation: `node --check mock/server.mjs`, mock API verification (35 models and 9 vendors), browser verification of populated model cards, a rich `gpt-4.1` detail page, API code samples, and RPM/TPM/RPD limits, `git diff --check`, and `bun run build` passed.
-- Commit/push: local preview changes are pending commit and push.
-
-## 2026-10-19 - Move model metadata into the detail header
-
-- Local reason: the standalone model page kept context, max output, knowledge cutoff, release metadata, and modality/capability blocks separated below the header, while the intended catalog layout presents the key model facts directly below the description.
-- Integrated: replaced the old standalone quick-stat and capability sections with two compact metadata cards under the model description: icon-based input/output modalities, and context/max-output limits. Removed release-date and price summary fields because those values are not part of the maintained model metadata and the full pricing table remains below.
-- Preserved: the pricing tables, API/performance tabs, backend model metadata, modality accessibility labels, and unrelated worktree changes remain unchanged.
-- Validation: `bun run build` in `web/default`, local mock browser verification of `/pricing/gpt-4.1`, and `git diff --check` passed. The live backend preview still depends on a running backend; mock data was used for the visual check.
-- Commit/push: local source changes are pending commit and push.
-
-## 2026-10-19 - Simplify model metadata card labels
-
-- Local reason: the combined context/max-output card repeated its two field labels in a redundant card-level heading.
-- Integrated: removed the redundant card-level heading while retaining the individual context and maximum-output labels.
-- Preserved: the two-card layout, modality icons, values, accessibility labels, and all pricing/detail behavior remain unchanged.
-- Validation: `bunx oxfmt --check` and `git diff --check` passed; local browser verification remains on `/pricing/gpt-4.1`.
-- Commit/push: local source changes are pending commit and push.
-
-## 2026-10-19 - Align model metadata cards
-
-- Local reason: removing the combined heading left the context/max-output content vertically tighter than the modality card.
-- Integrated: added a matching metric-row height and vertical alignment so the two cards share the same visual rhythm without restoring the removed heading.
-- Preserved: labels, modality icons, values, accessibility text, and all other model detail behavior remain unchanged.
-- Validation: `bun run build`, `bunx oxfmt --check`, local browser screenshot verification, and `git diff --check` passed.
-- Commit/push: local source changes are pending commit and push.
-
-## 2026-10-19 - Add spacing between metadata labels and values
-
-- Local reason: the context and maximum-output values sat too close to their labels, making their vertical position look unlike the modality icons beside them.
-- Integrated: added a small value offset beneath both right-card labels so the numeric row aligns with the visual center of the modality icon row.
-- Preserved: the two-card layout, labels, values, modality icons, and all other model detail behavior remain unchanged.
-- Validation: targeted formatting and `git diff --check` passed; the existing local preview remains available for visual verification.
-- Commit/push: local source changes are pending commit and push.
-
-## 2026-10-19 - Fine-tune metadata value alignment
-
-- Local reason: the context and maximum-output values still sat slightly high compared with the modality icon row.
-- Integrated: increased the value offset beneath both right-card labels by one spacing step.
-- Preserved: card dimensions, labels, modality icons, and all other model detail behavior remain unchanged.
-- Validation: targeted formatting and `git diff --check` passed; local browser verification follows the adjustment.
-- Commit/push: local source changes are pending commit and push.
-
-## 2026-10-19 - Remove overview performance summary
-
-- Local reason: the overview page's TPS, average latency, and success-rate row was not needed in the compact model detail layout and duplicated the dedicated performance tab.
-- Integrated: removed the overview performance summary and its query/formatting helpers while retaining the performance tab and detailed performance view.
-- Preserved: model metadata cards, pricing, API details, performance tab behavior, and backend data remain unchanged.
-- Validation: `bunx oxfmt --check src/features/pricing/components/model-details.tsx`, `bun run build`, local browser verification of `/pricing/gpt-4.1`, and `git diff --check` passed.
-- Commit/push: local source changes are pending commit and push.
-
-## 2026-10-19 - Remove redundant model metadata section
-
-- Local reason: the standalone detail page repeated provider, type, group, endpoint, tag, and parameter metadata in a separate bottom section after the header already presents the key model facts.
-- Integrated: removed the redundant bottom model metadata section and its unused display helpers.
-- Preserved: model description, modality icons, context/max-output values, pricing, performance, API tabs, and backend data remain unchanged.
-- Validation: `bun run build`, targeted `bunx oxfmt --check`, local browser verification, and `git diff --check` passed.
-- Commit/push: local source changes are pending commit and push.
-
-## 2026-10-19 - Consolidate model pricing into group pricing
-
-- Local reason: the standalone model page repeated base pricing above the group pricing section, while video resolution prices, task plugin prices, and conditional peak/off-peak multipliers needed to stay visible after the duplicate section was removed.
-- Integrated: removed the overview base-price block; standard prices remain in the group table, video resolution and audio surcharge prices render inside each group, task/plugin pricing renders inside each group, and dynamic request-condition multipliers render beneath the matching group tier table.
-- Preserved: existing billing calculations, group ratios, expiry display, pricing units, API/performance tabs, and the raw-expression fallback remain unchanged.
-- Mock data: added `deepseek-v4-flash` with weekday/time peak rules and `type-safe-demo` with TypeSafe and Quality Check task plugin variants for local preview validation.
-- Validation: `node --check mock/server.mjs`, `bunx oxfmt --check`, `bun run build`, `git diff --check`, and browser checks for normal, video, peak/off-peak, and task-plugin model detail pages passed.
-- Commit/push: local source changes are pending commit and push.
-
-## 2026-10-19 - Add selectable dynamic pricing periods
-
-- Local reason: dynamic model details showed request-condition multipliers as a separate list, while the displayed tier prices stayed at the off-peak base even when a peak condition was selected for review.
-- Integrated: dynamic group pricing now exposes a per-group billing-period selector with an off-peak base option and one option for each parsed request rule. Selecting a rule applies its multiplier to the displayed input, output, cache-read, cache-write, and other tier prices. The duplicate conditional-multiplier list was removed from the model detail page; usage-log detail rendering keeps its existing matched-rule breakdown.
-- Preserved: this is display-only and does not change server-side expression evaluation or billing, and standard, video, task-plugin, and special-expression pricing paths remain unchanged. Added localized labels for the new selector.
-- Validation: targeted Oxfmt checks, `bun run build` in `web/default`, mock browser verification of the default and peak prices for `deepseek-v4-flash-mock-09`, and `git diff --check` are complete. Backend tests were not applicable because no backend code changed.
-- Commit/push: local source changes are pending commit; GitHub push was not requested.
-
-## 2026-10-19 - Make dynamic pricing period selection global
-
-- Local reason: the first selectable dynamic-pricing implementation repeated the period selector inside every group card, and the overview card retained a redundant top-level pricing heading.
-- Integrated: moved the single billing-period selector beside `Pricing by Group`, shared its selected multiplier across every dynamic group, removed the per-group selectors, and removed the redundant `Pricing` heading above the section.
-- Preserved: idle/peak display-only behavior, actual server-side billing, non-dynamic pricing, video pricing, task-plugin pricing, and usage-log condition details remain unchanged.
-- Validation: targeted formatting, `bun run build` in `web/default`, mock browser verification of the global selector and synchronized peak prices, and `git diff --check` are complete. Backend tests were not applicable because no backend code changed.
-- Commit/push: local source changes are pending commit; GitHub push was not requested.
-
-## 2026-10-19 - Reuse the global selector for video resolutions
-
-- Local reason: video models use resolution tiers such as 720p and 1080p rather than peak/off-peak request conditions, but their detail page still expanded every resolution below each group.
-- Integrated: the shared selector now accepts model-specific condition options. Dynamic token models keep the billing-period selector, while per-request video models expose a global resolution selector and show only the selected resolution price inside every group. The audio-generation surcharge remains visible as a separate fixed request charge.
-- Preserved: video group ratios, recharge-price formatting, task-plugin pricing, dynamic expression billing, and all server-side billing behavior remain unchanged.
-- Validation: targeted formatting, `bun run build` in `web/default`, mock browser verification of the video selector and selected-resolution display, and `git diff --check` completed successfully. Backend tests are not applicable because no backend code changed.
-- Commit/push: local source changes are pending commit; GitHub push was not requested.
-
-## 2026-10-19 - Present video pricing as a group table
-
-- Local reason: video model pricing needed to keep the global resolution selector while matching the compact group-pricing table layout used by the reference design.
-- Integrated: replaced the per-group video pricing cards with one table containing group, ratio, expiration time, the selected resolution price, and the audio-generation surcharge when configured. The resolution selector remains global and updates the resolution column header and values.
-- Preserved: server-side billing, resolution-tier calculations, audio surcharge calculations, recharge-price formatting, group expiry display, and all non-video pricing paths remain unchanged.
-- Validation: `bunx oxfmt --check src/features/pricing/components/model-details.tsx`, `bun run build` in `web/default`, and `git diff --check` passed. Backend tests were not applicable because no backend code changed.
-- Commit/push: local source changes are pending commit; GitHub push was not requested.
-
-## 2026-10-19 - Rename the video pricing column
-
-- Local reason: the video pricing table column should describe the priced content as video output rather than repeat the selected resolution in its heading.
-- Integrated: renamed the video price column to the localized `Video output` label while keeping the resolution selector and selected-resolution price behavior unchanged.
-- Preserved: table structure, resolution switching, audio surcharge, group pricing, and all non-video pricing paths remain unchanged.
-- Validation: targeted formatting, `bun run build` in `web/default`, and `git diff --check` completed successfully. Backend tests were not applicable because no backend code changed.
-- Commit/push: local source changes are pending commit; GitHub push was not requested.
-
-## 2026-10-19 - Reuse resolution pricing for image expressions
-
-- Local reason: image-generation models using `param("resolution")` tier expressions should present the same compact selectable pricing layout as video models.
-- Integrated: detected image-generation expressions with fixed resolution tiers, added a global resolution selector, and rendered a group table with ratio, expiration time, and a localized `Image output` price shown per image. Added a local `seedream-4.0` mock using 1K/2K/4K tiers for preview verification.
-- Preserved: expression evaluation and billing remain server-side, fallback tiers remain supported, video pricing keeps its `Video output` label, and ordinary dynamic/text models keep their existing tier tables and billing-period selector.
-- Validation: `bunx oxfmt --check`, `node --check mock/server.mjs`, `bun run build` in `web/default`, `git diff --check`, and local browser verification of `seedream-4.0` passed. Backend tests were not applicable because no backend code changed.
-- Commit/push: local source changes are pending commit; GitHub push was not requested.
-
-## 2026-10-19 - Add a JEV 1.14 mock model
-
-- Local reason: the local model catalog needed a representative JEV model to review the TypeSafe plugin pricing flow.
-- Integrated: added `jev-1.14` to the mock catalog with Alibaba Cloud, Tencent Cloud, and OpenRouter vendor bindings, OpenAI-compatible endpoint metadata, model limits, and a TypeSafe usage-based plugin variant with a validation example.
-- Preserved: production model data, server-side plugin billing, existing `type-safe-demo`, and all unrelated mock catalog entries remain unchanged.
-- Validation: `node --check mock/server.mjs`, `git diff --check`, and local browser verification of `/pricing/jev-1.14` passed. The detail page showed group prices and TypeSafe task pricing for both available groups.
-- Commit/push: local source changes are pending commit; GitHub push was not requested.
-
-## 2026-10-19 - Display simple TypeSafe pricing as input/output columns
-
-- Local reason: JEV models with one simple TypeSafe token-pricing variant duplicated the same information in a separate task card instead of matching the ordinary text-model price table.
-- Integrated: simple single-variant plugins containing only `input_tokens` and `output_tokens` now render those prices directly as `Input` and `Output` columns, with group multipliers applied and the shared `1M tokens` unit note. The redundant task card is hidden for this narrow shape; complex or multi-variant plugins retain their detailed task sections.
-- Preserved: TypeSafe billing expressions, server-side settlement, group pricing, cache columns for token models, and all other model pricing layouts remain unchanged.
-- Validation: `bunx oxfmt --check`, `bun run build` in `web/default`, `git diff --check`, and local browser verification of `/pricing/jev-1.14` passed. Backend tests were not applicable because no backend code changed.
-- Commit/push: local source changes are pending commit; GitHub push was not requested.
-
-# 2026-10-19 - Match live plugin pricing schemas in the model square
-
-- Local reason: live TypeSafe pricing metadata declares only `input_tokens`, while the local preview fixture had both input and output fields. The model square therefore left JEV models in a task-pricing card, rendered duplicate plugin sections, and could show an empty or zero-valued ordinary price table.
-- Changed: simple token task pricing now accepts the fields actually declared by the billing schema and only renders input/output columns that have parsed prices; top-level and plugin task sections with the same billing definition are de-duplicated. No output price is synthesized when the upstream schema does not declare one.
-- Preserved: task schemas with non-token fields, unsupported expressions, provider-specific billing differences, group multipliers, and raw task-pricing fallback behavior.
-- Validation: targeted Oxfmt, `bun run build`, and `git diff --check` passed. Repository-wide lint remains blocked by pre-existing errors in unrelated files; live provider data still requires deployment for end-to-end verification.
-- Commit/push: pending.
-
-- Follow-up: production TypeSafe responses may expose a plugin variant with an omitted or `ratio` billing mode while still carrying a usable token expression. The simple token-table adapter now selects any variant with a non-empty expression and falls back to the model expression, so JEV uses the ordinary input/output layout instead of the task card.
-
-- Follow-up: the detail view still entered the generic dynamic-expression branch before the simple token table, and task token coefficients were divided by one million twice during formatting. Simple token expressions now use the ordinary group table, model-level pricing is preferred over plugin metadata when both exist, and parsed token coefficients display as their configured USD/1M value.
-
-- Follow-up: task token prices are stored as USD/1M; the simple detail table now also applies the selected 1K/1M display unit divisor, so both marketplace cards and detail pages remain consistent when the unit filter changes.
-
-- Follow-up: the conditional task-display fallback had a second token-unit convention and produced values such as `$0.000001 / token`. Its parsed token coefficients now use the same USD/1M convention as canonical expressions, and the generic task table labels that unit explicitly.
-
-- Follow-up: local pricing fixtures now use the documented scaled token-expression form and include a model-level JEV expression (`0.042 / 1M input tokens`) so the detail-page path is exercised against the same shape as the production configuration.
-
-- Follow-up: detail-page task pricing now pairs a model-level expression with a plugin-provided usage schema when the backend exposes those metadata fields separately. This prevents fallback to legacy model ratios while the marketplace card already shows the expression price.
-
-- Follow-up: task usage fields can be split across multiple plugin variants, so detail pricing now merges model and plugin schemas before parsing the model-level expression; individual plugin expressions retain their own fields with model metadata as fallback.
-
-- Follow-up: model details now prioritize a recognized task-token expression over legacy token-ratio columns. This keeps detail-page prices consistent with marketplace cards for models such as JEV whose expression declares only input-token pricing.
-
-## 2026-10-19 - Fix task token price in model details
-
-- Local reason: the model card rendered JEV's task usage expression, but the details table prioritized the legacy token-ratio branch whenever `quota_type` marked the model token-based. The expression's input price was therefore replaced by legacy input/output prices.
-- Changed: detail pricing now uses recognized task-token expression fields before legacy ratio columns, preserving the configured group multiplier and omitting output when the expression has no output-token price. When usage schema fields are split across plugin variants, the model-level expression is parsed against the merged schema.
-- Preserved: model-card pricing, backend billing and settlement, plugin-specific task tables, legacy ratio pricing for models without a recognized simple task-token expression, and unrelated project data.
-- Validation: `bun run build`, `bunx oxfmt --check web/default/src/features/pricing/components/model-details.tsx`, and `git diff --check` passed. No live production API/config was accessed; visual confirmation is limited to the supplied screenshots and equivalent local pricing fixture.
-- Commit and push: implemented in `f55ecd17d`, pushed to `origin/main` on 2026-10-20.
-
-## 2026-10-20 - Separate web tool endpoints in the API access drawer
-
-- Local reason: `/v1/tools/search` and `/v1/tools/fetch` are DeepSeek-style web tool endpoints rather than standard OpenAI-compatible endpoints, so grouping them under OpenAI Compatible was misleading.
-- Integrated: moved both endpoints into a dedicated localized `Web Tools` protocol card. Their POST paths, server-node selection, URL generation, and endpoint selection behavior are unchanged.
-- Preserved: OpenAI-compatible endpoint contents, backend routing and billing behavior, and all other protocol cards.
-- Validation: `bunx oxfmt --check` for the changed frontend files, locale JSON parsing, `bun run build` in `web/default`, and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test-package declarations and unrelated type errors; no backend changes were made.
-- Commit and push: pending.
-
-## 2026-10-20 - Expose built-in web tool prices in the model plaza
-
-- Local reason: Search/Fetch and other built-in tool calls can add a per-call surcharge, but the public model plaza only showed token or task prices.
-- Integrated: added `tool_prices` to the public pricing payload, rendered tool fees on model cards and a per-group `$/1K calls` table on model details, and added local fixtures for OpenAI, Anthropic, Gemini, and DeepSeek examples. Independent `deepseek-search` and `deepseek-fetch` models are excluded from the extra-tool table to avoid double display.
-- Preserved: existing billing and settlement calculations, group multipliers, model pricing, endpoint routing, and custom tool configuration behavior. This change only publishes and formats existing tool prices.
-- Validation: `bun run build` passed; targeted `bunx oxfmt --check` and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test dependencies and unrelated type errors. Local mock API and frontend preview are running at `http://localhost:3000` and `http://localhost:8080`.
-- Commit and push: pending.
-
-## 2026-10-20 - Add web tool endpoints to the API access drawer
-
-- Local reason: the API key endpoint drawer did not expose the platform's `/v1/tools/search` and `/v1/tools/fetch` entry points, even though they are available through the gateway.
-- Integrated: added both POST endpoints to the OpenAI-compatible endpoint list before the existing model-list endpoint, with localized labels for all supported frontend languages. Existing endpoint selection, URL generation, default selection, and server-node handling are unchanged.
-- Preserved: backend routing and billing behavior, all existing protocol endpoints, and the model-list endpoint's final position.
-- Validation: `bunx oxfmt --check` for the changed frontend files, locale JSON parsing, `bun run build` in `web/default`, and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test-package declarations and unrelated type errors; no backend changes were made.
-- Commit and push: pending.
-
-## 2026-10-20 - Integrate tool prices into group pricing tables
-
-- Local reason: tool fees were shown in a separate detail section, while the model plaza already presents input, output, and cache prices as one pricing surface.
-- Integrated: removed the duplicate tool-pricing section and appended only configured tool columns after cache-related columns in each group pricing table. Tool columns follow a stable order (`Web Search Preview`, `Web Search`, `File Search`, provider search tools, and `Image Generation`), apply the active group multiplier and recharge-price display, show `/1K calls`, and use the same green discount styling as input/output prices.
-- Preserved: public `tool_prices` metadata, model-card tool summaries, task/plugin billing, image/video pricing, server-side billing, and independent DeepSeek Search/Fetch model handling. Dynamic tier rows retain their existing tier prices; configured tool columns are appended to those tables using the group multiplier only because tool fees are group-level values rather than tier values.
-- Validation: local GPT-4.1 and Gemini detail pages showed the merged columns and group-adjusted values; `bun run build`, targeted `bunx oxfmt --check`, and `git diff --check` passed. `bun run typecheck` remains blocked by existing missing test dependencies and unrelated repository type errors.
-- Commit and push: pending; GitHub push was not requested.
-
-## 2026-10-20 - Localize discount expiry and web tool labels
-
-- Local reason: the group pricing table should identify the displayed timestamp as the discount expiry, and newly exposed tool columns still fell back to English in several supported locales.
-- Changed: renamed the group-table column to localized `Discount expiration time` and completed translations for tool fees, call units, DeepSeek Search/Fetch, Google Search variants, Web Search Preview, and the related explanatory labels across English, Simplified Chinese, Traditional Chinese, French, Japanese, Russian, and Vietnamese.
-- Preserved: pricing calculations, tool ordering, group multipliers, discount styling, model-card layout, and backend billing behavior.
-- Validation: locale files were checked for the new keys, targeted Oxfmt, `bun run build`, and `git diff --check` passed. The repository's existing case-colliding locale keys still prevent PowerShell's default `ConvertFrom-Json` parser from validating the whole files; no new JSON syntax errors were introduced.
-- Commit and push: pending; GitHub push was not requested.
-
-## 2026-10-20 - Localize system announcement timeline dates
-
-- Local reason: the notification popover's timeline rendered every left-side date with a fixed `en-US` locale, so the date did not follow the selected interface language.
-- Changed: pass the active i18next language through `toIntlLocale` and use it when formatting timeline dates; invalid publication dates now omit the date label instead of rendering `Invalid Date`.
-- Preserved: the existing Notice/Timeline tabs, translated labels and empty states, announcement ordering, expand/collapse behavior, and legacy plain-text notice support.
-- Validation: targeted Oxfmt, `bun run build` in `web/default`, and `git diff --check` passed. Local preview verification is pending for a populated announcement timeline; no mock announcement data was added.
-- Commit and push: pending; GitHub push was not requested.
-
-## 2026-10-20 - Keep announcement timeline dates on one line
-
-- Local reason: localized dates such as `9月12日` could wrap inside the narrow, pill-shaped date label in the notification timeline.
-- Changed: widened the date column slightly, forced the date label to stay on one line, and replaced the bordered rounded pill with a lightweight text label.
-- Preserved: timeline connectors, announcement ordering, translated date formatting, expand/collapse behavior, and all Notice/Timeline content.
-- Validation: targeted Oxfmt, `bun run build` in `web/default`, and `git diff --check` passed; the local mock still has no populated announcement data for a visual date sample.
-- Commit and push: pending; GitHub push was not requested.
-
-## 2026-10-20 - Apply discount color to dynamic pricing cells
-
-- Local reason: tool prices in a dynamic-pricing group used the green discount color, while input/output/cache cells with the same discounted displayed price remained uncolored.
-- Changed: dynamic pricing table cells now use the success color when the effective displayed multiplier (group ratio times the selected pricing-condition multiplier) is below 1.
-- Preserved: price calculation and formatting, tool-price color logic, non-discounted styling, dynamic condition selection, and all billing behavior.
-- Validation: targeted Oxfmt, `bun run build` in `web/default`, and `git diff --check` passed.
-- Commit and push: pending; GitHub push was not requested.
-
-## 2026-10-20 - Preserve fixed request prices in model details
-
-- Local reason: dynamic detail pricing divided `fixed(amount)` by one million, incorrectly treating its USD-per-request amount as a USD-per-million-token coefficient.
-- Changed: fixed request prices are formatted directly after the group multiplier and optional recharge conversion in model detail rows. Added a regression test for `tier("request", fixed(0.005))`.
-- Preserved: token coefficient scaling, group discounts, recharge display conversion, expression billing, and settlement behavior.
-- Validation: targeted Oxfmt, the fixed-request-price regression test, `bun run build` in `web/default`, and `git diff --check` passed.
-- Commit and push: implemented in `0a3fe4dc9`, pushed to `origin/main` on 2026-10-20.
-
-## 2026-10-20 - Preserve fixed request prices on catalog cards
-
-- Local reason: catalog cards use a separate request-price range formatter which still divided fixed per-request prices by one million after the detail view fix.
-- Changed: removed token scaling from card request-price ranges and extended the fixed-price regression test to cover the model-card summary data.
-- Preserved: token price scaling, group multipliers, recharge conversion, and task pricing.
-- Validation: targeted Oxfmt, the fixed-price detail and catalog-summary regression test, `bun run build` in `web/default`, and `git diff --check` passed.
-- Commit and push: pending.
-
-## 2026-10-20 - Correct DeepSeek Search and Fetch API examples
-
-- Local reason: model detail examples treated `/v1/tools/search` and `/v1/tools/fetch` as OpenAI Chat Completions endpoints, generating invalid request bodies.
-- Changed: added endpoint-specific examples for DeepSeek Search (`query`, optional `count`) and Fetch (`url`) in cURL, Python, TypeScript, and JavaScript.
-- Preserved: existing examples and request handling for OpenAI, Anthropic, Gemini, embeddings, and image-generation endpoints.
-- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed. Targeted Oxlint reports pre-existing issues in this file; repository-wide `bun run lint` also fails on numerous pre-existing errors outside this change.
-- Commit and push: implemented in `0a3fe4dc9`, pushed to `origin/main` on 2026-10-20.
-
-## 2026-10-20 - Add independent model developer metadata
-
-- Local reason: a model may be developed by one company while being served through a different channel supplier, so using the supplier for the public model prefix and icon was inaccurate.
-- Changed: added a persisted developer vendor reference to model metadata, exposed developer name/icon in pricing responses, added an unrestricted developer selector above channel suppliers in the model editor, and made public model names/icons prefer the developer while retaining channel suppliers separately.
-- Preserved: legacy supplier bindings, supplier filtering, channel availability, custom model icons, and models without a developer selection.
-- Validation: `bun test src/features/pricing/lib/dynamic-price.test.ts`, targeted Oxfmt, `bun run build` in `web/default`, and `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable in the current environment.
-- Commit and push: pending.
-
-## 2026-10-20 - Refresh model API call examples
-
-- Local reason: align model detail API examples with the reference layout and make streaming versus non-streaming requests explicit.
-- Changed: moved authentication guidance above the code samples; reorganized the sample toolbar with readable endpoint names, language tabs, a streaming mode switch, and a copy-code action; updated OpenAI and Anthropic samples to generate streaming and non-streaming request bodies and SDK examples; changed cURL API-key placeholders to `<YOUR_API_KEY>`. Corrected the shared CodeMirror gutter spacing so line 1 aligns with the first code line.
-- Preserved: existing endpoint availability, API paths, model names, and non-chat samples for embeddings, image generation, Gemini, and web tools.
-- Validation: frontend production build, Oxfmt, and `git diff --check` passed. Verified the first code line and gutter number align in local browser preview. Full TypeScript checking remains blocked by existing missing test dependencies and unrelated errors in other files.
-- Commit and push: `bef2b2b84` pushed to `origin/main` on 2026-10-20.
-
-## 2026-10-20 - Link API authentication guidance to token creation
-
-- Local reason: users reading the model API authentication instructions had to leave the model page and locate the token creation action themselves.
-- Changed: added a localized Create API Key button in the Authentication section. It opens the existing token page with a one-time `create=true` search parameter, automatically opens the existing creation dialog, and removes the parameter from the URL.
-- Preserved: the existing token page and dialog flow, token creation behavior, and all API example content.
-- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed. Local preview confirms the Authentication button routes to `/keys?create=true`; the token dialog could not be observed end-to-end because the preview is signed out.
-- Commit and push: `bef2b2b84` pushed to `origin/main` on 2026-10-20.
-
-## 2026-10-20 - Keep model plaza filters off the mobile first screen
-
-- Local reason: the desktop model filters collapsed into a tall stack above the catalog on phones, pushing the model list far below the first screen.
-- Changed: the left filter rail is now desktop-only. Mobile visitors start at the Models heading and existing search, price, sort, and modality controls; advanced input type, context length, vendor, and group filters remain available from a compact filter button that opens a side sheet.
-- Preserved: all existing filter state and matching behavior, the desktop sticky rail, catalog cards, and model navigation.
-- Validation: tested at a 375px mobile viewport; the model list starts immediately below the compact header, modality chips stay on one horizontal row with overflow scrolling, and the filter sheet still exposes input type, context length, vendor, and group controls. `bun run build`, targeted Oxfmt, and `git diff --check` passed.
-- Commit and push: `bef2b2b84` pushed to `origin/main` on 2026-10-20.
-
-## 2026-10-20 - Remove tool fees from model cards
-
-- Local reason: tool fee summaries added extra content to model plaza cards that the user does not want displayed.
-- Changed: removed the tool fee summary from model cards.
-- Preserved: tool pricing on model detail pages, public pricing metadata, and backend tool billing.
-- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed.
-- Commit and push: `bef2b2b84` pushed to `origin/main` on 2026-10-20.
-
-## 2026-10-20 - Anchor model context metrics at card bottom
-
-- Local reason: context length and maximum output shifted upward on cards with fewer pricing rows, leaving inconsistent vertical alignment across the catalog.
-- Changed: anchored the context and maximum-output row to the bottom of the card content, directly above provider availability, and tightened the gap to the provider information.
-- Preserved: card pricing, descriptions, provider information, and responsive grid behavior.
-- Validation: visual behavior follows the card's existing flex-column layout; no build run for this small spacing adjustment, per user preference.
-- Commit and push: `bef2b2b84` pushed to `origin/main` on 2026-10-20.
-
-## 2026-10-20 - Unify group pricing metadata on model details
-
-- Local reason: model details used separate layouts for token-based and expression-based pricing, and the standalone model page did not pass configured model-ratio expiration data to the pricing section.
-- Changed: passed group/model discount expiration data into standalone model details and displayed group ratio plus discount expiration together with each group across token, expression, image-resolution, and video-resolution pricing views.
-- Preserved: price calculations, discount expiry behavior, task and tool pricing, and the administration settings schema.
-- Validation: targeted source inspection confirms each pricing branch uses the shared metadata display and the standalone page passes expiry data. No production build run per user preference.
-- Commit and push: `bef2b2b84` pushed to `origin/main` on 2026-10-20.
-
-- Follow-up: moved ratio and discount-expiry labels into table headers for tabular pricing, with values in each group's row; expression pricing tables show them as columns before input/output prices, with values in each tier row.
-
-## 2026-10-22 - Upgrade Go toolchain for CVE-2026-111943
-
-- Upstream commit: `7d8b91268` (`fix: upgrade Go to 1.26.10 for CVE-2026-111943 (#7942)`).
-- Changed: upgraded `go.mod`, `Dockerfile`, and `Dockerfile.dev` to Go 1.26.10; changed Electron and release workflows to read the Go version from `go.mod`.
-- Preserved: the existing frontend build stages, classic frontend packaging, workflow action versions, dependency set, and all application behavior.
-- Validation: checked all five affected files and ran `git diff --check`; Go tests/build were unavailable because the Go executable is not installed in this environment.
-- Result: CVE changes committed as `e715a5a94` and pushed to `origin/main`; this log entry is included in the follow-up documentation commit.
-
-## 2026-10-25 - Make SEO landing pages site-aware
-
-- Local reason: SEO landing pages hardcoded the overseas domain, USD minimum top-up, and registration-credit policy, which made them inaccurate on other deployments.
-- Changed: API examples and canonical URLs now follow the current site origin; `/api/status` publishes a limited read-only billing summary for the configured display currency, active primary top-up minimum, and registration credit; React pages and no-script SEO fallback render those values without exposing payment credentials.
-- Preserved: provider routing, payment validation, existing billing configuration, SEO page paths and content structure, and protected project/author identity metadata.
-- Validation: `bun run build`, targeted Oxfmt, targeted Oxlint for the SEO pages/status types, and `git diff --check` passed. `go test ./router` could not run because Go is unavailable in this environment. Oxlint including `main.tsx` reported existing non-null assertion and array-index rule violations there.
-- Commit and push: pending.
-
-## 2026-10-27 - Render complete custom HTML documents in a sandbox
-
-- Local reason: complete HTML pasted into the homepage or About setting was rendered as a sanitized fragment, so its head, scripts, global CSS, language switch, and theme switch could not work.
-- Changed: detect complete `<!doctype html>`/`<html><head>` documents and render them through the existing sandboxed content frame with `srcDoc`; keep HTML fragments on the existing DOMPurify and Shadow DOM path. Parent theme and language context continue to be delivered through the existing postMessage bridge.
-- Preserved: fragment sanitization, iframe URL support, parent application isolation, and the no-`allow-same-origin` sandbox boundary for pasted documents.
-- Validation: source inspection and `git diff --check`; frontend production build not run yet.
-- Commit and push: pending.
-
-## 2026-10-27 - Add server-rendered public SEO content
-
-- Local reason: public route HTML contained only the React root while homepage, About, pricing, and rankings page content loaded after JavaScript, leaving crawlers without page content.
-- Changed: the Go web fallback now writes crawlable route-specific HTML into the main document for `/`, `/about`, `/pricing`, and `/rankings`, including configured static content summaries, current public model names, and the cached weekly ranking snapshot; both default and classic frontends remove the fallback before mounting their interactive page.
-- Preserved: existing SPA routes, custom HTML sandbox rendering, external content isolation, and dynamic branding/SEO metadata. Remote COS HTML is summarized as escaped text and is never executed during server rendering.
-- Validation: `git diff --check`; frontend production build not run after this follow-up. Go tests were not run because the Go toolchain is unavailable in this environment.
-- Commit and push: pending.
-
-## 2026-10-27 - Restrict anonymous system status fields
-
-- Local reason: anonymous `/api/status` exposed deployment metadata, administrative module settings, passkey trust policy, and internal pricing controls alongside the public frontend bootstrap configuration.
-- Changed: added role-aware status filtering; anonymous and common-user requests receive only the public branding, login/OAuth, public billing, navigation, legal, and public content fields, while enabled administrator/root dashboard sessions retain the complete status response. Kept the existing endpoint and compatibility behavior for frontend and external API clients.
-- Preserved: public login/register initialization, OAuth client configuration, Turnstile site key, public announcements/FAQ, administrator dashboard status consumers, and the admin-only `/api/status/test` route.
-- Validation: added anonymous-field regression coverage and ran `git diff --check`; Go tests were not run because the Go toolchain is unavailable in this environment.
-- Commit and push: pending.
-
-## 2026-10-28 - Fix task-plugin checker compilation after upstream sync
-
-- Local reason: the Docker image build failed in `go run ./cmd/check-task-plugins` because the synced parameter-override code referenced the undefined `common.RawMessage` type.
-- Changed: use the existing `common.JSONRawMessage` alias when preserving raw JSON array elements, and add a regression test that verifies object key order is retained during array append operations.
-- Preserved: parameter override behavior, raw JSON preservation, task-plugin registration, and all upstream-synced functionality.
-- Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment. The GitHub Actions failure is the reproduced build evidence.
-- Commit and push: source fix committed as `ab60acced` and pushed to `origin/main` on 2026-10-28; this log update follows.
-
-## 2026-10-28 - Fix channel selection build compatibility
-
-- Local reason: the next GitHub Actions image build failed because `service/channel_select.go` called the undefined `common.LogText` helper.
-- Changed: pass the warning format string and arguments directly to the existing variadic `logger.LogWarn` function.
-- Preserved: channel pin override diagnostics, channel selection behavior, routing priorities, and all upstream-synced functionality.
-- Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment.
-- Commit and push: source fix committed as `8395c693f` and pushed to `origin/main` on 2026-10-28; this log update follows.
-
-## 2026-10-28 - Fix distributor syntax after shared routing sync
-
-- Local reason: the GitHub Actions image build reported a cascade of syntax errors in `middleware/distributor.go` after the shared channel/task-plugin routing change.
-- Changed: close the outer channel-selection `else` block after the new affinity/random-selection wrapper, restoring the intended function nesting.
-- Preserved: pin handling, affinity selection, auto-group price ordering, task-plugin filters, retry behavior, and all existing routing logic.
-- Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment.
-- Commit and push: source fix committed as `d45459536` and pushed to `origin/main` on 2026-10-28; this log update follows.
-
-## 2026-10-28 - Fix task-plugin route type compatibility
-
-- Local reason: the GitHub Actions image build reached Go type checking and rejected `pinned.Route.Type` (`jsplugin.RouteType`) where the existing body validation helper accepts a string.
-- Changed: convert the declared route type at the helper boundary, preserving the existing route constants and body validation behavior.
-- Preserved: JSON/multipart route rules, model-scoped restrictions, query handling, and task-plugin routing behavior.
-- Validation: `git diff --check` passed; Go tests and Docker build could not run locally because Go and Docker are unavailable in this environment.
-- Commit and push: source fix committed as `f75f142c2` and pushed to `origin/main` on 2026-10-28; this log update follows.
-
-## 2026-10-29 - Localize and clean up task pricing display
-
-- Local reason: task pricing details showed English plugin usage labels, empty fixed-price columns, and an unpriced default row in the model marketplace.
-- Changed: hide unused fixed/unit-price columns and empty unconditioned default rows; localize task pricing units and Doubao Seedance usage labels/conditions for all supported frontend languages, including the `zhCN`/`zhTW` language codes.
-- Preserved: billing expressions, price calculations, plugin override precedence, and explicitly conditioned zero-price tiers.
-- Validation: locale JSON parsing, Doubao plugin syntax check, targeted Oxfmt, and `git diff --check` passed. `bun run typecheck` remains blocked by pre-existing missing test dependencies and unrelated type errors; no diagnostics referenced changed files. Local preview was started at `http://localhost:8080/pricing`.
-- Commit and push: code committed as `f07dea0ae`; the changelog was committed as `dfe2a8080`. Both commits were pushed to `origin/main` on 2026-10-29.
-
-## 2026-10-29 - Preserve token unit format in Chinese pricing
-
-- Local reason: Chinese model pricing displayed the token unit as `100 万 Token`, while the requested marketplace format is `1M tokens`.
-- Changed: simplified and traditional Chinese locales now preserve the `1M tokens` label used by the pricing table.
-- Preserved: all billing calculations, other locale translations, and task pricing behavior.
-- Validation: targeted Oxfmt and `git diff --check` passed.
-- Commit and push: code committed as `70b2e114a`; changelog committed as `b80474c5b`. Both were pushed to `origin/main` on 2026-10-29.
-
-## 2026-10-29 - Persist task pricing snapshots for completion settlement
-
-- Local reason: asynchronous Seedance task logs could undercharge when the upstream completion token count differed from the submission estimate because the tiered pricing snapshot was not stored with the task.
-- Changed: persist `relayInfo.TieredBillingSnapshot` in both task submission billing contexts, including the protocol bridge path, so polling can evaluate the completed task with the upstream usage facts and configured tier price.
-- Preserved: existing pre-consumption, non-tiered task billing, plugin routing, and legacy task records without a snapshot.
-- Validation: targeted source inspection and `git diff --check`; Go tests were not run because the Go toolchain is unavailable in this environment.
-- Commit and push: code committed as `d4db9aa2d` and pushed to `origin/main` on 2026-10-29; this changelog status follow-up is committed separately.
-
-## 2026-10-29 - Add synchronous multipart upload relay
-
-- Local reason: the Seedance asset-upload workflow needs an upload endpoint that immediately forwards multipart data to its selected upstream and returns the upstream response, without creating a gateway file record.
-- Changed: register `POST /v1/upload`, route by the leading multipart `model` field, forward the multipart body as a stream to the selected channel's same `/v1/upload` path using channel credentials/proxy/header overrides, and stream the upstream status, headers, and body back to the caller. No file metadata or durable upload is created.
-- Preserved: the unrelated placeholder `/v1/files` routes and all existing video/task endpoint behavior.
-- Validation: added middleware and controller regression tests; `git diff --check` passed. The first GitHub Actions image build exposed an invalid `RelayInfo.ApiKey` field initializer; removed it and kept the key on `ChannelMeta.ApiKey`. Go tests could not run locally because Go/gofmt are unavailable in this environment.
-- Commit and push: initial upload relay source fix committed and pushed after the failed build. A follow-up corrected upstream path passthrough after review.
-
-## 2026-10-30 - Bill upload requests by configured model price
-
-- Local reason: `/v1/upload` used the model field for channel selection but did not apply that model's configured price, so successful uploads appeared free in usage logs.
-- Changed: upload requests now use the selected model's fixed per-request price through the shared billing session, pre-consume before forwarding, settle on upstream 2xx, and refund on failure. Successful logs record the actual quota and request billing unit; user/channel usage totals include the charge. Token-ratio-only pricing is rejected because upload responses do not report billable token usage. Token-subscription keys remain subject to the existing allowed-endpoint/model validation.
-- Preserved: synchronous multipart streaming and upstream response passthrough; no file persistence, no fabricated token usage, and no `/v1/files` behavior change. Model performance samples still record success and latency with zero generated tokens.
-- Validation: added upload status and fixed-price requirement regression coverage; `git diff --check` passed. Go tests were not run because Go/gofmt are unavailable in this environment.
-- Commit and push: pending.
-
-## 2026-10-31 - Unify public video task failure details
-
-- Local reason: `/v1/video/generations/{id}` collapsed media billing failures into a generic message, while `/v1/videos/{id}` could expose upstream gateway codes, request IDs, and raw provider diagnostics.
-- Changed: recognize missing video unit-price failures and return a useful public-safe `invalid_media_billing` explanation; sanitize OpenAI video retrieval errors through the same projection used by the legacy task endpoint. Successful video metadata and usage behavior remain unchanged.
-- Preserved: full task response data for administrator diagnostics, provider-specific routing, task settlement, and the existing public task/status fields.
-- Validation: added regression coverage for media billing error mapping and OpenAI video error sanitization; `git diff --check` passed. `gofmt` and Go tests could not run because Go is unavailable in this environment.
-- Commit and push: pending.
-
-## 2026-11-01 - Forward JSON requests through the upload endpoint
-
-- Local reason: Seedance asset-upload providers can accept JSON references such as a remote asset URL, while `/v1/upload` previously accepted multipart requests only.
-- Changed: accept `application/json` on `POST /v1/upload`; extract the top-level `model` only for channel selection, then replay the original stored request bytes to the upstream unchanged. Existing multipart streaming remains supported.
-- Preserved: upstream path, authentication, fixed per-request billing, response passthrough, request-size limits, and the no-persistence behavior.
-- Validation: added middleware coverage for model extraction and byte-for-byte request replay, plus controller coverage for upstream JSON forwarding. `git diff --check` passed; Go tests could not run because Go/gofmt are unavailable in this environment.
-- Commit and push: pending.
-
-## 2026-11-01 - Document the tentative real-name verification plan
-
-- Local reason: the project needs a reviewed design before implementing optional two-factor identity verification and the separate policy that can require verification before API key creation.
-- Changed: added `docs/real-name-verification-plan.md` covering the Alibaba Cloud AppCode integration, result/error handling, encrypted storage, administrator access, user/admin APIs, independent enforcement switch, key-creation paths, privacy controls, compatibility, and validation plan.
-- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred pending confirmation.
-- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
-- Commit and push: pending.
-
-## 2026-11-01 - Switch the tentative real-name provider to POST verification
-
-- Local reason: the proposed Alibaba Cloud Market provider uses a POST form request and returns `error_code` plus `result.isok`, avoiding identity data in an upstream GET query string.
-- Changed: updated `docs/real-name-verification-plan.md` to use `zidv2.market.alicloudapi.com/idcheck/Post`, `cardNo`/`realName`, AppCode authentication, the `error_code=0` and `result.isok=true` success rule, and HTTP 400/403 and quota handling.
-- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred pending confirmation.
-- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
-- Commit and push: pending.
-
-## 2026-11-01 - Record real-name provider integration verification
-
-- Local reason: a live test was requested after switching the tentative provider.
-- Changed: recorded the verified POST form request, AppCode authentication, HTTP `200`, `error_code=0`, and `result.isok=true` success path in `docs/real-name-verification-plan.md` without storing credentials or identity data.
-- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
-- Validation: live provider request succeeded; `git diff --check` passed. No automated tests were needed for this documentation-only update.
-- Commit and push: pending.
-
-## 2026-11-01 - Add enterprise verification to the tentative plan
-
-- Local reason: a second Alibaba Cloud Market provider was supplied for enterprise four-factor verification.
-- Changed: expanded `docs/real-name-verification-plan.md` with the enterprise endpoint, POST-plus-query request shape, AppCode configuration, the documented-but-unconfirmed `key` parameter, per-field result semantics, strict success rule, error-code handling, `seqNo` correlation, separate encrypted enterprise data, user/admin API shapes, and validation coverage.
-- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
-- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
-- Commit and push: pending.
-
-## 2026-11-01 - Verify the enterprise identity provider
-
-- Local reason: a live enterprise verification request was requested after adding the provider to the plan.
-- Changed: recorded the successful enterprise response in `docs/real-name-verification-plan.md`: HTTP `200`, `code=10000`, all four `*_result` fields equal to `1`, and a returned `seqNo`; the test also confirmed that omitting the documented `key` parameter currently succeeds.
-- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
-- Validation: live provider request succeeded; `git diff --check` passed. No automated tests were needed for this documentation-only update.
-- Commit and push: pending.
-
-## 2026-11-01 - Lock the user to one verification method after success
-
-- Local reason: the confirmed product behavior is to let an unverified user choose personal or enterprise verification, then lock the selected type and verified data after success.
-- Changed: updated `docs/real-name-verification-plan.md` so each user has one current verification record, can switch methods only before success, and enterprise details are retained as part of the user's encrypted verification data.
-- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
-- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
-- Commit and push: pending.
-
-## 2026-11-01 - Confirm exceptional administrator verification reset
-
-- Local reason: the user confirmed administrators may reset a locked personal or enterprise verification record in exceptional cases.
-- Changed: updated `docs/real-name-verification-plan.md` to require an administrator-provided reason and audit entry, return the user to the unverified state so they may choose either method again, preserve existing keys, and reapply the new-key gate when enabled.
-- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
-- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
-- Commit and push: pending.
-
-## 2026-11-01 - Enforce real-name verification for all model services
-
-- Local reason: the user changed the enforcement policy from gating only new API key creation to disabling all model/API services for accounts without a completed verification.
-- Changed: updated `docs/real-name-verification-plan.md` so the independent enforcement switch blocks all model/API requests made with existing or new keys until either personal or enterprise verification succeeds; key creation is also blocked, while profile and verification recovery flows remain accessible. Administrator reset re-applies the service block until reverification.
-- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
-- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
-- Commit and push: pending.
-
-## 2026-11-01 - Extend the real-name gate to all business services
-
-- Local reason: the confirmed policy is to make all platform business services unavailable to unverified users when enforcement is enabled, rather than limiting the gate to model/API traffic.
-- Changed: updated `docs/real-name-verification-plan.md` to block model/API, subscription, top-up, invoice, and other business services for unverified users while keeping login, profile, verification, help, and necessary account recovery accessible.
-- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
-- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
-- Commit and push: pending.
-
-## 2026-11-01 - Make personal and enterprise verification independently available
-
-- Local reason: personal and enterprise verification providers are configured separately, and the available user choices must follow which providers are enabled and configured.
-- Changed: updated `docs/real-name-verification-plan.md` with independent method switches and credentials: one available method means only that method is shown, both available methods allow a choice, and disabling a method does not revoke an existing successful verification. Enforcement cannot be enabled when no method is available.
-- Preserved: no application code, database schema, runtime configuration, or existing user/Key behavior was changed; implementation remains deferred.
-- Validation: `git diff --check` passed; this is documentation-only and no Go or frontend tests were needed.
-- Commit and push: pending.
-
-## 2026-11-01 - Implement real-name verification and service enforcement
-
-- Local reason: the user confirmed the reviewed personal/enterprise verification design and requested implementation.
-- Changed: added independently configurable personal and enterprise verification under the default frontend Authentication settings; added server-side Alibaba verification clients, encrypted verification records, user verification APIs, profile UI, administrator summary/full-view/reset APIs and UI, audit logging for resets, and a mandatory verification gate for model/API requests, API key creation, subscriptions, top-up, invoice actions, and initial registration keys. `REAL_NAME_ENCRYPTION_KEY` is required before a method can be enabled; AppCodes remain server-only.
-- Preserved: existing authentication methods, existing successful verification records when a method is later disabled, existing keys during administrator reset, profile/verification/recovery access, and unrelated untracked worktree files.
-- Validation: `bun run build` in `web/default` passed; `git diff --check` passed. Go tests could not run because Go and `gofmt` are unavailable in this environment. Backend compile/test validation remains pending in an environment with Go 1.22+.
-- Commit and push: pending.
-
-## 2026-11-01 - Reuse existing stable secret for real-name encryption
-
-- Local reason: deployments already configured `CRYPTO_SECRET` were blocked from enabling real-name verification because a second dedicated environment variable was mandatory.
-- Changed: real-name encryption now prefers `REAL_NAME_ENCRYPTION_KEY`, then reuses an explicitly configured `CRYPTO_SECRET` or `SESSION_SECRET`; generated process-local defaults are excluded. Admin full-detail viewing continues to decrypt records server-side and returns readable identity fields only through the protected administrator endpoint.
-- Preserved: identity data remains encrypted at rest, masked summaries remain the default, existing records using the dedicated key continue to use it, and no plaintext fallback was added.
-- Validation: `git diff --check` passed; Go tests and `gofmt` are unavailable in this environment.
-- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
-
-## 2026-11-02 - Accept Seedance native automatic duration
-
-- Local reason: Seedance's native `/api/v3/contents/generations/tasks` contract uses `duration: -1` to request an automatically selected duration, but the Doubao plugin rejected every non-positive value.
-- Changed: the native duration validator accepts exactly `-1` for `duration`; the original provider body preserves that sentinel, while the internal billing request omits it so it cannot become a negative billing multiplier. Values below `-1`, zero, and values above 3600 remain rejected.
-- Preserved: native provider fields are forwarded unchanged, normal positive duration validation remains in place, and billing falls back to a safe positive estimate until completion usage is available.
-- Validation: added native plugin coverage for acceptance and upstream preservation of `-1`, positive billing estimation, and rejection of `-2`, `0`, and `3601`; `node --check` and `git diff --check` are run for this change. Go tests remain unavailable because the repository requires Go 1.26.10 while this machine has Go 1.25.0.
-- Commit and push: pending.
-
-## 2026-11-02 - Hide disabled real-name verification in profile
-
-- Local reason: the profile always displayed a real-name verification tab even when the feature was disabled by the administrator.
-- Changed: the profile settings card reads the existing identity-verification query and renders the tab and content only when its enabled flag is true; the remaining tabs use two equal columns and a hidden active identity tab falls back to account bindings. Pending or unsuccessful responses keep the entry hidden.
-- Preserved: existing verification APIs, submission rules, administrator views, and the independent mandatory verification policy remain unchanged; earlier uncommitted encryption-secret changes are preserved.
-- Validation: `git diff --check` passed. Targeted Oxlint reported only the pre-existing skeleton index-key violation; the same file passed with that single rule disabled. No full build or additional tests for this small visibility change.
-- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
-
-## 2026-11-02 - Hide personal sidebar configuration for ordinary users
-
-- Local reason: ordinary users should not see the personal sidebar configuration card in their profile.
-- Changed: profile now shows the sidebar configuration card only for administrator roles with the existing sidebar settings permission; unknown roles keep the card hidden while the profile loads.
-- Preserved: administrator permission restrictions, current sidebar visibility settings, and other profile cards; earlier uncommitted work remains intact.
-- Validation: targeted Oxlint for `profile/index.tsx` and `git diff --check` passed; no full build for this small visibility change.
-- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
-
-## 2026-11-02 - Hide profile Passkey card when disabled by administrator
-
-- Local reason: the user requested hiding optional security cards when administrators have not enabled them.
-- Changed: profile mounts the Passkey card only when the existing public `passkey_login` flag is true, hiding the card and avoiding its management requests when disabled or unknown.
-- Preserved: Passkey authentication and existing credentials are unchanged. Two-factor enrollment is controlled separately by the switch described in the next entry.
-- Validation: targeted Oxlint and `git diff --check` passed; no full build for this small visibility change.
-- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
-
-## 2026-11-02 - Add administrator switch for two-factor enrollment
-
-- Local reason: profile security cards should be hidden when the administrator has disabled that feature, and ordinary users previously had no way to toggle global 2FA enrollment availability.
-- Changed: added `two_fa.enrollment_enabled` under Basic Authentication, defaulting to true for compatibility; the public status and per-user 2FA status expose the setting. Setup and enable endpoints reject new enrollment while disabled. The profile hides the 2FA card when enrollment is disabled and the user has no enabled 2FA, while users who already enabled it retain management and disable controls. Frontend labels are translated across supported locales.
-- Preserved: existing 2FA credentials and authentication remain intact when enrollment is disabled; Passkey visibility continues to follow its existing admin switch.
-- Validation: targeted Oxlint passed; `git diff --check` passed. Full frontend typecheck reports repository errors outside these changes and missing test dependencies. Added a regression test proving both setup and enable requests are rejected before any database access when enrollment is disabled; execution and Go formatting remain unavailable because the Go toolchain is not installed.
-- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
-
-## 2026-11-02 - Fix authentication version writes blocked by GORM permissions
-
-- Local reason: starting two-factor setup failed with `user authentication version update conflicted` because the explicit auth-version updater used the User schema whose `AuthVersion` field is create-only.
-- Changed: transactional auth-version increments and upgrade initialization now write through the users table directly, avoiding the create-only schema guard while retaining the row lock, compare-and-swap predicate, transaction rollback, and Redis fence. This fixes the shared updater used by two-factor creation/deletion, Passkey changes, and other security operations.
-- Preserved: legacy User Save/Updates cannot overwrite auth versions; existing security/session policies and pending feature changes remain intact.
-- Validation: `git diff --check` passed. Added database contract coverage for 2FA creation/deletion, stale saves, rollback, and idempotent initialization to the existing SQLite/MySQL/PostgreSQL test harness. Tests could not run because Go is unavailable locally.
-- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
-
-## 2026-11-02 - Add saved marketing email preference and administrator visibility
-
-- Local reason: users need a default-on product-news and promotional-email preference, with its saved state visible to administrators for future campaigns.
-- Changed: added `marketing_email_enabled` to the existing user-settings JSON and settings update API. An omitted value defaults to enabled, explicit false survives serialization, and clients omitting the field preserve the saved choice. Added the profile preference switch and a read-only enabled/disabled field in the administrator Edit User drawer, using freshly fetched user details. Added labels and descriptions in all seven frontend locales; no database migration is required.
-- Preserved: no email sending, campaign integration, or administrator editing of this preference was added; account/security notifications and existing uncommitted work remain intact. Minor existing lint violations in the touched components were corrected without changing behavior.
-- Validation: targeted Oxlint passed with one pre-existing parseInt style warning; frontend formatting, locale JSON parsing, and `git diff --check` passed. Full frontend typecheck still fails on existing unrelated errors and missing test dependencies; no errors were reported in the files changed for this preference. Go compilation/tests remain unavailable because the Go toolchain is not installed.
-- Commit and push: included in `5c910e72e` (`feat: add marketing email preference and refine profile security`); pushed successfully to `origin/main` on 2026-11-02.
-
-## 2026-11-03 - Exclude asynchronous failures without HTTP status codes from performance metrics
-
-- Local reason: video and other asynchronous providers can return terminal failures without an HTTP status code; operators need an opt-in way to keep these provider validation failures out of model success-rate metrics.
-- Changed: added `perf_metrics_setting.exclude_task_failures_without_status_code`, defaulting to false. When enabled, only status-less asynchronous task failures are excluded; failures with an explicit HTTP status still follow the existing excluded-status-code rules. Added the administrator switch and translations in the Monitoring & Alerts settings.
-- Preserved: task logs, refunds, billing, synchronous relay metrics, and failures with explicit HTTP statuses are unchanged.
-- Validation: added focused Go regression coverage for default behavior, opt-in exclusion, explicit included statuses, and existing excluded statuses. Targeted Oxlint and Oxfmt, locale JSON parsing, and `git diff --check` passed. Go tooling was unavailable locally, so the Go test and gofmt could not run.
-- Commit and push: included in `e94c2ce62` (`feat: refine organization workspace navigation and AstraFlow tasks`); pushed successfully to `origin/main` on 2026-11-03.
-
-## 2026-11-03 - Rename MediaKit task plugin to AstraFlow and expose upstream task routes
-
-- Local reason: AstraFlow uses shared native asynchronous task paths for all models and clients must call the platform-compatible paths directly.
-- Changed: renamed the embedded plugin directory/key to `astraflow`, changed its display name, and exposed `POST /v1/tasks/submit` plus `GET /v1/tasks/status?task_id=...` before the generic `/v1/tasks/:key` routes are registered. Added the generic `taskIdQuery` route declaration so task plugins can read query-string task IDs; existing path-parameter query routes remain unchanged.
-- Preserved: the upstream request and status URLs, ten-second pre-consume, actual-duration settlement, model-specific usage schema, and OpenAI protocol routes.
-- Validation: Bun plugin checks and `git diff --check` remain the available local checks; Go tests remain unavailable because the Go toolchain is not installed.
-- Commit and push: included in `e94c2ce62` (`feat: refine organization workspace navigation and AstraFlow tasks`); pushed successfully to `origin/main` on 2026-11-03.
-
-## 2026-11-03 - Add AstraFlow video enhancement task plugin
-
-- Local reason: add an AstraFlow task plugin for the video enhancement API (`POST /v1/tasks/submit` and `GET /v1/tasks/status?task_id=...`).
-- Changed: renamed the embedded plugin to `astraflow` and exposed the same unprefixed native paths as the upstream platform, allowing future AstraFlow models to share these routes. The plugin keeps bearer authentication, remote video artifact proxying, and usage facts for `seconds`, `resolution`, and `fps`. Resolution tiers are `720p`, `1080p`, `2k`, `4k`, `6k`, and `8k`; FPS tiers are `30`, `60`, and `120`. The admin pricing matrix has 18 resolution/FPS combinations with `seconds` as its only billable quantity and a per-second price. The plugin pre-consumes ten seconds, then reconciles the charge to the actual upstream duration after completion; the client request remains in the upstream-native shape. Completion usage can also update returned resolution/FPS when present.
-- Preserved: upstream request shape (`model`, `input.video_url`, `parameters.resolution`, `parameters.fps`), provider URLs, and existing task plugin billing/settlement behavior. Prices remain administrator-configured through task billing expressions; no hard-coded currency rates were added.
-- Validation: added focused plugin registration, request forwarding, status parsing, completion usage, and artifact URL regression coverage. Bun checks confirmed 10-second pre-consume, preservation of the native request body, actual-duration completion facts, and FPS rejection outside 30/60/120; `git diff --check` passed. Go tests could not run because the Go toolchain is unavailable.
-- Commit and push: local changes are intentionally uncommitted and unpushed at the user's request.
-
-## 2026-11-03 - Separate personal and organization workspace navigation
-
-- Local reason: organization members should choose a workspace before entering its dashboard, and organization navigation should not expose personal-only pages.
-- Changed: the organization entry now acts as a personal workspace selector without auto-opening the first organization; creation and invitation acceptance remain on the personal selector, while the create form is hidden after entering an organization. When an organization is active, the personal sidebar group becomes an Organization group and hides Friends Hub, Member Tiers, Support Tickets, and Profile. Added the localized Organization label across all frontend locales.
-- Preserved: multi-organization membership, invitation acceptance, header workspace switching, organization APIs, and existing organization detail tabs remain unchanged.
-- Validation: targeted Oxlint and Oxfmt passed for the changed frontend files, all seven locale files parse successfully, and `git diff --check` passed. Go tests were not run because the Go toolchain is unavailable.
-- Commit and push: included in `e94c2ce62` (`feat: refine organization workspace navigation and AstraFlow tasks`); pushed successfully to `origin/main` on 2026-11-03.
-
-## 2026-11-03 - Accept numeric enum selectors in native task requests
-
-- Local reason: AstraFlow's native request requires `parameters.fps` as a JSON number, while its billing usage schema stores FPS enum values as strings; request validation incorrectly rejected valid `fps: 30` payloads with `plugin usage enum must be a string`.
-- Changed: request-side plugin usage validation now compares finite numeric enum selectors using their canonical string form. Completion usage validation remains string-only, and enum membership is still enforced.
-- Preserved: upstream-native request bodies, plugin pricing facts, settlement behavior, and strict completion usage validation for all task plugins.
-- Validation: added focused Go regression coverage for numeric request enum selectors, rejected enum values, and strict completion facts. `git diff --check` passed; Go tests and gofmt could not run because the Go toolchain is unavailable locally.
-- Commit and push: included in `a7192f777` (`feat: improve organization selector and task validation`); pushed successfully to `origin/main` on 2026-11-03. The status correction is recorded in `a81b20c59`.
-
-## 2026-11-03 - Add friendly Seedream 5.0 model aliases
-
-- Local reason: expose stable customer-facing Seedream 5.0 Pro and Flash model names without dated snapshot suffixes while retaining the official Ark snapshot IDs upstream.
-- Changed: added `doubao-seedream-5.0-pro` and `doubao-seedream-5.0-flash` to the Doubao plugin with their matching capability and usage profiles. Image request construction resolves them to `doubao-seedream-5-0-pro-260628` and `doubao-seedream-5-0-flash-260915` respectively; existing dated names remain supported.
-- Preserved: provider request format, channel model mapping behavior, image capability validation, and existing billing expressions for the dated models.
-- Validation: `bun --check plugins/tasks/doubao/plugin.js` and `git diff --check` passed. Added plugin regression coverage for alias profile registration and upstream model rewriting; Go tests could not run because the Go toolchain is unavailable locally.
-- Commit and push: included in `ebf88d5b8` (`feat: add friendly Seedream 5.0 aliases`); pushed successfully to `origin/main` on 2026-11-03.
-
-## 2026-11-04 - Route Doubao Seedream through the unified Images API
-
-- Local reason: Seedream requests sent to `/v1/images/generations` bypassed the Doubao task plugin because it did not claim the `openai_image` protocol, so the image-specific usage facts were absent and the configured tiered expression charged zero.
-- Changed: registered Doubao Seedream models for the shared `openai_image` host protocol and added OpenAI Images request decoding/rendering that reuses the existing Ark request conversion, pixel-tier pre-consume, and actual output-size settlement.
-- Preserved: the existing native Doubao image route, Responses API behavior, OpenAI-compatible channels not claimed by plugins, and existing Seedream model aliases and pricing expressions.
-- Validation: added regression coverage for unified endpoint decode, submit-time 2K billing facts, and completion settlement across actual 1K/2K outputs. `bun --check` and `git diff --check` passed; Go test execution is pending local toolchain availability.
-- Commit and push: included in `3b986df67` (`fix: bill Doubao images through unified endpoint`); pushed to `origin/main` on 2026-11-04.
-
-## 2026-11-04 - Record Alibaba image task performance and elapsed time
-
-- Local reason: successful synchronous Alibaba Qwen image generations bypass the background task poller's performance sampler, and task consumption logs left `use_time` at its zero default.
-- Changed: synchronous terminal task results in the OpenAI Images task bridge now use the relay request timer for performance samples; task consumption logs store elapsed whole seconds from relay start, clamped at zero for invalid timestamps.
-- Preserved: asynchronous tasks continue to be sampled by the existing terminal polling path, billing and task response payloads are unchanged, and ordinary request log timing behavior is unchanged.
-- Validation: added a task billing regression test for elapsed log time; `git diff --check` passed. Go tests and gofmt could not run because the Go toolchain is unavailable locally.
-- Commit and push: included in `8cdad1ae1` (`fix: improve task image and video pricing display`); pushed to `origin/main` on 2026-11-04.
-
-## 2026-11-04 - Show localized units in model pricing details
-
-- Local reason: model detail pricing rendered every count-based task usage price with the generic “Count” label, even when the plugin schema supplied a localized unit such as “张”.
-- Changed: model detail pricing now uses each task usage field's localized `unitLabel` for count-based units, matching the admin pricing configuration and plugin metadata.
-- Preserved: token and duration units, fallback labels for schemas without `unitLabel`, price calculations, and billing expressions are unchanged.
-- Validation: added focused frontend coverage for localized image count units; targeted Bun tests passed, Oxlint passed after refactoring unit selection, and `git diff --check` passed.
-- Commit and push: included in `8cdad1ae1` (`fix: improve task image and video pricing display`); pushed to `origin/main` on 2026-11-04.
-
-## 2026-11-04 - Correct image pricing summary on model cards
-
-- Local reason: external model cards summarized image task prices as generic input/output prices, used a single output rate instead of the configured tier range, and rendered the raw `count` unit.
-- Changed: image task cards identify Seedream (`input_images` / `images_*`) and Qwen Image 3 (`input_image_count` / `image_count`) usage fields, show input image pricing separately from the output range, and render the plugin-provided localized image unit.
-- Preserved: token pricing summaries, non-image task summaries, model detail pricing tables, and billing behavior remain unchanged.
-- Validation: added pricing entry coverage for Seedream and Qwen Image 3 input/output image fields and preserved unit metadata; targeted Bun tests and Oxlint passed, and `git diff --check` passed.
-- Commit and push: included in `8cdad1ae1` (`fix: improve task image and video pricing display`); pushed to `origin/main` on 2026-11-04.
-
-## 2026-11-04 - Display resolution-tiered video prices as output rates
-
-- Local reason: resolution-tiered task video models showed the same per-second amount as both input and output and exposed the raw unit name `second` on marketplace cards.
-- Changed: task models with per-second usage and output resolution/FPS tiers now show no input price, combine the configured rates into the output price range, and localize the unit label. Detection uses schema units and localized dimension metadata rather than fixed usage field names.
-- Preserved: image task summaries, token summaries, non-video task summaries, and billing calculations are unchanged.
-- Validation: added coverage for resolution-based video rates and a plugin schema whose duration field is named `input_video_duration`; targeted Bun tests, Oxlint and formatting checks passed, and `git diff --check` passed.
-- Commit and push: included in `8cdad1ae1` (`fix: improve task image and video pricing display`); pushed to `origin/main` on 2026-11-04.
-
-## 2026-11-04 - Hide task plugin names from model pricing details
-
-- Local reason: model detail pricing headings exposed the internal task plugin name (for example, “Doubao 任务定价”) to end users.
-- Changed: plugin-backed pricing sections now use the neutral localized “Task pricing” title while retaining the pricing rows and plugin-specific billing metadata internally.
-- Preserved: pricing calculations, provider selection, model cards, and admin configuration labels remain unchanged.
-- Validation: `git diff --check` passed. Targeted frontend tests were not added because this is a static title change; frontend test execution remains covered by the existing pricing tests.
-- Commit and push: included in `8cdad1ae1` (`fix: improve task image and video pricing display`); pushed to `origin/main` on 2026-11-04.
-
-## 2026-11-04 - Apply task price summaries to the active model catalog
-
-- Local reason: the active Model Square renders `CatalogModelCard` from `pricing/index.tsx`; the earlier image/video summary logic was only added to the separate legacy `ModelCard`, so catalog cards kept showing generic duplicated input/output prices and raw units.
-- Changed: the active catalog `usePriceRows` now uses a tested task-price summary helper to display localized image input labels and per-image output ranges, and video output ranges with no input price and localized seconds.
-- Preserved: token pricing, request pricing, filters, model details and billing behavior remain unchanged.
-- Validation: all 9 tests in `bun test src/features/pricing/lib/dynamic-price.test.ts` passed. The Rsbuild production build passed, formatting and `git diff --check` passed, and Oxlint passed for the new helper and its test. Whole-repository typecheck remains blocked by existing diagnostics in unrelated modules; the filtered output showed no diagnostics in the changed pricing files.
-- Commit and push: included in `5f49c0999` (`fix: wire task pricing into catalog cards`); pushed to `origin/main` on 2026-11-04.
-
-## 2026-11-04 - Display output-only image tier prices on catalog cards
-
-- Local reason: image task models that configure output image prices without a separately billed input-image field fell back to generic pricing and repeated the output unit price as both input and output.
-- Changed: catalog image pricing now recognizes output image tiers independently, shows `-` for the unpriced input side, and displays the output rate using the configured image unit label.
-- Preserved: models that separately bill input images retain their input price and output tier range; video, token, and billing calculations are unchanged.
-- Validation: all 10 tests in `bun test src/features/pricing/lib/dynamic-price.test.ts` passed; targeted Oxlint and `git diff --check` passed. Oxfmt was run on the changed test file and its check passed afterward.
-- Commit and push: included in `a69639dea` (`fix: show Wan3 reference video pricing`); pushed to `origin/main` on 2026-11-04.
-
-## 2026-11-04 - Show Wan 3.0 reference video pricing on catalog cards and details
-
-- Local reason: Wan 3.0 charges the combined reference-video input and generated-video durations, but its shared per-second rate was shown as output-only in the catalog and as one generic column in model details.
-- Changed: added a validated, display-only `pricingDisplay` usage-schema marker for Wan 3.0 and Wan 3.0 Prime. Catalog cards now show the configured per-second range under both reference input and generated output with an explicit combined-duration note; model details show the same rate in separate reference-input and generated-output columns for each configured resolution.
-- Preserved: the billing expression, pre-consumption, usage facts, and settlement still use the existing combined `seconds` field and do not change charges. Other Alibaba video models retain their existing display. Also includes the prior output-only image tier card fix.
-- Validation: 17 targeted frontend tests passed, Rsbuild production build passed, all locale JSON files parsed, targeted Oxlint/Oxfmt and `git diff --check` passed. Go tests could not run because the Go toolchain is not installed in this environment; full Oxlint on the catalog page reports pre-existing diagnostics outside the changed lines.
-- Commit and push: included in `a69639dea` (`fix: show Wan3 reference video pricing`); pushed to `origin/main` on 2026-11-04.
-
-## 2026-11-04 - Refine catalog task price labels
-
-- Local reason: the catalog repeated Wan 3.0's combined-duration billing note even though the model details already explain it, and equal image prices appeared as a redundant range such as `¥0.12–¥0.12`.
-- Changed: removed the combined-duration note from catalog cards while keeping it in model details; identical price-range endpoints now collapse to one unit price.
-- Preserved: Wan 3.0 input/output labels and rates remain on the card, and all billing calculations and detail-page pricing explanations are unchanged.
-- Validation: all 11 tests in `bun test src/features/pricing/lib/dynamic-price.test.ts` passed; Rsbuild production build, targeted Oxlint/Oxfmt, and `git diff --check` passed.
-- Commit and push: pending.
-
-## 2026-11-03 - Add searchable organization card selector
-
-- Local reason: the personal organization selector needed a clearer overview for users who belong to multiple organizations.
-- Changed: added breadcrumb context, a top-right organization creation dialog, client-side organization-name search, responsive organization cards showing the icon, name, active member count, and creation time, plus an explicit no-match state. The organization list response now includes the active member count without adding a database column.
-- Preserved: pending invitations remain in the personal selector, card selection still enters the existing organization workspace, and all organization workspace tabs and controls remain unchanged.
-- Validation: pending targeted Oxlint/Oxfmt, locale JSON parsing, and frontend checks; Go tests remain unavailable locally because the Go toolchain is not installed.
-- Commit and push: included in `a7192f777` (`feat: improve organization selector and task validation`); pushed successfully to `origin/main` on 2026-11-03. The status correction is recorded in `a81b20c59`.
-
-## 2026-11-04 - Validate configured Sora video resolutions
-
-- Local reason: configured Sora per-second prices must not silently accept a resolution the administrator did not price, including custom provider-supported dimensions such as `1080x720`.
-- Changed: Sora parameter pricing now rejects explicit unconfigured resolutions with HTTP 400. Custom dimensions are accepted when configured as an exact tier; a single-tier default remains available only when the request omits a resolution.
-- Preserved: validation only runs for Sora-channel models with enabled Sora parameter pricing; existing standard size aliases, upstream request bodies, and other video models remain unchanged.
-- Validation: added regression coverage for configured custom dimensions and rejection of unconfigured dimensions. `gofmt` and Go test execution were unavailable because Go is not installed; `git diff --check` passed.
-- Commit/push: not committed or pushed.
-
-## 2026-11-05 - Make quota subscription amounts editable as money and inherit subscription key groups
-
-- Local reason: quota plans were edited with internal quota units, and subscription keys only supported token plans without preserving the plan's group scope.
-- Changed: default subscription-plan editing converts quota units to the configured display currency for quota plans and converts the amount back on save; token plans remain raw token counts. Subscription keys can be created for either billing mode. A single allowed group is bound directly; multiple allowed groups are inherited as an automatic routing set; unrestricted plans keep the user's normal group access. Authentication and billing now carry the subscription group snapshot and pre-consume the exact subscription referenced by the key.
-- Preserved: wallet and Web Tools billing behavior, existing token-plan model restrictions, unrestricted plans, and the user's uncommitted Sora resolution validation changes.
-- Validation: targeted Oxfmt, locale JSON parsing, and diff checks passed. Targeted Oxlint reports only existing diagnostics in the touched UI files. Frontend typecheck is blocked by existing unrelated repository errors and missing test dependencies; Go tests were unavailable because the Go toolchain is not installed.
-- Commit and push: pending.
-
-## 2026-11-05 - Enter organization workspace from the top switcher
-
-- Local reason: selecting a concrete organization in the top workspace switcher incorrectly opened the organization management page instead of the selected workspace.
-- Changed: organization entries now preserve the selected organization and navigate directly to the dashboard workspace; the personal-space item also returns to the dashboard, while Manage organizations continues to open the organization selector/management page.
-- Preserved: organization selector card behavior and organization management page flow.
-- Validation: targeted Oxfmt and `git diff --check` passed; full frontend typecheck remains blocked by existing repository errors and missing test dependencies.
-- Commit and push: pending.
-
-## 2026-11-05 - Add reviewed product update newsletters
-
-- Local reason: administrators need periodic, reviewable product update emails covering new models and manually maintained discounts, with recipient targeting and marketing opt-out support.
-- Changed: added promotion, digest, and per-recipient delivery records; scheduled and manual draft generation; reviewer notification; admin APIs and settings UI for editing drafts, choosing audiences, approving sends, inspecting delivery outcomes, and retrying/resuming failed work. Delivery runs in system tasks and rechecks account status and marketing preference before each email. Marketing emails include signed unsubscribe links. The existing manual marketing email sender also respects opt-outs.
-- Preserved: newsletter generation never sends automatically; only an administrator's explicit approval starts delivery. Promotions are informational and do not change pricing or billing, and no model price history is recorded. Existing unset marketing preferences continue to default to enabled.
-- Validation: frontend production build, targeted Oxlint, Oxfmt, locale JSON parsing, and `git diff --check` passed. Full frontend typecheck remains blocked by existing unrelated type errors and missing test dependencies. Go tests and `gofmt` were unavailable because the Go toolchain is not installed.
-- Commit and push: committed as `74ae51005` (`feat: expand subscriptions and marketing email workflows`) and pushed to `origin/main` on 2026-11-05.
-
-## 2026-11-05 - Fix duplicate subscription group field blocking container build
-
-- Local reason: the GHCR build failed in `go run ./cmd/check-task-plugins` because `RelayInfo` declared `SubscriptionAllowedGroups` twice.
-- Changed: retained the subscription group snapshot field at its primary billing metadata location and removed the duplicate declaration.
-- Preserved: subscription group filtering, billing, logging, and all unrelated local changes.
-- Validation: source inspection and `git diff --check` passed; the local Go toolchain is unavailable, so the Go compiler and plugin check could not run locally.
-- Commit and push: committed as `f0b1965e2` (`fix: remove duplicate subscription group field`) and pushed to `origin/main` on 2026-11-05.
-
-## 2026-11-05 - Fix subscription query variable redeclaration blocking container build
-
-- Local reason: the next GHCR build reached the main binary compile and failed because the idempotency lookup and subscription selection declared `query` twice in the same transaction closure.
-- Changed: renamed the idempotency lookup variable to `existingQuery`; query conditions and subscription selection behavior are unchanged.
-- Preserved: subscription pre-consume selection, request idempotency, group restrictions, and all unrelated changes.
-- Validation: source inspection and `git diff --check` passed; the local Go toolchain is unavailable, so the Go compiler and tests could not run locally.
-- Commit and push: committed as `9be6bd63e` (`fix: avoid subscription query redeclaration`) and pushed to `origin/main` on 2026-11-05.
-
-## 2026-11-07 - Extend H3 task profiles and free-count pricing
-
-- Local reason: MiniMax H3 variants need stable lowercase model names, independently configurable resolution capabilities, and usage pricing that can make an initial number of reference images free.
-- Changed: added lowercase H3 model aliases with per-model resolution profiles and case-insensitive legacy matching; extended the task pricing editor and expression parser with count-based free quantities encoded as `max(u("field") - N, 0) * price`; propagated those quantities through previews, task pricing details, catalog cards, and localized input summaries for reference images and videos.
-- Preserved: existing Hailuo submission, upstream usage extraction, pre-consumption and settlement continue using the upstream actual usage values; token/second pricing and existing task expressions remain compatible, and the plugin map can narrow a model's supported resolutions independently.
-- Validation: H3 plugin passed `node --check`; targeted frontend task-plugin and dynamic-price tests passed (7 and 11 tests); `git diff --check` passed. Full frontend typecheck remains blocked by existing unrelated repository errors and missing test dependencies; Go tests could not run because Go is not installed.
-- Commit and push: included in `0bcfc0f77` (`feat: extend image task usage billing`); pushed to `origin/main` on 2026-11-07.
-
-## 2026-11-07 - Add Seedream 5.0 Pro free reference-image metadata
-
-- Local reason: Seedream 5.0 Pro returns `usage.input_images` and includes the first reference image at no charge.
-- Changed: the Doubao task plugin marks one input image as a count-pricing editor default for `doubao-seedream-5.0-pro`; the generic task pricing UI carries that suggestion into the generated `max(u("input_images") - 1, 0) * price` expression and the model-card/detail display. Completion settlement now honors `usage.generated_images` even when `data` contains only a subset of output payloads, conservatively assigning unknown-size outputs to the higher pixel tier.
-- Preserved: the expression remains the only billing source after saving, other Seedream models keep their existing input-image behavior, and output pricing still uses the actual `generated_images`/`data[].size` facts returned by upstream.
-- Validation: plugin syntax and targeted frontend pricing tests pass; Go tests cannot run locally because Go is not installed. Commit and push: included in `0bcfc0f77` (`feat: extend image task usage billing`); pushed to `origin/main` on 2026-11-07.
-
-## 2026-11-07 - Allow plugin free-quantity metadata in embedded validation
-
-- Local reason: the GHCR plugin validation failed because `freeQuantity` was intentionally added to the Doubao usage schema but the embedded metadata decoder still rejected it as an unknown property.
-- Changed: added an integer, count-field-only `freeQuantity` metadata property with a 0–128 bound to the plugin usage schema decoder and validation.
-- Preserved: free quantity remains editor metadata only; saved billing expressions remain the source of truth, and all existing plugin usage fields keep their validation rules.
-- Validation: Doubao plugin syntax and frontend pricing tests pass; the local Go toolchain is unavailable, so the container plugin check could not run locally. Commit and push: included in `d6a88a1b6` (`fix: accept task free quantity metadata`); pushed to `origin/main` on 2026-11-07.
-
-## 2026-11-07 - Remove duplicate case-insensitive H3 profile model declaration
-
-- Local reason: the GHCR plugin validation rejected the Hailuo usage profile because `minimax-h3` and `MiniMax-H3` were declared together even though model profile matching is already case-insensitive.
-- Changed: kept only the canonical lowercase H3 model in the profile; legacy `MiniMax-H3` requests continue to resolve to it through case-insensitive lookup.
-- Preserved: H3 model aliases, resolution profiles, billing facts, and all non-H3 Hailuo profiles.
-- Validation: plugin syntax and targeted frontend pricing tests pass; Go/container plugin checks are unavailable locally. Commit and push: included in `4fbccbb3b` (`fix: remove duplicate H3 profile alias`); pushed to `origin/main` on 2026-11-07.
-
-## 2026-11-07 - Hide unpriced task tiers from public details
-
-- Local reason: task pricing details rendered every condition row, including resolutions with no configured price, as rows containing only dashes.
-- Changed: public task pricing tables now include only tiers with a fixed price, unit price, or free quantity; unconfigured condition rows are omitted.
-- Preserved: configured tiers, billing expressions, and the task pricing editor remain unchanged.
-- Validation: targeted frontend pricing tests and Oxfmt passed; `git diff --check` passed. Commit and push: included in `c65e9c278` (`fix: show task input media pricing on cards`); pushed to `origin/main` on 2026-11-07.
-
-## 2026-11-09 - Hide billing expressions from user log details
-
-- Local reason: regular users should see the amount they paid without needing to interpret the stored dynamic billing expression, while administrators retain the detailed pricing breakdown.
-- Changed: tiered billing logs now record the rounded pre-group quota as `original_quota` for the billing detail view, falling back to the pre-consume estimate when settlement usage is unavailable. The default usage-log details dialog renders the dynamic expression section only for administrators and adds a localized Original Cost row when the field is present.
-- Preserved: actual deductions, group multipliers, expression evaluation, admin raw-data access, and historical logs without `original_quota` are unchanged.
-- Validation: added focused backend coverage for settled and estimated original quotas; frontend production build and `git diff --check` passed. The Go toolchain is unavailable locally, and full Oxlint remains blocked by pre-existing repository diagnostics (including an unchanged details-dialog warning). Commit and push: pending.
-
-## 2026-11-09 - Avoid false no-match billing labels in usage logs
-
-- Local reason: image/video and other usage-based expressions can settle correctly without the token-oriented tier parser producing a matched tier label, which made normal charges appear as “No matching results”.
-- Changed: usage-log summaries now suppress the no-match label when no runtime match is available, preserve explicit request-rule/base-tier matches, and safely use the sole parsed tier when an expression has only one tier. The billing dialog likewise omits an empty matched-tier row.
-- Preserved: billing expressions, runtime tier selection, quota calculation, and DeepSeek peak/off-peak display behavior are unchanged.
-- Validation: targeted dynamic-pricing tests (13 cases), frontend production build, and `git diff --check` passed; Go tests remain unavailable because the local Go toolchain is missing. Commit and push: pending.
-
-## 2026-11-09 - Show user-specific model multipliers in the catalog
-
-- Local reason: model cards and details showed the generic multiplier instead of a user's configured per-model override because the frontend recomputed an effective multiplier from separate values, despite the pricing API already returning the resolved per-model multiplier.
-- Changed: default-theme pricing data now prefers the backend-resolved `model_group_ratio` for each model and isolates React Query pricing entries by user and active organization.
-- Preserved: older API responses without per-model resolved ratios keep the previous fallback calculation; billing and quota deduction logic are unchanged.
-- Validation: focused pricing-data tests (3 cases), frontend production build, formatting, and `git diff --check` passed. Full typecheck remains blocked by existing repository errors and missing test dependencies; no new diagnostics were reported in the changed pricing files. Commit and push: pending.
-
-## 2026-11-09 - Restore task result previews in usage logs
-
-- Local reason: successful asynchronous image, video, and audio tasks only exposed a video link in the task log, and the link opened outside the dashboard instead of previewing the result in place.
-- Changed: task logs now detect image/video/audio outputs and show a media preview dialog with native image, video, and audio controls. A session-authenticated dashboard endpoint returns signed task artifact URLs so browser media elements can play proxied content without an API key; stored task result URLs remain a video fallback when a plugin does not enumerate artifacts. Results already pointing to the gateway video proxy reuse its channel-aware proxy flow to avoid a self-request loop. Added localized video playback failure text.
-- Preserved: existing task details and failure dialogs, audio result URLs, the public task artifact API response shape, and upstream credential isolation remain unchanged.
-- Validation: task media extraction tests (4 cases), frontend production build, and `git diff --check` passed. Full frontend typecheck remains blocked by pre-existing repository errors and missing test dependencies; Go formatting/tests could not run because the Go toolchain is unavailable. Commit and push: pending.
-
-## 2026-11-09 - Configure browser CORS for public APIs
-
-- Local reason: customers need browser applications on external domains to call public relay APIs without adding each origin to a compiled-in allowlist.
-- Changed: added a Security settings policy for `/v1/*` with disabled, allowlist, and allow-all modes; allowlist entries are validated HTTP(S) origins, wildcard access returns `Access-Control-Allow-Origin: *` without cookies, and preflight methods/headers remain explicitly bounded. `/api/*` and dashboard routes keep the existing first-party origin list and credential behavior.
-- Preserved: existing first-party CORS behavior by default, API-key authentication, backend and admin route authorization, and non-browser API requests.
-- Validation: frontend production build, targeted media/pricing tests (7 cases), Oxlint/Oxfmt on the changed CORS UI, and `git diff --check` passed. Full frontend typecheck remains blocked by pre-existing repository diagnostics and missing test dependencies; Go tests could not run because the local Go toolchain is unavailable.
-- Commit and push: pending.
-
-## 2026-11-10 - Resolve dashboard identity for personalized public pricing
-
-- Local reason: customer-specific model multipliers were effective for billing, but the public model plaza still displayed the general multiplier because optional authentication only read legacy cookies and ignored the default frontend's dashboard Bearer token. The earlier frontend resolution/cache fix did not cover this authentication gap.
-- Changed: optional dashboard authentication now delegates requests carrying Authorization to the existing full user-authentication path, including signature, active-session/version, user-status, and user-ID checks. Public pricing responses return `Cache-Control: private, no-store` and vary by authentication headers/cookies so shared caches cannot reuse customer prices.
-- Preserved: anonymous access without credentials, legacy-cookie behavior, the active default catalog card/detail rendering and account/workspace query keys, all configured multipliers, billing expressions, quota deductions, and task/plugin customization are unchanged.
-- Validation: existing frontend pricing-data tests passed (3 cases). Added a regression test through the actual public pricing middleware/controller with dashboard tokens: customer 0.6 versus general 0.8, interleaved users/anonymous requests, a spoofed user-ID header, mismatched/missing user-ID headers, and revoked sessions. Backend tests and Go formatting could not run because the local Go toolchain is unavailable; `git diff --check` passed.
-- Commit and push: included in `06950bc2f` (`fix: restore dashboard login and personalized responsive catalog`); pushed to `origin/main` on 2026-11-10.
-
-## 2026-11-10 - Keep default catalog cards within mobile screens
-
-- Local reason: the active default model plaza's implicit grid columns could grow to the cards' intrinsic content width on phones, leaving their right edges, arrows, and discount badges clipped by the public layout.
-- Changed: traced the production route to `CatalogPricing` / `CatalogModelCard` in `web/default/src/features/pricing/index.tsx`; defined explicit single-column mobile tracks and shrinkable cards, carousel, price/info rows, and skeletons. The mobile skeleton now hides the desktop filter sidebar, matching the loaded page. Cleaned existing lint errors in the touched page with equivalent display-unit/filter/style logic and stable decorative keys.
-- Preserved: desktop sidebar/three-column breakpoints, carousel artwork cropping, modality-tab horizontal scrolling, pricing and customer-discount data, task-plugin pricing, and backend billing behavior. The separate classic card path was deliberately unchanged.
-- Validation: reproduced a roughly 418px-wide card column inside 320/375/390px viewports before the fix. Browser checks using the actual page with local API fixtures, both with and without a carousel, found zero overflowing cards at 320, 375, 390, 430, 768, and 1440px afterward; inspected the mobile screenshot. Production build, all 24 pricing-library tests, targeted Oxlint/Oxfmt, and `git diff --check` passed. Full typecheck remains blocked by existing unrelated diagnostics and missing test dependencies; neither changed frontend file reported a type error.
-- Commit and push: included in `06950bc2f` (`fix: restore dashboard login and personalized responsive catalog`); pushed to `origin/main` on 2026-11-10.
-
-## 2026-11-10 - Stop CORS from rejecting this deployment's login requests
-
-- Local reason: the public API CORS feature reused a fixed dashboard origin list for every `/api/*` request. Browser login/refresh POSTs include Origin even on the same site, so deployments using another hostname could receive 403 before their authentication controllers ran. The secure refresh origin guard also failed same-host HTTPS deployments behind an HTTP reverse proxy unless explicitly listed.
-- Changed: dashboard CORS now accepts the deployment's exact host/port origin, the configured ServerAddress origin, and explicitly trusted session origins in addition to existing first-party origins. Same-host HTTPS requests forwarded over HTTP are recognized without trusting forwarded-host/proto headers. The refresh/logout origin guard shares the same exact-host reverse-proxy handling. Rejected CORS requests now return `CORS_ORIGIN_FORBIDDEN` with a descriptive message instead of an empty body.
-- Preserved: public `/v1/*` disabled/allowlist/wildcard policies, explicit-origin dashboard credentials, foreign-origin blocking, refresh/logout origin protection, login/session validation, billing, and all earlier pending catalog fixes. No wildcard was added to dashboard origins.
-- Validation: added middleware regression coverage for login and refresh with direct HTTPS, proxy TLS termination, trusted origins with internal hosts, configured ServerAddress, spoofed forwarded hosts, wrong ports, HTTP downgrade, malformed/null origins, and public wildcard isolation from dashboard routes. `git diff --check` passed. Go tests/gofmt cannot run because the local Go toolchain is absent; production deployment and actual browser recovery remain unverified.
-- Commit and push: included in `06950bc2f` (`fix: restore dashboard login and personalized responsive catalog`); pushed to `origin/main` on 2026-11-10. Production recovery still requires deployment and browser verification.
-# 2026-11-10 - Color discounted task prices in model details
-
-- Local reason: task pricing rows applied the group multiplier numerically but rendered the discounted values with the default text color, unlike token and image pricing rows.
-- Changed: task pricing fixed prices, usage-unit prices, and free-quantity labels now use the success color whenever the active group multiplier is below 1.
-- Preserved: original-price groups, billing calculations, displayed amounts, task conditions, and all non-task pricing presentation remain unchanged.
-- Validation: targeted frontend lint, production build, and `git diff --check` passed. No backend changes; commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
-# 2026-11-10 - Move user subscriptions to a dedicated Credits/Tokens page
-
-- Local reason: subscription plans were embedded in the wallet, mixing balance top-ups with recurring model-access plans.
-- Changed: added an authenticated `/subscription-plans` page, moved the full plan browser and purchase flow there, added a `Credits | Tokens` segmented switch, and documented `1 quota = 1 Credit`. The wallet now keeps a compact link to the subscription page. Added personal sidebar visibility/configuration for the new entry and retained the existing admin subscription-management route.
-- Preserved: quota and token billing modes, payment methods, purchase limits, subscription preference, subscription keys, backend `quota` storage, deduction logic, organization wallet behavior, and the existing purchase dialog/API contracts.
-- Validation: frontend production build, targeted Oxfmt, and `git diff --check` passed. Targeted Oxlint still reports the repository's existing React Compiler diagnostics in the touched wallet, purchase-dialog, and sidebar-settings files; no new build or type errors were reported. Full typecheck remains blocked by existing unrelated diagnostics and missing test dependencies; commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
-# 2026-11-10 - Add local preview authentication fixtures
-
-- Local reason: the standalone subscription page requires an authenticated session, while the frontend mock server had no login, self-user, or subscription-plan endpoints for local preview.
-- Changed: added a clearly local-only demo account (`demo@example.com` / `demo123456`), bearer-token session responses, and representative Credits/Tokens plans to `web/default/mock/server.mjs`.
-- Preserved: production authentication, subscription APIs, payment behavior, and all non-mock server code are unchanged.
-- Validation: `node --check mock/server.mjs` and local login/plan endpoint requests passed. This fixture is for local preview only; commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
-# 2026-11-10 - Localize subscription token terminology and expand preview plans
-
-- Local reason: Chinese subscription billing should distinguish model tokens from API access tokens, and the local preview needed enough plan variety to review the Credits/Tokens switch.
-- Changed: subscription-specific token labels now use “词元” in Chinese while API key and general usage terminology remains unchanged; local mock data now includes three Credits plans and three token plans with varied periods, resets, limits, and group/model scopes.
-- Preserved: production subscription billing contracts, internal `billing_mode` values, quota/token accounting, and non-subscription translations remain unchanged.
-- Validation: targeted formatting, `node --check web/default/mock/server.mjs`, frontend production build, and `git diff --check` passed. Commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
-# 2026-11-11 - Require dedicated keys for subscription usage
-
-- Local reason: wallet-versus-subscription billing preference allowed ordinary API keys to consume quota plans automatically, making usage ambiguous now that subscriptions issue dedicated keys.
-- Changed: ordinary API keys now bill only the wallet; subscription keys remain bound to their specific quota or token plan. Removed the billing preference selector and update API from both frontend themes, removed the backend preference endpoint and log field, and clarified the key behavior in the subscription page. The persisted user-setting field remains for backward compatibility but is ignored.
-- Preserved: subscription-key group/model restrictions, plan purchase and settlement behavior, token-based billing, standalone Web Tools wallet charges, wallet accounting, and legacy serialized user settings.
-- Validation: default-theme production build passed; classic-theme ESLint and Prettier checks passed; Oxfmt, mock syntax validation, and `git diff --check` passed. Added a service regression test proving a general key ignores a legacy `subscription_only` setting and uses wallet funds, while a dedicated subscription key still consumes its bound plan. Go tests could not run because Go is not installed. Classic-theme production build is blocked by the installed `date-fns-tz` package importing subpaths not exported by the installed `date-fns` version. Commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
-
-# 2026-11-11 - Show subscription model restrictions and preview examples
-
-- Local reason: the preview's multi-model token plan already contained an allowlist, but the active default subscription cards did not display it; two other token fixtures omitted the model restrictions required by real plans.
-- Changed: traced `/subscription-plans` to `SubscriptionPlansPage` and `SubscriptionPlansCard`; show token-plan model allowlists in plan cards, owned subscriptions, and purchase confirmation, with wrapping for long names. Local preview now includes a GPT-4.1-only plan, a GPT-4.1/Claude plan, and a plan with unlimited token allowance restricted to three named models.
-- Preserved: real plan storage, model authorization, dedicated-key billing, Credits plans, pricing, and all pending source changes. No production plans were created or edited.
-- Validation: targeted Oxlint and Oxfmt, mock syntax check, and default production build passed. Full typecheck remains blocked by existing unrelated errors and missing test dependencies; no diagnostics in the two changed subscription components. Commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
-
-# 2026-11-11 - Display subscription purchase wallet amounts as money
-
-- Local reason: the active default purchase dialog appended Credits to the wallet cost and available balance even though they represent money used to buy the plan.
-- Changed: the purchase dialog now converts the required and available wallet quota through the existing billing currency formatter and displays monetary values without the Credits suffix, including in token-display mode.
-- Preserved: plan Credits/token entitlements, stored wallet quota, exchange rates, payment cost calculation, balance validation, and subscription payment APIs.
-- Validation: targeted Oxfmt/Oxlint, default production build, and `git diff --check` passed. Full typecheck remains blocked by existing unrelated errors and missing test dependencies, with no diagnostics in the changed purchase dialog. Commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
-
-# 2026-11-11 - Add a test organization to the local preview
-
-- Local reason: the user requested a local test organization, but the mock API had no organization endpoints to populate the existing organization selector and workspace.
-- Changed: added a local-only “测试组织” fixture owned by the demo account, with one owner and zero balance. Added authenticated mock organization list/create/detail and the member, invitation, key, usage, transaction, and log reads required by the existing organization page. Initial fixture is recreated on mock restart; additional organizations are in memory only.
-- Preserved: production organization APIs, memberships, wallets, billing, organization UI, and all pending subscription changes. No production organization or funding was created.
-- Validation: mock syntax check and targeted formatting passed; targeted lint has only the existing server console warning. Restarted the local mock and verified organization name/owner, all six workspace subresource responses, anonymous rejection, and HTTP 200 from the frontend organization route. Browser rendering was not verified. `git diff --check` passed. Commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
-
-# 2026-11-11 - Keep organization management accessible from the workspace sidebar
-
-- Local reason: the organization workspace sidebar exposed only Wallet, leaving no direct way back to organization management after navigating away.
-- Changed: traced the active default sidebar through `useSidebarView` to `useSidebarData`; added “Manage organizations” below Wallet in organization space. Added `/organizations/manage` to reuse the current organization's management view without resetting the selected workspace. The route retains the organization feature guard and redirects users without an active organization to the existing selector; generated route metadata was updated.
-- Preserved: personal-space `/organizations` selection behavior, organization creation and invitations, top workspace switching, existing management permissions, billing, classic frontend, and all pending changes.
-- Validation: default production build and targeted Oxfmt/Oxlint passed. Full typecheck remains blocked by existing unrelated diagnostics and missing test libraries, with none in the changed files. `git diff --check` passed. Browser interaction was not verified. Commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11.
-
-## 2026-11-11 - Add AstraFlow Omni video generation and modality pricing
-
-- Local reason: add the actual `gemini-omni-1.2-flash` model to AstraFlow using the provider's native interaction API and separate input/text-output/video-output token prices. The older documentation model `gemini-omni-1.1-flash-preview` is deliberately not substituted.
-- Changed: AstraFlow factory version 1.1.0 declares model-specific usage profiles, native POST `/v1beta/models/interactions` and GET `/v1beta/models/interactions/:id`, all four task types, native multimodal/multiturn pass-through, synchronous immediate completion and asynchronous polling. Completion usage validates and splits modalities instead of treating all output tokens as video. Three bounded token estimates reserve quota; existing checked expression conversion, settlement/refund and terminal-task guards perform the accounting. Missing/invalid modality usage retains the reservation and records an anomaly.
-- Changed: avoid a Gin wildcard collision by dispatching native submits through the existing Gemini POST namespace before distribution; ordinary Gemini requests keep their existing relay. Added the public model name to the narrow task view. Omni alone allows bounded 64 MiB JSON video responses and bounded inline artifact decoding. Range/HEAD content and authenticated task-log previews reuse existing ownership and artifact access checks; dashboard lists omit binary media without modifying native results. Successful accepted Omni responses are not retried after parsing/read errors.
-- Changed: traced the production default plaza to `features/pricing/index.tsx` / `CatalogModelCard`; show three modality token prices and preserve customer multipliers/discount colors. Existing schema-based model detail tables display the same columns. Added translated text-output labels and `docs/astraflow-omni.md` with API, price, precharge and payload-limit configuration.
-- Preserved: enhancement model native paths, all existing resolution/FPS combinations, ten-second precharge and duration settlement; ordinary OpenAI billing, other task plugins and their response limits; pricing overrides, group/customer ratios, quota saturation auditing, organization ownership and subscription key isolation. No upstream price history, new wallet currency, database migration or protected project identity changes were introduced.
-- Validation: six Node plugin contract/regression tests, all 26 default pricing-library tests and five task-media tests passed; default production build, targeted frontend Oxlint/Oxfmt, plugin/mock syntax checks and `git diff --check` passed. Added Go regressions for route coexistence, plugin/profile registration, token usage, scoped limits, inline-content validation, media omission and Range/HEAD; Go tests and gofmt could not run because no local Go toolchain is installed. Full frontend lint/typecheck remain blocked by pre-existing unrelated errors/missing testing libraries; this round's changed files have no typecheck diagnostics. No live paid upstream request or browser playback was performed. Classic's pre-existing date-fns dependency build failure remains outside this round.
-- Commit and push: included in `3c3154a6d` (`feat: add AstraFlow Omni and subscription workspace updates`); pushed to `origin/main` on 2026-11-11; user authorized bundling this with the preceding subscription, price-color, local-preview and organization-navigation changes. GitHub Actions remains responsible for building/publishing the deployment image after push.
-
-## 2026-11-11 - Keep AstraFlow pricing terminology in Tokens
-
-- Local reason: the user clarified that internal plugin pricing should retain Tokens terminology instead of the external-facing Chinese subscription wording.
-- Changed: AstraFlow's three Omni usage labels now read 输入 Tokens, 文本输出 Tokens, and 视频输出 Tokens. Bumped the factory plugin to 1.1.1 so installed plugins can receive the metadata correction; aligned the integration guide's labels and USD / 1M Tokens unit.
-- Preserved: usage field keys, internal `token` unit, expressions, million-token conversion, precharge, settlement, enhancement model behavior, and subscription/plaza terminology outside these plugin labels. No frontend rendering or accounting code changed.
-- Validation: plugin syntax, the six existing Node contract tests, and `git diff --check` passed. This metadata/documentation-only correction does not require a frontend build or live upstream call.
-- Commit and push: included in `693fec817` (`fix: retain Tokens terminology in AstraFlow pricing`); pushed to `origin/main` on 2026-11-11.
-# 2026-11-11 - Add card and table views to the default model plaza
-
-- Local reason: the default model plaza offered only a card grid, which is less efficient when comparing many models and their prices side by side.
-- Changed: added an accessible card/table toggle to the active default catalog, persist the selection in local storage, and keep the existing search, filters, sorting, customer-specific prices, discount indicators, usage metrics, and incremental loading shared between views. Card and table views render discount and free badges through the same component, preserving label text, icon, dimensions, and colors. On the model plaza only, replaced the collapsing floating navigation with a full-width sticky bar and persistent bottom divider; it reserves its height so catalog content starts below it. Other public pages retain the existing floating navigation. After the supplied table reference, the table groups input/output/cache/modality/usage/tool price columns and shows the provider. Cache prices have separate columns for generic read/write, image cache, and configured 1h/12h write tiers. Subtle vertical dividers align across grouped headers, subheaders, and data cells. The model column remains fixed while scrolling horizontally, with an opaque header background so scrolled headings do not show through. The model name opens details; there is no separate trailing details action column or release date. Configured cache tiers, image/audio prices, task usage prices and tools appear as separate columns only when present in the filtered catalog. Card view remains the default.
-- Follow-up: aligned the model plaza sticky header with the console app bar's shared 48px height and 8/12px horizontal padding; desktop navigation now follows the console's `lg` breakpoint, while the filter sidebar uses the shared header height for its sticky offset.
-- Preserved: model detail routing, API data, price calculations, responsive card layout and classic-theme pricing page.
-- Validation: targeted Oxfmt, default production build, cache-expression regression test, and `git diff --check` passed. Targeted Oxlint passes for the pricing page and public layout; the public header still reports six existing `no-nested-ternary` / `no-array-index-key` diagnostics in its existing navigation rendering. Browser verification confirmed the table renders in the mock catalog, retains its selected view after reload, scrolls horizontally at a narrow viewport, and keeps the fixed model heading opaque with aligned vertical dividers, no trailing action column, and no release date. Compared the card and table views: their 7-fold discount badge uses the same gold style; the mock catalog has no free-priced model, while both views use the shared free badge and detection logic. The latest full TypeScript check is blocked by missing test dependencies and existing diagnostics in unchanged files; the edited files reported no TypeScript errors. Browser scrolling confirmed the sticky public bar and divider stay above catalog content without overlap. No live backend API or production catalog was involved.
-- Follow-up validation: default production build and Oxfmt passed. Browser preview confirmed the 48px full-width header and divider remain above the catalog while scrolling at desktop width; the responsive menu breakpoint is aligned to `lg`. The preview server remains available at `http://localhost:3002/pricing`.
-- Commit and push: included in `2c45e91af` (`feat: add model plaza table view and align navigation`); pushed to `origin/main` on 2026-11-11.
-
-# 2026-11-11 - Add Official WeChat account operations
-
-- Local reason: administrators need to manage follow-up replies and custom menus for the already-supported Official WeChat callback without affecting QR login and account binding.
-- Changed: added persisted subscription-reply and menu-draft options, a guarded admin menu-sync endpoint, local menu validation and WeChat menu create/delete calls, text replies for ordinary subscriptions and configured `CLICK` buttons, and a visual editor for up to three root buttons with one level of submenus and click/view actions.
-- Preserved: existing Official WeChat QR login, QR binding, callback signature verification, plaintext callback mode, legacy WeChat login fields, server-side AppSecret/Token handling, and all unrelated OAuth providers. Menu drafts are local until an administrator explicitly syncs them; empty drafts delete the remote menu.
-- Validation: default frontend production build, targeted Oxlint, Oxfmt, and `git diff --check` passed. Full TypeScript checking remains blocked by pre-existing missing test dependencies and unrelated diagnostics. Go tests/gofmt could not run because the local Go toolchain is unavailable; controller regression tests were added for subscription replies, menu click replies, validation limits, URL validation, and QR behavior remains covered by existing tests.
-- Commit and push: feature implementation committed as `17606ad5e` (`feat: add official WeChat account operations`) and pushed to `origin/main` on 2026-11-11. This push-status update is included in the following documentation-only commit.
-
-# 2026-11-11 - Align AstraFlow Omni model detail pricing
-
-- Local reason: `google/gemini-omni-1.2-flash` showed AstraFlow token prices on the catalog card but ordinary Gemini input and Google Search prices in model details.
-- Changed: the active default model detail view now selects the same configured tiered task-plugin pricing variant as the catalog card for its billing label and group pricing table. It omits built-in tool surcharges tied to regular-channel pricing while a task-plugin variant is displayed.
-- Preserved: model capability metadata, descriptions, context limits, API details, performance metrics, ordinary model pricing when no configured task-plugin variant exists, and all backend billing behavior.
-- Validation: targeted Oxfmt, default-theme production build, and `git diff --check` passed. Targeted Oxlint reported existing diagnostics elsewhere in `model-details.tsx`; none point to the changed lines. This local fix has not been committed or pushed.
-
-# 2026-11-11 - Preserve precision for task token prices
-
-- Local reason: task token prices such as `jev-1.14` at `0.042` were rounded to `0.04` in the catalog card and model detail view.
-- Changed: shared task token-price formatting now preserves up to six fractional digits while removing insignificant trailing zeros; added a regression test for both `0.042` and `0.04`.
-- Preserved: stored price values, billing expressions, quota calculations, non-token task-price formatting, and actual billing behavior.
-- Validation: 17 targeted pricing tests, Oxfmt, default-theme production build, and `git diff --check` passed. Targeted Oxlint still reports one pre-existing `curly` diagnostic at `dynamic-price.ts:215`, outside this change. This local fix has not been committed or pushed.
-
-# 2026-11-11 - Refresh model and API-key endpoint catalogs
-
-- Local reason: recently registered model APIs were missing from the model editor endpoint templates and the API-key endpoint drawer.
-- Changed: added model endpoint templates for image edit/query, OpenAI Responses retrieval, OpenAI video generation/query/content, AstraFlow submit/status and Gemini interaction retrieval, plus generic task-plugin submission, query, and artifact routes. Added the same user-callable routes to the API-key endpoint drawer.
-- Preserved: endpoint routing, authentication, plugin selection, model mappings, and billing behavior; upstream-only provider URLs are not presented as gateway endpoints.
-- Validation: `bun run build`, targeted Oxfmt, and `git diff --check` passed. Targeted Oxlint reports the existing `no-import-type-side-effects` diagnostic at `models/constants.ts:1`; no new diagnostics were introduced by these endpoint entries. Go tests/build were not run because the local Go toolchain is unavailable.
-
-# 2026-11-11 - Hide internal task-plugin routes from public endpoint viewer
-
-- Local reason: the API-key endpoint viewer exposed AstraFlow's internal task protocol and generic task-plugin routes to external users.
-- Changed: removed the AstraFlow and generic task-plugin protocol groups from the user-facing endpoint drawer. Admin-only model editor endpoint templates remain available for configuring supported model calls.
-- Preserved: backend task routes, plugin execution, model editor configuration, all public OpenAI/Anthropic/Gemini/media endpoints, authentication, and billing behavior.
-- Validation: targeted Oxfmt, default frontend production build, and `git diff --check` passed. Go tests/build were not run because the local Go toolchain is unavailable.
-# 2026-11-11 - Display all multimodal token prices in model details
-
-- Local reason: Gemini Omni model details incorrectly classified `input_tokens`, `text_output_tokens`, and `video_output_tokens` as the simple input/output token view, hiding its text and video output prices.
-- Changed: simple task token pricing now applies only when all token usage fields are the conventional input/output pair; multimodal token schemas remain in the task pricing table so each configured field is shown.
-- Preserved: ordinary input/output token pricing, catalog card display, group discounts, plugin variant selection, and all billing calculations.
-- Validation: the focused pricing regression suite passed (18 tests), Oxfmt and the default-theme production build passed, and `git diff --check` passed after formatting the log. No live backend/catalog data was required.
-- Commit and push: included in the local commit for these changes; pushing to origin/main.
-
-# 2026-11-12 - Show the current page in browser tab titles
-
-- Local reason: every default-theme page kept the site name as its browser title, making open tabs difficult to distinguish.
-- Changed: mounted a single reactive document-title component in the default root route. Public pages, authentication pages, console pages, organization pages, logs and individual settings sections now use `Page name | System name`, as requested. Navigation, back navigation, language changes and site-name updates refresh the title. Removed competing asynchronous startup title writes; route metadata stays lightweight without importing settings forms into the public entry point.
-- Preserved: homepage site-name title, branded public SEO titles/descriptions, favicon initialization, cached status refresh, protected project identifiers, classic theme, routing, authentication, and all API/billing behavior. Dynamic detail titles do not include query parameters or task/user identifiers.
-- Validation: targeted Oxlint and Oxfmt, default production build, and git diff --check passed. Browser verification against the local mock confirmed Chinese/English titles, client-side navigation, back navigation, the homepage title and the OpenAI-compatible public SEO title. Route coverage audit found title mappings or dynamic rules for all 59 rendered page routes, plus 13 redirect-only routes; all configured page-title keys already have Chinese translations. Full TypeScript checking reports 34 existing errors in unrelated files, including missing test dependencies; no edited file reports a type error. No production service was changed.
-- Commit and push: implementation committed as `7766be69b` (`fix: update browser tab titles on navigation`) and pushed to `origin/main` on 2026-11-12. This push-status update is included in the following documentation-only commit.
-
-# 2026-11-12 - Classify wallet funding sources
-
-- Local reason: the unified wallet balance needed an auditable distinction between paid credits and system gifts without changing spendable-balance or relay billing semantics.
-- Changed: added an idempotent wallet funding ledger, paid/gift/adjustment/unclassified classifications for administrator credits and redemption codes, automatic records for top-ups, registration/check-in/invitation/referral rewards, and private administrator ledger APIs. The wallet shows cumulative paid and gift credits; administrators can inspect paginated records with notes, references and operators.
-- Preserved: `User.Quota` remains the single spendable balance; relay consumption, reservations, refunds, organization-wallet accounting, payment amounts and existing quota APIs remain unchanged. Refunds and settlement reversals never create funding records. Sensitive ledger notes and operator metadata are not exposed through the self endpoint.
-- History limitation: no historical balance reconstruction or backfill is performed. Existing balances and old transactions remain unclassified; statistics begin when the ledger feature records a new event.
-- Validation: default frontend production build, targeted Oxlint/Oxfmt, and `git diff --check` passed. Added backend regression coverage for idempotency, rollback, classification, privacy, redemption immutability, check-in/registration recording, adjustment bounds and exact lifetime totals. Go tests and gofmt could not run because no Go toolchain is installed in the workspace; full frontend typecheck remains blocked by existing unrelated diagnostics and missing test dependencies.
-- Commit and push: committed as `910891a91` (`feat: track wallet funding sources and show chat refusals`) and pushed to `origin/main` on 2026-11-12. This confirmed status is recorded in the following documentation-only commit.
-
-# 2026-11-12 - Show Claude refusal responses in Playground
-
-- Local reason: Claude refusal responses were converted to `finish_reason=content_filter`; the Playground completed the stream with no visible assistant content, so users saw no response even though the request had ended.
-- Changed: the Playground now recognizes refusal finish frames in streaming and non-streaming chat responses. Empty refusals display a localized notice asking the user to rephrase the prompt; any text already returned by the model is preserved. Added the notice to all frontend locale files and a regression test for both response modes.
-- Preserved: upstream refusal handling, admin reject-reason logging, billing, usage accounting, retry behavior, non-refusal finish reasons, and existing wallet funding changes in the working tree.
-- Validation: the focused Playground compatibility test passed (4 tests), targeted Oxlint and Oxfmt passed, the default frontend production build passed, and `git diff --check` passed. Full TypeScript checking remains blocked by pre-existing missing test dependencies and unrelated existing diagnostics. Go tests/build were not run because no Go toolchain is installed in the workspace.
-- Commit and push: committed as `910891a91` (`feat: track wallet funding sources and show chat refusals`) and pushed to `origin/main` on 2026-11-12. This confirmed status is recorded in the following documentation-only commit.
-
-# 2026-11-12 - Fix GHCR Go build import error
-
-- Local reason: the GHCR Docker build failed because `model/checkin.go` retained an unused `common` import after the wallet funding refactor.
-- Changed: removed the unused import; no runtime behavior changes.
-- Preserved: check-in rewards, wallet funding ledger behavior, relay billing, and all frontend changes.
-- Validation: inspected the failing compiler diagnostic, verified the import is no longer referenced, and ran `git diff --check`. The local Go toolchain is unavailable, so a local Go build was not possible; GHCR is the authoritative build check.
-- Commit and push: committed as `de89700cc` (`fix: remove unused checkin import`) and pushed to `origin/main` on 2026-11-12. This confirmed status is recorded in the following documentation-only commit.
-
-# 2026-11-12 - Sync upstream reliability fixes and add Epay RSA signing
-
-- Local reason: catch up on selected upstream reliability fixes and support Epay gateways that require RSA signatures, while preserving the site's existing account, organization, subscription, wallet, billing and provider customizations.
-- Integrated upstream commits: `706144769` (HMAC integrity for Redis authentication caches), `2de51a19e` (Redis Cluster cross-slot-safe cache keys), `9b473a3fe` (recompute two-factor failure counts after lockout expiry), `ada15c050` (preserve manually disabled channel state), `48a6c87f9` (persist OAuth inviter), `9c2c370a6` (retain SQLite WAL and busy timeout for bare paths), `651d5a213` (retain xAI streaming cache-token details), `ba5f73677` (use Gemini Embedding usage metadata), `0409deccf` (map DeepSeek developer role to system), `55515dbae` (recognize the exact bare streaming `[DONE]` marker), and `fcc241cdf` (retry channel selection from highest priority after affinity failure). `54788117d` (record accepted non-streaming requests after context cancellation) was audited and is already present; no duplicate code was added.
-- Changed: added Epay MD5/RSA selection, merchant private-key and platform public-key settings, RSA request signing and callback verification. RSA activation validates both keys; the settings API does not return private key material. The payment settings UI saves keys before enabling RSA and stops on a failed option update. Upgraded `go-epay` to `v0.0.6` for its RSA support and added callback/signature regression coverage. Added authentication-cache integrity helpers and regression coverage for tampering, cross-identity cache reuse, database fallback, quota freshness and session revocation.
-- Preserved: existing MD5 Epay configuration remains the default; RSA credentials are not used while MD5 is selected. Existing account balances and funding records, organization and subscription wallets/keys, billing and settlement behavior, custom token fields, model pricing, task plugins, channel settings and OAuth behavior outside inviter persistence remain intact. No wallet conversion or payment accounting semantics changed.
-- Deferred / deliberately skipped: official Vertex Gemini Omni 1.2 Flash video plugin work remains deferred as requested. No other upstream items outside the selected fixes above were pulled in.
-- Validation: `git diff --check`, Go formatting, changed-package Go build (`common`, `model`, `controller`, `service`, `relay/...`), default frontend production build, targeted Oxfmt/Oxlint, and overlay-based regression tests for authentication caches, two-factor lockout, channel status, Epay callbacks and option validation passed. Full controller/model test suites remain blocked by pre-existing missing symbols and legacy test compilation errors; full frontend typecheck remains blocked by existing missing test dependencies and unrelated diagnostics. MySQL/PostgreSQL matrix tests require configured external database URLs and were not run. No live payment gateway or production account was used.
-- Commit and push: not committed and not pushed; the user requested this round remain local.
-
-# 2026-11-13 - Review task settlement and restore multi-key channels
-
-- Upstream review: `433830b4e` adapted for multi-key recovery; `ea343c4a8` audited and intentionally not ported because local task-plugin SSE is aggregated server-side and task persistence precedes delivery to the client. The upstream delivered-result/refund scenario does not apply to the current path.
-- Changed: enabling one or all keys restores a channel only when it was automatically disabled because all keys were disabled. Reload the channel after acquiring the existing per-channel lock, and refresh channel and pricing caches through the existing update path.
-- Preserved: manually disabled channels and channels disabled for other reasons remain disabled; organization, subscription, wallet, model pricing and task settlement semantics remain unchanged. Official Vertex Gemini Omni plugin remains skipped at user request.
-- Follow-up: `883eeb87d` plugin pricing warnings were initially deferred because the declaration-only upstream scan would misreport local aliases and pricing fallbacks. The independent implementation is recorded in the next entry.
-- Validation: Go build of common, model, controller, service and relay packages passed; multi-key recovery and SQLite-backed management API integration tests passed with a temporary test overlay excluding unrelated broken controller tests, including database status, abilities, cache refresh and channel selection; `git diff --check` passed. Full controller tests do not compile due to pre-existing missing symbols; MySQL/PostgreSQL and real upstream requests were not tested.
-- Commit and push: not committed and not pushed.
-
-# 2026-11-13 - Complete task-plugin pricing diagnostics
-
-- Upstream reference: adapted the reviewed intent of `883eeb87d` independently for local channel bindings and model aliases; no upstream relay or billing implementation was replaced.
-- Integrated: added read-only `model/task_pricing_warnings.go`, a controller endpoint under the existing RootAuth-protected `/api/option/model_pricing/task_warnings` route, and a shared panel on the active default task-plugin page and model-pricing settings page. The panel shows public model aliases, plugin names, channel IDs and specific missing/invalid/incompatible expression reasons, links to pricing configuration, offers retry/refresh, and rechecks after persisted pricing/plugin/channel queries update and when reopening/focusing the page. Non-root users neither request nor render diagnostics, even if an earlier root result is cached.
-- Pricing compatibility: inspect enabled abilities on enabled channels and effective registry plugins only; follow chained mappings and existing plugin/model expression fallback and legacy price/ratio rules. Explicit zero expressions, zero prices and zero ratios are configured prices. OpenAI channels without an executing task-plugin binding are excluded. Model-specific plugin overrides remain separate from ordinary-response usage expressions. The scanner does not execute request-dependent prices or replace request-time validation.
-- Explicit limitations: malformed mapping/settings, mapping cycles and multiple bound candidate plugins without endpoint-specific ownership are reported as skipped channel IDs instead of silently claiming complete coverage. Request-specific expression branches may still fail validation when called. MySQL/PostgreSQL and real upstream requests were not exercised.
-- Preserved: actual pricing expressions and configuration, quota/precharge/settlement/refund logic, organization wallets, subscription keys, customer/group discounts, model-plaza display and public plugin privacy. Disabled plugin systems pause diagnostics. Existing malformed channel settings are never repaired or saved by this read-only API. Also placed the preceding Epay RSA translation labels in the actual translation namespace so their Chinese UI text resolves; no payment behavior changed.
-- Validation: four targeted Go regressions cover SQLite enabled/disabled channels and abilities, chained aliases, ordinary-channel exclusion, deduplication across groups, malformed settings remaining unchanged, ambiguous bindings and cycles, zero prices/ratios, mapped expressions, override precedence, incompatible shared schemas and ordinary-usage/plugin separation. Tests use a temporary overlay excluding only the pre-existing `model/user_update_test.go` compilation failure (`UpdateUserAccessToken` is undefined). Changed backend packages build successfully. Two React DOM interaction tests cover warning display, price/plugin update refresh, API business failures and retry, and non-root privacy. Default frontend production build and targeted Oxlint/Oxfmt passed. Full TypeScript checking remains blocked by pre-existing missing testing libraries and unrelated diagnostics, including existing typing errors in the pricing settings file; no new diagnostic points to the added code.
-- Commit and push: not committed and not pushed. Official Vertex Gemini Omni remains intentionally skipped as requested; the prior task-refund upstream change remains intentionally unported for the documented local architecture reason.
-
-# 2026-11-13 - Forward GPT Image 2.6 generation and editing parameters
-
-- Upstream reference: adapted `3374f251e3a84eebfd7f37d4746d7bb017e4f4b1` without replacing the local image relay or billing implementation.
-- Integrated: declared `complexity`, `svg`, `frame_count`, `frame_duration_ms` and `markup` in `relaykit/dto/openai_image.go` as opaque provider JSON, preserving object values and explicit zero/false values. Added multipart parameter parsing in `relay/helper/valid_request.go`, forwarded optional `markup` files alongside masks in `relay/channel/openai/adaptor.go`, and added `gpt-image-2.6` / `gpt-image-2.6-flare` to the OpenAI model catalog. Existing response passthrough already preserves SVG/GIF URLs, base64 payloads and MIME metadata; regression coverage now verifies this behavior and usage accounting.
-- Preserved: existing administrator prices, image count/size/quality validation, precharge and settlement, model mappings, group/customer multipliers, organization wallets, subscription keys, task plugins and all prior pending changes. Frame count is forwarded to the provider and does not become a new local image-count billing multiplier. Unknown JSON extras remain excluded under the existing serialization policy; Studio-only group metadata remains excluded from upstream multipart requests. No default price or speculative model variant was introduced.
-- Validation: targeted generation/edit JSON, multipart markup, response/usage, DTO preservation and existing image-validation regressions passed. Go build of all relay packages and `git diff --check` passed. Full affected-package tests exposed existing failures in `TestOaiResponsesStreamHandlerCompletionLifecycle`, `TestModelPriceHelperTieredSeedsSeedreamUsageBeforePreConsume` and `TestImageCacheDetailsSurviveUsageSnapshots`; an isolated overlay reverting only this round's files reproduced the lifecycle write-failure case and both other failures. These unrelated failures were not changed by this parameter-forwarding work. No frontend code changed; no live paid upstream generation was performed, so actual SVG/GIF generation remains dependent on provider support.
-- Broader regression follow-up: OpenAI and relaykit DTO package suites passed when excluding the identified failing test groups. The helper suite additionally showed an intermittent cancellation-reason failure in `TestStreamScannerHandler_ClientCancelDrainsTerminalUsage` (`eof` instead of `client_gone`), which had passed in the first full run. Full regression is therefore not reported as passing; no streaming lifecycle implementation was changed in this round.
-- Commit and push: not committed and not pushed.
-
-# 2026-11-13 - Clarify token pricing configuration by scenario
-
-- Local reason: the token-pricing editor mixed general, Claude cache, OpenAI image and Gemini modality fields without explaining which usage data or units they require.
-- Changed: traced the active default settings path through `model-pricing-sheet.tsx` to `tiered-pricing-editor.tsx`. Added the shared `token-price-fields.tsx` with manual General text / Claude cache / Gemini multimodal / OpenAI images / Custom scenarios, base input/output prices, category-specific explanations and explicit USD / 1M Tokens units. Recommended fields appear first; additional fields are expandable. Every already-configured category, including zero prices, remains visible in every scenario. Scenario selection never writes a price or guesses provider capability from a model name. Fixed-request and task-plugin configuration keep their separate existing paths.
-- Zero-price contract: optional category switches distinguish inheritance from an explicitly free category. `tier-expr.ts` now preserves absent optional fields and emits explicit zero terms instead of materializing all missing fields as zeros and then dropping them. Existing saved expressions without a category remain unchanged; no stored-price migration or new default price is performed. A Go regression confirms every zero-priced category remains visible to the existing backend usage-normalization contract; backend billing implementation is unchanged.
-- Linked behavior: extracted the existing draft number input for reuse without changing its input behavior, and added missing image-cache usage support to the linked token cost estimator. Existing tier conditions, cache TTL prices, fixed pricing, custom/raw expressions, request rules, model mappings, group/customer discounts, organization/subscription/wallet accounting and task plugins are preserved. Minor existing editor lint diagnostics were resolved without changing request-rule behavior; positional keys for existing ordered editable rows retain documented local lint exceptions rather than using mutable labels as keys.
-- Languages: added all new scenario names, category descriptions, units, switch labels and zero/fallback states in English, Simplified Chinese, Traditional Chinese, French, Russian, Japanese and Vietnamese. Also supplied missing shared image-cache, 12-hour-write and per-token labels. Registered dynamic keys in `static-keys.ts` so synchronization retains them; existing locale entries and protected attribution strings were preserved.
-- Validation: 35 focused frontend tests passed, covering scene switching without changes, configured/zero-price visibility, category enable/disable, advanced fields, opening existing expressions, round trips for every free category and multi-tier/TTL/fixed expressions, image-cache estimation, all seven locales, existing plaza/customer pricing and task-plugin usage. The full `pkg/billingexpr` Go suite passed. Default production build and targeted Oxlint/Oxfmt passed. Full TypeScript checking was run; it remains blocked by existing missing testing dependencies and unrelated project diagnostics, with no diagnostic in this round's changed files. Browser visual verification was unavailable because Chrome CDP was disconnected; React DOM interaction tests ran using Happy DOM. No production settings or paid upstream requests were used.
-- Commit and push: not committed and not pushed; previous pending upstream-sync changes remain intact.
-
-# 2026-11-13 - Preserve decimal input in task pricing
-
-- Local reason: the active default model-pricing sheet's task matrix converted every keystroke to a number and immediately rendered it back, removing intermediate decimal points (`0.` / `2.`) and turning subsequent input into incorrect integer prices.
-- Changed: `task-usage-pricing-editor.tsx` now uses the shared draft number input for fixed prices and every usage unit price. Added an opt-in text input mode to `pricing-number-input.tsx` to retain intermediate decimal text without native number sanitization; existing token-editor consumers keep the default number input behavior. Task row keys use their immutable enum combinations. Both existing task-editor placements in `model-pricing-sheet.tsx` receive the fix.
-- Preserved: numeric expression generation and storage, finite/non-negative guards, explicit zero prices, free integer quantities, per-million Tokens conversion, enum tiers, resets, existing model/plugin prices, customer/group discounts, organization wallets, subscriptions and all earlier pending changes. No backend billing or persisted configuration migration was changed.
-- Validation: 15 focused frontend regressions passed, including React DOM character-by-character `0.1`, `2.3` and `0.042` entry with parent expression rerenders, pasted image prices, blur, expression parse/reopen round trips, multi-resolution row isolation, free counts, cost calculation, zero/negative/non-finite handling and reset. Targeted Oxlint/Oxfmt and default production build passed. Full TypeScript checking was run and remains blocked by existing unrelated diagnostics and missing testing dependencies; no diagnostic remains in this round's changed files. Interaction verification used Happy DOM; no live browser or production settings were used.
-- Commit and push: not committed and not pushed; previous pending changes remain intact.
-
-# 2026-11-13 - Publish reviewed upstream and pricing changes
-
-- Publication status supersedes the earlier local-only status of this batch's preceding 2026-11-13 entries: committed as `b82d21529` (`feat: integrate reviewed upstream fixes and improve pricing editors`) and successfully pushed to `origin/main` on 2026-11-13.
-- Scope: reviewed upstream/authentication/relay fixes, Epay RSA support, multi-key channel recovery, task-plugin pricing diagnostics, GPT Image 2.6 parameter support, guided multilingual token pricing and task-price decimal input repair. Their existing preservation notes, intentionally skipped upstream changes and test limitations remain applicable.
-- Validation at publication: staged diff whitespace checks passed; the previously recorded targeted regression and build results remain applicable. No source changes were made after those checks. GitHub Actions handles container image publishing; no local Docker image was built and workflow success is not asserted here.
-- This documentation-only follow-up records the confirmed source push; it introduces no runtime changes.
-
-# 2026-11-13 - Add Seedream 5.5 to the Doubao task plugin
-
-- Local reason: add the requested `doubao-seedream-5.5` and `doubao-seedream-5-5-261028` models with the same billing scheme as Seedream 5.0 Pro.
-- Changed: Doubao plugin version is now `1.4.0`; the friendly name maps to the dated upstream model, and both names appear in the generated model catalog, image route declarations and usage profiles. Both publish the existing low/high pixel output tiers, input-image count, layer flag and suggested first reference image free. The existing shared schema drives the pricing editor and model-plaza display, so no separate frontend or hardcoded price was introduced.
-- Preserved: existing model profiles, alias mappings, explicit channel mappings, pricing expressions, administrator unit prices, precharge/settlement, group/customer ratios, organization wallets, subscriptions and ordinary OpenAI-channel billing. New models retain the existing generic newer-model protocol defaults rather than imposing unverified 5.0 Pro size/option restrictions; actual provider capabilities were not independently verified. The first-reference allowance remains an expression/editor configuration rule and is not subtracted twice from usage.
-- Validation: focused Go plugin regressions passed for old/new catalog profiles, both new model names, alias-to-upstream request rewriting, OpenAI image decoding, submit-time high-tier estimates, final pixel-tier extraction, generated-image totals and reference-image counts. A sample expression using explicit floating-point max operands verified the resulting cost. `go build ./plugins`, gofmt and `git diff --check` passed. No live paid upstream request or browser session was used.
-- Existing test limitations: the broad Doubao run exposed two pre-existing calls using `CallPath` without a member path; corrected those test invocations to `Call` so the package compiles. Several other existing tests still expect float64 while the JS engine exports int64 and pass completion bodies in the task-result argument instead of the third body argument; the native video test also panics on its float64 assertion. Those unrelated test/runtime areas were not rewritten. The expression runtime also rejected integer literals as max operands in the sample; no expression implementation was changed by this model-registration task.
-- Commit and push: not committed and not pushed.
-
-# 2026-11-13 - Expose native MiniMax H3 task endpoints
-
-- Local reason: allow the six configured lowercase minimax-h3 models to use their native content-array protocol through the gateway, alongside the existing OpenAI video endpoint.
-- Changed: Hailuo plugin version 1.3.0 declares POST /v2/video_generation and GET /v2/query/video_generation/:task_id, with native decoding and response rendering. Explicit Gin routes use platform API-key authentication, existing request limits, plugin/channel selection and the existing durable task submission pipeline. Query reads the local task using user, organization and plugin ownership; it does not distribute channels or charge again. Existing background polling supplies the native result and usage. Public responses use platform task IDs and public model names while retaining upstream video URLs and usage; explicit upstream model/channel metadata is excluded.
-- Validation and billing: native requests reuse the existing H3 duration (4-15 integer seconds), content/media limits, resolution and ratio checks. The native-body marker is revalidated in both submission and usage extraction so other protocols cannot forge it to bypass multiplier bounds. Native optional fields, including explicit false and zero, remain present upstream. Request usage and completion usage reuse the existing output-seconds, input-reference-image and input-video-seconds meters. Channel model mapping applies before upstream submission and also works for polling.
-- Linked surfaces: added endpoint templates to the active default model editor, API-key endpoint drawer, endpoint labels/filters and model-detail cURL/Python/JavaScript/TypeScript native samples. Backend default endpoint paths support explicitly configured model metadata. Seven locale files and static translation keys include the new labels. Existing configured model endpoint selections are not rewritten. API CORS applies only to the two exact new endpoint shapes under the existing public API policy; unrelated /v2 and dashboard endpoints remain excluded.
-- Preserved: existing /v1/videos and legacy Hailuo models, administrator pricing/free-reference allowances, ordinary OpenAI billing, precharge/settlement/refunds, group/customer ratios, organization wallets, subscriptions, task isolation and all prior pending Seedream 5.5 edits. No default price, database migration or replacement billing path was added. Installed plugin copies must be updated/enabled with the new plugin source to register its declared routes.
-- Validation: targeted plugin, middleware, router and common Go regressions passed for all six H3 variants, native request forwarding, explicit zero/false, mapped polling URLs, bounded estimates and final usage, forged-marker rejection, public IDs/model privacy, cross-user/cross-organization/plugin isolation, unauthenticated 401 responses, endpoint defaults and CORS scope. Existing Hailuo usage-profile and Doubao/video endpoint regressions passed in the same run. Changed backend packages build successfully; default frontend production build and targeted formatting checks passed. Targeted Oxlint reports pre-existing type-import, replaceAll, curly and unused-import diagnostics in the existing model-editor/sample files; those unrelated areas were not rewritten. No full repository test/typecheck pass is claimed. No live paid upstream request or browser interaction was performed; MySQL/PostgreSQL were not exercised, and no database behavior changed.
-- Commit and push: not committed and not pushed.
-
-# 2026-11-13 - Publish native H3 endpoints and Seedream 5.5
-
-- Publication status supersedes the earlier local-only status of the preceding Seedream 5.5 and native H3 endpoint entries: source commit d31c47c31 (feat: add native H3 task endpoints and Seedream 5.5 models) was successfully pushed to origin/main on 2026-11-13 at the user's request.
-- Scope and preservation: the two entries' behavior, retained local billing/customizations and validation limitations remain applicable. No additional runtime change is included in this publication record.
-- Validation: staged diff whitespace checks passed; previously completed targeted regressions, backend package builds and default frontend production build remain applicable. GitHub Actions owns container image publishing; no local Docker image was built and workflow success is not asserted.
-- Commit and push: source commit d31c47c31 confirmed pushed; this documentation-only follow-up records that receipt.
-
-## 2026-11-15 - Add MiniMax synchronous speech task plugin
-
-- Local reason: add a MiniMax synchronous speech plugin with both the OpenAI-compatible `/v1/audio/speech` entry point and the native `/v1/t2a_v2` entry point.
-- Changed: registered dedicated `openai_audio` and `minimax_t2a` host protocols, routed claimed models through the existing task-plugin billing and persistence pipeline, added binary audio rendering for OpenAI requests, and added the `minimax-speech` plugin for the supported MiniMax speech model family. The plugin forwards native MiniMax request fields, stores the upstream JSON response, validates `base_resp`, returns native JSON unchanged, and decodes bounded hex audio for OpenAI callers.
-- Billing: added a bounded `characters` usage fact with submit-time text estimation and completion-time `extra_info.usage_characters` reconciliation. Prices remain administrator-configured; no account balance, wallet, subscription, quota, multiplier, or ordinary MiniMax channel logic was changed.
-- Preserved: the ordinary `/v1/audio/speech` relay remains the fallback when no task plugin claims the requested model. Existing image, video, Responses, native task routes, and pending local customizations were retained. Streaming speech is intentionally not advertised; the plugin requires synchronous non-streaming requests because the current task host does not expose a binary SSE response path.
-- Validation: bundled Node syntax check and `git diff --check` passed. Go/gofmt validation was blocked because the current workspace environment has no Go toolchain on PATH and no bundled Go executable was available; no live paid upstream request was made. Focused Go tests should be run in CI or a Go-enabled checkout.
-- Commit and push: runtime source commit `35adb4022` (`feat: add MiniMax synchronous speech task plugin`) was pushed to `origin/main`; this documentation correction is being pushed as a follow-up commit.
-
-## 2026-11-20 - Remove product digest email and add marketing audiences
-
-- Local reason: simplify email settings by removing scheduled product-update digest generation and review, while adding recipient groups to the existing manual marketing email workflow.
-- Changed: removed the product digest and promotion screens, API handlers/routes, scheduled generation and delivery handlers, digest-specific options, model registrations and service code. Manual marketing mail now supports all enabled users, users with successful personal top-ups, users active in the last 30 days, and manually selected users. A recipient count is shown before sending. Sends run as a durable system task, report progress, and process recipients in bounded batches. Account status, marketing opt-out preference and email availability are rechecked before each send.
-- Preserved: marketing email templates, unsubscribe links and preference storage remain in place. Existing saved digest/promotion tables are left untouched as historical data and are no longer migrated or exposed by the application. No billing, account balance, subscription, channel, or model-pricing code changed.
-- Validation: `bun run build` passed for `web/default`; `git diff --check` passed. Changed frontend files had no new targeted Oxlint errors. Repository `bun run typecheck` remains blocked by existing unrelated errors in auth, channel, image playground, model settings, pricing and task-plugin files, plus missing test-library declarations. Go tests and gofmt could not run because no Go toolchain is available in this environment. No live email was sent. The backend change therefore still needs Go-enabled CI validation.
-- Commit and push: source commit `a129d2979` is included in the push to `origin/main` alongside this log update.
-
-## 2026-11-20 - Restore profile email binding after dashboard login
-
-- Local reason: the dashboard now signs users in with a Bearer token. The email binding handler still read the legacy session cookie and could return HTTP 500 after verifying the code.
-- Changed: `POST /api/oauth/email/bind` now runs the standard user authentication middleware and binds the email to the authenticated account. Personal access tokens cannot change the login email.
-- Preserved: the shared endpoint and request format used by both themes, support for authenticated legacy browser sessions, verification code validation, email uniqueness, rate limiting, and audit logging.
-- Validation: the SQLite route regression passed for dashboard login without a legacy cookie, missing login credentials, personal access tokens, invalid verification codes, normalized email persistence, and success auditing. The router, middleware, and controller packages built successfully. Broader tests reported failures in unrelated router and CORS cases and compilation errors in existing controller tests. The live service was not exercised.
-- Commit and push: source commit `5c0a48c9a` is included in the push to `origin/main` alongside this log update.
-
-## 2026-11-20 - Add independent marketing SMTP and Tencent Cloud SES feedback
-
-- Local reason: send marketing campaigns through a dedicated, editable sender and SMTP credential while keeping transactional mail on its existing delivery configuration.
-- Changed: added an independent TLS SMTP option in the default email settings marketing tab, a test send, masked password state, and a marketing-only task status endpoint. Campaigns use the chosen configuration for their run, reject a changed configuration between queueing and start, check current opt-out and address suppression before each attempt, pace attempts at the configured rate, and track unconfirmed SMTP submissions separately. Clients can unsubscribe via HTTPS one-click POST on independent SMTP mail. Signed SES feedback suppresses addresses on hard bounce or complaint.
-- Preserved: system mail configuration and send callers, marketing templates, audience selection, body unsubscribe confirmation, and account marketing preferences. Upgrades default to inheriting the existing system delivery method. The new configuration controls are in the default theme and apply to campaigns from either theme.
-- Operations: set a public HTTPS server address and a stable `CRYPTO_SECRET` (or `SESSION_SECRET`) shared by all instances. In Default theme > Email Settings > Marketing, choose Independent SMTP, fill the SES host and port (Guangzhou: `gz-smtp.qcloudmail.com:465`), the SES SMTP account and password, the sender, and the reply address. Use the provided private callback URL in Tencent Cloud SES under the marketing sender's address-level callback settings. Configure the same callback for each sender address used in SES. Treat the URL as a credential. Verify the sender domain in SES, send a test, and confirm DKIM covers both unsubscribe headers before a live campaign.
-- Validation: production Go build of the touched packages, targeted common SMTP and Resend tests, isolated marketing controller/model/service tests, and default frontend build passed. Full package Go tests and frontend typecheck encounter existing unrelated compilation errors. No live SES send or webhook was exercised.
-- Commit and push: source commit `bdbd45642` is included in the push to `origin/main` alongside this log update.
-
-## 2026-11-20 - Enable ordinary-channel Seedream 5.5 usage billing
-
-- Local reason: ordinary OpenAI-compatible Seedream 5.5 requests using response usage fields were rejected because the model had not been added to the explicit ordinary response usage profile.
-- Changed: registered `doubao-seedream-5.5` and `doubao-seedream-5-5-261028` as aliases of the Seedream 5.5 ordinary response-usage profile. They reuse the bounded Seedream image usage schema and existing request-side reservation plus response settlement path. Added regression coverage for both names and a Seedream 5.5 image-tier/reference-image expression.
-- Preserved: task-plugin expression resolution, plugin-vs-ordinary channel separation, pre-consume/settlement and all account, group, customer and subscription billing behavior. No pricing expression or stored configuration is changed automatically.
-- Validation: `git diff --check` passed. Go tests and gofmt could not run because the Go toolchain is unavailable in this environment. No live provider request was made.
-- Commit and push: source commit `a129d2979` is included in the push to `origin/main` alongside this log update.
-
-## 2026-11-20 - Keep the marketing unsubscribe link inside the email body
-
-- Local reason: a marketing email shown in QQ Mail had no visible unsubscribe link in the captured area. Complete HTML templates could place the fallback footer outside the body, and a bare occurrence of the unsubscribe URL could prevent the footer from being added.
-- Changed: add a localized unsubscribe link inside the body of a complete HTML message, or at the end of a fragment. Preserve templates that already include an anchor to the recipient's unsubscribe URL.
-- Preserved: unsubscribe token verification, user preferences, the SES transport and callback, and the SMTP connection test.
-- Validation: isolated marketing service tests, gofmt and `git diff --check` passed. The production email and QQ Mail rendering were not retested.
-- Commit and push: source commit `26638b058` is included in the push to `origin/main` alongside this log update.
-
-## 2026-11-21 - Integrate funding totals into the wallet balance card
-
-- Local reason: the personal wallet showed funding totals in a separate card below the balance statistics, which made the balance and its sources harder to scan together.
-- Changed: the current-balance cell now includes cumulative paid and gift credits beneath the available balance. The standalone funding overview is removed from the wallet page. Funding loading and failure states remain visible inside that balance cell, while organization wallets continue to omit personal funding totals.
-- Preserved: the funding summary query, funding ledger dialog, balance, usage, request count, billing, top-up, and organization wallet behavior.
-- Validation: the default frontend production build, targeted Oxlint checks for the wallet page and balance card, and `git diff --check` passed. No Docker image was built, commit was not created, and nothing was pushed.
-
-## 2026-11-21 - Open recharge confirmation from the selected payment method
-
-- Local reason: simplify the wallet recharge flow by removing the separate bottom “Confirm recharge” action.
-- Changed: selecting a payment method now recalculates its quote and opens the existing payment confirmation dialog. The default wallet uses the existing Waffo amount endpoint to show the quoted total in the checkout currency, and the endpoint shares currency and rounding with order creation. Waffo keeps its dedicated payment request after confirmation. The dialog shows the amount, discount, fee, total, and selected method where those values are available.
-- Preserved: minimum amount checks, quote calculation, standard payment dispatch, Waffo and Pancake payment endpoints, corporate transfer, redemption, payment history, organization wallet behavior, and all existing local billing customizations.
-- Validation: see the batch validation record above. No live payment was submitted.
-
-## 2026-11-21 - Move redemption codes below recharge records
-
-- Local reason: keep the online recharge form focused on payment selection and place redemption outside the payment card.
-- Changed: moved the redemption code input, redeem action, and optional purchase link into a dedicated card rendered below recharge records in the default personal wallet. Organization wallets continue to hide redemption.
-- Preserved: redemption validation and balance refresh, the configured purchase link, payment methods, payment confirmation, recharge history, corporate transfer, and all existing local wallet behavior.
-- Validation: the default frontend production build, targeted Oxlint checks for the wallet page and redemption card, and `git diff --check` passed. No Docker image was built, commit was not created, and nothing was pushed.
-
-## 2026-11-21 - Simplify wallet recharge amount buttons
-
-- Local reason: repeated discount percentages crowded the preset recharge amounts.
-- Changed: the default wallet's preset buttons now show the formatted recharge amount alone.
-- Preserved: the configured promotion carousel, preset selection and currency conversion, and the payment confirmation's discount, fee, and payable total. Billing and order submission still use the existing paths.
-- Validation: the default frontend production build, targeted Oxlint, and `git diff --check` passed. No live payment was submitted.
-- Commit and push: local changes are uncommitted and unpushed.
-
-## 2026-11-21 - Add configurable recharge promotion carousel
-
-- Local reason: replace the fixed recharge discount notice with administrator-managed promotional images while removing the inline payable-total summary from the recharge form.
-- Changed: added `payment_setting.recharge_carousel`, exposed validated JSON entries through the top-up info API, added an editor to the active default payment settings page, and added a responsive single/multi-image carousel with optional title, description, link, enabled, and sort fields to the default wallet page. Empty or invalid configuration safely hides the carousel. The recharge form no longer renders the “Amount to pay” summary, while payment confirmation retains its existing calculated amount.
-- Preserved: preset amounts, discounts, payment methods, fee calculation, payment confirmation, redemption, corporate transfer, payment history, organization wallet behavior, and all existing local billing and logging customizations. No payment calculation or order-processing path was changed.
-- Validation: default frontend production build passed. Frontend typecheck remains blocked by existing unrelated errors and missing test-library declarations. Repository-wide format check reports pre-existing files and the new carousel file, so no broad formatter rewrite was applied. Go tests and gofmt were unavailable because Go is not installed in the workspace. The local temporary wallet mock was updated with two sample carousel entries for preview only.
-- Commit and push: not committed or pushed in this turn.
-
-## 2026-11-20 - Allow signed unsubscribe form submissions with an opaque origin
-
-- Local reason: opening the marketing email unsubscribe page worked, but its form POST was rejected by dashboard CORS. The page's referrer policy and email client context can cause the browser to submit with `Origin: null`.
-- Changed: register only the unsubscribe POST before the dashboard CORS middleware. Its existing signature verification authorizes the preference update without a session.
-- Preserved: the unsubscribe URL, confirmation page, one-click POST, referrer policy, rate limiting, SES callback, and CORS enforcement for the dashboard and relay.
-- Validation: focused router tests and `git diff --check` passed. A signed form POST with `Origin: null` updates the preference, an invalid signature leaves it intact, and another API still rejects that origin. Full router tests failed in TypeSafe and public SEO cases, and the middleware CORS test run failed in `TestCORSRejectsUntrustedOrigin`. Live deployment was not tested.
-- Commit and push: source commit `26638b058` is included in the push to `origin/main` alongside this log update.
-
-## 2026-11-20 - Accept custom marketing email recipients
-
-- Local reason: let administrators send a marketing template to specified addresses, including recipients without an account.
-- Changed: the default email settings now offer a custom email audience. Limit each request to 100 addresses, validate and deduplicate addresses, check account opt-outs and address suppression before delivery, and generate signed address-level unsubscribe links without including the plaintext address. Both confirmation form and mail client one-click requests can suppress future marketing sends to an address.
-- Preserved: registered-user audiences, account-level unsubscribe links, SMTP test sends, and the existing campaign delivery and retry policies. Custom campaigns use the existing public HTTPS server address for unsubscribe links.
-- Validation: focused marketing router and service tests, backend package builds, and the default frontend production build passed. Repository typecheck and the changed email settings file's lint still report pre-existing errors. No live mail was sent.
-- Commit and push: source commit `26638b058` is included in the push to `origin/main` alongside this log update.

@@ -54,7 +54,8 @@ func AuditRequests() gin.HandlerFunc {
 		method := "session"
 		if userID == 0 { method = "anonymous" }
 		switch route {
-		case "/api/user/login": method = "password"
+		case "/api/user/login", "/api/user/register":
+			method = "password"
 		case "/api/user/login/2fa": method = "two_factor"
 		case "/api/user/passkey/login/finish": method = "passkey"
 		case "/api/oauth/:provider", "/api/oauth/wechat", "/api/oauth/telegram", "/api/oauth/telegram/login": method = "oauth"

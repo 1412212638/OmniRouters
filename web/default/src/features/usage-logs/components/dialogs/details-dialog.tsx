@@ -32,6 +32,7 @@ import { formatBillingCurrencyFromUSD } from '@/lib/currency'
 import { formatLogQuota, formatTokens, formatUseTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
+import { LOG_TYPE_ENUM } from '../../constants'
 import type { UsageLog } from '../../data/schema'
 import {
   parseLogOther,
@@ -642,6 +643,8 @@ export function DetailsDialog(props: DetailsDialogProps) {
   // Localized operation text rendered from the language-independent op
   // descriptor (shared by audit type=3 and login type=7).
   const operationText = renderAuditContent(other, t)
+  const displayDetails =
+    props.log.type === LOG_TYPE_ENUM.SYSTEM ? (operationText ?? details) : details
   const auditRoute = isManage && props.isAdmin ? other?.audit_info : undefined
   // Channel update records which fields changed (stable field tokens); render
   // them with their localized labels for admins.
@@ -1440,7 +1443,7 @@ export function DetailsDialog(props: DetailsDialogProps) {
             )}
 
             {/* Content */}
-            {details && (
+            {displayDetails && (
               <div className='space-y-1.5'>
                 <Label className='text-xs font-semibold'>{t('Content')}</Label>
                 <div className='bg-muted/30 relative min-w-0 overflow-hidden rounded-md border p-2.5'>
@@ -1448,18 +1451,18 @@ export function DetailsDialog(props: DetailsDialogProps) {
                     variant='ghost'
                     size='sm'
                     className='absolute top-1.5 right-1.5 h-5 w-5 p-0'
-                    onClick={() => copyToClipboard(details)}
+                    onClick={() => copyToClipboard(displayDetails)}
                     title={t('Copy to clipboard')}
                     aria-label={t('Copy to clipboard')}
                   >
-                    {copiedText === details ? (
+                    {copiedText === displayDetails ? (
                       <Check className='size-3 text-green-600' />
                     ) : (
                       <Copy className='size-3' />
                     )}
                   </Button>
                   <p className='min-w-0 pr-6 text-xs leading-relaxed break-all whitespace-pre-wrap sm:wrap-break-word'>
-                    {details}
+                    {displayDetails}
                   </p>
                 </div>
               </div>

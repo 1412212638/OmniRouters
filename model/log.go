@@ -202,6 +202,24 @@ func buildOpField(action string, params map[string]interface{}) map[string]inter
 	return op
 }
 
+// RecordWalletAdjustmentLog records a successful adjustment for the affected
+// user's personal wallet. The operator's audit log is recorded separately.
+func RecordWalletAdjustmentLog(userID int, username string, content string, action string, params map[string]interface{}) {
+	other := NewLogOther()
+	other.SetPublic("op", buildOpField(action, params))
+	log := &Log{
+		UserId:    userID,
+		Username:  username,
+		CreatedAt: common.GetTimestamp(),
+		Type:      LogTypeSystem,
+		Content:   content,
+		Other:     other.JSONString(),
+	}
+	if err := createLog(log); err != nil {
+		common.SysError("failed to record wallet adjustment log: " + err.Error())
+	}
+}
+
 // RecordLoginLog 记录用户登录成功的审计日志（type=LogTypeLogin）。
 // username 由调用方传入（登录流程已持有用户对象），避免额外的数据库查询。
 // content 为英文兜底文本（用于导出）；action+params 供前端本地化渲染。

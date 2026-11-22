@@ -59,6 +59,8 @@
     "No change details recorded": "Aucun détail de modification enregistré",
     "Login successful": "Connexion réussie",
     "Login attempt": "Tentative de connexion",
+    "Register account": "Créer un compte",
+    "Daily check-in": "Pointage quotidien",
     "Change password": "Modifier le mot de passe",
     "Bind email": "Associer un e-mail",
     "Unbind OAuth": "Dissocier OAuth",

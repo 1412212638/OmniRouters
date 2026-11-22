@@ -59,6 +59,8 @@
     "No change details recorded": "Подробности изменений не записаны",
     "Login successful": "Успешный вход",
     "Login attempt": "Попытка входа",
+    "Register account": "Регистрация аккаунта",
+    "Daily check-in": "Ежедневная отметка",
     "Change password": "Изменить пароль",
     "Bind email": "Привязать почту",
     "Unbind OAuth": "Отвязать OAuth",

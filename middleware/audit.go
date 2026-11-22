@@ -49,6 +49,8 @@ var auditRouteActions = map[string]string{
 	"POST /api/token/batch/keys": "token.view",
 	"GET /api/user/token": "generate",
 	// 用户管理
+	"POST /api/user/checkin":                          "user.checkin",
+	"PUT /api/user/setting":                           "user.settings_update",
 	"POST /api/user/topup/complete":                    "user.topup_complete",
 	"DELETE /api/user/:id/reset_passkey":               "user.reset_passkey",
 	"DELETE /api/user/:id/oauth/bindings/:provider_id": "user.oauth_unbind",

@@ -1,5 +1,11 @@
 # AGENTS.md — Project Conventions for new-api
 
+## Project memory
+
+For repository work, AI assistants must read [project-memory/README.md](project-memory/README.md) and the entries relevant to the task before making changes. Verify relevant facts against current code, configuration, and other cited sources. Treat uncertain or outdated memory as context to investigate, and follow the user's current instructions and applicable project rules.
+
+When work changes or establishes durable project context, such as architecture, important decisions, workflows, or constraints, update the relevant memory entries in the same task. Record sources, verification date, and remaining uncertainty. Keep secrets and personal information out of memory. Record source-level changes in [docs/upstream-sync-log.md](docs/upstream-sync-log.md) as required by Rule 3.2.
+
 ## Overview
 
 This is an AI API gateway/proxy built with Go. It aggregates 40+ upstream AI providers (OpenAI, Claude, Gemini, Azure, AWS Bedrock, etc.) behind a unified API, with user management, billing, rate limiting, and an admin dashboard.
