@@ -91,6 +91,29 @@ func TestCallIOLogCapturesPreferenceAndSafeErrorStatus(t *testing.T) {
 	require.Equal(t, types.ErrorCodeBadResponseStatusCode, result.public[callIOLogKey].(map[string]any)["output"].(map[string]any)["error_code"])
 }
 
+func TestCallIOLogVideoEnhancementFrameRate(t *testing.T) {
+	const modelName = "ai-mediakit-video-enhancement-std"
+	for _, tc := range []struct {
+		name       string
+		fps        string
+		parameters string
+	}{
+		{"integer frame rate", `30`, `{"resolution":"1080p","fps":30}`},
+		{"decimal frame rate encoding", `30.0`, `{"resolution":"1080p","fps":30}`},
+		{"free text omitted", `"private text"`, `{"resolution":"1080p"}`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c := callIOTestContext(t, `{
+				"model":"`+modelName+`",
+				"input":{"video_url":"https://private.invalid/source.mp4"},
+				"parameters":{"resolution":"1080p","fps":`+tc.fps+`}
+			}`, nil)
+			result := appendCallIOLog(c, 12, nil, modelName, false, &RecordConsumeLogParams{})
+			require.JSONEq(t, `{"call_io_log":{"enabled":true,"input":{"model":"`+modelName+`","stream":false,"parameters":`+tc.parameters+`}}}`, result.JSONString())
+		})
+	}
+}
+
 func TestCallIOLogLargeBodyUsesBasicMetadata(t *testing.T) {
 	c := callIOTestContext(t, `{"max_tokens":2048,"prompt":"`+strings.Repeat("x", maxCallIORequestBytes)+`"}`, nil)
 	result := appendCallIOLog(c, 12, nil, "public-model", true, &RecordConsumeLogParams{})

@@ -173,9 +173,11 @@ export interface LogOtherData {
   text_output?: number
   cache_tokens?: number
   cache_creation_tokens?: number
+  cache_write_tokens?: number
   cache_creation_tokens_5m?: number
   cache_creation_tokens_1h?: number
   cache_creation_tokens_12h?: number
+  usage_semantic?: string
   claude?: boolean
   model_ratio?: number
   completion_ratio?: number
@@ -238,10 +240,12 @@ export interface LogOtherData {
   violation_fee_code?: string
   violation_fee_marker?: string
   fee_quota?: number
-  // Task-related fields (for refund logs, type=6)
+  // Task submission and settlement fields.
   is_task?: boolean
   task_id?: string
   reason?: string
+  pre_consumed_quota?: number
+  actual_quota?: number
   // Subscription billing fields
   subscription_plan_id?: string
   subscription_plan_title?: string

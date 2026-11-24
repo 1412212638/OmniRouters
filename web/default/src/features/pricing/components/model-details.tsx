@@ -65,6 +65,7 @@ import {
 } from '../lib/price'
 import { getTaskPricingDisplayTiers } from '../lib/task-matrix-display'
 import { getSimpleTaskTokenFields } from '../lib/task-price-display'
+import { formatTierDisplayLabel } from '../lib/tier-display-label'
 import { formatToolPrice, getPricingToolPrices } from '../lib/tool-price'
 import type {
   PriceType,
@@ -650,7 +651,7 @@ function DynamicGroupPricingCard(props: {
   usdExchangeRate: number
   selectedRuleMultiplier: number
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const toolPricingColumns = getToolPricingColumns({
     tools: getPricingToolPrices(props.model),
     thClass:
@@ -699,7 +700,13 @@ function DynamicGroupPricingCard(props: {
             className:
               'text-muted-foreground py-2 text-[10px] font-medium tracking-wider uppercase',
             cellClassName: 'text-muted-foreground py-2.5',
-            cell: (tier) => tier.label || t('Default'),
+            cell: (tier) =>
+              formatTierDisplayLabel(
+                tier,
+                props.dynamicTiers,
+                t,
+                i18n.language
+              ),
           },
           {
             id: 'ratio',
@@ -873,7 +880,7 @@ function GroupPricingSection(props: {
     tools: getPricingToolPrices(props.model),
     thClass,
     translate: t,
-    getGroupMultiplier: (group) => getRuleInfo(group).multiplier,
+    getGroupMultiplier: (group: string) => getRuleInfo(group).multiplier,
     showRechargePrice,
     priceRate: props.priceRate,
     usdExchangeRate: props.usdExchangeRate,

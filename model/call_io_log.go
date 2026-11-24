@@ -182,7 +182,7 @@ var callIOIntegerFields = []string{
 	"max_tokens", "max_completion_tokens", "max_output_tokens", "maxOutputTokens", "top_k", "topK",
 	"n", "candidateCount", "seed", "duration", "seconds", "width", "height",
 }
-var callIONumberFields = []string{"temperature", "top_p", "topP", "frequency_penalty", "presence_penalty"}
+var callIONumberFields = []string{"temperature", "top_p", "topP", "frequency_penalty", "presence_penalty", "fps"}
 var callIOBooleanFields = []string{"stream", "generate_audio", "watermark", "draft", "return_last_frame", "background"}
 var callIOEnumFields = map[string][]string{
 	"resolution":               {"360p", "480p", "540p", "720p", "768p", "1080p", "1440p", "2160p", "2k", "4k", "2K", "4K"},

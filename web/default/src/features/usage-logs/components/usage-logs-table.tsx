@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import { type ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -21,11 +22,13 @@ import {
   LOG_TYPE_ALL_VALUE,
   LOG_TYPE_ENUM,
 } from '../constants'
+import type { UsageLog } from '../data/schema'
 import { useColumnsByCategory } from '../lib/columns'
 import { parseLogOther } from '../lib/format'
 import { fetchLogsByCategory } from '../lib/utils'
 import type { LogCategory } from '../types'
 import { CommonLogsFilterBar } from './common-logs-filter-bar'
+import { UsageLogDetailsSheet } from './dialogs/details-dialog'
 import { TaskLogsFilterBar } from './task-logs-filter-bar'
 import { UsageLogsMobileList } from './usage-logs-mobile-card'
 
@@ -48,12 +51,17 @@ function getColumnVisibilityStorageKey(
 }
 
 function deserializeLogTypeFilter(value: unknown): unknown[] {
-  const values = Array.isArray(value) ? value : value ? [value] : []
+  const values = Array.isArray(value) ? value : [value].filter(Boolean)
   return values.filter((item) => String(item) !== LOG_TYPE_ALL_VALUE)
 }
 
 interface UsageLogsTableProps {
   logCategory: LogCategory
+}
+
+interface LogDetailsSelection {
+  logs: UsageLog[]
+  index: number
 }
 
 export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
@@ -63,6 +71,10 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
   const isAdmin = useIsAdmin() && !organizationId
   const isMobile = useMediaQuery('(max-width: 640px)')
   const searchParams = route.useSearch()
+  const [detailsSelection, setDetailsSelection] =
+    useState<LogDetailsSelection | null>(null)
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const detailsTriggerId = useRef<number | null>(null)
 
   const {
     columnFilters,
@@ -141,7 +153,17 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
   })
 
   const logs = data?.items || []
-  const columns = useColumnsByCategory(logCategory, isAdmin)
+  const isCommon = logCategory === 'common'
+  const commonLogs = isCommon ? (logs as UsageLog[]) : []
+  const selectedLog = detailsSelection?.logs[detailsSelection.index]
+  const columns = useColumnsByCategory(logCategory, isAdmin, (log) => {
+    const index = commonLogs.indexOf(log)
+    if (index < 0) return
+    detailsTriggerId.current = log.id
+    // Personal log IDs can change position when the list refreshes.
+    setDetailsSelection({ logs: commonLogs, index })
+    setDetailsOpen(true)
+  })
   const isLoadingData = isLoading || (isFetching && !data)
 
   const { table } = useDataTable({
@@ -162,9 +184,7 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
     ),
   })
 
-  const isCommon = logCategory === 'common'
-
-  return (
+  const tableContent = (
     <DataTablePage
       table={table}
       columns={columns as ColumnDef<Record<string, unknown>>[]}
@@ -218,5 +238,45 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
         )
       }}
     />
+  )
+
+  return (
+    <>
+      {tableContent}
+      {isCommon && detailsSelection && selectedLog && (
+        <UsageLogDetailsSheet
+          log={selectedLog}
+          isAdmin={isAdmin}
+          open={detailsOpen}
+          onOpenChange={setDetailsOpen}
+          onPrevious={
+            detailsSelection.index > 0
+              ? () =>
+                  setDetailsSelection({
+                    ...detailsSelection,
+                    index: detailsSelection.index - 1,
+                  })
+              : undefined
+          }
+          onNext={
+            detailsSelection.index < detailsSelection.logs.length - 1
+              ? () =>
+                  setDetailsSelection({
+                    ...detailsSelection,
+                    index: detailsSelection.index + 1,
+                  })
+              : undefined
+          }
+          finalFocus={() => {
+            const triggers = document.querySelectorAll<HTMLButtonElement>(
+              `[data-usage-log-details="${detailsTriggerId.current}"]`
+            )
+            return (
+              [...triggers].find((trigger) => trigger.offsetWidth > 0) ?? true
+            )
+          }}
+        />
+      )}
+    </>
   )
 }

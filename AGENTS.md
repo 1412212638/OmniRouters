@@ -133,9 +133,11 @@ By default, local work should be source-level only: edit source/config/docs, the
 
 Every source-level change must leave a trace in `docs/upstream-sync-log.md` before it is pushed. This applies to upstream syncs, local fixes, feature work, dependency changes, and build-failure fixes. Each entry must record the date, upstream commit(s) or local reason, files or behavior changed, local functionality deliberately preserved, validation performed and any limitations, plus the resulting local commit and push status. Do not claim an upstream change is integrated until the entry distinguishes integrated, already-present, deferred, and intentionally skipped items.
 
-### Rule 3.3: Verify the Active Frontend Surface Before Editing
+### Rule 3.3: Maintain the Default Frontend and Catalog Model Plaza
 
-Before changing a frontend feature, trace its route and rendered component to the active theme and page. For the default model plaza, the production card is `web/default/src/features/pricing/index.tsx` and its `CatalogModelCard`; `web/default/src/features/pricing/components/model-card.tsx` is a separate card path used by the classic pricing composition. Do not fix only the legacy/classic component when the reported behavior is in the default model plaza. If both surfaces are intentionally supported, update and test both explicitly.
+The maintained UI is the default frontend (`web/default/`) with the catalog model plaza. For frontend changes, trace the route and rendered component to this surface and validate the requested behavior there. The catalog model plaza uses `web/default/src/features/pricing/index.tsx` and its `CatalogModelCard`. The separate `web/default/src/features/pricing/components/model-card.tsx` belongs to the classic pricing composition.
+
+Do not implement or mirror routine UI changes in `web/classic/` or the classic model plaza unless the user explicitly requests work on them or a shared-code dependency requires it. Preserve shared backend and frontend behavior needed by the maintained surface. Check actual runtime settings when relevant; repository defaults and deployment settings can differ.
 
 ### Rule 4: New Channel StreamOptions Support
 

@@ -44,8 +44,8 @@ import {
   type RequestCondition,
   type RequestRuleGroup,
   type RequestRuleTrace,
-  type TierCondition,
 } from '../lib/billing-expr'
+import { formatTierDisplayLabel } from '../lib/tier-display-label'
 
 type DynamicPricingBreakdownProps = {
   billingExpr: string | null | undefined
@@ -76,49 +76,12 @@ type DynamicPricingBreakdownProps = {
   showTierTable?: boolean
 }
 
-const VAR_LABELS: Record<string, string> = {
-  p: 'Input',
-  c: 'Output',
-  len: 'Length',
-}
-const OP_LABELS: Record<string, string> = {
-  '<': '<',
-  '<=': '≤',
-  '>': '>',
-  '>=': '≥',
-}
 const TIME_FUNC_LABELS: Record<string, string> = {
   hour: 'Hour',
   minute: 'Minute',
   weekday: 'Weekday',
   month: 'Month',
   day: 'Day',
-}
-
-function formatTokenHint(value: string | number): string {
-  const n = Number(value)
-  if (!Number.isFinite(n) || n === 0) return ''
-  if (n >= 1_000_000) {
-    return `${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`
-  }
-  if (n >= 1000) {
-    return `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}K`
-  }
-  return String(n)
-}
-
-function formatConditionSummary(
-  conditions: TierCondition[],
-  t: (key: string) => string
-): string {
-  return conditions
-    .map((c) => {
-      const varLabel = t(VAR_LABELS[c.var] || c.var)
-      const hint = formatTokenHint(c.value)
-      return `${varLabel} ${OP_LABELS[c.op] || c.op} ${hint || c.value}`
-    })
-    .filter(Boolean)
-    .join(' && ')
 }
 
 function formatWeekdayRange(
@@ -523,14 +486,9 @@ export function DynamicPricingBreakdown({
           </div>
           <div className='space-y-1.5 sm:hidden'>
             {tiers.map((tier, i) => {
-              const condSummary =
-                formatConditionSummary(tier.conditions, t) ||
-                tier.conditionText ||
-                ''
               const isMatched =
-                matchedTierLabel != null &&
-                matchedTierLabel !== '' &&
-                tier.label === matchedTierLabel
+                normalizedMatchedTierLabel !== '' &&
+                normalizeTierLabel(tier.label) === normalizedMatchedTierLabel
               return (
                 <div
                   key={`tier-mobile-${i}`}
@@ -540,12 +498,9 @@ export function DynamicPricingBreakdown({
                   )}
                 >
                   <div className='mb-1.5 flex flex-wrap items-center gap-1.5'>
-                    <Badge
-                      variant='secondary'
-                      className='bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300'
-                    >
-                      {tier.label || t('Default')}
-                    </Badge>
+                    <span className='font-medium'>
+                      {formatTierDisplayLabel(tier, tiers, t, i18n.language)}
+                    </span>
                     {isMatched && (
                       <Badge
                         variant='secondary'
@@ -555,11 +510,6 @@ export function DynamicPricingBreakdown({
                       </Badge>
                     )}
                   </div>
-                  {condSummary && (
-                    <div className='text-muted-foreground mb-1.5 text-xs'>
-                      {condSummary}
-                    </div>
-                  )}
                   <div className='grid grid-cols-2 gap-x-3 gap-y-1.5'>
                     {visiblePriceFields.map((v) => {
                       const value = Number(
@@ -626,38 +576,24 @@ export function DynamicPricingBreakdown({
                 ),
                 cellClassName: cn('align-top', compact ? 'py-2' : 'py-2.5'),
                 cell: (tier) => {
-                  const condSummary =
-                    formatConditionSummary(tier.conditions, t) ||
-                    tier.conditionText ||
-                    ''
                   const isMatched =
                     normalizedMatchedTierLabel !== '' &&
                     normalizeTierLabel(tier.label) ===
                       normalizedMatchedTierLabel
                   return (
-                    <>
-                      <div className='flex flex-wrap items-center gap-1.5'>
+                    <div className='flex flex-wrap items-center gap-1.5'>
+                      <span className='font-medium'>
+                        {formatTierDisplayLabel(tier, tiers, t, i18n.language)}
+                      </span>
+                      {isMatched && (
                         <Badge
                           variant='secondary'
-                          className='bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300'
+                          className='bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
                         >
-                          {tier.label || t('Default')}
+                          {t('Matched')}
                         </Badge>
-                        {isMatched && (
-                          <Badge
-                            variant='secondary'
-                            className='bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
-                          >
-                            {t('Matched')}
-                          </Badge>
-                        )}
-                      </div>
-                      {condSummary && (
-                        <div className='text-muted-foreground mt-1 text-xs'>
-                          {condSummary}
-                        </div>
                       )}
-                    </>
+                    </div>
                   )
                 },
               },

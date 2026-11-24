@@ -2,6 +2,70 @@
 
 Entries are ordered by their recorded dates, newest first. Dates and same-day ordering reflect the original records.
 
+## 2026-11-24 - Clarify total token count in usage-log details
+
+- Local reason: the total-token row appeared before cache and image details, and cache semantics differ between upstream formats.
+- Changed: moved Total Tokens to the end of Token Breakdown. Anthropic usage totals include separately reported cache reads and writes. OpenAI-style totals remain input plus output because cached tokens are already part of input. New logs use `usage_semantic`; older Claude logs fall back to the existing Claude marker. Cache-write totals use the normalized aggregate when present to avoid adding TTL subcategories twice.
+- Preserved: upstream usage records, billing calculations, log storage, and existing input/output/cache detail rows.
+- Validation: default frontend production build and targeted Oxlint passed, as did `git diff --check`. The formatter check reports pre-existing formatting issues across this already-modified details component and other unrelated files, so no whole-file formatting rewrite was applied.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-24 - Reduce repeated information in usage-log details
+
+- Local reason: the basic-information view repeated response time and token totals, while reasoning settings appeared outside their related section.
+- Changed: moved model, request status, start/end time, response time with FRT, request path, and token identity into Overview. Input/output/total Tokens now live together in Token Details. Removed the separate model/status and KPI strip.
+- Preserved: all logged values, billing calculations, permissions, and non-token detail sections.
+- Validation: frontend production build, targeted Oxlint, and `git diff --check` passed. Verified the local preview renders model/status, derived start/end times, response duration, request path, token identity, and input/output/total Tokens in their requested sections. Existing admin-only and billing detail sections remain available.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-24 - Show readable pricing tier conditions
+
+- Local reason: configured tier names such as `standard` and `long_context` did not tell users which prices applied.
+- Changed: the default model detail price table and usage-log list and drawer share a formatter for comparable token tier conditions. Later simple branches include applicable earlier boundaries. Compound branches fall back to a description that makes no unsupported range claim. Added fallback labels in seven locales.
+- Preserved: original tier IDs, matched-row highlighting, stored expressions and pricing calculations. Unsupported conditions retain the configured tier label.
+- Validation: verified both sides of the 272K boundary in the local model detail and the matched long-context row in usage logs. Focused formatting checks covered two- and three-tier boundaries, non-round thresholds, compound conditions, and custom labels. Production build passed. Full typecheck reports 28 existing errors outside the changed files. The two touched pricing components still have existing lint findings outside the new labeling logic.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-24 - Show asynchronous task settlement in usage log details
+
+- Local reason: show the amount charged at video submission and distinguish the final charge from a refund or an additional charge.
+- Changed: the default usage-log detail sheet shows task ID, submission charge or known precharge, final charge, and the refund or additional charge according to the log record. Failed-task full refunds show the returned amount and zero final charge. Partial refunds retain the recorded tier breakdown for administrators when an expression is present. Added labels in seven locales.
+- Preserved: existing billing records and permissions, tier highlighting for text calls, desensitized JSON for request records, and backend settlement behavior. Reports with no price adjustment have no separate settlement record under the existing backend behavior. Preview samples exist only in the local preview SQLite database.
+- Validation: verified both text tier highlights, a video precharge, a partial refund, an additional charge, and a failed task refund in the local browser. Frontend production build and targeted lint and formatting passed. Full frontend typecheck reports 29 existing diagnostics outside usage logs.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-24 - Group call JSON in the request trace tab
+
+- Local reason: keep the input and output of a request together in the usage log detail sheet.
+- Changed: the default frontend now shows both JSON sections under Request Trace, expanded by default with independent collapse controls. A copyable request metadata block follows them. Requests with logging disabled show the profile setting that applies to future calls. Added all new labels and help text to seven locales.
+- Preserved: existing log-type eligibility, redaction, empty states for older or incomplete records, and administrator-only audit and raw-data tabs. The metadata block uses request fields already available in the log. API responses and billing are unchanged.
+- Validation: verified the local video example with `fps: 30`, independent collapse, the disabled-logging state, metadata, and administrator tabs in the browser. Frontend production build, targeted lint, formatting, locale checks, and Git whitespace checks passed. Full frontend typecheck still reports 29 existing issues outside usage logs.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-24 - Open common usage log details in a side sheet
+
+- Local reason: keep the usage-log list in context and make it easier to compare adjacent requests.
+- Changed: the default frontend's common log detail opens in a right-hand sheet on desktop and fills the viewport width on mobile. The header has request ID copying and same-page log navigation. The basic information tab starts with available request metrics, and the active tab body scrolls independently under the header and tabs. Navigation labels cover all seven locales.
+- Preserved: the existing billing breakdown, filtered input and output JSON, admin-only audit and raw data, model diagnostics and each entry's log-type visibility rules. Task and drawing logs retain their existing details. No API or billing changes.
+- Validation: tested desktop and 390px previews with a local SQLite copy and simulated logs. Confirmed navigation and JSON tabs, frame rate display, administrator audit access and regular-user restrictions, and Escape with focus restoration. The frontend production build, targeted lint and formatting, locale checks, and Git whitespace checks passed. The full frontend typecheck reports 29 pre-existing diagnostics outside usage logs. No live deployment was tested.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-24 - Record video frame rate in usage logs
+
+- Local reason: video enhancement requests included `parameters.fps`, but the input JSON summary only retained `parameters.resolution`.
+- Changed: allowlisted numeric `fps` in JSON input summaries and documented the existing logging privacy boundary in project memory.
+- Preserved: source video URLs, prompts, and generated content remain excluded from these summaries. Logging preferences, request forwarding, and billing are unchanged. Historical logs are not backfilled.
+- Validation: reproduced the missing field, then passed targeted `TestCallIOLog` tests covering numeric frame rates and omission of media URLs and text. The tests used a temporary Go overlay excluding `model/user_update_test.go`, which references the existing undefined `UpdateUserAccessToken` helper. Go formatting and Git whitespace checks passed. No live deployment was tested.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
+## 2026-11-22 - Define the maintained frontend surfaces
+
+- Local reason: the user confirmed that ongoing UI maintenance targets the default frontend and catalog model plaza.
+- Changed: clarified the maintained surface, catalog component ownership, classic-surface scope, and runtime configuration checks in AI rules and project memory.
+- Preserved: existing frontend implementations, theme settings, and shared functionality.
+- Validation: checked component ownership against the pricing entry point, local Markdown link targets, and Git whitespace. The user's screenshot shows the selected settings for that instance; production configuration was not independently queried.
+- Source commit and push status: local changes are uncommitted and unpushed.
+
 ## 2026-11-22 - Publish project memory and audit changes
 
 - Local reason: publish the approved project-memory rules and pending registration audit and wallet adjustment logging work together.

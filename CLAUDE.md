@@ -6,6 +6,12 @@ For repository work, AI assistants must read [project-memory/README.md](project-
 
 When work changes or establishes durable project context, such as architecture, important decisions, workflows, or constraints, update the relevant memory entries in the same task. Record sources, verification date, and remaining uncertainty. Keep secrets and personal information out of memory. Record source-level changes in [docs/upstream-sync-log.md](docs/upstream-sync-log.md) as required by the project conventions in [AGENTS.md](AGENTS.md).
 
+## Maintained frontend
+
+Maintain the default frontend (`web/default/`) and catalog model plaza. Before frontend changes, trace the route and rendered component and validate the requested behavior on that surface. The catalog card is `CatalogModelCard` in `web/default/src/features/pricing/index.tsx`; `web/default/src/features/pricing/components/model-card.tsx` belongs to the classic pricing composition.
+
+Do not implement or mirror routine UI changes in `web/classic/` or the classic model plaza unless the user explicitly requests them or a shared-code dependency requires it. Preserve shared behavior needed by the maintained surface. Verify runtime settings when relevant, since repository defaults and deployment settings can differ.
+
 ## Overview
 
 This is an AI API gateway/proxy built with Go. It aggregates 40+ upstream AI providers (OpenAI, Claude, Gemini, Azure, AWS Bedrock, etc.) behind a unified API, with user management, billing, rate limiting, and an admin dashboard.

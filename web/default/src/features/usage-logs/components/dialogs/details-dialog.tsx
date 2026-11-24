@@ -13,6 +13,9 @@ import {
   UserCog,
   Info,
   LogIn,
+  ChevronDown,
+  ChevronUp,
+  X,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -20,16 +23,28 @@ import {
   CodeBlock,
   CodeBlockCopyButton,
 } from '@/components/ai-elements/code-block'
-import { Dialog } from '@/components/dialog'
 import { StatusBadge, type StatusBadgeProps } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
-import { Empty, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { Label } from '@/components/ui/label'
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DynamicPricingBreakdown } from '@/features/pricing/components/dynamic-pricing-breakdown'
+import { formatTierDisplayLabel } from '@/features/pricing/lib/tier-display-label'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { formatBillingCurrencyFromUSD } from '@/lib/currency'
-import { formatLogQuota, formatTokens, formatUseTime } from '@/lib/format'
+import {
+  formatLogQuota,
+  formatTimestampToDate,
+  formatTokens,
+  formatUseTime,
+} from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 import { LOG_TYPE_ENUM } from '../../constants'
@@ -43,7 +58,6 @@ import {
   getTaskUsageTokens,
   hasAnyCacheTokens,
   isViolationFeeLog,
-  getFirstResponseTimeColor,
   getResponseTimeColor,
   renderAuditContent,
 } from '../../lib/format'
@@ -53,6 +67,8 @@ import {
   isTimingLogType,
 } from '../../lib/utils'
 import { USAGE_BILLING_PATH, type LogOtherData } from '../../types'
+import { ModelBadge } from '../model-badge'
+import { RequestTracePanel } from './request-trace-panel'
 
 // Maps a channel-update changed-field token (as recorded by the backend audit)
 // to its i18n label key for display in the audit details.
@@ -105,27 +121,24 @@ function DetailSection(props: {
 }) {
   const isDanger = props.variant === 'danger'
   return (
-    <div className='min-w-0 space-y-1.5'>
-      <Label
+    <section
+      className={cn(
+        'bg-card min-w-0 rounded-lg border p-3 sm:p-4',
+        isDanger &&
+          'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/20'
+      )}
+    >
+      <h3
         className={cn(
-          'flex items-center gap-1.5 text-xs font-semibold',
+          'mb-2 flex items-center gap-1.5 text-xs font-semibold',
           isDanger && 'text-red-500'
         )}
       >
         {props.icon}
         {props.label}
-      </Label>
-      <div
-        className={cn(
-          'min-w-0 space-y-1 overflow-hidden rounded-md border p-2.5 max-sm:p-2',
-          isDanger
-            ? 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/20'
-            : 'bg-muted/30'
-        )}
-      >
-        {props.children}
-      </div>
-    </div>
+      </h3>
+      <div className='flex min-w-0 flex-col gap-1.5'>{props.children}</div>
+    </section>
   )
 }
 
@@ -185,13 +198,12 @@ function BillingBreakdown(props: {
   other: LogOtherData
   isAdmin: boolean
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { log, other, isAdmin } = props
   const isPerCall = isPerCallBilling(other.model_price)
   const isClaude = other.claude === true
   const isTieredExpr = other.billing_mode === 'tiered_expr'
   const tieredSummary = getTieredBillingSummary(other)
-
   const rows: Array<{ label: string; value: string }> = []
   const priceOpts = { digitsLarge: 4, digitsSmall: 6, abbreviate: false }
   const fmtPrice = (usd: number) => formatBillingCurrencyFromUSD(usd, priceOpts)
@@ -203,12 +215,15 @@ function BillingBreakdown(props: {
       value: t('Dynamic Pricing'),
     })
     if (tieredSummary) {
-      if (tieredSummary.tier.label) {
-        rows.push({
-          label: t('Matched Tier'),
-          value: tieredSummary.tier.label,
-        })
-      }
+      rows.push({
+        label: t('Matched Tier'),
+        value: formatTierDisplayLabel(
+          tieredSummary.tier,
+          tieredSummary.tiers,
+          t,
+          i18n.language
+        ),
+      })
       for (const entry of tieredSummary.priceEntries) {
         rows.push({
           label: t(entry.shortLabel),
@@ -414,7 +429,10 @@ function BillingBreakdown(props: {
   )
 }
 
-function TokenBreakdown(props: { log: UsageLog; other: LogOtherData }) {
+function TokenBreakdown(props: {
+  log: UsageLog
+  other: LogOtherData
+}) {
   const { t } = useTranslation()
   const { log, other } = props
 
@@ -428,22 +446,39 @@ function TokenBreakdown(props: { log: UsageLog; other: LogOtherData }) {
   const cacheWrite12h = other.cache_creation_tokens_12h || 0
   const cacheWrite30m =
     cacheWrite12h > 0 ? Math.max(cacheWrite - cacheWrite12h, 0) : 0
-  const hasTokens = promptTokens > 0 || completionTokens > 0 || taskTokens > 0
+  const splitCacheWriteTokens = cacheWrite5m + cacheWrite1h + cacheWrite12h
+  const totalCacheWriteTokens =
+    other.cache_write_tokens ??
+    (cacheWrite > 0
+      ? cacheWrite
+      : splitCacheWriteTokens)
+  const isAnthropicUsage =
+    other.usage_semantic === 'anthropic' ||
+    (other.usage_semantic == null && other.claude === true)
+  const totalTokens =
+    promptTokens +
+    completionTokens +
+    (isAnthropicUsage ? cacheRead + totalCacheWriteTokens : 0)
+  const hasTokens =
+    promptTokens > 0 ||
+    completionTokens > 0 ||
+    taskTokens > 0 ||
+    cacheRead > 0 ||
+    cacheWrite > 0 ||
+    splitCacheWriteTokens > 0
 
   if (!hasTokens) return null
 
   const rows: Array<{ label: string; value: string }> = []
 
-  rows.push({ label: t('Input Tokens'), value: promptTokens.toLocaleString() })
+  rows.push({
+    label: t('Input Tokens'),
+    value: promptTokens.toLocaleString(),
+  })
   rows.push({
     label: t('Output Tokens'),
     value: completionTokens.toLocaleString(),
   })
-  rows.push({
-    label: t('Total Tokens'),
-    value: (promptTokens + completionTokens).toLocaleString(),
-  })
-
   if (cacheRead > 0) {
     rows.push({
       label: t('Cache Read'),
@@ -498,6 +533,13 @@ function TokenBreakdown(props: { log: UsageLog; other: LogOtherData }) {
     })
   }
 
+  rows.push({
+    label: t('Total Tokens'),
+    value: totalTokens.toLocaleString(),
+  })
+
+  if (rows.length === 0) return null
+
   return (
     <DetailSection label={t('Token Breakdown')}>
       {rows.map((row) => (
@@ -513,56 +555,109 @@ function getReasoningVariant(effort: string): StatusBadgeProps['variant'] {
   return 'green'
 }
 
-interface DetailsDialogProps {
-  log: UsageLog
-  isAdmin: boolean
+interface LogDetailsSheetControls {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onPrevious?: () => void
+  onNext?: () => void
+  finalFocus: () => HTMLElement | true
 }
 
-function CallJSONPanel(props: {
-  direction: 'input' | 'output'
-  log: LogOtherData['call_io_log']
-}) {
+function LogDetailsSheetFrame(
+  props: LogDetailsSheetControls & {
+    requestId: string
+    children: React.ReactNode
+  }
+) {
   const { t } = useTranslation()
-  const title = props.direction === 'input' ? t('Input JSON') : t('Output JSON')
-  const payload = props.log?.[props.direction]
-
-  if (props.log?.enabled && payload) {
-    return (
-      <CodeBlock
-        code={JSON.stringify(payload, null, 2)}
-        language='json'
-        title={title}
-        enableCollapse={false}
-        maxExpandedLines={32}
-        showLineNumbers
-      >
-        <CodeBlockCopyButton />
-      </CodeBlock>
-    )
-  }
-
-  let message = t('No input or output was recorded for this request.')
-  if (props.log?.enabled === false) {
-    message = t('Input and output logging was disabled for this request.')
-  } else if (props.log?.enabled) {
-    message =
-      props.direction === 'input'
-        ? t('No input summary is available for this request.')
-        : t('No output summary is available for this request.')
-  }
+  const { copiedText, copyToClipboard } = useCopyToClipboard({ notify: false })
 
   return (
-    <Empty className='bg-muted/30 min-h-36 border'>
-      <EmptyHeader>
-        <EmptyTitle>{message}</EmptyTitle>
-      </EmptyHeader>
-    </Empty>
+    <Sheet open={props.open} onOpenChange={props.onOpenChange}>
+      <SheetContent
+        side='right'
+        showCloseButton={false}
+        finalFocus={props.finalFocus}
+        className='w-full gap-0 shadow-xl max-sm:border-l-0 sm:max-w-[min(46rem,94vw)]'
+      >
+        <SheetHeader className='flex-row items-start justify-between gap-3 border-b px-4 py-3.5 sm:px-6'>
+          <div className='flex min-w-0 flex-1 flex-col gap-1'>
+            <SheetTitle className='font-semibold'>
+              {t('Log Details')}
+            </SheetTitle>
+            <SheetDescription className='sr-only'>
+              {t('View the complete details for this log entry')}
+            </SheetDescription>
+            {props.requestId && (
+              <div className='text-muted-foreground flex min-w-0 items-center gap-1.5'>
+                <span
+                  className='min-w-0 truncate font-mono text-xs'
+                  title={props.requestId}
+                >
+                  {props.requestId}
+                </span>
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon-xs'
+                  onClick={() => copyToClipboard(props.requestId)}
+                  title={t('Copy to clipboard')}
+                  aria-label={t('Copy to clipboard')}
+                >
+                  {copiedText === props.requestId ? <Check /> : <Copy />}
+                </Button>
+              </div>
+            )}
+          </div>
+          <div className='flex shrink-0 items-center gap-0.5'>
+            <Button
+              type='button'
+              variant='ghost'
+              size='icon-sm'
+              onClick={props.onPrevious}
+              disabled={!props.onPrevious}
+              title={t('Previous log')}
+              aria-label={t('Previous log')}
+            >
+              <ChevronUp />
+            </Button>
+            <Button
+              type='button'
+              variant='ghost'
+              size='icon-sm'
+              onClick={props.onNext}
+              disabled={!props.onNext}
+              title={t('Next log')}
+              aria-label={t('Next log')}
+            >
+              <ChevronDown />
+            </Button>
+            <SheetClose
+              render={
+                <Button
+                  variant='ghost'
+                  size='icon-sm'
+                  aria-label={t('Close')}
+                  title={t('Close')}
+                />
+              }
+            >
+              <X />
+            </SheetClose>
+          </div>
+        </SheetHeader>
+        {props.children}
+      </SheetContent>
+    </Sheet>
   )
 }
 
-export function DetailsDialog(props: DetailsDialogProps) {
+interface UsageLogDetailsSheetProps extends LogDetailsSheetControls {
+  log: UsageLog
+  isAdmin: boolean
+}
+
+export function UsageLogDetailsSheet(props: UsageLogDetailsSheetProps) {
   const { t } = useTranslation()
   const { copiedText, copyToClipboard } = useCopyToClipboard({ notify: false })
   const details = props.log.content ?? ''
@@ -572,12 +667,35 @@ export function DetailsDialog(props: DetailsDialogProps) {
   const isViolation = isViolationFeeLog(other)
   const isRefund = props.log.type === 6
   const isConsume = props.log.type === 2
-  const showCallJSON = (isConsume && !isViolation) || props.log.type === 5
+  const precharge = other?.pre_consumed_quota
+  const actualQuota = other?.actual_quota
+  const isTaskAdjustment =
+    (isConsume || isRefund) &&
+    !!other?.task_id &&
+    typeof precharge === 'number' &&
+    typeof actualQuota === 'number'
+  const isTaskSubmission =
+    isConsume && other?.is_task === true && !isTaskAdjustment
+  const isTaskRefund =
+    isRefund && !!other?.task_id && !!other.reason && !isTaskAdjustment
+  const taskStatus = other?.call_io_log?.output?.task_status
+  const isPendingTask =
+    taskStatus === 'SUBMITTED' ||
+    taskStatus === 'QUEUED' ||
+    taskStatus === 'IN_PROGRESS' ||
+    taskStatus === 'NOT_START'
+  const submissionChargeLabel = isPendingTask
+    ? t('Pre-consumed')
+    : t('Submission Charge')
+  const seconds = other?.usage_facts?.seconds
+  const resolution = other?.usage_facts?.resolution
+  const showRequestTrace =
+    (isConsume && !isViolation && !isTaskAdjustment) || props.log.type === 5
   const isTopup = props.log.type === 1
   const isManage = props.log.type === 3
   const isSubscription = other?.billing_source === 'subscription'
   const isTieredBilling =
-    isConsume &&
+    (isConsume || isTaskAdjustment) &&
     !isViolation &&
     other?.billing_mode === 'tiered_expr' &&
     !!other?.expr_b64
@@ -585,6 +703,11 @@ export function DetailsDialog(props: DetailsDialogProps) {
     props.isAdmin && other?.is_model_mapped ? other.upstream_model_name : ''
   const hasAudioTokens = other?.ws || other?.audio
   const showTiming = isTimingLogType(props.log.type)
+  const requestEndTime = props.log.created_at
+  const requestStartTime = Math.max(
+    0,
+    requestEndTime - Math.max(props.log.use_time, 0)
+  )
   const showAdminIp =
     !!props.log.ip && (showTiming || (props.isAdmin && isTopup))
   const adminInfo = other?.admin_info
@@ -644,7 +767,9 @@ export function DetailsDialog(props: DetailsDialogProps) {
   // descriptor (shared by audit type=3 and login type=7).
   const operationText = renderAuditContent(other, t)
   const displayDetails =
-    props.log.type === LOG_TYPE_ENUM.SYSTEM ? (operationText ?? details) : details
+    props.log.type === LOG_TYPE_ENUM.SYSTEM
+      ? (operationText ?? details)
+      : details
   const auditRoute = isManage && props.isAdmin ? other?.audit_info : undefined
   // Channel update records which fields changed (stable field tokens); render
   // them with their localized labels for admins.
@@ -774,58 +899,118 @@ export function DetailsDialog(props: DetailsDialogProps) {
     : ''
 
   return (
-    <Dialog
+    <LogDetailsSheetFrame
       open={props.open}
       onOpenChange={props.onOpenChange}
-      title={
-        <>
-          {t('Log Details')}
-          <StatusBadge
-            label={t(typeConfig.label)}
-            variant={typeConfig.color as StatusBadgeProps['variant']}
-            size='sm'
-            copyable={false}
-          />
-        </>
-      }
-      description={t('View the complete details for this log entry')}
-      contentClassName={cn(
-        'min-w-0 overflow-hidden',
-        'max-sm:max-h-[calc(100dvh-1.5rem)] max-sm:w-[calc(100vw-1.5rem)] max-sm:max-w-[calc(100vw-1.5rem)] max-sm:p-4',
-        isTieredBilling || props.isAdmin
-          ? 'sm:max-w-4xl lg:max-w-5xl'
-          : 'sm:max-w-lg'
-      )}
-      headerClassName='max-sm:gap-1'
-      titleClassName='flex items-center gap-2 text-base'
-      descriptionClassName='sr-only'
-      contentHeight='min(72dvh, 720px)'
-      bodyClassName='pr-2 sm:pr-4'
+      onPrevious={props.onPrevious}
+      onNext={props.onNext}
+      finalFocus={props.finalFocus}
+      requestId={props.log.request_id}
     >
-      <Tabs defaultValue='details' className='w-full min-w-0'>
-        <TabsList className='mb-3 w-full justify-start overflow-x-auto'>
+      <Tabs
+        key={props.log.id}
+        defaultValue='details'
+        className='[&>[data-slot=tabs-content]]:bg-muted/30 min-h-0 w-full min-w-0 flex-1 gap-0 [&>[data-slot=tabs-content]]:min-h-0 [&>[data-slot=tabs-content]]:overflow-y-auto [&>[data-slot=tabs-content]]:overscroll-contain [&>[data-slot=tabs-content]]:p-4 sm:[&>[data-slot=tabs-content]]:p-6'
+      >
+        <TabsList
+          variant='line'
+          className='w-full shrink-0 justify-start gap-3 overflow-x-auto border-b px-4 pt-1 pb-1.5 group-data-horizontal/tabs:h-11 sm:gap-4 sm:px-6 [&>[data-slot=tabs-trigger]]:flex-none'
+        >
           <TabsTrigger value='details'>{t('Basic Information')}</TabsTrigger>
-          {showCallJSON && (
+          {showRequestTrace && (
+            <TabsTrigger value='trace'>{t('Request Trace')}</TabsTrigger>
+          )}
+          {props.isAdmin && (
             <>
-              <TabsTrigger value='input'>{t('Input JSON')}</TabsTrigger>
-              <TabsTrigger value='output'>{t('Output JSON')}</TabsTrigger>
+              <TabsTrigger value='audit'>{t('Request Audit')}</TabsTrigger>
+              <TabsTrigger value='raw'>{t('Raw Data')}</TabsTrigger>
             </>
           )}
-          {props.isAdmin && (
-            <TabsTrigger value='audit'>{t('Request Audit')}</TabsTrigger>
-          )}
-          {props.isAdmin && (
-            <TabsTrigger value='raw'>{t('Raw Data')}</TabsTrigger>
-          )}
         </TabsList>
-        <TabsContent value='details' className='mt-0'>
-          <div className='w-full max-w-full min-w-0 space-y-2.5 overflow-x-hidden py-1 sm:space-y-3'>
-            {/* Overview section - key identifiers */}
-            <div className='min-w-0 space-y-1'>
-              {props.log.request_id && (
+        <TabsContent value='details' className='mt-0 min-w-0'>
+          <div className='flex min-w-0 flex-col gap-3 sm:gap-4'>
+            <DetailSection label={t('Overview')}>
+              {props.log.model_name && (
                 <DetailRow
-                  label={t('Request ID')}
-                  value={props.log.request_id}
+                  label={t('Model')}
+                  value={
+                    <div className='max-w-full min-w-0 overflow-hidden'>
+                      <ModelBadge
+                        modelName={props.log.model_name}
+                        actualModel={mappedModelName || undefined}
+                        responseModel={
+                          props.isAdmin
+                            ? adminInfo?.response_model
+                            : undefined
+                        }
+                      />
+                    </div>
+                  }
+                />
+              )}
+              <DetailRow
+                label={t('Status')}
+                value={
+                  <StatusBadge
+                    label={t(typeConfig.label)}
+                    variant={typeConfig.color as StatusBadgeProps['variant']}
+                    size='sm'
+                    copyable={false}
+                  />
+                }
+              />
+              <DetailRow
+                label={t('Start Time')}
+                value={formatTimestampToDate(requestStartTime)}
+                mono
+              />
+              <DetailRow
+                label={t('End Time')}
+                value={formatTimestampToDate(requestEndTime)}
+                mono
+              />
+              {(showTiming && props.log.use_time > 0) ||
+              (props.log.is_stream && other?.frt != null && other.frt > 0) ? (
+                <DetailRow
+                  label={t('Response Time')}
+                  value={
+                    <span>
+                      {props.log.use_time > 0 && (
+                        <span
+                          className={cn(
+                            'font-medium',
+                            timingTextColorClass(
+                              getResponseTimeColor(
+                                props.log.use_time,
+                                props.log.completion_tokens
+                              )
+                            )
+                          )}
+                        >
+                          {formatUseTime(props.log.use_time)}
+                        </span>
+                      )}
+                      {props.log.is_stream && other?.frt != null && other.frt > 0 && (
+                        <span className='text-muted-foreground'>
+                          {props.log.use_time > 0 ? ' ' : ''}(FRT:{' '}
+                          {formatUseTime(other.frt / 1000)})
+                        </span>
+                      )}
+                    </span>
+                  }
+                />
+              ) : null}
+              {other?.request_path && (
+                <DetailRow
+                  label={t('Path')}
+                  value={other.request_path}
+                  mono
+                />
+              )}
+              {(props.log.token_name || props.log.token_id > 0) && (
+                <DetailRow
+                  label={t('Token')}
+                  value={props.log.token_name || `#${props.log.token_id}`}
                   mono
                 />
               )}
@@ -859,14 +1044,6 @@ export function DetailsDialog(props: DetailsDialogProps) {
                 <DetailRow label={t('Retry Chain')} value={channelChain} mono />
               )}
 
-              {props.log.token_name && (
-                <DetailRow
-                  label={t('Token')}
-                  value={props.log.token_name}
-                  mono
-                />
-              )}
-
               {(props.log.group || other?.group) && (
                 <DetailRow
                   label={t('Group')}
@@ -891,42 +1068,34 @@ export function DetailsDialog(props: DetailsDialogProps) {
                 />
               )}
 
-              {showTiming && props.log.use_time > 0 && (
+              {other?.reasoning_effort && (
                 <DetailRow
-                  label={t('Response Time')}
+                  label={t('Reasoning Effort')}
                   value={
-                    <span
-                      className={cn(
-                        'font-medium',
-                        timingTextColorClass(
-                          getResponseTimeColor(
-                            props.log.use_time,
-                            props.log.completion_tokens
-                          )
-                        )
-                      )}
-                    >
-                      {formatUseTime(props.log.use_time)}
-                      {props.log.is_stream &&
-                        other?.frt != null &&
-                        other.frt > 0 && (
-                          <span
-                            className={cn(
-                              'font-normal',
-                              timingTextColorClass(
-                                getFirstResponseTimeColor(other.frt / 1000)
-                              )
-                            )}
-                          >
-                            {' '}
-                            (FRT: {formatUseTime(other.frt / 1000)})
-                          </span>
-                        )}
-                    </span>
+                    <StatusBadge
+                      label={other.reasoning_effort}
+                      variant={getReasoningVariant(other.reasoning_effort)}
+                      size='sm'
+                      copyable={false}
+                    />
                   }
                 />
               )}
-            </div>
+
+              {other?.is_system_prompt_overwritten && (
+                <DetailRow
+                  label={t('System Prompt')}
+                  value={
+                    <StatusBadge
+                      label={t('Overwritten')}
+                      variant='orange'
+                      size='sm'
+                      copyable={false}
+                    />
+                  }
+                />
+              )}
+            </DetailSection>
 
             {/* Request conversion (admin only, not for refund) */}
             {showConversion && (
@@ -1044,17 +1213,96 @@ export function DetailsDialog(props: DetailsDialogProps) {
               </DetailSection>
             )}
 
-            {/* Refund details (type=6) */}
-            {isRefund && other && (other.task_id || other.reason) && (
-              <DetailSection label={t('Refund Details')}>
-                {other.task_id && (
-                  <DetailRow label={t('Task ID')} value={other.task_id} mono />
-                )}
-                {other.reason && (
-                  <DetailRow label={t('Reason')} value={other.reason} />
-                )}
-              </DetailSection>
-            )}
+            {(isTaskSubmission || isTaskAdjustment || isTaskRefund) &&
+              other && (
+                <DetailSection
+                  label={
+                    isTaskSubmission
+                      ? t('Task Submission Billing')
+                      : t('Task Settlement')
+                  }
+                >
+                  {other.task_id && (
+                    <DetailRow
+                      label={t('Task ID')}
+                      value={other.task_id}
+                      mono
+                    />
+                  )}
+                  {isTaskSubmission && (
+                    <DetailRow
+                      label={submissionChargeLabel}
+                      value={formatLogQuota(props.log.quota)}
+                      mono
+                    />
+                  )}
+                  {isTaskAdjustment && (
+                    <>
+                      <DetailRow
+                        label={t('Pre-consumed')}
+                        value={formatLogQuota(precharge)}
+                        mono
+                      />
+                      <DetailRow
+                        label={t('Final Consumed')}
+                        value={formatLogQuota(actualQuota)}
+                        mono
+                      />
+                    </>
+                  )}
+                  {(isTaskAdjustment || isTaskRefund) && (
+                    <DetailRow
+                      label={
+                        isRefund ? t('Refund Amount') : t('Additional Charge')
+                      }
+                      value={formatLogQuota(props.log.quota)}
+                      mono
+                    />
+                  )}
+                  {isTaskRefund && (
+                    <DetailRow
+                      label={t('Final Consumed')}
+                      value={formatLogQuota(0)}
+                      mono
+                    />
+                  )}
+                  {(isTaskSubmission || isTaskAdjustment) &&
+                    typeof seconds === 'number' && (
+                      <DetailRow
+                        label={t('Duration')}
+                        value={formatUseTime(seconds)}
+                        mono
+                      />
+                    )}
+                  {typeof resolution === 'string' && resolution && (
+                    <DetailRow
+                      label={t('Resolution')}
+                      value={resolution}
+                      mono
+                    />
+                  )}
+                  {other.reason && (
+                    <DetailRow label={t('Reason')} value={other.reason} />
+                  )}
+                </DetailSection>
+              )}
+            {isRefund &&
+              !isTaskAdjustment &&
+              !isTaskRefund &&
+              (other?.task_id || other?.reason) && (
+                <DetailSection label={t('Refund Details')}>
+                  {other.task_id && (
+                    <DetailRow
+                      label={t('Task ID')}
+                      value={other.task_id}
+                      mono
+                    />
+                  )}
+                  {other.reason && (
+                    <DetailRow label={t('Reason')} value={other.reason} />
+                  )}
+                </DetailSection>
+              )}
 
             {/* Top-up audit info (type=1, admin only) */}
             {showTopupAuditSection && (
@@ -1200,36 +1448,6 @@ export function DetailsDialog(props: DetailsDialogProps) {
                   />
                 )}
               </DetailSection>
-            )}
-
-            {/* Reasoning effort */}
-            {other?.reasoning_effort && (
-              <DetailRow
-                label={t('Reasoning Effort')}
-                value={
-                  <StatusBadge
-                    label={other.reasoning_effort}
-                    variant={getReasoningVariant(other.reasoning_effort)}
-                    size='sm'
-                    copyable={false}
-                  />
-                }
-              />
-            )}
-
-            {/* System prompt override */}
-            {other?.is_system_prompt_overwritten && (
-              <DetailRow
-                label={t('System Prompt')}
-                value={
-                  <StatusBadge
-                    label={t('Overwritten')}
-                    variant='orange'
-                    size='sm'
-                    copyable={false}
-                  />
-                }
-              />
             )}
 
             {props.isAdmin && adminInfo?.response_model && (
@@ -1469,15 +1687,10 @@ export function DetailsDialog(props: DetailsDialogProps) {
             )}
           </div>
         </TabsContent>
-        {showCallJSON && (
-          <>
-            <TabsContent value='input' className='mt-0 min-w-0'>
-              <CallJSONPanel direction='input' log={other?.call_io_log} />
-            </TabsContent>
-            <TabsContent value='output' className='mt-0 min-w-0'>
-              <CallJSONPanel direction='output' log={other?.call_io_log} />
-            </TabsContent>
-          </>
+        {showRequestTrace && (
+          <TabsContent value='trace' className='mt-0 min-w-0'>
+            <RequestTracePanel log={props.log} callIO={other?.call_io_log} />
+          </TabsContent>
         )}
         {props.isAdmin && (
           <TabsContent value='audit' className='mt-0 min-w-0'>
@@ -1508,7 +1721,7 @@ export function DetailsDialog(props: DetailsDialogProps) {
           </TabsContent>
         )}
       </Tabs>
-    </Dialog>
+    </LogDetailsSheetFrame>
   )
 }
 
