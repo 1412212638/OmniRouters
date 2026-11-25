@@ -273,14 +273,18 @@ export function Organizations(props: { manageCurrent?: boolean }) {
                 >
                   <span>{t('Account management')}</span>
                   <span aria-hidden='true'>/</span>
-                  <span className='text-foreground'>{t('Organizations')}</span>
+                  <span className='text-foreground'>
+                    {t('Organization Management')}
+                  </span>
                 </nav>
               )}
               <div>
-                <h1 className='text-xl font-semibold'>{t('Organizations')}</h1>
+                <h1 className='text-xl font-semibold'>
+                  {t('Organization Management')}
+                </h1>
                 <p className='text-muted-foreground text-sm'>
                   {t(
-                    'Manage shared team workspaces, members, and organization API keys.'
+                    'Manage organization workspaces, members, and shared API keys.'
                   )}
                 </p>
               </div>

@@ -432,6 +432,13 @@ func SetApiRouter(router *gin.Engine) {
 		logRoute.GET("/search", middleware.AdminAuth(), controller.SearchAllLogs)
 		logRoute.GET("/self", middleware.UserAuth(), controller.GetUserLogs)
 		logRoute.GET("/self/search", middleware.UserAuth(), middleware.RealNameBusinessGate(), middleware.SearchRateLimit(), controller.SearchUserLogs)
+		billingExportRoute := apiRouter.Group("/billing-exports")
+		billingExportRoute.Use(middleware.UserAuth())
+		{
+			billingExportRoute.GET("/", controller.ListBillingExports)
+			billingExportRoute.POST("/", controller.CreateBillingExport)
+			billingExportRoute.GET("/:task_id/:level", controller.DownloadBillingExport)
+		}
 
 		systemTaskRoute := apiRouter.Group("/system-task")
 		systemTaskRoute.Use(middleware.RootAuth())

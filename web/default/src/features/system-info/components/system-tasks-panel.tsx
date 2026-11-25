@@ -67,6 +67,8 @@ const TYPE_LABEL: Record<string, string> = {
   midjourney_poll: 'Drawing task polling',
   async_task_poll: 'Async task polling',
   organization_invitation_reminder: 'Organization invitation reminders',
+  billing_export: 'Billing export',
+  billing_export_cleanup: 'Billing export cleanup',
 }
 
 const TYPE_DISPLAY_ID: Record<string, string> = {

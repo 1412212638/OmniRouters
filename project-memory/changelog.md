@@ -1,5 +1,16 @@
 # 记忆变更记录
 
+## 2026-11-25
+
+- 更新新版控制台财务及组织导航名称，并统一对应页面主标题，见[维护决策](decisions/maintenance.md)。
+- 记录管理员选择用户导出个人账单时的目标范围及异步任务授权规则，见[维护决策](decisions/maintenance.md)。
+- 记录 L3 模型和计费单位口径，以及用量日志分批读取后的导出上限。
+
+- 记录新版侧边栏的财务分组和现有可见性配置，见[维护决策](decisions/maintenance.md)。
+- 增加账单导出中心的 L0–L3 文件范围、权限边界、留存和验证状态，见[维护决策](decisions/maintenance.md)。
+- 补记账单语言、结算明细和本地 Go／SQLite 验证结果，见[维护决策](decisions/maintenance.md)。
+- 记录账单显示模式快照、不同单位的对账口径和新版汇总与明细，见[维护决策](decisions/maintenance.md)。
+
 ## 2026-11-24
 
 - 记录模型详情和使用日志共用的阶梯条件文案与原始档位 ID 的用途，见[维护决策](decisions/maintenance.md)。

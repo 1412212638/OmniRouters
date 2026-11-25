@@ -58,6 +58,7 @@ import { Route as AuthenticatedFriendsHubIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedEmailSettingsIndexRouteImport } from './routes/_authenticated/email-settings/index'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedChannelsIndexRouteImport } from './routes/_authenticated/channels/index'
+import { Route as AuthenticatedBillingExportsIndexRouteImport } from './routes/_authenticated/billing-exports/index'
 import { Route as AuthenticatedAuditLogsIndexRouteImport } from './routes/_authenticated/audit-logs/index'
 import { Route as AuthenticatedAdminTicketsIndexRouteImport } from './routes/_authenticated/admin-tickets/index'
 import { Route as AuthenticatedUsageLogsSectionRouteImport } from './routes/_authenticated/usage-logs/$section'
@@ -345,6 +346,12 @@ const AuthenticatedChannelsIndexRoute =
     path: '/channels/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedBillingExportsIndexRoute =
+  AuthenticatedBillingExportsIndexRouteImport.update({
+    id: '/billing-exports/',
+    path: '/billing-exports/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAuditLogsIndexRoute =
   AuthenticatedAuditLogsIndexRouteImport.update({
     id: '/audit-logs/',
@@ -517,6 +524,7 @@ export interface FileRoutesByFullPath {
   '/usage-logs/$section': typeof AuthenticatedUsageLogsSectionRoute
   '/admin-tickets/': typeof AuthenticatedAdminTicketsIndexRoute
   '/audit-logs/': typeof AuthenticatedAuditLogsIndexRoute
+  '/billing-exports/': typeof AuthenticatedBillingExportsIndexRoute
   '/channels/': typeof AuthenticatedChannelsIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/email-settings/': typeof AuthenticatedEmailSettingsIndexRoute
@@ -588,6 +596,7 @@ export interface FileRoutesByTo {
   '/usage-logs/$section': typeof AuthenticatedUsageLogsSectionRoute
   '/admin-tickets': typeof AuthenticatedAdminTicketsIndexRoute
   '/audit-logs': typeof AuthenticatedAuditLogsIndexRoute
+  '/billing-exports': typeof AuthenticatedBillingExportsIndexRoute
   '/channels': typeof AuthenticatedChannelsIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/email-settings': typeof AuthenticatedEmailSettingsIndexRoute
@@ -663,6 +672,7 @@ export interface FileRoutesById {
   '/_authenticated/usage-logs/$section': typeof AuthenticatedUsageLogsSectionRoute
   '/_authenticated/admin-tickets/': typeof AuthenticatedAdminTicketsIndexRoute
   '/_authenticated/audit-logs/': typeof AuthenticatedAuditLogsIndexRoute
+  '/_authenticated/billing-exports/': typeof AuthenticatedBillingExportsIndexRoute
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/email-settings/': typeof AuthenticatedEmailSettingsIndexRoute
@@ -737,6 +747,7 @@ export interface FileRouteTypes {
     | '/usage-logs/$section'
     | '/admin-tickets/'
     | '/audit-logs/'
+    | '/billing-exports/'
     | '/channels/'
     | '/dashboard/'
     | '/email-settings/'
@@ -808,6 +819,7 @@ export interface FileRouteTypes {
     | '/usage-logs/$section'
     | '/admin-tickets'
     | '/audit-logs'
+    | '/billing-exports'
     | '/channels'
     | '/dashboard'
     | '/email-settings'
@@ -882,6 +894,7 @@ export interface FileRouteTypes {
     | '/_authenticated/usage-logs/$section'
     | '/_authenticated/admin-tickets/'
     | '/_authenticated/audit-logs/'
+    | '/_authenticated/billing-exports/'
     | '/_authenticated/channels/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/email-settings/'
@@ -1288,6 +1301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChannelsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/billing-exports/': {
+      id: '/_authenticated/billing-exports/'
+      path: '/billing-exports'
+      fullPath: '/billing-exports/'
+      preLoaderRoute: typeof AuthenticatedBillingExportsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/audit-logs/': {
       id: '/_authenticated/audit-logs/'
       path: '/audit-logs'
@@ -1544,6 +1564,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUsageLogsSectionRoute: typeof AuthenticatedUsageLogsSectionRoute
   AuthenticatedAdminTicketsIndexRoute: typeof AuthenticatedAdminTicketsIndexRoute
   AuthenticatedAuditLogsIndexRoute: typeof AuthenticatedAuditLogsIndexRoute
+  AuthenticatedBillingExportsIndexRoute: typeof AuthenticatedBillingExportsIndexRoute
   AuthenticatedChannelsIndexRoute: typeof AuthenticatedChannelsIndexRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedEmailSettingsIndexRoute: typeof AuthenticatedEmailSettingsIndexRoute
@@ -1578,6 +1599,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUsageLogsSectionRoute: AuthenticatedUsageLogsSectionRoute,
   AuthenticatedAdminTicketsIndexRoute: AuthenticatedAdminTicketsIndexRoute,
   AuthenticatedAuditLogsIndexRoute: AuthenticatedAuditLogsIndexRoute,
+  AuthenticatedBillingExportsIndexRoute: AuthenticatedBillingExportsIndexRoute,
   AuthenticatedChannelsIndexRoute: AuthenticatedChannelsIndexRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   AuthenticatedEmailSettingsIndexRoute: AuthenticatedEmailSettingsIndexRoute,

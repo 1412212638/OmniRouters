@@ -1,6 +1,70 @@
 # Upstream Sync Log
 
+## 2026-11-25 - Refine reconciliation center translations
+
+- Local reason: the user asked whether the reconciliation center translations were literal and requested more natural wording where needed.
+- Changed: refine the French, Japanese, Russian, and Vietnamese reconciliation center titles and billing-period descriptions to use clearer local accounting terminology.
+- Preserved: the English source strings, Chinese wording, other page labels, and all billing behavior.
+- Validation: locale JSON parsing, targeted formatting and lint, and the default frontend production build passed. Limitation: no external native-speaker review was performed.
+- Source commit and push status: included in commit `feat: add billing exports and reconciliation center`, pushed to `origin/main`.
+
+## 2026-11-25 - Rename billing, organization, and wallet navigation
+
+- Local reason: the user requested clearer sidebar and page titles for reconciliation, organization management, and account top-up.
+- Changed: rename the default frontend entries to Reconciliation Center, Organization Management, and Account Top-up. Update their corresponding page titles and adjust reconciliation and organization page descriptions. Add translations for all supported locales.
+- Preserved: organization wallet labeling in organization workspaces and the existing wallet, billing export, and organization workflows.
+- Validation: locale JSON parsing, targeted formatting and lint, default frontend production build, and `git diff --check` passed. Production deployment settings were not checked.
+- Source commit and push status: included in commit `feat: add billing exports and reconciliation center`, pushed to `origin/main`.
+
+## 2026-11-25 - Allow administrators to export a user's bill
+
+- Local reason: administrators need to select a user and generate that user's billing statement for reconciliation.
+- Changed: the default billing export page searches users for administrators, binds report history and downloads to the selected account, and carries the requesting administrator identity into the asynchronous job for authorization checks. Personal and organization export access remains on the authenticated billing route.
+- Preserved: organization manager checks, personal account scoping, existing report retention and formats, and legacy queued task compatibility.
+- Validation: Go production packages `service`, `controller`, and `router` built successfully. The default frontend production build and targeted oxlint passed. The focused service test package could not compile because the existing `service/task_billing_test.go` mocks do not match the modified task polling interface. Full frontend typecheck is also blocked by existing errors in unrelated features and missing test dependencies.
+- Source commit and push status: included in commit `feat: add billing exports and reconciliation center`, pushed to `origin/main`.
+
 Entries are ordered by their recorded dates, newest first. Dates and same-day ordering reflect the original records.
+
+## 2026-11-25 - Summarize L3 by model
+
+- Local reason: L3 is a model bill within the selected period. The user asked to combine rows from repeated requests for the same model.
+- Changed: L3 uses one row per model and billing unit, with usage, posted charges (including precharges and additional charges), refunds, savings and net usage. L1 retains missing-model usage, wallet movements and paid order counts. The export job reads usage history in batches, and retains daily groups for the other report dimensions. The former 25,000 raw usage-record limit now applies to retained usage groups and separately to financial records. ZIP size remains bounded at 2 MiB.
+- Preserved: individual records in the usage-log UI, billing and settlement rules, date and workspace authorization, stored legacy archives and download paths.
+- Validation: the default frontend build, renderer and focused SQLite regressions passed. Pagination, scope isolation, refunds, and units were checked. The local preview generated a full archive from 100,000 simulated requests across 20 models and verified 20 L3 rows, 5,000 requests per model and 10 USD net usage. Existing test suite limitations remain. Production and hundred-million-row performance have not been measured.
+- Source commit and push status: included in commit `feat: add billing exports and reconciliation center`, pushed to `origin/main`.
+
+## 2026-11-25 - Align billing exports with the configured display unit
+
+- Local reason: the user wanted exported amounts to match the site's USD, CNY, or custom-currency display mode and requested more useful L1–L3 bills.
+- Changed: capture display mode, currency symbol, exchange rate and quota base when queuing a report. Convert quota-backed values in all four levels according to that snapshot. Separate usage and refunds, wallet inflows and order payments in L1, add a breakdown by billing source, group L2 resources by posting month and key, and split signed usage, wallet movements and recorded order amounts into separate L3 columns. When available, use the original task key, reported timing, recorded settlement amounts and the existing order-to-funding link.
+- Preserved: billing and settlement logic, scope rules, Tokens subscription units, historical orders without a verified payment currency, and completed archives. In legacy quota-only mode, raw quota and subscription Tokens use distinct labels.
+- Validation: Go renderer tests and focused SQLite pipeline checks passed. The local default preview used real export jobs against synthetic SQLite data in USD, CNY and a custom currency. Workbook and CSV amounts were checked against the same records and PDF totals. Existing full-suite compilation limitations from above remain.
+- Source commit and push status: included in commit `feat: add billing exports and reconciliation center`, pushed to `origin/main`.
+
+## 2026-11-25 - Polish and localize billing exports
+
+- Local reason: the user requested richer bills based on the supplied L0–L3 examples and a per-export choice of Simplified Chinese or English.
+- Changed: rebuilt the default dashboard export form and history, persisted the file language, and improved all four exports. L0 includes account/period metadata, net consumption by unit and source reconciliation. L1 formats the overview and model/day/member sheets. L2 adds key name, usage dates and recorded savings. L3 adds posting month, recorded savings and the available precharge/settlement snapshots. The Chinese PDF embeds a small Noto Sans SC subset under OFL.
+- Preserved: existing billing, refund and scope rules, and standard archive filenames. Reports created before language was added resolve to English. Missing historical amounts and currency remain unverified or blank.
+- Validation: production Go packages and default frontend built, the isolated SQLite export regression passed, and a local Go preview exported personal and organization statements from simulated SQLite records. Checked Chinese and English PDF rendering, XLSX contents, ZIP integrity and cross-level net totals, including a supplemental charge and full refund. The default frontend billing files passed targeted lint. Existing unrelated Go tests and full frontend typecheck still have compilation errors, and the existing classic package dependency conflict required a local build-only embed stub for the default preview.
+- Source commit and push status: included in commit `feat: add billing exports and reconciliation center`, pushed to `origin/main`.
+
+## 2026-11-25 — Billing export center
+
+- Reason: local feature work requested for an L0–L3 billing export center based on the supplied billing statement examples.
+- Changed: added asynchronous billing export tasks, personal and organization authorization, retained ZIP archives containing PDF, XLSX, resource CSV, and detail CSV files, and the default frontend billing export route with local preview data and downloads. Added the billing export task to migrations, routing, sidebar, system task labels, and locales.
+- Preserved: existing wallet, organization, subscription, usage-log, and sidebar grouping customizations. Export normalization deliberately excludes prompt text, generated output, media URLs, and secret contents.
+- Validation: `go build ./service ./controller ./router`, `bun run build`, targeted Oxlint, locale JSON parsing and `git diff --check` passed. Service tests remain blocked because existing `service/task_billing_test.go` mocks do not match the task polling interface. Full frontend typecheck reports existing errors in unrelated features and missing test dependencies.
+- Source commit and push status: included in commit `feat: add billing exports and reconciliation center`, pushed to `origin/main`.
+
+## 2026-11-25 - Group the console sidebar by purpose
+
+- Local reason: wallet and subscriptions were mixed with profile and support links under Personal.
+- Changed: renamed the general group to Platform Features and introduced Billing & Payments for the wallet and personal subscription plans. Account & Support now holds the remaining personal links. The organization workspace shows its wallet under Billing & Payments and management under Organization. Added labels in seven locales.
+- Preserved: Studio, admin navigation, routes, role restrictions, and URL-based sidebar visibility using the existing admin and user settings.
+- Validation: verified personal and organization groups by switching workspaces in the local mock preview. Frontend build, targeted Oxlint, locale checks, and `git diff --check` passed. Full frontend typecheck reproduced the same errors as the pre-change baseline in other files. Production settings were not tested.
+- Source commit and push status: included in commit `feat: add billing exports and reconciliation center`, pushed to `origin/main`.
 
 ## 2026-11-24 - Clarify total token count in usage-log details
 

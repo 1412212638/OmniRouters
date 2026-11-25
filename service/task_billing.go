@@ -200,6 +200,12 @@ func appendTaskLogInfo(task *model.Task, other *model.LogOther) {
 	if task.TaskID != "" {
 		other.SetPublic("task_id", task.TaskID)
 	}
+	if task.PrivateData.BillingSource != "" {
+		other.SetPublic("billing_source", task.PrivateData.BillingSource)
+	}
+	if task.PrivateData.SubscriptionId > 0 {
+		other.SetPublic("subscription_id", task.PrivateData.SubscriptionId)
+	}
 	if task.PrivateData.Execution != nil {
 		AppendTaskPluginAuditInfo(other, task.PrivateData.Execution.TaskPlugin)
 	}

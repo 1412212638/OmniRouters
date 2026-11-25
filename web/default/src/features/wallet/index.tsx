@@ -26,9 +26,9 @@ import { CreemConfirmDialog } from './components/dialogs/creem-confirm-dialog'
 import { PaymentConfirmDialog } from './components/dialogs/payment-confirm-dialog'
 import { TransferDialog } from './components/dialogs/transfer-dialog'
 import { InvoiceProfileCard } from './components/invoice-profile-card'
-import { RedemptionCodeCard } from './components/redemption-code-card'
 import { RechargeFormCard } from './components/recharge-form-card'
 import { RechargeHistory } from './components/recharge-history'
+import { RedemptionCodeCard } from './components/redemption-code-card'
 import { WalletStatsCard } from './components/wallet-stats-card'
 import { DEFAULT_DISCOUNT_RATE, PAYMENT_TYPES } from './constants'
 import { getFundingSummary } from './funding'
@@ -158,10 +158,7 @@ function WalletContent(
   } = useAffiliate(!isOrganization)
   const { redeeming, redeemCode } = useRedemption()
   const { processing: creemProcessing, processCreemPayment } = useCreemPayment()
-  const {
-    processing: waffoProcessing,
-    processWaffoPayment,
-  } = useWaffoPayment()
+  const { processing: waffoProcessing, processWaffoPayment } = useWaffoPayment()
   const { processing: pancakeProcessing, processWaffoPancakePayment } =
     useWaffoPancakePayment()
 
@@ -248,9 +245,7 @@ function WalletContent(
 
   // Payment-specific quotes and fees apply only after an explicit selection.
   const getCurrentPaymentType = useCallback(() => {
-    return selectedWaffoIndex === null
-      ? selectedPaymentMethod?.type || ''
-      : ''
+    return selectedWaffoIndex === null ? selectedPaymentMethod?.type || '' : ''
   }, [selectedPaymentMethod, selectedWaffoIndex])
 
   // Handle preset selection
@@ -284,7 +279,7 @@ function WalletContent(
   const handlePaymentMethodSelect = (method: PaymentMethod) => {
     if (
       topupAmount <
-        Math.max(getMinTopupAmount(topupInfo), method.min_topup ?? 0)
+      Math.max(getMinTopupAmount(topupInfo), method.min_topup ?? 0)
     ) {
       return
     }
@@ -391,7 +386,7 @@ function WalletContent(
         <SectionPageLayout.Title>
           {isOrganization
             ? `${props.workspace?.organization.name} · ${t('Organization wallet')}`
-            : t('Wallet')}
+            : t('Account Top-up')}
         </SectionPageLayout.Title>
         <SectionPageLayout.Content>
           <div className='mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-5'>

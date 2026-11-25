@@ -42,6 +42,10 @@ export const STATIC_I18N_KEYS = [
   'Drawing task polling',
   'Organization invitation reminders',
 
+  // Billing export file labels
+  'Model billing details',
+  'Usage, charges and refunds by model and billing unit for the selected period.',
+
   // Pricing constants
   'Name',
   'Price: Low to High',
@@ -658,4 +662,14 @@ export const STATIC_I18N_KEYS = [
   'Cache create (12h) price',
   'Image Cache',
   'Per token',
+  'Billing account',
+  'Reconciliation Center',
+  'Organization Management',
+  'Account Top-up',
+  'Review charges, usage, and refunds for a selected billing period.',
+  'Manage organization workspaces, members, and shared API keys.',
+  'Search users by username or email',
+  'No users found',
+  'Select a billing account',
+  'Select a billing account.',
 ] as const

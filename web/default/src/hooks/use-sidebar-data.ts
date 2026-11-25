@@ -22,6 +22,7 @@ import {
   Wallet,
   UserRoundPlus,
   Building2,
+  FileDown,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -41,22 +42,16 @@ export function useSidebarData(): SidebarData {
   const { t } = useTranslation()
   const { status } = useStatus()
   const activeOrganizationId = useActiveOrganizationId()
-  const organizationWorkspaceItems = [
-    {
-      title: t('Wallet'),
-      url: '/wallet',
-      icon: Wallet,
-    },
-    ...(status?.organization_enabled === false
-      ? []
-      : [
-          {
-            title: t('Manage organizations'),
-            url: '/organizations/manage',
-            icon: Building2,
-          },
-        ]),
-  ]
+  const organizationsEnabled = status?.organization_enabled !== false
+  const organizationItems = organizationsEnabled
+    ? [
+        {
+          title: t('Manage organizations'),
+          url: '/organizations/manage',
+          icon: Building2,
+        },
+      ]
+    : []
 
   return {
     navGroups: [
@@ -84,8 +79,8 @@ export function useSidebarData(): SidebarData {
         ],
       },
       {
-        id: 'general',
-        title: t('General'),
+        id: 'platform',
+        title: t('Platform Features'),
         items: [
           {
             title: t('Overview'),
@@ -123,21 +118,38 @@ export function useSidebarData(): SidebarData {
         ],
       },
       {
+        id: 'finance',
+        title: t('Billing & Payments'),
+        items: [
+          {
+            title: t('Account Top-up'),
+            url: '/wallet',
+            icon: Wallet,
+          },
+          {
+            title: t('Reconciliation Center'),
+            url: '/billing-exports',
+            icon: FileDown,
+          },
+          ...(activeOrganizationId
+            ? []
+            : [
+                {
+                  title: t('Subscription Plans'),
+                  url: '/subscription-plans',
+                  icon: CreditCard,
+                },
+              ]),
+        ],
+      },
+      {
         id: activeOrganizationId ? 'organization' : 'personal',
-        title: activeOrganizationId ? t('Organization') : t('Personal'),
+        title: activeOrganizationId
+          ? t('Organization Management')
+          : t('Account & Support'),
         items: activeOrganizationId
-          ? organizationWorkspaceItems
+          ? organizationItems
           : [
-              {
-                title: t('Wallet'),
-                url: '/wallet',
-                icon: Wallet,
-              },
-              {
-                title: t('Subscription Plans'),
-                url: '/subscription-plans',
-                icon: CreditCard,
-              },
               {
                 title: t('Friends Hub'),
                 url: '/friends-hub',
@@ -158,15 +170,15 @@ export function useSidebarData(): SidebarData {
                 url: '/profile',
                 icon: User,
               },
-              ...(status?.organization_enabled === false
-                ? []
-                : [
+              ...(organizationsEnabled
+                ? [
                     {
-                      title: t('Organizations'),
+                      title: t('Organization Management'),
                       url: '/organizations',
                       icon: Building2,
                     },
-                  ]),
+                  ]
+                : []),
             ],
       },
       {

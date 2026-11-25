@@ -105,6 +105,25 @@ const demoUser = {
 }
 const demoAccessToken = 'local-preview-token'
 
+const demoBillingExports = [
+  {
+    task_id: 'systask_demo_billing_export',
+    start_month: '2026-10',
+    end_month: '2026-10',
+    created_at: Math.floor(new Date('2026-11-01T10:15:00+08:00').getTime() / 1000),
+    expires_at: Math.floor(new Date('2026-11-08T10:15:00+08:00').getTime() / 1000),
+    status: 'succeeded',
+  },
+  {
+    task_id: 'systask_demo_billing_export_running',
+    start_month: '2026-11',
+    end_month: '2026-11',
+    created_at: Math.floor(new Date('2026-11-25T09:30:00+08:00').getTime() / 1000),
+    expires_at: Math.floor(new Date('2026-12-02T09:30:00+08:00').getTime() / 1000),
+    status: 'running',
+  },
+]
+
 function demoOrganization(id, name) {
   const now = Math.floor(Date.now() / 1000)
   return {
@@ -1019,6 +1038,211 @@ function notFound(res, pathname) {
   })
 }
 
+function crc32(input) {
+  let crc = 0xffffffff
+  for (const byte of input) {
+    crc ^= byte
+    for (let bit = 0; bit < 8; bit += 1) {
+      crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0)
+    }
+  }
+  return (crc ^ 0xffffffff) >>> 0
+}
+
+function uint32(value) {
+  const result = Buffer.alloc(4)
+  result.writeUInt32LE(value >>> 0)
+  return result
+}
+
+function uint16(value) {
+  const result = Buffer.alloc(2)
+  result.writeUInt16LE(value)
+  return result
+}
+
+function storeZip(entries) {
+  const localParts = []
+  const centralParts = []
+  let offset = 0
+  for (const [name, value] of entries) {
+    const nameBytes = Buffer.from(name)
+    const data = Buffer.isBuffer(value) ? value : Buffer.from(value)
+    const checksum = crc32(data)
+    const local = Buffer.concat([
+      Buffer.from('PK\x03\x04', 'binary'),
+      uint16(20),
+      uint16(0),
+      uint16(0),
+      uint16(0),
+      uint16(0),
+      uint32(checksum),
+      uint32(data.length),
+      uint32(data.length),
+      uint16(nameBytes.length),
+      uint16(0),
+      nameBytes,
+      data,
+    ])
+    localParts.push(local)
+    centralParts.push(Buffer.concat([
+      Buffer.from('PK\x01\x02', 'binary'),
+      uint16(20),
+      uint16(20),
+      uint16(0),
+      uint16(0),
+      uint16(0),
+      uint16(0),
+      uint32(checksum),
+      uint32(data.length),
+      uint32(data.length),
+      uint16(nameBytes.length),
+      uint16(0),
+      uint16(0),
+      uint16(0),
+      uint16(0),
+      uint32(0),
+      uint32(offset),
+      nameBytes,
+    ]))
+    offset += local.length
+  }
+  const local = Buffer.concat(localParts)
+  const central = Buffer.concat(centralParts)
+  return Buffer.concat([
+    local,
+    central,
+    Buffer.concat([
+      Buffer.from('PK\x05\x06', 'binary'),
+      uint16(0),
+      uint16(0),
+      uint16(entries.length),
+      uint16(entries.length),
+      uint32(central.length),
+      uint32(local.length),
+      uint16(0),
+    ]),
+  ])
+}
+
+function localWorkbook() {
+  const contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'
+  const relationships = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'
+  const workbook = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Overview" sheetId="1" r:id="rId1"/></sheets></workbook>'
+  const workbookRelationships = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>'
+  const sheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Model</t></is></c><c r="B1" t="inlineStr"><is><t>Charges</t></is></c></row><row r="2"><c r="A2" t="inlineStr"><is><t>gpt-5.2</t></is></c><c r="B2"><v>1.25</v></c></row></sheetData></worksheet>'
+  return storeZip([
+    ['[Content_Types].xml', contentTypes],
+    ['_rels/.rels', relationships],
+    ['xl/workbook.xml', workbook],
+    ['xl/_rels/workbook.xml.rels', workbookRelationships],
+    ['xl/worksheets/sheet1.xml', sheet],
+  ])
+}
+
+function localPdf() {
+  const escapePdfText = (value) =>
+    value.replaceAll('\\', '\\\\').replaceAll('(', '\\(').replaceAll(')', '\\)')
+  const content = [
+    `BT /F1 18 Tf 48 780 Td (${escapePdfText('OmniRouters Billing statement')}) Tj`,
+    `0 -28 Td /F1 10 Tf (${escapePdfText('2026-10 | Demo account | UTC+08:00')}) Tj`,
+    `0 -24 Td (${escapePdfText('Charges: 1.25 Credits')}) Tj`,
+    `0 -18 Td (${escapePdfText('Requests: 3')}) Tj ET`,
+  ].join('\n')
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+    `<< /Length ${Buffer.byteLength(content)} >>\nstream\n${content}\nendstream`,
+  ]
+  const output = ['%PDF-1.4\n% OmniRouters local billing statement preview\n']
+  const offsets = [0]
+  for (let index = 0; index < objects.length; index += 1) {
+    offsets.push(Buffer.byteLength(output.join('')))
+    output.push(`${index + 1} 0 obj\n${objects[index]}\nendobj\n`)
+  }
+  const xrefOffset = Buffer.byteLength(output.join(''))
+  output.push(`xref\n0 ${objects.length + 1}\n`)
+  output.push('0000000000 65535 f \n')
+  for (const offset of offsets.slice(1)) {
+    output.push(`${String(offset).padStart(10, '0')} 00000 n \n`)
+  }
+  output.push(
+    `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`,
+  )
+  return Buffer.from(output.join(''))
+}
+
+function localModelBillingDetails() {
+  const rows = [
+    [
+      'Billing period',
+      'Account',
+      'Model',
+      'Unit',
+      'Requests',
+      'Charges',
+      'Task precharge',
+      'Additional charge',
+      'Refunds',
+      'Net usage',
+      'Recorded savings',
+      'Unconfirmed usage (count)',
+      'Input tokens',
+      'Output tokens',
+      'Cache read tokens',
+      'Cache write tokens',
+    ],
+    [
+      '2026-10',
+      'Demo account',
+      'gpt-5.2',
+      'Credits',
+      3,
+      1.25,
+      '',
+      '',
+      0,
+      1.25,
+      '',
+      0,
+      3720,
+      950,
+      480,
+      '',
+    ],
+  ]
+  return Buffer.from(`\ufeff${rows.map((row) => row.join(',')).join('\n')}\n`)
+}
+
+function billingExportDownload(res, level) {
+  const pdf = localPdf()
+  const xlsx = localWorkbook()
+  const l2 = Buffer.from('\ufeffModel,Billing source,Unit,Charges\ngpt-5.2,wallet,Credits,1.25\n')
+  const l3 = localModelBillingDetails()
+  const zip = storeZip([
+    ['L0-statement.pdf', pdf],
+    ['L1-summary.xlsx', xlsx],
+    ['L2-resources.csv', l2],
+    ['L3-details.csv', l3],
+  ])
+  const files = {
+    zip: ['application/zip', zip],
+    l0: ['application/pdf', pdf],
+    l1: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', xlsx],
+    l2: ['text/csv; charset=utf-8', l2],
+    l3: ['text/csv; charset=utf-8', l3],
+  }
+  const [contentType, body] = files[level] || files.zip
+  res.writeHead(200, {
+    'content-type': contentType,
+    'content-disposition': `attachment; filename="OmniRouters-billing-${level}"`,
+    'cache-control': 'private, no-store',
+  })
+  res.end(body)
+}
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url || '/', `http://localhost:${port}`)
 
@@ -1099,6 +1323,35 @@ const server = http.createServer((req, res) => {
           },
         })
       : authRequired(res)
+  }
+  if (url.pathname === '/api/billing-exports/' || url.pathname === '/api/billing-exports') {
+    if (!isDemoAuthenticated(req)) return authRequired(res)
+    if (req.method === 'GET') {
+      return json(res, 200, { success: true, data: demoBillingExports })
+    }
+    if (req.method === 'POST') {
+      return readJson(req).then((body) => {
+        const startMonth = String(body.start_month || '')
+        const endMonth = String(body.end_month || '')
+        const task = {
+          task_id: `systask_demo_billing_export_${Date.now()}`,
+          start_month: startMonth,
+          end_month: endMonth,
+          created_at: Math.floor(Date.now() / 1000),
+          expires_at: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60,
+          status: 'running',
+        }
+        demoBillingExports.unshift(task)
+        return json(res, 200, { success: true, data: null })
+      })
+    }
+  }
+  const billingDownload = url.pathname.match(/^\/api\/billing-exports\/([^/]+)\/(zip|l0|l1|l2|l3)$/)
+  if (billingDownload && req.method === 'GET') {
+    if (!isDemoAuthenticated(req)) return authRequired(res)
+    const report = demoBillingExports.find((item) => item.task_id === billingDownload[1])
+    if (!report || report.status !== 'succeeded') return notFound(res, url.pathname)
+    return billingExportDownload(res, billingDownload[2])
   }
   if (
     url.pathname === '/api/organizations' ||
