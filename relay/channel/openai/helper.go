@@ -123,7 +123,12 @@ func processTokenData(info *relaycommon.RelayInfo, data string, responseTextBuil
 			info.StreamStatus.MarkFailed("", "", 0)
 		}
 	}
-	switch info.RelayMode {
+	mode := info.RelayMode
+	if mode == relayconstant.RelayModeUnknown && info.RelayFormat == types.RelayFormatClaude {
+		// /v1/messages has no relay mode, but this handler receives Chat Completions chunks.
+		mode = relayconstant.RelayModeChatCompletions
+	}
+	switch mode {
 	case relayconstant.RelayModeChatCompletions:
 		var streamResponse dto.ChatCompletionsStreamResponse
 		if err := common.UnmarshalJsonStr(data, &streamResponse); err != nil {
@@ -197,7 +202,12 @@ func HandleFinalResponse(c *gin.Context, info *relaycommon.RelayInfo, lastStream
 	case types.RelayFormatClaude:
 		var streamResponse dto.ChatCompletionsStreamResponse
 		canFinalize := false
-		info.EnsureClaudeConvertInfo().Usage = usage
+		state := info.EnsureClaudeConvertInfo()
+		// A single content chunk can be both the first and last. Keep estimated
+		// usage out of message_start when the upstream has not reported any.
+		if containStreamUsage || info.SendResponseCount > 0 {
+			state.Usage = usage
+		}
 		if err := common.Unmarshal(common.StringToByteSlice(lastStreamData), &streamResponse); err != nil {
 			common.SysLog("error unmarshalling stream response: " + err.Error())
 		} else {
@@ -220,6 +230,7 @@ func HandleFinalResponse(c *gin.Context, info *relaycommon.RelayInfo, lastStream
 
 		streamSucceeded := info.StreamStatus != nil && info.StreamStatus.RequestSucceeded()
 		if canFinalize && streamSucceeded {
+			state.Usage = usage
 			for _, resp := range relayconvert.FinalizeStreamResponseOpenAI2Claude(info) {
 				if resp != nil {
 					_ = helper.ClaudeData(c, *resp)

@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-11-26 - Request streaming usage for Volcengine Messages conversion
+
+- GLM-5.3 returned text and zero final output and cache-read tokens on the Volcengine channel. The user's retest after switching the channel to OpenAI type returned populated final usage.
+- Ordinary Volcengine requests converted from Messages to Chat Completions now retain `stream_options.include_usage=true` to request the final usage frame described by the [Volcengine Chat API](https://docs.volcengine.com/docs/ark/chat-api?lang=zh). Special Base URLs use the native Messages adapter, and the non-streaming conversion omits the streaming option.
+- The shared stream handler now counts Chat Completions content and tool calls for Messages requests with an unset relay mode. When the upstream omits usage, the estimate appears in `message_delta` and includes tool overhead in `total_tokens`. Streams with reported usage continue to use upstream cache figures, and content is delivered incrementally.
+- Volcengine package tests and targeted OpenAI stream and Claude conversion tests passed using cached Go 1.26.10. The OpenAI-to-Claude response and stream golden cases passed. Broader tests hit existing Responses lifecycle assertions, missing symbols and a duplicate test in the relaykit request registry, and an undefined `assert` in `relay/common/override_test.go`. Channel 1's Base URL and raw SSE are pending, as is post-deployment verification.
+- Source commit and push status: `fix: request Volcengine streaming usage`, pushed to `origin/main`.
+
 ## 2026-11-26 - Finalize OpenAI Chat streams converted to Anthropic Messages
 
 - Local reason: GLM-5.3 Anthropic streaming verification ended after `message_start` and content without `message_delta` or `message_stop`; the gateway's retained output did not identify the upstream channel or final frame.

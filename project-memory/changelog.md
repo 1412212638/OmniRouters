@@ -2,8 +2,12 @@
 
 ## 2026-11-26
 
-- 记录 OpenAI Chat Completions 转 Anthropic Messages 在流结束时调用终止 finalizer 的要求，并注明 GLM-5.3 实际上游路径仍待确认，见[维护决策](decisions/maintenance.md)。
+- 记录 OpenAI Chat Completions 转 Anthropic Messages 的流式收尾要求及本地定向测试结果，GLM-5.3 实际上游路径仍待确认，见[维护决策](decisions/maintenance.md)。
 - 记录 OpenAI 到 Anthropic Messages 响应的缓存 token 统计语义，以及流式首包 usage 尚未知时的处理方式，见[维护决策](decisions/maintenance.md)。
+- 记录线上四个测试模型的 Anthropic 缓存字段复测结果，补充 Doubao Pro 的两种模式命中样本，并记录 GLM-5.3 流式用量异常和仍待验证的场景，见[维护决策](decisions/maintenance.md)。
+- 记录 GLM-5.3 切换上游渠道后的复测，确认非流式和流式最终用量均有缓存命中样本，见[维护决策](decisions/maintenance.md)。
+- 补记 GLM-5.3 再次切换渠道后的线上复测，确认非流式和流式最终用量的缓存拆分，见[维护决策](decisions/maintenance.md)。
+- 记录用户确认的 GLM-5.3 渠道类型、普通火山适配路径的流式用量修复及本地验证结果，见[维护决策](decisions/maintenance.md)。
 
 ## 2026-11-25
 
