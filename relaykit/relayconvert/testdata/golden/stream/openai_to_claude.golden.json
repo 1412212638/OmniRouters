@@ -49,9 +49,9 @@
     {
       "type": "message_delta",
       "usage": {
-        "input_tokens": 4,
+        "input_tokens": 2,
         "cache_creation_input_tokens": 0,
-        "cache_read_input_tokens": 0,
+        "cache_read_input_tokens": 2,
         "output_tokens": 2,
         "claude_cache_creation_5_m_tokens": 0,
         "claude_cache_creation_1_h_tokens": 0,
@@ -63,7 +63,7 @@
             "completion_tokens": 2,
             "total_tokens": 6,
             "prompt_tokens_details": {
-              "cached_tokens": 0,
+              "cached_tokens": 2,
               "text_tokens": 0,
               "audio_tokens": 0,
               "image_tokens": 0
@@ -102,7 +102,7 @@
         "completion_tokens": 2,
         "total_tokens": 6,
         "prompt_tokens_details": {
-          "cached_tokens": 0,
+          "cached_tokens": 2,
           "text_tokens": 0,
           "audio_tokens": 0,
           "image_tokens": 0
@@ -134,7 +134,12 @@
     },
     "input_tokens": 4,
     "output_tokens": 2,
-    "input_tokens_details": null,
+    "input_tokens_details": {
+      "cached_tokens": 2,
+      "text_tokens": 0,
+      "audio_tokens": 0,
+      "image_tokens": 0
+    },
     "claude_cache_creation_5_m_tokens": 0,
     "claude_cache_creation_1_h_tokens": 0
   }

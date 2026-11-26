@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-11-26 - Separate cached input in Anthropic Messages responses
+
+- Local reason: customer evaluation found OpenAI-to-Anthropic Messages responses counted cached input in `usage.input_tokens`.
+- Changed: always subtract cache-read and cache-creation tokens from OpenAI `prompt_tokens`, clamp the uncached remainder to zero, and keep cache quantities in their Anthropic fields. Non-stream responses and streaming final usage share this conversion. A streaming `message_start` uses available upstream usage when present; when cache usage has not arrived yet, it reports zero input and the final uncached usage is reported in `message_delta`.
+- Preserved: immediate response streaming and the full OpenAI usage snapshot in billing metadata. Exact cache statistics cannot be present in `message_start` when the upstream only reports them at the end; buffering the full response would be required to delay that event until exact usage is known.
+- Validation: targeted converter tests passed for cache-read-only, cache-creation, non-stream usage, early stream usage, and final stream usage. OpenAI-to-Claude non-stream and stream golden cases passed. Broader relaykit tests remain blocked by pre-existing unrelated compilation and assertion failures.
+- Source commit and push status: committed as `fix: separate cached input in Anthropic usage` and pushed to `origin/main`.
+
 ## 2026-11-25 - Refine reconciliation center translations
 
 - Local reason: the user asked whether the reconciliation center translations were literal and requested more natural wording where needed.

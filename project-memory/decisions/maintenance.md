@@ -28,7 +28,7 @@
 
 新版通用使用日志的详情使用右侧抽屉。请求轨迹标签集中展示可独立展开的输入、输出 JSON，以及基于现有日志字段生成的请求元数据。管理员保留请求审计和原始数据标签。上下条切换以打开详情时的同页结果为准。2026-11-24 已核对[通用日志列表](../../web/default/src/features/usage-logs/components/usage-logs-table.tsx)、[详情组件](../../web/default/src/features/usage-logs/components/dialogs/details-dialog.tsx)及[请求轨迹](../../web/default/src/features/usage-logs/components/dialogs/request-trace-panel.tsx)，并在本地模拟数据中验证。线上版本尚未核对。
 
-Token 明细的总量按不重叠的上游用量口径计算。Anthropic 的输入、输出与独立缓存读写相加，OpenAI 风格的缓存属于输入子集时只算输入加输出。缓存写入 TTL 子项不重复累加。2026-11-24 已核对[用量日志生成](../../service/text_quota.go)和[详情展示](../../web/default/src/features/usage-logs/components/dialogs/details-dialog.tsx)。
+Token 明细的总量按不重叠的上游用量口径计算。Anthropic 的输入、输出与独立缓存读写相加，OpenAI 风格的缓存属于输入子集时只算输入加输出。缓存写入 TTL 子项不重复累加。OpenAI Chat Completions 转 Anthropic Messages 时，`input_tokens` 扣除缓存读写后再分别填入 Anthropic 缓存字段。流式首包若尚无上游 usage，则 `message_start.input_tokens` 为 0，避免把含缓存的本地估算报成未缓存输入；最终 usage 在 `message_delta` 中提供。2026-11-26 已核对[响应转换](../../relaykit/relayconvert/internal/oai_chat/to_claude_messages_resp.go)、[回归测试](../../relaykit/relayconvert/internal/oai_chat/to_claude_messages_resp_test.go)和[转换黄金样例](../../relaykit/relayconvert/testdata/golden/stream/openai_to_claude.golden.json)。
 
 账单导出中心按选择的账期和文件语言异步生成个人或组织账单，支持简体中文和英文，旧任务默认英文。导出包包含 L0 PDF、L1 XLSX 汇总、L2 资源汇总 CSV 和 L3 模型账单明细 CSV，并保留七天。导出只读取已授权范围内的账务记录。单次导出最多覆盖 12 个月，财务流水与压缩归档仍有上限。用量日志分批读取并按日和报表维度汇总，25,000 条上限作用于聚合组，不再按请求条数限制。L3 按所选账期、模型和计费单位汇总，逐次请求可在使用日志查看。2026-11-25 已用本地 Go 1.26.10 和模拟 SQLite 数据核对[导出服务](../../service/billing_export.go)、[日志读取](../../model/billing_export_data.go)和[导出渲染](../../pkg/billexport/csv_rows.go)。生产数据库和亿级记录耗时尚未验证。
 

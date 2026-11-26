@@ -59,22 +59,14 @@ func buildClaudeUsageFromOpenAIUsage(oaiUsage *dto.Usage) *dto.ClaudeUsage {
 		oaiUsage.ClaudeCacheCreation1hTokens,
 	)
 	cacheCreationTokens := oaiUsage.PromptTokensDetails.CacheCreationTokensTotal()
-	inputTokens := oaiUsage.PromptTokens
-	if oaiUsage.PromptTokensDetails.CacheWriteTokens > 0 {
-		// OpenAI native cache-write usage counts cached and cache-write tokens
-		// inside prompt_tokens, while Claude semantics reports input_tokens
-		// excluding both. Both counts are unadjusted prefixes and may overlap,
-		// so clamp a negative remainder at zero.
-		inputTokens = oaiUsage.PromptTokens - oaiUsage.PromptTokensDetails.CachedTokens - cacheCreationTokens
-		if inputTokens < 0 {
-			inputTokens = 0
-		}
-	}
+	// OpenAI prompt_tokens includes cache reads and writes. Anthropic reports
+	// those separately, so input_tokens contains only the uncached remainder.
+	inputTokens := claudeUncachedInputTokens(oaiUsage.PromptTokens, oaiUsage.PromptTokensDetails.CachedTokens, cacheCreationTokens)
 	usage := &dto.ClaudeUsage{
 		InputTokens:              inputTokens,
 		OutputTokens:             oaiUsage.CompletionTokens,
 		CacheCreationInputTokens: cacheCreationTokens,
-		CacheReadInputTokens:     oaiUsage.PromptTokensDetails.CachedTokens,
+		CacheReadInputTokens:     max(oaiUsage.PromptTokensDetails.CachedTokens, 0),
 		BillingUsage:             billingUsage,
 	}
 	if cacheCreation5m > 0 || cacheCreation1h > 0 {
@@ -83,6 +75,35 @@ func buildClaudeUsageFromOpenAIUsage(oaiUsage *dto.Usage) *dto.ClaudeUsage {
 			Ephemeral1hInputTokens: cacheCreation1h,
 		}
 	}
+	return usage
+}
+
+func claudeUncachedInputTokens(promptTokens, cacheReadTokens, cacheCreationTokens int) int {
+	inputTokens := max(promptTokens, 0)
+	for _, cachedTokens := range []int{cacheReadTokens, cacheCreationTokens} {
+		if cachedTokens <= 0 {
+			continue
+		}
+		if cachedTokens >= inputTokens {
+			return 0
+		}
+		inputTokens -= cachedTokens
+	}
+	return inputTokens
+}
+
+func buildClaudeMessageStartUsage(oaiUsage *dto.Usage) *dto.ClaudeUsage {
+	usage := &dto.ClaudeUsage{}
+	if oaiUsage == nil {
+		// Cache usage is not known until an OpenAI-compatible stream reports it.
+		// Keep the start event from reporting the full estimate as uncached input.
+		return usage
+	}
+	converted := buildClaudeUsageFromOpenAIUsage(oaiUsage)
+	usage.InputTokens = converted.InputTokens
+	usage.CacheCreationInputTokens = converted.CacheCreationInputTokens
+	usage.CacheReadInputTokens = converted.CacheReadInputTokens
+	usage.CacheCreation = converted.CacheCreation
 	return usage
 }
 
@@ -132,15 +153,16 @@ func StreamResponseOpenAI2Claude(openAIResponse *dto.ChatCompletionsStreamRespon
 		state.LastMessagesType = convmeta.LastMessageTypeNone
 	}
 	if info.GetSendResponseCount() == 1 {
+		startUsage := openAIResponse.Usage
+		if startUsage == nil {
+			startUsage = state.Usage
+		}
 		msg := &dto.ClaudeMediaMessage{
 			Id:    openAIResponse.Id,
 			Model: openAIResponse.Model,
 			Type:  "message",
 			Role:  "assistant",
-			Usage: &dto.ClaudeUsage{
-				InputTokens:  info.GetEstimatePromptTokens(),
-				OutputTokens: 0,
-			},
+			Usage: buildClaudeMessageStartUsage(startUsage),
 		}
 		msg.SetContent(make([]any, 0))
 		claudeResponses = append(claudeResponses, &dto.ClaudeResponse{

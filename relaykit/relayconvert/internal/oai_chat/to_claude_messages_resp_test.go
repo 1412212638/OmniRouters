@@ -103,6 +103,144 @@ func TestBuildClaudeUsageFromOpenAICacheWriteUsage(t *testing.T) {
 	assert.Equal(t, 3616, usage.BillingUsage.OpenAIUsage.PromptTokensDetails.CacheWriteTokens)
 }
 
+func TestBuildClaudeUsageFromOpenAICacheReadOnlyUsage(t *testing.T) {
+	usage := buildClaudeUsageFromOpenAIUsage(&dto.Usage{
+		PromptTokens:     100,
+		CompletionTokens: 5,
+		PromptTokensDetails: dto.InputTokenDetails{
+			CachedTokens: 70,
+		},
+	})
+
+	require.NotNil(t, usage)
+	assert.Equal(t, 30, usage.InputTokens)
+	assert.Equal(t, 70, usage.CacheReadInputTokens)
+	assert.Zero(t, usage.CacheCreationInputTokens)
+}
+
+func TestBuildClaudeUsageSubtractsCacheCreationWithoutCacheWriteField(t *testing.T) {
+	usage := buildClaudeUsageFromOpenAIUsage(&dto.Usage{
+		PromptTokens: 100,
+		PromptTokensDetails: dto.InputTokenDetails{
+			CachedCreationTokens: 25,
+		},
+	})
+
+	require.NotNil(t, usage)
+	assert.Equal(t, 75, usage.InputTokens)
+	assert.Equal(t, 25, usage.CacheCreationInputTokens)
+}
+
+func TestResponseOpenAI2ClaudeSeparatesCacheReadInputTokens(t *testing.T) {
+	resp := ResponseOpenAI2Claude(&dto.OpenAITextResponse{
+		Choices: []dto.OpenAITextResponseChoice{
+			{Message: dto.Message{Role: "assistant", Content: "hello"}, FinishReason: "stop"},
+		},
+		Usage: dto.Usage{
+			PromptTokens:     100,
+			CompletionTokens: 5,
+			TotalTokens:      105,
+			PromptTokensDetails: dto.InputTokenDetails{
+				CachedTokens: 70,
+			},
+		},
+	}, nil)
+
+	require.NotNil(t, resp.Usage)
+	assert.Equal(t, 30, resp.Usage.InputTokens)
+	assert.Equal(t, 70, resp.Usage.CacheReadInputTokens)
+	assert.Equal(t, 0, resp.Usage.CacheCreationInputTokens)
+	assert.Equal(t, 5, resp.Usage.OutputTokens)
+}
+
+func TestBuildClaudeMessageStartUsageMapsAvailableCacheUsage(t *testing.T) {
+	usage := buildClaudeMessageStartUsage(&dto.Usage{
+		PromptTokens: 100,
+		PromptTokensDetails: dto.InputTokenDetails{
+			CachedTokens: 70,
+		},
+	})
+
+	assert.Equal(t, 30, usage.InputTokens)
+	assert.Equal(t, 70, usage.CacheReadInputTokens)
+	assert.Zero(t, usage.OutputTokens)
+}
+
+func TestBuildClaudeMessageStartUsageLeavesUnknownInputUnreported(t *testing.T) {
+	usage := buildClaudeMessageStartUsage(nil)
+
+	assert.Zero(t, usage.InputTokens)
+	assert.Zero(t, usage.CacheReadInputTokens)
+	assert.Zero(t, usage.CacheCreationInputTokens)
+	assert.Zero(t, usage.OutputTokens)
+}
+
+func TestStreamResponseOpenAI2ClaudeSeparatesCacheReadUsage(t *testing.T) {
+	info := &convmeta.Values{SendResponseCount: 1, EstimatePromptTokens: 100}
+	first := StreamResponseOpenAI2Claude(&dto.ChatCompletionsStreamResponse{
+		Id:    "chatcmpl_1",
+		Model: "gpt-test",
+		Choices: []dto.ChatCompletionsStreamResponseChoice{
+			{Delta: dto.ChatCompletionsStreamResponseChoiceDelta{Content: ptr("hello")}},
+		},
+	}, info)
+	require.NotEmpty(t, first)
+	assert.Zero(t, first[0].Message.Usage.InputTokens)
+
+	info.SendResponseCount = 2
+	finish := StreamResponseOpenAI2Claude(&dto.ChatCompletionsStreamResponse{
+		Id:    "chatcmpl_1",
+		Model: "gpt-test",
+		Choices: []dto.ChatCompletionsStreamResponseChoice{
+			{FinishReason: ptr("stop")},
+		},
+		Usage: &dto.Usage{
+			PromptTokens:     100,
+			CompletionTokens: 5,
+			TotalTokens:      105,
+			PromptTokensDetails: dto.InputTokenDetails{
+				CachedTokens: 70,
+			},
+		},
+	}, info)
+
+	var finalUsage *dto.ClaudeUsage
+	for _, response := range finish {
+		if response.Type == "message_delta" {
+			finalUsage = response.Usage
+			break
+		}
+	}
+	require.NotNil(t, finalUsage)
+	assert.Equal(t, 30, finalUsage.InputTokens)
+	assert.Equal(t, 70, finalUsage.CacheReadInputTokens)
+	assert.Equal(t, 5, finalUsage.OutputTokens)
+}
+
+func TestStreamResponseOpenAI2ClaudeMessageStartUsesEarlyUsage(t *testing.T) {
+	info := &convmeta.Values{SendResponseCount: 1, EstimatePromptTokens: 100}
+	responses := StreamResponseOpenAI2Claude(&dto.ChatCompletionsStreamResponse{
+		Id:    "chatcmpl_1",
+		Model: "gpt-test",
+		Choices: []dto.ChatCompletionsStreamResponseChoice{
+			{Delta: dto.ChatCompletionsStreamResponseChoiceDelta{Content: ptr("hello")}},
+		},
+		Usage: &dto.Usage{
+			PromptTokens: 100,
+			PromptTokensDetails: dto.InputTokenDetails{
+				CachedTokens: 70,
+			},
+		},
+	}, info)
+
+	require.NotEmpty(t, responses)
+	require.Equal(t, "message_start", responses[0].Type)
+	require.NotNil(t, responses[0].Message.Usage)
+	assert.Equal(t, 30, responses[0].Message.Usage.InputTokens)
+	assert.Equal(t, 70, responses[0].Message.Usage.CacheReadInputTokens)
+	assert.Zero(t, responses[0].Message.Usage.OutputTokens)
+}
+
 func TestStreamResponseOpenAI2ClaudeClosesTextThinkingAndToolBlocks(t *testing.T) {
 	info := &convmeta.Values{
 		ClaudeConvertInfo: &convmeta.ClaudeConvertInfo{

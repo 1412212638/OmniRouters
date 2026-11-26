@@ -1,5 +1,9 @@
 # 记忆变更记录
 
+## 2026-11-26
+
+- 记录 OpenAI 到 Anthropic Messages 响应的缓存 token 统计语义，以及流式首包 usage 尚未知时的处理方式，见[维护决策](decisions/maintenance.md)。
+
 ## 2026-11-25
 
 - 更新新版控制台财务及组织导航名称，并统一对应页面主标题，见[维护决策](decisions/maintenance.md)。
