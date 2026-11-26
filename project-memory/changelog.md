@@ -2,6 +2,7 @@
 
 ## 2026-11-26
 
+- 记录 OpenAI Chat Completions 转 Anthropic Messages 在流结束时调用终止 finalizer 的要求，并注明 GLM-5.3 实际上游路径仍待确认，见[维护决策](decisions/maintenance.md)。
 - 记录 OpenAI 到 Anthropic Messages 响应的缓存 token 统计语义，以及流式首包 usage 尚未知时的处理方式，见[维护决策](decisions/maintenance.md)。
 
 ## 2026-11-25

@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-11-26 - Finalize OpenAI Chat streams converted to Anthropic Messages
+
+- Local reason: GLM-5.3 Anthropic streaming verification ended after `message_start` and content without `message_delta` or `message_stop`; the gateway's retained output did not identify the upstream channel or final frame.
+- Changed: expose the OpenAI Chat-to-Claude stream finalizer and invoke it after processing the final chunk in the legacy OpenAI stream handler. The finalizer is idempotent, so normal `finish_reason` responses do not duplicate terminal events; it closes open blocks and synthesizes terminal events for successfully completed streams without a finish chunk. Failed streams do not receive a synthetic success terminal.
+- Preserved: incremental content delivery and estimated/final usage handling. This fixes the converter path but does not establish that GLM-5.3 uses this path; native Anthropic passthrough or a truncated upstream stream requires separate channel-level evidence.
+- Validation: `git diff --check` passed. The targeted Go test and `gofmt` could not run because Go is not installed or available on `PATH` in this environment.
+- Source commit and push status: `fix: finalize Anthropic stream responses`, pushed to `origin/main` per the user's request.
+
 ## 2026-11-26 - Separate cached input in Anthropic Messages responses
 
 - Local reason: customer evaluation found OpenAI-to-Anthropic Messages responses counted cached input in `usage.input_tokens`.
