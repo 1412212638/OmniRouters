@@ -17,7 +17,6 @@ const (
 	BatchUpdateTypeUserQuota = iota
 	BatchUpdateTypeTokenQuota
 	BatchUpdateTypeUsedQuota
-	BatchUpdateTypeChannelUsedQuota
 	BatchUpdateTypeRequestCount
 	BatchUpdateTypeCount // if you add a new type, you need to add a new map and a new lock
 )
@@ -44,27 +43,27 @@ func InitBatchUpdater() {
 func addNewRecord(type_ int, id int, value int) {
 	batchUpdateLocks[type_].Lock()
 	defer batchUpdateLocks[type_].Unlock()
-	old, ok := batchUpdateStores[type_][id]
-	if !ok {
-		batchUpdateStores[type_][id] = value
-		return
-	}
+	addBatchDelta(batchUpdateStores[type_], id, value, type_)
+}
 
+func addBatchDelta[K comparable](store map[K]int, key K, value int, updateType any) {
+	old := store[key]
 	sum := old + value
 	if (value > 0 && sum < old) || (value < 0 && sum > old) {
-		common.SysError(fmt.Sprintf("batch update overflow: type=%d id=%d old=%d value=%d", type_, id, old, value))
+		common.SysError(fmt.Sprintf("batch update overflow: type=%v key=%v old=%d value=%d", updateType, key, old, value))
 		if value > 0 {
 			sum = math.MaxInt
 		} else {
 			sum = math.MinInt
 		}
 	}
-	batchUpdateStores[type_][id] = sum
+	store[key] = sum
 }
 
 func batchUpdate() {
 	// check if there's any data to update
-	hasData := false
+	channelDeltas := drainChannelUsedQuotaBatch()
+	hasData := len(channelDeltas) > 0
 	for i := 0; i < BatchUpdateTypeCount; i++ {
 		batchUpdateLocks[i].Lock()
 		if len(batchUpdateStores[i]) > 0 {
@@ -88,22 +87,12 @@ func batchUpdate() {
 		batchUpdateLocks[i].Unlock()
 	}
 
-	for i, store := range stores {
-		if i == BatchUpdateTypeUserQuota || i == BatchUpdateTypeUsedQuota || i == BatchUpdateTypeRequestCount {
-			continue
-		}
-		for key, value := range store {
-			switch i {
-			case BatchUpdateTypeTokenQuota:
-				err := increaseTokenQuota(key, value)
-				if err != nil {
-					common.SysLog("failed to batch update token quota: " + err.Error())
-				}
-			case BatchUpdateTypeChannelUsedQuota:
-				updateChannelUsedQuota(key, value)
-			}
+	for key, value := range stores[BatchUpdateTypeTokenQuota] {
+		if err := increaseTokenQuota(key, value); err != nil {
+			common.SysLog("failed to batch update token quota: " + err.Error())
 		}
 	}
+	flushChannelUsedQuotaBatch(channelDeltas)
 
 	userQuotaStore := stores[BatchUpdateTypeUserQuota]
 	usedQuotaStore := stores[BatchUpdateTypeUsedQuota]

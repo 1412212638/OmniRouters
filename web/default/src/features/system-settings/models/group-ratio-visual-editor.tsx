@@ -1,9 +1,12 @@
 import {
   AlertTriangle,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   GripVertical,
   Info,
   Plus,
+  Search,
   Trash2,
 } from 'lucide-react'
 import {
@@ -17,7 +20,10 @@ import {
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
-import { StaticDataTable } from '@/components/data-table/static/static-data-table'
+import {
+  StaticDataTable,
+  type StaticDataTableColumn,
+} from '@/components/data-table/static/static-data-table'
 import { StaticRowActions } from '@/components/data-table/static/static-row-actions'
 import { Dialog } from '@/components/dialog'
 import {
@@ -26,6 +32,7 @@ import {
   sideDrawerHeaderClassName,
 } from '@/components/drawer-layout'
 import { StatusBadge } from '@/components/status-badge'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -40,6 +47,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import { Empty, EmptyDescription } from '@/components/ui/empty'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -691,6 +699,17 @@ type GroupModelRule = {
   expiresAt?: number
 }
 
+type GroupModelRuleView = {
+  open?: boolean
+  page?: number
+}
+
+const modelRulesPerPage = 15
+
+function matchesModelRule(rule: GroupModelRule, query: string) {
+  return rule.model.toLowerCase().includes(query)
+}
+
 function formatDateTimeLocal(timestamp: number): string {
   const date = new Date(timestamp * 1000)
   const offset = date.getTimezoneOffset() * 60_000
@@ -711,41 +730,41 @@ function GroupModelPricingRules({
   onChange: (field: string, value: string) => void
 }) {
   const { t } = useTranslation()
-  const general = safeJsonParse<Record<string, Record<string, number>>>(
-    groupModelRatio,
-    { fallback: {}, silent: true }
-  )
-  const userSpecific = safeJsonParse<
-    Record<string, Record<string, Record<string, number>>>
-  >(groupModelUserRatio, { fallback: {}, silent: true })
-  const expiries = safeJsonParse<Record<string, Record<string, number>>>(
-    groupModelRatioExpiry,
-    { fallback: {}, silent: true }
-  )
-  const keys = new Set<string>()
-  for (const [group, models] of Object.entries(general)) {
-    for (const model of Object.keys(models)) keys.add(`${group}\u0000${model}`)
-  }
-  for (const [group, models] of Object.entries(userSpecific)) {
-    for (const model of Object.keys(models)) keys.add(`${group}\u0000${model}`)
-  }
-  for (const [group, models] of Object.entries(expiries)) {
-    for (const model of Object.keys(models)) keys.add(`${group}\u0000${model}`)
-  }
-  const rules: GroupModelRule[] = [...keys].map((key) => {
-    const [group, model] = key.split('\u0000')
-    return {
-      group,
-      model,
-      ratio: general[group]?.[model],
-      users: Object.fromEntries(
-        Object.entries(userSpecific[group]?.[model] ?? {}).map(
-          ([id, ratio]) => [Number(id), ratio]
-        )
-      ),
-      expiresAt: expiries[group]?.[model] || undefined,
+  const rules = useMemo(() => {
+    const general = safeJsonParse<Record<string, Record<string, number>>>(
+      groupModelRatio,
+      { fallback: {}, silent: true }
+    )
+    const userSpecific = safeJsonParse<
+      Record<string, Record<string, Record<string, number>>>
+    >(groupModelUserRatio, { fallback: {}, silent: true })
+    const expiries = safeJsonParse<Record<string, Record<string, number>>>(
+      groupModelRatioExpiry,
+      { fallback: {}, silent: true }
+    )
+    const keys = new Set<string>()
+    for (const source of [general, userSpecific, expiries]) {
+      for (const [group, models] of Object.entries(source)) {
+        for (const model of Object.keys(models)) {
+          keys.add(`${group}\u0000${model}`)
+        }
+      }
     }
-  })
+    return [...keys].map((key): GroupModelRule => {
+      const [group, model] = key.split('\u0000')
+      return {
+        group,
+        model,
+        ratio: general[group]?.[model],
+        users: Object.fromEntries(
+          Object.entries(userSpecific[group]?.[model] ?? {}).map(
+            ([id, ratio]) => [Number(id), ratio]
+          )
+        ),
+        expiresAt: expiries[group]?.[model] || undefined,
+      }
+    })
+  }, [groupModelRatio, groupModelUserRatio, groupModelRatioExpiry])
 
   const emit = (next: GroupModelRule[]) => {
     const nextGeneral: Record<string, Record<string, number>> = {}
@@ -770,6 +789,97 @@ function GroupModelPricingRules({
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<GroupModelRule | null>(null)
+  const [modelSearch, setModelSearch] = useState('')
+  const [groupViews, setGroupViews] = useState(
+    () => new Map<string, GroupModelRuleView>()
+  )
+  const query = modelSearch.trim().toLowerCase()
+  const visibleGroups = useMemo(() => {
+    const groups = new Map<string, GroupModelRule[]>()
+    for (const rule of rules) {
+      if (!matchesModelRule(rule, query)) continue
+      const groupRules = groups.get(rule.group)
+      if (groupRules) groupRules.push(rule)
+      else groups.set(rule.group, [rule])
+    }
+    for (const groupRules of groups.values()) {
+      groupRules.sort((a, b) => a.model.localeCompare(b.model))
+    }
+    return groups
+  }, [query, rules])
+
+  function updateGroupView(group: string, updates: GroupModelRuleView) {
+    setGroupViews((current) =>
+      new Map(current).set(group, { ...current.get(group), ...updates })
+    )
+  }
+
+  const columns: StaticDataTableColumn<GroupModelRule>[] = [
+    { id: 'group', header: t('Billing group'), cell: (row) => row.group },
+    { id: 'model', header: t('Model'), cell: (row) => row.model },
+    {
+      id: 'ratio',
+      header: t('General multiplier'),
+      cell: (row) => row.ratio ?? t('Inherited'),
+    },
+    {
+      id: 'customers',
+      header: t('Customer overrides'),
+      cell: (row) =>
+        t('{{count}} customer(s)', { count: Object.keys(row.users).length }),
+    },
+    {
+      id: 'expiresAt',
+      header: t('Expiration time'),
+      cell: (row) => {
+        if (!row.expiresAt) return t('Permanent')
+        const expired = row.expiresAt * 1000 <= Date.now()
+        return (
+          <div className='flex flex-wrap items-center gap-2'>
+            <span>{new Date(row.expiresAt * 1000).toLocaleString()}</span>
+            {expired && (
+              <StatusBadge variant='danger' copyable={false}>
+                {t('Expired')}
+              </StatusBadge>
+            )}
+          </div>
+        )
+      },
+    },
+    {
+      id: 'actions',
+      header: t('Actions'),
+      className: 'text-right',
+      cellClassName: 'text-right',
+      cell: (row) => (
+        <StaticRowActions
+          editLabel={t('Edit')}
+          deleteLabel={t('Delete')}
+          menuLabel={t('Open menu')}
+          onEdit={() => {
+            setEditing(row)
+            setDialogOpen(true)
+          }}
+          onDelete={() => {
+            const remaining = (visibleGroups.get(row.group)?.length ?? 1) - 1
+            const lastPage = Math.max(
+              0,
+              Math.ceil(remaining / modelRulesPerPage) - 1
+            )
+            updateGroupView(row.group, {
+              page: Math.min(groupViews.get(row.group)?.page ?? 0, lastPage),
+            })
+            emit(
+              rules.filter(
+                (item) => item.group !== row.group || item.model !== row.model
+              )
+            )
+          }}
+        />
+      ),
+    },
+  ]
+
   return (
     <Card className={sectionCardClassName}>
       <CardHeader className={sectionHeaderClassName}>
@@ -795,77 +905,119 @@ function GroupModelPricingRules({
         </div>
       </CardHeader>
       <CardContent>
-        <StaticDataTable
-          data={rules}
-          getRowKey={(row) => `${row.group}:${row.model}`}
-          emptyContent={t('No model pricing rules configured.')}
-          columns={[
-            {
-              id: 'group',
-              header: t('Billing group'),
-              cell: (row) => row.group,
-            },
-            { id: 'model', header: t('Model'), cell: (row) => row.model },
-            {
-              id: 'ratio',
-              header: t('General multiplier'),
-              cell: (row) => row.ratio ?? t('Inherited'),
-            },
-            {
-              id: 'customers',
-              header: t('Customer overrides'),
-              cell: (row) =>
-                t('{{count}} customer(s)', {
-                  count: Object.keys(row.users).length,
-                }),
-            },
-            {
-              id: 'expiresAt',
-              header: t('Expiration time'),
-              cell: (row) => {
-                if (!row.expiresAt) return t('Permanent')
-                const expired = row.expiresAt * 1000 <= Date.now()
-                return (
-                  <div className='flex flex-wrap items-center gap-2'>
-                    <span>
-                      {new Date(row.expiresAt * 1000).toLocaleString()}
-                    </span>
-                    {expired && (
-                      <StatusBadge variant='danger' copyable={false}>
-                        {t('Expired')}
-                      </StatusBadge>
-                    )}
-                  </div>
-                )
-              },
-            },
-            {
-              id: 'actions',
-              header: t('Actions'),
-              className: 'text-right',
-              cellClassName: 'text-right',
-              cell: (row) => (
-                <StaticRowActions
-                  editLabel={t('Edit')}
-                  deleteLabel={t('Delete')}
-                  menuLabel={t('Open menu')}
-                  onEdit={() => {
-                    setEditing(row)
-                    setDialogOpen(true)
-                  }}
-                  onDelete={() =>
-                    emit(
-                      rules.filter(
-                        (item) =>
-                          item.group !== row.group || item.model !== row.model
-                      )
-                    )
+        <div className='space-y-3'>
+          {(rules.length > 0 || modelSearch) && (
+            <div className='relative w-full sm:max-w-xs'>
+              <Search
+                aria-hidden='true'
+                className='text-muted-foreground pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2'
+              />
+              <Input
+                type='search'
+                aria-label={t('Search models')}
+                placeholder={t('Search models...')}
+                className='ps-8'
+                value={modelSearch}
+                onChange={(event) => {
+                  const next = event.target.value
+                  setModelSearch(next)
+                  if (next.trim().toLowerCase() !== query) {
+                    setGroupViews(new Map())
                   }
-                />
-              ),
-            },
-          ]}
-        />
+                }}
+              />
+            </div>
+          )}
+          {visibleGroups.size === 0 && (
+            <Empty role='status' className='border'>
+              <EmptyDescription>
+                {query
+                  ? t('No matching rules')
+                  : t('No model pricing rules configured.')}
+              </EmptyDescription>
+            </Empty>
+          )}
+          {[...visibleGroups].map(([group, groupRules]) => {
+            const view = groupViews.get(group)
+            const pageCount = Math.ceil(groupRules.length / modelRulesPerPage)
+            const page = Math.min(view?.page ?? 0, pageCount - 1)
+            const start = page * modelRulesPerPage
+            return (
+              <Collapsible
+                key={group}
+                className='rounded-lg border'
+                open={view?.open ?? Boolean(query)}
+                onOpenChange={(open) => updateGroupView(group, { open })}
+              >
+                <CollapsibleTrigger
+                  render={
+                    <Button
+                      variant='ghost'
+                      className='group min-h-11 w-full justify-start gap-2 px-3'
+                    />
+                  }
+                >
+                  <ChevronDown
+                    aria-hidden='true'
+                    className='text-muted-foreground -rotate-90 transition-transform group-aria-expanded:rotate-0'
+                  />
+                  <span
+                    className='min-w-0 flex-1 truncate text-start'
+                    title={group}
+                  >
+                    {group}
+                  </span>
+                  <Badge variant='secondary'>
+                    {t('Model rules ({{count}})', { count: groupRules.length })}
+                  </Badge>
+                </CollapsibleTrigger>
+                <CollapsibleContent className='min-w-0 border-t'>
+                  <StaticDataTable
+                    className='rounded-none border-0'
+                    data={groupRules.slice(start, start + modelRulesPerPage)}
+                    getRowKey={(row) => row.model}
+                    columns={columns}
+                  />
+                  {pageCount > 1 && (
+                    <div className='flex items-center justify-end gap-2 border-t px-3 py-2'>
+                      <span
+                        className='text-muted-foreground text-xs'
+                        aria-live='polite'
+                      >
+                        {t('Page {{current}} of {{total}}', {
+                          current: page + 1,
+                          total: pageCount,
+                        })}
+                      </span>
+                      <Button
+                        variant='outline'
+                        size='icon-sm'
+                        aria-label={t('Previous page')}
+                        disabled={page === 0}
+                        onClick={() =>
+                          updateGroupView(group, { page: page - 1 })
+                        }
+                      >
+                        <ChevronLeft aria-hidden='true' />
+                      </Button>
+                      <Button
+                        variant='outline'
+                        size='icon-sm'
+                        aria-label={t('Next page')}
+                        disabled={page + 1 === pageCount}
+                        onClick={() =>
+                          updateGroupView(group, { page: page + 1 })
+                        }
+                      >
+                        <ChevronRight aria-hidden='true' />
+                      </Button>
+                    </div>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+            )
+          })}
+        </div>
       </CardContent>
       <GroupModelRuleDialog
         open={dialogOpen}
@@ -873,16 +1025,37 @@ function GroupModelPricingRules({
         groups={registry.map((entry) => entry.name)}
         editData={editing}
         onSave={(rule) => {
-          emit([
-            ...rules.filter(
+          if (editing?.group === rule.group && editing.model === rule.model) {
+            emit(
+              rules.map((item) =>
+                item.group === rule.group && item.model === rule.model
+                  ? rule
+                  : item
+              )
+            )
+          } else {
+            const next = rules.filter(
               (item) =>
                 (item.group !== rule.group || item.model !== rule.model) &&
-                (!editing ||
-                  item.group !== editing.group ||
-                  item.model !== editing.model)
-            ),
-            rule,
-          ])
+                (item.group !== editing?.group || item.model !== editing?.model)
+            )
+            const keepSearch = matchesModelRule(rule, query)
+            const page = Math.floor(
+              next.filter(
+                (item) =>
+                  item.group === rule.group &&
+                  matchesModelRule(item, keepSearch ? query : '') &&
+                  item.model.localeCompare(rule.model) < 0
+              ).length / modelRulesPerPage
+            )
+            if (!keepSearch) {
+              setModelSearch('')
+              setGroupViews(new Map([[rule.group, { open: true, page }]]))
+            } else {
+              updateGroupView(rule.group, { open: true, page })
+            }
+            emit([...next, rule])
+          }
           setDialogOpen(false)
         }}
       />

@@ -159,6 +159,9 @@ func initConstantEnv() {
 	constant.AzureDefaultAPIVersion = GetEnvOrDefaultString("AZURE_DEFAULT_API_VERSION", "2025-04-01-preview")
 	constant.NotifyLimitCount = GetEnvOrDefault("NOTIFY_LIMIT_COUNT", 2)
 	constant.NotificationLimitDurationMinute = GetPositiveEnvOrDefault("NOTIFICATION_LIMIT_DURATION_MINUTE", 10)
+	// Explicit deployment limits still apply to quota alerts.
+	constant.QuotaNotifyLimitCount = GetEnvOrDefault("NOTIFY_LIMIT_COUNT", 1)
+	constant.QuotaNotifyLimitDurationMinute = GetPositiveEnvOrDefault("NOTIFICATION_LIMIT_DURATION_MINUTE", 24*60)
 	// GenerateDefaultToken 是否生成初始令牌，默认关闭。
 	constant.GenerateDefaultToken = GetEnvOrDefaultBool("GENERATE_DEFAULT_TOKEN", false)
 	// 是否启用错误日志

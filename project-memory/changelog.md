@@ -1,5 +1,12 @@
 # 记忆变更记录
 
+## 2026-11-28
+
+- 记录分组定价模型规则的折叠、跨组搜索、独立分页及完整保存行为，见[维护决策](decisions/maintenance.md)。
+- 记录管理员资金入账弹窗的实付金额来源、历史币种限制及分页和权限验证结果，见[维护决策](decisions/maintenance.md)。
+- 记录单渠道已使用量清零的权限、审计、批量版本边界及本地验证结果，见[维护决策](decisions/maintenance.md)。
+- 记录个人余额预警阈值的显示换算、保存语义和默认每 24 小时一次的限频，见[维护决策](decisions/maintenance.md)。
+
 ## 2026-11-26
 
 - 记录 OpenAI Chat Completions 转 Anthropic Messages 的流式收尾要求及本地定向测试结果，GLM-5.3 实际上游路径仍待确认，见[维护决策](decisions/maintenance.md)。

@@ -1,5 +1,43 @@
 # Upstream Sync Log
 
+## 2026-11-28 - Group model pricing rules by billing group
+
+- Long rule lists made models difficult to locate on the default Group Pricing page. The visual editor now shows collapsed billing groups with their rule counts. Model-name search ignores case and surrounding whitespace, displays and opens matching groups, and counts only matching rows. Each group has 15 rows per page, sorted by model name, with independent paging.
+- All existing columns, customer overrides, expiration indicators, and rule actions remain available. New or moved rules open their group and page. The existing group save continues to use the complete configuration across the three model rule maps.
+- The production frontend build, targeted lint and formatting, seven locale checks, and mocked Chrome tests passed. Browser coverage included independently paged groups, deleting the only row on the final page, cross-group search, adding and editing rules, saving with active filters, and a 390px viewport. The repository-wide frontend type check still reports existing errors. Live settings were outside local validation.
+- Source changes are in the commit that adds this entry, pending the combined push to `origin/main`.
+
+## 2026-11-28 - Send quota alerts at most once per 24 hours by default
+
+- The user approved editing the threshold in the site’s balance unit and requested one quota alert per day by default.
+- Wallet and subscription quota alerts share a per-user window that starts on the first send attempt. The default allows one attempt every 24 hours. Existing environment overrides still apply, and other notification types keep their defaults. The in-memory path serializes checks and associates each entry with its own expiry.
+- Redis and in-memory regressions passed ten runs with concurrent attempts, an attempt just before expiry, and a new attempt at expiry. Startup verification confirmed the quota default, the general default, and explicit environment overrides. Production overrides were outside local validation.
+- Local changes are uncommitted and unpushed.
+
+## 2026-11-28 - Show the low balance alert threshold in balance units
+
+- Users needed to enter a balance amount in Profile → Settings & Preferences. The existing input exposed the stored quota units.
+- The default profile screen displays the amount and current balance unit and converts edits back to quota at save time. Existing saved values retain their precision when users save other preferences. The personal settings endpoint and low-balance notification behavior retain their existing contract.
+- Reviewed settlement and notification rate limiting. A qualifying settlement can attempt one notification when the balance is below the threshold. The quota alert defaults were updated in the entry above. Deployed environment values were outside local verification.
+- The frontend production build, targeted formatting and lint, seven locale checks, and existing Redis and in-memory rate-limit tests passed. Mocked browser tests covered CNY, USD, custom currency, tokens, precision, decimal edits, and invalid input. The repository-wide frontend type check still reports existing errors.
+- Local changes are uncommitted and unpushed.
+
+## 2026-11-28 - Reset recorded usage for one channel
+
+- An administrator requested a way to clear the accumulated usage displayed for a channel.
+- The default channel table and cards show a confirmation action beside the usage amount. The action uses `channel.operate`, resets the selected counter, refreshes the lists, and records the channel ID in the audit log. Tag totals follow the refreshed channel data.
+- Channel resets advance an internal database version. Accounting reads that version when it queues a channel delta, and batch writes apply only to the current version. This adds one read per queued channel delta and preserves batched writes. Ordinary channel edits protect the counter and version. Upstream balance queries, user settlement, historical logs, and the channel copy options retain their behavior.
+- The isolated SQLite test used two database connections and exercised an already-drained batch, a queued delta, another channel, repeated and missing-channel resets, a stale channel edit, and new signed deltas. Router permission and registration tests, the default frontend production build, targeted formatting and lint, and seven locale checks passed. Playwright with mocked APIs covered confirmation, cancellation, error recovery, the table, narrow cards, tag summary rows, and a read-only administrator. Repository-wide frontend type checks and controller/model test package builds still hit existing errors. MySQL, PostgreSQL, and deployed multi-node traffic were outside local validation. During an upgrade, the node that runs migrations and all usage writers need the new version for reset ordering to apply across nodes.
+- Local changes are uncommitted and unpushed.
+
+## 2026-11-28 - Show the recorded amount paid in the administrator funding ledger
+
+- An administrator needed to reconcile a 1,000 wallet credit with a 950 discounted recharge.
+- The default user management dialog shows credited amount and amount paid side by side. Its administrator endpoint matches the current page's paid top-up entries to successful personal orders by user and order reference. Epay amounts use the same two-decimal rounding as checkout. The order history lacks a currency snapshot, so the dialog shows the recorded number. Gifts, adjustments, and entries without a reliable payment amount show a dash.
+- Cumulative funding totals continue to use credited quota. The self endpoint continues to return aggregates and the administrator endpoint applies its existing role checks. The change uses the existing orders and funding records.
+- The Go model and controller built, and isolated SQLite controller tests covered the discount, rounding, zero, pagination, filtering, missing or out-of-scope orders, and self-access privacy. The default frontend production build, targeted lint and formatting checks, and locale checks passed. Playwright verified the administrator dialog with simulated orders at 1,280px and 390px, including both amounts, the dash, explicit zero, pagination, and narrow-screen scrolling. The full Go test package builds and repository-wide frontend typecheck hit existing unrelated errors. Production data was outside local validation.
+- Local changes are uncommitted and unpushed.
+
 ## 2026-11-26 - Request streaming usage for Volcengine Messages conversion
 
 - GLM-5.3 returned text and zero final output and cache-read tokens on the Volcengine channel. The user's retest after switching the channel to OpenAI type returned populated final usage.

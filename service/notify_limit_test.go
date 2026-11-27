@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -39,11 +40,17 @@ func TestCheckNotificationLimitWindowSpansClockHours(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			userId := 900001 + i
-			key := fmt.Sprintf("%d:%s", userId, dto.NotifyTypeQuotaExceed)
-			notifyLimitStore.Store(key, limitCount{Count: 2, Timestamp: time.Now().Add(-tt.windowStart)})
-			t.Cleanup(func() { notifyLimitStore.Delete(key) })
+			key := fmt.Sprintf("%d:%s", userId, dto.NotifyTypeChannelUpdate)
+			notifyLimitMu.Lock()
+			notifyLimitStore[key] = limitCount{Count: 2, ExpiresAt: time.Now().Add(720*time.Minute - tt.windowStart)}
+			notifyLimitMu.Unlock()
+			t.Cleanup(func() {
+				notifyLimitMu.Lock()
+				delete(notifyLimitStore, key)
+				notifyLimitMu.Unlock()
+			})
 
-			canSend, err := CheckNotificationLimit(userId, dto.NotifyTypeQuotaExceed)
+			canSend, err := CheckNotificationLimit(userId, dto.NotifyTypeChannelUpdate)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, canSend)
 		})
@@ -70,7 +77,7 @@ func TestCheckNotificationLimitRedisWindowSpansClockHours(t *testing.T) {
 
 	// 窗口在 2 小时前开始并已发满，剩余 10 小时
 	userId := 900010
-	key := fmt.Sprintf("notify_limit:%d:%s", userId, dto.NotifyTypeQuotaExceed)
+	key := fmt.Sprintf("notify_limit:%d:%s", userId, dto.NotifyTypeChannelUpdate)
 	require.NoError(t, server.Set(key, "2"))
 	server.SetTTL(key, 10*time.Hour)
 
@@ -87,8 +94,81 @@ func TestCheckNotificationLimitRedisWindowSpansClockHours(t *testing.T) {
 	}
 	for _, step := range steps {
 		server.FastForward(step.elapse)
-		canSend, err := CheckNotificationLimit(userId, dto.NotifyTypeQuotaExceed)
+		canSend, err := CheckNotificationLimit(userId, dto.NotifyTypeChannelUpdate)
 		require.NoError(t, err, step.name)
 		assert.Equal(t, step.expected, canSend, step.name)
 	}
+}
+
+func TestCheckQuotaNotificationLimitAllowsOneAttemptPerDay(t *testing.T) {
+	oldRedisEnabled, oldRedis := common.RedisEnabled, common.RDB
+	oldCount, oldMinutes := constant.QuotaNotifyLimitCount, constant.QuotaNotifyLimitDurationMinute
+	t.Cleanup(func() {
+		common.RedisEnabled, common.RDB = oldRedisEnabled, oldRedis
+		constant.QuotaNotifyLimitCount, constant.QuotaNotifyLimitDurationMinute = oldCount, oldMinutes
+	})
+	constant.QuotaNotifyLimitCount, constant.QuotaNotifyLimitDurationMinute = 1, 24*60
+	const userID = 900020
+	key := fmt.Sprintf("%d:%s", userID, dto.NotifyTypeQuotaExceed)
+
+	verify := func(t *testing.T, forward func(time.Duration)) {
+		t.Helper()
+		const attempts = 16
+		start := make(chan struct{})
+		allowed := make(chan bool, attempts)
+		var callers sync.WaitGroup
+		for range attempts {
+			callers.Add(1)
+			go func() {
+				defer callers.Done()
+				<-start
+				canSend, err := CheckNotificationLimit(userID, dto.NotifyTypeQuotaExceed)
+				assert.NoError(t, err)
+				allowed <- canSend
+			}()
+		}
+		close(start)
+		callers.Wait()
+		close(allowed)
+		sent := 0
+		for canSend := range allowed {
+			if canSend {
+				sent++
+			}
+		}
+		require.Equal(t, 1, sent)
+
+		forward(24*time.Hour - time.Minute)
+		canSend, err := CheckNotificationLimit(userID, dto.NotifyTypeQuotaExceed)
+		require.NoError(t, err)
+		require.False(t, canSend)
+
+		forward(time.Minute)
+		canSend, err = CheckNotificationLimit(userID, dto.NotifyTypeQuotaExceed)
+		require.NoError(t, err)
+		require.True(t, canSend)
+	}
+
+	t.Run("in memory", func(t *testing.T) {
+		common.RedisEnabled = false
+		t.Cleanup(func() {
+			notifyLimitMu.Lock()
+			delete(notifyLimitStore, key)
+			notifyLimitMu.Unlock()
+		})
+		verify(t, func(duration time.Duration) {
+			notifyLimitMu.Lock()
+			defer notifyLimitMu.Unlock()
+			window := notifyLimitStore[key]
+			window.ExpiresAt = window.ExpiresAt.Add(-duration)
+			notifyLimitStore[key] = window
+		})
+	})
+	t.Run("Redis", func(t *testing.T) {
+		server := miniredis.RunT(t)
+		client := redis.NewClient(&redis.Options{Addr: server.Addr(), MaxRetries: -1})
+		t.Cleanup(func() { require.NoError(t, client.Close()) })
+		common.RedisEnabled, common.RDB = true, client
+		verify(t, server.FastForward)
+	})
 }

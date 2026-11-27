@@ -2,7 +2,9 @@ package model
 
 import (
 	"errors"
+	"math"
 	"math/big"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -30,6 +32,11 @@ type WalletFundingEntry struct {
 	OperatorId int    `json:"operator_id" gorm:"not null;default:0"`
 	Note       string `json:"note" gorm:"type:text"`
 	CreatedAt  int64  `json:"created_at" gorm:"not null;index:idx_wallet_funding_user_time,priority:2"`
+}
+
+type WalletFundingDetail struct {
+	WalletFundingEntry
+	PaidAmount string `json:"paid_amount,omitempty"`
 }
 
 type WalletFundingSummary struct {
@@ -257,4 +264,45 @@ func GetWalletFunding(userID, offset, limit int, kind string) ([]WalletFundingEn
 	rows := make([]WalletFundingEntry, 0)
 	err = query.Order("created_at desc, id desc").Offset(offset).Limit(limit).Find(&rows).Error
 	return rows, total, summary, err
+}
+
+func GetWalletFundingWithPayments(userID, offset, limit int, kind string) ([]WalletFundingDetail, int64, WalletFundingSummary, error) {
+	rows, total, summary, err := GetWalletFunding(userID, offset, limit, kind)
+	if err != nil {
+		return nil, total, summary, err
+	}
+	items := make([]WalletFundingDetail, len(rows))
+	byReference := make(map[string][]int)
+	for i, row := range rows {
+		items[i].WalletFundingEntry = row
+		if row.Kind == FundingPaid && row.Source == "topup" && row.Reference != "" {
+			byReference[row.Reference] = append(byReference[row.Reference], i)
+		}
+	}
+	if len(byReference) == 0 {
+		return items, total, summary, nil
+	}
+	references := make([]string, 0, len(byReference))
+	for reference := range byReference {
+		references = append(references, reference)
+	}
+	var orders []TopUp
+	err = DB.Model(&TopUp{}).Select("trade_no", "money", "payment_method", "payment_provider").
+		Where("user_id = ? AND COALESCE(organization_id, 0) = 0 AND status = ?", userID, common.TopUpStatusSuccess).
+		Where("trade_no IN ? AND money >= 0", references).Find(&orders).Error
+	if err != nil {
+		return nil, total, summary, err
+	}
+	for _, order := range orders {
+		// Epay derives its checkout charge from Money. Other gateways' values
+		// may represent a credit basis or a quote before checkout taxes.
+		if order.EffectivePaymentProvider() != PaymentProviderEpay || math.IsNaN(order.Money) || math.IsInf(order.Money, 0) {
+			continue
+		}
+		amount := strconv.FormatFloat(order.Money, 'f', 2, 64)
+		for _, i := range byReference[order.TradeNo] {
+			items[i].PaidAmount = amount
+		}
+	}
+	return items, total, summary, nil
 }

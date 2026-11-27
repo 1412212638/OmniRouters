@@ -268,6 +268,15 @@ export async function updateChannelBalance(
   return res.data
 }
 
+export async function resetChannelUsedQuota(id: number) {
+  const res = await api.post<{ success: boolean; message?: string }>(
+    `/api/channel/${id}/used_quota/reset`,
+    undefined,
+    channelActionConfig()
+  )
+  return res.data
+}
+
 /**
  * Fetch available models from upstream provider
  */

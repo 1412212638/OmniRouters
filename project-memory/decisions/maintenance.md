@@ -18,6 +18,22 @@
 
 数据库变更需要兼容 SQLite、MySQL 和 PostgreSQL。计费工作须遵循输入边界、额度饱和处理和审计等现有约束。表达式计费任务先阅读专门设计文档。来源：[AGENTS.md](../../AGENTS.md)、[表达式设计](../../pkg/billingexpr/expr.md)、[额度计算](../../common/quota_math.go)。
 
+## 分组定价的模型规则
+
+新版分组定价将模型规则按计费组折叠显示。按模型名称搜索时自动展开命中的组，各组独立分页，每页 15 条。编辑与页面保存使用完整规则集合，覆盖通用倍率、客户专属倍率和有效期。2026-11-28 已在本地用模拟配置验证分页、搜索和筛选状态下的完整保存，线上界面待部署验证。来源：[计费设置入口](../../web/default/src/features/system-settings/billing/section-registry.tsx)、[模型规则编辑器](../../web/default/src/features/system-settings/models/group-ratio-visual-editor.tsx)、[保存逻辑](../../web/default/src/features/system-settings/models/ratio-settings-card.tsx)。
+
+## 管理员资金入账记录
+
+管理员详情在同一行显示入账额度和实付金额。实付金额按当前页的在线充值流水匹配同一用户的成功个人充值订单，易支付采用下单时的两位小数金额。历史订单缺少币种快照，显示订单记录的数值。赠送、调账以及缺少可靠实付数据的渠道订单显示 `—`。累计付费入账仍按入账额度计算。2026-11-28 已在本地 SQLite 核对折扣订单、分页及访问边界，并用模拟订单验证桌面和窄屏弹窗。线上待部署验证。来源：[充值下单](../../controller/topup.go)、[资金入账查询](../../model/wallet_funding.go)、[管理端弹窗](../../web/default/src/features/wallet/components/funding-ledger-dialog.tsx)。
+
+## 渠道已使用量清零
+
+新版渠道列表和卡片的「已使用」支持单渠道清零，使用 `channel.operate` 权限并记录管理审计。清零在数据库中同时归零计数并递增渠道用量版本。启用批量写入时，每个增量在入队时读取共享数据库版本，批次落库时只写入版本仍匹配的渠道。任一新版节点上的待写或已经取出的旧版本批次都会失效。直接写入按数据库更新顺序生效。渠道余额、用户结算及历史日志独立于该计数。2026-11-28 已在本地用两个 SQLite 连接和模拟浏览器页面验证；线上多节点和 MySQL、PostgreSQL 待核验。部署时需完成迁移并更新所有写入节点。来源：[渠道计数与版本](../../model/channel_used_quota.go)、[渠道权限路由](../../router/channel-router.go)、[新版渠道列表](../../web/default/src/features/channels/components/channels-columns.tsx)。
+
+## 个人余额预警
+
+新版个人资料按站点当前余额单位显示和编辑预警阈值，保存时转换回 `quota_warning_threshold` 内部配额。用户只修改其他偏好时保留已有阈值精度。结算后低于预警阈值的请求可以再次触发提醒。个人钱包和订阅预警使用同一通知事件限频，余额与订阅额度预警默认按用户在首次发送尝试起 24 小时内允许 1 次。其他通知类型默认 10 分钟内允许 2 次。`NOTIFY_LIMIT_COUNT` 和 `NOTIFICATION_LIMIT_DURATION_MINUTE` 仍可覆盖默认值。Redis 跨节点共享限频，内存模式按进程计数。2026-11-28 已核对模拟前端、并发限频、窗口到期和启动默认配置，线上配置待核验。来源：[个人预警设置](../../web/default/src/features/profile/components/tabs/notification-tab.tsx)、[结算预警](../../service/quota.go)、[限频实现](../../service/notify-limit.go)、[默认配置](../../common/init.go)。
+
 ## 变更记录
 
 源码级变更推送前需记录原因、范围、保留行为、验证、限制及提交和推送状态。来源：[AGENTS.md](../../AGENTS.md)、[上游同步日志](../../docs/upstream-sync-log.md)。

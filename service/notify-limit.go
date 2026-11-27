@@ -8,23 +8,20 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
+	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/bytedance/gopkg/util/gopool"
 )
 
 // notifyLimitStore is used for in-memory rate limiting when Redis is disabled
 var (
-	notifyLimitStore sync.Map
+	notifyLimitMu    sync.Mutex
+	notifyLimitStore = make(map[string]limitCount)
 	cleanupOnce      sync.Once
 )
 
 type limitCount struct {
 	Count     int
-	Timestamp time.Time
-}
-
-func getDuration() time.Duration {
-	minute := constant.NotificationLimitDurationMinute
-	return time.Duration(minute) * time.Minute
+	ExpiresAt time.Time
 }
 
 // startCleanupTask starts a background task to clean up expired entries
@@ -32,15 +29,14 @@ func startCleanupTask() {
 	gopool.Go(func() {
 		for {
 			time.Sleep(time.Hour)
+			notifyLimitMu.Lock()
 			now := time.Now()
-			notifyLimitStore.Range(func(key, value interface{}) bool {
-				if limit, ok := value.(limitCount); ok {
-					if now.Sub(limit.Timestamp) >= getDuration() {
-						notifyLimitStore.Delete(key)
-					}
+			for key, limit := range notifyLimitStore {
+				if !now.Before(limit.ExpiresAt) {
+					delete(notifyLimitStore, key)
 				}
-				return true
-			})
+			}
+			notifyLimitMu.Unlock()
 		}
 	})
 }
@@ -48,55 +44,49 @@ func startCleanupTask() {
 // CheckNotificationLimit checks if the user has exceeded their notification limit
 // Returns true if the user can send notification, false if limit exceeded
 func CheckNotificationLimit(userId int, notifyType string) (bool, error) {
-	if common.RedisEnabled {
-		return checkRedisLimit(userId, notifyType)
+	count := constant.NotifyLimitCount
+	minutes := constant.NotificationLimitDurationMinute
+	if notifyType == dto.NotifyTypeQuotaExceed {
+		count = constant.QuotaNotifyLimitCount
+		minutes = constant.QuotaNotifyLimitDurationMinute
 	}
-	return checkMemoryLimit(userId, notifyType)
+	duration := time.Duration(minutes) * time.Minute
+	if common.RedisEnabled {
+		return checkRedisLimit(userId, notifyType, count, duration)
+	}
+	return checkMemoryLimit(userId, notifyType, count, duration), nil
 }
 
-func checkRedisLimit(userId int, notifyType string) (bool, error) {
+func checkRedisLimit(userId int, notifyType string, limit int, duration time.Duration) (bool, error) {
 	ctx := context.Background()
 	key := fmt.Sprintf("notify_limit:%d:%s", userId, notifyType)
 
 	// SETNX 只在窗口开始时写入过期时间，INCR 会保留原 TTL；放在同一事务里避免产生永不过期的计数
 	pipe := common.RDB.TxPipeline()
-	pipe.SetNX(ctx, key, 0, getDuration())
+	pipe.SetNX(ctx, key, 0, duration)
 	incr := pipe.Incr(ctx, key)
 	if _, err := pipe.Exec(ctx); err != nil {
 		return false, fmt.Errorf("failed to increment notification count: %w", err)
 	}
 
 	count := incr.Val()
-	return count <= int64(constant.NotifyLimitCount), nil
+	return count <= int64(limit), nil
 }
 
-func checkMemoryLimit(userId int, notifyType string) (bool, error) {
+func checkMemoryLimit(userId int, notifyType string, limit int, duration time.Duration) bool {
 	// Ensure cleanup task is started
 	cleanupOnce.Do(startCleanupTask)
 
 	key := fmt.Sprintf("%d:%s", userId, notifyType)
+	notifyLimitMu.Lock()
+	defer notifyLimitMu.Unlock()
 	now := time.Now()
 
-	// Get current limit count or initialize new one
-	var currentLimit limitCount
-	if value, ok := notifyLimitStore.Load(key); ok {
-		currentLimit = value.(limitCount)
-		// Check if the entry has expired
-		if now.Sub(currentLimit.Timestamp) >= getDuration() {
-			currentLimit = limitCount{Count: 0, Timestamp: now}
-		}
-	} else {
-		currentLimit = limitCount{Count: 0, Timestamp: now}
+	currentLimit := notifyLimitStore[key]
+	if !now.Before(currentLimit.ExpiresAt) {
+		currentLimit = limitCount{ExpiresAt: now.Add(duration)}
 	}
-
-	// Increment count
 	currentLimit.Count++
-
-	// Check against limits
-	limit := constant.NotifyLimitCount
-
-	// Store updated count
-	notifyLimitStore.Store(key, currentLimit)
-
-	return currentLimit.Count <= limit, nil
+	notifyLimitStore[key] = currentLimit
+	return currentLimit.Count <= limit
 }

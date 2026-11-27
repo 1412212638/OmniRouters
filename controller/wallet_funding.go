@@ -45,7 +45,7 @@ func GetUserWalletFunding(c *gin.Context) {
 	if page.PageSize < 1 {
 		page.PageSize = 20
 	}
-	rows, total, summary, err := model.GetWalletFunding(id, page.GetStartIdx(), page.GetPageSize(), c.Query("kind"))
+	rows, total, summary, err := model.GetWalletFundingWithPayments(id, page.GetStartIdx(), page.GetPageSize(), c.Query("kind"))
 	if err != nil {
 		common.ApiError(c, err)
 		return

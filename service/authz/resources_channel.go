@@ -32,7 +32,7 @@ func init() {
 			{
 				Action:         ActionOperate,
 				LabelKey:       "Operate channels",
-				DescriptionKey: "Test channels, refresh balances, and enable/disable individual, batch, or tagged channels.",
+				DescriptionKey: "Test channels, refresh balances, reset recorded usage, and enable or disable channels individually, in batches, or by tag.",
 				DefaultRoles:   []string{BuiltInRoleAdmin},
 			},
 			{

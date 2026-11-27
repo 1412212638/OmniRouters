@@ -1,11 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import {
   AlertTriangle,
   ChevronDown,
   ChevronRight,
   ListOrdered,
+  RotateCcw,
   Shuffle,
   SlidersHorizontal,
 } from 'lucide-react'
@@ -31,14 +32,24 @@ import {
 import type { Vendor } from '@/features/models/types'
 import { toIntlLocale } from '@/i18n/languages'
 import {
+  ADMIN_PERMISSION_ACTIONS,
+  ADMIN_PERMISSION_RESOURCES,
+  hasPermission,
+} from '@/lib/admin-permissions'
+import {
   formatCurrencyFromUSD,
   formatQuotaWithCurrency,
   getCurrencyLabel,
 } from '@/lib/currency'
 import { formatTimestampToDate } from '@/lib/format'
 import { truncateText } from '@/lib/utils'
+import { useAuthStore } from '@/stores/auth-store'
 
-import { getCodexUsage, updateChannelBalance } from '../api'
+import {
+  getCodexUsage,
+  resetChannelUsedQuota,
+  updateChannelBalance,
+} from '../api'
 import { CHANNEL_STATUS_CONFIG, MODEL_FETCHABLE_TYPES } from '../constants'
 import {
   formatRelativeTime,
@@ -319,6 +330,31 @@ export function BalanceCell({ channel }: { channel: Channel }) {
   const layout = useContext(ChannelRowActionsLayoutContext)
   const { sensitiveVisible, setCurrentRow } = useChannels()
   const isTagRow = isTagAggregateRow(channel)
+  const currentUser = useAuthStore((s) => s.auth.user)
+  const canResetUsage = hasPermission(
+    currentUser,
+    ADMIN_PERMISSION_RESOURCES.CHANNEL,
+    ADMIN_PERMISSION_ACTIONS.OPERATE
+  )
+  const [resetUsageOpen, setResetUsageOpen] = useState(false)
+  const resetUsage = useMutation({
+    mutationFn: async () => {
+      const response = await resetChannelUsedQuota(channel.id)
+      if (!response.success) {
+        throw new Error(response.message || t('Failed to reset recorded usage'))
+      }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: channelsQueryKeys.lists(),
+      })
+      setResetUsageOpen(false)
+      toast.success(t('Recorded usage reset'))
+    },
+    onError: (error) => {
+      toast.error(error.message || t('Failed to reset recorded usage'))
+    },
+  })
   const balance = channel.balance || 0
   const usedQuota = channel.used_quota || 0
   const [isUpdating, setIsUpdating] = useState(false)
@@ -501,6 +537,27 @@ export function BalanceCell({ channel }: { channel: Channel }) {
             <p>{sensitiveVisible ? usedLabel : maskedUsedLabel}</p>
           </TooltipContent>
         </Tooltip>
+        {canResetUsage && (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant='ghost'
+                  size='icon-xs'
+                  aria-label={t('Reset recorded usage')}
+                  disabled={resetUsage.isPending}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setResetUsageOpen(true)
+                  }}
+                >
+                  <RotateCcw />
+                </Button>
+              }
+            />
+            <TooltipContent>{t('Reset recorded usage')}</TooltipContent>
+          </Tooltip>
+        )}
         <Tooltip>
           <TooltipTrigger
             render={
@@ -522,6 +579,22 @@ export function BalanceCell({ channel }: { channel: Channel }) {
         </Tooltip>
       </div>
 
+      {canResetUsage && resetUsageOpen && (
+        <ConfirmDialog
+          open={resetUsageOpen}
+          onOpenChange={(open) => {
+            if (!resetUsage.isPending) setResetUsageOpen(open)
+          }}
+          title={t('Reset recorded usage')}
+          desc={t('Reset the recorded usage for {{channel}} to zero?', {
+            channel: sensitiveVisible ? channel.name : SENSITIVE_MASK,
+          })}
+          confirmText={t('Reset')}
+          destructive
+          isLoading={resetUsage.isPending}
+          handleConfirm={() => resetUsage.mutate()}
+        />
+      )}
       <CodexUsageDialog
         open={codexUsageOpen}
         onOpenChange={setCodexUsageOpen}

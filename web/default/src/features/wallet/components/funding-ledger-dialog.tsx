@@ -22,14 +22,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { formatQuota } from '@/lib/format'
+import { toIntlLocale } from '@/i18n/languages'
+import { formatNumber, formatQuota } from '@/lib/format'
 import { useAuthStore } from '@/stores/auth-store'
 
 import { fundingKinds, getFundingLedger } from '../funding'
 import { WalletFundingSummary } from './funding-summary'
 
 export function FundingLedgerDialog({ userId }: { userId: number }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const viewerId = useAuthStore((state) => state.auth.user?.id)
   const [open, setOpen] = useState(false)
   const [page, setPage] = useState(1)
@@ -59,7 +60,7 @@ export function FundingLedgerDialog({ userId }: { userId: number }) {
       open={open}
       onOpenChange={setOpen}
       title={t('Funding records')}
-      contentClassName='sm:max-w-5xl'
+      contentClassName='sm:max-w-6xl'
       trigger={
         <Button type='button' variant='outline'>
           {t('View funding records')}
@@ -112,17 +113,16 @@ export function FundingLedgerDialog({ userId }: { userId: number }) {
           <Table>
             <TableHeader>
               <TableRow>
-                {[
-                  t('Time'),
-                  t('Funding classification'),
-                  t('Source'),
-                  t('Amount'),
-                  t('Operator ID'),
-                  t('Reference'),
-                  t('Note'),
-                ].map((label) => (
-                  <TableHead key={label}>{label}</TableHead>
-                ))}
+                <TableHead>{t('Time')}</TableHead>
+                <TableHead>{t('Funding classification')}</TableHead>
+                <TableHead>{t('Source')}</TableHead>
+                <TableHead className='text-right'>
+                  {t('Credited amount')}
+                </TableHead>
+                <TableHead className='text-right'>{t('Amount paid')}</TableHead>
+                <TableHead>{t('Operator ID')}</TableHead>
+                <TableHead>{t('Reference')}</TableHead>
+                <TableHead>{t('Note')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -133,9 +133,17 @@ export function FundingLedgerDialog({ userId }: { userId: number }) {
                   </TableCell>
                   <TableCell>{labels[entry.kind]}</TableCell>
                   <TableCell>{labels[entry.source] ?? entry.source}</TableCell>
-                  <TableCell className='whitespace-nowrap tabular-nums'>
+                  <TableCell className='text-right'>
                     {Number(entry.amount) > 0 ? '+' : ''}
                     {formatQuota(Number(entry.amount))}
+                  </TableCell>
+                  <TableCell className='text-right'>
+                    {entry.paid_amount == null
+                      ? '—'
+                      : formatNumber(
+                          Number(entry.paid_amount),
+                          toIntlLocale(i18n.resolvedLanguage)
+                        )}
                   </TableCell>
                   <TableCell>{entry.operator_id || t('System')}</TableCell>
                   <TableCell className='max-w-52 break-all whitespace-normal'>
@@ -148,7 +156,7 @@ export function FundingLedgerDialog({ userId }: { userId: number }) {
               ))}
               {query.data.items.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7}>{t('No funding records')}</TableCell>
+                  <TableCell colSpan={8}>{t('No funding records')}</TableCell>
                 </TableRow>
               )}
             </TableBody>

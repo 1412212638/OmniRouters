@@ -18,6 +18,7 @@ export interface FundingSummary {
 export interface FundingEntry {
   id: number
   amount: string
+  paid_amount?: string
   kind: FundingKind
   source: string
   reference: string

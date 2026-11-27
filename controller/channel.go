@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"slices"
@@ -1234,6 +1235,24 @@ func UpdateChannelStatus(c *gin.Context) {
 	})
 }
 
+func ResetChannelUsedQuota(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		common.ApiErrorI18n(c, i18n.MsgInvalidParams)
+		return
+	}
+	if err := model.ResetChannelUsedQuota(id); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			common.ApiErrorI18n(c, i18n.MsgChannelNotExists)
+		} else {
+			common.ApiError(c, err)
+		}
+		return
+	}
+	recordManageAudit(c, "channel.used_quota_reset", map[string]interface{}{"id": id})
+	common.ApiSuccess(c, nil)
+}
+
 func BatchUpdateChannelStatus(c *gin.Context) {
 	req := ChannelStatusBatchRequest{}
 	if err := c.ShouldBindJSON(&req); err != nil || len(req.Ids) == 0 || !isManageableChannelStatus(req.Status) {
@@ -1538,6 +1557,7 @@ func CopyChannel(c *gin.Context) {
 	clone.Name = origin.Name + suffix
 	clone.TestTime = 0
 	clone.ResponseTime = 0
+	clone.UsedQuotaVersion = 0
 	if resetBalance {
 		clone.Balance = 0
 		clone.UsedQuota = 0
