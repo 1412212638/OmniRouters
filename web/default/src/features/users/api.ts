@@ -1,3 +1,4 @@
+import type { ApiKeyFormData } from '@/features/keys/types'
 import type { PermissionCatalog } from '@/lib/admin-permissions'
 /*
 Copyright (C) 2023-2026 QuantumNous
@@ -100,6 +101,82 @@ export async function impersonateUser(id: number) {
     skipOrganizationWorkspace: true,
   })
   return response.data
+}
+
+export async function getUserApiKeys(id: number) {
+  type UserApiKeysResponse = ApiResponse<{
+    items: Array<{
+      id: number
+      name: string
+      key: string
+      status: number
+      used_quota: number
+      remain_quota: number
+      unlimited_quota: boolean
+      expired_time: number
+      key_type: string
+      group: string
+      auto_groups: string[] | null
+      cross_group_retry: boolean
+      auto_route_strategy: string
+      model_limits_enabled: boolean
+      model_limits: string
+      allow_ips: string | null
+      allow_user_quota_query: boolean
+    }>
+    total: number
+  }>
+
+  const pageSize = 100
+  const firstResponse = await api.get(
+    `/api/user/${id}/tokens?p=1&page_size=${pageSize}`
+  )
+  const result = firstResponse.data as UserApiKeysResponse
+  if (!result.success || !result.data) return result
+
+  const items = [...result.data.items]
+  const total = result.data.total
+  const pageCount = Math.ceil(total / pageSize)
+  for (let page = 2; page <= pageCount; page += 1) {
+    const response = await api.get(
+      `/api/user/${id}/tokens?p=${page}&page_size=${pageSize}`
+    )
+    const pageResult = response.data as UserApiKeysResponse
+    if (!pageResult.success || !pageResult.data) return pageResult
+    items.push(...pageResult.data.items)
+  }
+
+  return {
+    ...result,
+    data: { ...result.data, items },
+  }
+}
+
+export async function getUserApiKeyEditorConfig(id: number) {
+  const res = await api.get(`/api/user/${id}/tokens/editor-config`)
+  return res.data as ApiResponse<{
+    groups: Record<string, { desc: string; ratio: number | string }>
+    models: string[]
+    auto_groups: string[]
+    max_auto_groups: number
+  }>
+}
+
+export async function createUserApiKey(id: number, name: string) {
+  const res = await api.post(`/api/user/${id}/tokens`, { name })
+  return res.data as ApiResponse<{ key: string }>
+}
+
+export async function updateUserApiKey(
+  userId: number,
+  tokenId: number,
+  data: Partial<ApiKeyFormData> & { name?: string; status?: number }
+) {
+  const res = await api.put(`/api/user/${userId}/tokens/${tokenId}`, {
+    id: tokenId,
+    ...data,
+  })
+  return res.data as ApiResponse
 }
 
 /**

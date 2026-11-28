@@ -6337,6 +6337,17 @@
     "Only organization owners and managers can export this bill.": "Только владельцы и администраторы организации могут экспортировать этот счёт.",
     "Select a billing period of up to 12 months.": "Выберите расчётный период не более 12 месяцев.",
     "Select Simplified Chinese or English.": "Выберите упрощённый китайский или английский.",
-    "This export is too large. Select a shorter billing period.": "Файл экспорта слишком велик. Выберите более короткий расчётный период."
+    "This export is too large. Select a shorter billing period.": "Файл экспорта слишком велик. Выберите более короткий расчётный период.",
+    "Manage API keys": "Управление ключами API",
+    "Manage API keys for {{username}}": "Управление ключами API пользователя {{username}}",
+    "New API key. Copy it now.": "Новый ключ API. Скопируйте его сейчас.",
+    "API key name": "Название ключа API",
+    "API keys": "Ключи API",
+    "API key name is required": "Укажите название ключа API",
+    "API key created": "Ключ API создан",
+    "API key updated": "Ключ API обновлён",
+    "No API keys found": "Ключи API не найдены",
+    "Could not copy API key": "Не удалось скопировать ключ API",
+    "Unexpected error": "Произошла непредвиденная ошибка"
   }
 }

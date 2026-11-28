@@ -6290,6 +6290,17 @@
     "Only organization owners and managers can export this bill.": "只有組織擁有者和管理員可以匯出此帳單。",
     "Select a billing period of up to 12 months.": "請選擇有效的帳期，最長 12 個月。",
     "Select Simplified Chinese or English.": "請選擇簡體中文或英文。",
-    "This export is too large. Select a shorter billing period.": "帳單檔案過大，請縮短帳期後重試。"
+    "This export is too large. Select a shorter billing period.": "帳單檔案過大，請縮短帳期後重試。",
+    "Manage API keys": "管理 API 金鑰",
+    "Manage API keys for {{username}}": "管理 {{username}} 的 API 金鑰",
+    "New API key. Copy it now.": "API 金鑰已建立，請立即複製保存。",
+    "API key name": "金鑰名稱",
+    "API keys": "API 金鑰",
+    "API key name is required": "請填寫金鑰名稱",
+    "API key created": "API 金鑰已建立",
+    "API key updated": "API 金鑰已更新",
+    "No API keys found": "該使用者目前沒有 API 金鑰",
+    "Could not copy API key": "複製 API 金鑰失敗",
+    "Unexpected error": "發生未預期的錯誤"
   }
 }

@@ -6518,6 +6518,17 @@
     "Only organization owners and managers can export this bill.": "Only organization owners and managers can export this bill.",
     "Select a billing period of up to 12 months.": "Select a billing period of up to 12 months.",
     "Select Simplified Chinese or English.": "Select Simplified Chinese or English.",
-    "This export is too large. Select a shorter billing period.": "This export is too large. Select a shorter billing period."
+    "This export is too large. Select a shorter billing period.": "This export is too large. Select a shorter billing period.",
+    "Manage API keys": "Manage API keys",
+    "Manage API keys for {{username}}": "Manage API keys for {{username}}",
+    "New API key. Copy it now.": "New API key. Copy it now.",
+    "API key name": "API key name",
+    "API keys": "API keys",
+    "API key name is required": "API key name is required",
+    "API key created": "API key created",
+    "API key updated": "API key updated",
+    "No API keys found": "No API keys found",
+    "Could not copy API key": "Could not copy API key",
+    "Unexpected error": "Unexpected error"
   }
 }

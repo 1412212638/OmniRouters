@@ -6337,6 +6337,17 @@
     "Only organization owners and managers can export this bill.": "この請求書をエクスポートできるのは、組織の所有者と管理者だけです。",
     "Select a billing period of up to 12 months.": "12 か月以内の有効な請求期間を選択してください。",
     "Select Simplified Chinese or English.": "簡体字中国語または英語を選択してください。",
-    "This export is too large. Select a shorter billing period.": "ファイルが大きすぎます。請求期間を短くしてください。"
+    "This export is too large. Select a shorter billing period.": "ファイルが大きすぎます。請求期間を短くしてください。",
+    "Manage API keys": "APIキーを管理",
+    "Manage API keys for {{username}}": "{{username}} の API キーを管理",
+    "New API key. Copy it now.": "APIキーを作成しました。今すぐコピーしてください。",
+    "API key name": "APIキー名",
+    "API keys": "APIキー",
+    "API key name is required": "APIキー名を入力してください",
+    "API key created": "APIキーを作成しました",
+    "API key updated": "APIキーを更新しました",
+    "No API keys found": "APIキーがありません",
+    "Could not copy API key": "APIキーをコピーできませんでした",
+    "Unexpected error": "予期しないエラーが発生しました"
   }
 }

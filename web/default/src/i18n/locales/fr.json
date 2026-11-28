@@ -6337,6 +6337,17 @@
     "Only organization owners and managers can export this bill.": "Seuls les propriétaires et les administrateurs de l’organisation peuvent exporter cette facture.",
     "Select a billing period of up to 12 months.": "Choisissez une période de facturation de 12 mois maximum.",
     "Select Simplified Chinese or English.": "Choisissez le chinois simplifié ou l’anglais.",
-    "This export is too large. Select a shorter billing period.": "L’export est trop volumineux. Choisissez une période plus courte."
+    "This export is too large. Select a shorter billing period.": "L’export est trop volumineux. Choisissez une période plus courte.",
+    "Manage API keys": "Gérer les clés API",
+    "Manage API keys for {{username}}": "Gérer les clés API de {{username}}",
+    "New API key. Copy it now.": "Nouvelle clé API. Copiez-la maintenant.",
+    "API key name": "Nom de la clé API",
+    "API keys": "Clés API",
+    "API key name is required": "Le nom de la clé API est obligatoire",
+    "API key created": "Clé API créée",
+    "API key updated": "Clé API mise à jour",
+    "No API keys found": "Aucune clé API trouvée",
+    "Could not copy API key": "Impossible de copier la clé API",
+    "Unexpected error": "Une erreur inattendue est survenue"
   }
 }

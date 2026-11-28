@@ -1,5 +1,12 @@
 # Upstream Sync Log
 
+## 2026-11-28 - Manage and edit user API keys from the administrator user list
+
+- An administrator can open a user's API key list, create a general key, edit the same settings available in the normal key editor, and enable or disable it. Editable settings include group, Auto routing, expiry, quota, model limits, IP allowlist, and permission to query the owner's quota. Lists expose masked keys. The frontend reads the list in pages of 100 so it can show all keys up to the configured per-user limit. The full key is returned once after creation and the response disables caching. Subscription and campaign keys remain visible without general-key edit actions.
+- The endpoints are nested under the administrator-authenticated user routes. Creation and updates use the critical rate limit and write operation audit records without recording key material. Updates bind the token to the selected owner and preserve the existing token cache invalidation path. Group and Auto-route values are checked against the target user's current groups, and finite quotas are bounded by the same limit as ordinary API keys. Non-Auto groups clear Auto-only settings. New keys inherit the user's current group and use the normal unlimited-quota key behavior.
+- Added Gin/SQLite regression coverage for masking, complete settings updates including explicit false values, Auto routing, invalid groups, exhausted-key status handling, and preventing cross-user token edits. The default frontend production build and targeted Oxlint passed. The repository-wide TypeScript check still reports existing errors in unrelated files. The formatting check reports existing formatting issues across the repository, including touched files. Go tests and gofmt could not run because Go is unavailable in this environment. MySQL, PostgreSQL, and deployed UI behavior remain unverified.
+- Local source changes are uncommitted and have not been pushed.
+
 ## 2026-11-28 - Open the user dashboard from administrator user actions
 
 - The default user management menu offers one-click sign-in for enabled ordinary accounts. A successful switch opens the full user dashboard in a new tab and changes the shared sign-in in existing tabs. The initiating administrator session is revoked. Independent sessions on other browsers or devices stay valid.

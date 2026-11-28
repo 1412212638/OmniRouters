@@ -55,8 +55,9 @@ import {
 } from '../constants'
 import { getUserActionMessage } from '../lib'
 import type { User, ManageUserAction } from '../types'
-import { UserBindingDialog } from './dialogs/user-binding-dialog'
 import { IdentityVerificationDialog } from './dialogs/identity-verification-dialog'
+import { UserApiKeysDialog } from './dialogs/user-api-keys-dialog'
+import { UserBindingDialog } from './dialogs/user-binding-dialog'
 import { useUsers } from './users-provider'
 
 interface DataTableRowActionsProps {
@@ -72,6 +73,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const [bindingDialogOpen, setBindingDialogOpen] = useState(false)
   const [subscriptionsDialogOpen, setSubscriptionsDialogOpen] = useState(false)
   const [identityDialogOpen, setIdentityDialogOpen] = useState(false)
+  const [apiKeysDialogOpen, setApiKeysDialogOpen] = useState(false)
   const [switchingAccount, setSwitchingAccount] = useState(false)
 
   const handleImpersonate = async () => {
@@ -287,6 +289,18 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           </DropdownMenuShortcut>
         </DropdownMenuItem>
 
+        <DropdownMenuItem
+          onSelect={(event) => {
+            event.preventDefault()
+            setApiKeysDialogOpen(true)
+          }}
+        >
+          {t('Manage API keys')}
+          <DropdownMenuShortcut>
+            <KeyRound size={16} />
+          </DropdownMenuShortcut>
+        </DropdownMenuItem>
+
         <DropdownMenuSeparator />
 
         <DropdownMenuItem
@@ -373,6 +387,12 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         onOpenChange={setSubscriptionsDialogOpen}
         user={{ id: user.id, username: user.username }}
         onSuccess={triggerRefresh}
+      />
+
+      <UserApiKeysDialog
+        open={apiKeysDialogOpen}
+        onOpenChange={setApiKeysDialogOpen}
+        user={user}
       />
     </div>
   )

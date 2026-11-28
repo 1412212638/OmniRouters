@@ -38,6 +38,10 @@
 
 新版用户管理在已启用的普通用户操作菜单提供「一键登录用户账户」。新标签页打开该用户的完整控制台，同一浏览器内已有站点标签页同步切换。管理员需重新登录才能恢复管理权限，独立浏览器或设备的会话继续有效。后端在同一个数据库事务内创建 15 分钟的用户会话、撤销发起切换的管理员会话并写入安全审计；后续控制台请求记录代登管理员 ID。现有 UserSession 自动迁移新增 `impersonator_id` 列。目标用户状态及角色须保持可代登才可继续使用该会话。2026-11-28 已通过本地 SQLite 路由测试、模拟 Chrome 流程和前端刷新回归测试；MySQL、PostgreSQL 和线上待部署验证。来源：[切换接口](../../controller/user_impersonation.go)、[事务和角色校验](../../model/user_impersonation.go)、[用户管理入口](../../web/default/src/features/users/components/data-table-row-actions.tsx)、[路由测试](../../router/user_impersonation_test.go)。
 
+## 管理员管理用户 API 密钥
+
+新版用户管理操作菜单允许管理员查看目标用户的密钥、创建普通 API 密钥，以及像普通密钥编辑页一样修改名称、分组、Auto 路由、有效期、额度、模型限制、IP 白名单和查询用户额度权限，并启用或停用密钥。列表只显示掩码，前端按每页 100 条读取，覆盖系统允许的完整用户密钥上限。创建成功后完整密钥只返回一次且响应禁止缓存。订阅和活动密钥可查看，不允许通过此界面修改。创建时继承目标用户当前分组并沿用普通密钥的无限额度语义。创建和修改使用高危操作限频，所有写操作记录管理员审计，密钥值不写入审计。编辑校验目标用户当前可用分组和额度边界，非 Auto 分组会清除 Auto 专属配置。更新仍通过 Token.Update 使密钥缓存失效。2026-11-28 已添加 SQLite 控制器回归用例，覆盖完整配置、显式 false、Auto 分组、无效分组、密钥脱敏和跨用户访问。当前环境缺少 Go 工具链，Go 测试未运行；新版前端生产构建及定向 Oxlint 已通过，完整类型检查被既有其他文件错误阻断。格式检查报告仓库中多处既有格式问题，其中包括本功能文件。MySQL、PostgreSQL 和线上验证待完成。来源：[管理员密钥控制器](../../controller/admin_user_token.go)、[用户路由](../../router/api-router.go)、[前端管理弹窗](../../web/default/src/features/users/components/dialogs/user-api-keys-dialog.tsx)、[回归测试](../../controller/admin_user_token_test.go)。
+
 ## 变更记录
 
 源码级变更推送前需记录原因、范围、保留行为、验证、限制及提交和推送状态。来源：[AGENTS.md](../../AGENTS.md)、[上游同步日志](../../docs/upstream-sync-log.md)。

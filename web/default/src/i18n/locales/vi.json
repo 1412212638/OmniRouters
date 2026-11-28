@@ -6337,6 +6337,17 @@
     "Only organization owners and managers can export this bill.": "Chỉ chủ sở hữu và quản trị viên tổ chức có thể xuất bảng kê này.",
     "Select a billing period of up to 12 months.": "Chọn một kỳ thanh toán hợp lệ, tối đa 12 tháng.",
     "Select Simplified Chinese or English.": "Chọn tiếng Trung giản thể hoặc tiếng Anh.",
-    "This export is too large. Select a shorter billing period.": "Tệp xuất quá lớn. Hãy chọn kỳ thanh toán ngắn hơn."
+    "This export is too large. Select a shorter billing period.": "Tệp xuất quá lớn. Hãy chọn kỳ thanh toán ngắn hơn.",
+    "Manage API keys": "Quản lý khóa API",
+    "Manage API keys for {{username}}": "Quản lý khóa API của {{username}}",
+    "New API key. Copy it now.": "Khóa API mới đã được tạo. Hãy sao chép ngay.",
+    "API key name": "Tên khóa API",
+    "API keys": "Khóa API",
+    "API key name is required": "Vui lòng nhập tên khóa API",
+    "API key created": "Đã tạo khóa API",
+    "API key updated": "Đã cập nhật khóa API",
+    "No API keys found": "Không tìm thấy khóa API",
+    "Could not copy API key": "Không thể sao chép khóa API",
+    "Unexpected error": "Đã xảy ra lỗi không mong muốn"
   }
 }
