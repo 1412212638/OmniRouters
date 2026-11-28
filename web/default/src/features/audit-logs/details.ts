@@ -6,6 +6,7 @@ export type AuditDetails = {
   route?: string
   target?: string
   auth_method?: string
+  impersonator_id?: number
   http_status?: number
   outcome?: string
   failure?: string
@@ -39,6 +40,9 @@ export function readAuditDetails(item: AuditLog): AuditDetails {
       'failure',
     ] as const) {
       if (typeof parsed[key] === 'string') result[key] = parsed[key]
+    }
+    if (typeof parsed.impersonator_id === 'number') {
+      result.impersonator_id = parsed.impersonator_id
     }
     if (typeof parsed.http_status === 'number') {
       result.http_status = parsed.http_status
@@ -99,6 +103,7 @@ export const actionLabels: Record<string, string> = {
   'channel.key_view': 'View channel key',
   'user.update': 'Update user',
   'user.create': 'Create user',
+  'user.impersonation.start': 'Sign in as user',
   'user.delete': 'Delete user',
   'token.create': 'Create API key',
   'token.update': 'Update API key',

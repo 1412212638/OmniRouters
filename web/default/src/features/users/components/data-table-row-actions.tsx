@@ -11,6 +11,7 @@ import {
   Link2,
   CreditCard,
   ShieldCheck,
+  ExternalLink,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -20,6 +21,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 import { DataTableRowActionMenu } from '@/components/data-table/core/row-action-menu'
 import { Button } from '@/components/ui/button'
 import {
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
@@ -29,9 +31,22 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { saveUserId } from '@/features/auth/lib/storage'
 import { UserSubscriptionsDialog } from '@/features/subscriptions/components/dialogs/user-subscriptions-dialog'
+import {
+  DASHBOARD_ACCOUNT_SWITCH_KEY,
+  getSelf,
+  setDashboardAccessToken,
+  withDashboardSessionLock,
+} from '@/lib/api'
+import { useAuthStore } from '@/stores/auth-store'
 
-import { manageUser, resetUserPasskey, resetUserTwoFA } from '../api'
+import {
+  manageUser,
+  resetUserPasskey,
+  resetUserTwoFA,
+  impersonateUser,
+} from '../api'
 import {
   USER_STATUS,
   USER_ROLE,
@@ -57,6 +72,47 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const [bindingDialogOpen, setBindingDialogOpen] = useState(false)
   const [subscriptionsDialogOpen, setSubscriptionsDialogOpen] = useState(false)
   const [identityDialogOpen, setIdentityDialogOpen] = useState(false)
+  const [switchingAccount, setSwitchingAccount] = useState(false)
+
+  const handleImpersonate = async () => {
+    const tab = window.open('about:blank', '_blank')
+    if (!tab) {
+      toast.error(t('Allow pop-ups to open the user account.'))
+      return
+    }
+    setSwitchingAccount(true)
+    try {
+      tab.opener = null
+      // Refresh an expired administrator token before locking the account switch.
+      const current = await getSelf()
+      if (!current.success) throw new Error()
+      await withDashboardSessionLock(async () => {
+        const result = await impersonateUser(user.id)
+        if (
+          !result.success ||
+          !result.data?.access_token ||
+          result.data.user?.id !== user.id
+        ) {
+          throw new Error()
+        }
+        const { access_token, user: target } = result.data
+        setDashboardAccessToken(access_token)
+        saveUserId(target.id)
+        useAuthStore.getState().auth.setUser(target)
+        window.localStorage.setItem(
+          DASHBOARD_ACCOUNT_SWITCH_KEY,
+          String(Date.now())
+        )
+      })
+    } catch {
+      tab.close()
+      toast.error(t('Could not sign in as this user.'))
+      setSwitchingAccount(false)
+      return
+    }
+    if (!tab.closed) tab.location.replace('/dashboard')
+    window.location.replace('/dashboard')
+  }
 
   const handleEdit = () => {
     setCurrentRow(user)
@@ -146,6 +202,20 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         ariaLabel={t('Open menu')}
         contentClassName='w-48'
       >
+        {user.role === USER_ROLE.USER &&
+          user.status === USER_STATUS.ENABLED && (
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                onClick={handleImpersonate}
+                disabled={switchingAccount}
+              >
+                {t('Sign in as user')}
+                <DropdownMenuShortcut>
+                  <ExternalLink size={16} aria-hidden />
+                </DropdownMenuShortcut>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          )}
         {isDisabled ? (
           <DropdownMenuItem onClick={() => handleManage('enable')}>
             {t('Enable')}

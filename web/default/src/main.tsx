@@ -10,7 +10,7 @@ import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { toast } from 'sonner'
 
-import { getStatus } from '@/lib/api'
+import { DASHBOARD_ACCOUNT_SWITCH_KEY, getStatus } from '@/lib/api'
 import { installBuildMetadata } from '@/lib/build-metadata'
 import { applyFaviconToDom } from '@/lib/dom-utils'
 import '@/lib/dayjs'
@@ -30,6 +30,13 @@ import './styles/index.css'
 // Ensure VChart theme is initialized before any chart mounts (prevents white default theme flash)
 // VChart theme is driven by our ThemeProvider (html.light/html.dark) via per-chart `theme` prop.
 installBuildMetadata()
+
+// A shared sign-in change requires a fresh router and query cache in other tabs.
+window.addEventListener('storage', (event) => {
+  if (event.key === DASHBOARD_ACCOUNT_SWITCH_KEY && event.newValue) {
+    window.location.replace('/dashboard')
+  }
+})
 
 const queryClient = new QueryClient({
   defaultOptions: {

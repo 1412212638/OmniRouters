@@ -18,6 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { api } from '@/lib/api'
+import type { AuthUser } from '@/stores/auth-store'
 
 import type {
   User,
@@ -87,6 +88,18 @@ export async function searchUsers(
 export async function getUser(id: number): Promise<ApiResponse<User>> {
   const res = await api.get(`/api/user/${id}`)
   return res.data
+}
+
+export async function impersonateUser(id: number) {
+  const response = await api.post<
+    ApiResponse<{ access_token: string; user: AuthUser }>
+  >(`/api/user/${id}/impersonate`, undefined, {
+    skipBusinessError: true,
+    skipErrorHandler: true,
+    skipDashboardRefresh: true,
+    skipOrganizationWorkspace: true,
+  })
+  return response.data
 }
 
 /**

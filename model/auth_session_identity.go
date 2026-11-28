@@ -28,22 +28,28 @@ type AuthFlowAuthorization struct {
 // ValidateAuthSessionWithTx rechecks the authoritative identity while holding the
 // user/session locks until the caller's credential change or flow consumption commits.
 func ValidateAuthSessionWithTx(tx *gorm.DB, identity AuthSessionIdentity) error {
+	_, _, err := ResolveAuthSessionWithTx(tx, identity)
+	return err
+}
+
+// ResolveAuthSessionWithTx returns the locked user and session after validation.
+func ResolveAuthSessionWithTx(tx *gorm.DB, identity AuthSessionIdentity) (*User, *UserSession, error) {
 	if identity.UserID <= 0 || identity.SessionID == "" || identity.UserAuthVersion <= 0 || identity.SessionVersion <= 0 {
-		return ErrUserSessionInactive
+		return nil, nil, ErrUserSessionInactive
 	}
 	var user User
 	if err := lockForUpdate(tx).First(&user, identity.UserID).Error; err != nil {
-		return err
+		return nil, nil, err
 	}
 	if user.Status != common.UserStatusEnabled || user.AuthVersion != identity.UserAuthVersion {
-		return ErrUserSessionInactive
+		return nil, nil, ErrUserSessionInactive
 	}
 	var session UserSession
 	if err := lockForUpdate(tx).Where("sid = ? AND user_id = ?", identity.SessionID, identity.UserID).First(&session).Error; err != nil {
-		return err
+		return nil, nil, err
 	}
-	if session.Status != UserSessionStatusActive || session.RevokedAt != 0 || session.ExpiresAt <= time.Now().Unix() || session.UserAuthVersion != identity.UserAuthVersion || session.Version != identity.SessionVersion {
-		return ErrUserSessionInactive
+	if session.Status != UserSessionStatusActive || session.RevokedAt != 0 || session.ExpiresAt <= time.Now().Unix() || session.UserAuthVersion != identity.UserAuthVersion || session.Version != identity.SessionVersion || !session.AllowsRole(user.Role) {
+		return nil, nil, ErrUserSessionInactive
 	}
-	return nil
+	return &user, &session, nil
 }

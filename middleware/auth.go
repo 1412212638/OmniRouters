@@ -75,12 +75,12 @@ func authHelper(c *gin.Context, minRole int) {
 				writeDashboardAuthFailure(c, tokenErr)
 				return
 			}
-			var user model.User
+			var user *model.User
+			var loginSession *model.UserSession
 			authErr := model.DB.Transaction(func(tx *gorm.DB) error {
-				if err := model.ValidateAuthSessionWithTx(tx, identity); err != nil {
-					return err
-				}
-				return tx.First(&user, identity.UserID).Error
+				var err error
+				user, loginSession, err = model.ResolveAuthSessionWithTx(tx, identity)
+				return err
 			})
 			if authErr != nil {
 				writeDashboardAuthFailure(c, authErr)
@@ -93,6 +93,9 @@ func authHelper(c *gin.Context, minRole int) {
 			username, role, id, status = user.Username, user.Role, user.Id, user.Status
 			userGroup = user.Group
 			c.Set("auth_identity", identity)
+			if loginSession.ImpersonatorID > 0 {
+				c.Set("audit_impersonator_id", loginSession.ImpersonatorID)
+			}
 			useAccessToken = true
 		} else {
 			user, authErr := model.ValidateAccessToken(accessToken)

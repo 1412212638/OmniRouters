@@ -34,6 +34,10 @@
 
 新版个人资料按站点当前余额单位显示和编辑预警阈值，保存时转换回 `quota_warning_threshold` 内部配额。用户只修改其他偏好时保留已有阈值精度。结算后低于预警阈值的请求可以再次触发提醒。个人钱包和订阅预警使用同一通知事件限频，余额与订阅额度预警默认按用户在首次发送尝试起 24 小时内允许 1 次。其他通知类型默认 10 分钟内允许 2 次。`NOTIFY_LIMIT_COUNT` 和 `NOTIFICATION_LIMIT_DURATION_MINUTE` 仍可覆盖默认值。Redis 跨节点共享限频，内存模式按进程计数。2026-11-28 已核对模拟前端、并发限频、窗口到期和启动默认配置，线上配置待核验。来源：[个人预警设置](../../web/default/src/features/profile/components/tabs/notification-tab.tsx)、[结算预警](../../service/quota.go)、[限频实现](../../service/notify-limit.go)、[默认配置](../../common/init.go)。
 
+## 管理员一键登录用户账户
+
+新版用户管理在已启用的普通用户操作菜单提供「一键登录用户账户」。新标签页打开该用户的完整控制台，同一浏览器内已有站点标签页同步切换。管理员需重新登录才能恢复管理权限，独立浏览器或设备的会话继续有效。后端在同一个数据库事务内创建 15 分钟的用户会话、撤销发起切换的管理员会话并写入安全审计；后续控制台请求记录代登管理员 ID。现有 UserSession 自动迁移新增 `impersonator_id` 列。目标用户状态及角色须保持可代登才可继续使用该会话。2026-11-28 已通过本地 SQLite 路由测试、模拟 Chrome 流程和前端刷新回归测试；MySQL、PostgreSQL 和线上待部署验证。来源：[切换接口](../../controller/user_impersonation.go)、[事务和角色校验](../../model/user_impersonation.go)、[用户管理入口](../../web/default/src/features/users/components/data-table-row-actions.tsx)、[路由测试](../../router/user_impersonation_test.go)。
+
 ## 变更记录
 
 源码级变更推送前需记录原因、范围、保留行为、验证、限制及提交和推送状态。来源：[AGENTS.md](../../AGENTS.md)、[上游同步日志](../../docs/upstream-sync-log.md)。

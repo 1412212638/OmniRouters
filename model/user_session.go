@@ -49,6 +49,7 @@ type UserSession struct {
 	PreviousRefreshHash string `json:"-" gorm:"type:varchar(64)"`
 	PreviousValidUntil  int64  `json:"-" gorm:"type:bigint;not null;default:0"`
 	LoginMethod         string `json:"login_method" gorm:"type:varchar(32);not null"`
+	ImpersonatorID      int    `json:"-" gorm:"column:impersonator_id;not null;default:0"`
 	IP                  string `json:"ip" gorm:"type:varchar(64)"`
 	UserAgent           string `json:"user_agent" gorm:"type:text"`
 	CreatedAt           int64  `json:"created_at" gorm:"autoCreateTime;column:created_at;index:idx_user_sessions_user_created,priority:2"`
@@ -176,7 +177,29 @@ func CreateUserSession(session *UserSession) error {
 	return nil
 }
 
+func CheckUserSessionLimits(tx *gorm.DB, userID int, now int64) error {
+	activeCount, err := countActiveUserSessions(tx, userID, now)
+	if err != nil {
+		return err
+	}
+	if activeCount >= int64(common.UserSessionActiveLimit) {
+		return ErrUserSessionLimit
+	}
+	issuanceCount, err := countUserSessionsCreatedSince(tx, userID, now-common.UserSessionIssuanceWindowSeconds)
+	if err != nil {
+		return err
+	}
+	if issuanceCount >= int64(common.UserSessionIssuanceLimit) {
+		return ErrUserSessionIssuanceLimit
+	}
+	return nil
+}
+
 func CountActiveUserSessions(userID int, now int64) (int64, error) {
+	return countActiveUserSessions(DB, userID, now)
+}
+
+func countActiveUserSessions(tx *gorm.DB, userID int, now int64) (int64, error) {
 	if userID <= 0 {
 		return 0, ErrUserSessionInvalid
 	}
@@ -184,7 +207,7 @@ func CountActiveUserSessions(userID int, now int64) (int64, error) {
 		now = time.Now().Unix()
 	}
 	var count int64
-	err := DB.Model(&UserSession{}).
+	err := tx.Model(&UserSession{}).
 		Where("user_id = ? AND status = ? AND expires_at > ?", userID, UserSessionStatusActive, now).
 		Count(&count).Error
 	return count, err
@@ -193,10 +216,14 @@ func CountActiveUserSessions(userID int, now int64) (int64, error) {
 // CountUserSessionsCreatedSince counts every issued row, regardless of its
 // current status or expiry. userID zero selects the global count.
 func CountUserSessionsCreatedSince(userID int, createdAfter int64) (int64, error) {
+	return countUserSessionsCreatedSince(DB, userID, createdAfter)
+}
+
+func countUserSessionsCreatedSince(tx *gorm.DB, userID int, createdAfter int64) (int64, error) {
 	if userID < 0 || createdAfter <= 0 {
 		return 0, ErrUserSessionInvalid
 	}
-	query := DB.Model(&UserSession{}).Where("created_at > ?", createdAfter)
+	query := tx.Model(&UserSession{}).Where("created_at > ?", createdAfter)
 	if userID > 0 {
 		query = query.Where("user_id = ?", userID)
 	}

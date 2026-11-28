@@ -438,6 +438,11 @@ export function AuditLogs() {
                         } as Record<string, string>
                       )[selected.category] || 'Unknown'
                     ),
+                    ...(details.impersonator_id
+                      ? {
+                          'Acting administrator': `#${details.impersonator_id}`,
+                        }
+                      : {}),
                     Target: details.target || '-',
                     Status: resultName(selected),
                     IP: selected.ip || '-',

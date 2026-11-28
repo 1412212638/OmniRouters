@@ -72,50 +72,47 @@ func createLoginSession(userID int, expectedAuthVersion int64, loginMethod, ip, 
 		return nil, ErrLoginSessionRevoked
 	}
 	now := time.Now().Unix()
-	activeCount, err := model.CountActiveUserSessions(userID, now)
+	if err := model.CheckUserSessionLimits(model.DB, userID, now); err != nil {
+		return nil, err
+	}
+	session, refreshToken, err := newLoginSession(userID, loginMethod, ip, userAgent, now, LoginSessionTTL)
 	if err != nil {
 		return nil, err
 	}
-	if activeCount >= int64(common.UserSessionActiveLimit) {
-		return nil, model.ErrUserSessionLimit
-	}
-	issuanceCount, err := model.CountUserSessionsCreatedSince(userID, now-common.UserSessionIssuanceWindowSeconds)
-	if err != nil {
-		return nil, err
-	}
-	if issuanceCount >= int64(common.UserSessionIssuanceLimit) {
-		return nil, model.ErrUserSessionIssuanceLimit
-	}
-	refreshSecret, err := common.GenerateRandomCharsKey(64)
-	if err != nil {
-		return nil, err
-	}
-	session := &model.UserSession{
-		SID:             uuid.NewString(),
-		UserID:          userID,
-		Version:         1,
-		UserAuthVersion: user.AuthVersion,
-		Status:          model.UserSessionStatusActive,
-		RefreshHash:     hashRefreshSecret(refreshSecret),
-		LoginMethod:     strings.TrimSpace(loginMethod),
-		IP:              truncateAuthMetadata(ip, 64),
-		UserAgent:       truncateAuthMetadata(userAgent, 512),
-		CreatedAt:       now,
-		LastActiveAt:    now,
-		ExpiresAt:       time.Unix(now, 0).Add(LoginSessionTTL).Unix(),
-	}
-	if session.LoginMethod == "" {
-		session.LoginMethod = "unknown"
-	}
+	session.UserAuthVersion = user.AuthVersion
 	if err := model.CreateUserSession(session); err != nil {
 		return nil, err
 	}
-	bundle, err := issueAuthBundle(session, session.SID+"."+refreshSecret, true)
+	bundle, err := issueAuthBundle(session, refreshToken, true)
 	if err != nil {
 		_, _ = model.RevokeUserSession(userID, session.SID, "token_issue_failed")
 		return nil, err
 	}
 	return bundle, nil
+}
+
+func newLoginSession(userID int, loginMethod, ip, userAgent string, now int64, ttl time.Duration) (*model.UserSession, string, error) {
+	refreshSecret, err := common.GenerateRandomCharsKey(64)
+	if err != nil {
+		return nil, "", err
+	}
+	session := &model.UserSession{
+		SID:          uuid.NewString(),
+		UserID:       userID,
+		Version:      1,
+		Status:       model.UserSessionStatusActive,
+		RefreshHash:  hashRefreshSecret(refreshSecret),
+		LoginMethod:  strings.TrimSpace(loginMethod),
+		IP:           truncateAuthMetadata(ip, 64),
+		UserAgent:    truncateAuthMetadata(userAgent, 512),
+		CreatedAt:    now,
+		LastActiveAt: now,
+		ExpiresAt:    time.Unix(now, 0).Add(ttl).Unix(),
+	}
+	if session.LoginMethod == "" {
+		session.LoginMethod = "unknown"
+	}
+	return session, session.SID + "." + refreshSecret, nil
 }
 
 func ValidateLoginSession(identity AuthIdentity) (*model.UserSession, *model.UserBase, error) {
@@ -134,7 +131,7 @@ func ValidateLoginSession(identity AuthIdentity) (*model.UserSession, *model.Use
 	if err != nil {
 		return nil, nil, err
 	}
-	if user.Status != common.UserStatusEnabled || user.AuthVersion != identity.UserAuthVersion {
+	if user.Status != common.UserStatusEnabled || user.AuthVersion != identity.UserAuthVersion || !session.AllowsRole(user.Role) {
 		return nil, nil, ErrLoginSessionRevoked
 	}
 	return session, user, nil
@@ -232,7 +229,7 @@ func RefreshLoginSession(rawRefreshToken, expectedSID, ip, userAgent string) (*A
 		return nil, nil, err
 	}
 	if userCache.Status != common.UserStatusEnabled || userCache.AuthVersion != session.UserAuthVersion ||
-		currentUser.Status != common.UserStatusEnabled || currentUser.AuthVersion != session.UserAuthVersion {
+		currentUser.Status != common.UserStatusEnabled || currentUser.AuthVersion != session.UserAuthVersion || !session.AllowsRole(currentUser.Role) {
 		_, _ = model.RevokeUserSession(session.UserID, session.SID, "user_security_changed")
 		return nil, nil, ErrLoginSessionRevoked
 	}
@@ -449,7 +446,7 @@ func authSessionErrorCode(err error) (int, string) {
 		return http.StatusConflict, "AUTH_REFRESH_RACE"
 	case errors.Is(err, ErrAuthTokenExpired):
 		return http.StatusUnauthorized, "AUTH_TOKEN_EXPIRED"
-	case errors.Is(err, ErrLoginSessionRevoked):
+	case errors.Is(err, ErrLoginSessionRevoked), errors.Is(err, model.ErrUserSessionInactive):
 		return http.StatusUnauthorized, "AUTH_SESSION_REVOKED"
 	case errors.Is(err, ErrRefreshTokenInvalid), errors.Is(err, ErrAuthTokenInvalid):
 		return http.StatusUnauthorized, "AUTH_UNAUTHORIZED"

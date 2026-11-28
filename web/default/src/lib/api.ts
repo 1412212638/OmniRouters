@@ -1,4 +1,4 @@
-import axios, { type AxiosRequestConfig } from 'axios'
+import axios, { CanceledError, type AxiosRequestConfig } from 'axios'
 import { t } from 'i18next'
 import { toast } from 'sonner'
 
@@ -9,6 +9,7 @@ declare module 'axios' {
   export interface AxiosRequestConfig {
     skipBusinessError?: boolean
     skipErrorHandler?: boolean
+    skipDashboardRefresh?: boolean
     disableDuplicate?: boolean
     skipOrganizationWorkspace?: boolean
   }
@@ -24,6 +25,15 @@ export type ApiRequestConfig = AxiosRequestConfig
 const baseURL = ''
 
 const accessTokenKey = 'dashboard_access_token'
+export const DASHBOARD_ACCOUNT_SWITCH_KEY = 'dashboard_account_switch'
+
+// Refresh and account switches both update the browser's shared session cookie.
+export function withDashboardSessionLock<T>(action: () => Promise<T>) {
+  if (typeof navigator !== 'undefined' && navigator.locks) {
+    return navigator.locks.request('dashboard-session-cookie', action)
+  }
+  return action()
+}
 
 export function setDashboardAccessToken(token?: string) {
   refreshRetryAt = 0
@@ -59,24 +69,37 @@ let refreshFailure: unknown
 function refreshDashboardToken(): Promise<string> {
   if (refreshPromise) return refreshPromise
   if (Date.now() < refreshRetryAt) return Promise.reject(refreshFailure)
-  refreshPromise = axios
-    .post('/api/user/auth/refresh', undefined, {
+  const originalUserId = getUserId()
+  refreshPromise = withDashboardSessionLock(async () => {
+    if (originalUserId !== getUserId()) {
+      throw new CanceledError('Dashboard account changed')
+    }
+    const response = await axios.post('/api/user/auth/refresh', undefined, {
       withCredentials: true,
       headers: { 'Cache-Control': 'no-store' },
     })
-    .then((response) => {
-      const token = response.data?.data?.access_token
-      if (typeof token !== 'string' || token.length === 0) {
-        throw new Error(t('Request failed'))
-      }
-      setDashboardAccessToken(token)
-      const userId = response.data?.data?.user?.id
-      if (userId != null && typeof window !== 'undefined') {
-        window.localStorage.setItem('uid', String(userId))
-      }
-      return token
-    })
+    const token = response.data?.data?.access_token
+    if (typeof token !== 'string' || token.length === 0) {
+      throw new Error(t('Request failed'))
+    }
+    const userId = response.data?.data?.user?.id
+    if (
+      originalUserId !== getUserId() ||
+      (originalUserId !== null && String(userId) !== originalUserId)
+    ) {
+      throw new CanceledError('Dashboard account changed')
+    }
+    setDashboardAccessToken(token)
+    if (userId != null && typeof window !== 'undefined') {
+      window.localStorage.setItem('uid', String(userId))
+    }
+    return token
+  })
     .catch((error: unknown) => {
+      if (originalUserId !== getUserId()) {
+        throw new CanceledError('Dashboard account changed')
+      }
+      if (axios.isCancel(error)) throw error
       // Throttling, refresh races and outages do not invalidate the session.
       // Share a cooldown across requests instead of repeatedly refreshing.
       if (!axios.isAxiosError(error) || error.response?.status !== 401) {
@@ -137,6 +160,10 @@ api.get = ((url: string, config: ApiRequestConfig = {}) => {
 // Handle business logic errors and HTTP errors globally
 api.interceptors.response.use(
   (response) => {
+    const requestUserId = response.config.headers.get('New-Api-User')
+    if (requestUserId && requestUserId !== getUserId()) {
+      throw new CanceledError('Dashboard account changed')
+    }
     const skipBusiness = response.config.skipBusinessError
 
     // Unified business response format: { success, message, data }
@@ -163,6 +190,13 @@ api.interceptors.response.use(
           _dashboardRefreshRetried?: boolean
         })
       | undefined
+    const requestUserId = request?.headers?.['New-Api-User']
+    if (requestUserId && requestUserId !== getUserId()) {
+      return Promise.reject(new CanceledError('Dashboard account changed'))
+    }
+    if (status === 401 && request?.skipDashboardRefresh) {
+      return Promise.reject(error)
+    }
     const requestURL = request?.url ?? ''
     const canRefresh =
       status === 401 &&
@@ -181,6 +215,7 @@ api.interceptors.response.use(
           return api.request(request)
         },
         (refreshError: unknown) => {
+          if (axios.isCancel(refreshError)) throw refreshError
           if (
             axios.isAxiosError(refreshError) &&
             refreshError.response?.status === 401
@@ -278,6 +313,10 @@ export function getCommonHeaders(): Record<string, string> {
 // Attach user ID header for all requests
 api.interceptors.request.use((config) => {
   const uid = getUserId()
+  const originalUserId = config.headers.get('New-Api-User')
+  if (originalUserId && originalUserId !== uid) {
+    throw new CanceledError('Dashboard account changed')
+  }
   if (uid) {
     // Custom header for user identification
     ;(config.headers as Record<string, string>)['New-Api-User'] = uid

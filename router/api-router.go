@@ -181,6 +181,7 @@ func SetApiRouter(router *gin.Engine) {
 				adminRoute.DELETE("/:id/bindings/:binding_type", controller.AdminClearUserBinding)
 				adminRoute.GET("/:id", controller.GetUser)
 				adminRoute.GET("/:id/wallet/funding", controller.GetUserWalletFunding)
+				adminRoute.POST("/:id/impersonate", middleware.SessionCookieOriginGuard(), middleware.DisableCache(), middleware.ScopedCriticalRateLimit("user-impersonation"), controller.ImpersonateUser)
 				adminRoute.GET("/:id/identity-verification", controller.GetIdentityVerificationByAdmin)
 				adminRoute.POST("/:id/identity-verification/view", controller.ViewIdentityVerificationByAdmin)
 				adminRoute.POST("/:id/identity-verification/reset", controller.ResetIdentityVerificationByAdmin)

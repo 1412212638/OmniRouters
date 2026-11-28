@@ -1,5 +1,13 @@
 # Upstream Sync Log
 
+## 2026-11-28 - Open the user dashboard from administrator user actions
+
+- The default user management menu offers one-click sign-in for enabled ordinary accounts. A successful switch opens the full user dashboard in a new tab and changes the shared sign-in in existing tabs. The initiating administrator session is revoked. Independent sessions on other browsers or devices stay valid.
+- The browser-only administrator endpoint commits the 15-minute user session, administrator session revocation, and security audit entry in one database transaction. Later dashboard request audit entries retain the acting administrator ID. The current user role is checked before granting access or rotating the impersonation session. The existing UserSession migration adds the impersonator ID column. Ordinary account sign-in and existing API token authentication continue to use their established paths.
+- The frontend serializes automatic refresh and account switching when the browser offers Web Locks. Responses for the prior user are discarded when the shared user ID changes. The switch leaves the current page in place if the browser blocks the new tab or the API rejects the request.
+- The Gin/SQLite route tests, default frontend production build, targeted lint, 12 frontend refresh tests, and Chrome checks with mock API responses passed. The frontend-wide type check still reports 28 diagnostics outside the touched code. Broader Go testing reported failures in a SQLite auth fixture, a CORS assertion and public SEO tests. MySQL, PostgreSQL and production browser behavior are pending verification.
+- Source status is local, uncommitted, and unpushed.
+
 ## 2026-11-28 - Group model pricing rules by billing group
 
 - Long rule lists made models difficult to locate on the default Group Pricing page. The visual editor now shows collapsed billing groups with their rule counts. Model-name search ignores case and surrounding whitespace, displays and opens matching groups, and counts only matching rows. Each group has 15 rows per page, sorted by model name, with independent paging.

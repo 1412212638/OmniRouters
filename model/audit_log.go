@@ -61,12 +61,16 @@ func AccessTokenFingerprint(token string) string {
 }
 
 func RecordAuditLog(entry *AuditLog) error {
+	return recordAuditLogWithTx(DB, entry)
+}
+
+func recordAuditLogWithTx(tx *gorm.DB, entry *AuditLog) error {
 	if entry == nil || entry.UserId < 0 || (entry.UserId == 0 && entry.Category != AuditCategorySecurity) || entry.Category == "" || entry.Action == "" {
 		return fmt.Errorf("invalid audit log")
 	}
 	if entry.CreatedAt == 0 { entry.CreatedAt = common.GetTimestamp() }
 	if entry.EventId == "" { entry.EventId = common.NewRequestId() }
-	return DB.Create(entry).Error
+	return tx.Create(entry).Error
 }
 
 func RevokeUserAccessToken(userId int) error {

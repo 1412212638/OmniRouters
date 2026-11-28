@@ -29,6 +29,7 @@ function httpError(status: number, config: InternalAxiosRequestConfig) {
 
 beforeEach(() => {
   refreshCalls = 0
+  domWindow.localStorage.setItem('uid', String(user.id))
   useAuthStore.getState().auth.setUser(user)
   setDashboardAccessToken('expired-token')
   api.defaults.adapter = async (config) => {
@@ -147,6 +148,39 @@ test('successful refresh is shared by concurrent requests and retries with the n
     'new-token'
   )
 })
+
+for (const refreshStatus of [200, 401]) {
+  test(`refresh ${refreshStatus} from a previous account preserves the new login`, async () => {
+    const target = { id: 23, username: 'target', role: 1 }
+    let apiCalls = 0
+    api.defaults.adapter = async (config) => {
+      apiCalls++
+      throw httpError(401, config)
+    }
+    axios.defaults.adapter = async (config) => {
+      domWindow.localStorage.setItem('uid', String(target.id))
+      useAuthStore.getState().auth.setUser(target)
+      setDashboardAccessToken('target-token')
+      if (refreshStatus === 401) throw httpError(401, config)
+      return {
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config,
+        data: { success: true, data: { access_token: 'old-token', user } },
+      }
+    }
+
+    await assert.rejects(api.get('/api/user/self'), axios.isCancel)
+    assert.equal(apiCalls, 1)
+    assert.equal(useAuthStore.getState().auth.user?.id, target.id)
+    assert.equal(domWindow.localStorage.getItem('uid'), String(target.id))
+    assert.equal(
+      domWindow.localStorage.getItem('dashboard_access_token'),
+      'target-token'
+    )
+  })
+}
 
 test('common headers include the dashboard token for streaming requests', () => {
   domWindow.localStorage.setItem('uid', '7')

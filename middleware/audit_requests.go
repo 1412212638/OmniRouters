@@ -75,6 +75,9 @@ func AuditRequests() gin.HandlerFunc {
 		details := model.AuditDetails{Version: 1, Method: c.Request.Method, Route: route, Target: target, AuthMethod: method, HTTPStatus: writer.Status(), Outcome: outcome, Failure: failure}
 		if value, ok := c.Get("audit_changes"); ok { details.Changes, _ = value.(map[string]model.AuditChange) }
 		if value, ok := c.Get("audit_label_params"); ok { details.Params, _ = value.(map[string]interface{}) }
+		if actorID := c.GetInt("audit_impersonator_id"); actorID > 0 {
+			details.ImpersonatorID = actorID
+		}
 		encoded, err := common.Marshal(details)
 		if err != nil { common.SysError("encode audit metadata: "+err.Error()); return }
 		if len(encoded) > 64 * 1024 {

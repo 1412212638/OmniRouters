@@ -8,6 +8,7 @@ type AuditDetails struct {
 	Route string `json:"route,omitempty"`
 	Target string `json:"target,omitempty"`
 	AuthMethod string `json:"auth_method,omitempty"`
+	ImpersonatorID int `json:"impersonator_id,omitempty"`
 	HTTPStatus int `json:"http_status,omitempty"`
 	Outcome string `json:"outcome,omitempty"`
 	Failure string `json:"failure,omitempty"`
